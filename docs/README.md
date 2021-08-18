@@ -24,11 +24,11 @@ TFX allows the parameterisation of Pipelines in most lifecycle stages:
 
 | Parameter type | Description | Example |
 | --- | --- | --- |
-| Development parameters | Code constants | ANN layer size |
-| Compile time parameter | Parameters that are unlikely to change between pipeline runs supplied as environment variabels to the pipeline function | Bigquery dataset |
+| Named Constants | Code constants | ANN layer size |
+| Compile-time parameter | Parameters that are unlikely to change between pipeline runs supplied as environment variabels to the pipeline function | Bigquery dataset |
 | Runtime parameter | Parameters exposed as TFX [RuntimeParameter](https://www.tensorflow.org/tfx/api_docs/python/tfx/v1/dsl/experimental/RuntimeParameter?hl=en) which can be overridden at runtime allow simplified experimentation without having to recompile the pipeline | Number of training runs |
 
-The pipeline operator supports the application of compile time and runtime parameters through its custom resources. We strongly encourage the usage of both of these parameter types to speed up development and experimentation lifecycles.
+The pipeline operator supports the application of compile time and runtime parameters through its custom resources. We strongly encourage the usage of both of these parameter types to speed up development and experimentation lifecycles. Note that Runtime parameters can initialised to default values from both constants and compile-time parameters
 
 ## Operator Resources
 
