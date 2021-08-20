@@ -1,4 +1,4 @@
-domain: my.domain
+domain: kubeflow.org
 layout:
 - go.kubebuilder.io/v3
 projectName: project
@@ -8,8 +8,8 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: my.domain
-  group: pipelines.kubeflow.org
+  domain: kubeflow.org
+  group: pipelines
   kind: Pipeline
   path: github.com/sky-uk/kfp-operator/api/v1
   version: v1

@@ -31,9 +31,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	pipelineskubefloworgv1 "github.com/sky-uk/kfp-operator/api/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
 	"github.com/sky-uk/kfp-operator/controllers"
 	//+kubebuilder:scaffold:imports
+
+	"github.com/sky-uk/kfp-operator/external"
 )
 
 var (
@@ -44,8 +46,10 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(pipelineskubefloworgv1.AddToScheme(scheme))
+	utilruntime.Must(pipelinesv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
+
+	utilruntime.Must(external.InitSchemes(scheme))
 }
 
 func main() {
@@ -71,7 +75,7 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "54cbc3c5.my.domain",
+		LeaderElectionID:       "54cbc3c5.kubeflow.org",
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
