@@ -12,99 +12,145 @@ import (
 	// +kubebuilder:scaffold:imports
 )
 
-var _ = Describe("Pipeline controller", func() {
-	ctx := context.Background()
+const (
+	PipelineNamespace = "default"
+)
 
-	const (
-		PipelineName      = "my-pipeline"
-		PipelineNamespace = "default"
-		WorkflowName      = "create-pipeline-" + PipelineName
+type TestContext struct {
+	context.Context
+	Pipeline          pipelinesv1.Pipeline
+	PipelineLookupKey types.NamespacedName
+	WorkflowLookupKey types.NamespacedName
+}
 
-		PipelineId = "12345"
-	)
-
-	var (
-		pipelineLookupKey = types.NamespacedName{Name: PipelineName, Namespace: PipelineNamespace}
-		workflowLookupKey = types.NamespacedName{Name: WorkflowName, Namespace: PipelineNamespace}
-	)
-
-	var pipeline = func() *pipelinesv1.Pipeline {
-		return &pipelinesv1.Pipeline{
+func NewTestContext(pipelineName string) TestContext {
+	return TestContext{
+		Pipeline: pipelinesv1.Pipeline{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      PipelineName,
+				Name:      pipelineName,
 				Namespace: PipelineNamespace,
 			},
-			Spec: pipelinesv1.PipelineSpec{},
-		}
-	}
-
-	var setWorkflowOutput = func(workflow *argo.Workflow, output string) {
-		result := argo.AnyString(output)
-		nodes := make(map[string]argo.NodeStatus)
-		nodes[workflow.ObjectMeta.Name] = argo.NodeStatus{
-			Outputs: &argo.Outputs{
-				Parameters: []argo.Parameter{
-					argo.Parameter{
-						Value: &result,
-					},
+			Spec: pipelinesv1.PipelineSpec{
+				Image:         "image",
+				TfxComponents: "pipeline.create_components",
+				Env: map[string]string{
+					"a": "aVal",
+					"b": "bVal",
 				},
 			},
-		}
+		},
+		PipelineLookupKey: types.NamespacedName{Name: pipelineName, Namespace: PipelineNamespace},
+		WorkflowLookupKey: types.NamespacedName{Name: "create-pipeline-" + pipelineName, Namespace: PipelineNamespace},
+	}
+}
 
-		workflow.Status.Nodes = nodes
+func setWorkflowOutput(workflow *argo.Workflow, output string) {
+	result := argo.AnyString(output)
+	nodes := make(map[string]argo.NodeStatus)
+	nodes[workflow.ObjectMeta.Name] = argo.NodeStatus{
+		Outputs: &argo.Outputs{
+			Parameters: []argo.Parameter{
+				argo.Parameter{
+					Value: &result,
+				},
+			},
+		},
 	}
 
-	var pipelineToMatch = func(matcher func(Gomega, *pipelinesv1.Pipeline)) func(Gomega) {
-		return func(g Gomega) {
-			pipeline := &pipelinesv1.Pipeline{}
-			g.Expect(k8sClient.Get(ctx, pipelineLookupKey, pipeline)).To(Succeed())
+	workflow.Status.Nodes = nodes
+}
 
-			matcher(g, pipeline)
-		}
+func (ct TestContext) pipelineToMatch(matcher func(Gomega, *pipelinesv1.Pipeline)) func(Gomega) {
+	return func(g Gomega) {
+		pipeline := &pipelinesv1.Pipeline{}
+		g.Expect(k8sClient.Get(ctx, ct.PipelineLookupKey, pipeline)).To(Succeed())
+
+		matcher(g, pipeline)
 	}
+}
 
-	var workflowToMatch = func(matcher func(Gomega, *argo.Workflow)) func(Gomega) {
-		return func(g Gomega) {
-			workflow := &argo.Workflow{}
-			g.Expect(k8sClient.Get(ctx, workflowLookupKey, workflow)).To(Succeed())
-
-			matcher(g, workflow)
-		}
-	}
-
-	var updateWorkflow = func(updateFunc func(*argo.Workflow)) error {
+func (ct TestContext) workflowToMatch(matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+	return func(g Gomega) {
 		workflow := &argo.Workflow{}
+		g.Expect(k8sClient.Get(ctx, ct.WorkflowLookupKey, workflow)).To(Succeed())
 
-		if err := k8sClient.Get(ctx, workflowLookupKey, workflow); err != nil {
-			return err
-		}
+		matcher(g, workflow)
+	}
+}
 
-		updateFunc(workflow)
+func (ct TestContext) updateWorkflow(updateFunc func(*argo.Workflow)) error {
+	workflow := &argo.Workflow{}
 
-		return k8sClient.Update(ctx, workflow)
+	if err := k8sClient.Get(ctx, ct.WorkflowLookupKey, workflow); err != nil {
+		return err
 	}
 
-	When("Creation of a pipeline resource succeeds", func() {
-		It("updates the SynchronizationStatus and Id", func() {
-			Expect(k8sClient.Create(ctx, pipeline())).Should(Succeed())
+	updateFunc(workflow)
 
-			Eventually(pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+	return k8sClient.Update(ctx, workflow)
+}
+
+var _ = Describe("Pipeline controller", func() {
+	var mapParams = func(params []argo.Parameter) map[string]string {
+		m := make(map[string]string)
+		for i := range params {
+			m[params[i].Name] = string(*params[i].Value)
+		}
+
+		return m
+	}
+
+	When("Creation of a pipeline succeeds", func() {
+		ct := NewTestContext("succeeding-pipeline")
+		pipelineId := "12345"
+
+		It("updates the SynchronizationStatus and Id", func() {
+			Expect(k8sClient.Create(ctx, &ct.Pipeline)).Should(Succeed())
+
+			Eventually(ct.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
 
-			Eventually(workflowToMatch(func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.ObjectMeta.Name).To(Equal(WorkflowName))
-				//TODO implement workflow input check
+			Eventually(ct.workflowToMatch(func(g Gomega, workflow *argo.Workflow) {
+				params := mapParams(workflow.Spec.Arguments.Parameters)
+
+				g.Expect(params["image"]).To(Equal(ct.Pipeline.Spec.Image))
+				g.Expect(params["tfxComponents"]).To(Equal(ct.Pipeline.Spec.TfxComponents))
+				g.Expect(params["env"]).To(Equal("a=aVal,b=bVal"))
 			})).Should(Succeed())
 
-			Expect(updateWorkflow(func(workflow *argo.Workflow) {
+			Expect(ct.updateWorkflow(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutput(workflow, PipelineId)
+				setWorkflowOutput(workflow, pipelineId)
 			})).To(Succeed())
 
-			Eventually(pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			Eventually(ct.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
-				g.Expect(pipeline.Status.Id).To(Equal(PipelineId))
+				g.Expect(pipeline.Status.Id).To(Equal(pipelineId))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Creation of a pipeline fails", func() {
+		ct := NewTestContext("failing-pipeline")
+
+		It("updates the SynchronizationStatus to failed", func() {
+			Expect(k8sClient.Create(ctx, &ct.Pipeline)).Should(Succeed())
+
+			Eventually(ct.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
+			})).Should(Succeed())
+
+			Eventually(ct.workflowToMatch(func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow).NotTo(Equal(nil))
+			})).Should(Succeed())
+
+			Expect(ct.updateWorkflow(func(workflow *argo.Workflow) {
+				workflow.Status.Phase = argo.WorkflowFailed
+			})).To(Succeed())
+
+			Eventually(ct.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Failed))
 			})).Should(Succeed())
 		})
 	})

@@ -33,6 +33,18 @@ spec:
           metadata:
             type: object
           spec:
+            properties:
+              env:
+                additionalProperties:
+                  type: string
+                type: object
+              image:
+                type: string
+              tfxComponents:
+                type: string
+            required:
+            - image
+            - tfxComponents
             type: object
           status:
             properties:

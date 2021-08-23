@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
@@ -26,6 +27,7 @@ import (
 
 var cfg *rest.Config
 var k8sClient client.Client
+var ctx context.Context
 var testEnv *envtest.Environment
 
 func TestAPIs(t *testing.T) {
@@ -67,6 +69,8 @@ var _ = BeforeSuite(func() {
 		Scheme: scheme.Scheme,
 	})
 	Expect(err).ToNot(HaveOccurred())
+
+	ctx = context.Background()
 
 	Expect((&PipelineReconciler{
 		Client: k8sManager.GetClient(),

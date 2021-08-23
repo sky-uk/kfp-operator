@@ -38,12 +38,12 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	switch pipeline.Status.SynchronizationState {
 	case pipelinesv1.Creating:
-		if err := r.onCreationWorkflowSucceeded(ctx, pipeline); err != nil {
+		if err := r.onCreating(ctx, pipeline); err != nil {
 			logger.Error(err, "unable to create pipeline on Kubeflow")
 			return ctrl.Result{}, err
 		}
 	case pipelinesv1.Unknown:
-		if err := r.onCreation(ctx, pipeline); err != nil {
+		if err := r.onUnknown(ctx, pipeline); err != nil {
 			logger.Error(err, "unable to create pipeline on Kubeflow")
 			return ctrl.Result{}, err
 		}
@@ -52,7 +52,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{}, nil
 }
 
-func (r *PipelineReconciler) onCreation(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+func (r *PipelineReconciler) onUnknown(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
 	workflow := constructUploadWorkflow(&pipeline)
 
 	if err := ctrl.SetControllerReference(&pipeline, workflow, r.Scheme); err != nil {
@@ -72,7 +72,7 @@ func (r *PipelineReconciler) onCreation(ctx context.Context, pipeline pipelinesv
 	return nil
 }
 
-func (r *PipelineReconciler) onCreationWorkflowSucceeded(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+func (r *PipelineReconciler) onCreating(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
 	var childWorkflows argo.WorkflowList
 
 	if err := r.List(ctx, &childWorkflows, client.InNamespace(pipeline.ObjectMeta.Namespace), client.MatchingFields{workflowOwnerKey: pipeline.ObjectMeta.Name}); err != nil {
