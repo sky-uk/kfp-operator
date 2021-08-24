@@ -1,8 +1,9 @@
 package controllers
 
 import (
+	"fmt"
+
 	"gopkg.in/yaml.v2"
-	"strings"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	apiv1 "k8s.io/api/core/v1"
@@ -11,20 +12,15 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
 )
 
-var printMap = func(m map[string]string) string {
-	outputs := []string{}
+var constructUploadWorkflow = func(pipeline *pipelinesv1.Pipeline) *argo.Workflow {
+	yml, err := yaml.Marshal(&pipeline.Spec)
 
-	for k, v := range m {
-		outputs = append(outputs, k+"="+v)
+	fmt.Print(argo.AnyString(yml))
+	if err != nil {
+		return nil
 	}
 
-	return strings.Join(outputs, ",")
-}
-
-var constructUploadWorkflow = func(pipeline *pipelinesv1.Pipeline) *argo.Workflow {
-	image := argo.AnyString(pipeline.Spec.Image)
-	tfxComponents := argo.AnyString(pipeline.Spec.TfxComponents)
-	env := argo.AnyString(printMap(pipeline.Spec.Env))
+	configuration := argo.AnyString(yml)
 
 	workflow := &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{

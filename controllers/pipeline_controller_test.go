@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	// +kubebuilder:scaffold:imports
@@ -31,7 +32,7 @@ func NewTestContext(pipelineName string) TestContext {
 				Namespace: PipelineNamespace,
 			},
 			Spec: pipelinesv1.PipelineSpec{
-				Image:         "image",
+				Image:         "image:v1",
 				TfxComponents: "pipeline.create_components",
 				Env: map[string]string{
 					"a": "aVal",
@@ -50,7 +51,7 @@ func setWorkflowOutput(workflow *argo.Workflow, output string) {
 	nodes[workflow.ObjectMeta.Name] = argo.NodeStatus{
 		Outputs: &argo.Outputs{
 			Parameters: []argo.Parameter{
-				argo.Parameter{
+				{
 					Value: &result,
 				},
 			},
@@ -91,18 +92,26 @@ func (ct TestContext) updateWorkflow(updateFunc func(*argo.Workflow)) error {
 }
 
 var _ = Describe("Pipeline controller", func() {
-	var mapParams = func(params []argo.Parameter) map[string]string {
-		m := make(map[string]string)
-		for i := range params {
-			m[params[i].Name] = string(*params[i].Value)
-		}
-
-		return m
-	}
-
 	When("Creation of a pipeline succeeds", func() {
 		ct := NewTestContext("succeeding-pipeline")
 		pipelineId := "12345"
+		var mapParams = func(params []argo.Parameter) map[string]string {
+			m := make(map[string]string)
+			for i := range params {
+				m[params[i].Name] = string(*params[i].Value)
+			}
+
+			return m
+		}
+
+		expectedConfig := map[interface{}]interface{}{
+			"image":         "image:v1",
+			"tfxComponents": "pipeline.create_components",
+			"env": map[interface{}]interface{}{
+				"a": "aVal",
+				"b": "bVal",
+			},
+		}
 
 		It("updates the SynchronizationStatus and Id", func() {
 			Expect(k8sClient.Create(ctx, &ct.Pipeline)).Should(Succeed())
@@ -113,10 +122,9 @@ var _ = Describe("Pipeline controller", func() {
 
 			Eventually(ct.workflowToMatch(func(g Gomega, workflow *argo.Workflow) {
 				params := mapParams(workflow.Spec.Arguments.Parameters)
-
-				g.Expect(params["image"]).To(Equal(ct.Pipeline.Spec.Image))
-				g.Expect(params["tfxComponents"]).To(Equal(ct.Pipeline.Spec.TfxComponents))
-				g.Expect(params["env"]).To(Equal("a=aVal,b=bVal"))
+				actualConfig := make(map[interface{}]interface{})
+				yaml.Unmarshal([]byte(params["config"]), actualConfig)
+				g.Expect(actualConfig).To(Equal(expectedConfig))
 			})).Should(Succeed())
 
 			Expect(ct.updateWorkflow(func(workflow *argo.Workflow) {
@@ -139,10 +147,6 @@ var _ = Describe("Pipeline controller", func() {
 
 			Eventually(ct.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
-			})).Should(Succeed())
-
-			Eventually(ct.workflowToMatch(func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow).NotTo(Equal(nil))
 			})).Should(Succeed())
 
 			Expect(ct.updateWorkflow(func(workflow *argo.Workflow) {

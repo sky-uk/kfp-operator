@@ -5,9 +5,9 @@ import (
 )
 
 type PipelineSpec struct {
-	Image         string            `json:"image"`
-	TfxComponents string            `json:"tfxComponents"`
-	Env           map[string]string `json:"env,omitempty"`
+	Image         string            `json:"image" yaml:"image"`
+	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
+	Env           map[string]string `json:"env,omitempty" yaml:"env"`
 }
 
 type SynchronizationState string
