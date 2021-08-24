@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gopkg.in/yaml.v2"
 	"strings"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -37,31 +38,19 @@ var constructUploadWorkflow = func(pipeline *pipelinesv1.Pipeline) *argo.Workflo
 			Entrypoint: "create-pipeline",
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
-					argo.Parameter{
-						Name:  "image",
-						Value: &image,
-					},
-					argo.Parameter{
-						Name:  "tfxComponents",
-						Value: &tfxComponents,
-					},
-					argo.Parameter{
-						Name:  "tfxComponents",
-						Value: &tfxComponents,
-					},
-					argo.Parameter{
-						Name:  "env",
-						Value: &env,
+					{
+						Name:  "config",
+						Value: &configuration,
 					},
 				},
 			},
 			Templates: []argo.Template{
-				argo.Template{
+				{
 					Name: "create-pipeline",
 					Steps: []argo.ParallelSteps{
-						argo.ParallelSteps{
+						{
 							Steps: []argo.WorkflowStep{
-								argo.WorkflowStep{
+								{
 									Name:     "uploader",
 									Template: "uploader",
 								},
@@ -70,7 +59,7 @@ var constructUploadWorkflow = func(pipeline *pipelinesv1.Pipeline) *argo.Workflo
 					},
 					Outputs: argo.Outputs{
 						Parameters: []argo.Parameter{
-							argo.Parameter{
+							{
 								Name: "id",
 								ValueFrom: &argo.ValueFrom{
 									Parameter: "{{steps.uploader.outputs.result}}",
@@ -79,7 +68,7 @@ var constructUploadWorkflow = func(pipeline *pipelinesv1.Pipeline) *argo.Workflo
 						},
 					},
 				},
-				argo.Template{
+				{
 					Name: "uploader",
 					Script: &argo.ScriptTemplate{
 						Container: apiv1.Container{
