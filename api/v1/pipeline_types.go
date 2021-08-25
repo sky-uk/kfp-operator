@@ -1,8 +1,33 @@
 package v1
 
 import (
+	"crypto/sha1"
+	"fmt"
+	"sort"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func ComputeVersion(pipelineSpec PipelineSpec) (string, error) {
+	h := sha1.New()
+
+	h.Write([]byte(pipelineSpec.Image))
+	h.Write([]byte(pipelineSpec.TfxComponents))
+
+	keys := make([]string, 0, len(pipelineSpec.Env))
+	for k := range pipelineSpec.Env {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		h.Write([]byte(k))
+		h.Write([]byte(pipelineSpec.Env[k]))
+	}
+	version := h.Sum(nil)
+
+	return fmt.Sprintf("%x\n", version), nil
+}
 
 type PipelineSpec struct {
 	Image         string            `json:"image" yaml:"image"`
@@ -24,6 +49,7 @@ const (
 
 type PipelineStatus struct {
 	Id                   string               `json:"id,omitempty"`
+	Version              string               `json:"version,omitempty"`
 	SynchronizationState SynchronizationState `json:"state,omitempty"`
 }
 

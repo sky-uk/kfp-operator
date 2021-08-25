@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -36,33 +38,41 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	var err error
 	switch pipeline.Status.SynchronizationState {
-	case pipelinesv1.Creating:
-		if err := r.onCreating(ctx, pipeline); err != nil {
-			logger.Error(err, "unable to create pipeline on Kubeflow")
-			return ctrl.Result{}, err
-		}
 	case pipelinesv1.Unknown:
-		if err := r.onUnknown(ctx, pipeline); err != nil {
-			logger.Error(err, "unable to create pipeline on Kubeflow")
-			return ctrl.Result{}, err
-		}
+		err = r.onUnknown(ctx, pipeline)
+	case pipelinesv1.Creating:
+		err = r.onCreating(ctx, pipeline)
+	case pipelinesv1.Succeeded:
+		err = r.onSucceeded(ctx, pipeline)
+	case pipelinesv1.Updating:
+		err = r.onUpdating(ctx, pipeline)
+	}
+
+	if err != nil {
+		logger.Error(err, fmt.Sprintf("unable to transition from state %s", pipeline.Status.SynchronizationState))
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
 }
 
 func (r *PipelineReconciler) onUnknown(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
-	workflow := constructUploadWorkflow(&pipeline)
+	workflow, err := constructCreationWorkflow(&pipeline)
 
-	if err := ctrl.SetControllerReference(&pipeline, workflow, r.Scheme); err != nil {
+	if err != nil {
 		return err
 	}
 
-	if err := r.Create(ctx, workflow); err != nil {
+	r.createChildWorkflow(ctx, &pipeline, workflow)
+
+	pipelineVersion, err := pipelinesv1.ComputeVersion(pipeline.Spec)
+	if err != nil {
 		return err
 	}
 
+	pipeline.Status.Version = pipelineVersion
 	pipeline.Status.SynchronizationState = pipelinesv1.Creating
 
 	if err := r.Status().Update(ctx, &pipeline); err != nil {
@@ -72,22 +82,48 @@ func (r *PipelineReconciler) onUnknown(ctx context.Context, pipeline pipelinesv1
 	return nil
 }
 
-func (r *PipelineReconciler) onCreating(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
-	var childWorkflows argo.WorkflowList
+func (r *PipelineReconciler) onSucceeded(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+	newPipelineVersion, err := pipelinesv1.ComputeVersion(pipeline.Spec)
 
-	if err := r.List(ctx, &childWorkflows, client.InNamespace(pipeline.ObjectMeta.Namespace), client.MatchingFields{workflowOwnerKey: pipeline.ObjectMeta.Name}); err != nil {
+	if err != nil {
 		return err
 	}
 
-	if len(childWorkflows.Items) > 0 {
-		workflow := childWorkflows.Items[0]
+	if pipeline.Status.Version == newPipelineVersion {
+		return nil
+	}
 
-		switch workflow.Status.Phase {
+	workflow, err := constructUpdateWorkflow(&pipeline)
+
+	if err != nil {
+		return err
+	}
+
+	r.createChildWorkflow(ctx, &pipeline, workflow)
+
+	pipeline.Status.Version = newPipelineVersion
+	pipeline.Status.SynchronizationState = pipelinesv1.Updating
+
+	if err := r.Status().Update(ctx, &pipeline); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *PipelineReconciler) onUpdating(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+	childWorkflow, err := r.getChildWorkflow(ctx, pipeline, "update-pipeline")
+
+	if err != nil {
+		return err
+	}
+
+	if childWorkflow != nil {
+		switch childWorkflow.Status.Phase {
 		case argo.WorkflowFailed, argo.WorkflowError:
 			pipeline.Status.SynchronizationState = pipelinesv1.Failed
 		case argo.WorkflowSucceeded:
 			pipeline.Status.SynchronizationState = pipelinesv1.Succeeded
-			pipeline.Status.Id = string(*workflow.Status.Nodes[workflow.Name].Outputs.Parameters[0].Value)
 		}
 
 		if err := r.Status().Update(ctx, &pipeline); err != nil {
@@ -96,6 +132,55 @@ func (r *PipelineReconciler) onCreating(ctx context.Context, pipeline pipelinesv
 	}
 
 	return nil
+}
+
+func (r *PipelineReconciler) onCreating(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+	childWorkflow, err := r.getChildWorkflow(ctx, pipeline, "create-pipeline")
+
+	if err != nil {
+		return err
+	}
+
+	if childWorkflow != nil {
+		switch childWorkflow.Status.Phase {
+		case argo.WorkflowFailed, argo.WorkflowError:
+			pipeline.Status.SynchronizationState = pipelinesv1.Failed
+		case argo.WorkflowSucceeded:
+			pipeline.Status.SynchronizationState = pipelinesv1.Succeeded
+			pipeline.Status.Id = string(*childWorkflow.Status.Nodes[childWorkflow.Name].Outputs.Parameters[0].Value)
+		}
+
+		if err := r.Status().Update(ctx, &pipeline); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *PipelineReconciler) createChildWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline, workflow *argo.Workflow) error {
+	if err := ctrl.SetControllerReference(pipeline, workflow, r.Scheme); err != nil {
+		return err
+	}
+
+	if err := r.Create(ctx, workflow); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *PipelineReconciler) getChildWorkflow(ctx context.Context, pipeline pipelinesv1.Pipeline, operation string) (*argo.Workflow, error) {
+	workflow := argo.Workflow{}
+
+	name := types.NamespacedName{Name: operation + "-" + pipeline.ObjectMeta.Name, Namespace: pipeline.ObjectMeta.Namespace}
+	err := r.Get(ctx, name, &workflow)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &workflow, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
