@@ -6,7 +6,9 @@ The Kubefelow Pipelines Operator provides a declarative API for managing and run
 
 We currently only support TFX pipelines.
 
-Jump to the [Quickstart](quickstart).
+## Documentation:
 
-Read the [Documentation](docs).
+- [Documentation](docs)
+- [Quickstart](docs/quickstart)
+- [Development Guide](docs/development)
 
