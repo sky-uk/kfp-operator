@@ -18,6 +18,7 @@ import (
 var (
 	workflowOwnerKey = ".metadata.controller"
 	apiGVStr         = pipelinesv1.GroupVersion.String()
+	finalizerName    = "finalizer.pipelines.kubeflow.org"
 )
 
 type PipelineReconciler struct {
@@ -39,6 +40,17 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	var err error
+
+	if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() &&
+		containsString(pipeline.ObjectMeta.Finalizers, finalizerName) &&
+		(pipeline.Status.SynchronizationState == pipelinesv1.Succeeded) {
+		if err := r.onDelete(ctx, pipeline); err != nil {
+			logger.Error(err, "Error deleting pipeline")
+			return ctrl.Result{}, err
+		}
+	}
+
+	// TODO: high-level function to set state, construct WF and check WF status
 	switch pipeline.Status.SynchronizationState {
 	case pipelinesv1.Unknown:
 		err = r.onUnknown(ctx, pipeline)
@@ -48,6 +60,8 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		err = r.onSucceeded(ctx, pipeline)
 	case pipelinesv1.Updating:
 		err = r.onUpdating(ctx, pipeline)
+	case pipelinesv1.Deleting:
+		err = r.onDeleting(ctx, pipeline)
 	}
 
 	if err != nil {
@@ -58,7 +72,15 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{}, nil
 }
 
+func (r *PipelineReconciler) setPipelineStatus(ctx context.Context, pipeline *pipelinesv1.Pipeline, newStatus pipelinesv1.PipelineStatus) error {
+	pipeline.Status = newStatus
+
+	return r.Status().Update(ctx, pipeline)
+}
+
 func (r *PipelineReconciler) onUnknown(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+	r.addFinalizer(ctx, pipeline)
+
 	workflow, err := constructCreationWorkflow(&pipeline)
 
 	if err != nil {
@@ -72,14 +94,24 @@ func (r *PipelineReconciler) onUnknown(ctx context.Context, pipeline pipelinesv1
 		return err
 	}
 
-	pipeline.Status.Version = pipelineVersion
-	pipeline.Status.SynchronizationState = pipelinesv1.Creating
+	return r.setPipelineStatus(ctx, &pipeline, pipelinesv1.PipelineStatus{
+		Version:              pipelineVersion,
+		SynchronizationState: pipelinesv1.Creating,
+	})
+}
 
-	if err := r.Status().Update(ctx, &pipeline); err != nil {
+func (r *PipelineReconciler) onDelete(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+	workflow, err := constructDeletionWorkflow(&pipeline)
+
+	if err != nil {
 		return err
 	}
 
-	return nil
+	r.createChildWorkflow(ctx, &pipeline, workflow)
+
+	return r.setPipelineStatus(ctx, &pipeline, pipelinesv1.PipelineStatus{
+		SynchronizationState: pipelinesv1.Deleting,
+	})
 }
 
 func (r *PipelineReconciler) onSucceeded(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
@@ -101,14 +133,10 @@ func (r *PipelineReconciler) onSucceeded(ctx context.Context, pipeline pipelines
 
 	r.createChildWorkflow(ctx, &pipeline, workflow)
 
-	pipeline.Status.Version = newPipelineVersion
-	pipeline.Status.SynchronizationState = pipelinesv1.Updating
-
-	if err := r.Status().Update(ctx, &pipeline); err != nil {
-		return err
-	}
-
-	return nil
+	return r.setPipelineStatus(ctx, &pipeline, pipelinesv1.PipelineStatus{
+		Version:              newPipelineVersion,
+		SynchronizationState: pipelinesv1.Updating,
+	})
 }
 
 func (r *PipelineReconciler) onUpdating(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
@@ -126,8 +154,24 @@ func (r *PipelineReconciler) onUpdating(ctx context.Context, pipeline pipelinesv
 			pipeline.Status.SynchronizationState = pipelinesv1.Succeeded
 		}
 
-		if err := r.Status().Update(ctx, &pipeline); err != nil {
-			return err
+		return r.setPipelineStatus(ctx, &pipeline, pipeline.Status)
+	}
+
+	return nil
+}
+
+func (r *PipelineReconciler) onDeleting(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+	childWorkflow, err := r.getChildWorkflow(ctx, pipeline, "delete-pipeline")
+
+	if err != nil {
+		return err
+	}
+
+	if childWorkflow != nil {
+		switch childWorkflow.Status.Phase {
+		case argo.WorkflowFailed, argo.WorkflowError, argo.WorkflowSucceeded:
+			pipeline.ObjectMeta.Finalizers = removeString(pipeline.ObjectMeta.Finalizers, finalizerName)
+			return r.Update(context.Background(), &pipeline)
 		}
 	}
 
@@ -150,9 +194,16 @@ func (r *PipelineReconciler) onCreating(ctx context.Context, pipeline pipelinesv
 			pipeline.Status.Id = string(*childWorkflow.Status.Nodes[childWorkflow.Name].Outputs.Parameters[0].Value)
 		}
 
-		if err := r.Status().Update(ctx, &pipeline); err != nil {
-			return err
-		}
+		return r.setPipelineStatus(ctx, &pipeline, pipeline.Status)
+	}
+
+	return nil
+}
+
+func (r *PipelineReconciler) addFinalizer(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+	if !containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
+		pipeline.ObjectMeta.Finalizers = append(pipeline.ObjectMeta.Finalizers, finalizerName)
+		return r.Update(ctx, &pipeline)
 	}
 
 	return nil

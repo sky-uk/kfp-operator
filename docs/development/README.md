@@ -11,7 +11,6 @@ Install the dependencies:
 
 ```sh
 go get
-go mod vendor
 ```
 
 ## Running locally

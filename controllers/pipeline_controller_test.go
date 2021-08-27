@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	"github.com/thanhpk/randstr"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -23,27 +24,35 @@ type TestContext struct {
 	PipelineLookupKey         types.NamespacedName
 	CreationWorkflowLookupKey types.NamespacedName
 	UpdateWorkflowLookupKey   types.NamespacedName
+	DeletionWorkflowLookupKey types.NamespacedName
+	Version                   string
 }
 
-func NewTestContext(pipelineName string) TestContext {
-	return TestContext{
-		Pipeline: pipelinesv1.Pipeline{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      pipelineName,
-				Namespace: PipelineNamespace,
-			},
-			Spec: pipelinesv1.PipelineSpec{
-				Image:         "image:v1",
-				TfxComponents: "pipeline.create_components",
-				Env: map[string]string{
-					"a": "aVal",
-					"b": "bVal",
-				},
+func NewTestContext() TestContext {
+	pipelineName := randstr.String(16, "0123456789abcdefghijklmnopqrstuvwxyz")
+	pipeline := pipelinesv1.Pipeline{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      pipelineName,
+			Namespace: PipelineNamespace,
+		},
+		Spec: pipelinesv1.PipelineSpec{
+			Image:         "image:v1",
+			TfxComponents: "pipeline.create_components",
+			Env: map[string]string{
+				"a": "aVal",
+				"b": "bVal",
 			},
 		},
+	}
+	version, _ := pipelinesv1.ComputeVersion(pipeline.Spec)
+
+	return TestContext{
+		Pipeline:                  pipeline,
 		PipelineLookupKey:         types.NamespacedName{Name: pipelineName, Namespace: PipelineNamespace},
 		CreationWorkflowLookupKey: types.NamespacedName{Name: "create-pipeline-" + pipelineName, Namespace: PipelineNamespace},
 		UpdateWorkflowLookupKey:   types.NamespacedName{Name: "update-pipeline-" + pipelineName, Namespace: PipelineNamespace},
+		DeletionWorkflowLookupKey: types.NamespacedName{Name: "delete-pipeline-" + pipelineName, Namespace: PipelineNamespace},
+		Version:                   version,
 	}
 }
 
@@ -72,12 +81,28 @@ func (testCtx TestContext) pipelineToMatch(matcher func(Gomega, *pipelinesv1.Pip
 	}
 }
 
-func (testCtx TestContext) workflowToMatch(name types.NamespacedName, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+func (testCtx TestContext) pipelineExists() error {
+	pipeline := &pipelinesv1.Pipeline{}
+	return k8sClient.Get(ctx, testCtx.PipelineLookupKey, pipeline)
+}
+
+func (testCtx TestContext) workflowInputToMatch(name types.NamespacedName, matcher func(Gomega, map[string]string)) func(Gomega) {
+
+	var mapParams = func(params []argo.Parameter) map[string]string {
+		m := make(map[string]string)
+		for i := range params {
+			m[params[i].Name] = string(*params[i].Value)
+		}
+
+		return m
+	}
+
 	return func(g Gomega) {
 		workflow := &argo.Workflow{}
 		g.Expect(k8sClient.Get(ctx, name, workflow)).To(Succeed())
 
-		matcher(g, workflow)
+		worklfowInputParameters := mapParams(workflow.Spec.Arguments.Parameters)
+		matcher(g, worklfowInputParameters)
 	}
 }
 
@@ -117,6 +142,24 @@ func (testCtx TestContext) updatePipelineStatus(updateFunc func(*pipelinesv1.Pip
 	return k8sClient.Status().Update(ctx, pipeline)
 }
 
+func (testCtx TestContext) pipelineCreated() {
+	testCtx.pipelineCreatedWithStatus(pipelinesv1.PipelineStatus{
+		Id:                   PipelineId,
+		SynchronizationState: pipelinesv1.Succeeded,
+		Version:              testCtx.Version,
+	})
+}
+
+func (testCtx TestContext) deletePipeline() error {
+	pipeline := &pipelinesv1.Pipeline{}
+
+	if err := k8sClient.Get(ctx, testCtx.PipelineLookupKey, pipeline); err != nil {
+		return err
+	}
+
+	return k8sClient.Delete(ctx, pipeline)
+}
+
 func (testCtx TestContext) pipelineCreatedWithStatus(status pipelinesv1.PipelineStatus) {
 	Expect(k8sClient.Create(ctx, &testCtx.Pipeline)).To(Succeed())
 
@@ -132,15 +175,7 @@ func (testCtx TestContext) pipelineCreatedWithStatus(status pipelinesv1.Pipeline
 var _ = Describe("Pipeline controller", func() {
 
 	When("Creation of a pipeline succeeds", func() {
-		testCtx := NewTestContext("succeeding-pipeline")
-		var mapParams = func(params []argo.Parameter) map[string]string {
-			m := make(map[string]string)
-			for i := range params {
-				m[params[i].Name] = string(*params[i].Value)
-			}
-
-			return m
-		}
+		testCtx := NewTestContext()
 
 		expectedConfig := map[interface{}]interface{}{
 			"image":         "image:v1",
@@ -151,8 +186,6 @@ var _ = Describe("Pipeline controller", func() {
 			},
 		}
 
-		pipelineVersion, _ := pipelinesv1.ComputeVersion(testCtx.Pipeline.Spec)
-
 		It("updates the SynchronizationStatus, Id and Version", func() {
 			Expect(k8sClient.Create(ctx, &testCtx.Pipeline)).To(Succeed())
 
@@ -160,10 +193,9 @@ var _ = Describe("Pipeline controller", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
 
-			Eventually(testCtx.workflowToMatch(testCtx.CreationWorkflowLookupKey, func(g Gomega, workflow *argo.Workflow) {
-				worklfowInputParameters := mapParams(workflow.Spec.Arguments.Parameters)
+			Eventually(testCtx.workflowInputToMatch(testCtx.CreationWorkflowLookupKey, func(g Gomega, params map[string]string) {
 				actualConfig := make(map[interface{}]interface{})
-				yaml.Unmarshal([]byte(worklfowInputParameters["config"]), actualConfig)
+				yaml.Unmarshal([]byte(params["config"]), actualConfig)
 				g.Expect(actualConfig).To(Equal(expectedConfig))
 			})).Should(Succeed())
 
@@ -175,13 +207,13 @@ var _ = Describe("Pipeline controller", func() {
 			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 				g.Expect(pipeline.Status.Id).To(Equal(PipelineId))
-				g.Expect(pipeline.Status.Version).To(Equal(pipelineVersion))
+				g.Expect(pipeline.Status.Version).To(Equal(testCtx.Version))
 			})).Should(Succeed())
 		})
 	})
 
 	When("Creation of a pipeline fails", func() {
-		testCtx := NewTestContext("failing-pipeline")
+		testCtx := NewTestContext()
 
 		It("updates the SynchronizationStatus to failed", func() {
 			Expect(k8sClient.Create(ctx, &testCtx.Pipeline)).To(Succeed())
@@ -201,16 +233,15 @@ var _ = Describe("Pipeline controller", func() {
 	})
 
 	When("The resource is updated with no changes", func() {
-		testCtx := NewTestContext("updated-pipeline-no-changes")
+		testCtx := NewTestContext()
 
 		It("keeps the status unchanged", func() {
-			pipelineVersion, _ := pipelinesv1.ComputeVersion(testCtx.Pipeline.Spec)
 
 			fmt.Println(testCtx.Pipeline.Spec)
 			testCtx.pipelineCreatedWithStatus(pipelinesv1.PipelineStatus{
 				Id:                   PipelineId,
 				SynchronizationState: pipelinesv1.Succeeded,
-				Version:              pipelineVersion,
+				Version:              testCtx.Version,
 			})
 
 			Expect(testCtx.updatePipeline(func(pipeline *pipelinesv1.Pipeline) {
@@ -224,16 +255,21 @@ var _ = Describe("Pipeline controller", func() {
 	})
 
 	When("The resource is updated with changes and the update succeeds", func() {
-		testCtx := NewTestContext("updated-succeeding-pipeline")
+		testCtx := NewTestContext()
+
+		expectedConfig := map[interface{}]interface{}{
+			"image":         "image:v1",
+			"tfxComponents": "pipeline.create_components",
+			"env": map[interface{}]interface{}{
+				"a": "aVal",
+				"b": "bVal",
+				"c": "cVal",
+			},
+		}
 
 		It("updates the SynchronizationStatus to Succeeded", func() {
-			pipelineVersion, _ := pipelinesv1.ComputeVersion(testCtx.Pipeline.Spec)
 
-			testCtx.pipelineCreatedWithStatus(pipelinesv1.PipelineStatus{
-				Id:                   PipelineId,
-				SynchronizationState: pipelinesv1.Succeeded,
-				Version:              pipelineVersion,
-			})
+			testCtx.pipelineCreated()
 
 			modifiedSpec := testCtx.Pipeline.Spec
 			modifiedSpec.Env["c"] = "cVal"
@@ -245,6 +281,13 @@ var _ = Describe("Pipeline controller", func() {
 
 			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
+			})).Should(Succeed())
+
+			Eventually(testCtx.workflowInputToMatch(testCtx.UpdateWorkflowLookupKey, func(g Gomega, params map[string]string) {
+				actualConfig := make(map[interface{}]interface{})
+				yaml.Unmarshal([]byte(params["config"]), actualConfig)
+				g.Expect(actualConfig).To(Equal(expectedConfig))
+				g.Expect(params["pipeline-id"]).To(Equal(PipelineId))
 			})).Should(Succeed())
 
 			Expect(testCtx.updateWorkflow(testCtx.UpdateWorkflowLookupKey, func(workflow *argo.Workflow) {
@@ -259,16 +302,11 @@ var _ = Describe("Pipeline controller", func() {
 	})
 
 	When("The resource is updated with changes and the update fails", func() {
-		testCtx := NewTestContext("updated-failing-pipeline")
+		testCtx := NewTestContext()
 
 		It("updates the SynchronizationStatus to Succeeded", func() {
-			pipelineVersion, _ := pipelinesv1.ComputeVersion(testCtx.Pipeline.Spec)
 
-			testCtx.pipelineCreatedWithStatus(pipelinesv1.PipelineStatus{
-				Id:                   PipelineId,
-				SynchronizationState: pipelinesv1.Succeeded,
-				Version:              pipelineVersion,
-			})
+			testCtx.pipelineCreated()
 
 			modifiedSpec := testCtx.Pipeline.Spec
 			modifiedSpec.Env["c"] = "cVal"
@@ -290,6 +328,54 @@ var _ = Describe("Pipeline controller", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Failed))
 				g.Expect(pipeline.Status.Version).To(Equal(modifiedVersion))
 			})).Should(Succeed())
+		})
+	})
+
+	When("Deletion of a pipeline succeeds", func() {
+		testCtx := NewTestContext()
+
+		It("Releases the pipeline resource", func() {
+			testCtx.pipelineCreated()
+
+			Expect(testCtx.deletePipeline()).To(Succeed())
+
+			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
+			})).Should(Succeed())
+
+			Eventually(testCtx.workflowInputToMatch(testCtx.DeletionWorkflowLookupKey, func(g Gomega, params map[string]string) {
+				g.Expect(params["pipeline-id"]).To(Equal(PipelineId))
+			})).Should(Succeed())
+
+			Expect(testCtx.updateWorkflow(testCtx.DeletionWorkflowLookupKey, func(workflow *argo.Workflow) {
+				workflow.Status.Phase = argo.WorkflowSucceeded
+			})).To(Succeed())
+
+			Eventually(testCtx.pipelineExists).Should(Not(Succeed()))
+		})
+	})
+
+	When("Deletion of a pipeline fails", func() {
+		testCtx := NewTestContext()
+
+		It("Releases the pipeline resource", func() {
+			testCtx.pipelineCreated()
+
+			Expect(testCtx.deletePipeline()).To(Succeed())
+
+			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
+			})).Should(Succeed())
+
+			Eventually(testCtx.workflowInputToMatch(testCtx.DeletionWorkflowLookupKey, func(g Gomega, params map[string]string) {
+				g.Expect(params["pipeline-id"]).To(Equal(PipelineId))
+			})).Should(Succeed())
+
+			Expect(testCtx.updateWorkflow(testCtx.DeletionWorkflowLookupKey, func(workflow *argo.Workflow) {
+				workflow.Status.Phase = argo.WorkflowFailed
+			})).To(Succeed())
+
+			Eventually(testCtx.pipelineExists).Should(Not(Succeed()))
 		})
 	})
 })

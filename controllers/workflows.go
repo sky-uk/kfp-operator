@@ -9,14 +9,24 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
 )
 
-var constructCreationWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+var pipelineConfigAsYaml = func(pipeline *pipelinesv1.Pipeline) (*argo.AnyString, error) {
 	specAsYaml, err := yaml.Marshal(&pipeline.Spec)
 
 	if err != nil {
 		return nil, err
 	}
 
-	configuration := argo.AnyString(specAsYaml)
+	argoYaml := argo.AnyString(specAsYaml)
+
+	return &argoYaml, nil
+}
+
+var constructCreationWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	specAsYaml, err := pipelineConfigAsYaml(pipeline)
+
+	if err != nil {
+		return nil, err
+	}
 
 	workflow := &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
@@ -32,7 +42,7 @@ var constructCreationWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Work
 				Parameters: []argo.Parameter{
 					{
 						Name:  "config",
-						Value: &configuration,
+						Value: specAsYaml,
 					},
 				},
 			},
@@ -63,13 +73,13 @@ var constructCreationWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Work
 }
 
 var constructUpdateWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	specAsYaml, err := yaml.Marshal(&pipeline.Spec)
+	specAsYaml, err := pipelineConfigAsYaml(pipeline)
 
 	if err != nil {
 		return nil, err
 	}
 
-	configuration := argo.AnyString(specAsYaml)
+	id := argo.AnyString(pipeline.Status.Id)
 
 	workflow := &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
@@ -84,14 +94,56 @@ var constructUpdateWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workfl
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
+						Name:  "pipeline-id",
+						Value: &id,
+					},
+					{
 						Name:  "config",
-						Value: &configuration,
+						Value: specAsYaml,
 					},
 				},
 			},
 			Templates: []argo.Template{
 				{
 					Name: "update-pipeline",
+					Steps: []argo.ParallelSteps{
+						{
+							Steps: []argo.WorkflowStep{},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return workflow, nil
+}
+
+var constructDeletionWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+
+	id := argo.AnyString(pipeline.Status.Id)
+
+	workflow := &argo.Workflow{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "delete-pipeline-" + pipeline.ObjectMeta.Name,
+			Namespace: "default",
+			Labels: map[string]string{
+				"operation": "delete-pipeline",
+			},
+		},
+		Spec: argo.WorkflowSpec{
+			Entrypoint: "delete-pipeline",
+			Arguments: argo.Arguments{
+				Parameters: []argo.Parameter{
+					{
+						Name:  "pipeline-id",
+						Value: &id,
+					},
+				},
+			},
+			Templates: []argo.Template{
+				{
+					Name: "delete-pipeline",
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{},
