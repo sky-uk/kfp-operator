@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func ComputeVersion(pipelineSpec PipelineSpec) (string, error) {
+func ComputeVersion(pipelineSpec PipelineSpec) string {
 	h := sha1.New()
 
 	h.Write([]byte(pipelineSpec.Image))
@@ -26,7 +26,7 @@ func ComputeVersion(pipelineSpec PipelineSpec) (string, error) {
 	}
 	version := h.Sum(nil)
 
-	return fmt.Sprintf("%x\n", version), nil
+	return fmt.Sprintf("%x\n", version)
 }
 
 type PipelineSpec struct {

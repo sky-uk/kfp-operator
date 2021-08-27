@@ -20,22 +20,21 @@ var _ = Describe("Pipeline Version", func() {
 	When("Specifying values for fields", func() {
 		It("Should change the version", func() {
 			pipelineSpec := PipelineSpec{}
-			version1, err := ComputeVersion(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
+			version1 := ComputeVersion(pipelineSpec)
+
 			pipelineSpec.Image = "image"
-			version2, err := ComputeVersion(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
+			version2 := ComputeVersion(pipelineSpec)
+
 			pipelineSpec.TfxComponents = "components"
-			version3, err := ComputeVersion(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
+			version3 := ComputeVersion(pipelineSpec)
+
 			pipelineSpec.Env = map[string]string{
 				"aKey": "aValue",
 			}
-			version4, err := ComputeVersion(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
+			version4 := ComputeVersion(pipelineSpec)
+
 			pipelineSpec.Env["bKey"] = ""
-			version5, err := ComputeVersion(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
+			version5 := ComputeVersion(pipelineSpec)
 
 			Expect(version1).NotTo(Equal(version2))
 			Expect(version2).NotTo(Equal(version3))
@@ -47,11 +46,10 @@ var _ = Describe("Pipeline Version", func() {
 	When("Not specifying values for Env", func() {
 		It("Should not change the version", func() {
 			pipelineSpec := PipelineSpec{}
-			version1, err := ComputeVersion(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
+			version1 := ComputeVersion(pipelineSpec)
+
 			pipelineSpec.Env = make(map[string]string)
-			version2, err := ComputeVersion(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
+			version2 := ComputeVersion(pipelineSpec)
 
 			Expect(version1).To(Equal(version2))
 		})

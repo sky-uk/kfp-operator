@@ -44,7 +44,6 @@ func NewTestContext() TestContext {
 			},
 		},
 	}
-	version, _ := pipelinesv1.ComputeVersion(pipeline.Spec)
 
 	return TestContext{
 		Pipeline:                  pipeline,
@@ -52,7 +51,7 @@ func NewTestContext() TestContext {
 		CreationWorkflowLookupKey: types.NamespacedName{Name: "create-pipeline-" + pipelineName, Namespace: PipelineNamespace},
 		UpdateWorkflowLookupKey:   types.NamespacedName{Name: "update-pipeline-" + pipelineName, Namespace: PipelineNamespace},
 		DeletionWorkflowLookupKey: types.NamespacedName{Name: "delete-pipeline-" + pipelineName, Namespace: PipelineNamespace},
-		Version:                   version,
+		Version:                   pipelinesv1.ComputeVersion(pipeline.Spec),
 	}
 }
 
@@ -273,7 +272,7 @@ var _ = Describe("Pipeline controller", func() {
 
 			modifiedSpec := testCtx.Pipeline.Spec
 			modifiedSpec.Env["c"] = "cVal"
-			modifiedVersion, _ := pipelinesv1.ComputeVersion(modifiedSpec)
+			modifiedVersion := pipelinesv1.ComputeVersion(modifiedSpec)
 
 			Expect(testCtx.updatePipeline(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = modifiedSpec
@@ -310,7 +309,7 @@ var _ = Describe("Pipeline controller", func() {
 
 			modifiedSpec := testCtx.Pipeline.Spec
 			modifiedSpec.Env["c"] = "cVal"
-			modifiedVersion, _ := pipelinesv1.ComputeVersion(modifiedSpec)
+			modifiedVersion := pipelinesv1.ComputeVersion(modifiedSpec)
 
 			Expect(testCtx.updatePipeline(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = modifiedSpec

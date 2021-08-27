@@ -42,7 +42,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	var err error
 
 	if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() &&
-		containsString(pipeline.ObjectMeta.Finalizers, finalizerName) &&
 		(pipeline.Status.SynchronizationState == pipelinesv1.Succeeded) {
 		if err := r.onDelete(ctx, pipeline); err != nil {
 			logger.Error(err, "Error deleting pipeline")
@@ -50,7 +49,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
-	// TODO: high-level function to set state, construct WF and check WF status
 	switch pipeline.Status.SynchronizationState {
 	case pipelinesv1.Unknown:
 		err = r.onUnknown(ctx, pipeline)
@@ -65,7 +63,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if err != nil {
-		logger.Error(err, fmt.Sprintf("unable to transition from state %s", pipeline.Status.SynchronizationState))
+		logger.Error(err, fmt.Sprintf("Unable to transition from state %s", pipeline.Status.SynchronizationState))
 		return ctrl.Result{}, err
 	}
 
@@ -89,10 +87,7 @@ func (r *PipelineReconciler) onUnknown(ctx context.Context, pipeline pipelinesv1
 
 	r.createChildWorkflow(ctx, &pipeline, workflow)
 
-	pipelineVersion, err := pipelinesv1.ComputeVersion(pipeline.Spec)
-	if err != nil {
-		return err
-	}
+	pipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
 
 	return r.setPipelineStatus(ctx, &pipeline, pipelinesv1.PipelineStatus{
 		Version:              pipelineVersion,
@@ -115,11 +110,7 @@ func (r *PipelineReconciler) onDelete(ctx context.Context, pipeline pipelinesv1.
 }
 
 func (r *PipelineReconciler) onSucceeded(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
-	newPipelineVersion, err := pipelinesv1.ComputeVersion(pipeline.Spec)
-
-	if err != nil {
-		return err
-	}
+	newPipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
 
 	if pipeline.Status.Version == newPipelineVersion {
 		return nil
