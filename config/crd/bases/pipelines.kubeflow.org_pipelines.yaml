@@ -50,7 +50,7 @@ spec:
             properties:
               id:
                 type: string
-              state:
+              synchronizationState:
                 type: string
               version:
                 type: string

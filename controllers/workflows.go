@@ -4,9 +4,15 @@ import (
 	"gopkg.in/yaml.v2"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+const (
+	OperationLabelKey = "pipelines.kubeflow.org/operation"
+	Create            = "create"
+	Update            = "update"
+	Delete            = "delete"
 )
 
 var pipelineConfigAsYaml = func(pipeline *pipelinesv1.Pipeline) (*argo.AnyString, error) {
@@ -33,7 +39,7 @@ var constructCreationWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Work
 			Name:      "create-pipeline-" + pipeline.ObjectMeta.Name,
 			Namespace: "default",
 			Labels: map[string]string{
-				"operation": "create-pipeline",
+				OperationLabelKey: Create,
 			},
 		},
 		Spec: argo.WorkflowSpec{
@@ -86,7 +92,7 @@ var constructUpdateWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workfl
 			Name:      "update-pipeline-" + pipeline.ObjectMeta.Name,
 			Namespace: "default",
 			Labels: map[string]string{
-				"operation": "update-pipeline",
+				OperationLabelKey: Update,
 			},
 		},
 		Spec: argo.WorkflowSpec{
@@ -119,7 +125,7 @@ var constructUpdateWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workfl
 	return workflow, nil
 }
 
-var constructDeletionWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+var constructDeletionWorkflow = func(pipeline *pipelinesv1.Pipeline) *argo.Workflow {
 
 	id := argo.AnyString(pipeline.Status.Id)
 
@@ -128,7 +134,7 @@ var constructDeletionWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Work
 			Name:      "delete-pipeline-" + pipeline.ObjectMeta.Name,
 			Namespace: "default",
 			Labels: map[string]string{
-				"operation": "delete-pipeline",
+				OperationLabelKey: Delete,
 			},
 		},
 		Spec: argo.WorkflowSpec{
@@ -154,5 +160,5 @@ var constructDeletionWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Work
 		},
 	}
 
-	return workflow, nil
+	return workflow
 }

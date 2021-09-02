@@ -26,7 +26,7 @@ func ComputeVersion(pipelineSpec PipelineSpec) string {
 	}
 	version := h.Sum(nil)
 
-	return fmt.Sprintf("%x\n", version)
+	return fmt.Sprintf("%x", version)
 }
 
 type PipelineSpec struct {
@@ -50,7 +50,7 @@ const (
 type PipelineStatus struct {
 	Id                   string               `json:"id,omitempty"`
 	Version              string               `json:"version,omitempty"`
-	SynchronizationState SynchronizationState `json:"state,omitempty"`
+	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`
 }
 
 //+kubebuilder:object:root=true
