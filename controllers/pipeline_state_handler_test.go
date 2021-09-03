@@ -125,6 +125,11 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
+		Check("Unknown with version",
+			From(pipelinesv1.Unknown, "", v1).
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
+		),
 		Check("Unknown with id",
 			From(pipelinesv1.Unknown, PipelineId, "").
 				To(pipelinesv1.Updating, PipelineId, v1).
@@ -141,10 +146,22 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Succeeded, PipelineId, v1).
 				DeletesAllWorkflows(),
 		),
+		Check("Creation succeeds with existing Id",
+			From(pipelinesv1.Creating, AnotherPipelineId, v1).
+				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowSucceeded), PipelineIdKey, PipelineId)).
+				To(pipelinesv1.Succeeded, PipelineId, v1).
+				DeletesAllWorkflows(),
+		),
 		Check("Creation fails with Id",
 			From(pipelinesv1.Creating, "", v1).
 				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowFailed), PipelineIdKey, PipelineId)).
 				To(pipelinesv1.Failed, PipelineId, v1).
+				DeletesAllWorkflows(),
+		),
+		Check("Creation fails",
+			From(pipelinesv1.Creating, "", v1).
+				WithWorkFlow(createWorkflow(Create, argo.WorkflowFailed)).
+				To(pipelinesv1.Failed, "", v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
@@ -154,11 +171,38 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Succeeded no update",
 			From(pipelinesv1.Succeeded, PipelineId, v1),
 		),
-
 		Check("Succeeded with update",
 			From(pipelinesv1.Succeeded, PipelineId, v0).
 				To(pipelinesv1.Updating, PipelineId, v1).
 				IssuesUpdateWorkflow(),
+		),
+		Check("Succeeded with update but no Id",
+			From(pipelinesv1.Succeeded, "", v0).
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
+		),
+		Check("Succeeded with update but no Id and no version",
+			From(pipelinesv1.Succeeded, "", "").
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
+		),
+		Check("Failed no update",
+			From(pipelinesv1.Failed, PipelineId, v1),
+		),
+		Check("Failed with Update",
+			From(pipelinesv1.Failed, PipelineId, v0).
+				To(pipelinesv1.Updating, PipelineId, v1).
+				IssuesUpdateWorkflow(),
+		),
+		Check("Failed with Update but no Id",
+			From(pipelinesv1.Failed, "", v0).
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
+		),
+		Check("Failed with Update but no Id and no version",
+			From(pipelinesv1.Failed, "", "").
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds",
 			From(pipelinesv1.Updating, PipelineId, v1).
@@ -177,10 +221,17 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Failed, PipelineId, ""),
 		),
 		Check("updating without version",
+			From(pipelinesv1.Updating, PipelineId, "").
+				To(pipelinesv1.Failed, PipelineId, ""),
+		),
+		Check("updating without Id",
+			From(pipelinesv1.Updating, "", v1).
+				To(pipelinesv1.Failed, "", v1),
+		),
+		Check("updating without Id or version",
 			From(pipelinesv1.Updating, "", "").
 				To(pipelinesv1.Failed, "", ""),
 		),
-
 		Check("Deleting from Succeeded",
 			From(pipelinesv1.Succeeded, PipelineId, v1).
 				DeletionRequested().
@@ -193,7 +244,6 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Deleting, PipelineId, v1).
 				IssuesDeletionWorkflow(),
 		),
-
 		Check("Deletion succeeds",
 			From(pipelinesv1.Deleting, PipelineId, v1).
 				DeletionRequested().

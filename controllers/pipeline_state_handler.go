@@ -20,13 +20,15 @@ func stateTransition(pipeline *pipelinesv1.Pipeline, workflows Workflows) []Comm
 	case pipelinesv1.Creating:
 		return onCreating(pipeline, workflows.GetByOperation(Create))
 	case pipelinesv1.Succeeded:
-		return onSucceeded(pipeline)
+		return onSucceededOrFailed(pipeline)
 	case pipelinesv1.Updating:
 		return onUpdating(pipeline, workflows.GetByOperation(Update))
 	case pipelinesv1.Deleting:
 		return onDeleting(pipeline, workflows.GetByOperation(Delete))
 	case pipelinesv1.Deleted:
 		return onDeleted(pipeline)
+	case pipelinesv1.Failed:
+		return onSucceededOrFailed(pipeline)
 	}
 
 	return []Command{}
@@ -103,20 +105,30 @@ func onDelete(pipeline *pipelinesv1.Pipeline) []Command {
 	}
 }
 
-func onSucceeded(pipeline *pipelinesv1.Pipeline) []Command {
+func onSucceededOrFailed(pipeline *pipelinesv1.Pipeline) []Command {
 	newPipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
 
 	if pipeline.Status.Version == newPipelineVersion {
 		return []Command{}
 	}
 
-	// TODO check
-	workflow, error := constructUpdateWorkflow(pipeline)
+	var workflow *argo.Workflow
+	var error error
+	var targetState pipelinesv1.SynchronizationState
+
+	if pipeline.Status.Id == "" {
+		workflow, error = constructCreationWorkflow(pipeline)
+		targetState = pipelinesv1.Creating
+	} else {
+		workflow, error = constructUpdateWorkflow(pipeline)
+		targetState = pipelinesv1.Updating
+	}
 
 	if error != nil {
 		return []Command{
 			SetPipelineStatus{
 				Status: pipelinesv1.PipelineStatus{
+					Id:                   pipeline.Status.Id,
 					Version:              newPipelineVersion,
 					SynchronizationState: pipelinesv1.Failed,
 				},
@@ -129,7 +141,7 @@ func onSucceeded(pipeline *pipelinesv1.Pipeline) []Command {
 			Status: pipelinesv1.PipelineStatus{
 				Id:                   pipeline.Status.Id,
 				Version:              newPipelineVersion,
-				SynchronizationState: pipelinesv1.Updating,
+				SynchronizationState: targetState,
 			},
 		},
 		CreateWorkflow{Workflow: *workflow},

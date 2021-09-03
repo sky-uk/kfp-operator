@@ -30,6 +30,7 @@ import (
 const (
 	PipelineNamespace = "default"
 	PipelineId        = "12345"
+	AnotherPipelineId = "67890"
 )
 
 type TestContext struct {
