@@ -52,8 +52,8 @@ func (st TestCase) DeletionRequested() TestCase {
 	return st
 }
 
-func createWorkflow(operation string, phase argo.WorkflowPhase) argo.Workflow {
-	return argo.Workflow{
+func createWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workflow {
+	return &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      operation + "-pipeline",
 			Namespace: "default",
@@ -67,8 +67,8 @@ func createWorkflow(operation string, phase argo.WorkflowPhase) argo.Workflow {
 	}
 }
 
-func (st TestCase) WithWorkFlow(workflow argo.Workflow) TestCase {
-	st.Workflows = append(st.Workflows, workflow)
+func (st TestCase) WithWorkFlow(workflow *argo.Workflow) TestCase {
+	st.Workflows = append(st.Workflows, *workflow)
 	return st
 }
 

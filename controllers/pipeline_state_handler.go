@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"sort"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -19,7 +20,7 @@ func stateTransition(pipeline *pipelinesv1.Pipeline, workflows Workflows) []Comm
 		return onUnknown(pipeline)
 	case pipelinesv1.Creating:
 		return onCreating(pipeline, workflows.GetByOperation(Create))
-	case pipelinesv1.Succeeded:
+	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		return onSucceededOrFailed(pipeline)
 	case pipelinesv1.Updating:
 		return onUpdating(pipeline, workflows.GetByOperation(Update))
@@ -27,15 +28,12 @@ func stateTransition(pipeline *pipelinesv1.Pipeline, workflows Workflows) []Comm
 		return onDeleting(pipeline, workflows.GetByOperation(Delete))
 	case pipelinesv1.Deleted:
 		return onDeleted(pipeline)
-	case pipelinesv1.Failed:
-		return onSucceededOrFailed(pipeline)
 	}
 
 	return []Command{}
 }
 
 func onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
-
 	if pipeline.Status.Id != "" {
 		workflow, error := constructUpdateWorkflow(pipeline)
 
@@ -53,6 +51,7 @@ func onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 		newPipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
 
 		return []Command{
+			CreateWorkflow{Workflow: *workflow},
 			SetPipelineStatus{
 				Status: pipelinesv1.PipelineStatus{
 					Id:                   pipeline.Status.Id,
@@ -60,7 +59,6 @@ func onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 					SynchronizationState: pipelinesv1.Updating,
 				},
 			},
-			CreateWorkflow{Workflow: *workflow},
 		}
 	}
 
@@ -80,20 +78,21 @@ func onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 	}
 
 	return []Command{
+		CreateWorkflow{Workflow: *workflow},
 		SetPipelineStatus{
 			Status: pipelinesv1.PipelineStatus{
 				Version:              pipelineVersion,
 				SynchronizationState: pipelinesv1.Creating,
 			},
 		},
-		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
 func onDelete(pipeline *pipelinesv1.Pipeline) []Command {
 	workflow := constructDeletionWorkflow(pipeline)
-
+	fmt.Println("2")
 	return []Command{
+		CreateWorkflow{Workflow: *workflow},
 		SetPipelineStatus{
 			Status: pipelinesv1.PipelineStatus{
 				Id:                   pipeline.Status.Id,
@@ -101,7 +100,6 @@ func onDelete(pipeline *pipelinesv1.Pipeline) []Command {
 				SynchronizationState: pipelinesv1.Deleting,
 			},
 		},
-		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
@@ -137,6 +135,7 @@ func onSucceededOrFailed(pipeline *pipelinesv1.Pipeline) []Command {
 	}
 
 	return []Command{
+		CreateWorkflow{Workflow: *workflow},
 		SetPipelineStatus{
 			Status: pipelinesv1.PipelineStatus{
 				Id:                   pipeline.Status.Id,
@@ -144,13 +143,11 @@ func onSucceededOrFailed(pipeline *pipelinesv1.Pipeline) []Command {
 				SynchronizationState: targetState,
 			},
 		},
-		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
 func onUpdating(pipeline *pipelinesv1.Pipeline, updateWorkflows []argo.Workflow) []Command {
 	if pipeline.Status.Version == "" || pipeline.Status.Id == "" {
-
 		return []Command{
 			SetPipelineStatus{
 				Status: pipelinesv1.PipelineStatus{
@@ -201,23 +198,23 @@ func onDeleting(pipeline *pipelinesv1.Pipeline, deletionWorkflows []argo.Workflo
 	}
 
 	return []Command{
-		SetPipelineStatus{
-			Status: *newStatus,
-		},
 		DeleteWorkflows{
 			Workflows: deletionWorkflows,
+		},
+		SetPipelineStatus{
+			Status: *newStatus,
 		},
 	}
 }
 
 func onDeleted(pipeline *pipelinesv1.Pipeline) []Command {
-
 	return []Command{
 		DeletePipeline{},
 	}
 }
 
 func onCreating(pipeline *pipelinesv1.Pipeline, creationWorkflows []argo.Workflow) []Command {
+
 	if pipeline.Status.Version == "" {
 		return []Command{
 			SetPipelineStatus{

@@ -10,6 +10,7 @@ import (
 
 const (
 	OperationLabelKey = "pipelines.kubeflow.org/operation"
+	PipelineLabelKey  = "pipelines.kubeflow.org/pipeline"
 	Create            = "create"
 	Update            = "update"
 	Delete            = "delete"
@@ -36,10 +37,11 @@ var constructCreationWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Work
 
 	workflow := &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "create-pipeline-" + pipeline.ObjectMeta.Name,
-			Namespace: "default",
+			GenerateName: "create-pipeline-",
+			Namespace:    "default",
 			Labels: map[string]string{
 				OperationLabelKey: Create,
+				PipelineLabelKey:  pipeline.ObjectMeta.Name,
 			},
 		},
 		Spec: argo.WorkflowSpec{
@@ -89,10 +91,11 @@ var constructUpdateWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workfl
 
 	workflow := &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "update-pipeline-" + pipeline.ObjectMeta.Name,
-			Namespace: "default",
+			GenerateName: "update-pipeline-",
+			Namespace:    "default",
 			Labels: map[string]string{
 				OperationLabelKey: Update,
+				PipelineLabelKey:  pipeline.ObjectMeta.Name,
 			},
 		},
 		Spec: argo.WorkflowSpec{
@@ -131,10 +134,11 @@ var constructDeletionWorkflow = func(pipeline *pipelinesv1.Pipeline) *argo.Workf
 
 	workflow := &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "delete-pipeline-" + pipeline.ObjectMeta.Name,
-			Namespace: "default",
+			GenerateName: "delete-pipeline-",
+			Namespace:    "default",
 			Labels: map[string]string{
 				OperationLabelKey: Delete,
+				PipelineLabelKey:  pipeline.ObjectMeta.Name,
 			},
 		},
 		Spec: argo.WorkflowSpec{

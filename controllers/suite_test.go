@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -34,12 +33,9 @@ const (
 )
 
 type TestContext struct {
-	Pipeline                  *pipelinesv1.Pipeline
-	PipelineLookupKey         types.NamespacedName
-	CreationWorkflowLookupKey types.NamespacedName
-	UpdateWorkflowLookupKey   types.NamespacedName
-	DeletionWorkflowLookupKey types.NamespacedName
-	Version                   string
+	Pipeline          *pipelinesv1.Pipeline
+	PipelineLookupKey types.NamespacedName
+	Version           string
 }
 
 var specV1 = pipelinesv1.PipelineSpec{
@@ -86,12 +82,9 @@ func NewTestContext() TestContext {
 	pipeline := randomPipeline()
 
 	return TestContext{
-		Pipeline:                  pipeline,
-		PipelineLookupKey:         types.NamespacedName{Name: pipeline.ObjectMeta.Name, Namespace: PipelineNamespace},
-		CreationWorkflowLookupKey: types.NamespacedName{Name: "create-pipeline-" + pipeline.ObjectMeta.Name, Namespace: PipelineNamespace},
-		UpdateWorkflowLookupKey:   types.NamespacedName{Name: "update-pipeline-" + pipeline.ObjectMeta.Name, Namespace: PipelineNamespace},
-		DeletionWorkflowLookupKey: types.NamespacedName{Name: "delete-pipeline-" + pipeline.ObjectMeta.Name, Namespace: PipelineNamespace},
-		Version:                   pipelinesv1.ComputeVersion(pipeline.Spec),
+		Pipeline:          pipeline,
+		PipelineLookupKey: types.NamespacedName{Name: pipeline.ObjectMeta.Name, Namespace: PipelineNamespace},
+		Version:           pipelinesv1.ComputeVersion(pipeline.Spec),
 	}
 }
 
@@ -107,11 +100,11 @@ func (testCtx TestContext) pipelineToMatch(matcher func(Gomega, *pipelinesv1.Pip
 func (testCtx TestContext) pipelineExists() error {
 	pipeline := &pipelinesv1.Pipeline{}
 	err := k8sClient.Get(ctx, testCtx.PipelineLookupKey, pipeline)
-	fmt.Println(pipeline.ObjectMeta.Finalizers)
+
 	return err
 }
 
-func (testCtx TestContext) workflowInputToMatch(name types.NamespacedName, matcher func(Gomega, map[string]string)) func(Gomega) {
+func (testCtx TestContext) workflowInputToMatch(operation string, matcher func(Gomega, map[string]string)) func(Gomega) {
 
 	var mapParams = func(params []argo.Parameter) map[string]string {
 		m := make(map[string]string, len(params))
@@ -123,24 +116,25 @@ func (testCtx TestContext) workflowInputToMatch(name types.NamespacedName, match
 	}
 
 	return func(g Gomega) {
-		workflow := &argo.Workflow{}
-		g.Expect(k8sClient.Get(ctx, name, workflow)).To(Succeed())
+		workflows := &argo.WorkflowList{}
+		g.Expect(k8sClient.List(ctx, workflows, client.InNamespace(testCtx.Pipeline.ObjectMeta.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: testCtx.Pipeline.ObjectMeta.Name})).To(Succeed())
+		g.Expect(len(workflows.Items)).To(Equal(1))
 
-		worklfowInputParameters := mapParams(workflow.Spec.Arguments.Parameters)
+		worklfowInputParameters := mapParams(workflows.Items[0].Spec.Arguments.Parameters)
 		matcher(g, worklfowInputParameters)
 	}
 }
 
-func (testCtx TestContext) updateWorkflow(name types.NamespacedName, updateFunc func(*argo.Workflow)) error {
-	workflow := &argo.Workflow{}
-
-	if err := k8sClient.Get(ctx, name, workflow); err != nil {
+func (testCtx TestContext) updateWorkflow(operation string, updateFunc func(*argo.Workflow)) error {
+	workflows := &argo.WorkflowList{}
+	if err := k8sClient.List(ctx, workflows, client.InNamespace(testCtx.Pipeline.ObjectMeta.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: testCtx.Pipeline.ObjectMeta.Name}); err != nil {
 		return err
 	}
 
-	updateFunc(workflow)
+	Expect(len(workflows.Items)).To(Equal(1))
 
-	return k8sClient.Update(ctx, workflow)
+	updateFunc(&workflows.Items[0])
+	return k8sClient.Update(ctx, &workflows.Items[0])
 }
 
 func (testCtx TestContext) updatePipeline(updateFunc func(*pipelinesv1.Pipeline)) error {
@@ -190,11 +184,10 @@ func (testCtx TestContext) pipelineCreatedWithStatus(status pipelinesv1.Pipeline
 
 	Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
+		g.Expect(testCtx.updatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
+			pipeline.Status = status
+		})).To(Succeed())
 	})).Should(Succeed())
-
-	Expect(testCtx.updatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
-		pipeline.Status = status
-	})).To(Succeed())
 }
 
 var cfg *rest.Config
@@ -245,7 +238,7 @@ var _ = BeforeSuite(func() {
 	ctx = context.Background()
 
 	Expect((&PipelineReconciler{
-		Client: k8sManager.GetClient(),
+		Client: k8sClient,
 		Scheme: k8sManager.GetScheme(),
 	}).SetupWithManager(k8sManager)).To(Succeed())
 

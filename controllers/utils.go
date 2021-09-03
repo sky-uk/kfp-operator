@@ -43,7 +43,7 @@ func workflowOutput(workflow argo.Workflow, key string) string {
 	return ""
 }
 
-func setWorkflowOutput(workflow argo.Workflow, name string, output string) argo.Workflow {
+func setWorkflowOutput(workflow *argo.Workflow, name string, output string) *argo.Workflow {
 	result := argo.AnyString(output)
 	nodes := make(map[string]argo.NodeStatus)
 	nodes[workflow.ObjectMeta.Name] = argo.NodeStatus{

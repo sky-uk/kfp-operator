@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,40 +26,46 @@ type PipelineReconciler struct {
 }
 
 type Command interface {
-	execute(*PipelineReconciler, context.Context, *pipelinesv1.Pipeline)
+	execute(*PipelineReconciler, context.Context, *pipelinesv1.Pipeline) error
 }
 
 type SetPipelineStatus struct {
 	Status pipelinesv1.PipelineStatus
 }
 
-func (sps SetPipelineStatus) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) {
+func (sps SetPipelineStatus) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
 	pipeline.Status = sps.Status
 
-	reconciler.Status().Update(ctx, pipeline)
+	return reconciler.Status().Update(ctx, pipeline)
 }
 
 type CreateWorkflow struct {
 	Workflow argo.Workflow
 }
 
-func (cw CreateWorkflow) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) {
-	reconciler.CreateChildWorkflow(ctx, pipeline, cw.Workflow)
+func (cw CreateWorkflow) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+	return reconciler.CreateChildWorkflow(ctx, pipeline, cw.Workflow)
 }
 
 type DeleteWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (DeleteWorkflows) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) {
-	reconciler.Delete(ctx, pipeline)
+func (dw DeleteWorkflows) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+	for i := range dw.Workflows {
+		if err := reconciler.Delete(ctx, &dw.Workflows[i]); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 type DeletePipeline struct {
 }
 
-func (dp DeletePipeline) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) {
-	reconciler.RemoveFinalizer(ctx, *pipeline)
+func (dp DeletePipeline) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+	return reconciler.RemoveFinalizer(ctx, *pipeline)
 }
 
 type Workflows interface {
@@ -74,7 +81,7 @@ type WorkflowsImpl struct {
 func (w WorkflowsImpl) GetByOperation(operation string) []argo.Workflow {
 	var workflows argo.WorkflowList
 
-	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingFields{workflowOwnerKey: w.pipeline.ObjectMeta.Name}, client.MatchingLabels{OperationLabelKey: operation})
+	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: w.pipeline.ObjectMeta.Name})
 
 	return workflows.Items
 }
@@ -86,7 +93,7 @@ func (w WorkflowsImpl) GetByOperation(operation string) []argo.Workflow {
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	var pipeline *pipelinesv1.Pipeline
+	var pipeline = &pipelinesv1.Pipeline{}
 	if err := r.Get(ctx, req.NamespacedName, pipeline); err != nil {
 		logger.Error(err, "unable to fetch pipeline")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -98,7 +105,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	commands := stateTransition(pipeline, workflows)
 
 	for i := range commands {
-		commands[i].execute(r, ctx, pipeline)
+		if err := commands[i].execute(r, ctx, pipeline); err != nil {
+			logger.Error(err, fmt.Sprintf("Error executing command: %+v", commands[i]))
+			return ctrl.Result{}, err
+		}
 	}
 
 	return ctrl.Result{}, nil
