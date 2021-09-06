@@ -125,11 +125,6 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
-		Check("Unknown with version",
-			From(pipelinesv1.Unknown, "", v1).
-				To(pipelinesv1.Creating, "", v1).
-				IssuesCreationWorkflow(),
-		),
 		Check("Unknown with id",
 			From(pipelinesv1.Unknown, PipelineId, "").
 				To(pipelinesv1.Updating, PipelineId, v1).
