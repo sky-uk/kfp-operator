@@ -1,6 +1,10 @@
 package controllers
 
-import argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+import (
+	"fmt"
+
+	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+)
 
 func containsString(slice []string, s string) bool {
 	for _, item := range slice {
@@ -30,23 +34,19 @@ var mapParams = func(params []argo.Parameter) map[string]string {
 	return m
 }
 
-const (
-	PipelineIdKey = "pipeline-id"
-)
-
-func workflowOutput(workflow argo.Workflow, key string) string {
-	globalNode, exists := workflow.Status.Nodes[workflow.Name]
-	if exists && globalNode.Outputs != nil {
-		return string(mapParams(globalNode.Outputs.Parameters)[key])
+func getWorkflowOutput(workflow *argo.Workflow, key string) (string, error) {
+	entrypoitNode, exists := workflow.Status.Nodes[workflow.Spec.Entrypoint]
+	if exists && entrypoitNode.Outputs != nil {
+		return string(mapParams(entrypoitNode.Outputs.Parameters)[key]), nil
 	}
 
-	return ""
+	return "", fmt.Errorf("workflow does not have %s node", workflow.Spec.Entrypoint)
 }
 
 func setWorkflowOutput(workflow *argo.Workflow, name string, output string) *argo.Workflow {
 	result := argo.AnyString(output)
 	nodes := make(map[string]argo.NodeStatus)
-	nodes[workflow.ObjectMeta.Name] = argo.NodeStatus{
+	nodes[workflow.Spec.Entrypoint] = argo.NodeStatus{
 		Outputs: &argo.Outputs{
 			Parameters: []argo.Parameter{
 				{

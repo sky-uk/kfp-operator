@@ -1,78 +1,130 @@
 package controllers
 
 import (
+	"fmt"
+
 	"gopkg.in/yaml.v2"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	OperationLabelKey = "pipelines.kubeflow.org/operation"
-	PipelineLabelKey  = "pipelines.kubeflow.org/pipeline"
-	Create            = "create"
-	Update            = "update"
-	Delete            = "delete"
+	OperationLabelKey         = "pipelines.kubeflow.org/operation"
+	PipelineLabelKey          = "pipelines.kubeflow.org/pipeline"
+	PipelineConfigKey         = "pipeline-config"
+	PipelineIdParameterName   = "pipeline-id"
+	PipelineYamlParameterName = "pipeline"
+	Create                    = "create-pipeline"
+	Update                    = "update-pipeline"
+	Delete                    = "delete-pipeline"
+	CompileStepName           = "compile"
+	UploadStepName            = "upload"
+	Namespace                 = "default"
+	PipelineYamlFilePath      = "/tmp/pipeline.yaml"
+	PipelineIdFilePath        = "/tmp/pipeline.txt"
 )
 
-var pipelineConfigAsYaml = func(pipeline *pipelinesv1.Pipeline) (*argo.AnyString, error) {
-	specAsYaml, err := yaml.Marshal(&pipeline.Spec)
+var (
+	trueValue = true
+)
 
-	if err != nil {
-		return nil, err
-	}
-
-	argoYaml := argo.AnyString(specAsYaml)
-
-	return &argoYaml, nil
+type WorkflowConfiguration struct {
+	CompilerImage string
+	UploaderImage string
 }
 
-var constructCreationWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	specAsYaml, err := pipelineConfigAsYaml(pipeline)
+type Workflows struct {
+	Config WorkflowConfiguration
+}
+
+var pipelineConfigAsYaml = func(pipelineSpec *pipelinesv1.PipelineSpec) (string, error) {
+	specAsYaml, err := yaml.Marshal(&pipelineSpec)
+
+	if err != nil {
+		return "", err
+	}
+
+	return string(specAsYaml), nil
+}
+
+func commonMeta(pipeline *pipelinesv1.Pipeline, operation string) *metav1.ObjectMeta {
+	return &metav1.ObjectMeta{
+		GenerateName: operation + "-",
+		Namespace:    Namespace,
+		Labels: map[string]string{
+			OperationLabelKey: operation,
+			PipelineLabelKey:  pipeline.ObjectMeta.Name,
+		},
+	}
+}
+
+func parameter(key string, value string) *argo.Parameter {
+	return &argo.Parameter{
+		Name:  key,
+		Value: argo.AnyStringPtr(value),
+	}
+}
+
+func pipelineIdParameter(id string) *argo.Parameter {
+	return parameter(PipelineIdParameterName, id)
+}
+
+func pipelineConfigParameter(pipelineSpec *pipelinesv1.PipelineSpec) (*argo.Parameter, error) {
+	specAsYaml, err := pipelineConfigAsYaml(pipelineSpec)
 
 	if err != nil {
 		return nil, err
 	}
 
+	return parameter(PipelineConfigKey, specAsYaml), nil
+}
+
+func (workflows Workflows) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	yamlConfig, error := pipelineConfigAsYaml(&pipeline.Spec)
+
+	if error != nil {
+		return nil, error
+	}
+
+	entrypointName := Create
+
 	workflow := &argo.Workflow{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "create-pipeline-",
-			Namespace:    "default",
-			Labels: map[string]string{
-				OperationLabelKey: Create,
-				PipelineLabelKey:  pipeline.ObjectMeta.Name,
-			},
-		},
+		ObjectMeta: *commonMeta(pipeline, Create),
 		Spec: argo.WorkflowSpec{
-			Entrypoint: "create-pipeline",
-			Arguments: argo.Arguments{
-				Parameters: []argo.Parameter{
-					{
-						Name:  "config",
-						Value: specAsYaml,
-					},
-				},
-			},
+			Entrypoint: entrypointName,
 			Templates: []argo.Template{
 				{
-					Name: "create-pipeline",
+					Name: entrypointName,
 					Steps: []argo.ParallelSteps{
 						{
-							Steps: []argo.WorkflowStep{},
+							Steps: []argo.WorkflowStep{
+								{
+									Name:     CompileStepName,
+									Template: CompileStepName,
+								},
+								{
+									Name:     UploadStepName,
+									Template: UploadStepName,
+								},
+							},
 						},
 					},
 					Outputs: argo.Outputs{
 						Parameters: []argo.Parameter{
 							{
-								Name: "id",
+								Name: PipelineIdParameterName,
 								ValueFrom: &argo.ValueFrom{
-									Parameter: "0",
+									Parameter: "steps.upload.outputs.result",
 								},
 							},
 						},
 					},
 				},
+				workflows.compiler(yamlConfig),
+				workflows.uploader(&pipeline.Spec, pipeline.Status.Version),
 			},
 		},
 	}
@@ -80,41 +132,99 @@ var constructCreationWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Work
 	return workflow, nil
 }
 
-var constructUpdateWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	specAsYaml, err := pipelineConfigAsYaml(pipeline)
+func (workflows *Workflows) compiler(pipelineSpec string) argo.Template {
+	compilerVolumeName := "compiler"
+	compilerVolumePath := "/compiler"
 
-	if err != nil {
-		return nil, err
+	args := []string{
+		"compile",
+		fmt.Sprintf("--pipeline_config=%s", pipelineSpec),
 	}
 
-	id := argo.AnyString(pipeline.Status.Id)
-
-	workflow := &argo.Workflow{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "update-pipeline-",
-			Namespace:    "default",
-			Labels: map[string]string{
-				OperationLabelKey: Update,
-				PipelineLabelKey:  pipeline.ObjectMeta.Name,
+	return argo.Template{
+		Name: CompileStepName,
+		Outputs: argo.Outputs{
+			Artifacts: []argo.Artifact{
+				{
+					Name: PipelineYamlParameterName,
+					Path: PipelineYamlFilePath,
+				},
 			},
 		},
+		Container: &apiv1.Container{
+			Name:  CompileStepName,
+			Image: workflows.Config.CompilerImage,
+			VolumeMounts: []apiv1.VolumeMount{
+				{
+					Name:      compilerVolumeName,
+					MountPath: compilerVolumePath,
+				},
+			},
+			Args: args,
+		},
+		InitContainers: []argo.UserContainer{
+			{
+				Container:          apiv1.Container{},
+				MirrorVolumeMounts: &trueValue,
+			},
+		},
+		Volumes: []apiv1.Volume{
+			{
+				Name: compilerVolumeName,
+			},
+		},
+	}
+}
+
+func (workflows *Workflows) uploader(pipelineSpec *pipelinesv1.PipelineSpec, version string) argo.Template {
+
+	args := []string{
+		"create",
+		fmt.Sprintf("--input_file=%s", PipelineYamlFilePath),
+		fmt.Sprintf("--version=%s", version),
+		fmt.Sprintf("--output_file=%s", PipelineIdFilePath),
+	}
+
+	return argo.Template{
+		Name: UploadStepName,
+		Outputs: argo.Outputs{
+			Parameters: []argo.Parameter{
+				{
+					Name: PipelineIdParameterName,
+					ValueFrom: &argo.ValueFrom{
+						Path: PipelineIdFilePath,
+					},
+				},
+			},
+		},
+		Container: &apiv1.Container{
+			Name:  UploadStepName,
+			Image: workflows.Config.UploaderImage,
+			Args:  args,
+		},
+	}
+}
+
+func (workflows Workflows) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	configParameter, error := pipelineConfigParameter(&pipeline.Spec)
+
+	if error != nil {
+		return nil, error
+	}
+
+	workflow := &argo.Workflow{
+		ObjectMeta: *commonMeta(pipeline, Update),
 		Spec: argo.WorkflowSpec{
-			Entrypoint: "update-pipeline",
+			Entrypoint: Update,
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
-					{
-						Name:  "pipeline-id",
-						Value: &id,
-					},
-					{
-						Name:  "config",
-						Value: specAsYaml,
-					},
+					*pipelineIdParameter(pipeline.Status.Id),
+					*configParameter,
 				},
 			},
 			Templates: []argo.Template{
 				{
-					Name: "update-pipeline",
+					Name: Update,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{},
@@ -128,32 +238,27 @@ var constructUpdateWorkflow = func(pipeline *pipelinesv1.Pipeline) (*argo.Workfl
 	return workflow, nil
 }
 
-var constructDeletionWorkflow = func(pipeline *pipelinesv1.Pipeline) *argo.Workflow {
-
-	id := argo.AnyString(pipeline.Status.Id)
+func (workflows Workflows) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) *argo.Workflow {
 
 	workflow := &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "delete-pipeline-",
-			Namespace:    "default",
+			GenerateName: Delete + "-",
+			Namespace:    Namespace,
 			Labels: map[string]string{
 				OperationLabelKey: Delete,
 				PipelineLabelKey:  pipeline.ObjectMeta.Name,
 			},
 		},
 		Spec: argo.WorkflowSpec{
-			Entrypoint: "delete-pipeline",
+			Entrypoint: Delete,
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
-					{
-						Name:  "pipeline-id",
-						Value: &id,
-					},
+					*pipelineIdParameter(pipeline.Status.Id),
 				},
 			},
 			Templates: []argo.Template{
 				{
-					Name: "delete-pipeline",
+					Name: Delete,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{},

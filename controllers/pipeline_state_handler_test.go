@@ -11,6 +11,15 @@ import (
 )
 
 var now = metav1.Now()
+var workflows = Workflows{
+	Config: WorkflowConfiguration{
+		CompilerImage: "image:v1",
+		UploaderImage: "image:v1",
+	},
+}
+var stateHandler = StateHandler{
+	Workflows: workflows,
+}
 
 type StubbedWorkflows struct {
 	Workflows []argo.Workflow
@@ -73,17 +82,17 @@ func (st TestCase) WithWorkFlow(workflow *argo.Workflow) TestCase {
 }
 
 func (st TestCase) IssuesCreationWorkflow() TestCase {
-	creationWorkflow, _ := constructCreationWorkflow(st.Pipeline)
+	creationWorkflow, _ := workflows.ConstructCreationWorkflow(st.Pipeline)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st TestCase) IssuesUpdateWorkflow() TestCase {
-	updateWorkflow, _ := constructUpdateWorkflow(st.Pipeline)
+	updateWorkflow, _ := workflows.ConstructUpdateWorkflow(st.Pipeline)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st TestCase) IssuesDeletionWorkflow() TestCase {
-	deletionWorkflow := constructDeletionWorkflow(st.Pipeline)
+	deletionWorkflow := workflows.ConstructDeletionWorkflow(st.Pipeline)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
@@ -108,7 +117,7 @@ func Check(description string, transition TestCase) TableEntry {
 var _ = Describe("Pipeline State handler", func() {
 
 	DescribeTable("State transitions", func(st TestCase) {
-		commands := stateTransition(st.Pipeline, StubbedWorkflows{st.Workflows})
+		commands := stateHandler.StateTransition(st.Pipeline, StubbedWorkflows{st.Workflows})
 		is := make([]interface{}, len(st.Commands))
 		for i, v := range st.Commands {
 			is[i] = v
@@ -137,19 +146,19 @@ var _ = Describe("Pipeline State handler", func() {
 		),
 		Check("Creation succeeds",
 			From(pipelinesv1.Creating, "", v1).
-				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowSucceeded), PipelineIdKey, PipelineId)).
+				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowSucceeded), PipelineIdParameterName, PipelineId)).
 				To(pipelinesv1.Succeeded, PipelineId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation succeeds with existing Id",
 			From(pipelinesv1.Creating, AnotherPipelineId, v1).
-				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowSucceeded), PipelineIdKey, PipelineId)).
+				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowSucceeded), PipelineIdParameterName, PipelineId)).
 				To(pipelinesv1.Succeeded, PipelineId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation fails with Id",
 			From(pipelinesv1.Creating, "", v1).
-				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowFailed), PipelineIdKey, PipelineId)).
+				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowFailed), PipelineIdParameterName, PipelineId)).
 				To(pipelinesv1.Failed, PipelineId, v1).
 				DeletesAllWorkflows(),
 		),

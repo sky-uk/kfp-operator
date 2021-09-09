@@ -22,7 +22,8 @@ var (
 
 type PipelineReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme    *runtime.Scheme
+	Workflows Workflows
 }
 
 type Command interface {
@@ -68,7 +69,7 @@ func (dp DeletePipeline) execute(reconciler *PipelineReconciler, ctx context.Con
 	return reconciler.RemoveFinalizer(ctx, *pipeline)
 }
 
-type Workflows interface {
+type WorkflowsProvider interface {
 	GetByOperation(operation string) []argo.Workflow
 }
 
@@ -102,7 +103,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	r.AddFinalizer(ctx, pipeline)
 
 	workflows := WorkflowsImpl{r, ctx, pipeline}
-	commands := stateTransition(pipeline, workflows)
+	stateHandler := StateHandler{
+		Workflows: r.Workflows,
+	}
+	commands := stateHandler.StateTransition(pipeline, workflows)
 
 	for i := range commands {
 		if err := commands[i].execute(r, ctx, pipeline); err != nil {

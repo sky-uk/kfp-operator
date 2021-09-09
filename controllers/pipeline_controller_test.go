@@ -5,7 +5,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
-	ctrlworkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -20,9 +19,9 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
 
-			Expect(testCtx.updateWorkflow(ctrlworkflows.Create, func(workflow *argo.Workflow) {
+			Expect(testCtx.updateWorkflow(Create, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutput(workflow, PipelineIdKey, PipelineId)
+				setWorkflowOutput(workflow, PipelineIdParameterName, PipelineId)
 			})).To(Succeed())
 
 			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -37,7 +36,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			Expect(testCtx.updateWorkflow(ctrlworkflows.Update, func(workflow *argo.Workflow) {
+			Expect(testCtx.updateWorkflow(Update, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
 
@@ -51,7 +50,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
-			Expect(testCtx.updateWorkflow(ctrlworkflows.Delete, func(workflow *argo.Workflow) {
+			Expect(testCtx.updateWorkflow(Delete, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
 
