@@ -1,60 +1,69 @@
 package controllers
 
 import (
+	"fmt"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	testing "github.com/sky-uk/kfp-operator/controllers/testing"
+	pipelineworkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
 	// +kubebuilder:scaffold:imports
 )
 
 var _ = Describe("Pipeline controller k8s integration", func() {
+
 	When("Creating, updating and deleting", func() {
-		testCtx := NewTestContext()
 
 		It("transitions through all stages", func() {
-			Expect(k8sClient.Create(ctx, testCtx.Pipeline)).To(Succeed())
+			testCtx := testing.NewTestContext(k8sClient, ctx)
 
-			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			fmt.Println("1")
+			Expect(k8sClient.Create(ctx, testCtx.Pipeline)).To(Succeed())
+			fmt.Println("2")
+			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
-
-			Expect(testCtx.updateWorkflow(Create, func(workflow *argo.Workflow) {
+			fmt.Println("3")
+			Expect(testCtx.UpdateWorkflow(pipelineworkflows.Create, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutput(workflow, PipelineIdParameterName, PipelineId)
+				pipelineworkflows.SetWorkflowOutput(workflow, pipelineworkflows.PipelineIdParameterName, testing.PipelineId)
 			})).To(Succeed())
+			fmt.Println("4")
 
-			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
-
-			Expect(testCtx.updatePipeline(func(pipeline *pipelinesv1.Pipeline) {
-				pipeline.Spec = specV2
+			fmt.Println("5")
+			Expect(testCtx.UpdatePipeline(func(pipeline *pipelinesv1.Pipeline) {
+				pipeline.Spec = testing.SpecV2
 			})).To(Succeed())
-
-			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			fmt.Println("6")
+			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
-
-			Expect(testCtx.updateWorkflow(Update, func(workflow *argo.Workflow) {
+			fmt.Println("7")
+			Expect(testCtx.UpdateWorkflow(pipelineworkflows.Update, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
-
-			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			fmt.Println("8")
+			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
-
-			Expect(testCtx.deletePipeline()).To(Succeed())
-
-			Eventually(testCtx.pipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			fmt.Println("9")
+			Expect(testCtx.DeletePipeline()).To(Succeed())
+			fmt.Println("10")
+			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
-
-			Expect(testCtx.updateWorkflow(Delete, func(workflow *argo.Workflow) {
+			fmt.Println("12")
+			Expect(testCtx.UpdateWorkflow(pipelineworkflows.Delete, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
-
-			Eventually(testCtx.pipelineExists).Should(Not(Succeed()))
+			fmt.Println("13")
+			Eventually(testCtx.PipelineExists).Should(Not(Succeed()))
+			fmt.Println("14")
 		})
 	})
 })

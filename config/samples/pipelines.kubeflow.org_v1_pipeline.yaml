@@ -3,5 +3,6 @@ kind: Pipeline
 metadata:
   name: pipeline-sample
 spec:
-  # Add fields here
+  image: us.gcr.io/ml-dev-uswe2/mlops/nbcu-us-metadata-enhancement:latest
+  tfxComponents: main.pipelines.base_pipeline.create_components
 

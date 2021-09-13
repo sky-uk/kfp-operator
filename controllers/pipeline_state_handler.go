@@ -1,18 +1,19 @@
 package controllers
 
 import (
-	"fmt"
 	"sort"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
 )
 
 type StateHandler struct {
-	Workflows Workflows
+	Workflows pipelineWorkflows.Workflows
 }
 
 func (st StateHandler) StateTransition(pipeline *pipelinesv1.Pipeline, workflows WorkflowsProvider) []Command {
+
 	if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() &&
 		(pipeline.Status.SynchronizationState == pipelinesv1.Succeeded ||
 			pipeline.Status.SynchronizationState == pipelinesv1.Failed) {
@@ -23,13 +24,13 @@ func (st StateHandler) StateTransition(pipeline *pipelinesv1.Pipeline, workflows
 	case pipelinesv1.Unknown:
 		return st.onUnknown(pipeline)
 	case pipelinesv1.Creating:
-		return st.onCreating(pipeline, workflows.GetByOperation(Create))
+		return st.onCreating(pipeline, workflows.GetByOperation(pipelineWorkflows.Create))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		return st.onSucceededOrFailed(pipeline)
 	case pipelinesv1.Updating:
-		return st.onUpdating(pipeline, workflows.GetByOperation(Update))
+		return st.onUpdating(pipeline, workflows.GetByOperation(pipelineWorkflows.Update))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(pipeline, workflows.GetByOperation(Delete))
+		return st.onDeleting(pipeline, workflows.GetByOperation(pipelineWorkflows.Delete))
 	case pipelinesv1.Deleted:
 		return st.onDeleted(pipeline)
 	}
@@ -38,6 +39,7 @@ func (st StateHandler) StateTransition(pipeline *pipelinesv1.Pipeline, workflows
 }
 
 func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
+
 	if pipeline.Status.Id != "" {
 		workflow, error := st.Workflows.ConstructUpdateWorkflow(pipeline)
 
@@ -244,7 +246,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 
 	if succeeded != nil {
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
-		idResult, error := getWorkflowOutput(succeeded, PipelineIdParameterName)
+		idResult, error := pipelineWorkflows.GetWorkflowOutput(succeeded, pipelineWorkflows.PipelineIdParameterName)
 
 		if error != nil {
 			newStatus.SynchronizationState = pipelinesv1.Failed
@@ -253,8 +255,8 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 		}
 	} else {
 		if failed != nil {
-			idResult, error := getWorkflowOutput(failed, PipelineIdParameterName)
-			fmt.Println(error)
+			idResult, error := pipelineWorkflows.GetWorkflowOutput(failed, pipelineWorkflows.PipelineIdParameterName)
+
 			if error == nil {
 				newStatus.Id = idResult
 			}

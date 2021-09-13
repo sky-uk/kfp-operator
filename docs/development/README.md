@@ -29,11 +29,27 @@ Note: on first execution, the test environment will get downloaded and the comma
 
 ```sh
 make test
-
-Using cached envtest tools from /Users/jmd31/projects/kfp-operator/testbin
-setting up env vars
-?       github.com/sky-uk/kfp-operator  [no test files]
-ok      github.com/sky-uk/kfp-operator/api/v1   0.484s  coverage: 22.0% of statements
-ok      github.com/sky-uk/kfp-operator/controllers      12.761s coverage: 83.3% of statements
-?       github.com/sky-uk/kfp-operator/external [no test files]
 ```
+
+## Run argo integration tests
+
+```sh
+# Start minikube
+minikube start -p argo-integration-tests --driver=hyperkit
+# Install argo
+kubectl create ns argo
+kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+# proxy the minikube API server
+kubectl proxy --port=8080
+# Start wiremock
+kubectl apply -f controllers/integration_tests/wiremock.yaml
+kubectl port-forward -n argo $(kubectl get pod -n argo --selector="app=kfp-wiremock" --output jsonpath='{.items[0].metadata.name}') 8081:8080
+# Load all images into minikube
+minikube -p argo-integration-tests image load kfp-tools
+minikube -p argo-integration-tests image load compiler
+minikube -p argo-integration-tests image load test-pipeline
+
+# Run the tests
+integration-test
+```
+

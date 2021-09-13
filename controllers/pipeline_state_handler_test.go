@@ -5,16 +5,24 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	testing "github.com/sky-uk/kfp-operator/controllers/testing"
+	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	// +kubebuilder:scaffold:imports
 )
 
 var now = metav1.Now()
-var workflows = Workflows{
-	Config: WorkflowConfiguration{
-		CompilerImage: "image:v1",
-		UploaderImage: "image:v1",
+
+// TODO: mock workflows
+var workflows = pipelineWorkflows.Workflows{
+	Config: pipelineWorkflows.Configuration{
+		Namespace:       "default",
+		KfpToolsImage:   "kfp-tools",
+		CompilerImage:   "compiler",
+		ImagePullPolicy: "Never",
+		KfpEndpoint:     "http://www.example.com",
 	},
 }
 var stateHandler = StateHandler{
@@ -36,7 +44,7 @@ type TestCase struct {
 }
 
 func From(status pipelinesv1.SynchronizationState, id string, version string) TestCase {
-	pipeline := randomPipeline()
+	pipeline := testing.RandomPipeline()
 	pipeline.Status = pipelinesv1.PipelineStatus{
 		SynchronizationState: status,
 		Version:              version,
@@ -67,7 +75,7 @@ func createWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workflow {
 			Name:      operation + "-pipeline",
 			Namespace: "default",
 			Labels: map[string]string{
-				OperationLabelKey: operation,
+				pipelineWorkflows.OperationLabelKey: operation,
 			},
 		},
 		Status: argo.WorkflowStatus{
@@ -115,7 +123,7 @@ func Check(description string, transition TestCase) TableEntry {
 }
 
 var _ = Describe("Pipeline State handler", func() {
-
+	format.MaxLength = 0
 	DescribeTable("State transitions", func(st TestCase) {
 		commands := stateHandler.StateTransition(st.Pipeline, StubbedWorkflows{st.Workflows})
 		is := make([]interface{}, len(st.Commands))
@@ -126,46 +134,46 @@ var _ = Describe("Pipeline State handler", func() {
 	},
 		Check("Unknown",
 			From(pipelinesv1.Unknown, "", "").
-				To(pipelinesv1.Creating, "", v1).
+				To(pipelinesv1.Creating, "", testing.V1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Unknown with version",
-			From(pipelinesv1.Unknown, "", v1).
-				To(pipelinesv1.Creating, "", v1).
+			From(pipelinesv1.Unknown, "", testing.V1).
+				To(pipelinesv1.Creating, "", testing.V1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Unknown with id",
-			From(pipelinesv1.Unknown, PipelineId, "").
-				To(pipelinesv1.Updating, PipelineId, v1).
+			From(pipelinesv1.Unknown, testing.PipelineId, "").
+				To(pipelinesv1.Updating, testing.PipelineId, testing.V1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Unknown with id and version",
-			From(pipelinesv1.Unknown, PipelineId, v1).
-				To(pipelinesv1.Updating, PipelineId, v1).
+			From(pipelinesv1.Unknown, testing.PipelineId, testing.V1).
+				To(pipelinesv1.Updating, testing.PipelineId, testing.V1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Creation succeeds",
-			From(pipelinesv1.Creating, "", v1).
-				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowSucceeded), PipelineIdParameterName, PipelineId)).
-				To(pipelinesv1.Succeeded, PipelineId, v1).
+			From(pipelinesv1.Creating, "", testing.V1).
+				WithWorkFlow(pipelineWorkflows.SetWorkflowOutput(createWorkflow(pipelineWorkflows.Create, argo.WorkflowSucceeded), pipelineWorkflows.PipelineIdParameterName, testing.PipelineId)).
+				To(pipelinesv1.Succeeded, testing.PipelineId, testing.V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation succeeds with existing Id",
-			From(pipelinesv1.Creating, AnotherPipelineId, v1).
-				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowSucceeded), PipelineIdParameterName, PipelineId)).
-				To(pipelinesv1.Succeeded, PipelineId, v1).
+			From(pipelinesv1.Creating, testing.AnotherPipelineId, testing.V1).
+				WithWorkFlow(pipelineWorkflows.SetWorkflowOutput(createWorkflow(pipelineWorkflows.Create, argo.WorkflowSucceeded), pipelineWorkflows.PipelineIdParameterName, testing.PipelineId)).
+				To(pipelinesv1.Succeeded, testing.PipelineId, testing.V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation fails with Id",
-			From(pipelinesv1.Creating, "", v1).
-				WithWorkFlow(setWorkflowOutput(createWorkflow(Create, argo.WorkflowFailed), PipelineIdParameterName, PipelineId)).
-				To(pipelinesv1.Failed, PipelineId, v1).
+			From(pipelinesv1.Creating, "", testing.V1).
+				WithWorkFlow(pipelineWorkflows.SetWorkflowOutput(createWorkflow(pipelineWorkflows.Create, argo.WorkflowFailed), pipelineWorkflows.PipelineIdParameterName, testing.PipelineId)).
+				To(pipelinesv1.Failed, testing.PipelineId, testing.V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation fails",
-			From(pipelinesv1.Creating, "", v1).
-				WithWorkFlow(createWorkflow(Create, argo.WorkflowFailed)).
-				To(pipelinesv1.Failed, "", v1).
+			From(pipelinesv1.Creating, "", testing.V1).
+				WithWorkFlow(createWorkflow(pipelineWorkflows.Create, argo.WorkflowFailed)).
+				To(pipelinesv1.Failed, "", testing.V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
@@ -173,97 +181,97 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Failed, "", ""),
 		),
 		Check("Succeeded no update",
-			From(pipelinesv1.Succeeded, PipelineId, v1),
+			From(pipelinesv1.Succeeded, testing.PipelineId, testing.V1),
 		),
 		Check("Succeeded with update",
-			From(pipelinesv1.Succeeded, PipelineId, v0).
-				To(pipelinesv1.Updating, PipelineId, v1).
+			From(pipelinesv1.Succeeded, testing.PipelineId, testing.V0).
+				To(pipelinesv1.Updating, testing.PipelineId, testing.V1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Succeeded with update but no Id",
-			From(pipelinesv1.Succeeded, "", v0).
-				To(pipelinesv1.Creating, "", v1).
+			From(pipelinesv1.Succeeded, "", testing.V0).
+				To(pipelinesv1.Creating, "", testing.V1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Succeeded with update but no Id and no version",
 			From(pipelinesv1.Succeeded, "", "").
-				To(pipelinesv1.Creating, "", v1).
+				To(pipelinesv1.Creating, "", testing.V1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed no update",
-			From(pipelinesv1.Failed, PipelineId, v1),
+			From(pipelinesv1.Failed, testing.PipelineId, testing.V1),
 		),
 		Check("Failed with Update",
-			From(pipelinesv1.Failed, PipelineId, v0).
-				To(pipelinesv1.Updating, PipelineId, v1).
+			From(pipelinesv1.Failed, testing.PipelineId, testing.V0).
+				To(pipelinesv1.Updating, testing.PipelineId, testing.V1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Failed with Update but no Id",
-			From(pipelinesv1.Failed, "", v0).
-				To(pipelinesv1.Creating, "", v1).
+			From(pipelinesv1.Failed, "", testing.V0).
+				To(pipelinesv1.Creating, "", testing.V1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed with Update but no Id and no version",
 			From(pipelinesv1.Failed, "", "").
-				To(pipelinesv1.Creating, "", v1).
+				To(pipelinesv1.Creating, "", testing.V1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds",
-			From(pipelinesv1.Updating, PipelineId, v1).
-				WithWorkFlow(createWorkflow(Update, argo.WorkflowSucceeded)).
-				To(pipelinesv1.Succeeded, PipelineId, v1).
+			From(pipelinesv1.Updating, testing.PipelineId, testing.V1).
+				WithWorkFlow(createWorkflow(pipelineWorkflows.Update, argo.WorkflowSucceeded)).
+				To(pipelinesv1.Succeeded, testing.PipelineId, testing.V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
-			From(pipelinesv1.Updating, PipelineId, v1).
-				WithWorkFlow(createWorkflow(Update, argo.WorkflowFailed)).
-				To(pipelinesv1.Failed, PipelineId, v1).
+			From(pipelinesv1.Updating, testing.PipelineId, testing.V1).
+				WithWorkFlow(createWorkflow(pipelineWorkflows.Update, argo.WorkflowFailed)).
+				To(pipelinesv1.Failed, testing.PipelineId, testing.V1).
 				DeletesAllWorkflows(),
 		),
 		Check("updating without version",
-			From(pipelinesv1.Updating, PipelineId, "").
-				To(pipelinesv1.Failed, PipelineId, ""),
+			From(pipelinesv1.Updating, testing.PipelineId, "").
+				To(pipelinesv1.Failed, testing.PipelineId, ""),
 		),
 		Check("updating without version",
-			From(pipelinesv1.Updating, PipelineId, "").
-				To(pipelinesv1.Failed, PipelineId, ""),
+			From(pipelinesv1.Updating, testing.PipelineId, "").
+				To(pipelinesv1.Failed, testing.PipelineId, ""),
 		),
 		Check("updating without Id",
-			From(pipelinesv1.Updating, "", v1).
-				To(pipelinesv1.Failed, "", v1),
+			From(pipelinesv1.Updating, "", testing.V1).
+				To(pipelinesv1.Failed, "", testing.V1),
 		),
 		Check("updating without Id or version",
 			From(pipelinesv1.Updating, "", "").
 				To(pipelinesv1.Failed, "", ""),
 		),
 		Check("Deleting from Succeeded",
-			From(pipelinesv1.Succeeded, PipelineId, v1).
+			From(pipelinesv1.Succeeded, testing.PipelineId, testing.V1).
 				DeletionRequested().
-				To(pipelinesv1.Deleting, PipelineId, v1).
+				To(pipelinesv1.Deleting, testing.PipelineId, testing.V1).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed",
-			From(pipelinesv1.Failed, PipelineId, v1).
+			From(pipelinesv1.Failed, testing.PipelineId, testing.V1).
 				DeletionRequested().
-				To(pipelinesv1.Deleting, PipelineId, v1).
+				To(pipelinesv1.Deleting, testing.PipelineId, testing.V1).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deletion succeeds",
-			From(pipelinesv1.Deleting, PipelineId, v1).
+			From(pipelinesv1.Deleting, testing.PipelineId, testing.V1).
 				DeletionRequested().
-				WithWorkFlow(createWorkflow(Delete, argo.WorkflowSucceeded)).
-				To(pipelinesv1.Deleted, PipelineId, v1).
+				WithWorkFlow(createWorkflow(pipelineWorkflows.Delete, argo.WorkflowSucceeded)).
+				To(pipelinesv1.Deleted, testing.PipelineId, testing.V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Deletion fails",
-			From(pipelinesv1.Deleting, PipelineId, v1).
+			From(pipelinesv1.Deleting, testing.PipelineId, testing.V1).
 				DeletionRequested().
-				WithWorkFlow(createWorkflow(Delete, argo.WorkflowFailed)).
-				To(pipelinesv1.Deleting, PipelineId, v1).
+				WithWorkFlow(createWorkflow(pipelineWorkflows.Delete, argo.WorkflowFailed)).
+				To(pipelinesv1.Deleting, testing.PipelineId, testing.V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Stay in deleted",
-			From(pipelinesv1.Deleted, PipelineId, v1).
+			From(pipelinesv1.Deleted, testing.PipelineId, testing.V1).
 				IssuesCommand(DeletePipeline{}),
 		),
 	)

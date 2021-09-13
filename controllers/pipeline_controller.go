@@ -11,6 +11,7 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -23,7 +24,7 @@ var (
 type PipelineReconciler struct {
 	client.Client
 	Scheme    *runtime.Scheme
-	Workflows Workflows
+	Workflows pipelineWorkflows.Workflows
 }
 
 type Command interface {
@@ -82,7 +83,7 @@ type WorkflowsImpl struct {
 func (w WorkflowsImpl) GetByOperation(operation string) []argo.Workflow {
 	var workflows argo.WorkflowList
 
-	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: w.pipeline.ObjectMeta.Name})
+	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingLabels{pipelineWorkflows.OperationLabelKey: operation, pipelineWorkflows.PipelineLabelKey: w.pipeline.ObjectMeta.Name})
 
 	return workflows.Items
 }
@@ -100,7 +101,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	r.AddFinalizer(ctx, pipeline)
+	if pipeline.ObjectMeta.DeletionTimestamp.IsZero() {
+		r.AddFinalizer(ctx, pipeline)
+	}
 
 	workflows := WorkflowsImpl{r, ctx, pipeline}
 	stateHandler := StateHandler{
