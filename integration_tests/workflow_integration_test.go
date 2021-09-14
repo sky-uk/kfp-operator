@@ -56,6 +56,8 @@ var _ = BeforeSuite(func() {
 			KfpToolsImage:   "kfp-tools",
 			CompilerImage:   "compiler",
 			ImagePullPolicy: "Never", // Needed for minikube to use local images
+			PipelineStorage: "gs://some-bucket",
+			DataflowProject: "project",
 		},
 	}
 })

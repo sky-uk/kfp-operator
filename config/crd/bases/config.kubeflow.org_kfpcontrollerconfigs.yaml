@@ -151,11 +151,15 @@ spec:
             properties:
               compilerImage:
                 type: string
+              dataflowProject:
+                type: string
               imagePullPolicy:
                 type: string
               kfpEndpoint:
                 type: string
               kfpToolsImage:
+                type: string
+              pipelineStorage:
                 type: string
               serviceAccount:
                 type: string

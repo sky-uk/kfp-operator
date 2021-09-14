@@ -33,6 +33,8 @@ var (
 )
 
 type Configuration struct {
+	PipelineStorage string `json:"pipelineStorage,omitempty"`
+	DataflowProject string `json:"dataflowProject,omitempty"`
 	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
 	ServiceAccount  string `json:"serviceAccount,omitempty"`
 	KfpEndpoint     string `json:"kfpEndpoint,omitempty"`
@@ -44,12 +46,29 @@ type Workflows struct {
 	Config Configuration
 }
 
-var pipelineConfigAsYaml = func(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) (string, error) {
+func (wf *Workflows) pipelineConfigAsYaml(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) (string, error) {
+	type CompilerConfig struct {
+		Spec         pipelinesv1.PipelineSpec
+		Name         string
+		ServingDir   string            `yaml:"servingDir"`
+		PipelineRoot string            `yaml:"pipelineRoot"`
+		BeamArgs     map[string]string `yaml:"beamArgs"`
+	}
+
+	// TODO: Join paths properly
+	pipelineRoot := wf.Config.PipelineStorage + "/" + pipelineMeta.Name
+	servingDir := pipelineRoot + "/serving"
+	dataflowTmpDir := pipelineRoot + "/tmp"
+
 	config := &CompilerConfig{
 		Spec:         pipelineSpec,
 		Name:         pipelineMeta.Name,
-		PipelineRoot: "root",
-		ServingDir:   "serving",
+		PipelineRoot: pipelineRoot,
+		ServingDir:   servingDir,
+		BeamArgs: map[string]string{
+			"project":       wf.Config.DataflowProject,
+			"temp_location": dataflowTmpDir,
+		},
 	}
 
 	specAsYaml, err := yaml.Marshal(&config)
@@ -73,7 +92,7 @@ func (w *Workflows) commonMeta(pipelineMeta metav1.ObjectMeta, operation string)
 }
 
 func (w Workflows) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineVersion string) (*argo.Workflow, error) {
-	yamlConfig, error := pipelineConfigAsYaml(pipelineSpec, pipelineMeta)
+	yamlConfig, error := w.pipelineConfigAsYaml(pipelineSpec, pipelineMeta)
 
 	if error != nil {
 		return nil, error
@@ -159,7 +178,7 @@ func (w Workflows) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSp
 }
 
 func (w Workflows) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineId string, pipelineVersion string) (*argo.Workflow, error) {
-	yamlConfig, error := pipelineConfigAsYaml(pipelineSpec, pipelineMeta)
+	yamlConfig, error := w.pipelineConfigAsYaml(pipelineSpec, pipelineMeta)
 
 	if error != nil {
 		return nil, error
@@ -254,14 +273,6 @@ func (w Workflows) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMeta, pip
 	}
 
 	return workflow
-}
-
-type CompilerConfig struct {
-	Spec         pipelinesv1.PipelineSpec
-	Name         string
-	ServingDir   string            `yaml:"servingDir"`
-	PipelineRoot string            `yaml:"pipelineRoot"`
-	BeamArgs     map[string]string `yaml:"beamArgs"`
 }
 
 func (workflows *Workflows) compiler(pipelineSpec string, pipelineImage string) argo.Template {

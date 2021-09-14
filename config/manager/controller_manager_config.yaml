@@ -15,3 +15,5 @@ workflows:
   imagePullPolicy: Always
   kfpEndpoint: http://ml-pipeline-ui:80
   serviceAccount: pipeline-runner
+  dataflowProject: ml-dev-uswe2
+  pipelineStorage: gs://ml-dev-uswe2-mlops
