@@ -5,10 +5,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/format"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
-	testing "github.com/sky-uk/kfp-operator/controllers/testing"
-	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	testing "github.com/sky-uk/kfp-operator/controllers/pipelines/testing"
+	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	// +kubebuilder:scaffold:imports
 )
@@ -18,7 +17,6 @@ var now = metav1.Now()
 // TODO: mock workflows
 var workflows = pipelineWorkflows.Workflows{
 	Config: pipelineWorkflows.Configuration{
-		Namespace:       "default",
 		KfpToolsImage:   "kfp-tools",
 		CompilerImage:   "compiler",
 		ImagePullPolicy: "Never",
@@ -89,13 +87,13 @@ func (st TestCase) WithWorkFlow(workflow *argo.Workflow) TestCase {
 	return st
 }
 
-func (st TestCase) IssuesCreationWorkflow() TestCase {
-	creationWorkflow, _ := workflows.ConstructCreationWorkflow(st.Pipeline)
+func (st TestCase) IssuesCreationWorkflow(version string) TestCase {
+	creationWorkflow, _ := workflows.ConstructCreationWorkflow(st.Pipeline, version)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
-func (st TestCase) IssuesUpdateWorkflow() TestCase {
-	updateWorkflow, _ := workflows.ConstructUpdateWorkflow(st.Pipeline)
+func (st TestCase) IssuesUpdateWorkflow(version string) TestCase {
+	updateWorkflow, _ := workflows.ConstructUpdateWorkflow(st.Pipeline, version)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
@@ -123,7 +121,6 @@ func Check(description string, transition TestCase) TableEntry {
 }
 
 var _ = Describe("Pipeline State handler", func() {
-	format.MaxLength = 0
 	DescribeTable("State transitions", func(st TestCase) {
 		commands := stateHandler.StateTransition(st.Pipeline, StubbedWorkflows{st.Workflows})
 		is := make([]interface{}, len(st.Commands))
@@ -135,22 +132,22 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Unknown",
 			From(pipelinesv1.Unknown, "", "").
 				To(pipelinesv1.Creating, "", testing.V1).
-				IssuesCreationWorkflow(),
+				IssuesCreationWorkflow(testing.V1),
 		),
 		Check("Unknown with version",
 			From(pipelinesv1.Unknown, "", testing.V1).
 				To(pipelinesv1.Creating, "", testing.V1).
-				IssuesCreationWorkflow(),
+				IssuesCreationWorkflow(testing.V1),
 		),
 		Check("Unknown with id",
 			From(pipelinesv1.Unknown, testing.PipelineId, "").
 				To(pipelinesv1.Updating, testing.PipelineId, testing.V1).
-				IssuesUpdateWorkflow(),
+				IssuesUpdateWorkflow(testing.V1),
 		),
 		Check("Unknown with id and version",
 			From(pipelinesv1.Unknown, testing.PipelineId, testing.V1).
 				To(pipelinesv1.Updating, testing.PipelineId, testing.V1).
-				IssuesUpdateWorkflow(),
+				IssuesUpdateWorkflow(testing.V1),
 		),
 		Check("Creation succeeds",
 			From(pipelinesv1.Creating, "", testing.V1).
@@ -186,17 +183,17 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Succeeded with update",
 			From(pipelinesv1.Succeeded, testing.PipelineId, testing.V0).
 				To(pipelinesv1.Updating, testing.PipelineId, testing.V1).
-				IssuesUpdateWorkflow(),
+				IssuesUpdateWorkflow(testing.V1),
 		),
 		Check("Succeeded with update but no Id",
 			From(pipelinesv1.Succeeded, "", testing.V0).
 				To(pipelinesv1.Creating, "", testing.V1).
-				IssuesCreationWorkflow(),
+				IssuesCreationWorkflow(testing.V1),
 		),
 		Check("Succeeded with update but no Id and no version",
 			From(pipelinesv1.Succeeded, "", "").
 				To(pipelinesv1.Creating, "", testing.V1).
-				IssuesCreationWorkflow(),
+				IssuesCreationWorkflow(testing.V1),
 		),
 		Check("Failed no update",
 			From(pipelinesv1.Failed, testing.PipelineId, testing.V1),
@@ -204,17 +201,17 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Failed with Update",
 			From(pipelinesv1.Failed, testing.PipelineId, testing.V0).
 				To(pipelinesv1.Updating, testing.PipelineId, testing.V1).
-				IssuesUpdateWorkflow(),
+				IssuesUpdateWorkflow(testing.V1),
 		),
 		Check("Failed with Update but no Id",
 			From(pipelinesv1.Failed, "", testing.V0).
 				To(pipelinesv1.Creating, "", testing.V1).
-				IssuesCreationWorkflow(),
+				IssuesCreationWorkflow(testing.V1),
 		),
 		Check("Failed with Update but no Id and no version",
 			From(pipelinesv1.Failed, "", "").
 				To(pipelinesv1.Creating, "", testing.V1).
-				IssuesCreationWorkflow(),
+				IssuesCreationWorkflow(testing.V1),
 		),
 		Check("Updating succeeds",
 			From(pipelinesv1.Updating, testing.PipelineId, testing.V1).

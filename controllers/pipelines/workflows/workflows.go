@@ -6,7 +6,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -33,11 +33,11 @@ var (
 )
 
 type Configuration struct {
-	ImagePullPolicy string
-	Namespace       string
-	KfpEndpoint     string
-	CompilerImage   string
-	KfpToolsImage   string
+	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
+	ServiceAccount  string `json:"serviceAccount,omitempty"`
+	KfpEndpoint     string `json:"kfpEndpoint,omitempty"`
+	CompilerImage   string `json:"compilerImage,omitempty"`
+	KfpToolsImage   string `json:"kfpToolsImage,omitempty"`
 }
 
 type Workflows struct {
@@ -64,7 +64,7 @@ var pipelineConfigAsYaml = func(pipeline *pipelinesv1.Pipeline) (string, error) 
 func (w *Workflows) commonMeta(pipeline *pipelinesv1.Pipeline, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
-		Namespace:    w.Config.Namespace,
+		Namespace:    pipeline.Namespace,
 		Labels: map[string]string{
 			OperationLabelKey: operation,
 			PipelineLabelKey:  pipeline.ObjectMeta.Name,
@@ -72,7 +72,7 @@ func (w *Workflows) commonMeta(pipeline *pipelinesv1.Pipeline, operation string)
 	}
 }
 
-func (w Workflows) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+func (w Workflows) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline, version string) (*argo.Workflow, error) {
 	yamlConfig, error := pipelineConfigAsYaml(pipeline)
 
 	if error != nil {
@@ -84,7 +84,8 @@ func (w Workflows) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*a
 	workflow := &argo.Workflow{
 		ObjectMeta: *w.commonMeta(pipeline, Create),
 		Spec: argo.WorkflowSpec{
-			Entrypoint: entrypointName,
+			ServiceAccountName: w.Config.ServiceAccount,
+			Entrypoint:         entrypointName,
 			Templates: []argo.Template{
 				{
 					Name: entrypointName,
@@ -149,7 +150,7 @@ func (w Workflows) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*a
 				},
 				w.compiler(yamlConfig, pipeline.Spec.Image),
 				w.uploader(pipeline.Name),
-				w.updater(pipeline.Status.Version),
+				w.updater(version),
 			},
 		},
 	}
@@ -157,7 +158,7 @@ func (w Workflows) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*a
 	return workflow, nil
 }
 
-func (w Workflows) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+func (w Workflows) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline, version string) (*argo.Workflow, error) {
 	yamlConfig, error := pipelineConfigAsYaml(pipeline)
 
 	if error != nil {
@@ -169,7 +170,8 @@ func (w Workflows) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*arg
 	workflow := &argo.Workflow{
 		ObjectMeta: *w.commonMeta(pipeline, Update),
 		Spec: argo.WorkflowSpec{
-			Entrypoint: entrypointName,
+			ServiceAccountName: w.Config.ServiceAccount,
+			Entrypoint:         entrypointName,
 			Templates: []argo.Template{
 				{
 					Name: entrypointName,
@@ -207,7 +209,7 @@ func (w Workflows) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*arg
 					},
 				},
 				w.compiler(yamlConfig, pipeline.Spec.Image),
-				w.updater(pipeline.Status.Version),
+				w.updater(version),
 			},
 		},
 	}
@@ -222,7 +224,8 @@ func (w Workflows) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) *ar
 	workflow := &argo.Workflow{
 		ObjectMeta: *w.commonMeta(pipeline, Delete),
 		Spec: argo.WorkflowSpec{
-			Entrypoint: entrypointName,
+			ServiceAccountName: w.Config.ServiceAccount,
+			Entrypoint:         entrypointName,
 			Templates: []argo.Template{
 				{
 					Name: entrypointName,

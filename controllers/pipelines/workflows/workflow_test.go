@@ -16,7 +16,7 @@ var _ = Describe("Creation Workflow", func() {
 	When("creating a workflow with valid paramters", func() {
 		It("creates a valid workflow", func() {
 			pipeline := RandomPipeline()
-			workflow, error := wf.ConstructCreationWorkflow(pipeline)
+			workflow, error := wf.ConstructCreationWorkflow(pipeline, pipeline.Status.Version)
 			Expect(error).NotTo(HaveOccurred())
 
 			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, Create))
@@ -29,7 +29,7 @@ var _ = Describe("Update Workflow", func() {
 	When("creating a workflow with valid paramters", func() {
 		It("creates a valid workflow", func() {
 			pipeline := RandomPipeline()
-			workflow, error := wf.ConstructUpdateWorkflow(pipeline)
+			workflow, error := wf.ConstructUpdateWorkflow(pipeline, pipeline.Status.Version)
 			Expect(error).NotTo(HaveOccurred())
 
 			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, Update))

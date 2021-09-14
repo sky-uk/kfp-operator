@@ -1,0 +1,7 @@
+apiVersion: config.kubeflow.org/v1
+kind: KfpControllerConfig
+metadata:
+  name: projectconfig-sample
+spec:
+  # Add fields here
+  foo: bar

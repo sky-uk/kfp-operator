@@ -16,7 +16,17 @@ spec:
     singular: pipeline
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .status.synchronizationState
+      name: Status
+      type: string
+    - jsonPath: .status.id
+      name: PipelineId
+      type: string
+    - jsonPath: .status.version
+      name: Version
+      type: string
+    name: v1
     schema:
       openAPIV3Schema:
         properties:

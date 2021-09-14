@@ -21,8 +21,6 @@ func GetWorkflowOutput(workflow *argo.Workflow, key string) (string, error) {
 		return string(mapParams(entrypointNode.Outputs.Parameters)[key]), nil
 	}
 
-	fmt.Println(workflow)
-
 	return "", fmt.Errorf("workflow does not have %s node", workflow.Name)
 }
 

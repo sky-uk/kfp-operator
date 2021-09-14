@@ -1,6 +1,7 @@
 domain: kubeflow.org
 layout:
 - go.kubebuilder.io/v3
+multigroup: true
 projectName: project
 repo: github.com/sky-uk/kfp-operator
 resources:
@@ -13,4 +14,12 @@ resources:
   kind: Pipeline
   path: github.com/sky-uk/kfp-operator/api/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  domain: kubeflow.org
+  group: config
+  kind: ProjectConfig
+  path: github.com/sky-uk/kfp-operator/apis/config/v2
+  version: v2
 version: "3"

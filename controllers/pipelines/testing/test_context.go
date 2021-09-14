@@ -11,8 +11,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
-	pipelineworkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	pipelineworkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 	//+kubebuilder:scaffold:imports
 )
 

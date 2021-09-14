@@ -4,8 +4,8 @@ import (
 	"sort"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
-	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 )
 
 type StateHandler struct {
@@ -40,8 +40,10 @@ func (st StateHandler) StateTransition(pipeline *pipelinesv1.Pipeline, workflows
 
 func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 
+	newPipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
+
 	if pipeline.Status.Id != "" {
-		workflow, error := st.Workflows.ConstructUpdateWorkflow(pipeline)
+		workflow, error := st.Workflows.ConstructUpdateWorkflow(pipeline, newPipelineVersion)
 
 		if error != nil {
 			return []Command{
@@ -53,8 +55,6 @@ func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 				},
 			}
 		}
-
-		newPipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
 
 		return []Command{
 			CreateWorkflow{Workflow: *workflow},
@@ -68,15 +68,13 @@ func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 		}
 	}
 
-	pipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
-
-	workflow, error := st.Workflows.ConstructCreationWorkflow(pipeline)
+	workflow, error := st.Workflows.ConstructCreationWorkflow(pipeline, newPipelineVersion)
 
 	if error != nil {
 		return []Command{
 			SetPipelineStatus{
 				Status: pipelinesv1.PipelineStatus{
-					Version:              pipelineVersion,
+					Version:              newPipelineVersion,
 					SynchronizationState: pipelinesv1.Failed,
 				},
 			},
@@ -87,7 +85,7 @@ func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 		CreateWorkflow{Workflow: *workflow},
 		SetPipelineStatus{
 			Status: pipelinesv1.PipelineStatus{
-				Version:              pipelineVersion,
+				Version:              newPipelineVersion,
 				SynchronizationState: pipelinesv1.Creating,
 			},
 		},
@@ -121,10 +119,10 @@ func (st StateHandler) onSucceededOrFailed(pipeline *pipelinesv1.Pipeline) []Com
 	var targetState pipelinesv1.SynchronizationState
 
 	if pipeline.Status.Id == "" {
-		workflow, error = st.Workflows.ConstructCreationWorkflow(pipeline)
+		workflow, error = st.Workflows.ConstructCreationWorkflow(pipeline, newPipelineVersion)
 		targetState = pipelinesv1.Creating
 	} else {
-		workflow, error = st.Workflows.ConstructUpdateWorkflow(pipeline)
+		workflow, error = st.Workflows.ConstructUpdateWorkflow(pipeline, newPipelineVersion)
 		targetState = pipelinesv1.Updating
 	}
 

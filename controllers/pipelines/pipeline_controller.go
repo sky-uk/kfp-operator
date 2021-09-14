@@ -10,8 +10,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
-	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

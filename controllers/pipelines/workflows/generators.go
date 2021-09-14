@@ -5,7 +5,7 @@ import (
 
 	"math/rand"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	"github.com/thanhpk/randstr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

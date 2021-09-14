@@ -31,10 +31,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/api/v1"
-	"github.com/sky-uk/kfp-operator/controllers"
-	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/workflows"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	controllers "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	//+kubebuilder:scaffold:imports
 
 	"github.com/sky-uk/kfp-operator/external"
@@ -49,46 +50,48 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(pipelinesv1.AddToScheme(scheme))
+	utilruntime.Must(configv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 
 	utilruntime.Must(external.InitSchemes(scheme))
 }
 
-var workflows = pipelineWorkflows.Workflows{
-	Config: pipelineWorkflows.Configuration{
-		KfpToolsImage: "kfp-tools",
-		CompilerImage: "compiler",
-	},
-}
-
 func main() {
-	var metricsAddr string
-	var enableLeaderElection bool
-	var probeAddr string
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
+	var configFile string
+
+	flag.StringVar(&configFile, "config", "",
+		"The controller will load its initial configuration from this file. "+
+			"Omit this flag to use the default configuration values. "+
+			"Command-line flags override configuration from this file.")
 	opts := zap.Options{
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	var err error
+	ctrlConfig := configv1.KfpControllerConfig{}
+	options := ctrl.Options{Scheme: scheme}
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
-		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "54cbc3c5.kubeflow.org",
-	})
+	if configFile != "" {
+		options, err = options.AndFrom(ctrl.ConfigFile().AtPath(configFile).OfKind(&ctrlConfig))
+		if err != nil {
+			setupLog.Error(err, "unable to load the config file")
+			os.Exit(1)
+		}
+	}
+
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	var mgr ctrl.Manager
+
+	mgr, err = ctrl.NewManager(ctrl.GetConfigOrDie(), options)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
+	}
+
+	var workflows = pipelineWorkflows.Workflows{
+		Config: ctrlConfig.Workflows,
 	}
 
 	if err = (&controllers.PipelineReconciler{
