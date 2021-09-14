@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	testing "github.com/sky-uk/kfp-operator/controllers/pipelines/testing"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/test_utils"
 	pipelineworkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 	// +kubebuilder:scaffold:imports
 )
@@ -15,7 +15,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 	When("Creating, updating and deleting", func() {
 
 		It("transitions through all stages", func() {
-			testCtx := testing.NewTestContext(k8sClient, ctx)
+			testCtx := test_utils.NewTestContext(k8sClient, ctx)
 
 			Expect(k8sClient.Create(ctx, testCtx.Pipeline)).To(Succeed())
 
@@ -25,7 +25,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 
 			Expect(testCtx.UpdateWorkflow(pipelineworkflows.Create, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				pipelineworkflows.SetWorkflowOutput(workflow, pipelineworkflows.PipelineIdParameterName, testing.PipelineId)
+				pipelineworkflows.SetWorkflowOutput(workflow, pipelineworkflows.PipelineIdParameterName, test_utils.PipelineId)
 			})).To(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -33,7 +33,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 			})).Should(Succeed())
 
 			Expect(testCtx.UpdatePipeline(func(pipeline *pipelinesv1.Pipeline) {
-				pipeline.Spec = testing.SpecV2
+				pipeline.Spec = test_utils.SpecV2
 			})).To(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {

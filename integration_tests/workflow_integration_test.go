@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	testutils "github.com/sky-uk/kfp-operator/controllers/pipelines/testing"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/test_utils"
 	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 	"github.com/sky-uk/kfp-operator/external"
 	"github.com/walkerus/go-wiremock"
@@ -61,7 +61,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = BeforeEach(func() {
-	//Expect(wiremockClient.Reset()).To(Succeed())
+	Expect(wiremockClient.Reset()).To(Succeed())
 
 	Expect(wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/healthz")).
 		WillReturn(
@@ -71,19 +71,19 @@ var _ = BeforeEach(func() {
 		))).To(Succeed())
 })
 
-func KfpUploadToReturn(pipeline pipelinesv1.Pipeline, pipelineId string) error {
+func KfpUploadToSucceed(pipelineName string, pipelineId string) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
-		WithQueryParam("name", wiremock.EqualTo(pipeline.Name)).
+		WithQueryParam("name", wiremock.EqualTo(pipelineName)).
 		WillReturn(
-			`{"id": "`+pipelineId+`", "created_at": "2021-09-10T15:46:08Z", "name": "`+pipeline.Name+`"}`,
+			`{"id": "`+pipelineId+`", "created_at": "2021-09-10T15:46:08Z", "name": "`+pipelineName+`"}`,
 			map[string]string{"Content-Type": "application/json"},
 			200,
 		))
 }
 
-func KfpUploadToFail(pipeline pipelinesv1.Pipeline, pipelineId string) error {
+func KfpUploadToFail(pipelineName string, pipelineId string) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
-		WithQueryParam("name", wiremock.EqualTo(pipeline.Name)).
+		WithQueryParam("name", wiremock.EqualTo(pipelineName)).
 		WillReturn(
 			`{"status": "failed"}`,
 			map[string]string{"Content-Type": "application/json"},
@@ -91,20 +91,20 @@ func KfpUploadToFail(pipeline pipelinesv1.Pipeline, pipelineId string) error {
 		))
 }
 
-func KfpUploadVersionToReturn(pipeline pipelinesv1.Pipeline, pipelineId string) error {
+func KfpUploadVersionToReturn(pipelineName string, pipelineId string, pipelineVersion string) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
-		WithQueryParam("name", wiremock.EqualTo(pipeline.Status.Version)).
+		WithQueryParam("name", wiremock.EqualTo(pipelineVersion)).
 		WithQueryParam("pipelineid", wiremock.EqualTo(pipelineId)).
 		WillReturn(
-			`{"id": "`+pipeline.Status.Version+`", "created_at": "2021-09-10T15:46:08Z", "name": "pipeline", "resource_references": [{"key": {"id": "`+pipelineId+`", "apiResourceType": "PIPELINE"}, "name": "`+pipeline.Name+`", "relationship": "OWNER"}]}`,
+			`{"id": "`+pipelineVersion+`", "created_at": "2021-09-10T15:46:08Z", "name": "pipeline", "resource_references": [{"key": {"id": "`+pipelineId+`", "apiResourceType": "PIPELINE"}, "name": "`+pipelineName+`", "relationship": "OWNER"}]}`,
 			map[string]string{"Content-Type": "application/json"},
 			200,
 		))
 }
 
-func KfpUploadVersionToFail(pipeline pipelinesv1.Pipeline, pipelineId string) error {
+func KfpUploadVersionToFail(pipelineId string, pipelineVersion string) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
-		WithQueryParam("name", wiremock.EqualTo(pipeline.Status.Version)).
+		WithQueryParam("name", wiremock.EqualTo(pipelineVersion)).
 		WithQueryParam("pipelineid", wiremock.EqualTo(pipelineId)).
 		WillReturn(
 			`{"status": "failed"`,
@@ -133,18 +133,15 @@ func KfpDeleteToFail(pipeline pipelinesv1.Pipeline, pipelineId string) error {
 
 var _ = Describe("Creation workflow", func() {
 	When("The creation and update succeeds", func() {
-		It("Succeeds with a Pipeline Id", func() {
+		It("Succeeds the workflow with a Pipeline Id", func() {
 
-			pipelineId := "12345"
-			pipelineVersion := "abcdef"
-			testCtx := testutils.NewTestContext(k8sClient, ctx)
-			testCtx.Pipeline.Status.Version = pipelineVersion
+			testCtx := NewTestContext(k8sClient, ctx)
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
-			Expect(KfpUploadToReturn(*testCtx.Pipeline, pipelineId)).To(Succeed())
-			Expect(KfpUploadVersionToReturn(*testCtx.Pipeline, pipelineId)).To(Succeed())
+			Expect(KfpUploadToSucceed(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
+			Expect(KfpUploadVersionToReturn(testCtx.Pipeline.Name, PipelineId, V1)).To(Succeed())
 
-			workflow, err := workflows.ConstructCreationWorkflow(testCtx.Pipeline, pipelineVersion)
+			workflow, err := workflows.ConstructCreationWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, V1)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = k8sClient.Create(ctx, workflow)
@@ -152,14 +149,15 @@ var _ = Describe("Creation workflow", func() {
 
 			Eventually(testCtx.WorkflowToMatch(pipelineWorkflows.Create, func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(pipelineWorkflows.GetWorkflowOutput(workflow, pipelineWorkflows.PipelineIdParameterName)).To(Equal(pipelineId))
+				g.Expect(pipelineWorkflows.GetWorkflowOutput(workflow, pipelineWorkflows.PipelineIdParameterName)).
+					To(Equal(PipelineId))
 			}), TestTimeout).Should(Succeed())
 		})
 	})
 
 	/* Not currently supported because argo workflow does not fail with output
 	When("The creation succeeds but the update fails", func() {
-		It("Fails with a Pipeline Id", func() {
+		It("Fails the workflow with a Pipeline Id", func() {
 			pipelineId := "12345"
 			pipelineVersion := "abcdef"
 			testCtx := testutils.NewTestContext(k8sClient, ctx)
@@ -183,17 +181,14 @@ var _ = Describe("Creation workflow", func() {
 	*/
 
 	When("The creation fails", func() {
-		It("Fails", func() {
-			pipelineId := "12345"
-			pipelineVersion := "abcdef"
-			testCtx := testutils.NewTestContext(k8sClient, ctx)
-			testCtx.Pipeline.Status.Version = pipelineVersion
+		It("Fails the workflow", func() {
+			testCtx := NewTestContext(k8sClient, ctx)
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
-			Expect(KfpUploadToReturn(*testCtx.Pipeline, pipelineId)).To(Succeed())
-			Expect(KfpUploadVersionToFail(*testCtx.Pipeline, pipelineId)).To(Succeed())
+			Expect(KfpUploadToSucceed(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
+			Expect(KfpUploadVersionToFail(PipelineId, V1)).To(Succeed())
 
-			workflow, err := workflows.ConstructCreationWorkflow(testCtx.Pipeline, pipelineVersion)
+			workflow, err := workflows.ConstructCreationWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, V1)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = k8sClient.Create(ctx, workflow)
@@ -208,18 +203,13 @@ var _ = Describe("Creation workflow", func() {
 
 var _ = Describe("Upload workflow", func() {
 	When("The upload succeeds", func() {
-		It("Succeeds", func() {
-
-			pipelineId := "12345"
-			pipelineVersion := "abcdef"
-			testCtx := testutils.NewTestContext(k8sClient, ctx)
-			testCtx.Pipeline.Status.Version = pipelineVersion
-			testCtx.Pipeline.Status.Id = pipelineId
+		It("Succeeds the workflow", func() {
+			testCtx := NewTestContext(k8sClient, ctx)
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
-			Expect(KfpUploadVersionToReturn(*testCtx.Pipeline, pipelineId)).To(Succeed())
+			Expect(KfpUploadVersionToReturn(testCtx.Pipeline.Name, PipelineId, V1)).To(Succeed())
 
-			workflow, err := workflows.ConstructUpdateWorkflow(testCtx.Pipeline, pipelineVersion)
+			workflow, err := workflows.ConstructUpdateWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, PipelineId, V1)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = k8sClient.Create(ctx, workflow)
@@ -232,18 +222,13 @@ var _ = Describe("Upload workflow", func() {
 	})
 
 	When("The upload fails", func() {
-		It("fails", func() {
-
-			pipelineId := "12345"
-			pipelineVersion := "abcdef"
-			testCtx := testutils.NewTestContext(k8sClient, ctx)
-			testCtx.Pipeline.Status.Version = pipelineVersion
-			testCtx.Pipeline.Status.Id = pipelineId
+		It("Fails the workflow", func() {
+			testCtx := NewTestContext(k8sClient, ctx)
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
-			Expect(KfpUploadVersionToFail(*testCtx.Pipeline, pipelineId)).To(Succeed())
+			Expect(KfpUploadVersionToFail(PipelineId, V1)).To(Succeed())
 
-			workflow, err := workflows.ConstructUpdateWorkflow(testCtx.Pipeline, pipelineVersion)
+			workflow, err := workflows.ConstructUpdateWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, PipelineId, V1)
 			Expect(err).NotTo(HaveOccurred())
 
 			err = k8sClient.Create(ctx, workflow)
@@ -258,18 +243,14 @@ var _ = Describe("Upload workflow", func() {
 
 var _ = Describe("Deletion workflow", func() {
 	When("The deletion succeeds", func() {
-		It("Succeeds", func() {
-
-			pipelineId := "12345"
-			pipelineVersion := "abcdef"
-			testCtx := testutils.NewTestContext(k8sClient, ctx)
-			testCtx.Pipeline.Status.Version = pipelineVersion
-			testCtx.Pipeline.Status.Id = pipelineId
+		It("Succeeds the workflow", func() {
+			testCtx := NewTestContext(k8sClient, ctx)
+			testCtx.Pipeline.Status.Id = PipelineId
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
-			Expect(KfpDeleteToReturn(*testCtx.Pipeline, pipelineId)).To(Succeed())
+			Expect(KfpDeleteToReturn(*testCtx.Pipeline, PipelineId)).To(Succeed())
 
-			workflow := workflows.ConstructDeletionWorkflow(testCtx.Pipeline)
+			workflow := workflows.ConstructDeletionWorkflow(testCtx.Pipeline.ObjectMeta, PipelineId)
 
 			err := k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())
@@ -281,19 +262,15 @@ var _ = Describe("Deletion workflow", func() {
 	})
 
 	When("The deletion fails", func() {
-		It("Fails", func() {
-
-			pipelineId := "12345"
-			pipelineVersion := "abcdef"
-			testCtx := testutils.NewTestContext(k8sClient, ctx)
-			testCtx.Pipeline.Status.Version = pipelineVersion
-			testCtx.Pipeline.Status.Id = pipelineId
+		It("Fails the workflow", func() {
+			testCtx := NewTestContext(k8sClient, ctx)
+			testCtx.Pipeline.Status.Id = PipelineId
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
-			Expect(KfpDeleteToReturn(*testCtx.Pipeline, pipelineId)).To(Succeed())
-			Expect(KfpDeleteToFail(*testCtx.Pipeline, pipelineId)).To(Succeed())
+			Expect(KfpDeleteToReturn(*testCtx.Pipeline, PipelineId)).To(Succeed())
+			Expect(KfpDeleteToFail(*testCtx.Pipeline, PipelineId)).To(Succeed())
 
-			workflow := workflows.ConstructDeletionWorkflow(testCtx.Pipeline)
+			workflow := workflows.ConstructDeletionWorkflow(testCtx.Pipeline.ObjectMeta, PipelineId)
 
 			err := k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())

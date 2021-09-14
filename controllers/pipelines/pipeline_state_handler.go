@@ -43,7 +43,7 @@ func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 	newPipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
 
 	if pipeline.Status.Id != "" {
-		workflow, error := st.Workflows.ConstructUpdateWorkflow(pipeline, newPipelineVersion)
+		workflow, error := st.Workflows.ConstructUpdateWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.Id, newPipelineVersion)
 
 		if error != nil {
 			return []Command{
@@ -68,7 +68,7 @@ func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 		}
 	}
 
-	workflow, error := st.Workflows.ConstructCreationWorkflow(pipeline, newPipelineVersion)
+	workflow, error := st.Workflows.ConstructCreationWorkflow(pipeline.Spec, pipeline.ObjectMeta, newPipelineVersion)
 
 	if error != nil {
 		return []Command{
@@ -93,7 +93,7 @@ func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 }
 
 func (st StateHandler) onDelete(pipeline *pipelinesv1.Pipeline) []Command {
-	workflow := st.Workflows.ConstructDeletionWorkflow(pipeline)
+	workflow := st.Workflows.ConstructDeletionWorkflow(pipeline.ObjectMeta, pipeline.Status.Id)
 
 	return []Command{
 		CreateWorkflow{Workflow: *workflow},
@@ -119,10 +119,10 @@ func (st StateHandler) onSucceededOrFailed(pipeline *pipelinesv1.Pipeline) []Com
 	var targetState pipelinesv1.SynchronizationState
 
 	if pipeline.Status.Id == "" {
-		workflow, error = st.Workflows.ConstructCreationWorkflow(pipeline, newPipelineVersion)
+		workflow, error = st.Workflows.ConstructCreationWorkflow(pipeline.Spec, pipeline.ObjectMeta, newPipelineVersion)
 		targetState = pipelinesv1.Creating
 	} else {
-		workflow, error = st.Workflows.ConstructUpdateWorkflow(pipeline, newPipelineVersion)
+		workflow, error = st.Workflows.ConstructUpdateWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.Id, newPipelineVersion)
 		targetState = pipelinesv1.Updating
 	}
 
@@ -163,7 +163,7 @@ func (st StateHandler) onUpdating(pipeline *pipelinesv1.Pipeline, updateWorkflow
 		}
 	}
 
-	inProgress, succeeded, _ := latestWorkflowsByPhase(updateWorkflows)
+	inProgress, succeeded, _ := pipelineWorkflows.GetLatestWorkflowsByPhase(updateWorkflows)
 
 	if inProgress != nil {
 		return []Command{}
@@ -189,7 +189,7 @@ func (st StateHandler) onUpdating(pipeline *pipelinesv1.Pipeline, updateWorkflow
 
 func (st StateHandler) onDeleting(pipeline *pipelinesv1.Pipeline, deletionWorkflows []argo.Workflow) []Command {
 
-	inProgress, succeeded, _ := latestWorkflowsByPhase(deletionWorkflows)
+	inProgress, succeeded, _ := pipelineWorkflows.GetLatestWorkflowsByPhase(deletionWorkflows)
 
 	if inProgress != nil {
 		return []Command{}
@@ -234,7 +234,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 		return creationWorkflows[i].ObjectMeta.CreationTimestamp.Before(&creationWorkflows[j].ObjectMeta.CreationTimestamp)
 	})
 
-	inProgress, succeeded, failed := latestWorkflowsByPhase(creationWorkflows)
+	inProgress, succeeded, failed := pipelineWorkflows.GetLatestWorkflowsByPhase(creationWorkflows)
 
 	if inProgress != nil {
 		return []Command{}

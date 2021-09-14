@@ -42,3 +42,19 @@ func SetWorkflowOutput(workflow *argo.Workflow, name string, output string) *arg
 
 	return workflow
 }
+
+func GetLatestWorkflowsByPhase(workflows []argo.Workflow) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
+	for i := range workflows {
+		workflow := workflows[i]
+		switch workflow.Status.Phase {
+		case argo.WorkflowFailed, argo.WorkflowError:
+			failed = &workflow
+		case argo.WorkflowSucceeded:
+			succeeded = &workflow
+		default:
+			inProgress = &workflow
+		}
+	}
+
+	return
+}
