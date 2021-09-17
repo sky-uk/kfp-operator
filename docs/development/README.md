@@ -5,51 +5,51 @@ The [Kubebuilder Book](https://book.kubebuilder.io/) is a good introduction to t
 
 ## Set up the development environment
 
-Install go by following the [website](https://golang.org/doc/install)
+Install Go by following the instructions on the [website](https://golang.org/doc/install).
 
-Install the dependencies:
+Many commands in this guide will run *against your current kubernetes context*; make sure that it is set accordingly. [Minikube](https://minikube.sigs.k8s.io/docs/start/) provides a local Kubernetes cluster ideal for development.
+
+## Run unit tests
 
 ```sh
-go get
+make test
 ```
 
-## Running locally
+Note: on first execution, the test environment will get downloaded and the command will therefore take longer to complete.
 
-The following command wil run the controller locally *against your current kubernetes context*.
-This means that CRDs will be installed into an existing k8s cluster, but the controller will run locally, interacting with the rempote k8s API.
+## Running locally
 
 ```sh
 make install
 make run
 ```
 
-## Run the tests
+CRDs will be installed into an existing Kubernetes cluster. A running instance of Kubeflow is required on that cluster. The controller will run locally, interacting with the remote Kubernetes API.
 
-Note: on first execution, the test environment will get downloaded and the command will therefore take longer to complete.
+## Run Argo integration tests
 
-```sh
-make test
-```
-
-## Run argo integration tests
+To run integration tests, we currently require a one-off setup of the Kubernetes cluster.
 
 ```sh
-# Start minikube
-minikube start -p argo-integration-tests --driver=hyperkit
-# Install argo
+# Install Argo
 kubectl create ns argo
 kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
-# proxy the minikube API server
-kubectl proxy --port=8080
 # Start wiremock
-kubectl apply -f controllers/integration_tests/wiremock.yaml
-kubectl port-forward -n argo $(kubectl get pod -n argo --selector="app=kfp-wiremock" --output jsonpath='{.items[0].metadata.name}') 8081:8080
-# Load all images into minikube
-minikube -p argo-integration-tests image load kfp-tools
-minikube -p argo-integration-tests image load compiler
-minikube -p argo-integration-tests image load test-pipeline
-
-# Run the tests
-integration-test
+kubectl apply -f integration_tests/wiremock.yaml
+kubectl port-forward service/kfp-wiremock 8081:80
+# Proxy the API server
+kubectl proxy --port=8080
 ```
 
+
+
+```sh
+# Load all images into Minikube
+minikube image load kfp-tools
+minikube image load compiler
+# TODO how to build test pipeline
+minikube image load test-pipeline
+
+# Run the tests
+make integration-test
+```
