@@ -55,8 +55,26 @@ test: manifests generate fmt vet ## Run tests.
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -short -coverprofile cover.out
 
-integration-test: 
+integration-test:
+	eval $(minikube -p argo-integration-tests docker-env)
+	docker build compiler -t compiler
+	docker build kfp-tools -t kfp-tools
+	docker build docs/quickstart -t kfp-quickstart
 	go test -v integration_tests/*.go
+
+integration-test-up:
+	minikube start -p argo-integration-tests
+	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+	kubectl apply -n argo -f integration_tests/wiremock.yaml
+	rm -f pids
+	kubectl port-forward -n argo service/kfp-wiremock 8081:80 & echo $$! >> pids
+	kubectl proxy --port=8080 & echo $$! >> integration_tests/pids
+
+integration-test-down:
+	cat integration_tests/pids | xargs kill
+	rm -f pids
+	minikube stop -p argo-integration-tests
 
 ##@ Build
 

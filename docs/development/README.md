@@ -22,8 +22,10 @@ Note: on first execution, the test environment will get downloaded and the comma
 Build all images as follows:
 
 ```sh
-(cd compiler; docker build . -t ${YOUR_REGISTRY}/compiler; docker push ${YOUR_REGISTRY}/compiler)
-(cd kfp-tools; docker build . -t ${YOUR_REGISTRY}/kfp-tools; docker push ${YOUR_REGISTRY}/kfp-tools)
+docker build compiler -t ${YOUR_REGISTRY}/compiler
+docker push ${YOUR_REGISTRY}/compiler
+docker build kfp-tools -t ${YOUR_REGISTRY}/kfp-tools
+docker push ${YOUR_REGISTRY}/kfp-tools
 ```
 
 Configure the controller to your environment in [controller_manager_config.yaml](../../config/manager/controller_manager_config.yaml)
@@ -44,27 +46,16 @@ Please refer to the [Quickstart tutorial](../quickstart) for instructions on cre
 To run integration tests, we currently require a one-off setup of the Kubernetes cluster:
 
 ```sh
-# Install Argo
-kubectl create ns argo
-kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
-# Start wiremock
-kubectl apply -f integration_tests/wiremock.yaml
-kubectl port-forward service/kfp-wiremock 8081:80
-# Proxy the API server
-kubectl proxy --port=8080
-```
-
-Next, build all relevant images in the minikube docker environment.
-Note: alternatively, you can build the images locally and make them available using `minikube image load`.
-
-```sh
-eval $(minikube -p argo-integration-tests docker-env)
-(cd docs/quickstart; docker build . -t kfp-quickstart)
-(cd compiler; docker build . -t compiler)
-(cd kfp-tools; docker build . -t kfp-tools)
+make integration-test-up
 ```
 
 You can now run the integration tests as follows:
 ```sh
 make integration-test
+```
+
+Finally, bring down the environment after your tests:
+
+```sh
+make integration-test-down
 ```

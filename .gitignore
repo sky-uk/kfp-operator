@@ -3,5 +3,5 @@ bin/
 testbin/
 *.out
 /vendor/
-
 /.vscode/
+pids
