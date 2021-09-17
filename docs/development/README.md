@@ -19,6 +19,17 @@ Note: on first execution, the test environment will get downloaded and the comma
 
 ## Running locally
 
+Build all images as follows:
+
+```sh
+(cd compiler; docker build . -t ${YOUR_REGISTRY}/compiler; docker push ${YOUR_REGISTRY}/compiler)
+(cd kfp-tools; docker build . -t ${YOUR_REGISTRY}/kfp-tools; docker push ${YOUR_REGISTRY}/kfp-tools)
+```
+
+Configure the controller to your environment in [controller_manager_config.yaml](../../config/manager/controller_manager_config.yaml)
+
+Next install Custom Resource Defitions and run the controller:
+
 ```sh
 make install
 make run
@@ -26,9 +37,11 @@ make run
 
 CRDs will be installed into an existing Kubernetes cluster. A running instance of Kubeflow is required on that cluster. The controller will run locally, interacting with the remote Kubernetes API.
 
+Please refer to the [Quickstart tutorial](../quickstart) for instructions on creating a sample pipeline resource.
+
 ## Run Argo integration tests
 
-To run integration tests, we currently require a one-off setup of the Kubernetes cluster.
+To run integration tests, we currently require a one-off setup of the Kubernetes cluster:
 
 ```sh
 # Install Argo
@@ -41,15 +54,17 @@ kubectl port-forward service/kfp-wiremock 8081:80
 kubectl proxy --port=8080
 ```
 
-
+Next, build all relevant images in the minikube docker environment.
+Note: alternatively, you can build the images locally and make them available using `minikube image load`.
 
 ```sh
-# Load all images into Minikube
-minikube image load kfp-tools
-minikube image load compiler
-# TODO how to build test pipeline
-minikube image load test-pipeline
+eval $(minikube -p argo-integration-tests docker-env)
+(cd docs/quickstart; docker build . -t kfp-quickstart)
+(cd compiler; docker build . -t compiler)
+(cd kfp-tools; docker build . -t kfp-tools)
+```
 
-# Run the tests
+You can now run the integration tests as follows:
+```sh
 make integration-test
 ```

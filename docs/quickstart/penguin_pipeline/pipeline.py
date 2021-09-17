@@ -1,20 +1,26 @@
+import os
+from typing import List
+from tfx.components import CsvExampleGen, Trainer
+from tfx.proto import trainer_pb2
+from tfx.dsl.components.base.base_node import BaseNode
+
 ### Environmental parameters can be left out when using the operator.
 ### Also, the return type is now a list of components instead of a pipeline.
 #
 #def create_pipeline(pipeline_name: str, pipeline_root: str, data_root: str,
 #                    module_file: str, serving_model_dir: str,
 #                    metadata_path: str) -> tfx.dsl.Pipeline:
-def create_pipeline(data_root: str, module_file: str) -> list[tfx.dsl.components.base.base_node.BaseNode]:
+def create_components() -> List[BaseNode]:
     """Creates a penguin pipeline with TFX."""
     # Brings data into the pipeline.
-    example_gen = tfx.components.CsvExampleGen(input_base=data_root)
+    example_gen = CsvExampleGen(input_base='/data')
 
     # Uses user-provided Python function that trains a model.
-    trainer = tfx.components.Trainer(
-        module_file=module_file,
+    trainer = Trainer(
+        run_fn='trainer.runFn',
         examples=example_gen.outputs['examples'],
-        train_args=tfx.proto.TrainArgs(num_steps=100),
-        eval_args=tfx.proto.EvalArgs(num_steps=5))
+        train_args=trainer_pb2.TrainArgs(num_steps=100),
+        eval_args=trainer_pb2.EvalArgs(num_steps=5))
 
     ### This needs to be omitted when using the operator.
     #

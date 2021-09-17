@@ -10,10 +10,10 @@ leaderElection:
   leaderElect: false
   resourceName: 54cbc3c5.my.domain
 workflows:
-  compilerImage: us.gcr.io/ml-dev-uswe2/mlops/compiler
-  kfpToolsImage: us.gcr.io/ml-dev-uswe2/mlops/kfp-tools
+  compilerImage: ${YOUR_REGISTRY}/compiler
+  kfpToolsImage: ${YOUR_REGISTRY}/kfp-tools
   imagePullPolicy: Always
-  kfpEndpoint: http://ml-pipeline-ui:80
-  serviceAccount: pipeline-runner
-  dataflowProject: ml-dev-uswe2
-  pipelineStorage: gs://ml-dev-uswe2-mlops
+  kfpEndpoint: ${YOUR_KFP_ENDPOINT}
+  serviceAccount: ${YOUR_SA}
+  dataflowProject: ${YOUR_DATAFLOW_PROJECT}
+  pipelineStorage: ${YOUR_PIPELINE_STORAGE}

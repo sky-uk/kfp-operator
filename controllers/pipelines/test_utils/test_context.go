@@ -6,8 +6,6 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
-	"github.com/thanhpk/randstr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -47,23 +45,6 @@ var SpecV2 = pipelinesv1.PipelineSpec{
 		"b": "bVal",
 		"c": "cVal",
 	},
-}
-
-func RandomPipeline() *pipelinesv1.Pipeline {
-	return &pipelinesv1.Pipeline{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      randstr.String(16, "0123456789abcdefghijklmnopqrstuvwxyz"),
-			Namespace: PipelineNamespace,
-		},
-		Spec: pipelinesv1.PipelineSpec{
-			Image:         "test-pipeline",
-			TfxComponents: "pipeline.create_components",
-			Env: map[string]string{
-				"a": "aVal",
-				"b": "bVal",
-			},
-		},
-	}
 }
 
 var V0 = pipelinesv1.ComputeVersion(pipelinesv1.PipelineSpec{})

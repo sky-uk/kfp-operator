@@ -1,12 +1,10 @@
-serving_dir: serving
+servingDir: serving
 name: test
-pipeline_root: pipeline_root
-beam_args:
+pipelineRoot: pipeline_root
+beamArgs:
   project: gcp_project
   temp_location: /tmp
 spec:
-  image: image:v1
-  tfx_components: pipeline.create_components
-  env:
-    a: aVal
-    b: bVal
+  image: test-pipeline
+  tfxComponents: pipeline.create_components
+  

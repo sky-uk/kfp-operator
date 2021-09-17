@@ -35,6 +35,11 @@ var (
 		APIPath: "/api",
 	}
 
+	pipelineSpec = pipelinesv1.PipelineSpec{
+		Image:         "kfp-quickstart:v1",
+		TfxComponents: "pipeline.create_components",
+	}
+
 	wiremockClient *wiremock.Client
 	k8sClient      client.Client
 	ctx            context.Context
@@ -138,6 +143,7 @@ var _ = Describe("Creation workflow", func() {
 		It("Succeeds the workflow with a Pipeline Id", func() {
 
 			testCtx := NewTestContext(k8sClient, ctx)
+			testCtx.Pipeline.Spec = pipelineSpec
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
 			Expect(KfpUploadToSucceed(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
@@ -185,6 +191,7 @@ var _ = Describe("Creation workflow", func() {
 	When("The creation fails", func() {
 		It("Fails the workflow", func() {
 			testCtx := NewTestContext(k8sClient, ctx)
+			testCtx.Pipeline.Spec = pipelineSpec
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
 			Expect(KfpUploadToSucceed(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
@@ -207,6 +214,7 @@ var _ = Describe("Upload workflow", func() {
 	When("The upload succeeds", func() {
 		It("Succeeds the workflow", func() {
 			testCtx := NewTestContext(k8sClient, ctx)
+			testCtx.Pipeline.Spec = pipelineSpec
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
 			Expect(KfpUploadVersionToReturn(testCtx.Pipeline.Name, PipelineId, V1)).To(Succeed())
@@ -226,6 +234,7 @@ var _ = Describe("Upload workflow", func() {
 	When("The upload fails", func() {
 		It("Fails the workflow", func() {
 			testCtx := NewTestContext(k8sClient, ctx)
+			testCtx.Pipeline.Spec = pipelineSpec
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
 			Expect(KfpUploadVersionToFail(PipelineId, V1)).To(Succeed())
@@ -247,6 +256,7 @@ var _ = Describe("Deletion workflow", func() {
 	When("The deletion succeeds", func() {
 		It("Succeeds the workflow", func() {
 			testCtx := NewTestContext(k8sClient, ctx)
+			testCtx.Pipeline.Spec = pipelineSpec
 			testCtx.Pipeline.Status.Id = PipelineId
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
@@ -266,6 +276,7 @@ var _ = Describe("Deletion workflow", func() {
 	When("The deletion fails", func() {
 		It("Fails the workflow", func() {
 			testCtx := NewTestContext(k8sClient, ctx)
+			testCtx.Pipeline.Spec = pipelineSpec
 			testCtx.Pipeline.Status.Id = PipelineId
 			testCtx.Pipeline.ObjectMeta.Namespace = "argo"
 
