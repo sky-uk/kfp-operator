@@ -36,7 +36,7 @@ docker tag compiler ${CONTAINER_REGISTRY}/kfp-tools &&
   docker push ${CONTAINER_REGISTRY}/kfp-tools
 ```
 
-Configure the controller to your environment in [controller_manager_config.yaml](../../config/manager/controller_manager_config.yaml) replacing the placeholders (see [docs](TODO TODO TODO TODO TODO TODO)).
+Configure the controller to your environment in [controller_manager_config.yaml](../../config/manager/controller_manager_config.yaml) replacing the placeholders (see [docs](../README.md#configuration)).
 
 Next install Custom Resource Defitions and run the controller:
 

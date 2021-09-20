@@ -1,12 +1,32 @@
 # Documentation
 
+## Installation
+At the moment, installing the operator is a manual process which is described in the [development guide](./development/README.md).
+
+### Configuration
+
+The Kubeflow Pipelines operator can be configured with the following parameters:
+
+| Parameter name | Description | Example |
+| -- | -- | -- |
+| `imagePullPolicy` | The [k8s pull policy](https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy) to be applied to all images used by the operator | `IfNotPresent` |
+| `compilerImage` | The KFP Operator compiler image | `docker.io/compiler:abcdef` |
+| `kfpToolsImage` | The KFP Operator tools image | `docker.io/kfp-tools:abcdef` |
+| `kfpEndpoint` | The KFP enfpoint available to the operator | `kubeflow-ui.kubeflow-pipelines:8080` |
+| `serviceAccount` | The [k8s Service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) used to run argo workflows | `kfp-operator-sa` |
+| `dataflowProject` | The GCP project used to run Dataflow pipelines | `project` |
+| `pipelineStorage` | The storage location used by [TFX](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs | `gcs://kubeflow-pipelines-bucket` | 
+
+An example can be found in the [local run configuration](../config/manager/controller_manager_config.yaml).
+
+
 ## TFX Pipelines and Componets
 
 Unlike imparative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don't have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.
 
 For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the [penguin pipeline](../quickstart/penguin_pipeline/pipeline.py) for an example.
 
-## Lifecycle phases and Parameter types
+### Lifecycle phases and Parameter types
 
 TFX Pipelines go through certain lifecycle phases that are unique to this technology. It is helpful to understand where these differ and where they are executed.
 
