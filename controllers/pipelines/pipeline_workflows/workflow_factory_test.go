@@ -1,4 +1,4 @@
-package workflows
+package pipeline_workflows
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ func TestAPIs(t *testing.T) {
 	RunSpecs(t, "Workflow Suite")
 }
 
-var wf = Workflows{
+var wf = WorkflowFactory{
 	Config: Configuration{
 		DataflowProject: "project",
 		PipelineStorage: "gs://some-bucket",

@@ -12,7 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	pipelineworkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -137,7 +137,7 @@ func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*arg
 func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{pipelineworkflows.OperationLabelKey: operation, pipelineworkflows.PipelineLabelKey: testCtx.Pipeline.Name}); err != nil {
+	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{pipeline_workflows.OperationLabelKey: operation, pipeline_workflows.PipelineLabelKey: testCtx.Pipeline.Name}); err != nil {
 		return nil, err
 	}
 

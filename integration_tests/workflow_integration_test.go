@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/test_utils"
-	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 	"github.com/sky-uk/kfp-operator/external"
 	"github.com/thanhpk/randstr"
 	"github.com/walkerus/go-wiremock"
@@ -45,7 +45,7 @@ var (
 	wiremockClient *wiremock.Client
 	k8sClient      client.Client
 	ctx            context.Context
-	workflows      pipelineWorkflows.Workflows
+	workflows      pipeline_workflows.WorkflowFactory
 )
 
 func RandomLowercaseString() string {
@@ -61,8 +61,8 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	ctx = context.Background()
 
-	workflows = pipelineWorkflows.Workflows{
-		Config: pipelineWorkflows.Configuration{
+	workflows = pipeline_workflows.WorkflowFactory{
+		Config: pipeline_workflows.Configuration{
 			KfpEndpoint:     "http://kfp-wiremock:80",
 			KfpToolsImage:   "kfp-tools",
 			CompilerImage:   "compiler",
@@ -167,9 +167,9 @@ var _ = Describe("Creation workflow", func() {
 			err = k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(testCtx.WorkflowToMatch(pipelineWorkflows.Create, func(g Gomega, workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToMatch(pipeline_workflows.Create, func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(pipelineWorkflows.GetWorkflowOutput(workflow, pipelineWorkflows.PipelineIdParameterName)).
+				g.Expect(pipeline_workflows.GetWorkflowOutput(workflow, pipeline_workflows.PipelineIdParameterName)).
 					To(Equal(PipelineId))
 			}), TestTimeout).Should(Succeed())
 		})
@@ -192,9 +192,9 @@ var _ = Describe("Creation workflow", func() {
 			err = k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(testCtx.WorkflowToMatch(pipelineWorkflows.Create, func(g Gomega, workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToMatch(pipeline_workflows.Create, func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-				g.Expect(pipelineWorkflows.GetWorkflowOutput(workflow, pipelineWorkflows.PipelineIdParameterName)).To(Equal(pipelineId))
+				g.Expect(pipeline_workflows.GetWorkflowOutput(workflow, pipeline_workflows.PipelineIdParameterName)).To(Equal(pipelineId))
 			}), TestTimeout).Should(Succeed())
 		})
 	})
@@ -221,7 +221,7 @@ var _ = Describe("Creation workflow", func() {
 			err = k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(testCtx.WorkflowToMatch(pipelineWorkflows.Create, func(g Gomega, workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToMatch(pipeline_workflows.Create, func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 			}), TestTimeout).Should(Succeed())
 		})
@@ -249,7 +249,7 @@ var _ = Describe("Upload workflow", func() {
 			err = k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(testCtx.WorkflowToMatch(pipelineWorkflows.Update, func(g Gomega, workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToMatch(pipeline_workflows.Update, func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 			}), TestTimeout).Should(Succeed())
 		})
@@ -275,7 +275,7 @@ var _ = Describe("Upload workflow", func() {
 			err = k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(testCtx.WorkflowToMatch(pipelineWorkflows.Update, func(g Gomega, workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToMatch(pipeline_workflows.Update, func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 			}), TestTimeout).Should(Succeed())
 		})
@@ -305,7 +305,7 @@ var _ = Describe("Deletion workflow", func() {
 			err := k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(testCtx.WorkflowToMatch(pipelineWorkflows.Delete, func(g Gomega, workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToMatch(pipeline_workflows.Delete, func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 			}), TestTimeout).Should(Succeed())
 		})
@@ -334,7 +334,7 @@ var _ = Describe("Deletion workflow", func() {
 			err := k8sClient.Create(ctx, workflow)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(testCtx.WorkflowToMatch(pipelineWorkflows.Delete, func(g Gomega, workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToMatch(pipeline_workflows.Delete, func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 			}), TestTimeout).Should(Succeed())
 		})

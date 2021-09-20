@@ -5,8 +5,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/test_utils"
-	pipelineworkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -23,9 +23,9 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(pipelineworkflows.Create, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(pipeline_workflows.Create, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				pipelineworkflows.SetWorkflowOutput(workflow, pipelineworkflows.PipelineIdParameterName, test_utils.PipelineId)
+				pipeline_workflows.SetWorkflowOutput(workflow, pipeline_workflows.PipelineIdParameterName, test_utils.PipelineId)
 			})).To(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -40,7 +40,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(pipelineworkflows.Update, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(pipeline_workflows.Update, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
 
@@ -54,7 +54,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(pipelineworkflows.Delete, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(pipeline_workflows.Delete, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
 

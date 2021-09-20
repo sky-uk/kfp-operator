@@ -33,7 +33,7 @@ import (
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	controllers "github.com/sky-uk/kfp-operator/controllers/pipelines"
-	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
 
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	//+kubebuilder:scaffold:imports
@@ -90,14 +90,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	var workflows = pipelineWorkflows.Workflows{
+	var workflows = pipeline_workflows.WorkflowFactory{
 		Config: ctrlConfig.Workflows,
 	}
 
 	if err = (&controllers.PipelineReconciler{
-		Client:    mgr.GetClient(),
-		Scheme:    mgr.GetScheme(),
-		Workflows: workflows,
+		Client:          mgr.GetClient(),
+		Scheme:          mgr.GetScheme(),
+		WorkflowFactory: workflows,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)

@@ -11,7 +11,7 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	pipelineWorkflows "github.com/sky-uk/kfp-operator/controllers/pipelines/workflows"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -23,24 +23,24 @@ var (
 
 type PipelineReconciler struct {
 	client.Client
-	Scheme    *runtime.Scheme
-	Workflows pipelineWorkflows.Workflows
+	Scheme          *runtime.Scheme
+	WorkflowFactory pipeline_workflows.WorkflowFactory
 }
 
-type WorkflowsProvider interface {
+type WorkflowRepository interface {
 	GetByOperation(operation string) []argo.Workflow
 }
 
-type WorkflowsImpl struct {
+type WorkflowRepositoryImpl struct {
 	*PipelineReconciler
 	ctx      context.Context
 	pipeline *pipelinesv1.Pipeline
 }
 
-func (w WorkflowsImpl) GetByOperation(operation string) []argo.Workflow {
+func (w WorkflowRepositoryImpl) GetByOperation(operation string) []argo.Workflow {
 	var workflows argo.WorkflowList
 
-	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingLabels{pipelineWorkflows.OperationLabelKey: operation, pipelineWorkflows.PipelineLabelKey: w.pipeline.ObjectMeta.Name})
+	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingLabels{pipeline_workflows.OperationLabelKey: operation, pipeline_workflows.PipelineLabelKey: w.pipeline.ObjectMeta.Name})
 
 	return workflows.Items
 }
@@ -62,11 +62,11 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		r.AddFinalizer(ctx, pipeline)
 	}
 
-	workflows := WorkflowsImpl{r, ctx, pipeline}
+	workflowRepository := WorkflowRepositoryImpl{r, ctx, pipeline}
 	stateHandler := StateHandler{
-		Workflows: r.Workflows,
+		WorkflowFactory: r.WorkflowFactory,
 	}
-	commands := stateHandler.StateTransition(pipeline, workflows)
+	commands := stateHandler.StateTransition(pipeline, workflowRepository)
 
 	for i := range commands {
 		if err := commands[i].execute(r, ctx, pipeline); err != nil {

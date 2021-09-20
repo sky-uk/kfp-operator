@@ -71,9 +71,9 @@ var _ = BeforeSuite(func() {
 	ctx = context.Background()
 
 	Expect((&PipelineReconciler{
-		Client:    k8sClient,
-		Scheme:    k8sManager.GetScheme(),
-		Workflows: workflows,
+		Client:          k8sClient,
+		Scheme:          k8sManager.GetScheme(),
+		WorkflowFactory: workflowFactory,
 	}).SetupWithManager(k8sManager)).To(Succeed())
 
 	go func() {

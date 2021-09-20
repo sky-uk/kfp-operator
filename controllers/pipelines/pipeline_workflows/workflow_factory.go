@@ -1,4 +1,4 @@
-package workflows
+package pipeline_workflows
 
 import (
 	"fmt"
@@ -12,14 +12,9 @@ import (
 )
 
 const (
-	OperationLabelKey         = "pipelines.kubeflow.org/operation"
-	PipelineLabelKey          = "pipelines.kubeflow.org/pipeline"
 	PipelineConfigKey         = "pipeline-config"
 	PipelineIdParameterName   = "pipeline-id"
 	PipelineYamlParameterName = "pipeline"
-	Create                    = "create-pipeline"
-	Update                    = "update-pipeline"
-	Delete                    = "delete-pipeline"
 	CompileStepName           = "compile"
 	UploadStepName            = "upload"
 	DeletionStepName          = "delete"
@@ -42,11 +37,11 @@ type Configuration struct {
 	KfpToolsImage   string `json:"kfpToolsImage,omitempty"`
 }
 
-type Workflows struct {
+type WorkflowFactory struct {
 	Config Configuration
 }
 
-func (wf *Workflows) pipelineConfigAsYaml(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) (string, error) {
+func (wf *WorkflowFactory) pipelineConfigAsYaml(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) (string, error) {
 	type CompilerConfig struct {
 		Spec         pipelinesv1.PipelineSpec
 		Name         string
@@ -80,7 +75,7 @@ func (wf *Workflows) pipelineConfigAsYaml(pipelineSpec pipelinesv1.PipelineSpec,
 	return string(specAsYaml), nil
 }
 
-func (w *Workflows) commonMeta(pipelineMeta metav1.ObjectMeta, operation string) *metav1.ObjectMeta {
+func (w *WorkflowFactory) commonMeta(pipelineMeta metav1.ObjectMeta, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    pipelineMeta.Namespace,
@@ -91,7 +86,7 @@ func (w *Workflows) commonMeta(pipelineMeta metav1.ObjectMeta, operation string)
 	}
 }
 
-func (w Workflows) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineVersion string) (*argo.Workflow, error) {
+func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineVersion string) (*argo.Workflow, error) {
 	yamlConfig, error := w.pipelineConfigAsYaml(pipelineSpec, pipelineMeta)
 
 	if error != nil {
@@ -177,7 +172,7 @@ func (w Workflows) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSp
 	return workflow, nil
 }
 
-func (w Workflows) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineId string, pipelineVersion string) (*argo.Workflow, error) {
+func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineId string, pipelineVersion string) (*argo.Workflow, error) {
 	yamlConfig, error := w.pipelineConfigAsYaml(pipelineSpec, pipelineMeta)
 
 	if error != nil {
@@ -236,7 +231,7 @@ func (w Workflows) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.PipelineSpec
 	return workflow, nil
 }
 
-func (w Workflows) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMeta, pipelineId string) *argo.Workflow {
+func (w WorkflowFactory) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMeta, pipelineId string) *argo.Workflow {
 
 	entrypointName := Delete
 
@@ -275,7 +270,7 @@ func (w Workflows) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMeta, pip
 	return workflow
 }
 
-func (workflows *Workflows) compiler(pipelineSpec string, pipelineImage string) argo.Template {
+func (workflows *WorkflowFactory) compiler(pipelineSpec string, pipelineImage string) argo.Template {
 	compilerVolumeName := "compiler"
 	compilerVolumePath := "/compiler"
 
@@ -328,7 +323,7 @@ func (workflows *Workflows) compiler(pipelineSpec string, pipelineImage string) 
 	}
 }
 
-func (workflows *Workflows) uploader(pipelineName string) argo.Template {
+func (workflows *WorkflowFactory) uploader(pipelineName string) argo.Template {
 	script :=
 		"set -e -o pipefail\n" +
 			fmt.Sprintf("kfp --endpoint %s --output json pipeline upload -p %s %s  | jq -r '.\"Pipeline Details\".\"ID\"'", workflows.Config.KfpEndpoint, pipelineName, PipelineYamlFilePath)
@@ -354,7 +349,7 @@ func (workflows *Workflows) uploader(pipelineName string) argo.Template {
 	}
 }
 
-func (workflows *Workflows) deleter() argo.Template {
+func (workflows *WorkflowFactory) deleter() argo.Template {
 	script :=
 		"set -e -o pipefail\n" +
 			fmt.Sprintf("kfp --endpoint %s pipeline delete {{inputs.parameters.pipeline-id}}", workflows.Config.KfpEndpoint)
@@ -379,7 +374,7 @@ func (workflows *Workflows) deleter() argo.Template {
 	}
 }
 
-func (workflows *Workflows) updater(version string) argo.Template {
+func (workflows *WorkflowFactory) updater(version string) argo.Template {
 	script :=
 		"set -e -o pipefail\n" +
 			fmt.Sprintf("kfp --endpoint %s pipeline upload-version -v %s -p {{inputs.parameters.pipeline-id}} %s", workflows.Config.KfpEndpoint, version, PipelineYamlFilePath)

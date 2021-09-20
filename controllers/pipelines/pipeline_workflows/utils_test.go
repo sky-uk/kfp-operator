@@ -1,4 +1,4 @@
-package workflows
+package pipeline_workflows
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
