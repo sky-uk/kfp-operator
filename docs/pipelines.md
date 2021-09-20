@@ -24,4 +24,4 @@ metadata:
 
 ### Versioning
 
-Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this on Kubeflow Pipelines. The pipeline above would result in the following version: `v1-TODO`
+Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this on Kubeflow Pipelines, for example: `v1-cf23df2207d99a74fbe169e3eba035e633b65d94`
