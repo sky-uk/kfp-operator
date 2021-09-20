@@ -38,7 +38,7 @@ var (
 	}
 
 	pipelineSpec = pipelinesv1.PipelineSpec{
-		Image:         "kfp-quickstart:v1",
+		Image:         "kfp-quickstart",
 		TfxComponents: "pipeline.create_components",
 	}
 

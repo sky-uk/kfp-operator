@@ -10,10 +10,10 @@ leaderElection:
   leaderElect: false
   resourceName: 54cbc3c5.my.domain
 workflows:
-  compilerImage: ${YOUR_REGISTRY}/compiler
-  kfpToolsImage: ${YOUR_REGISTRY}/kfp-tools
   imagePullPolicy: Always
-  kfpEndpoint: ${YOUR_KFP_ENDPOINT}
-  serviceAccount: ${YOUR_SA}
-  dataflowProject: ${YOUR_DATAFLOW_PROJECT}
-  pipelineStorage: ${YOUR_PIPELINE_STORAGE}
+  compilerImage: ${CONTAINER_REGISTRY}/compiler
+  kfpToolsImage: ${CONTAINER_REGISTRY}/kfp-tools
+  kfpEndpoint: ${KFP_ENDPOINT}
+  serviceAccount: ${OPERATOR_SA}
+  dataflowProject: ${DATAFLOW_PROJECT}
+  pipelineStorage: ${PIPELINE_STORAGE}
