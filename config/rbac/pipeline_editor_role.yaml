@@ -5,7 +5,7 @@ metadata:
   name: pipeline-editor-role
 rules:
 - apiGroups:
-  - pipelines.kubeflow.org.my.domain
+  - pipelines.kubeflow.org
   resources:
   - pipelines
   verbs:
@@ -17,7 +17,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - pipelines.kubeflow.org.my.domain
+  - pipelines.kubeflow.org
   resources:
   - pipelines/status
   verbs:

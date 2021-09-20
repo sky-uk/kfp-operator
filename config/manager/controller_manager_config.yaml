@@ -8,7 +8,7 @@ webhook:
   port: 9443
 leaderElection:
   leaderElect: false
-  resourceName: 54cbc3c5.my.domain
+  resourceName: 54cbc3c5
 workflows:
   imagePullPolicy: Always
   compilerImage: ${CONTAINER_REGISTRY}/compiler
