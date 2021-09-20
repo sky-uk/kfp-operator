@@ -55,9 +55,9 @@ type PipelineStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.synchronizationState"
-// +kubebuilder:printcolumn:name="PipelineId",type="string",JSONPath=".status.id"
-// +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
+//+kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.synchronizationState"
+//+kubebuilder:printcolumn:name="PipelineId",type="string",JSONPath=".status.id"
+//+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
