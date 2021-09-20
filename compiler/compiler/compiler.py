@@ -55,7 +55,7 @@ def expand_components_with_pusher(tfx_components, serving_model_directory):
     else:
         return tfx_components
 
-def load_fn(tfx_components, env):
+def load_fn(tfx_components, env={}):
     for key, value in env.items():
         os.environ[key] = value
 
@@ -75,7 +75,7 @@ def compile(pipeline_config, output_file):
     click.secho(f'Compiling with config: {config}', fg='green')
     spec = config['spec']
     
-    components = load_fn(spec['tfxComponents'], spec['env'])()
+    components = load_fn(spec['tfxComponents'], spec.get('env', {}))()
     expanded_components = expand_components_with_pusher(components, config['servingDir'])
 
     metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
@@ -93,7 +93,7 @@ def compile(pipeline_config, output_file):
             components=expanded_components,
             enable_cache=False,
             metadata_connection_config=None,
-            beam_pipeline_args=dict_to_cli_args(config['beamArgs'])
+            beam_pipeline_args=dict_to_cli_args(config.get('beamArgs', {}))
         )
     )
 
