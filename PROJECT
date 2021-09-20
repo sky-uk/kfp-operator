@@ -19,7 +19,7 @@ resources:
     namespaced: true
   domain: kubeflow.org
   group: config
-  kind: ProjectConfig
-  path: github.com/sky-uk/kfp-operator/apis/config/v2
-  version: v2
+  kind: KfpControllerConfig
+  path: github.com/sky-uk/kfp-operator/apis/config/v1
+  version: v1
 version: "3"
