@@ -3,8 +3,8 @@ kind: Pipeline
 metadata:
   name: pipeline-sample
 spec:
-  image: us.gcr.io/ml-dev-uswe2/mlops/nbcu-us-metadata-enhancement:latest
-  tfxComponents: main.pipelines.base_pipeline.create_components
+  image: docker.io/kfp-quickstart:abcdef
+  tfxComponents: pipeline.create_components
   env:
-    PIPELINE_IMAGE: us.gcr.io/ml-dev-uswe2/mlops/nbcu-us-metadata-enhancement:latest
-    GOOGLE_CLOUD_PROJECT: ml-dev-uswe2
+    PIPELINE_IMAGE: docker.io/kfp-quickstart:abcdef
+    GOOGLE_CLOUD_PROJECT: gcp-project

@@ -7,4 +7,3 @@ beamArgs:
 spec:
   image: test-pipeline
   tfxComponents: pipeline.create_components
-  
