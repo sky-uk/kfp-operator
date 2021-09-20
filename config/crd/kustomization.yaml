@@ -3,7 +3,7 @@
 # It should be run by config/default
 resources:
 - bases/pipelines.kubeflow.org_pipelines.yaml
-- bases/config.kubeflow.org_projectconfigs.yaml
+- bases/config.kubeflow.org_kfpcontrollerconfigs.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
