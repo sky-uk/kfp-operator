@@ -1,7 +1,15 @@
-__pycache__/
+# Go
 bin/
 testbin/
 *.out
 /vendor/
+
+# VS Code
 /.vscode/
+
+# Python
+__pycache__/
+.python-version
+
+# Tests
 pids
