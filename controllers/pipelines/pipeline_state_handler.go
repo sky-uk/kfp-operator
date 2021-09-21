@@ -245,7 +245,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 
 	if succeeded != nil {
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
-		idResult, error := GetWorkflowOutput(succeeded, PipelineIdParameterName)
+		idResult, error := GetWorkflowOutput(succeeded, WorkflowFactoryConstants.pipelineIdParameterName)
 
 		if error != nil {
 			newStatus.SynchronizationState = pipelinesv1.Failed
@@ -254,7 +254,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 		}
 	} else {
 		if failed != nil {
-			idResult, error := GetWorkflowOutput(failed, PipelineIdParameterName)
+			idResult, error := GetWorkflowOutput(failed, WorkflowFactoryConstants.pipelineIdParameterName)
 
 			if error == nil {
 				newStatus.Id = idResult
