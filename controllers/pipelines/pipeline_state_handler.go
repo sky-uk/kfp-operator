@@ -1,15 +1,14 @@
-package controllers
+package pipelines
 
 import (
 	"sort"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
 )
 
 type StateHandler struct {
-	WorkflowFactory pipeline_workflows.WorkflowFactory
+	WorkflowFactory WorkflowFactory
 }
 
 func (st StateHandler) StateTransition(pipeline *pipelinesv1.Pipeline, workflows WorkflowRepository) []Command {
@@ -24,13 +23,13 @@ func (st StateHandler) StateTransition(pipeline *pipelinesv1.Pipeline, workflows
 	case pipelinesv1.Unknown:
 		return st.onUnknown(pipeline)
 	case pipelinesv1.Creating:
-		return st.onCreating(pipeline, workflows.GetByOperation(pipeline_workflows.Create))
+		return st.onCreating(pipeline, workflows.GetByOperation(Create))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		return st.onSucceededOrFailed(pipeline)
 	case pipelinesv1.Updating:
-		return st.onUpdating(pipeline, workflows.GetByOperation(pipeline_workflows.Update))
+		return st.onUpdating(pipeline, workflows.GetByOperation(Update))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(pipeline, workflows.GetByOperation(pipeline_workflows.Delete))
+		return st.onDeleting(pipeline, workflows.GetByOperation(Delete))
 	case pipelinesv1.Deleted:
 		return st.onDeleted(pipeline)
 	}
@@ -163,7 +162,7 @@ func (st StateHandler) onUpdating(pipeline *pipelinesv1.Pipeline, updateWorkflow
 		}
 	}
 
-	inProgress, succeeded, _ := pipeline_workflows.GetLatestWorkflowsByPhase(updateWorkflows)
+	inProgress, succeeded, _ := GetLatestWorkflowsByPhase(updateWorkflows)
 
 	if inProgress != nil {
 		return []Command{}
@@ -189,7 +188,7 @@ func (st StateHandler) onUpdating(pipeline *pipelinesv1.Pipeline, updateWorkflow
 
 func (st StateHandler) onDeleting(pipeline *pipelinesv1.Pipeline, deletionWorkflows []argo.Workflow) []Command {
 
-	inProgress, succeeded, _ := pipeline_workflows.GetLatestWorkflowsByPhase(deletionWorkflows)
+	inProgress, succeeded, _ := GetLatestWorkflowsByPhase(deletionWorkflows)
 
 	if inProgress != nil {
 		return []Command{}
@@ -234,7 +233,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 		return creationWorkflows[i].ObjectMeta.CreationTimestamp.Before(&creationWorkflows[j].ObjectMeta.CreationTimestamp)
 	})
 
-	inProgress, succeeded, failed := pipeline_workflows.GetLatestWorkflowsByPhase(creationWorkflows)
+	inProgress, succeeded, failed := GetLatestWorkflowsByPhase(creationWorkflows)
 
 	if inProgress != nil {
 		return []Command{}
@@ -244,7 +243,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 
 	if succeeded != nil {
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
-		idResult, error := pipeline_workflows.GetWorkflowOutput(succeeded, pipeline_workflows.PipelineIdParameterName)
+		idResult, error := GetWorkflowOutput(succeeded, PipelineIdParameterName)
 
 		if error != nil {
 			newStatus.SynchronizationState = pipelinesv1.Failed
@@ -253,7 +252,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 		}
 	} else {
 		if failed != nil {
-			idResult, error := pipeline_workflows.GetWorkflowOutput(failed, pipeline_workflows.PipelineIdParameterName)
+			idResult, error := GetWorkflowOutput(failed, PipelineIdParameterName)
 
 			if error == nil {
 				newStatus.Id = idResult

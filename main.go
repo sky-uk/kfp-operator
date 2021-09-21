@@ -32,8 +32,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	controllers "github.com/sky-uk/kfp-operator/controllers/pipelines"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
+	pipeline_controller "github.com/sky-uk/kfp-operator/controllers/pipelines"
 
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	//+kubebuilder:scaffold:imports
@@ -90,11 +89,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	var workflows = pipeline_workflows.WorkflowFactory{
+	var workflows = pipeline_controller.WorkflowFactory{
 		Config: ctrlConfig.Workflows,
 	}
 
-	if err = (&controllers.PipelineReconciler{
+	if err = (&pipeline_controller.PipelineReconciler{
 		Client:          mgr.GetClient(),
 		Scheme:          mgr.GetScheme(),
 		WorkflowFactory: workflows,

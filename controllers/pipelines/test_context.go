@@ -1,4 +1,4 @@
-package test_utils
+package pipelines
 
 import (
 	"context"
@@ -6,13 +6,10 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
-	"github.com/thanhpk/randstr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -49,16 +46,6 @@ var SpecV2 = pipelinesv1.PipelineSpec{
 	},
 }
 
-func RandomPipeline() *pipelinesv1.Pipeline {
-	return &pipelinesv1.Pipeline{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      randstr.String(16, "0123456789abcdefghijklmnopqrstuvwxyz"),
-			Namespace: PipelineNamespace,
-		},
-		Spec: SpecV1,
-	}
-}
-
 var V0 = pipelinesv1.ComputeVersion(pipelinesv1.PipelineSpec{})
 var V1 = pipelinesv1.ComputeVersion(SpecV1)
 var V2 = pipelinesv1.ComputeVersion(SpecV2)
@@ -80,7 +67,7 @@ func NewTestContext(k8sClient client.Client, ctx context.Context) TestContext {
 func (testCtx TestContext) PipelineToMatch(matcher func(Gomega, *pipelinesv1.Pipeline)) func(Gomega) {
 	return func(g Gomega) {
 		pipeline := &pipelinesv1.Pipeline{}
-		g.Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.PipelineLookupKey, pipeline)).To(Succeed())
+		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.PipelineLookupKey, pipeline)).To(Succeed())
 		matcher(g, pipeline)
 	}
 }
@@ -137,7 +124,7 @@ func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*arg
 func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{pipeline_workflows.OperationLabelKey: operation, pipeline_workflows.PipelineLabelKey: testCtx.Pipeline.Name}); err != nil {
+	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: testCtx.Pipeline.Name}); err != nil {
 		return nil, err
 	}
 

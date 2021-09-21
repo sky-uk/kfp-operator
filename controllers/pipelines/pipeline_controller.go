@@ -1,4 +1,4 @@
-package controllers
+package pipelines
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline_workflows"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -24,7 +23,7 @@ var (
 type PipelineReconciler struct {
 	client.Client
 	Scheme          *runtime.Scheme
-	WorkflowFactory pipeline_workflows.WorkflowFactory
+	WorkflowFactory WorkflowFactory
 }
 
 type WorkflowRepository interface {
@@ -40,7 +39,7 @@ type WorkflowRepositoryImpl struct {
 func (w WorkflowRepositoryImpl) GetByOperation(operation string) []argo.Workflow {
 	var workflows argo.WorkflowList
 
-	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingLabels{pipeline_workflows.OperationLabelKey: operation, pipeline_workflows.PipelineLabelKey: w.pipeline.ObjectMeta.Name})
+	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: w.pipeline.ObjectMeta.Name})
 
 	return workflows.Items
 }

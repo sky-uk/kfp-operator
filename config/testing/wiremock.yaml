@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kfp-wiremock
+  name: wiremock
   labels:
-    app: kfp-wiremock
+    app: wiremock
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kfp-wiremock
+      app: wiremock
   template:
     metadata:
       labels:
-        app: kfp-wiremock
+        app: wiremock
     spec:
       containers:
-        - name: kfp-wiremock
+        - name: wiremock
           image: rodolpheche/wiremock
           ports:
             - containerPort: 8080
@@ -23,10 +23,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: kfp-wiremock
+  name: wiremock
 spec:
   selector:
-    app: kfp-wiremock
+    app: wiremock
   ports:
     - protocol: TCP
       port: 80

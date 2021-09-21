@@ -1,4 +1,4 @@
-package pipeline_workflows
+package pipelines
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,18 +28,8 @@ var (
 	trueValue = true
 )
 
-type Configuration struct {
-	PipelineStorage string `json:"pipelineStorage,omitempty"`
-	DataflowProject string `json:"dataflowProject,omitempty"`
-	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
-	ServiceAccount  string `json:"serviceAccount,omitempty"`
-	KfpEndpoint     string `json:"kfpEndpoint,omitempty"`
-	CompilerImage   string `json:"compilerImage,omitempty"`
-	KfpToolsImage   string `json:"kfpToolsImage,omitempty"`
-}
-
 type WorkflowFactory struct {
-	Config Configuration
+	Config configv1.Configuration
 }
 
 func (wf *WorkflowFactory) pipelineConfigAsYaml(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) (string, error) {

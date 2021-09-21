@@ -1,21 +1,17 @@
-package pipeline_workflows
+// +build unit
+
+package pipelines
 
 import (
-	"testing"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	"gopkg.in/yaml.v2"
 )
 
-func TestAPIs(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Workflow Suite")
-}
-
 var wf = WorkflowFactory{
-	Config: Configuration{
+	Config: configv1.Configuration{
 		DataflowProject: "project",
 		PipelineStorage: "gs://some-bucket",
 		CompilerImage:   "image:v1",

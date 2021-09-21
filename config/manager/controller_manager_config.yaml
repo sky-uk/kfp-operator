@@ -1,15 +1,16 @@
 apiVersion: config.kubeflow.org/v1
 kind: KfpControllerConfig
-health:
-  healthProbeBindAddress: :8081
-metrics:
-  bindAddress: :8080
-webhook:
-  port: 9443
-leaderElection:
-  leaderElect: false
-  resourceName: 54cbc3c5
-workflows:
+controller:
+  health:
+    healthProbeBindAddress: :8081
+  metrics:
+    bindAddress: :8080
+  webhook:
+    port: 9443
+  leaderElection:
+    leaderElect: false
+    resourceName: kfp-operator-lock
+spec:
   imagePullPolicy: Always
   compilerImage: ${CONTAINER_REGISTRY}/compiler
   kfpToolsImage: ${CONTAINER_REGISTRY}/kfp-tools

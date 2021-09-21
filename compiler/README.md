@@ -5,7 +5,7 @@ This module compiles a TFX component defintion into a Kubeflow Pipelines file.
 ## Setup
 ```bash
 pyenv install 3.7.10
-pyenv local 3.7.10
+pyenv global 3.7.10
 poetry shell
 poetry install
 ```

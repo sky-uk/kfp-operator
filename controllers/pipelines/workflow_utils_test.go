@@ -1,4 +1,6 @@
-package pipeline_workflows
+// +build unit
+
+package pipelines
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"

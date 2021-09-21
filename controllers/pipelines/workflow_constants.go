@@ -1,4 +1,4 @@
-package pipeline_workflows
+package pipelines
 
 const (
 	OperationLabelKey = "pipelines.kubeflow.org/operation"

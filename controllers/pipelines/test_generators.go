@@ -1,4 +1,4 @@
-package pipeline_workflows
+package pipelines
 
 import (
 	"fmt"

@@ -50,32 +50,37 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test: manifests generate fmt vet ## Run tests.
+decoupled-test: ## Run decoupled acceptance tests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -short -coverprofile cover.out
-
-integration-test:
-	eval $$(minikube -p argo-integration-tests docker-env) && \
-	docker build compiler -t compiler && \
-	docker build kfp-tools -t kfp-tools && \
-	docker build docs/quickstart -t kfp-quickstart
-	go test -v integration_tests/*.go
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -coverprofile cover.out
 
 integration-test-up:
 	minikube start -p argo-integration-tests
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
-	kubectl apply -n argo -f integration_tests/wiremock.yaml
-	rm -f integration_tests/pids
-	kubectl wait -n argo deployment/kfp-wiremock --for condition=available --timeout=5m
-	kubectl port-forward -n argo service/kfp-wiremock 8081:80 & echo $$! >> integration_tests/pids
+	kubectl apply -n argo -f config/testing/wiremock.yaml
+	rm -f config/testing/pids
+	kubectl wait -n argo deployment/wiremock --for condition=available --timeout=5m
+	kubectl port-forward -n argo service/wiremock 8081:80 & echo $$! >> config/testing/pids
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
-	kubectl proxy --port=8080 & echo $$! >> integration_tests/pids
+	kubectl proxy --port=8080 & echo $$! >> config/testing/pids
+
+integration-test: ## Run integration tests
+	eval $$(minikube -p argo-integration-tests docker-env) && \
+	docker build compiler -t compiler && \
+	docker build kfp-tools -t kfp-tools && \
+	docker build docs/quickstart -t kfp-quickstart
+	go test ./... -tags=integration
 
 integration-test-down:
-	(cat integration_tests/pids | xargs kill) || true
+	(cat config/testing/pids | xargs kill) || true
 	minikube stop -p argo-integration-tests
+
+unit-test: ## Run unit tests
+	go test ./... -tags=unit
+
+test: manifests generate fmt vet unit-test decoupled-test
 
 ##@ Build
 
