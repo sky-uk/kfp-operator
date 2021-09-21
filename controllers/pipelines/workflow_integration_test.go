@@ -31,12 +31,12 @@ var _ = Describe("Workflows", func() {
 			Host:    "http://localhost:8080",
 			APIPath: "/api",
 		}
-	
+
 		pipelineSpec = pipelinesv1.PipelineSpec{
 			Image:         "kfp-quickstart",
 			TfxComponents: "pipeline.create_components",
 		}
-	
+
 		wiremockClient *wiremock.Client
 		workflows      WorkflowFactory
 	)
@@ -50,7 +50,7 @@ var _ = Describe("Workflows", func() {
 				200,
 			))
 	}
-	
+
 	var KfpUploadToFail = func(pipelineName string, pipelineId string) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
 			WithQueryParam("name", wiremock.EqualTo(pipelineName)).
@@ -60,7 +60,7 @@ var _ = Describe("Workflows", func() {
 				404,
 			))
 	}
-	
+
 	var KfpUploadVersionToReturn = func(pipelineName string, pipelineId string, pipelineVersion string) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
 			WithQueryParam("name", wiremock.EqualTo(pipelineVersion)).
@@ -71,7 +71,7 @@ var _ = Describe("Workflows", func() {
 				200,
 			))
 	}
-	
+
 	var KfpUploadVersionToFail = func(pipelineId string, pipelineVersion string) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
 			WithQueryParam("name", wiremock.EqualTo(pipelineVersion)).
@@ -82,7 +82,7 @@ var _ = Describe("Workflows", func() {
 				400,
 			))
 	}
-	
+
 	var KfpDeleteToReturn = func(pipeline pipelinesv1.Pipeline, pipelineId string) error {
 		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipelineId)).
 			WillReturn(
@@ -91,7 +91,7 @@ var _ = Describe("Workflows", func() {
 				200,
 			))
 	}
-	
+
 	var KfpDeleteToFail = func(pipeline pipelinesv1.Pipeline, pipelineId string) error {
 		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipelineId)).
 			WillReturn(

@@ -31,7 +31,7 @@ var _ = Describe("Utils", func() {
 					},
 				},
 			}
-			result, error := GetWorkflowOutput(&workflow, "aKey")
+			result, error := getWorkflowOutput(&workflow, "aKey")
 			Expect(error).NotTo(HaveOccurred())
 			Expect(result).To(Equal("aValue"))
 		})

@@ -120,7 +120,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 
 			Expect(testCtx.UpdateWorkflow(CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				SetWorkflowOutput(workflow, PipelineIdParameterName, PipelineId)
+				setWorkflowOutput(workflow, WorkflowFactoryConstants.pipelineIdParameterName, PipelineId)
 			})).To(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {

@@ -156,9 +156,9 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Creation succeeds",
 			From(pipelinesv1.Creating, "", V1).
 				WithWorkFlow(
-					SetWorkflowOutput(
+					setWorkflowOutput(
 						createWorkflow(CreateOperationLabel, argo.WorkflowSucceeded),
-						PipelineIdParameterName, PipelineId),
+						WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Succeeded, PipelineId, V1).
 				DeletesAllWorkflows(),
@@ -166,18 +166,18 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Creation succeeds with existing Id",
 			From(pipelinesv1.Creating, AnotherPipelineId, V1).
 				WithWorkFlow(
-					SetWorkflowOutput(
+					setWorkflowOutput(
 						createWorkflow(CreateOperationLabel, argo.WorkflowSucceeded),
-						PipelineIdParameterName, PipelineId),
+						WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Succeeded, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation fails with Id",
 			From(pipelinesv1.Creating, "", V1).
-				WithWorkFlow(SetWorkflowOutput(
+				WithWorkFlow(setWorkflowOutput(
 					createWorkflow(CreateOperationLabel, argo.WorkflowFailed),
-					PipelineIdParameterName, PipelineId),
+					WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Failed, PipelineId, V1).
 				DeletesAllWorkflows(),
