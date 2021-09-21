@@ -11,7 +11,7 @@ import (
 
 var _ = Describe("Utils", func() {
 	When("getWorkflowOutput is called with a worklow that has a output with the given key", func() {
-		It("returs the output value", func() {
+		It("returns the output value", func() {
 			workflow := argo.Workflow{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "a-workflow",
@@ -34,6 +34,73 @@ var _ = Describe("Utils", func() {
 			result, error := getWorkflowOutput(&workflow, "aKey")
 			Expect(error).NotTo(HaveOccurred())
 			Expect(result).To(Equal("aValue"))
+		})
+	})
+
+	When("latestWorkflowByPhase is called with one workflow each", func() {
+		It("returns all values", func() {
+			expectedInProgress := argo.Workflow{
+				Status: argo.WorkflowStatus{
+					Phase: argo.WorkflowPending,
+				},
+			}
+
+			expectedFailed := argo.Workflow{
+				Status: argo.WorkflowStatus{
+					Phase: argo.WorkflowFailed,
+				},
+			}
+
+			expectedSucceeded := argo.Workflow{
+				Status: argo.WorkflowStatus{
+					Phase: argo.WorkflowSucceeded,
+				},
+			}
+
+			inProgress, succeeded, failed := latestWorkflowByPhase([]argo.Workflow{
+				expectedInProgress, expectedSucceeded, expectedFailed,
+			})
+
+			Expect(inProgress).To(Equal(&expectedInProgress))
+			Expect(succeeded).To(Equal(&expectedSucceeded))
+			Expect(failed).To(Equal(&expectedFailed))
+		})
+	})
+
+	When("latestWorkflowByPhase is called with multiple per phase", func() {
+		It("returns the latest", func() {
+			expectedSucceededOldest := argo.Workflow{
+				ObjectMeta: metav1.ObjectMeta{
+					CreationTimestamp: metav1.Unix(0, 0),
+				},
+				Status: argo.WorkflowStatus{
+					Phase: argo.WorkflowSucceeded,
+				},
+			}
+
+			expectedSucceededNewest := argo.Workflow{
+				ObjectMeta: metav1.ObjectMeta{
+					CreationTimestamp: metav1.Unix(1, 0),
+				},
+				Status: argo.WorkflowStatus{
+					Phase: argo.WorkflowSucceeded,
+				},
+			}
+
+			_, succeeded, _ := latestWorkflowByPhase([]argo.Workflow{
+				expectedSucceededNewest, expectedSucceededOldest,
+			})
+
+			Expect(succeeded).To(Equal(&expectedSucceededNewest))
+		})
+	})
+
+	When("latestWorkflowByPhase is called with no worklows", func() {
+		It("returns all empty values", func() {
+			inProgress, succeeded, failed := latestWorkflowByPhase([]argo.Workflow{})
+			Expect(inProgress).To(BeNil())
+			Expect(succeeded).To(BeNil())
+			Expect(failed).To(BeNil())
 		})
 	})
 })

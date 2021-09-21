@@ -43,16 +43,26 @@ func setWorkflowOutput(workflow *argo.Workflow, name string, output string) *arg
 	return workflow
 }
 
+func latestWorkflow(workflow1 *argo.Workflow, workflow2 *argo.Workflow) *argo.Workflow {
+	if workflow1 == nil {
+		return workflow2
+	} else if workflow2 == nil || workflow2.ObjectMeta.CreationTimestamp.Before(&workflow1.ObjectMeta.CreationTimestamp) {
+		return workflow1
+	} else {
+		return workflow2
+	}
+}
+
 func latestWorkflowByPhase(workflows []argo.Workflow) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
 	for i := range workflows {
 		workflow := workflows[i]
 		switch workflow.Status.Phase {
 		case argo.WorkflowFailed, argo.WorkflowError:
-			failed = &workflow
+			failed = latestWorkflow(failed, &workflow)
 		case argo.WorkflowSucceeded:
-			succeeded = &workflow
+			succeeded = latestWorkflow(succeeded, &workflow)
 		default:
-			inProgress = &workflow
+			inProgress = latestWorkflow(inProgress, &workflow)
 		}
 	}
 
