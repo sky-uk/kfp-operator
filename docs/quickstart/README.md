@@ -11,7 +11,7 @@ We use the same pipeline as the [TFX example](https://www.tensorflow.org/tfx/tut
 ```bash
 docker build . -t kfp-quickstart:v1
 ...
-docker push kfp-quickstart
+docker push kfp-quickstart:v1
 ```
 
 ## Create a Pipeline Resource
@@ -35,7 +35,7 @@ The pipeline now gets uploaded to Kubeflow in several steps. After a few seconds
 kubectl get pipeline
 
 NAME               STATUS             PIPELINEID
-penguin-pipeline   UploadSuccessful   53905abe-0337-48de-875d-67b9285f3cf7
+penguin-pipeline   Succeeded          53905abe-0337-48de-875d-67b9285f3cf7
 ```
 
 Now visit you Kubeflow Pipelines UI. You should be able to see the newly created pipeline named `penguin-pipeline`. Note that you will see two versions: 'penguin-pipeline' and 'v1'. This is due to an [open issue on Kubeflow](https://github.com/kubeflow/pipelines/issues/5881) where you can't specify a version when creating a pipeline.
