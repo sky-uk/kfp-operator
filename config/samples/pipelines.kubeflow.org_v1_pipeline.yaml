@@ -1,0 +1,10 @@
+apiVersion: pipelines.kubeflow.org/v1
+kind: Pipeline
+metadata:
+  name: pipeline-sample
+spec:
+  image: docker.io/kfp-quickstart:abcdef
+  tfxComponents: pipeline.create_components
+  env:
+    PIPELINE_IMAGE: docker.io/kfp-quickstart:abcdef
+    GOOGLE_CLOUD_PROJECT: gcp-project
