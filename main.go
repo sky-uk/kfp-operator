@@ -89,15 +89,28 @@ func main() {
 		os.Exit(1)
 	}
 
-	var workflows = pipeline_controller.WorkflowFactory{
+	var client = mgr.GetClient()
+
+	var workflowFactory = pipeline_controller.WorkflowFactory{
 		Config: ctrlConfig.Workflows,
 	}
 
-	if err = (&pipeline_controller.PipelineReconciler{
-		Client:          mgr.GetClient(),
-		Scheme:          mgr.GetScheme(),
-		WorkflowFactory: workflows,
-	}).SetupWithManager(mgr); err != nil {
+	var workflowRepository = pipeline_controller.WorkflowRepositoryImpl{
+		Client: client,
+	}
+
+	var stateHandler = pipeline_controller.StateHandler{
+		WorkflowFactory:    workflowFactory,
+		WorkflowRepository: workflowRepository,
+	}
+
+	var reconciler = pipeline_controller.PipelineReconciler{
+		Client:       client,
+		Scheme:       mgr.GetScheme(),
+		StateHandler: stateHandler,
+	}
+
+	if err = (&reconciler).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}

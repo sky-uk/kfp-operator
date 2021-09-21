@@ -22,24 +22,22 @@ var (
 
 type PipelineReconciler struct {
 	client.Client
-	Scheme          *runtime.Scheme
-	WorkflowFactory WorkflowFactory
+	Scheme       *runtime.Scheme
+	StateHandler StateHandler
 }
 
 type WorkflowRepository interface {
-	GetByOperation(operation string) []argo.Workflow
+	GetByOperation(ctx context.Context, operation string, pipelineName *pipelinesv1.Pipeline) []argo.Workflow
 }
 
 type WorkflowRepositoryImpl struct {
-	*PipelineReconciler
-	ctx      context.Context
-	pipeline *pipelinesv1.Pipeline
+	client.Client
 }
 
-func (w WorkflowRepositoryImpl) GetByOperation(operation string) []argo.Workflow {
+func (w WorkflowRepositoryImpl) GetByOperation(ctx context.Context, operation string, pipeline *pipelinesv1.Pipeline) []argo.Workflow {
 	var workflows argo.WorkflowList
 
-	w.List(w.ctx, &workflows, client.InNamespace(w.pipeline.ObjectMeta.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: w.pipeline.ObjectMeta.Name})
+	w.List(ctx, &workflows, client.InNamespace(pipeline.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: pipeline.Name})
 
 	return workflows.Items
 }
@@ -61,11 +59,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		r.AddFinalizer(ctx, pipeline)
 	}
 
-	workflowRepository := WorkflowRepositoryImpl{r, ctx, pipeline}
-	stateHandler := StateHandler{
-		WorkflowFactory: r.WorkflowFactory,
-	}
-	commands := stateHandler.StateTransition(pipeline, workflowRepository)
+	commands := r.StateHandler.StateTransition(ctx, pipeline)
 
 	for i := range commands {
 		if err := commands[i].execute(r, ctx, pipeline); err != nil {

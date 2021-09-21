@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"context"
 	"sort"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -8,10 +9,11 @@ import (
 )
 
 type StateHandler struct {
-	WorkflowFactory WorkflowFactory
+	WorkflowFactory    WorkflowFactory
+	WorkflowRepository WorkflowRepository
 }
 
-func (st StateHandler) StateTransition(pipeline *pipelinesv1.Pipeline, workflows WorkflowRepository) []Command {
+func (st StateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {
 
 	if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() &&
 		(pipeline.Status.SynchronizationState == pipelinesv1.Succeeded ||
@@ -23,13 +25,13 @@ func (st StateHandler) StateTransition(pipeline *pipelinesv1.Pipeline, workflows
 	case pipelinesv1.Unknown:
 		return st.onUnknown(pipeline)
 	case pipelinesv1.Creating:
-		return st.onCreating(pipeline, workflows.GetByOperation(Create))
+		return st.onCreating(pipeline, st.WorkflowRepository.GetByOperation(ctx, Create, pipeline))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		return st.onSucceededOrFailed(pipeline)
 	case pipelinesv1.Updating:
-		return st.onUpdating(pipeline, workflows.GetByOperation(Update))
+		return st.onUpdating(pipeline, st.WorkflowRepository.GetByOperation(ctx, Update, pipeline))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(pipeline, workflows.GetByOperation(Delete))
+		return st.onDeleting(pipeline, st.WorkflowRepository.GetByOperation(ctx, Delete, pipeline))
 	case pipelinesv1.Deleted:
 		return st.onDeleted(pipeline)
 	}

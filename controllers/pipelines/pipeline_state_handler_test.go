@@ -3,6 +3,7 @@
 package pipelines
 
 import (
+	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -24,15 +25,12 @@ var workflowFactory = WorkflowFactory{
 		KfpEndpoint:     "http://www.example.com",
 	},
 }
-var stateHandler = StateHandler{
-	WorkflowFactory: workflowFactory,
-}
 
 type StubbedWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (sw StubbedWorkflows) GetByOperation(operation string) []argo.Workflow {
+func (sw StubbedWorkflows) GetByOperation(ctx context.Context, operation string, pipeline *pipelinesv1.Pipeline) []argo.Workflow {
 	return sw.Workflows
 }
 
@@ -124,7 +122,11 @@ func Check(description string, transition TestCase) TableEntry {
 
 var _ = Describe("Pipeline State handler", func() {
 	DescribeTable("State transitions", func(st TestCase) {
-		commands := stateHandler.StateTransition(st.Pipeline, StubbedWorkflows{st.Workflows})
+		var stateHandler = StateHandler{
+			WorkflowRepository: StubbedWorkflows{st.Workflows},
+			WorkflowFactory:    workflowFactory,
+		}
+		commands := stateHandler.StateTransition(context.Background(), st.Pipeline)
 		is := make([]interface{}, len(st.Commands))
 		for i, v := range st.Commands {
 			is[i] = v

@@ -28,16 +28,6 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 	var ctx context.Context
 	var testEnv *envtest.Environment
 
-	// TODO: mock workflowFactory
-	var workflowFactory = WorkflowFactory{
-		Config: configv1.Configuration{
-			KfpToolsImage:   "kfp-tools",
-			CompilerImage:   "compiler",
-			ImagePullPolicy: "Never",
-			KfpEndpoint:     "http://www.example.com",
-		},
-	}
-
 	BeforeSuite(func() {
 		logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
@@ -72,11 +62,32 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 
 		ctx = context.Background()
 
-		Expect((&PipelineReconciler{
-			Client:          k8sClient,
-			Scheme:          k8sManager.GetScheme(),
-			WorkflowFactory: workflowFactory,
-		}).SetupWithManager(k8sManager)).To(Succeed())
+		// TODO: mock workflowFactory
+		var workflowFactory = WorkflowFactory{
+			Config: configv1.Configuration{
+				KfpToolsImage:   "kfp-tools",
+				CompilerImage:   "compiler",
+				ImagePullPolicy: "Never",
+				KfpEndpoint:     "http://www.example.com",
+			},
+		}
+
+		var workflowRepository = WorkflowRepositoryImpl{
+			Client: k8sClient,
+		}
+
+		var stateHandler = StateHandler{
+			WorkflowRepository: workflowRepository,
+			WorkflowFactory:    workflowFactory,
+		}
+
+		var reconciler = PipelineReconciler{
+			Client:       k8sClient,
+			Scheme:       k8sManager.GetScheme(),
+			StateHandler: stateHandler,
+		}
+
+		Expect((&reconciler).SetupWithManager(k8sManager)).To(Succeed())
 
 		go func() {
 			Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
