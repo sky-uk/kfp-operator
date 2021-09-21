@@ -157,7 +157,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Creating, "", V1).
 				WithWorkFlow(
 					SetWorkflowOutput(
-						createWorkflow(Create, argo.WorkflowSucceeded),
+						createWorkflow(CreateOperationLabel, argo.WorkflowSucceeded),
 						PipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Succeeded, PipelineId, V1).
@@ -167,7 +167,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Creating, AnotherPipelineId, V1).
 				WithWorkFlow(
 					SetWorkflowOutput(
-						createWorkflow(Create, argo.WorkflowSucceeded),
+						createWorkflow(CreateOperationLabel, argo.WorkflowSucceeded),
 						PipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Succeeded, PipelineId, V1).
@@ -176,7 +176,7 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Creation fails with Id",
 			From(pipelinesv1.Creating, "", V1).
 				WithWorkFlow(SetWorkflowOutput(
-					createWorkflow(Create, argo.WorkflowFailed),
+					createWorkflow(CreateOperationLabel, argo.WorkflowFailed),
 					PipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Failed, PipelineId, V1).
@@ -184,7 +184,7 @@ var _ = Describe("Pipeline State handler", func() {
 		),
 		Check("Creation fails",
 			From(pipelinesv1.Creating, "", V1).
-				WithWorkFlow(createWorkflow(Create, argo.WorkflowFailed)).
+				WithWorkFlow(createWorkflow(CreateOperationLabel, argo.WorkflowFailed)).
 				To(pipelinesv1.Failed, "", V1).
 				DeletesAllWorkflows(),
 		),
@@ -230,13 +230,13 @@ var _ = Describe("Pipeline State handler", func() {
 		),
 		Check("Updating succeeds",
 			From(pipelinesv1.Updating, PipelineId, V1).
-				WithWorkFlow(createWorkflow(Update, argo.WorkflowSucceeded)).
+				WithWorkFlow(createWorkflow(UpdateOperationLabel, argo.WorkflowSucceeded)).
 				To(pipelinesv1.Succeeded, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
 			From(pipelinesv1.Updating, PipelineId, V1).
-				WithWorkFlow(createWorkflow(Update, argo.WorkflowFailed)).
+				WithWorkFlow(createWorkflow(UpdateOperationLabel, argo.WorkflowFailed)).
 				To(pipelinesv1.Failed, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
@@ -271,14 +271,14 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Deletion succeeds",
 			From(pipelinesv1.Deleting, PipelineId, V1).
 				DeletionRequested().
-				WithWorkFlow(createWorkflow(Delete, argo.WorkflowSucceeded)).
+				WithWorkFlow(createWorkflow(DeleteOperationLabel, argo.WorkflowSucceeded)).
 				To(pipelinesv1.Deleted, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Deletion fails",
 			From(pipelinesv1.Deleting, PipelineId, V1).
 				DeletionRequested().
-				WithWorkFlow(createWorkflow(Delete, argo.WorkflowFailed)).
+				WithWorkFlow(createWorkflow(DeleteOperationLabel, argo.WorkflowFailed)).
 				To(pipelinesv1.Deleting, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),

@@ -1,9 +1,9 @@
 package pipelines
 
 const (
-	OperationLabelKey = "pipelines.kubeflow.org/operation"
-	PipelineLabelKey  = "pipelines.kubeflow.org/pipeline"
-	Create            = "create-pipeline"
-	Update            = "update-pipeline"
-	Delete            = "delete-pipeline"
+	PipelineNameLabelKey = "pipelines.kubeflow.org/pipeline"
+	OperationLabelKey    = "pipelines.kubeflow.org/operation"
+	CreateOperationLabel = "create-pipeline"
+	UpdateOperationLabel = "update-pipeline"
+	DeleteOperationLabel = "delete-pipeline"
 )

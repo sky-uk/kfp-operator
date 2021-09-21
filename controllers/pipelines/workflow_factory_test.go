@@ -36,8 +36,8 @@ var _ = Describe("Creation Workflow", func() {
 			workflow, error := wf.ConstructCreationWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.Version)
 			Expect(error).NotTo(HaveOccurred())
 
-			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, Create))
-			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineLabelKey, pipeline.Name))
+			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, CreateOperationLabel))
+			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineNameLabelKey, pipeline.Name))
 			Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
 			Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
 			Expect(workflowTemplates(*workflow)).To(HaveKey(workflow.Spec.Entrypoint))
@@ -52,8 +52,8 @@ var _ = Describe("Update Workflow", func() {
 			workflow, error := wf.ConstructUpdateWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.Id, pipeline.Status.Version)
 			Expect(error).NotTo(HaveOccurred())
 
-			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, Update))
-			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineLabelKey, pipeline.Name))
+			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, UpdateOperationLabel))
+			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineNameLabelKey, pipeline.Name))
 			Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
 			Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
 		})
@@ -66,8 +66,8 @@ var _ = Describe("Deletion Workflow", func() {
 			pipeline := RandomPipeline()
 			workflow := wf.ConstructDeletionWorkflow(pipeline.ObjectMeta, pipeline.Status.Id)
 
-			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, Delete))
-			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineLabelKey, pipeline.Name))
+			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, DeleteOperationLabel))
+			Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineNameLabelKey, pipeline.Name))
 			Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
 			Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
 		})

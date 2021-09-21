@@ -240,7 +240,7 @@ var _ = Describe("Workflows", func() {
 				err = k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(Update, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowToMatch(UpdateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				}), TestTimeout).Should(Succeed())
 			})
@@ -266,7 +266,7 @@ var _ = Describe("Workflows", func() {
 				err = k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(Update, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowToMatch(UpdateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 				}), TestTimeout).Should(Succeed())
 			})
@@ -296,7 +296,7 @@ var _ = Describe("Workflows", func() {
 				err := k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(Delete, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowToMatch(DeleteOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				}), TestTimeout).Should(Succeed())
 			})
@@ -325,7 +325,7 @@ var _ = Describe("Workflows", func() {
 				err := k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(Delete, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowToMatch(DeleteOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 				}), TestTimeout).Should(Succeed())
 			})

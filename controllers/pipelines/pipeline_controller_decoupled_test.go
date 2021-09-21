@@ -118,7 +118,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(Create, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				SetWorkflowOutput(workflow, PipelineIdParameterName, PipelineId)
 			})).To(Succeed())
@@ -135,7 +135,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(Update, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
 
@@ -149,7 +149,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(Delete, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
 

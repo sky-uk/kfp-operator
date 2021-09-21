@@ -71,8 +71,8 @@ func (w *WorkflowFactory) commonMeta(pipelineMeta metav1.ObjectMeta, operation s
 		GenerateName: operation + "-",
 		Namespace:    pipelineMeta.Namespace,
 		Labels: map[string]string{
-			OperationLabelKey: operation,
-			PipelineLabelKey:  pipelineMeta.Name,
+			OperationLabelKey:    operation,
+			PipelineNameLabelKey: pipelineMeta.Name,
 		},
 	}
 }
@@ -84,10 +84,10 @@ func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.Pipe
 		return nil, error
 	}
 
-	entrypointName := Create
+	entrypointName := CreateOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipelineMeta, Create),
+		ObjectMeta: *w.commonMeta(pipelineMeta, CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -170,10 +170,10 @@ func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.Pipeli
 		return nil, error
 	}
 
-	entrypointName := Update
+	entrypointName := UpdateOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipelineMeta, Update),
+		ObjectMeta: *w.commonMeta(pipelineMeta, UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -224,10 +224,10 @@ func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.Pipeli
 
 func (w WorkflowFactory) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMeta, pipelineId string) *argo.Workflow {
 
-	entrypointName := Delete
+	entrypointName := DeleteOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipelineMeta, Delete),
+		ObjectMeta: *w.commonMeta(pipelineMeta, DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,

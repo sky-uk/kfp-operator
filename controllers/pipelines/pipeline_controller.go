@@ -37,7 +37,7 @@ type WorkflowRepositoryImpl struct {
 func (w WorkflowRepositoryImpl) GetByOperation(ctx context.Context, operation string, pipeline *pipelinesv1.Pipeline) []argo.Workflow {
 	var workflows argo.WorkflowList
 
-	w.List(ctx, &workflows, client.InNamespace(pipeline.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: pipeline.Name})
+	w.List(ctx, &workflows, client.InNamespace(pipeline.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineNameLabelKey: pipeline.Name})
 
 	return workflows.Items
 }

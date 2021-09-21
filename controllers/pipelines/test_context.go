@@ -124,7 +124,7 @@ func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*arg
 func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{OperationLabelKey: operation, PipelineLabelKey: testCtx.Pipeline.Name}); err != nil {
+	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{OperationLabelKey: operation, PipelineNameLabelKey: testCtx.Pipeline.Name}); err != nil {
 		return nil, err
 	}
 

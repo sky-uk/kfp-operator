@@ -25,13 +25,13 @@ func (st StateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv
 	case pipelinesv1.Unknown:
 		return st.onUnknown(pipeline)
 	case pipelinesv1.Creating:
-		return st.onCreating(pipeline, st.WorkflowRepository.GetByOperation(ctx, Create, pipeline))
+		return st.onCreating(pipeline, st.WorkflowRepository.GetByOperation(ctx, CreateOperationLabel, pipeline))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		return st.onSucceededOrFailed(pipeline)
 	case pipelinesv1.Updating:
-		return st.onUpdating(pipeline, st.WorkflowRepository.GetByOperation(ctx, Update, pipeline))
+		return st.onUpdating(pipeline, st.WorkflowRepository.GetByOperation(ctx, UpdateOperationLabel, pipeline))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(pipeline, st.WorkflowRepository.GetByOperation(ctx, Delete, pipeline))
+		return st.onDeleting(pipeline, st.WorkflowRepository.GetByOperation(ctx, DeleteOperationLabel, pipeline))
 	case pipelinesv1.Deleted:
 		return st.onDeleted(pipeline)
 	}
