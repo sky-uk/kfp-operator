@@ -1,12 +1,14 @@
 all: build
 
-##@ build
+##@ Development
+
+test: build
+	poetry run pytest
+
+##@ Build
 
 build:
 	poetry install
 
-docker-build:
+docker-build: build
 	docker build . -t compiler
-
-test: build
-	poetry run pytest
