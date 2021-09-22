@@ -3,6 +3,7 @@ all: build
 ##@ Development
 
 test: build
+	pip install poetry
 	poetry run pytest
 
 ##@ Build
