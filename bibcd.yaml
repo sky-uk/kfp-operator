@@ -1,5 +1,5 @@
 version: 1
-context: bibcd
+context: mlops
 triggering: master-and-prs
 
 modules:
