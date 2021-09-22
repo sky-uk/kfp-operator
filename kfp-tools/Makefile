@@ -2,11 +2,7 @@ all: docker
 
 ##@ build
 
-docker:
+test:
+
+docker-build:
 	docker build . -t compiler
-
-##@ CI
-
-prBuild: docker
-
-cdBuild: prBuild

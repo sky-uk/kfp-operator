@@ -136,6 +136,8 @@ endef
 
 ##@ CI
 
-prBuild: test
+prBuild: test docker-build
+	$(MAKE) -C compiler test docker-build
+	$(MAKE) -C kfp-tools test docker-build
 
 cdBuild: prBuild

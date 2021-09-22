@@ -3,21 +3,11 @@ context: mlops
 triggering: master-and-prs
 
 modules:
-  compiler:
-    pipelineShape: buildOnly
-    nodes:
-      prBuild: dind-slave
-      cdBuild: dind-slave
-  kfp-tools:
-    pipelineShape: buildOnly
-    nodes:
-      prBuild: dind-slave
-      cdBuild: dind-slave
-  controller:
+  root:
     directory: /
     pipelineShape: buildOnly
     nodes:
       prBuild: dind-slave
       cdBuild: dind-slave
 
-defaultTaskExecution: 'make -C ${directory} ${phase}'
+defaultTaskExecution: 'make ${phase}'
