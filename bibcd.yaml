@@ -10,3 +10,5 @@ modules:
   controller:
     directory: /
     pipelineShape: buildOnly
+
+defaultTaskExecution: 'make -C ${directory} ${phase}'
