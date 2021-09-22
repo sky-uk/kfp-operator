@@ -5,10 +5,19 @@ triggering: master-and-prs
 modules:
   compiler:
     pipelineShape: buildOnly
+    nodes:
+      prBuild: dind-slave
+      cdBuild: dind-slave
   kfp-tools:
     pipelineShape: buildOnly
+    nodes:
+      prBuild: dind-slave
+      cdBuild: dind-slave
   controller:
     directory: /
     pipelineShape: buildOnly
+    nodes:
+      prBuild: dind-slave
+      cdBuild: dind-slave
 
 defaultTaskExecution: 'make -C ${directory} ${phase}'
