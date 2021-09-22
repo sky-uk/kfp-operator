@@ -158,7 +158,7 @@ var _ = Describe("Workflows", func() {
 
 				Eventually(testCtx.WorkflowToMatch(CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					g.Expect(GetWorkflowOutput(workflow, WorkflowFactoryConstants.pipelineIdParameterName)).
+					g.Expect(getWorkflowOutput(workflow, WorkflowFactoryConstants.pipelineIdParameterName)).
 						To(Equal(PipelineId))
 				}), TestTimeout).Should(Succeed())
 			})
