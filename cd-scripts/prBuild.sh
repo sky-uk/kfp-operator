@@ -1,1 +1,1 @@
-make test
+echo "do nothing"
