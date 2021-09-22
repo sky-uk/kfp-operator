@@ -1,0 +1,12 @@
+version: 1
+context: bibcd
+triggering: master-and-prs
+
+modules:
+  compiler:
+    pipelineShape: buildOnly
+  kfp-tools:
+    pipelineShape: buildOnly
+  controller:
+    directory: /
+    pipelineShape: buildOnly
