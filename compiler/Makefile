@@ -3,12 +3,12 @@ all: build
 ##@ Development
 
 test: build
-	pip install poetry
 	poetry run pytest
 
 ##@ Build
 
 build:
+	command -v poetry || pip install poetry
 	poetry install
 
 docker-build: build
