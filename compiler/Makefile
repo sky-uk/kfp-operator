@@ -8,7 +8,7 @@ test: build
 ##@ Build
 
 build:
-	pyenv install
+	pyenv install -s
 	command -v poetry || pip install poetry
 	poetry install
 
