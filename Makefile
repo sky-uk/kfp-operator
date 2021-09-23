@@ -80,7 +80,7 @@ integration-test-down:
 unit-test: ## Run unit tests
 	go test ./... -tags=unit
 
-test: manifests generate fmt vet unit-test decoupled-test
+test: manifests generate fmt vet unit-test
 
 ##@ Build
 
