@@ -1,0 +1,13 @@
+version: 1
+context: mlops
+triggering: master-and-prs
+
+modules:
+  root:
+    directory: /
+    pipelineShape: buildOnly
+    nodes:
+      prBuild: dind-slave
+      cdBuild: dind-slave
+
+defaultTaskExecution: 'make ${phase}'

@@ -133,3 +133,15 @@ GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef
+
+##@ CI
+
+cdSetup:
+	cd compiler; pyenv install -s
+	command -v poetry || pip install poetry
+
+prBuild: cdSetup test docker-build
+	$(MAKE) -C compiler test docker-build
+	$(MAKE) -C kfp-tools test docker-build
+
+cdBuild: prBuild
