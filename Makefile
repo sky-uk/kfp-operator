@@ -136,7 +136,11 @@ endef
 
 ##@ CI
 
-prBuild: test docker-build
+cdSetup:
+	cd compiler; pyenv install -s
+	command -v poetry || pip install poetry
+
+prBuild: cdSetup test docker-build
 	$(MAKE) -C compiler test docker-build
 	$(MAKE) -C kfp-tools test docker-build
 
