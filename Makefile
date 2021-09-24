@@ -136,15 +136,8 @@ endef
 
 ##@ CI
 
-PATH := ${PATH}:${HOME}/.poetry/bin
-
-cdSetup:
-	cd compiler; PYTHON_CONFIGURE_OPTS="--enable-framework" pyenv install -s
-	curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-	export PATH
-
-prBuild: cdSetup #test docker-build
-	$(MAKE) -C compiler test docker-build
+prBuild: cdSetup test docker-build
+	docker run -v $$(pwd)/compiler:/compiler -w /compiler --entrypoint="" python:3.7.10 /bin/bash -c 'pip install poetry && make docker-build'
 	$(MAKE) -C kfp-tools test docker-build
 
 cdBuild: prBuild
