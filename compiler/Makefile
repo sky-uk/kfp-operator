@@ -3,12 +3,13 @@ all: build
 ##@ Development
 
 test: build
+	poetry install
 	poetry run pytest
 
 ##@ Build
 
 build:
-	poetry install
+	@echo Nothing to build.
 
 docker-build: build
 	docker build . -t compiler

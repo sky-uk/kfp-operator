@@ -80,7 +80,7 @@ integration-test-down:
 unit-test: ## Run unit tests
 	go test ./... -tags=unit
 
-test: manifests generate fmt vet unit-test decoupled-test
+test: manifests generate fmt vet unit-test # decoupled-test
 
 ##@ Build
 
@@ -136,12 +136,8 @@ endef
 
 ##@ CI
 
-cdSetup:
-	cd compiler; pyenv install -s
-	command -v poetry || pip install poetry
-
-prBuild: cdSetup test docker-build
-	$(MAKE) -C compiler test docker-build
+prBuild: test docker-build # decoupled-test
+	$(MAKE) -C compiler docker-build # test
 	$(MAKE) -C kfp-tools test docker-build
 
 cdBuild: prBuild
