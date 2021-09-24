@@ -136,8 +136,8 @@ endef
 
 ##@ CI
 
-prBuild: test docker-build
-	docker run -v $$(pwd)/compiler:/compiler -w /compiler --entrypoint="" python:3.7.10 /bin/bash -c 'pip install poetry && make docker-build'
+prBuild: test docker-build # decoupled-test
+	$(MAKE) -C compiler docker-build # test
 	$(MAKE) -C kfp-tools test docker-build
 
 cdBuild: prBuild

@@ -11,4 +11,4 @@ build:
 	@echo Nothing to build.
 
 docker-build:
-	docker build . -t compiler
+	docker build . -t kfp-tools
