@@ -1,6 +1,4 @@
-include Makefile.version
-
-export VERSION
+-include docker.mk
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
@@ -97,8 +95,7 @@ docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .
 
 docker-push: ## Push docker image with the manager.
-
-	docker push ${IMG}
+	$(call docker_push,${IMG})
 
 ##@ Deployment
 

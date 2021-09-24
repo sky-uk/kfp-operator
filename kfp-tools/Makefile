@@ -1,5 +1,5 @@
-VERSION := $$(git describe --tags)
-IMG := kfp-operator-argo-kfp-sdk:$(VERSION)
+-include ../docker.mk
+IMG := kfp-operator-argo-kfp-sdk
 
 all: build
 
@@ -17,4 +17,4 @@ docker-build:
 	docker build . -t $(IMG)
 
 docker-push:
-	docker push $(IMG)
+	$(call docker_push,${IMG})

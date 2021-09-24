@@ -1,6 +1,6 @@
-include ../Makefile.version
+-include ../docker.mk
 
-IMG := kfp-operator-argo-compiler:$(VERSION)
+IMG := kfp-operator-argo-compiler
 
 all: build
 
@@ -19,4 +19,4 @@ docker-build: build
 	docker build . -t $(IMG)
 
 docker-push:
-	docker push $(IMG)
+	$(call docker_push,${IMG})
