@@ -6,8 +6,5 @@ modules:
   root:
     directory: /
     pipelineShape: buildOnly
-    nodes:
-      prBuild: dind-slave
-      cdBuild: dind-slave
 
 defaultTaskExecution: 'make ${phase}'
