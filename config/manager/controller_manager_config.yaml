@@ -12,8 +12,8 @@ controller:
     resourceName: kfp-operator-lock
 spec:
   imagePullPolicy: Always
-  compilerImage: ${CONTAINER_REGISTRY}/compiler
-  kfpToolsImage: ${CONTAINER_REGISTRY}/kfp-tools
+  compilerImage: ghcr.io/sky-uk/kfp-operator-compiler
+  kfpToolsImage: ghcr.io/sky-uk/kfp-operator-kfp-sdk
   kfpEndpoint: ${KFP_ENDPOINT}
   serviceAccount: ${OPERATOR_SA}
   dataflowProject: ${DATAFLOW_PROJECT}
