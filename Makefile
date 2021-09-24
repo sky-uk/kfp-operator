@@ -1,6 +1,7 @@
+VERSION := $$(git describe --tags)
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= kfp-operator-controller:$(VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
@@ -140,4 +141,6 @@ prBuild: test docker-build # decoupled-test
 	$(MAKE) -C compiler docker-build # test
 	$(MAKE) -C kfp-tools test docker-build
 
-cdBuild: prBuild
+cdBuild: prBuild docker-push
+	$(MAKE) -C compiler docker-push
+	$(MAKE) -C kfp-tools docker-push

@@ -1,3 +1,6 @@
+VERSION := $$(git describe --tags)
+IMG := kfp-operator-argo-compiler:$(VERSION)
+
 all: build
 
 ##@ Development
@@ -12,4 +15,7 @@ build:
 	@echo Nothing to build.
 
 docker-build: build
-	docker build . -t compiler
+	docker build . -t $(IMG)
+
+docker-push:
+	docker push $(IMG)

@@ -1,3 +1,6 @@
+VERSION := $$(git describe --tags)
+IMG := kfp-operator-argo-kfp-sdk:$(VERSION)
+
 all: build
 
 ##@ Development
@@ -11,4 +14,7 @@ build:
 	@echo Nothing to build.
 
 docker-build:
-	docker build . -t kfp-tools
+	docker build . -t $(IMG)
+
+docker-push:
+	docker push $(IMG)
