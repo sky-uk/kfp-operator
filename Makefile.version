@@ -1,0 +1,3 @@
+VERSION := $$(git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*')
+
+$CONTAINER_REGISTRIES := ($CONTAINER_REGISTRY_HOSTS)

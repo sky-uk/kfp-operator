@@ -1,7 +1,9 @@
-VERSION := $$(git describe --tags)
+include Makefile.version
+
+export VERSION
 
 # Image URL to use all building/pushing image targets
-IMG ?= kfp-operator-controller:$(VERSION)
+IMG ?= kfp-operator-controller
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
@@ -95,6 +97,7 @@ docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .
 
 docker-push: ## Push docker image with the manager.
+
 	docker push ${IMG}
 
 ##@ Deployment

@@ -1,4 +1,5 @@
-VERSION := $$(git describe --tags)
+include ../Makefile.version
+
 IMG := kfp-operator-argo-compiler:$(VERSION)
 
 all: build
