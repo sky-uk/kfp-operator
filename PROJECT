@@ -2,7 +2,7 @@ domain: kubeflow.org
 layout:
 - go.kubebuilder.io/v3
 multigroup: true
-projectName: project
+projectName: kfp-operator
 repo: github.com/sky-uk/kfp-operator
 resources:
 - api:
