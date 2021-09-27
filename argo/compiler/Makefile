@@ -1,3 +1,7 @@
+include ../../docker.mk
+
+IMG := kfp-operator-argo-compiler
+
 all: build
 
 ##@ Development
@@ -10,6 +14,3 @@ test: build
 
 build:
 	@echo Nothing to build.
-
-docker-build: build
-	docker build . -t compiler

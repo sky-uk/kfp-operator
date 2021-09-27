@@ -1,3 +1,6 @@
+include ../../docker.mk
+IMG := kfp-operator-argo-kfp-sdk
+
 all: build
 
 ##@ Development
@@ -9,6 +12,3 @@ test:
 
 build:
 	@echo Nothing to build.
-
-docker-build:
-	docker build . -t kfp-tools

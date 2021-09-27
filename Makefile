@@ -1,6 +1,7 @@
+include docker.mk
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= kfp-operator-controller
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
@@ -68,8 +69,8 @@ integration-test-up:
 
 integration-test: ## Run integration tests
 	eval $$(minikube -p argo-integration-tests docker-env) && \
-	docker build compiler -t compiler && \
-	docker build kfp-tools -t kfp-tools && \
+	$(MAKE) -C argo/compiler docker-build && \
+	$(MAKE) -C argo/kfp-sdk docker-build && \
 	docker build docs/quickstart -t kfp-quickstart
 	go test ./... -tags=integration
 
@@ -89,12 +90,6 @@ build: generate fmt vet ## Build manager binary.
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go --config config/manager/controller_manager_config.yaml
-
-docker-build: test ## Build docker image with the manager.
-	docker build -t ${IMG} .
-
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
 
 ##@ Deployment
 
@@ -137,7 +132,9 @@ endef
 ##@ CI
 
 prBuild: test docker-build # decoupled-test
-	$(MAKE) -C compiler docker-build # test
-	$(MAKE) -C kfp-tools test docker-build
+	$(MAKE) -C argo/compiler docker-build # test
+	$(MAKE) -C argo/kfp-sdk test docker-build
 
-cdBuild: prBuild
+cdBuild: prBuild docker-push
+	$(MAKE) -C argo/compiler docker-push
+	$(MAKE) -C argo/kfp-sdk docker-push
