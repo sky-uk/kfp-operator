@@ -14,9 +14,3 @@ test: build
 
 build:
 	@echo Nothing to build.
-
-docker-build: build
-	docker build . -t $(IMG)
-
-docker-push:
-	$(call docker_push,${IMG})
