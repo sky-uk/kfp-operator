@@ -1,4 +1,4 @@
--include ../../docker.mk
+include ../../docker.mk
 
 IMG := kfp-operator-argo-compiler
 

@@ -1,4 +1,4 @@
--include docker.mk
+include docker.mk
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
