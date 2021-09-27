@@ -3,7 +3,12 @@
 This module compiles a TFX component defintion into a Kubeflow Pipelines file.
 
 ## Setup
+
+We use the [dynamic versioning plugin](#https://pypi.org/project/poetry-dynamic-versioning/) for poetry to version this module.
+Note that the version differs from the versions of the resulting containers because poetry it (which is based on git describe).
+
 ```bash
+pip install poetry-dynamic-versioning
 pyenv install -s
 poetry install
 ```
