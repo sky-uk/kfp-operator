@@ -4,7 +4,6 @@ define docker_push
 	for HOST in $(CONTAINER_REGISTRY_HOSTS); \
     do \
     	TAG="$$HOST/$(1):${VERSION}"; \
-    	echo $$TAG; \
     	docker tag $(1) $$TAG; \
     	docker push $$TAG; \
     done
