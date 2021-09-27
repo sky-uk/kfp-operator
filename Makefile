@@ -69,8 +69,8 @@ integration-test-up:
 
 integration-test: ## Run integration tests
 	eval $$(minikube -p argo-integration-tests docker-env) && \
-	docker build compiler -t compiler && \
-	docker build kfp-tools -t kfp-tools && \
+	$(MAKE) -C argo/compiler docker-build && \
+	$(MAKE) -C argo/kfp-sdk docker-build && \
 	docker build docs/quickstart -t kfp-quickstart
 	go test ./... -tags=integration
 
@@ -132,9 +132,9 @@ endef
 ##@ CI
 
 prBuild: test docker-build # decoupled-test
-	$(MAKE) -C compiler docker-build # test
-	$(MAKE) -C kfp-tools test docker-build
+	$(MAKE) -C argo/compiler docker-build # test
+	$(MAKE) -C argo/kfp-sdk test docker-build
 
 cdBuild: prBuild docker-push
-	$(MAKE) -C compiler docker-push
-	$(MAKE) -C kfp-tools docker-push
+	$(MAKE) -C argo/compiler docker-push
+	$(MAKE) -C argo/kfp-sdk docker-push
