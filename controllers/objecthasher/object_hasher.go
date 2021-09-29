@@ -31,8 +31,8 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		oh.h.Write([]byte(k))
-		oh.h.Write([]byte(value[k]))
+		oh.WriteStringField(k)
+		oh.WriteStringField(value[k])
 	}
 
 	oh.h.Write(hashFieldSeparator)

@@ -44,8 +44,39 @@ var _ = Describe("ObjectHasher", func() {
 		Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
 	})
 
+	Specify("Map key and values should be considered separate", func() {
+		oh1 := New()
+		oh1.WriteMapField(map[string]string{
+			"ab": "c",
+		})
+
+		oh2 := New()
+		oh2.WriteMapField(map[string]string{
+			"a": "bc",
+		})
+
+		Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
+	})
+
+	Specify("Map fields should be considered separate", func() {
+		oh1 := New()
+		oh1.WriteMapField(map[string]string{
+			"a": "bc",
+			"d": "e",
+		})
+
+		oh2 := New()
+		oh2.WriteMapField(map[string]string{
+			"a":  "b",
+			"cd": "e",
+		})
+
+		Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
+	})
+
 	Specify("Map field hash should be consistent", func() {
-		iterations := 10 // simple: sometimes iterators are consistent
+		// simple: sometimes iterators are consistent, most times they are not
+		iterations := 10
 		sameMap := map[string]string{
 			"a": "1",
 			"b": "2",
