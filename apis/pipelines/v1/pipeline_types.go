@@ -11,6 +11,7 @@ func ComputeVersion(pipelineSpec PipelineSpec) string {
 	oh.WriteStringField(pipelineSpec.Image)
 	oh.WriteStringField(pipelineSpec.TfxComponents)
 	oh.WriteMapField(pipelineSpec.Env)
+	oh.WriteMapField(pipelineSpec.BeamArgs)
 	specHash := oh.Sum()
 
 	return fmt.Sprintf("%x", specHash)
@@ -20,6 +21,7 @@ type PipelineSpec struct {
 	Image         string            `json:"image" yaml:"image"`
 	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
 	Env           map[string]string `json:"env,omitempty" yaml:"env"`
+	BeamArgs      map[string]string `json:"beamArgs,omitempty" yaml:"beamArgs"`
 }
 
 type SynchronizationState string

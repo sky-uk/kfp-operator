@@ -47,4 +47,22 @@ var _ = Describe("ComputeVersion", func() {
 		Expect(version1).NotTo(Equal(version2))
 		Expect(version2).NotTo(Equal(version3))
 	})
+
+	Specify("All BeamArgs keys should change the version", func() {
+		pipelineSpec := PipelineSpec{}
+		version1 := ComputeVersion(pipelineSpec)
+
+		pipelineSpec.BeamArgs = map[string]string{
+			"a": "",
+		}
+		version2 := ComputeVersion(pipelineSpec)
+
+		pipelineSpec.BeamArgs = map[string]string{
+			"b": "notempty",
+		}
+		version3 := ComputeVersion(pipelineSpec)
+
+		Expect(version1).NotTo(Equal(version2))
+		Expect(version2).NotTo(Equal(version3))
+	})
 })
