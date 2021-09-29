@@ -41,7 +41,7 @@ func (st StateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv
 
 func (st StateHandler) onUnknown(pipeline *pipelinesv1.Pipeline) []Command {
 
-	newPipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
+	newPipelineVersion := pipeline.Spec.ComputeVersion()
 
 	if pipeline.Status.Id != "" {
 		workflow, error := st.WorkflowFactory.ConstructUpdateWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.Id, newPipelineVersion)
@@ -109,7 +109,7 @@ func (st StateHandler) onDelete(pipeline *pipelinesv1.Pipeline) []Command {
 }
 
 func (st StateHandler) onSucceededOrFailed(pipeline *pipelinesv1.Pipeline) []Command {
-	newPipelineVersion := pipelinesv1.ComputeVersion(pipeline.Spec)
+	newPipelineVersion := pipeline.Spec.ComputeVersion()
 
 	if pipeline.Status.Version == newPipelineVersion {
 		return []Command{}

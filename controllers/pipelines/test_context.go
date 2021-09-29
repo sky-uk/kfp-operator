@@ -46,9 +46,9 @@ var SpecV2 = pipelinesv1.PipelineSpec{
 	},
 }
 
-var V0 = pipelinesv1.ComputeVersion(pipelinesv1.PipelineSpec{})
-var V1 = pipelinesv1.ComputeVersion(SpecV1)
-var V2 = pipelinesv1.ComputeVersion(SpecV2)
+var V0 = pipelinesv1.PipelineSpec{}.ComputeVersion()
+var V1 = SpecV1.ComputeVersion()
+var V2 = SpecV2.ComputeVersion()
 
 func NewTestContextWithPipeline(pipeline *pipelinesv1.Pipeline, k8sClient client.Client, ctx context.Context) TestContext {
 	return TestContext{
@@ -56,7 +56,7 @@ func NewTestContextWithPipeline(pipeline *pipelinesv1.Pipeline, k8sClient client
 		ctx:               ctx,
 		Pipeline:          pipeline,
 		PipelineLookupKey: types.NamespacedName{Name: pipeline.Name, Namespace: PipelineNamespace},
-		Version:           pipelinesv1.ComputeVersion(pipeline.Spec),
+		Version:           pipeline.Spec.ComputeVersion(),
 	}
 }
 
