@@ -41,10 +41,13 @@ type WorkflowFactory struct {
 }
 
 type CompilerConfig struct {
-	Spec         pipelinesv1.PipelineSpec // TODO don't use this spec directly!
-	Name         string
-	ServingDir   string `yaml:"servingDir"`
-	PipelineRoot string `yaml:"pipelineRoot"`
+	RootLocation    string            `yaml:"rootLocation"`
+	ServingLocation string            `yaml:"servingLocation"`
+	Name            string            `yaml:"name"`
+	Image           string            `yaml:"image"`
+	TfxComponents   string            `yaml:"tfxComponents"`
+	Env             map[string]string `yaml:"env"`
+	BeamArgs        map[string]string `yaml:"beamArgs"`
 }
 
 func (config CompilerConfig) AsYaml() (string, error) {
@@ -57,27 +60,29 @@ func (config CompilerConfig) AsYaml() (string, error) {
 	return string(configYaml), nil
 }
 
+// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
 func (wf *WorkflowFactory) newCompilerConfig(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) *CompilerConfig {
 	// TODO: should come from config
 	servingPath := "/serving"
 	tempPath := "/tmp"
 
-	// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
 	pipelineRoot := wf.Config.PipelineStorage + "/" + pipelineMeta.Name
 
-	modifiedSpec := pipelineSpec.DeepCopy()
-	modifiedSpec.BeamArgs = make(map[string]string)
-	modifiedSpec.BeamArgs["project"] = wf.Config.DataflowProject
+	beamArgs := make(map[string]string)
+	beamArgs["project"] = wf.Config.DataflowProject
 	for key, value := range pipelineSpec.BeamArgs {
-		modifiedSpec.BeamArgs[key] = value
+		beamArgs[key] = value
 	}
-	modifiedSpec.BeamArgs["temp_location"] = pipelineRoot + tempPath
+	beamArgs["temp_location"] = pipelineRoot + tempPath
 
 	return &CompilerConfig{
-		Spec:         *modifiedSpec,
-		Name:         pipelineMeta.Name,
-		PipelineRoot: pipelineRoot,
-		ServingDir:   pipelineRoot + servingPath,
+		RootLocation:    pipelineRoot,
+		ServingLocation: pipelineRoot + servingPath,
+		Name:            pipelineMeta.Name,
+		Image:           pipelineSpec.Image,
+		TfxComponents:   pipelineSpec.TfxComponents,
+		Env:             pipelineSpec.Env,
+		BeamArgs:        beamArgs,
 	}
 }
 

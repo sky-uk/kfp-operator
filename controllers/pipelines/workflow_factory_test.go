@@ -82,15 +82,15 @@ var _ = Describe("Workflows", func() {
 
 var _ = Describe("PipelineConfig", func() {
 
-	Specify("Fields are copied from Pipeline resource", func() {
+	Specify("Some fields are copied from Pipeline resource", func() {
 		wf := WorkflowFactory{}
 		pipeline := pipelinesv1.Pipeline{
 			ObjectMeta: v1.ObjectMeta{
 				Name: "pipelineName",
 			},
 			Spec: pipelinesv1.PipelineSpec{
-				Image:         "specImage",
-				TfxComponents: "specTfxComponents",
+				Image:         "pipelineImage",
+				TfxComponents: "pipelineTfxComponents",
 				Env: map[string]string{
 					"ea": "b",
 				},
@@ -98,10 +98,10 @@ var _ = Describe("PipelineConfig", func() {
 		}
 		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
 
-		Expect(compilerConfig.Spec.Image).To(Equal("specImage"))
-		Expect(compilerConfig.Spec.TfxComponents).To(Equal("specTfxComponents"))
-		Expect(compilerConfig.Spec.Env["ea"]).To(Equal("b"))
 		Expect(compilerConfig.Name).To(Equal("pipelineName"))
+		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
+		Expect(compilerConfig.TfxComponents).To(Equal("pipelineTfxComponents"))
+		Expect(compilerConfig.Env["ea"]).To(Equal("b"))
 	})
 
 	Specify("Paths are appended to PipelineStorage", func() {
@@ -118,8 +118,8 @@ var _ = Describe("PipelineConfig", func() {
 
 		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
 
-		Expect(compilerConfig.PipelineRoot).To(Equal("gs://bucket/pipelineName"))
-		Expect(compilerConfig.ServingDir).To(Equal("gs://bucket/pipelineName/serving"))
+		Expect(compilerConfig.RootLocation).To(Equal("gs://bucket/pipelineName"))
+		Expect(compilerConfig.ServingLocation).To(Equal("gs://bucket/pipelineName/serving"))
 	})
 
 	Specify("Original BeamArgs are copied", func() {
@@ -134,7 +134,7 @@ var _ = Describe("PipelineConfig", func() {
 
 		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
 
-		Expect(compilerConfig.Spec.BeamArgs["a"]).To(Equal("b"))
+		Expect(compilerConfig.BeamArgs["a"]).To(Equal("b"))
 	})
 
 	Specify("BeamArgs are overridden with temp_location", func() {
@@ -156,7 +156,7 @@ var _ = Describe("PipelineConfig", func() {
 
 		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
 
-		Expect(compilerConfig.Spec.BeamArgs["temp_location"]).To(Equal("gs://bucket/pipelineName/tmp"))
+		Expect(compilerConfig.BeamArgs["temp_location"]).To(Equal("gs://bucket/pipelineName/tmp"))
 	})
 
 	// TODO "BeamArgs default to configuration values"
@@ -170,24 +170,22 @@ var _ = Describe("PipelineConfig", func() {
 
 		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
 
-		Expect(compilerConfig.Spec.BeamArgs["project"]).To(Equal("dataflowProject"))
+		Expect(compilerConfig.BeamArgs["project"]).To(Equal("dataflowProject"))
 	})
 
 	It("Creates a valid YAML", func() {
 		config := CompilerConfig{
-			Spec: pipelinesv1.PipelineSpec{
-				Image:         "specImage",
-				TfxComponents: "specTfxComponents",
-				Env: map[string]string{
-					"ea": "eb",
-				},
-				BeamArgs: map[string]string{
-					"ba": "bb",
-				},
+			RootLocation:    "pipelineRootLocation",
+			ServingLocation: "pipelineServingLocation",
+			Name:            "pipelineName",
+			Image:           "pipelineImage",
+			TfxComponents:   "pipelineTfxComponents",
+			Env: map[string]string{
+				"ea": "eb",
 			},
-			Name:         "pipelineName",
-			ServingDir:   "servingDir",
-			PipelineRoot: "pipelineRoot",
+			BeamArgs: map[string]string{
+				"ba": "bb",
+			},
 		}
 
 		configYaml, err := config.AsYaml()
@@ -196,15 +194,14 @@ var _ = Describe("PipelineConfig", func() {
 		m := make(map[interface{}]interface{})
 		yaml.Unmarshal([]byte(configYaml), m)
 
+		Expect(m["rootLocation"]).To(Equal("pipelineRootLocation"))
+		Expect(m["servingLocation"]).To(Equal("pipelineServingLocation"))
 		Expect(m["name"]).To(Equal("pipelineName"))
-		Expect(m["pipelineRoot"]).To(Equal("pipelineRoot"))
-		Expect(m["servingDir"]).To(Equal("servingDir"))
-		spec := m["spec"].(map[interface{}]interface{})
-		Expect(spec["image"]).To(Equal("specImage"))
-		Expect(spec["tfxComponents"]).To(Equal("specTfxComponents"))
-		env := spec["env"].(map[interface{}]interface{})
+		Expect(m["image"]).To(Equal("pipelineImage"))
+		Expect(m["tfxComponents"]).To(Equal("pipelineTfxComponents"))
+		env := m["env"].(map[interface{}]interface{})
 		Expect(env["ea"]).To(Equal("eb"))
-		beamArgs := spec["beamArgs"].(map[interface{}]interface{})
+		beamArgs := m["beamArgs"].(map[interface{}]interface{})
 		Expect(beamArgs["ba"]).To(Equal("bb"))
 	})
 })

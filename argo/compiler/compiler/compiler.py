@@ -73,15 +73,14 @@ def compile(pipeline_config, output_file):
     config = yaml.safe_load(pipeline_config)
 
     click.secho(f'Compiling with config: {config}', fg='green')
-    spec = config['spec']
     
-    components = load_fn(spec['tfxComponents'], spec.get('env', {}))()
-    expanded_components = expand_components_with_pusher(components, config['servingDir'])
+    components = load_fn(config['tfxComponents'], config.get('env', {}))()
+    expanded_components = expand_components_with_pusher(components, config['servingLocation'])
 
     metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
 
     runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
-        kubeflow_metadata_config=metadata_config, tfx_image=spec['image']
+        kubeflow_metadata_config=metadata_config, tfx_image=config['image']
     )
 
     kubeflow_dag_runner.KubeflowDagRunner(
@@ -89,11 +88,11 @@ def compile(pipeline_config, output_file):
     ).run(
         pipeline.Pipeline(
             pipeline_name=config['name'],
-            pipeline_root=config['pipelineRoot'],
+            pipeline_root=config['rootLocation'],
             components=expanded_components,
             enable_cache=False,
             metadata_connection_config=None,
-            beam_pipeline_args=dict_to_cli_args(spec.get('beamArgs', {}))
+            beam_pipeline_args=dict_to_cli_args(config.get('beamArgs', {}))
         )
     )
 
