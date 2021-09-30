@@ -97,7 +97,6 @@ func (w *WorkflowFactory) commonMeta(pipelineMeta metav1.ObjectMeta, operation s
 	}
 }
 
-// TODO pass pipelinesv1.Pipeline directly!
 func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineVersion string) (*argo.Workflow, error) {
 	compilerConfigYaml, error := w.newCompilerConfig(pipelineSpec, pipelineMeta).AsYaml()
 
@@ -184,7 +183,6 @@ func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.Pipe
 	return workflow, nil
 }
 
-// TODO pass pipelinesv1.Pipeline directly!
 func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineId string, pipelineVersion string) (*argo.Workflow, error) {
 	compilerConfigYaml, error := w.newCompilerConfig(pipelineSpec, pipelineMeta).AsYaml()
 

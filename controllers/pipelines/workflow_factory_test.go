@@ -84,19 +84,17 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("Some fields are copied from Pipeline resource", func() {
 		wf := WorkflowFactory{}
-		pipeline := pipelinesv1.Pipeline{
-			ObjectMeta: v1.ObjectMeta{
-				Name: "pipelineName",
-			},
-			Spec: pipelinesv1.PipelineSpec{
-				Image:         "pipelineImage",
-				TfxComponents: "pipelineTfxComponents",
-				Env: map[string]string{
-					"ea": "b",
-				},
+		meta := v1.ObjectMeta{
+			Name: "pipelineName",
+		}
+		spec := pipelinesv1.PipelineSpec{
+			Image:         "pipelineImage",
+			TfxComponents: "pipelineTfxComponents",
+			Env: map[string]string{
+				"ea": "b",
 			},
 		}
-		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
+		compilerConfig := wf.newCompilerConfig(spec, meta)
 
 		Expect(compilerConfig.Name).To(Equal("pipelineName"))
 		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
@@ -110,13 +108,11 @@ var _ = Describe("PipelineConfig", func() {
 				PipelineStorage: "gs://bucket",
 			},
 		}
-		pipeline := pipelinesv1.Pipeline{
-			ObjectMeta: v1.ObjectMeta{
-				Name: "pipelineName",
-			},
+		meta := v1.ObjectMeta{
+			Name: "pipelineName",
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
+		compilerConfig := wf.newCompilerConfig(pipelinesv1.PipelineSpec{}, meta)
 
 		Expect(compilerConfig.RootLocation).To(Equal("gs://bucket/pipelineName"))
 		Expect(compilerConfig.ServingLocation).To(Equal("gs://bucket/pipelineName/serving"))
@@ -124,15 +120,13 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("Original BeamArgs are copied", func() {
 		wf := WorkflowFactory{}
-		pipeline := pipelinesv1.Pipeline{
-			Spec: pipelinesv1.PipelineSpec{
-				BeamArgs: map[string]string{
-					"a": "b",
-				},
+		spec := pipelinesv1.PipelineSpec{
+			BeamArgs: map[string]string{
+				"a": "b",
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
+		compilerConfig := wf.newCompilerConfig(spec, v1.ObjectMeta{})
 
 		Expect(compilerConfig.BeamArgs["a"]).To(Equal("b"))
 	})
@@ -143,18 +137,16 @@ var _ = Describe("PipelineConfig", func() {
 				PipelineStorage: "gs://bucket",
 			},
 		}
-		pipeline := pipelinesv1.Pipeline{
-			ObjectMeta: v1.ObjectMeta{
-				Name: "pipelineName",
-			},
-			Spec: pipelinesv1.PipelineSpec{
-				BeamArgs: map[string]string{
-					"temp_location": "will be overridden",
-				},
+		meta := v1.ObjectMeta{
+			Name: "pipelineName",
+		}
+		spec := pipelinesv1.PipelineSpec{
+			BeamArgs: map[string]string{
+				"temp_location": "will be overridden",
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
+		compilerConfig := wf.newCompilerConfig(spec, meta)
 
 		Expect(compilerConfig.BeamArgs["temp_location"]).To(Equal("gs://bucket/pipelineName/tmp"))
 	})
@@ -166,9 +158,9 @@ var _ = Describe("PipelineConfig", func() {
 				DataflowProject: "dataflowProject",
 			},
 		}
-		pipeline := pipelinesv1.Pipeline{}
+		spec := pipelinesv1.PipelineSpec{}
 
-		compilerConfig := wf.newCompilerConfig(pipeline.Spec, pipeline.ObjectMeta)
+		compilerConfig := wf.newCompilerConfig(spec, v1.ObjectMeta{})
 
 		Expect(compilerConfig.BeamArgs["project"]).To(Equal("dataflowProject"))
 	})
