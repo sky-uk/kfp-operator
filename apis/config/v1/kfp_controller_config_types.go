@@ -6,12 +6,16 @@ import (
 )
 
 type Configuration struct {
-	PipelineStorage string            `json:"pipelineStorage,omitempty"`
-	ImagePullPolicy string            `json:"imagePullPolicy,omitempty"`
-	ServiceAccount  string            `json:"serviceAccount,omitempty"`
-	KfpEndpoint     string            `json:"kfpEndpoint,omitempty"`
-	CompilerImage   string            `json:"compilerImage,omitempty"`
-	KfpToolsImage   string            `json:"kfpToolsImage,omitempty"`
+	PipelineStorage string `json:"pipelineStorage,omitempty"`
+	KfpEndpoint     string `json:"kfpEndpoint,omitempty"`
+	ServiceAccount  string `json:"serviceAccount,omitempty"`
+
+	// Argo
+	CompilerImage   string `json:"compilerImage,omitempty"`
+	KfpToolsImage   string `json:"kfpToolsImage,omitempty"`
+	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
+
+	// Beam
 	DefaultBeamArgs map[string]string `json:"defaultBeamArgs,omitempty"`
 }
 

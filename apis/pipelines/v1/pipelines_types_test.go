@@ -39,12 +39,13 @@ var _ = Describe("ComputeVersion", func() {
 		}
 		version2 := pipelineSpec.ComputeVersion()
 
+		Expect(version1).NotTo(Equal(version2))
+
 		pipelineSpec.Env = map[string]string{
 			"b": "notempty",
 		}
 		version3 := pipelineSpec.ComputeVersion()
 
-		Expect(version1).NotTo(Equal(version2))
 		Expect(version2).NotTo(Equal(version3))
 	})
 
