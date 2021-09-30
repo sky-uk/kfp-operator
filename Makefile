@@ -106,12 +106,43 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
+##@ Helm
+
+helm-package: helm-test
+	$(HELM) package config/helm/kfp-operator --version $(VERSION) --app-version $(VERSION)
+
+helm-test: manifests helm kustomize yq dyff
+	$(eval TMP := $(shell mktemp -d))
+
+	# Create yaml files with helm and kustomize.
+	# Because both tools create multi-document files, we have to convert them into '{kind}-{name}'-indexed objects help the diff tools
+	$(HELM) template config/helm/kfp-operator -f config/helm/kfp-operator/test/values.yaml > $(TMP)/helm
+	$(YQ) e '{([.metadata.name, .kind] | join("-")): .}' $(TMP)/helm > $(TMP)/helm_indexed
+	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
+	$(YQ) e '{([.metadata.name, .kind] | join("-")): .}' $(TMP)/kustomize > $(TMP)/kustomize_indexed
+	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
+	rm -rf $(TMP)
+
+##@ Tools
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+
+DYFF = $(PROJECT_DIR)/bin/dyff
+dyff: ## Download yaml-diff locally if necessary.
+	$(call go-get-tool,$(DYFF),github.com/homeport/dyff/cmd/dyff@v1.4.5)
+
+YQ = $(PROJECT_DIR)/bin/yq
+yq: ## Download yaml-diff locally if necessary.
+	$(call go-get-tool,$(YQ),github.com/mikefarah/yq/v4@v4.13.2)
+
+HELM := $(PROJECT_DIR)/bin/helm
+helm:
+	$(call go-get-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.7.0)
 
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
 
-KUSTOMIZE = $(shell pwd)/bin/kustomize
+KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 
@@ -141,7 +172,7 @@ docker-push-argo:
 
 ##@ CI
 
-prBuild: test docker-build docker-build-argo # decoupled-test
+prBuild: test helm-test docker-build docker-build-argo # decoupled-test
 
 
 cdBuild: prBuild docker-push docker-push-argo

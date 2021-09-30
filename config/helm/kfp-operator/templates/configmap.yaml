@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kfp-operator.name" . }}-manager-config
+  namespace: {{ include "kfp-operator.namespace" . }}
+data:
+  controller_manager_config.yaml: |
+    apiVersion: config.kubeflow.org/v1
+    kind: KfpControllerConfig
+    controller:
+      health:
+        healthProbeBindAddress: :8081
+      metrics:
+        bindAddress: :8080
+      webhook:
+        port: 9443
+      leaderElection:
+        leaderElect: false
+        resourceName: kfp-operator-lock
+    spec:
+      imagePullPolicy: {{ .Values.argo.imagePullPolicy }}
+      compilerImage: {{ .Values.argo.compilerImage }}
+      kfpToolsImage: {{ .Values.argo.kfpToolsImage }}
+      kfpEndpoint: {{ .Values.argo.kfpEndpoint }}
+      serviceAccount: {{ .Values.argo.serviceAccount }}
+      dataflowProject: {{ .Values.argo.dataflowProject }}
+      pipelineStorage: {{ .Values.argo.pipelineStorage }}

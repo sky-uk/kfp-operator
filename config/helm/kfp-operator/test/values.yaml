@@ -1,0 +1,10 @@
+fullnameOverride: kfp-operator
+image: controller:latest
+argo:
+  imagePullPolicy: Always
+  compilerImage: ${CONTAINER_REGISTRY}/compiler
+  kfpToolsImage: ${CONTAINER_REGISTRY}/kfp-tools
+  kfpEndpoint: ${KFP_ENDPOINT}
+  serviceAccount: ${OPERATOR_SA}
+  dataflowProject: ${DATAFLOW_PROJECT}
+  pipelineStorage: ${PIPELINE_STORAGE}
