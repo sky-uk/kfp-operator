@@ -6,13 +6,13 @@ import (
 )
 
 type Configuration struct {
-	PipelineStorage string `json:"pipelineStorage,omitempty"`
-	DataflowProject string `json:"dataflowProject,omitempty"`
-	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
-	ServiceAccount  string `json:"serviceAccount,omitempty"`
-	KfpEndpoint     string `json:"kfpEndpoint,omitempty"`
-	CompilerImage   string `json:"compilerImage,omitempty"`
-	KfpToolsImage   string `json:"kfpToolsImage,omitempty"`
+	PipelineStorage string            `json:"pipelineStorage,omitempty"`
+	ImagePullPolicy string            `json:"imagePullPolicy,omitempty"`
+	ServiceAccount  string            `json:"serviceAccount,omitempty"`
+	KfpEndpoint     string            `json:"kfpEndpoint,omitempty"`
+	CompilerImage   string            `json:"compilerImage,omitempty"`
+	KfpToolsImage   string            `json:"kfpToolsImage,omitempty"`
+	DefaultBeamArgs map[string]string `json:"defaultBeamArgs,omitempty"`
 }
 
 //+kubebuilder:object:root=true

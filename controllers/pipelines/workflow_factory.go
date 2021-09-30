@@ -69,7 +69,9 @@ func (wf *WorkflowFactory) newCompilerConfig(pipelineSpec pipelinesv1.PipelineSp
 	pipelineRoot := wf.Config.PipelineStorage + "/" + pipelineMeta.Name
 
 	beamArgs := make(map[string]string)
-	beamArgs["project"] = wf.Config.DataflowProject
+	for key, value := range wf.Config.DefaultBeamArgs {
+		beamArgs[key] = value
+	}
 	for key, value := range pipelineSpec.BeamArgs {
 		beamArgs[key] = value
 	}

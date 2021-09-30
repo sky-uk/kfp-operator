@@ -27,10 +27,12 @@ var _ = Describe("Workflows", func() {
 
 	var wf = WorkflowFactory{
 		Config: configv1.Configuration{
-			DataflowProject: "project",
 			PipelineStorage: "gs://some-bucket",
 			CompilerImage:   "image:v1",
 			KfpToolsImage:   "image:v1",
+			DefaultBeamArgs: map[string]string{
+				"project": "project",
+			},
 		},
 	}
 
@@ -151,18 +153,25 @@ var _ = Describe("PipelineConfig", func() {
 		Expect(compilerConfig.BeamArgs["temp_location"]).To(Equal("gs://bucket/pipelineName/tmp"))
 	})
 
-	// TODO "BeamArgs default to configuration values"
-	Specify("Project in the Spec defaults to configuration value", func() {
+	Specify("BeamArgs default to configuration values", func() {
 		wf := WorkflowFactory{
 			Config: configv1.Configuration{
-				DataflowProject: "dataflowProject",
+				DefaultBeamArgs: map[string]string{
+					"ba": "default",
+					"bc": "default",
+				},
 			},
 		}
-		spec := pipelinesv1.PipelineSpec{}
+		spec := pipelinesv1.PipelineSpec{
+			BeamArgs: map[string]string{
+				"bc": "bd",
+			},
+		}
 
 		compilerConfig := wf.newCompilerConfig(spec, v1.ObjectMeta{})
 
-		Expect(compilerConfig.BeamArgs["project"]).To(Equal("dataflowProject"))
+		Expect(compilerConfig.BeamArgs["ba"]).To(Equal("default"))
+		Expect(compilerConfig.BeamArgs["bc"]).To(Equal("bd"))
 	})
 
 	It("Creates a valid YAML", func() {

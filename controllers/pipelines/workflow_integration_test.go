@@ -118,7 +118,9 @@ var _ = Describe("Workflows", func() {
 				CompilerImage:   "kfp-operator-argo-compiler",
 				ImagePullPolicy: "Never", // Needed for minikube to use local images
 				PipelineStorage: "gs://some-bucket",
-				DataflowProject: "project",
+				DefaultBeamArgs: map[string]string{
+					"project": "project",
+				},
 			},
 		}
 	})
