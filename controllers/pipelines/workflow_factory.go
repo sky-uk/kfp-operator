@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"fmt"
-
 	"gopkg.in/yaml.v2"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -41,38 +40,45 @@ type WorkflowFactory struct {
 	Config configv1.Configuration
 }
 
-func (wf *WorkflowFactory) pipelineConfigAsYaml(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) (string, error) {
-	type CompilerConfig struct {
-		Spec         pipelinesv1.PipelineSpec
-		Name         string
-		ServingDir   string            `yaml:"servingDir"`
-		PipelineRoot string            `yaml:"pipelineRoot"`
-		BeamArgs     map[string]string `yaml:"beamArgs"`
-	}
+type CompilerConfig struct {
+	Spec         pipelinesv1.PipelineSpec // TODO don't use this spec directly!
+	Name         string
+	ServingDir   string `yaml:"servingDir"`
+	PipelineRoot string `yaml:"pipelineRoot"`
+}
 
-	// TODO: Join paths properly
-	pipelineRoot := wf.Config.PipelineStorage + "/" + pipelineMeta.Name
-	servingDir := pipelineRoot + "/serving"
-	dataflowTmpDir := pipelineRoot + "/tmp"
-
-	config := &CompilerConfig{
-		Spec:         pipelineSpec,
-		Name:         pipelineMeta.Name,
-		PipelineRoot: pipelineRoot,
-		ServingDir:   servingDir,
-		BeamArgs: map[string]string{
-			"project":       wf.Config.DataflowProject,
-			"temp_location": dataflowTmpDir,
-		},
-	}
-
-	specAsYaml, err := yaml.Marshal(&config)
+func (config CompilerConfig) AsYaml() (string, error) {
+	configYaml, err := yaml.Marshal(&config)
 
 	if err != nil {
 		return "", err
 	}
 
-	return string(specAsYaml), nil
+	return string(configYaml), nil
+}
+
+func (wf *WorkflowFactory) newCompilerConfig(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) *CompilerConfig {
+	// TODO: should come from config
+	servingPath := "/serving"
+	tempPath := "/tmp"
+
+	// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
+	pipelineRoot := wf.Config.PipelineStorage + "/" + pipelineMeta.Name
+
+	modifiedSpec := pipelineSpec.DeepCopy()
+	modifiedSpec.BeamArgs = make(map[string]string)
+	modifiedSpec.BeamArgs["project"] = wf.Config.DataflowProject
+	for key, value := range pipelineSpec.BeamArgs {
+		modifiedSpec.BeamArgs[key] = value
+	}
+	modifiedSpec.BeamArgs["temp_location"] = pipelineRoot + tempPath
+
+	return &CompilerConfig{
+		Spec:         *modifiedSpec,
+		Name:         pipelineMeta.Name,
+		PipelineRoot: pipelineRoot,
+		ServingDir:   pipelineRoot + servingPath,
+	}
 }
 
 func (w *WorkflowFactory) commonMeta(pipelineMeta metav1.ObjectMeta, operation string) *metav1.ObjectMeta {
@@ -86,8 +92,9 @@ func (w *WorkflowFactory) commonMeta(pipelineMeta metav1.ObjectMeta, operation s
 	}
 }
 
+// TODO pass pipelinesv1.Pipeline directly!
 func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineVersion string) (*argo.Workflow, error) {
-	yamlConfig, error := w.pipelineConfigAsYaml(pipelineSpec, pipelineMeta)
+	compilerConfigYaml, error := w.newCompilerConfig(pipelineSpec, pipelineMeta).AsYaml()
 
 	if error != nil {
 		return nil, error
@@ -162,7 +169,7 @@ func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.Pipe
 						},
 					},
 				},
-				w.compiler(yamlConfig, pipelineSpec.Image),
+				w.compiler(compilerConfigYaml, pipelineSpec.Image),
 				w.uploader(pipelineMeta.Name),
 				w.updater(pipelineVersion),
 			},
@@ -172,8 +179,9 @@ func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.Pipe
 	return workflow, nil
 }
 
+// TODO pass pipelinesv1.Pipeline directly!
 func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineId string, pipelineVersion string) (*argo.Workflow, error) {
-	yamlConfig, error := w.pipelineConfigAsYaml(pipelineSpec, pipelineMeta)
+	compilerConfigYaml, error := w.newCompilerConfig(pipelineSpec, pipelineMeta).AsYaml()
 
 	if error != nil {
 		return nil, error
@@ -222,7 +230,7 @@ func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.Pipeli
 						},
 					},
 				},
-				w.compiler(yamlConfig, pipelineSpec.Image),
+				w.compiler(compilerConfigYaml, pipelineSpec.Image),
 				w.updater(pipelineVersion),
 			},
 		},
@@ -270,7 +278,7 @@ func (w WorkflowFactory) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMet
 	return workflow
 }
 
-func (workflows *WorkflowFactory) compiler(pipelineSpec string, pipelineImage string) argo.Template {
+func (workflows *WorkflowFactory) compiler(compilerConfigYaml string, pipelineImage string) argo.Template {
 	compilerVolumeName := "compiler"
 	compilerVolumePath := "/compiler"
 
@@ -279,7 +287,7 @@ func (workflows *WorkflowFactory) compiler(pipelineSpec string, pipelineImage st
 		"--output_file",
 		WorkflowFactoryConstants.pipelineYamlFilePath,
 		"--pipeline_config",
-		pipelineSpec,
+		compilerConfigYaml,
 	}
 
 	return argo.Template{

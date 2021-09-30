@@ -93,7 +93,7 @@ def compile(pipeline_config, output_file):
             components=expanded_components,
             enable_cache=False,
             metadata_connection_config=None,
-            beam_pipeline_args=dict_to_cli_args(config.get('beamArgs', {}))
+            beam_pipeline_args=dict_to_cli_args(spec.get('beamArgs', {}))
         )
     )
 
