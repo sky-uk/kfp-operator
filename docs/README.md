@@ -20,7 +20,7 @@ An example can be found in the [local run configuration](../config/manager/contr
 
 ### Helm Chart
 
-The operator can be installed using helm by providing a valid `values.yaml` file ([example](../config/helm/kfp-operator/test/values.yaml))
+The operator can be installed using helm by providing a valid `values.yaml` file ([example](../helm/kfp-operator/test/values.yaml))
 
 ```
 make helm-install

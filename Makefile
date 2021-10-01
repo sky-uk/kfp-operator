@@ -109,7 +109,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 ##@ Helm
 
 helm-package:
-	$(HELM) package config/helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
+	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
 helm-install: helm-package values.yaml
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
@@ -121,7 +121,7 @@ helm-test: manifests helm kustomize yq dyff
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
-	$(HELM) template config/helm/kfp-operator -f config/helm/kfp-operator/test/values.yaml > $(TMP)/helm
+	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm
 	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
 	# Because both tools create multi-document files, we have to convert them into '{kind}-{name}'-indexed objects to help the diff tools
 	$(INDEXED_YAML) $(TMP)/helm > $(TMP)/helm_indexed
