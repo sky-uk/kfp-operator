@@ -75,7 +75,8 @@ var _ = Describe("ObjectHasher", func() {
 	})
 
 	Specify("Map field hash should be consistent", func() {
-		// simple: sometimes iterators are consistent, most times they are not
+		// Map iterators start from a random point. The chance of
+		// a false positive is {map len}^-{iterations}
 		iterations := 10
 		sameMap := map[string]string{
 			"a": "1",
