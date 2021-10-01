@@ -83,6 +83,12 @@ unit-test: ## Run unit tests
 
 test: manifests generate fmt vet unit-test # decoupled-test
 
+test-argo:
+	# $(MAKE) -C argo/compiler test
+	$(MAKE) -C argo/kfp-sdk test
+
+test-all: test helm-test
+
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
@@ -107,6 +113,7 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 ##@ Tools
+
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 
 DYFF = $(PROJECT_DIR)/bin/dyff
@@ -118,7 +125,8 @@ yq: ## Download yq locally if necessary.
 	$(call go-get-tool,$(YQ),github.com/mikefarah/yq/v4@v4.13.2)
 
 HELM := $(PROJECT_DIR)/bin/helm
-helm: ## Download helm locally if necessary.
+# Can't be named helm because it's already a directory
+helm-cmd: ## Download helm locally if necessary.
 	$(call go-get-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.7.0)
 
 CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
@@ -143,9 +151,9 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-##@ Helm
+##@ Package
 
-helm-package:
+helm-package: helm-cmd
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
 helm-install: helm-package values.yaml
@@ -155,7 +163,7 @@ helm-uninstall:
 	$(HELM) uninstall kfp-operator
 
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
-helm-test: manifests helm kustomize yq dyff
+helm-test: manifests helm-cmd kustomize yq dyff
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
@@ -167,19 +175,20 @@ helm-test: manifests helm kustomize yq dyff
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
 	rm -rf $(TMP)
 
-##@ Docker
-
 docker-build-argo:
-	$(MAKE) -C argo/compiler docker-build # test
-	$(MAKE) -C argo/kfp-sdk test docker-build
+	$(MAKE) -C argo/compiler docker-build
+	$(MAKE) -C argo/kfp-sdk docker-build
 
 docker-push-argo:
 	$(MAKE) -C argo/compiler docker-push
 	$(MAKE) -C argo/kfp-sdk docker-push
 
+package-all: helm-package docker-build docker-build-argo
+
+publish-all: docker-push docker-push-argo
+
 ##@ CI
 
-prBuild: test helm-test docker-build docker-build-argo # decoupled-test
+prBuild: test-all package-all
 
-
-cdBuild: prBuild docker-push docker-push-argo
+cdBuild: prBuild publish-all
