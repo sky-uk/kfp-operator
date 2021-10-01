@@ -5,7 +5,6 @@ go 1.16
 require (
 	github.com/argoproj/argo-workflows/v3 v3.1.8
 	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/helm/chart-releaser v1.1.1 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.15.0
 	github.com/thanhpk/randstr v1.0.4

@@ -1,7 +1,12 @@
 # Documentation
 
 ## Installation
-At the moment, installing the operator is a manual process which is described in the [development guide](./development/README.md).
+The operator can be installed using helm by providing a valid `values.yaml` file ([example](../config/helm/kfp-operator/test/values.yaml))
+
+```
+make helm-package
+helm install kfp-operator-{VERSION}.tgz -f values.yaml
+```
 
 ### Configuration
 
