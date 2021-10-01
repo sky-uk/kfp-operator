@@ -83,6 +83,12 @@ unit-test: ## Run unit tests
 
 test: manifests generate fmt vet unit-test # decoupled-test
 
+test-argo:
+	# $(MAKE) -C argo/compiler test
+	$(MAKE) -C argo/kfp-sdk test
+
+test-all: test helm-test
+
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
@@ -106,12 +112,28 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
+##@ Tools
 
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+
+DYFF = $(PROJECT_DIR)/bin/dyff
+dyff: ## Download dyff locally if necessary.
+	$(call go-get-tool,$(DYFF),github.com/homeport/dyff/cmd/dyff@v1.4.5)
+
+YQ = $(PROJECT_DIR)/bin/yq
+yq: ## Download yq locally if necessary.
+	$(call go-get-tool,$(YQ),github.com/mikefarah/yq/v4@v4.13.2)
+
+HELM := $(PROJECT_DIR)/bin/helm
+# Can't be named helm because it's already a directory
+helm-cmd: ## Download helm locally if necessary.
+	$(call go-get-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.7.0)
+
+CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
 
-KUSTOMIZE = $(shell pwd)/bin/kustomize
+KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 
@@ -129,19 +151,44 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-##@ Docker
+##@ Package
+
+helm-package: helm-cmd
+	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
+
+helm-install: helm-package values.yaml
+	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+
+helm-uninstall:
+	$(HELM) uninstall kfp-operator
+
+INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
+helm-test: manifests helm-cmd kustomize yq dyff
+	$(eval TMP := $(shell mktemp -d))
+
+	# Create yaml files with helm and kustomize.
+	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm
+	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
+	# Because both tools create multi-document files, we have to convert them into '{kind}-{name}'-indexed objects to help the diff tools
+	$(INDEXED_YAML) $(TMP)/helm > $(TMP)/helm_indexed
+	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
+	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
+	rm -rf $(TMP)
 
 docker-build-argo:
-	$(MAKE) -C argo/compiler docker-build # test
-	$(MAKE) -C argo/kfp-sdk test docker-build
+	$(MAKE) -C argo/compiler docker-build
+	$(MAKE) -C argo/kfp-sdk docker-build
 
 docker-push-argo:
 	$(MAKE) -C argo/compiler docker-push
 	$(MAKE) -C argo/kfp-sdk docker-push
 
+package-all: helm-package docker-build docker-build-argo
+
+publish-all: docker-push docker-push-argo
+
 ##@ CI
 
-prBuild: test docker-build docker-build-argo # decoupled-test
+prBuild: test-all package-all
 
-
-cdBuild: prBuild docker-push docker-push-argo
+cdBuild: prBuild publish-all

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: kfp-operator
+description: A Helm chart for kfp-operator
+
+type: application
+
+# Set at packaging time
+version: 0.0.0
+
+# Set at packaging time
+appVersion: "latest"

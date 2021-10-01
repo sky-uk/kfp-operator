@@ -1,0 +1,9 @@
+fullnameOverride: kfp-operator
+containerRegistry: ${CONTAINER_REGISTRY}
+configuration:
+  imagePullPolicy: Always
+  kfpEndpoint: ${KFP_ENDPOINT}
+  serviceAccount: ${OPERATOR_SA}
+  pipelineStorage: ${PIPELINE_STORAGE}
+  defaultBeamArgs:
+    project: ${DATAFLOW_PROJECT}
