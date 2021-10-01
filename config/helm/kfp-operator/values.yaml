@@ -10,9 +10,4 @@ controller:
   namespace: "kfp-operator-system"
   serviceAccount: "kfp-operator-controller-manager"
 
-argo:
-  serviceAccount: ""
-  imagePullPolicy: Always
-  kfpEndpoint: ""
-  dataflowProject: ""
-  pipelineStorage: ""
+configuration: {}

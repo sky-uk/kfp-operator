@@ -109,9 +109,13 @@ undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/confi
 ##@ Helm
 
 helm-package:
-	$(HELM) package config/helm/kfp-operator --version $(VERSION) --app-version $(VERSION)
-	## rename file until packages get released for easier installation
-	mv kfp-operator-$(VERSION).tgz kfp-operator.tgz
+	$(HELM) package config/helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
+
+helm-install: helm-package values.yaml
+	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+
+helm-uninstall:
+	$(HELM) uninstall kfp-operator
 
 helm-test: manifests helm kustomize yq dyff
 	$(eval TMP := $(shell mktemp -d))

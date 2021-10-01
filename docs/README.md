@@ -1,12 +1,6 @@
 # Documentation
 
 ## Installation
-The operator can be installed using helm by providing a valid `values.yaml` file ([reference](../config/helm/kfp-operator/values.yaml))
-
-```
-make helm-package
-helm install -f values.yaml kfp-operator kfp-operator.tgz
-```
 
 ### Configuration
 
@@ -17,15 +11,25 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | `imagePullPolicy` | The [k8s pull policy](https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy) to be applied to all images used by the operator | `IfNotPresent` |
 | `compilerImage` | The KFP Operator compiler image | `docker.io/kfp-operator-argo-compiler:abcdef` |
 | `kfpSdkImage` | The KFP Operator tools image | `docker.io/kfp-operator-argo-kfp-sdk:abcdef` |
-| `kfpEndpoint` | The KFP enfpoint available to the operator | `kubeflow-ui.kubeflow-pipelines:8080` |
+| `kfpEndpoint` | The KFP endpoint available to the operator | `kubeflow-ui.kubeflow-pipelines:8080` |
 | `serviceAccount` | The [k8s Service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) used to run argo workflows | `kfp-operator-sa` |
 | `pipelineStorage` | The storage location used by [TFX](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs | `gcs://kubeflow-pipelines-bucket` |
 | `defaultBeamArgs` | Default Beam arguments on which the pipeline-defined ones will be overlaid | `project: my-gcp-project` |
 
 An example can be found in the [local run configuration](../config/manager/controller_manager_config.yaml).
 
+### Helm Chart
 
-## TFX Pipelines and Componets
+The operator can be installed using helm by providing a valid `values.yaml` file ([example](../config/helm/kfp-operator/test/values.yaml))
+
+```
+make helm-install
+```
+
+When installing with Helm, the above configuration can be set in the `configuration` section of `values.yaml`.
+Note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied.
+
+## TFX Pipelines and Components
 
 Unlike imparative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don't have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.
 

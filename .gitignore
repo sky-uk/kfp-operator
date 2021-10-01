@@ -4,12 +4,6 @@ testbin/
 *.out
 /vendor/
 
-# VS Code
-/.vscode/
-
-# Idea
-.idea/
-
 # Python
 __pycache__/
 .venv/
@@ -17,3 +11,12 @@ __pycache__/
 
 # Tests
 pids
+
+# Dist
+/dist/
+
+# VS Code
+/.vscode/
+
+# Idea
+.idea/
