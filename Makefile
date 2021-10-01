@@ -136,7 +136,7 @@ yq: ## Download yaml-diff locally if necessary.
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
 
 HELM := $(PROJECT_DIR)/bin/helm
-helm:
+helm: ## Download helm locally if necessary.
 	$(call go-get-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.7.0)
 
 CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
