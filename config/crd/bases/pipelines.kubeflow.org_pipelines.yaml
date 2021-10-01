@@ -44,6 +44,10 @@ spec:
             type: object
           spec:
             properties:
+              beamArgs:
+                additionalProperties:
+                  type: string
+                type: object
               env:
                 additionalProperties:
                   type: string

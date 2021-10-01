@@ -1,38 +1,27 @@
 package v1
 
 import (
-	"crypto/sha1"
 	"fmt"
-	"sort"
-
+	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-func ComputeVersion(pipelineSpec PipelineSpec) string {
-	h := sha1.New()
-
-	h.Write([]byte(pipelineSpec.Image))
-	h.Write([]byte(pipelineSpec.TfxComponents))
-
-	keys := make([]string, 0, len(pipelineSpec.Env))
-	for k := range pipelineSpec.Env {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		h.Write([]byte(k))
-		h.Write([]byte(pipelineSpec.Env[k]))
-	}
-	version := h.Sum(nil)
-
-	return fmt.Sprintf("%x", version)
-}
 
 type PipelineSpec struct {
 	Image         string            `json:"image" yaml:"image"`
 	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
 	Env           map[string]string `json:"env,omitempty" yaml:"env"`
+	BeamArgs      map[string]string `json:"beamArgs,omitempty" yaml:"beamArgs"`
+}
+
+func (ps PipelineSpec) ComputeVersion() string {
+	oh := objecthasher.New()
+	oh.WriteStringField(ps.Image)
+	oh.WriteStringField(ps.TfxComponents)
+	oh.WriteMapField(ps.Env)
+	oh.WriteMapField(ps.BeamArgs)
+	specHash := oh.Sum()
+
+	return fmt.Sprintf("%x", specHash)
 }
 
 type SynchronizationState string

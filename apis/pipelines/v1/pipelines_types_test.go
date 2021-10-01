@@ -1,57 +1,69 @@
+//go:build unit
+// +build unit
+
 package v1
 
 import (
-	"testing"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 )
 
-func TestAPIs(t *testing.T) {
-	RegisterFailHandler(Fail)
+var _ = Describe("ComputeVersion", func() {
 
-	RunSpecsWithDefaultAndCustomReporters(t,
-		"Api Suite",
-		[]Reporter{printer.NewlineReporter{}})
-}
+	Specify("Image should change the version", func() {
+		pipelineSpec := PipelineSpec{}
+		version1 := pipelineSpec.ComputeVersion()
 
-var _ = Describe("Pipeline Version", func() {
-	When("Specifying values for fields", func() {
-		It("Should change the version", func() {
-			pipelineSpec := PipelineSpec{}
-			version1 := ComputeVersion(pipelineSpec)
+		pipelineSpec.Image = "notempty"
+		version2 := pipelineSpec.ComputeVersion()
 
-			pipelineSpec.Image = "image"
-			version2 := ComputeVersion(pipelineSpec)
-
-			pipelineSpec.TfxComponents = "components"
-			version3 := ComputeVersion(pipelineSpec)
-
-			pipelineSpec.Env = map[string]string{
-				"aKey": "aValue",
-			}
-			version4 := ComputeVersion(pipelineSpec)
-
-			pipelineSpec.Env["bKey"] = ""
-			version5 := ComputeVersion(pipelineSpec)
-
-			Expect(version1).NotTo(Equal(version2))
-			Expect(version2).NotTo(Equal(version3))
-			Expect(version3).NotTo(Equal(version4))
-			Expect(version4).NotTo(Equal(version5))
-		})
+		Expect(version1).NotTo(Equal(version2))
 	})
 
-	When("Not specifying values for Env", func() {
-		It("Should not change the version", func() {
-			pipelineSpec := PipelineSpec{}
-			version1 := ComputeVersion(pipelineSpec)
+	Specify("TfxComponents should change the version", func() {
+		pipelineSpec := PipelineSpec{}
+		version1 := pipelineSpec.ComputeVersion()
 
-			pipelineSpec.Env = make(map[string]string)
-			version2 := ComputeVersion(pipelineSpec)
+		pipelineSpec.TfxComponents = "notempty"
+		version2 := pipelineSpec.ComputeVersion()
 
-			Expect(version1).To(Equal(version2))
-		})
+		Expect(version1).NotTo(Equal(version2))
+	})
+
+	Specify("All Env keys should change the version", func() {
+		pipelineSpec := PipelineSpec{}
+		version1 := pipelineSpec.ComputeVersion()
+
+		pipelineSpec.Env = map[string]string{
+			"a": "",
+		}
+		version2 := pipelineSpec.ComputeVersion()
+
+		Expect(version1).NotTo(Equal(version2))
+
+		pipelineSpec.Env = map[string]string{
+			"b": "notempty",
+		}
+		version3 := pipelineSpec.ComputeVersion()
+
+		Expect(version2).NotTo(Equal(version3))
+	})
+
+	Specify("All BeamArgs keys should change the version", func() {
+		pipelineSpec := PipelineSpec{}
+		version1 := pipelineSpec.ComputeVersion()
+
+		pipelineSpec.BeamArgs = map[string]string{
+			"a": "",
+		}
+		version2 := pipelineSpec.ComputeVersion()
+
+		pipelineSpec.BeamArgs = map[string]string{
+			"b": "notempty",
+		}
+		version3 := pipelineSpec.ComputeVersion()
+
+		Expect(version1).NotTo(Equal(version2))
+		Expect(version2).NotTo(Equal(version3))
 	})
 })

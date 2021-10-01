@@ -18,9 +18,10 @@ metadata:
 
 | Name | Description |
 | --- | --- |
-| `spec.image` |docker image containing TFX component definitions|
-| `spec.tfxComponents` | fully qualified name of the python function creating pipeline components |
-| `spec.env` | dictionary of compile-time parameters. These will be provided to the `tfxComponents` function as environment variables |
+| `spec.image` | Container image containing TFX component definitions |
+| `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components |
+| `spec.env` | Dictionary of compile-time parameters. These will be provided to the `tfxComponents` function as environment variables |
+| `spec.beamArgs` | Dictionary of Beam arguments. These will be provided as `beam_pipeline_args` when compiling the pipeline |
 
 ### Versioning
 

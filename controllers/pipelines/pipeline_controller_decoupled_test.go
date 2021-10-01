@@ -1,3 +1,4 @@
+//go:build decoupled
 // +build decoupled
 
 package pipelines

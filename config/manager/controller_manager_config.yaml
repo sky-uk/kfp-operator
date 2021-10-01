@@ -16,5 +16,6 @@ spec:
   kfpToolsImage: ${CONTAINER_REGISTRY}/kfp-tools
   kfpEndpoint: ${KFP_ENDPOINT}
   serviceAccount: ${OPERATOR_SA}
-  dataflowProject: ${DATAFLOW_PROJECT}
   pipelineStorage: ${PIPELINE_STORAGE}
+  defaultBeamArgs:
+    project: ${DATAFLOW_PROJECT}

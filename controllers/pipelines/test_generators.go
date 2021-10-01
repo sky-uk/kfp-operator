@@ -43,6 +43,7 @@ func RandomPipeline() *pipelinesv1.Pipeline {
 			Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 			TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
 			Env:           RandomMap(),
+			BeamArgs:      RandomMap(),
 		},
 	}
 }
