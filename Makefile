@@ -115,11 +115,11 @@ helm-test: manifests helm kustomize yq dyff
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
-	# Because both tools create multi-document files, we have to convert them into '{kind}-{name}'-indexed objects help the diff tools
 	$(HELM) template config/helm/kfp-operator -f config/helm/kfp-operator/test/values.yaml > $(TMP)/helm
-	$(YQ) e '{([.metadata.name, .kind] | join("-")): .}' $(TMP)/helm > $(TMP)/helm_indexed
 	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
-	$(YQ) e '{([.metadata.name, .kind] | join("-")): .}' $(TMP)/kustomize > $(TMP)/kustomize_indexed
+	# Because both tools create multi-document files, we have to convert them into '{kind}-{name}'-indexed objects to help the diff tools
+	$(INDEXED_YAML) $(TMP)/helm > $(TMP)/helm_indexed
+	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
 	rm -rf $(TMP)
 
@@ -133,12 +133,13 @@ dyff: ## Download yaml-diff locally if necessary.
 YQ = $(PROJECT_DIR)/bin/yq
 yq: ## Download yaml-diff locally if necessary.
 	$(call go-get-tool,$(YQ),github.com/mikefarah/yq/v4@v4.13.2)
+INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
 
 HELM := $(PROJECT_DIR)/bin/helm
 helm:
 	$(call go-get-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.7.0)
 
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
+CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
 

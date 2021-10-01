@@ -1,5 +1,4 @@
 fullnameOverride: kfp-operator
-image: controller:latest
 containerRegistry: ${CONTAINER_REGISTRY}
 argo:
   imagePullPolicy: Always
