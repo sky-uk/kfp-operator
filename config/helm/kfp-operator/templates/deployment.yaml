@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-controller-manager
-  namespace: {{ include "kfp-operator.namespace" . }}
+  namespace: {{ .Values.controller.namespace }}
   labels:
     {{- include "kfp-operator.labels" . | nindent 4 }}
 spec:
@@ -63,5 +63,5 @@ spec:
         - configMap:
             name: kfp-operator-manager-config
           name: manager-config
-      serviceAccountName: {{ include "kfp-operator.serviceAccountName" . }}
+      serviceAccountName: {{ .Values.controller.serviceAccount }}
       terminationGracePeriodSeconds: 10

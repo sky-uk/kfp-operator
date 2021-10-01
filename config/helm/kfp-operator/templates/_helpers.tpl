@@ -31,23 +31,8 @@ Create chart name and version as used by the chart label.
 {{- end }}
 
 {{/*
-Set namespace.
-*/}}
-{{- define "kfp-operator.namespace" -}}
-{{- default (printf "%s-system" (include "kfp-operator.fullname" .)) .Values.namespace }}
-{{- end }}
-
-{{/*
 Common labels
 */}}
 {{- define "kfp-operator.labels" -}}
 control-plane: controller-manager
-{{- end }}
-
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "kfp-operator.serviceAccountName" -}}
-{{- default (printf "%s-controller-manager" (include "kfp-operator.fullname" .)) .Values.serviceAccountName }}
 {{- end }}

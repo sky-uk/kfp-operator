@@ -3,16 +3,16 @@
 # Declare variables to be passed into your templates.
 
 containerRegistry: ""
-
 nameOverride: ""
 fullnameOverride: ""
 
-serviceAccountName: ""
-namespace: ""
+controller:
+  namespace: "kfp-operator-system"
+  serviceAccount: "kfp-operator-controller-manager"
 
 argo:
+  serviceAccount: ""
   imagePullPolicy: Always
   kfpEndpoint: ""
-  serviceAccount: ""
   dataflowProject: ""
   pipelineStorage: ""

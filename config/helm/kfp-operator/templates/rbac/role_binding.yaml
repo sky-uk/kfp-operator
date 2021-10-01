@@ -8,5 +8,5 @@ roleRef:
   name: {{ include "kfp-operator.fullname" . }}-manager-role
 subjects:
 - kind: ServiceAccount
-  name: {{ include "kfp-operator.serviceAccountName" . }}
-  namespace: {{ include "kfp-operator.namespace" . }}
+  name: {{ .Values.controller.serviceAccount }}
+  namespace: {{ .Values.controller.namespace }}
