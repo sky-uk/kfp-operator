@@ -7,28 +7,40 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-manager-role
 rules:
 - apiGroups:
-  - pipelines.kubeflow.org
+    - argoproj.io
   resources:
-  - pipelines
+    - workflows
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
 - apiGroups:
-  - pipelines.kubeflow.org
+    - pipelines.kubeflow.org
   resources:
-  - pipelines/finalizers
+    - pipelines
   verbs:
-  - update
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
 - apiGroups:
-  - pipelines.kubeflow.org
+    - pipelines.kubeflow.org
   resources:
-  - pipelines/status
+    - pipelines/finalizers
   verbs:
-  - get
-  - patch
-  - update
+    - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - pipelines/status
+  verbs:
+    - get
+    - patch
+    - update

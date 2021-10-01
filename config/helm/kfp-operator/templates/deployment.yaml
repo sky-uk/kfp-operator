@@ -23,7 +23,7 @@ spec:
             - /manager
           args:
             - --config=controller_manager_config.yaml
-          image: {{ .Values.containerRegistry }}/controller:{{ .Chart.AppVersion }}
+          image: {{ .Values.containerRegistry }}/kfp-operator-controller:{{ .Chart.AppVersion }}
           securityContext:
             allowPrivilegeEscalation: false
           livenessProbe:
