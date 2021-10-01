@@ -106,40 +106,16 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
-##@ Helm
-
-helm-package:
-	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
-
-helm-install: helm-package values.yaml
-	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
-
-helm-uninstall:
-	$(HELM) uninstall kfp-operator
-
-helm-test: manifests helm kustomize yq dyff
-	$(eval TMP := $(shell mktemp -d))
-
-	# Create yaml files with helm and kustomize.
-	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm
-	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
-	# Because both tools create multi-document files, we have to convert them into '{kind}-{name}'-indexed objects to help the diff tools
-	$(INDEXED_YAML) $(TMP)/helm > $(TMP)/helm_indexed
-	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
-	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
-	rm -rf $(TMP)
-
 ##@ Tools
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 
 DYFF = $(PROJECT_DIR)/bin/dyff
-dyff: ## Download yaml-diff locally if necessary.
+dyff: ## Download dyff locally if necessary.
 	$(call go-get-tool,$(DYFF),github.com/homeport/dyff/cmd/dyff@v1.4.5)
 
 YQ = $(PROJECT_DIR)/bin/yq
-yq: ## Download yaml-diff locally if necessary.
+yq: ## Download yq locally if necessary.
 	$(call go-get-tool,$(YQ),github.com/mikefarah/yq/v4@v4.13.2)
-INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
 
 HELM := $(PROJECT_DIR)/bin/helm
 helm: ## Download helm locally if necessary.
@@ -166,6 +142,30 @@ GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
 rm -rf $$TMP_DIR ;\
 }
 endef
+
+##@ Helm
+
+helm-package:
+	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
+
+helm-install: helm-package values.yaml
+	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+
+helm-uninstall:
+	$(HELM) uninstall kfp-operator
+
+INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
+helm-test: manifests helm kustomize yq dyff
+	$(eval TMP := $(shell mktemp -d))
+
+	# Create yaml files with helm and kustomize.
+	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm
+	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
+	# Because both tools create multi-document files, we have to convert them into '{kind}-{name}'-indexed objects to help the diff tools
+	$(INDEXED_YAML) $(TMP)/helm > $(TMP)/helm_indexed
+	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
+	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
+	rm -rf $(TMP)
 
 ##@ Docker
 
