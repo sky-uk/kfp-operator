@@ -19,8 +19,8 @@ data:
         resourceName: kfp-operator-lock
     spec:
       imagePullPolicy: {{ .Values.argo.imagePullPolicy }}
-      compilerImage: {{ .Values.argo.compilerImage }}
-      kfpToolsImage: {{ .Values.argo.kfpToolsImage }}
+      compilerImage: {{ .Values.containerRegistry }}/compiler:{{ .Chart.AppVersion }}
+      kfpToolsImage: {{ .Values.containerRegistry }}/kfp-tools:{{ .Chart.AppVersion }}
       kfpEndpoint: {{ .Values.argo.kfpEndpoint }}
       serviceAccount: {{ .Values.argo.serviceAccount }}
       dataflowProject: {{ .Values.argo.dataflowProject }}

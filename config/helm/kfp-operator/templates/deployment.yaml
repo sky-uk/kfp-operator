@@ -23,7 +23,7 @@ spec:
             - /manager
           args:
             - --config=controller_manager_config.yaml
-          image: {{ .Values.image }}
+          image: {{ .Values.containerRegistry }}/controller:{{ .Chart.AppVersion }}
           securityContext:
             allowPrivilegeEscalation: false
           livenessProbe:

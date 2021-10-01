@@ -12,8 +12,8 @@ controller:
     resourceName: kfp-operator-lock
 spec:
   imagePullPolicy: Always
-  compilerImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-compiler
-  kfpSdkImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-sdk
+  compilerImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-compiler:latest
+  kfpSdkImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-sdk:latest
   kfpEndpoint: ${KFP_ENDPOINT}
   serviceAccount: ${OPERATOR_SA}
   pipelineStorage: ${PIPELINE_STORAGE}
