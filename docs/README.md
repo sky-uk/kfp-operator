@@ -1,11 +1,11 @@
 # Documentation
 
 ## Installation
-The operator can be installed using helm by providing a valid `values.yaml` file ([example](../config/helm/kfp-operator/test/values.yaml))
+The operator can be installed using helm by providing a valid `values.yaml` file ([reference](../config/helm/kfp-operator/values.yaml))
 
 ```
 make helm-package
-helm install kfp-operator-{VERSION}.tgz -f values.yaml
+helm install -f values.yaml kfp-operator kfp-operator.tgz
 ```
 
 ### Configuration

@@ -10,4 +10,9 @@ fullnameOverride: ""
 serviceAccountName: ""
 namespace: ""
 
-argoConfig: {}
+argo:
+  imagePullPolicy: Always
+  kfpEndpoint: ""
+  serviceAccount: ""
+  dataflowProject: ""
+  pipelineStorage: ""
