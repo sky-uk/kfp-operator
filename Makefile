@@ -129,12 +129,19 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-##@ CI
+##@ Docker
 
-prBuild: test docker-build # decoupled-test
+docker-build-argo:
 	$(MAKE) -C argo/compiler docker-build # test
 	$(MAKE) -C argo/kfp-sdk test docker-build
 
-cdBuild: prBuild docker-push
+docker-push-argo:
 	$(MAKE) -C argo/compiler docker-push
 	$(MAKE) -C argo/kfp-sdk docker-push
+
+##@ CI
+
+prBuild: test docker-build docker-build-argo # decoupled-test
+
+
+cdBuild: prBuild docker-push docker-push-argo

@@ -10,8 +10,8 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | Parameter name | Description | Example |
 | --- | --- | --- |
 | `imagePullPolicy` | The [k8s pull policy](https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy) to be applied to all images used by the operator | `IfNotPresent` |
-| `compilerImage` | The KFP Operator compiler image | `docker.io/compiler:abcdef` |
-| `kfpToolsImage` | The KFP Operator tools image | `docker.io/kfp-tools:abcdef` |
+| `compilerImage` | The KFP Operator compiler image | `docker.io/kfp-operator-argo-compiler:abcdef` |
+| `kfpSdkImage` | The KFP Operator tools image | `docker.io/kfp-operator-argo-kfp-sdk:abcdef` |
 | `kfpEndpoint` | The KFP enfpoint available to the operator | `kubeflow-ui.kubeflow-pipelines:8080` |
 | `serviceAccount` | The [k8s Service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) used to run argo workflows | `kfp-operator-sa` |
 | `pipelineStorage` | The storage location used by [TFX](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs | `gcs://kubeflow-pipelines-bucket` |

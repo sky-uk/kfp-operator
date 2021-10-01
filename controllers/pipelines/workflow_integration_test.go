@@ -114,7 +114,7 @@ var _ = Describe("Workflows", func() {
 		workflows = WorkflowFactory{
 			Config: configv1.Configuration{
 				KfpEndpoint:     "http://wiremock:80",
-				KfpToolsImage:   "kfp-operator-argo-kfp-sdk",
+				KfpSdkImage:     "kfp-operator-argo-kfp-sdk",
 				CompilerImage:   "kfp-operator-argo-compiler",
 				ImagePullPolicy: "Never", // Needed for minikube to use local images
 				PipelineStorage: "gs://some-bucket",

@@ -164,7 +164,7 @@ spec:
                 type: string
               kfpEndpoint:
                 type: string
-              kfpToolsImage:
+              kfpSdkImage:
                 type: string
               pipelineStorage:
                 type: string
