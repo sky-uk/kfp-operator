@@ -156,13 +156,15 @@ spec:
             properties:
               compilerImage:
                 type: string
-              dataflowProject:
-                type: string
+              defaultBeamArgs:
+                additionalProperties:
+                  type: string
+                type: object
               imagePullPolicy:
                 type: string
               kfpEndpoint:
                 type: string
-              kfpToolsImage:
+              kfpSdkImage:
                 type: string
               pipelineStorage:
                 type: string
