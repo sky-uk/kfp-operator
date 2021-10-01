@@ -22,16 +22,14 @@ Note: on first execution, the test environment will get downloaded and the comma
 Build all images as follows:
 
 ```sh
-make -C argo/compiler docker-build # test
-make -C argo/kfp-sdk test docker-build
+make docker-build-argo
 ```
 
 Push to the container registry used by the Kubernetes cluster:
 
 ```sh
 export CONTAINER_REGISTRY_HOSTS=host:port # <- replace this
-make -C argo/compiler docker-push
-make -C argo/kfp-sdk docker-push
+make docker-push-argo
 ```
 
 Configure the controller to your environment in [controller_manager_config.yaml](../../config/manager/controller_manager_config.yaml) replacing the placeholders (see [docs](../README.md#configuration)).
