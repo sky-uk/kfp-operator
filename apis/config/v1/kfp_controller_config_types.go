@@ -11,7 +11,7 @@ type Configuration struct {
 	ServiceAccount  string `json:"serviceAccount,omitempty"`
 
 	CompilerImage   string `json:"compilerImage,omitempty"`
-	KfpToolsImage   string `json:"kfpToolsImage,omitempty"`
+	KfpSdkImage     string `json:"kfpSdkImage,omitempty"`
 	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
 
 	DefaultBeamArgs map[string]string `json:"defaultBeamArgs,omitempty"`

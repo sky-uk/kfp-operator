@@ -29,7 +29,7 @@ var _ = Describe("Workflows", func() {
 		Config: configv1.Configuration{
 			PipelineStorage: "gs://some-bucket",
 			CompilerImage:   "image:v1",
-			KfpToolsImage:   "image:v1",
+			KfpSdkImage:     "image:v1",
 			DefaultBeamArgs: map[string]string{
 				"project": "project",
 			},

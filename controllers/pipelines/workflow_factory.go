@@ -354,7 +354,7 @@ func (workflows *WorkflowFactory) uploader(pipelineName string) argo.Template {
 		},
 		Script: &argo.ScriptTemplate{
 			Container: apiv1.Container{
-				Image:           workflows.Config.KfpToolsImage,
+				Image:           workflows.Config.KfpSdkImage,
 				ImagePullPolicy: apiv1.PullPolicy(workflows.Config.ImagePullPolicy),
 				Command:         []string{"ash"},
 			},
@@ -380,7 +380,7 @@ func (workflows *WorkflowFactory) deleter() argo.Template {
 		},
 		Script: &argo.ScriptTemplate{
 			Container: apiv1.Container{
-				Image:           workflows.Config.KfpToolsImage,
+				Image:           workflows.Config.KfpSdkImage,
 				ImagePullPolicy: apiv1.PullPolicy(workflows.Config.ImagePullPolicy),
 				Command:         []string{"ash"},
 			},
@@ -412,7 +412,7 @@ func (workflows *WorkflowFactory) updater(version string) argo.Template {
 		},
 		Script: &argo.ScriptTemplate{
 			Container: apiv1.Container{
-				Image:           workflows.Config.KfpToolsImage,
+				Image:           workflows.Config.KfpSdkImage,
 				ImagePullPolicy: apiv1.PullPolicy(workflows.Config.ImagePullPolicy),
 				Command:         []string{"ash"},
 			},
