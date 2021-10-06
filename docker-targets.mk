@@ -1,11 +1,7 @@
-VERSION := $(shell git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*' || echo 0.0.0)
-
-##@ Container
-
 ifdef CONTAINER_REGISTRY_HOSTS
 docker-push: docker-build $(CONTAINER_REGISTRY_HOSTS) ## Push container image
 $(CONTAINER_REGISTRY_HOSTS):
-	docker tag ${IMG} $@/${IMG}:${VERSION}
+	docker tag ${IMG}:${VERSION} $@/${IMG}:${VERSION}
 	docker push $@/${IMG}:${VERSION}
 else
 docker-push:
@@ -13,5 +9,4 @@ docker-push:
 endif
 
 docker-build: build ## Build container image
-	docker build -t ${IMG} .
-
+	docker build -t ${IMG} -t ${IMG}:${VERSION} .

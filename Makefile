@@ -1,4 +1,4 @@
-include docker.mk
+include version.mk
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
@@ -174,6 +174,10 @@ helm-test: manifests helm-cmd kustomize yq dyff
 	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
 	rm -rf $(TMP)
+
+##@ Containers
+
+include docker-targets.mk
 
 docker-build-argo:
 	$(MAKE) -C argo/compiler docker-build
