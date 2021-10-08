@@ -70,43 +70,25 @@ var _ = Describe("ComputeHash", func() {
 
 var _ = Describe("ComputeVersion", func() {
 
-	Specify("Should start with image tag if present", func() {
-		pipelineSpec := PipelineSpec{
+	Specify("Contains the tag if present", func() {
+		Expect(PipelineSpec{
 			Image: "image:42",
-		}
+		}.ComputeVersion()).To(MatchRegexp("^42-[a-z0-9]{6}$"))
 
-		version := pipelineSpec.ComputeVersion()
-
-		Expect(version).To(MatchRegexp("^42-[a-z0-9]{6}$"))
-	})
-
-	Specify("Should strip the image tag when domain and path present", func() {
-		pipelineSpec := PipelineSpec{
+		Expect(PipelineSpec{
 			Image: "docker.io/baz/bar/image:baz",
-		}
-
-		version := pipelineSpec.ComputeVersion()
-
-		Expect(version).To(MatchRegexp("^baz-[a-z0-9]{6}$"))
+		}.ComputeVersion()).To(MatchRegexp("^baz-[a-z0-9]{6}$"))
 	})
 
 	Specify("Untagged images should have the spec hash only", func() {
-		pipelineSpec := PipelineSpec{
+		Expect(PipelineSpec{
 			Image: "image",
-		}
-
-		version := pipelineSpec.ComputeVersion()
-
-		Expect(version).To(MatchRegexp("^[a-z0-9]{6}$"))
+		}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
 	})
 
 	Specify("Malformed image names should have the spec hash only", func() {
-		pipelineSpec := PipelineSpec{
+		Expect(PipelineSpec{
 			Image: ":",
-		}
-
-		version := pipelineSpec.ComputeVersion()
-
-		Expect(version).To(MatchRegexp("^[a-z0-9]{6}$"))
+		}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
 	})
 })
