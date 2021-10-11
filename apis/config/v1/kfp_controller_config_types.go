@@ -15,6 +15,8 @@ type Configuration struct {
 	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
 
 	DefaultBeamArgs map[string]string `json:"defaultBeamArgs,omitempty"`
+
+	DefaultExperiment string `json:"defaultExperiment,omitempty"`
 }
 
 //+kubebuilder:object:root=true
