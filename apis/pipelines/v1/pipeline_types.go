@@ -2,6 +2,7 @@ package v1
 
 import (
 	"fmt"
+	. "github.com/docker/distribution/reference"
 	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -13,15 +14,25 @@ type PipelineSpec struct {
 	BeamArgs      map[string]string `json:"beamArgs,omitempty" yaml:"beamArgs"`
 }
 
-func (ps PipelineSpec) ComputeVersion() string {
+func (ps PipelineSpec) ComputeHash() []byte {
 	oh := objecthasher.New()
 	oh.WriteStringField(ps.Image)
 	oh.WriteStringField(ps.TfxComponents)
 	oh.WriteMapField(ps.Env)
 	oh.WriteMapField(ps.BeamArgs)
-	specHash := oh.Sum()
+	return oh.Sum()
+}
 
-	return fmt.Sprintf("%x", specHash)
+func (ps PipelineSpec) ComputeVersion() string {
+	hash := ps.ComputeHash()[0:3]
+	ref, err := ParseNormalizedNamed(ps.Image)
+
+	if err == nil {
+		if namedTagged, ok := TagNameOnly(ref).(NamedTagged); ok {
+			return fmt.Sprintf("%s-%x", namedTagged.Tag(), hash)
+		}
+	}
+	return fmt.Sprintf("%x", hash)
 }
 
 type SynchronizationState string
