@@ -31,10 +31,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	pipeline_controller "github.com/sky-uk/kfp-operator/controllers/pipelines"
-
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
+
 	//+kubebuilder:scaffold:imports
 
 	"github.com/sky-uk/kfp-operator/external"
@@ -91,20 +91,20 @@ func main() {
 
 	var client = mgr.GetClient()
 
-	var workflowFactory = pipeline_controller.WorkflowFactory{
+	var workflowFactory = pipelinescontrollers.WorkflowFactory{
 		Config: ctrlConfig.Workflows,
 	}
 
-	var workflowRepository = pipeline_controller.WorkflowRepositoryImpl{
+	var workflowRepository = pipelinescontrollers.WorkflowRepositoryImpl{
 		Client: client,
 	}
 
-	var stateHandler = pipeline_controller.StateHandler{
+	var stateHandler = pipelinescontrollers.StateHandler{
 		WorkflowFactory:    workflowFactory,
 		WorkflowRepository: workflowRepository,
 	}
 
-	var reconciler = pipeline_controller.PipelineReconciler{
+	var reconciler = pipelinescontrollers.PipelineReconciler{
 		Client:       client,
 		Scheme:       mgr.GetScheme(),
 		StateHandler: stateHandler,
@@ -112,6 +112,13 @@ func main() {
 
 	if err = (&reconciler).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
+		os.Exit(1)
+	}
+	if err = (&pipelinescontrollers.RunConfigurationReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
