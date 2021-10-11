@@ -47,7 +47,7 @@ func From(status pipelinesv1.SynchronizationState, id string, version string) Te
 	pipeline.Status = pipelinesv1.PipelineStatus{
 		SynchronizationState: status,
 		Version:              version,
-		Id:                   id,
+		KfpId:                id,
 	}
 
 	return TestCase{
@@ -57,7 +57,7 @@ func From(status pipelinesv1.SynchronizationState, id string, version string) Te
 
 func (st TestCase) To(state pipelinesv1.SynchronizationState, id string, version string) TestCase {
 	return st.IssuesCommand(SetPipelineStatus{Status: pipelinesv1.PipelineStatus{
-		Id:                   id,
+		KfpId:                id,
 		Version:              version,
 		SynchronizationState: state,
 	}})
@@ -94,12 +94,12 @@ func (st TestCase) IssuesCreationWorkflow(version string) TestCase {
 }
 
 func (st TestCase) IssuesUpdateWorkflow(version string) TestCase {
-	updateWorkflow, _ := workflowFactory.ConstructUpdateWorkflow(st.Pipeline.Spec, st.Pipeline.ObjectMeta, st.Pipeline.Status.Id, version)
+	updateWorkflow, _ := workflowFactory.ConstructUpdateWorkflow(st.Pipeline.Spec, st.Pipeline.ObjectMeta, st.Pipeline.Status.KfpId, version)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st TestCase) IssuesDeletionWorkflow() TestCase {
-	deletionWorkflow := workflowFactory.ConstructDeletionWorkflow(st.Pipeline.ObjectMeta, st.Pipeline.Status.Id)
+	deletionWorkflow := workflowFactory.ConstructDeletionWorkflow(st.Pipeline.ObjectMeta, st.Pipeline.Status.KfpId)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
@@ -164,7 +164,7 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Succeeded, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creation succeeds with existing Id",
+		Check("Creation succeeds with existing KfpId",
 			From(pipelinesv1.Creating, AnotherPipelineId, V1).
 				WithWorkFlow(
 					setWorkflowOutput(
@@ -174,7 +174,7 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Succeeded, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creation fails with Id",
+		Check("Creation fails with KfpId",
 			From(pipelinesv1.Creating, "", V1).
 				WithWorkFlow(setWorkflowOutput(
 					createWorkflow(CreateOperationLabel, argo.WorkflowFailed),
@@ -201,12 +201,12 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Updating, PipelineId, V1).
 				IssuesUpdateWorkflow(V1),
 		),
-		Check("Succeeded with update but no Id",
+		Check("Succeeded with update but no KfpId",
 			From(pipelinesv1.Succeeded, "", V0).
 				To(pipelinesv1.Creating, "", V1).
 				IssuesCreationWorkflow(V1),
 		),
-		Check("Succeeded with update but no Id and no version",
+		Check("Succeeded with update but no KfpId and no version",
 			From(pipelinesv1.Succeeded, "", "").
 				To(pipelinesv1.Creating, "", V1).
 				IssuesCreationWorkflow(V1),
@@ -219,12 +219,12 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Updating, PipelineId, V1).
 				IssuesUpdateWorkflow(V1),
 		),
-		Check("Failed with Update but no Id",
+		Check("Failed with Update but no KfpId",
 			From(pipelinesv1.Failed, "", V0).
 				To(pipelinesv1.Creating, "", V1).
 				IssuesCreationWorkflow(V1),
 		),
-		Check("Failed with Update but no Id and no version",
+		Check("Failed with Update but no KfpId and no version",
 			From(pipelinesv1.Failed, "", "").
 				To(pipelinesv1.Creating, "", V1).
 				IssuesCreationWorkflow(V1),
@@ -249,11 +249,11 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Updating, PipelineId, "").
 				To(pipelinesv1.Failed, PipelineId, ""),
 		),
-		Check("updating without Id",
+		Check("updating without KfpId",
 			From(pipelinesv1.Updating, "", V1).
 				To(pipelinesv1.Failed, "", V1),
 		),
-		Check("updating without Id or version",
+		Check("updating without KfpId or version",
 			From(pipelinesv1.Updating, "", "").
 				To(pipelinesv1.Failed, "", ""),
 		),

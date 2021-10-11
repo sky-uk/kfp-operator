@@ -56,7 +56,7 @@ var _ = Describe("Workflows", func() {
 		When("creating a workflow with valid paramters", func() {
 			It("creates a valid workflow", func() {
 				pipeline := RandomPipeline()
-				workflow, error := wf.ConstructUpdateWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.Id, pipeline.Status.Version)
+				workflow, error := wf.ConstructUpdateWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.KfpId, pipeline.Status.Version)
 				Expect(error).NotTo(HaveOccurred())
 
 				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, UpdateOperationLabel))
@@ -71,7 +71,7 @@ var _ = Describe("Workflows", func() {
 		When("creating a workflow with valid paramters", func() {
 			It("creates a valid workflow", func() {
 				pipeline := RandomPipeline()
-				workflow := wf.ConstructDeletionWorkflow(pipeline.ObjectMeta, pipeline.Status.Id)
+				workflow := wf.ConstructDeletionWorkflow(pipeline.ObjectMeta, pipeline.Status.KfpId)
 
 				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, DeleteOperationLabel))
 				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineNameLabelKey, pipeline.Name))

@@ -138,7 +138,7 @@ var _ = Describe("Workflows", func() {
 
 	Describe("Creation workflow", func() {
 		When("The creation and update succeeds", func() {
-			It("Succeeds the workflow with a Pipeline Id", func() {
+			It("Succeeds the workflow with a KfpId", func() {
 
 				testCtx := NewTestContextWithPipeline(
 					&pipelinesv1.Pipeline{
@@ -287,7 +287,7 @@ var _ = Describe("Workflows", func() {
 						},
 						Spec: pipelineSpec,
 						Status: pipelinesv1.PipelineStatus{
-							Id: PipelineId,
+							KfpId: PipelineId,
 						},
 					},
 					k8sClient, ctx)
@@ -315,7 +315,7 @@ var _ = Describe("Workflows", func() {
 						},
 						Spec: pipelineSpec,
 						Status: pipelinesv1.PipelineStatus{
-							Id: PipelineId,
+							KfpId: PipelineId,
 						},
 					},
 					k8sClient, ctx)

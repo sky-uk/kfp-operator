@@ -161,7 +161,7 @@ func (testCtx TestContext) UpdatePipelineStatus(updateFunc func(*pipelinesv1.Pip
 
 func (testCtx TestContext) PipelineCreated() {
 	testCtx.PipelineCreatedWithStatus(pipelinesv1.PipelineStatus{
-		Id:                   PipelineId,
+		KfpId:                PipelineId,
 		SynchronizationState: pipelinesv1.Succeeded,
 		Version:              testCtx.Version,
 	})

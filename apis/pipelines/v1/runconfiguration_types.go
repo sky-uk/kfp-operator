@@ -7,8 +7,8 @@ import (
 )
 
 type RunConfigurationSpec struct {
-	PipelineName string `json:"pipelineName,omitempty"`
-	Schedule string `json:"schedule,omitempty"`
+	PipelineName      string            `json:"pipelineName,omitempty"`
+	Schedule          string            `json:"schedule,omitempty"`
 	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
 }
 
@@ -27,15 +27,15 @@ func (rcs RunConfigurationSpec) ComputeVersion() string {
 }
 
 type RunConfigurationStatus struct {
-	Id                   string               `json:"id,omitempty"`
-	Version              string               `json:"version,omitempty"`
+	KfpId                string               `json:"kfpId,omitempty"`
 	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`
+	Version              string               `json:"version,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.synchronizationState"
-//+kubebuilder:printcolumn:name="PipelineId",type="string",JSONPath=".status.id"
+//+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
+//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 
 type RunConfiguration struct {
