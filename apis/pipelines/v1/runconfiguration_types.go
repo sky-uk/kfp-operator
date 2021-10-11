@@ -1,31 +1,43 @@
 package v1
 
 import (
+	"fmt"
+	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
-// RunConfigurationSpec defines the desired state of RunConfiguration
 type RunConfigurationSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of RunConfiguration. Edit runconfiguration_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	PipelineName string `json:"pipelineName,omitempty"`
+	Schedule string `json:"schedule,omitempty"`
+	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
 }
 
-// RunConfigurationStatus defines the observed state of RunConfiguration
+func (rcs RunConfigurationSpec) ComputeHash() []byte {
+	oh := objecthasher.New()
+	oh.WriteStringField(rcs.PipelineName)
+	oh.WriteStringField(rcs.Schedule)
+	oh.WriteMapField(rcs.RuntimeParameters)
+	return oh.Sum()
+}
+
+func (rcs RunConfigurationSpec) ComputeVersion() string {
+	hash := rcs.ComputeHash()[0:3]
+
+	return fmt.Sprintf("%x", hash)
+}
+
 type RunConfigurationStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Id                   string               `json:"id,omitempty"`
+	Version              string               `json:"version,omitempty"`
+	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.synchronizationState"
+//+kubebuilder:printcolumn:name="PipelineId",type="string",JSONPath=".status.id"
+//+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 
-// RunConfiguration is the Schema for the runconfigurations API
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -36,7 +48,6 @@ type RunConfiguration struct {
 
 //+kubebuilder:object:root=true
 
-// RunConfigurationList contains a list of RunConfiguration
 type RunConfigurationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

@@ -35,18 +35,6 @@ func (ps PipelineSpec) ComputeVersion() string {
 	return fmt.Sprintf("%x", hash)
 }
 
-type SynchronizationState string
-
-const (
-	Unknown   SynchronizationState = ""
-	Creating  SynchronizationState = "Creating"
-	Succeeded SynchronizationState = "Succeeded"
-	Updating  SynchronizationState = "Updating"
-	Deleting  SynchronizationState = "Deleting"
-	Deleted   SynchronizationState = "Deleted"
-	Failed    SynchronizationState = "Failed"
-)
-
 type PipelineStatus struct {
 	Id                   string               `json:"id,omitempty"`
 	Version              string               `json:"version,omitempty"`
