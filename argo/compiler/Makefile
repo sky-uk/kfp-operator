@@ -1,4 +1,4 @@
-include ../../docker.mk
+include ../../version.mk
 
 IMG := kfp-operator-argo-compiler
 
@@ -14,3 +14,7 @@ test: build
 
 build:
 	@echo Nothing to build.
+
+##@ Containers
+
+include ../../docker-targets.mk

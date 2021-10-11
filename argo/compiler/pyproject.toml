@@ -17,7 +17,7 @@ pytest = "^5.2"
 [tool.poetry-dynamic-versioning]
 enable = true
 vcs = "git"
-format = "{base}+{distance}.{commit}"
+format-jinja = "{{base}}+{{distance}}.{{commit}}{% if dirty %}-dirty{% endif %}"
 
 [build-system]
 requires = ["poetry-core>=1.1.9", "poetry-dynamic-versioning"]
