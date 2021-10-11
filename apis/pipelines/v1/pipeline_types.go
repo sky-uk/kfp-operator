@@ -25,9 +25,10 @@ func (ps PipelineSpec) ComputeHash() []byte {
 
 func (ps PipelineSpec) ComputeVersion() string {
 	hash := ps.ComputeHash()[0:3]
-	ref, err := Parse(ps.Image)
+	ref, err := ParseNormalizedNamed(ps.Image)
+
 	if err == nil {
-		if namedTagged, ok := ref.(NamedTagged); ok {
+		if namedTagged, ok := TagNameOnly(ref).(NamedTagged); ok {
 			return fmt.Sprintf("%s-%x", namedTagged.Tag(), hash)
 		}
 	}

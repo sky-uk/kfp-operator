@@ -80,10 +80,10 @@ var _ = Describe("ComputeVersion", func() {
 		}.ComputeVersion()).To(MatchRegexp("^baz-[a-z0-9]{6}$"))
 	})
 
-	Specify("Untagged images should have the spec hash only", func() {
+	Specify("Untagged images should default to latest", func() {
 		Expect(PipelineSpec{
 			Image: "image",
-		}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
+		}.ComputeVersion()).To(MatchRegexp("^latest-[a-z0-9]{6}$"))
 	})
 
 	Specify("Malformed image names should have the spec hash only", func() {
