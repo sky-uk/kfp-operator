@@ -11,7 +11,7 @@ import (
 )
 
 func RandomLowercaseString() string {
-	return randstr.String(rand.Intn(20), "0123456789abcdefghijklmnopqrstuvwxyz")
+	return randstr.String(rand.Intn(20)+1, "0123456789abcdefghijklmnopqrstuvwxyz")
 }
 
 func RandomShortHash() string {

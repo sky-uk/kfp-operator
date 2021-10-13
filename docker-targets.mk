@@ -12,4 +12,4 @@ $(CONTAINER_REGISTRY_HOSTS):
 endif
 
 docker-build: build ## Build container image
-	docker build -t ${IMG} -t ${IMG}:${VERSION} .
+	docker build ${DOCKER_BUILD_EXTRA_PARAMS} -t ${IMG} -t ${IMG}:${VERSION} .

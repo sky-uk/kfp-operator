@@ -18,7 +18,7 @@ import (
 var now = metav1.Now()
 
 // TODO: mock workflowFactory
-var workflowFactory = WorkflowFactory{
+var workflowFactory = PipelineWorkflowFactory{
 	Config: configv1.Configuration{
 		KfpSdkImage:     "kfp-sdk",
 		CompilerImage:   "compiler",
@@ -74,7 +74,7 @@ func createWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workflow {
 			Name:      operation + "-pipeline",
 			Namespace: "default",
 			Labels: map[string]string{
-				OperationLabelKey: operation,
+				PipelineWorkflowConstants.OperationLabelKey: operation,
 			},
 		},
 		Status: argo.WorkflowStatus{
@@ -158,8 +158,8 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Creating, "", V1).
 				WithWorkFlow(
 					setWorkflowOutput(
-						createWorkflow(CreateOperationLabel, argo.WorkflowSucceeded),
-						WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
+						createWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
+						PipelineWorkflowConstants.PipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Succeeded, PipelineId, V1).
 				DeletesAllWorkflows(),
@@ -168,8 +168,8 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Creating, AnotherPipelineId, V1).
 				WithWorkFlow(
 					setWorkflowOutput(
-						createWorkflow(CreateOperationLabel, argo.WorkflowSucceeded),
-						WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
+						createWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
+						PipelineWorkflowConstants.PipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Succeeded, PipelineId, V1).
 				DeletesAllWorkflows(),
@@ -177,15 +177,15 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Creation fails with KfpId",
 			From(pipelinesv1.Creating, "", V1).
 				WithWorkFlow(setWorkflowOutput(
-					createWorkflow(CreateOperationLabel, argo.WorkflowFailed),
-					WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
+					createWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowFailed),
+					PipelineWorkflowConstants.PipelineIdParameterName, PipelineId),
 				).
 				To(pipelinesv1.Failed, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation fails",
 			From(pipelinesv1.Creating, "", V1).
-				WithWorkFlow(createWorkflow(CreateOperationLabel, argo.WorkflowFailed)).
+				WithWorkFlow(createWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowFailed)).
 				To(pipelinesv1.Failed, "", V1).
 				DeletesAllWorkflows(),
 		),
@@ -231,13 +231,13 @@ var _ = Describe("Pipeline State handler", func() {
 		),
 		Check("Updating succeeds",
 			From(pipelinesv1.Updating, PipelineId, V1).
-				WithWorkFlow(createWorkflow(UpdateOperationLabel, argo.WorkflowSucceeded)).
+				WithWorkFlow(createWorkflow(PipelineWorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded)).
 				To(pipelinesv1.Succeeded, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
 			From(pipelinesv1.Updating, PipelineId, V1).
-				WithWorkFlow(createWorkflow(UpdateOperationLabel, argo.WorkflowFailed)).
+				WithWorkFlow(createWorkflow(PipelineWorkflowConstants.UpdateOperationLabel, argo.WorkflowFailed)).
 				To(pipelinesv1.Failed, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
@@ -272,14 +272,14 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Deletion succeeds",
 			From(pipelinesv1.Deleting, PipelineId, V1).
 				DeletionRequested().
-				WithWorkFlow(createWorkflow(DeleteOperationLabel, argo.WorkflowSucceeded)).
+				WithWorkFlow(createWorkflow(PipelineWorkflowConstants.DeleteOperationLabel, argo.WorkflowSucceeded)).
 				To(pipelinesv1.Deleted, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),
 		Check("Deletion fails",
 			From(pipelinesv1.Deleting, PipelineId, V1).
 				DeletionRequested().
-				WithWorkFlow(createWorkflow(DeleteOperationLabel, argo.WorkflowFailed)).
+				WithWorkFlow(createWorkflow(PipelineWorkflowConstants.DeleteOperationLabel, argo.WorkflowFailed)).
 				To(pipelinesv1.Deleting, PipelineId, V1).
 				DeletesAllWorkflows(),
 		),

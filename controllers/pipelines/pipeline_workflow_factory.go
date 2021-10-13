@@ -11,24 +11,34 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var WorkflowFactoryConstants = struct {
-	pipelineIdParameterName   string
-	pipelineYamlParameterName string
-	compileStepName           string
-	uploadStepName            string
-	deletionStepName          string
-	updateStepName            string
-	pipelineYamlFilePath      string
-	pipelineIdFilePath        string
+var PipelineWorkflowConstants = struct {
+	PipelineIdParameterName   string
+	PipelineYamlParameterName string
+	CompileStepName           string
+	UploadStepName            string
+	DeletionStepName 		  string
+	UpdateStepName   		  string
+	PipelineYamlFilePath 	  string
+	PipelineIdFilePath   	  string
+	PipelineNameLabelKey 	  string
+	OperationLabelKey    	  string
+	CreateOperationLabel 	  string
+	UpdateOperationLabel 	  string
+	DeleteOperationLabel 	  string
 }{
-	pipelineIdParameterName:   "pipeline-id",
-	pipelineYamlParameterName: "pipeline",
-	compileStepName:           "compile",
-	uploadStepName:            "upload",
-	deletionStepName:          "delete",
-	updateStepName:            "update",
-	pipelineYamlFilePath:      "/tmp/pipeline.yaml",
-	pipelineIdFilePath:        "/tmp/pipeline.txt",
+	PipelineIdParameterName:   "pipeline-id",
+	PipelineYamlParameterName: "pipeline",
+	CompileStepName:           "compile",
+	UploadStepName:            "upload",
+	DeletionStepName:          "delete",
+	UpdateStepName:            "update",
+	PipelineYamlFilePath:      "/tmp/pipeline.yaml",
+	PipelineIdFilePath:        "/tmp/pipeline.txt",
+	PipelineNameLabelKey:      "pipelines.kubeflow.org/pipeline",
+	OperationLabelKey:         "pipelines.kubeflow.org/operation",
+	CreateOperationLabel:      "create-pipeline",
+	UpdateOperationLabel:      "update-pipeline",
+	DeleteOperationLabel:      "delete-pipeline",
 }
 
 var (
@@ -36,7 +46,7 @@ var (
 	trueValue = true
 )
 
-type WorkflowFactory struct {
+type PipelineWorkflowFactory struct {
 	Config configv1.Configuration
 }
 
@@ -61,7 +71,7 @@ func (config CompilerConfig) AsYaml() (string, error) {
 }
 
 // TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
-func (wf *WorkflowFactory) newCompilerConfig(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) *CompilerConfig {
+func (wf *PipelineWorkflowFactory) newCompilerConfig(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta) *CompilerConfig {
 	// TODO: should come from config
 	servingPath := "/serving"
 	tempPath := "/tmp"
@@ -88,28 +98,28 @@ func (wf *WorkflowFactory) newCompilerConfig(pipelineSpec pipelinesv1.PipelineSp
 	}
 }
 
-func (w *WorkflowFactory) commonMeta(pipelineMeta metav1.ObjectMeta, operation string) *metav1.ObjectMeta {
+func (w *PipelineWorkflowFactory) commonMeta(pipelineMeta metav1.ObjectMeta, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    pipelineMeta.Namespace,
 		Labels: map[string]string{
-			OperationLabelKey:    operation,
-			PipelineNameLabelKey: pipelineMeta.Name,
+			PipelineWorkflowConstants.OperationLabelKey:    operation,
+			PipelineWorkflowConstants.PipelineNameLabelKey: pipelineMeta.Name,
 		},
 	}
 }
 
-func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineVersion string) (*argo.Workflow, error) {
+func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineVersion string) (*argo.Workflow, error) {
 	compilerConfigYaml, error := w.newCompilerConfig(pipelineSpec, pipelineMeta).AsYaml()
 
 	if error != nil {
 		return nil, error
 	}
 
-	entrypointName := CreateOperationLabel
+	entrypointName := PipelineWorkflowConstants.CreateOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipelineMeta, CreateOperationLabel),
+		ObjectMeta: *w.commonMeta(pipelineMeta, PipelineWorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -120,20 +130,20 @@ func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.Pipe
 						{
 							Steps: []argo.WorkflowStep{
 								{
-									Name:     WorkflowFactoryConstants.compileStepName,
-									Template: WorkflowFactoryConstants.compileStepName,
+									Name:     PipelineWorkflowConstants.CompileStepName,
+									Template: PipelineWorkflowConstants.CompileStepName,
 								},
 							},
 						},
 						{
 							Steps: []argo.WorkflowStep{
 								{
-									Name:     WorkflowFactoryConstants.uploadStepName,
-									Template: WorkflowFactoryConstants.uploadStepName,
+									Name:     PipelineWorkflowConstants.UploadStepName,
+									Template: PipelineWorkflowConstants.UploadStepName,
 									Arguments: argo.Arguments{
 										Artifacts: []argo.Artifact{
 											{
-												Name: WorkflowFactoryConstants.pipelineYamlParameterName,
+												Name: PipelineWorkflowConstants.PipelineYamlParameterName,
 												From: "{{steps.compile.outputs.artifacts.pipeline}}",
 											},
 										},
@@ -144,18 +154,18 @@ func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.Pipe
 						{
 							Steps: []argo.WorkflowStep{
 								{
-									Name:     WorkflowFactoryConstants.updateStepName,
-									Template: WorkflowFactoryConstants.updateStepName,
+									Name:     PipelineWorkflowConstants.UpdateStepName,
+									Template: PipelineWorkflowConstants.UpdateStepName,
 									Arguments: argo.Arguments{
 										Artifacts: []argo.Artifact{
 											{
-												Name: WorkflowFactoryConstants.pipelineYamlParameterName,
+												Name: PipelineWorkflowConstants.PipelineYamlParameterName,
 												From: "{{steps.compile.outputs.artifacts.pipeline}}",
 											},
 										},
 										Parameters: []argo.Parameter{
 											{
-												Name:  WorkflowFactoryConstants.pipelineIdParameterName,
+												Name:  PipelineWorkflowConstants.PipelineIdParameterName,
 												Value: argo.AnyStringPtr("{{steps.upload.outputs.result}}"),
 											},
 										},
@@ -167,7 +177,7 @@ func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.Pipe
 					Outputs: argo.Outputs{
 						Parameters: []argo.Parameter{
 							{
-								Name: WorkflowFactoryConstants.pipelineIdParameterName,
+								Name: PipelineWorkflowConstants.PipelineIdParameterName,
 								ValueFrom: &argo.ValueFrom{
 									Parameter: "{{steps.upload.outputs.result}}",
 								},
@@ -185,17 +195,17 @@ func (w WorkflowFactory) ConstructCreationWorkflow(pipelineSpec pipelinesv1.Pipe
 	return workflow, nil
 }
 
-func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineId string, pipelineVersion string) (*argo.Workflow, error) {
+func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.PipelineSpec, pipelineMeta metav1.ObjectMeta, pipelineId string, pipelineVersion string) (*argo.Workflow, error) {
 	compilerConfigYaml, error := w.newCompilerConfig(pipelineSpec, pipelineMeta).AsYaml()
 
 	if error != nil {
 		return nil, error
 	}
 
-	entrypointName := UpdateOperationLabel
+	entrypointName := PipelineWorkflowConstants.UpdateOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipelineMeta, UpdateOperationLabel),
+		ObjectMeta: *w.commonMeta(pipelineMeta, PipelineWorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -206,26 +216,26 @@ func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.Pipeli
 						{
 							Steps: []argo.WorkflowStep{
 								{
-									Name:     WorkflowFactoryConstants.compileStepName,
-									Template: WorkflowFactoryConstants.compileStepName,
+									Name:     PipelineWorkflowConstants.CompileStepName,
+									Template: PipelineWorkflowConstants.CompileStepName,
 								},
 							},
 						},
 						{
 							Steps: []argo.WorkflowStep{
 								{
-									Name:     WorkflowFactoryConstants.updateStepName,
-									Template: WorkflowFactoryConstants.updateStepName,
+									Name:     PipelineWorkflowConstants.UpdateStepName,
+									Template: PipelineWorkflowConstants.UpdateStepName,
 									Arguments: argo.Arguments{
 										Artifacts: []argo.Artifact{
 											{
-												Name: WorkflowFactoryConstants.pipelineYamlParameterName,
+												Name: PipelineWorkflowConstants.PipelineYamlParameterName,
 												From: "{{steps.compile.outputs.artifacts.pipeline}}",
 											},
 										},
 										Parameters: []argo.Parameter{
 											{
-												Name:  WorkflowFactoryConstants.pipelineIdParameterName,
+												Name:  PipelineWorkflowConstants.PipelineIdParameterName,
 												Value: argo.AnyStringPtr(pipelineId),
 											},
 										},
@@ -244,12 +254,12 @@ func (w WorkflowFactory) ConstructUpdateWorkflow(pipelineSpec pipelinesv1.Pipeli
 	return workflow, nil
 }
 
-func (w WorkflowFactory) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMeta, pipelineId string) *argo.Workflow {
+func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMeta, pipelineId string) *argo.Workflow {
 
-	entrypointName := DeleteOperationLabel
+	entrypointName := PipelineWorkflowConstants.DeleteOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipelineMeta, DeleteOperationLabel),
+		ObjectMeta: *w.commonMeta(pipelineMeta, PipelineWorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -260,12 +270,12 @@ func (w WorkflowFactory) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMet
 						{
 							Steps: []argo.WorkflowStep{
 								{
-									Name:     WorkflowFactoryConstants.deletionStepName,
-									Template: WorkflowFactoryConstants.deletionStepName,
+									Name:     PipelineWorkflowConstants.DeletionStepName,
+									Template: PipelineWorkflowConstants.DeletionStepName,
 									Arguments: argo.Arguments{
 										Parameters: []argo.Parameter{
 											{
-												Name:  WorkflowFactoryConstants.pipelineIdParameterName,
+												Name:  PipelineWorkflowConstants.PipelineIdParameterName,
 												Value: argo.AnyStringPtr(pipelineId),
 											},
 										},
@@ -283,25 +293,25 @@ func (w WorkflowFactory) ConstructDeletionWorkflow(pipelineMeta metav1.ObjectMet
 	return workflow
 }
 
-func (workflows *WorkflowFactory) compiler(compilerConfigYaml string, pipelineImage string) argo.Template {
+func (workflows *PipelineWorkflowFactory) compiler(compilerConfigYaml string, pipelineImage string) argo.Template {
 	compilerVolumeName := "compiler"
 	compilerVolumePath := "/compiler"
 
 	args := []string{
 		"/compiler/compiler.py",
 		"--output_file",
-		WorkflowFactoryConstants.pipelineYamlFilePath,
+		PipelineWorkflowConstants.PipelineYamlFilePath,
 		"--pipeline_config",
 		compilerConfigYaml,
 	}
 
 	return argo.Template{
-		Name: WorkflowFactoryConstants.compileStepName,
+		Name: PipelineWorkflowConstants.CompileStepName,
 		Outputs: argo.Outputs{
 			Artifacts: []argo.Artifact{
 				{
-					Name: WorkflowFactoryConstants.pipelineYamlParameterName,
-					Path: WorkflowFactoryConstants.pipelineYamlFilePath,
+					Name: PipelineWorkflowConstants.PipelineYamlParameterName,
+					Path: PipelineWorkflowConstants.PipelineYamlFilePath,
 				},
 			},
 		},
@@ -321,7 +331,7 @@ func (workflows *WorkflowFactory) compiler(compilerConfigYaml string, pipelineIm
 		InitContainers: []argo.UserContainer{
 			{
 				Container: apiv1.Container{
-					Name:            WorkflowFactoryConstants.compileStepName,
+					Name:            PipelineWorkflowConstants.CompileStepName,
 					Image:           workflows.Config.CompilerImage,
 					ImagePullPolicy: apiv1.PullPolicy(workflows.Config.ImagePullPolicy),
 				},
@@ -336,19 +346,19 @@ func (workflows *WorkflowFactory) compiler(compilerConfigYaml string, pipelineIm
 	}
 }
 
-func (workflows *WorkflowFactory) uploader(pipelineName string) argo.Template {
+func (workflows *PipelineWorkflowFactory) uploader(pipelineName string) argo.Template {
 	script :=
 		"set -e -o pipefail\n" +
 			fmt.Sprintf("kfp --endpoint %s --output json pipeline upload -p %s %s  | jq -r '.\"Pipeline Details\".\"ID\"'",
-				workflows.Config.KfpEndpoint, pipelineName, WorkflowFactoryConstants.pipelineYamlFilePath)
+				workflows.Config.KfpEndpoint, pipelineName, PipelineWorkflowConstants.PipelineYamlFilePath)
 
 	return argo.Template{
-		Name: WorkflowFactoryConstants.uploadStepName,
+		Name: PipelineWorkflowConstants.UploadStepName,
 		Inputs: argo.Inputs{
 			Artifacts: []argo.Artifact{
 				{
-					Name: WorkflowFactoryConstants.pipelineYamlParameterName,
-					Path: WorkflowFactoryConstants.pipelineYamlFilePath,
+					Name: PipelineWorkflowConstants.PipelineYamlParameterName,
+					Path: PipelineWorkflowConstants.PipelineYamlFilePath,
 				},
 			},
 		},
@@ -363,18 +373,18 @@ func (workflows *WorkflowFactory) uploader(pipelineName string) argo.Template {
 	}
 }
 
-func (workflows *WorkflowFactory) deleter() argo.Template {
+func (workflows *PipelineWorkflowFactory) deleter() argo.Template {
 	script :=
 		"set -e -o pipefail\n" +
 			fmt.Sprintf("kfp --endpoint %s pipeline delete {{inputs.parameters.pipeline-id}}",
 				workflows.Config.KfpEndpoint)
 
 	return argo.Template{
-		Name: WorkflowFactoryConstants.deletionStepName,
+		Name: PipelineWorkflowConstants.DeletionStepName,
 		Inputs: argo.Inputs{
 			Parameters: []argo.Parameter{
 				{
-					Name: WorkflowFactoryConstants.pipelineIdParameterName,
+					Name: PipelineWorkflowConstants.PipelineIdParameterName,
 				},
 			},
 		},
@@ -389,24 +399,24 @@ func (workflows *WorkflowFactory) deleter() argo.Template {
 	}
 }
 
-func (workflows *WorkflowFactory) updater(version string) argo.Template {
+func (workflows *PipelineWorkflowFactory) updater(version string) argo.Template {
 	script :=
 		"set -e -o pipefail\n" +
 			fmt.Sprintf("kfp --endpoint %s pipeline upload-version -v %s -p {{inputs.parameters.pipeline-id}} %s",
-				workflows.Config.KfpEndpoint, version, WorkflowFactoryConstants.pipelineYamlFilePath)
+				workflows.Config.KfpEndpoint, version, PipelineWorkflowConstants.PipelineYamlFilePath)
 
 	return argo.Template{
-		Name: WorkflowFactoryConstants.updateStepName,
+		Name: PipelineWorkflowConstants.UpdateStepName,
 		Inputs: argo.Inputs{
 			Artifacts: []argo.Artifact{
 				{
-					Name: WorkflowFactoryConstants.pipelineYamlParameterName,
-					Path: WorkflowFactoryConstants.pipelineYamlFilePath,
+					Name: PipelineWorkflowConstants.PipelineYamlParameterName,
+					Path: PipelineWorkflowConstants.PipelineYamlFilePath,
 				},
 			},
 			Parameters: []argo.Parameter{
 				{
-					Name: WorkflowFactoryConstants.pipelineIdParameterName,
+					Name: PipelineWorkflowConstants.PipelineIdParameterName,
 				},
 			},
 		},

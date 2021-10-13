@@ -9,7 +9,7 @@ import (
 )
 
 type StateHandler struct {
-	WorkflowFactory    WorkflowFactory
+	WorkflowFactory    PipelineWorkflowFactory
 	WorkflowRepository WorkflowRepository
 }
 
@@ -25,13 +25,13 @@ func (st StateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv
 	case pipelinesv1.Unknown:
 		return st.onUnknown(pipeline)
 	case pipelinesv1.Creating:
-		return st.onCreating(pipeline, st.WorkflowRepository.GetByOperation(ctx, CreateOperationLabel, pipeline))
+		return st.onCreating(pipeline, st.WorkflowRepository.GetByOperation(ctx, PipelineWorkflowConstants.CreateOperationLabel, pipeline))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		return st.onSucceededOrFailed(pipeline)
 	case pipelinesv1.Updating:
-		return st.onUpdating(pipeline, st.WorkflowRepository.GetByOperation(ctx, UpdateOperationLabel, pipeline))
+		return st.onUpdating(pipeline, st.WorkflowRepository.GetByOperation(ctx, PipelineWorkflowConstants.UpdateOperationLabel, pipeline))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(pipeline, st.WorkflowRepository.GetByOperation(ctx, DeleteOperationLabel, pipeline))
+		return st.onDeleting(pipeline, st.WorkflowRepository.GetByOperation(ctx, PipelineWorkflowConstants.DeleteOperationLabel, pipeline))
 	case pipelinesv1.Deleted:
 		return st.onDeleted(pipeline)
 	}
@@ -245,7 +245,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 
 	if succeeded != nil {
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
-		idResult, error := getWorkflowOutput(succeeded, WorkflowFactoryConstants.pipelineIdParameterName)
+		idResult, error := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineIdParameterName)
 
 		if error != nil {
 			newStatus.SynchronizationState = pipelinesv1.Failed
@@ -254,7 +254,7 @@ func (st StateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creationWorkfl
 		}
 	} else {
 		if failed != nil {
-			idResult, error := getWorkflowOutput(failed, WorkflowFactoryConstants.pipelineIdParameterName)
+			idResult, error := getWorkflowOutput(failed, PipelineWorkflowConstants.PipelineIdParameterName)
 
 			if error == nil {
 				newStatus.KfpId = idResult

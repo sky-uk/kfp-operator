@@ -25,7 +25,7 @@ func workflowTemplates(wf argo.Workflow) map[string]argo.Template {
 
 var _ = Describe("Workflows", func() {
 
-	var wf = WorkflowFactory{
+	var wf = PipelineWorkflowFactory{
 		Config: configv1.Configuration{
 			PipelineStorage: "gs://some-bucket",
 			CompilerImage:   "image:v1",
@@ -43,8 +43,8 @@ var _ = Describe("Workflows", func() {
 				workflow, error := wf.ConstructCreationWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.Version)
 				Expect(error).NotTo(HaveOccurred())
 
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, CreateOperationLabel))
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineNameLabelKey, pipeline.Name))
+				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.CreateOperationLabel))
+				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.PipelineNameLabelKey, pipeline.Name))
 				Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
 				Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
 				Expect(workflowTemplates(*workflow)).To(HaveKey(workflow.Spec.Entrypoint))
@@ -59,8 +59,8 @@ var _ = Describe("Workflows", func() {
 				workflow, error := wf.ConstructUpdateWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.KfpId, pipeline.Status.Version)
 				Expect(error).NotTo(HaveOccurred())
 
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, UpdateOperationLabel))
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineNameLabelKey, pipeline.Name))
+				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.UpdateOperationLabel))
+				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.PipelineNameLabelKey, pipeline.Name))
 				Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
 				Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
 			})
@@ -73,8 +73,8 @@ var _ = Describe("Workflows", func() {
 				pipeline := RandomPipeline()
 				workflow := wf.ConstructDeletionWorkflow(pipeline.ObjectMeta, pipeline.Status.KfpId)
 
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(OperationLabelKey, DeleteOperationLabel))
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineNameLabelKey, pipeline.Name))
+				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.DeleteOperationLabel))
+				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.PipelineNameLabelKey, pipeline.Name))
 				Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
 				Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
 			})
@@ -85,7 +85,7 @@ var _ = Describe("Workflows", func() {
 var _ = Describe("PipelineConfig", func() {
 
 	Specify("Some fields are copied from Pipeline resource", func() {
-		wf := WorkflowFactory{}
+		wf := PipelineWorkflowFactory{}
 		meta := v1.ObjectMeta{
 			Name: "pipelineName",
 		}
@@ -105,7 +105,7 @@ var _ = Describe("PipelineConfig", func() {
 	})
 
 	Specify("Paths are appended to PipelineStorage", func() {
-		wf := WorkflowFactory{
+		wf := PipelineWorkflowFactory{
 			Config: configv1.Configuration{
 				PipelineStorage: "gs://bucket",
 			},
@@ -121,7 +121,7 @@ var _ = Describe("PipelineConfig", func() {
 	})
 
 	Specify("Original BeamArgs are copied", func() {
-		wf := WorkflowFactory{}
+		wf := PipelineWorkflowFactory{}
 		spec := pipelinesv1.PipelineSpec{
 			BeamArgs: map[string]string{
 				"a": "b",
@@ -134,7 +134,7 @@ var _ = Describe("PipelineConfig", func() {
 	})
 
 	Specify("BeamArgs are overridden with temp_location", func() {
-		wf := WorkflowFactory{
+		wf := PipelineWorkflowFactory{
 			Config: configv1.Configuration{
 				PipelineStorage: "gs://bucket",
 			},
@@ -154,7 +154,7 @@ var _ = Describe("PipelineConfig", func() {
 	})
 
 	Specify("BeamArgs default to configuration values", func() {
-		wf := WorkflowFactory{
+		wf := PipelineWorkflowFactory{
 			Config: configv1.Configuration{
 				DefaultBeamArgs: map[string]string{
 					"ba": "default",

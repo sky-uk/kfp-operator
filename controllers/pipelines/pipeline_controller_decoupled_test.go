@@ -64,7 +64,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 		ctx = context.Background()
 
 		// TODO: mock workflowFactory
-		var workflowFactory = WorkflowFactory{
+		var workflowFactory = PipelineWorkflowFactory{
 			Config: configv1.Configuration{
 				KfpSdkImage:     "kfp-sdk",
 				CompilerImage:   "compiler",
@@ -111,7 +111,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				Spec: SpecV1,
 			}
 
-			testCtx := NewTestContextWithPipeline(pipeline, k8sClient, ctx)
+			testCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
 
 			Expect(k8sClient.Create(ctx, testCtx.Pipeline)).To(Succeed())
 
@@ -119,9 +119,9 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(CreateOperationLabel, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutput(workflow, WorkflowFactoryConstants.pipelineIdParameterName, PipelineId)
+				setWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName, PipelineId)
 			})).To(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -136,7 +136,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(UpdateOperationLabel, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(PipelineWorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
 
@@ -150,7 +150,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(DeleteOperationLabel, func(workflow *argo.Workflow) {
+			Expect(testCtx.UpdateWorkflow(PipelineWorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).To(Succeed())
 

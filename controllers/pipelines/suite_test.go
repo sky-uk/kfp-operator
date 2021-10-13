@@ -1,3 +1,6 @@
+//go:build unit || decoupled
+// +build unit decoupled
+
 package pipelines
 
 import (
@@ -7,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestPipelineController(t *testing.T) {
+func TestPipelineControllerSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Pipeline Controller Suite")
 }

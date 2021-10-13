@@ -72,7 +72,7 @@ integration-test: ## Run integration tests
 	$(MAKE) -C argo/compiler docker-build && \
 	$(MAKE) -C argo/kfp-sdk docker-build && \
 	docker build docs/quickstart -t kfp-quickstart
-	go test ./... -tags=integration
+	go test ./... -tags=integration -parallel 1
 
 integration-test-down:
 	(cat config/testing/pids | xargs kill) || true

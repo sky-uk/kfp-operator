@@ -12,8 +12,10 @@ test: build
 ##@ Build
 
 build:
-	@echo Nothing to build.
+	poetry build
 
 ##@ Containers
 
+WHEEL_VERSION=$(shell poetry version | cut -d ' ' -f 2)
+DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION}
 include ../../docker-targets.mk
