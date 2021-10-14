@@ -92,7 +92,9 @@ func main() {
 	var client = mgr.GetClient()
 
 	var workflowFactory = pipelinescontrollers.PipelineWorkflowFactory{
-		Config: ctrlConfig.Workflows,
+		WorkflowFactory: pipelinescontrollers.WorkflowFactory{
+			Config: ctrlConfig.Workflows,
+		},
 	}
 
 	var workflowRepository = pipelinescontrollers.WorkflowRepositoryImpl{

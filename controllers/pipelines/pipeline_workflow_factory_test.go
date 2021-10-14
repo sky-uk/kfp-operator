@@ -26,12 +26,14 @@ func workflowTemplates(wf argo.Workflow) map[string]argo.Template {
 var _ = Describe("Workflows", func() {
 
 	var wf = PipelineWorkflowFactory{
-		Config: configv1.Configuration{
-			PipelineStorage: "gs://some-bucket",
-			CompilerImage:   "image:v1",
-			KfpSdkImage:     "image:v1",
-			DefaultBeamArgs: map[string]string{
-				"project": "project",
+		WorkflowFactory: WorkflowFactory{
+			Config: configv1.Configuration{
+				PipelineStorage: "gs://some-bucket",
+				CompilerImage:   "image:v1",
+				KfpSdkImage:     "image:v1",
+				DefaultBeamArgs: map[string]string{
+					"project": "project",
+				},
 			},
 		},
 	}
@@ -106,8 +108,10 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("Paths are appended to PipelineStorage", func() {
 		wf := PipelineWorkflowFactory{
-			Config: configv1.Configuration{
-				PipelineStorage: "gs://bucket",
+			WorkflowFactory: WorkflowFactory{
+				Config: configv1.Configuration{
+					PipelineStorage: "gs://bucket",
+				},
 			},
 		}
 		meta := v1.ObjectMeta{
@@ -135,8 +139,10 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("BeamArgs are overridden with temp_location", func() {
 		wf := PipelineWorkflowFactory{
-			Config: configv1.Configuration{
-				PipelineStorage: "gs://bucket",
+			WorkflowFactory: WorkflowFactory{
+				Config: configv1.Configuration{
+					PipelineStorage: "gs://bucket",
+				},
 			},
 		}
 		meta := v1.ObjectMeta{
@@ -155,10 +161,12 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("BeamArgs default to configuration values", func() {
 		wf := PipelineWorkflowFactory{
-			Config: configv1.Configuration{
-				DefaultBeamArgs: map[string]string{
-					"ba": "default",
-					"bc": "default",
+			WorkflowFactory: WorkflowFactory{
+				Config: configv1.Configuration{
+					DefaultBeamArgs: map[string]string{
+						"ba": "default",
+						"bc": "default",
+					},
 				},
 			},
 		}

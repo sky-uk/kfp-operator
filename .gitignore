@@ -13,7 +13,7 @@ __pycache__/
 pids
 
 # Dist
-/dist/
+dist/
 
 # VS Code
 /.vscode/

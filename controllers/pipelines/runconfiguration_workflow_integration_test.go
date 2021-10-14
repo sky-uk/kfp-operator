@@ -4,35 +4,72 @@
 package pipelines
 
 import (
+	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	"github.com/walkerus/go-wiremock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var _ = Context("RunConfiguration Workflows", func() {
 	workflowFactory := RunConfigurationWorkflowFactory{
-		Config: configv1.Configuration{
-			KfpEndpoint:     "http://wiremock:80",
-			KfpSdkImage:     "kfp-operator-argo-kfp-sdk",
-			ImagePullPolicy: "Never", // Needed for minikube to use local images
-			DefaultExperiment: "Default",
+		WorkflowFactory: WorkflowFactory{
+			Config: configv1.Configuration{
+				KfpEndpoint:       "http://wiremock:80",
+				KfpSdkImage:       "kfp-operator-argo-kfp-sdk",
+				ImagePullPolicy:   "Never", // Needed for minikube to use local images
+				DefaultExperiment: "Default",
+			},
 		},
 	}
 
-	var KfpCreateToSucceed = func(rcsName string, kfpId string) error {
-		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/jobs")).
+	var StubGetExperiment = func(experimentName string, experimentId string) error {
+		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
+			WithQueryParam("filter", wiremock.EqualTo(
+				fmt.Sprintf(`{"predicates": [{"op": 1, "key": "name", "stringValue": "%s"}]}`, experimentName))).
 			WillReturn(
-				`{"id": "`+kfpId+`", "created_at": "2021-09-10T15:46:08Z", "name": "`+rcsName+`"}`,
+				fmt.Sprintf(`{"experiments": [{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}]}`,
+					experimentId, experimentName),
 				map[string]string{"Content-Type": "application/json"},
 				200,
 			))
 	}
 
-	var KfpCreateToFail = func(rcsName string, kfpId string) error {
+	var StubGetPipeline = func(pipelineName string, pipelineId string) error {
+		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines")).
+			WithQueryParam("filter", wiremock.EqualTo(
+				fmt.Sprintf(`{"predicates": [{"op": 1, "key": "name", "stringValue": "%s"}]}`, pipelineName))).
+			WillReturn(
+				fmt.Sprintf(`{"experiments": [{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}]}`,
+					pipelineId, pipelineName),
+				map[string]string{"Content-Type": "application/json"},
+				200,
+			))
+	}
+
+	var SucceedCreation = func(runconfiguration *pipelinesv1.RunConfiguration, jobId string) error {
+		if err := StubGetExperiment(workflowFactory.Config.DefaultExperiment, ExperimentId); err != nil {
+			return err
+		}
+		if err := StubGetPipeline(runconfiguration.Spec.PipelineName, PipelineId); err != nil {
+			return err
+		}
+
+		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/jobs")).
+			WillReturn(
+				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}`,
+					jobId, runconfiguration.Name),
+				map[string]string{"Content-Type": "application/json"},
+				200,
+			))
+	}
+
+	var FailCreation = func() error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/jobs")).
 			WillReturn(
 				`{"status": "failed"}`,
@@ -41,91 +78,134 @@ var _ = Context("RunConfiguration Workflows", func() {
 			))
 	}
 
-	var KfpGetExperimentToSucceed = func(experimentName string, experimentId string) error {
-		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
-			WithQueryParam("filter", wiremock.EqualTo(`{"predicates": [{"op": 1, "key": "name", "stringValue": "`+experimentName+`"}]}`)).
+	var SucceedDeletion = func(jobId string) error {
+		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/jobs/"+jobId)).
 			WillReturn(
-				`{"experiments": [{"id": "`+experimentId+`", "created_at": "2021-09-10T15:46:08Z", "name": "`+experimentName+`"}]}`,
+				`{"status": "deleted"}`,
 				map[string]string{"Content-Type": "application/json"},
 				200,
 			))
 	}
 
-	var KfpGetPipelineToSucceed = func(pipelineName string, pipelineId string) error {
-		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines")).
-			WithQueryParam("filter", wiremock.EqualTo(`{"predicates": [{"op": 1, "key": "name", "stringValue": "`+pipelineName+`"}]}`)).
+	var FailDeletion = func(jobId string) error {
+		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/jobs/"+jobId)).
 			WillReturn(
-				`{"experiments": [{"id": "`+pipelineId+`", "created_at": "2021-09-10T15:46:08Z", "name": "`+pipelineName+`"}]}`,
+				`{"status": "failed"}`,
 				map[string]string{"Content-Type": "application/json"},
-				200,
+				404,
 			))
 	}
 
-	Describe("Creation workflow", func() {
-		When("The creation succeeds", func() {
-			It("Succeeds the workflow with a KfpId", func() {
+	var AssertWorkflow = func(
+		setUp func(runconfiguration *pipelinesv1.RunConfiguration),
+		constructWorkflow func(*pipelinesv1.RunConfiguration) *argo.Workflow,
+		assertion func(Gomega, *argo.Workflow)) {
 
-				testCtx := NewRunconfigurationTestContext(
-					&pipelinesv1.RunConfiguration{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:      RandomLowercaseString(),
-							Namespace: "argo",
-						},
-						Spec: pipelinesv1.RunConfigurationSpec{
-							PipelineName: "pipeline",
-							Schedule: "* * * * * *",
-						},
-					},
-					k8sClient, ctx)
+		testCtx := NewRunconfigurationTestContext(
+			&pipelinesv1.RunConfiguration{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      RandomLowercaseString(),
+					Namespace: "argo",
+				},
+				Spec: pipelinesv1.RunConfigurationSpec{
+					PipelineName: "pipeline",
+					Schedule:     "* * * * * *",
+				},
+				Status: pipelinesv1.RunConfigurationStatus{
+					KfpId: JobId,
+				},
+			},
+			k8sClient, ctx)
 
-				Expect(KfpGetExperimentToSucceed(workflowFactory.Config.DefaultExperiment, ExperimentId)).To(Succeed())
-				Expect(KfpGetPipelineToSucceed(testCtx.RunConfiguration.Spec.PipelineName, PipelineId)).To(Succeed())
-				Expect(KfpCreateToSucceed(testCtx.RunConfiguration.Name, JobId)).To(Succeed())
+		setUp(testCtx.RunConfiguration)
+		workflow := constructWorkflow(testCtx.RunConfiguration)
 
-				workflow, err := workflowFactory.ConstructCreationWorkflow(testCtx.RunConfiguration)
-				Expect(err).NotTo(HaveOccurred())
+		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
 
-				err = k8sClient.Create(ctx, workflow)
-				Expect(err).NotTo(HaveOccurred())
+		Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
+			assertion), TestTimeout).Should(Succeed())
+	}
 
-				Eventually(testCtx.WorkflowToMatch(RunConfigurationWorkflowConstants.CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
-						To(Equal(JobId))
-				}), TestTimeout).Should(Succeed())
-			})
-		})
+	DescribeTable("Creation Workflow", AssertWorkflow,
+		Entry("Creation succeeds",
+			func(runconfiguration *pipelinesv1.RunConfiguration) {
+				Expect(SucceedCreation(runconfiguration, JobId)).To(Succeed())
+			},
+			workflowFactory.ConstructCreationWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
+					To(Equal(JobId))
+			},
+		),
+		Entry("Creation fails",
+			func(runconfiguration *pipelinesv1.RunConfiguration) {
+				Expect(FailCreation()).To(Succeed())
+			},
+			workflowFactory.ConstructCreationWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+			},
+		),
+	)
 
-		When("The creation fails", func() {
-			It("Fails the workflow", func() {
+	DescribeTable("Deletion Workflow", AssertWorkflow,
+		Entry("Deletion succeeds",
+			func(runconfiguration *pipelinesv1.RunConfiguration) {
+				Expect(SucceedDeletion(JobId)).To(Succeed())
+			},
+			workflowFactory.ConstructDeletionWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+			},
+		),
+		Entry("Deletion fails",
+			func(runconfiguration *pipelinesv1.RunConfiguration) {
+				Expect(FailDeletion(JobId)).To(Succeed())
+			},
+			workflowFactory.ConstructDeletionWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+			},
+		),
+	)
 
-				testCtx := NewRunconfigurationTestContext(
-					&pipelinesv1.RunConfiguration{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:      RandomLowercaseString(),
-							Namespace: "argo",
-						},
-						Spec: pipelinesv1.RunConfigurationSpec{
-							PipelineName: "pipeline",
-							Schedule: "* * * * * *",
-						},
-					},
-					k8sClient, ctx)
-
-				Expect(KfpGetExperimentToSucceed(workflowFactory.Config.DefaultExperiment, ExperimentId)).To(Succeed())
-				Expect(KfpGetPipelineToSucceed(testCtx.RunConfiguration.Spec.PipelineName, PipelineId)).To(Succeed())
-				Expect(KfpCreateToFail(testCtx.RunConfiguration.Name, JobId)).To(Succeed())
-
-				workflow, err := workflowFactory.ConstructCreationWorkflow(testCtx.RunConfiguration)
-				Expect(err).NotTo(HaveOccurred())
-
-				err = k8sClient.Create(ctx, workflow)
-				Expect(err).NotTo(HaveOccurred())
-
-				Eventually(testCtx.WorkflowToMatch(RunConfigurationWorkflowConstants.CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-				}), TestTimeout).Should(Succeed())
-			})
-		})
-	})
+	DescribeTable("Update Workflow", AssertWorkflow,
+		Entry("Deletion and creation succeed", func(runconfiguration *pipelinesv1.RunConfiguration) {
+			Expect(SucceedDeletion(JobId)).To(Succeed())
+			Expect(SucceedCreation(runconfiguration, NewJobId)).To(Succeed())
+		},
+			workflowFactory.ConstructUpdateWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
+					To(Equal(NewJobId))
+			}),
+		Entry("Deletion fails and creation succeeds", func(runconfiguration *pipelinesv1.RunConfiguration) {
+			Expect(FailDeletion(JobId)).To(Succeed())
+			Expect(SucceedCreation(runconfiguration, NewJobId)).To(Succeed())
+		},
+			workflowFactory.ConstructUpdateWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
+					To(Equal(NewJobId))
+			}),
+		Entry("Deletion succeeds and creation fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
+			Expect(SucceedDeletion(JobId)).To(Succeed())
+			Expect(FailCreation()).To(Succeed())
+		},
+			workflowFactory.ConstructUpdateWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+			}),
+		Entry("Deletion and creation fail", func(runconfiguration *pipelinesv1.RunConfiguration) {
+			Expect(FailDeletion(JobId)).To(Succeed())
+			Expect(FailCreation()).To(Succeed())
+		},
+			workflowFactory.ConstructUpdateWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+			}),
+	)
 })

@@ -16,19 +16,21 @@ import (
 var _ = Context("Pipeline Workflows", func() {
 
 	workflowFactory := PipelineWorkflowFactory{
-		Config: configv1.Configuration{
-			KfpEndpoint:     "http://wiremock:80",
-			KfpSdkImage:     "kfp-operator-argo-kfp-sdk",
-			CompilerImage:   "kfp-operator-argo-compiler",
-			ImagePullPolicy: "Never", // Needed for minikube to use local images
-			PipelineStorage: "gs://some-bucket",
-			DefaultBeamArgs: map[string]string{
-				"project": "project",
+		WorkflowFactory: WorkflowFactory{
+			Config: configv1.Configuration{
+				KfpEndpoint:     "http://wiremock:80",
+				KfpSdkImage:     "kfp-operator-argo-kfp-sdk",
+				CompilerImage:   "kfp-operator-argo-compiler",
+				ImagePullPolicy: "Never", // Needed for minikube to use local images
+				PipelineStorage: "gs://some-bucket",
+				DefaultBeamArgs: map[string]string{
+					"project": "project",
+				},
 			},
 		},
 	}
 
-	var KfpUploadToSucceed = func(pipelineName string, pipelineId string) error {
+	var SucceedUpload = func(pipelineName string, pipelineId string) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
 			WithQueryParam("name", wiremock.EqualTo(pipelineName)).
 			WillReturn(
@@ -38,7 +40,7 @@ var _ = Context("Pipeline Workflows", func() {
 			))
 	}
 
-	var KfpUploadToFail = func(pipelineName string, pipelineId string) error {
+	var FailUpload = func(pipelineName string, pipelineId string) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
 			WithQueryParam("name", wiremock.EqualTo(pipelineName)).
 			WillReturn(
@@ -48,7 +50,7 @@ var _ = Context("Pipeline Workflows", func() {
 			))
 	}
 
-	var KfpUploadVersionToReturn = func(pipelineName string, pipelineId string, pipelineVersion string) error {
+	var SucceedUploadVersion = func(pipelineName string, pipelineId string, pipelineVersion string) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
 			WithQueryParam("name", wiremock.EqualTo(pipelineVersion)).
 			WithQueryParam("pipelineid", wiremock.EqualTo(pipelineId)).
@@ -59,7 +61,7 @@ var _ = Context("Pipeline Workflows", func() {
 			))
 	}
 
-	var KfpUploadVersionToFail = func(pipelineId string, pipelineVersion string) error {
+	var FailUploadVersion = func(pipelineId string, pipelineVersion string) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
 			WithQueryParam("name", wiremock.EqualTo(pipelineVersion)).
 			WithQueryParam("pipelineid", wiremock.EqualTo(pipelineId)).
@@ -70,19 +72,19 @@ var _ = Context("Pipeline Workflows", func() {
 			))
 	}
 
-	var KfpDeleteToReturn = func(pipeline pipelinesv1.Pipeline, pipelineId string) error {
+	var SucceedDeletion = func(pipelineId string) error {
 		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipelineId)).
 			WillReturn(
-				`{"satus": "deleted"}`,
+				`{"status": "deleted"}`,
 				map[string]string{"Content-Type": "application/json"},
 				200,
 			))
 	}
 
-	var KfpDeleteToFail = func(pipeline pipelinesv1.Pipeline, pipelineId string) error {
+	var FailDeletion = func(pipelineId string) error {
 		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipelineId)).
 			WillReturn(
-				`{"satus": "failed"}`,
+				`{"status": "failed"}`,
 				map[string]string{"Content-Type": "application/json"},
 				400,
 			))
@@ -102,8 +104,8 @@ var _ = Context("Pipeline Workflows", func() {
 					},
 					k8sClient, ctx)
 
-				Expect(KfpUploadToSucceed(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
-				Expect(KfpUploadVersionToReturn(testCtx.Pipeline.Name, PipelineId, V1)).To(Succeed())
+				Expect(SucceedUpload(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
+				Expect(SucceedUploadVersion(testCtx.Pipeline.Name, PipelineId, V1)).To(Succeed())
 
 				workflow, err := workflowFactory.ConstructCreationWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, V1)
 				Expect(err).NotTo(HaveOccurred())
@@ -111,7 +113,7 @@ var _ = Context("Pipeline Workflows", func() {
 				err = k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(PipelineWorkflowConstants.CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowByOperationToMatch(PipelineWorkflowConstants.CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
 						To(Equal(PipelineId))
@@ -131,8 +133,8 @@ var _ = Context("Pipeline Workflows", func() {
 					},
 					k8sClient, ctx)
 
-				Expect(KfpUploadToFail(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
-				Expect(KfpUploadVersionToFail(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
+				Expect(FailUpload(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
+				Expect(FailUploadVersion(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
 
 				workflow, err := workflowFactory.ConstructCreationWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, V1)
 				Expect(err).NotTo(HaveOccurred())
@@ -140,7 +142,7 @@ var _ = Context("Pipeline Workflows", func() {
 				err = k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(PipelineWorkflowConstants.CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowByOperationToMatch(PipelineWorkflowConstants.CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 				}), TestTimeout).Should(Succeed())
 			})
@@ -158,8 +160,8 @@ var _ = Context("Pipeline Workflows", func() {
 					},
 					k8sClient, ctx)
 
-				Expect(KfpUploadToSucceed(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
-				Expect(KfpUploadVersionToFail(PipelineId, V1)).To(Succeed())
+				Expect(SucceedUpload(testCtx.Pipeline.Name, PipelineId)).To(Succeed())
+				Expect(FailUploadVersion(PipelineId, V1)).To(Succeed())
 
 				workflow, err := workflowFactory.ConstructCreationWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, V1)
 				Expect(err).NotTo(HaveOccurred())
@@ -167,7 +169,7 @@ var _ = Context("Pipeline Workflows", func() {
 				err = k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(PipelineWorkflowConstants.CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowByOperationToMatch(PipelineWorkflowConstants.CreateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 				}), TestTimeout).Should(Succeed())
 			})
@@ -187,7 +189,7 @@ var _ = Context("Pipeline Workflows", func() {
 					},
 					k8sClient, ctx)
 
-				Expect(KfpUploadVersionToReturn(testCtx.Pipeline.Name, PipelineId, V1)).To(Succeed())
+				Expect(SucceedUploadVersion(testCtx.Pipeline.Name, PipelineId, V1)).To(Succeed())
 
 				workflow, err := workflowFactory.ConstructUpdateWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, PipelineId, V1)
 				Expect(err).NotTo(HaveOccurred())
@@ -195,7 +197,7 @@ var _ = Context("Pipeline Workflows", func() {
 				err = k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(PipelineWorkflowConstants.UpdateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowByOperationToMatch(PipelineWorkflowConstants.UpdateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				}), TestTimeout).Should(Succeed())
 			})
@@ -213,7 +215,7 @@ var _ = Context("Pipeline Workflows", func() {
 					},
 					k8sClient, ctx)
 
-				Expect(KfpUploadVersionToFail(PipelineId, V1)).To(Succeed())
+				Expect(FailUploadVersion(PipelineId, V1)).To(Succeed())
 
 				workflow, err := workflowFactory.ConstructUpdateWorkflow(testCtx.Pipeline.Spec, testCtx.Pipeline.ObjectMeta, PipelineId, V1)
 				Expect(err).NotTo(HaveOccurred())
@@ -221,7 +223,7 @@ var _ = Context("Pipeline Workflows", func() {
 				err = k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(PipelineWorkflowConstants.UpdateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowByOperationToMatch(PipelineWorkflowConstants.UpdateOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 				}), TestTimeout).Should(Succeed())
 			})
@@ -244,14 +246,14 @@ var _ = Context("Pipeline Workflows", func() {
 					},
 					k8sClient, ctx)
 
-				Expect(KfpDeleteToReturn(*testCtx.Pipeline, PipelineId)).To(Succeed())
+				Expect(SucceedDeletion(PipelineId)).To(Succeed())
 
 				workflow := workflowFactory.ConstructDeletionWorkflow(testCtx.Pipeline.ObjectMeta, PipelineId)
 
 				err := k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(PipelineWorkflowConstants.DeleteOperationLabel, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowByOperationToMatch(PipelineWorkflowConstants.DeleteOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				}), TestTimeout).Should(Succeed())
 			})
@@ -272,15 +274,14 @@ var _ = Context("Pipeline Workflows", func() {
 					},
 					k8sClient, ctx)
 
-				Expect(KfpDeleteToReturn(*testCtx.Pipeline, PipelineId)).To(Succeed())
-				Expect(KfpDeleteToFail(*testCtx.Pipeline, PipelineId)).To(Succeed())
+				Expect(FailDeletion(PipelineId)).To(Succeed())
 
 				workflow := workflowFactory.ConstructDeletionWorkflow(testCtx.Pipeline.ObjectMeta, PipelineId)
 
 				err := k8sClient.Create(ctx, workflow)
 				Expect(err).NotTo(HaveOccurred())
 
-				Eventually(testCtx.WorkflowToMatch(PipelineWorkflowConstants.DeleteOperationLabel, func(g Gomega, workflow *argo.Workflow) {
+				Eventually(testCtx.WorkflowByOperationToMatch(PipelineWorkflowConstants.DeleteOperationLabel, func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 				}), TestTimeout).Should(Succeed())
 			})

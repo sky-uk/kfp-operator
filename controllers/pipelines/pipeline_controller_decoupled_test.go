@@ -65,11 +65,13 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 
 		// TODO: mock workflowFactory
 		var workflowFactory = PipelineWorkflowFactory{
-			Config: configv1.Configuration{
-				KfpSdkImage:     "kfp-sdk",
-				CompilerImage:   "compiler",
-				ImagePullPolicy: "Never",
-				KfpEndpoint:     "http://www.example.com",
+			WorkflowFactory: WorkflowFactory{
+				Config: configv1.Configuration{
+					KfpSdkImage:     "kfp-sdk",
+					CompilerImage:   "compiler",
+					ImagePullPolicy: "Never",
+					KfpEndpoint:     "http://www.example.com",
+				},
 			},
 		}
 

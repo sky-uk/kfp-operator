@@ -3,49 +3,55 @@ package pipelines
 import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var RunConfigurationWorkflowConstants = struct {
-	CreateOperationLabel 	  string
-	RunConfigurationIdParameterName   string
-	RunConfigurationNameLabelKey string
-	OperationLabelKey string
-	CreationStepName string
+	CreateOperationLabel            string
+	DeleteOperationLabel            string
+	UpdateOperationLabel            string
+	RunConfigurationIdParameterName string
+	RunConfigurationNameLabelKey    string
+	OperationLabelKey               string
+	CreationStepName                string
+	DeletionStepName                string
 }{
-	CreateOperationLabel:      "create-runconfiguration",
-	RunConfigurationIdParameterName:   "runconfiguration-id",
-	RunConfigurationNameLabelKey:      "pipelines.kubeflow.org/runConfiguration",
-	OperationLabelKey:         "pipelines.kubeflow.org/operation",
-	CreationStepName: "create",
+	CreateOperationLabel:            "create-runconfiguration",
+	DeleteOperationLabel:            "delete-runconfiguration",
+	UpdateOperationLabel:            "update-runconfiguration",
+	RunConfigurationIdParameterName: "runconfiguration-id",
+	RunConfigurationNameLabelKey:    "pipelines.kubeflow.org/runConfiguration",
+	OperationLabelKey:               "pipelines.kubeflow.org/operation",
+	CreationStepName:                "create",
+	DeletionStepName:                "delete",
 }
 
 type RunConfigurationWorkflowFactory struct {
-	Config configv1.Configuration
+	WorkflowFactory
 }
 
-func (w *RunConfigurationWorkflowFactory) commonMeta(rc *pipelinesv1.RunConfiguration, operation string) *metav1.ObjectMeta {
+// TODO: use input parameters
+
+func (workflows *RunConfigurationWorkflowFactory) commonMeta(rc *pipelinesv1.RunConfiguration, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    rc.Namespace,
 		Labels: map[string]string{
-			RunConfigurationWorkflowConstants.OperationLabelKey:    operation,
+			RunConfigurationWorkflowConstants.OperationLabelKey:            operation,
 			RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: rc.Name,
 		},
 	}
 }
 
-func (w RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
+func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
 	entrypointName := RunConfigurationWorkflowConstants.CreateOperationLabel
 
-	workflow := argo.Workflow{
-		ObjectMeta: *w.commonMeta(runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel),
+	return &argo.Workflow{
+		ObjectMeta: *workflows.commonMeta(runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
-			ServiceAccountName: w.Config.ServiceAccount,
-			Entrypoint: entrypointName,
+			ServiceAccountName: workflows.Config.ServiceAccount,
+			Entrypoint:         entrypointName,
 			Templates: []argo.Template{
 				{
 					Name: entrypointName,
@@ -58,42 +64,119 @@ func (w RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfigurat
 								},
 							},
 						},
-
 					},
 					Outputs: argo.Outputs{
 						Parameters: []argo.Parameter{
 							{
 								Name: RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
 								ValueFrom: &argo.ValueFrom{
-									Parameter: "{{steps.create.outputs.result}}",
+									Parameter: fmt.Sprintf("{{steps.%s.outputs.result}}",
+										RunConfigurationWorkflowConstants.CreationStepName),
 								},
 							},
 						},
 					},
 				},
-				w.creator(runConfiguration),
+				workflows.creator(runConfiguration),
 			},
 		},
 	}
+}
 
-	return &workflow, nil
+func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
+	entrypointName := RunConfigurationWorkflowConstants.DeleteOperationLabel
+
+	return &argo.Workflow{
+		ObjectMeta: *workflows.commonMeta(runConfiguration, RunConfigurationWorkflowConstants.DeleteOperationLabel),
+		Spec: argo.WorkflowSpec{
+			ServiceAccountName: workflows.Config.ServiceAccount,
+			Entrypoint:         entrypointName,
+			Templates: []argo.Template{
+				{
+					Name: entrypointName,
+					Steps: []argo.ParallelSteps{
+						{
+							Steps: []argo.WorkflowStep{
+								{
+									Name:     RunConfigurationWorkflowConstants.DeletionStepName,
+									Template: RunConfigurationWorkflowConstants.DeletionStepName,
+								},
+							},
+						},
+					},
+				},
+				workflows.deleter(runConfiguration),
+			},
+		},
+	}
+}
+
+func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
+	entrypointName := RunConfigurationWorkflowConstants.UpdateOperationLabel
+
+	return &argo.Workflow{
+		ObjectMeta: *workflows.commonMeta(runConfiguration, RunConfigurationWorkflowConstants.UpdateOperationLabel),
+		Spec: argo.WorkflowSpec{
+			ServiceAccountName: workflows.Config.ServiceAccount,
+			Entrypoint:         entrypointName,
+			Templates: []argo.Template{
+				{
+					Name: entrypointName,
+					Steps: []argo.ParallelSteps{
+						{
+							Steps: []argo.WorkflowStep{
+								{
+									Name:     RunConfigurationWorkflowConstants.DeletionStepName,
+									Template: RunConfigurationWorkflowConstants.DeletionStepName,
+									ContinueOn: &argo.ContinueOn{
+										Failed: true,
+									},
+								},
+							},
+						},
+						{
+							Steps: []argo.WorkflowStep{
+								{
+									Name:     RunConfigurationWorkflowConstants.CreationStepName,
+									Template: RunConfigurationWorkflowConstants.CreationStepName,
+								},
+							},
+						},
+					},
+					Outputs: argo.Outputs{
+						Parameters: []argo.Parameter{
+							{
+								Name: RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+								ValueFrom: &argo.ValueFrom{
+									Parameter: fmt.Sprintf("{{steps.%s.outputs.result}}",
+										RunConfigurationWorkflowConstants.CreationStepName),
+								},
+							},
+						},
+					},
+				},
+				workflows.deleter(runConfiguration),
+				workflows.creator(runConfiguration),
+			},
+		},
+	}
 }
 
 func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipelinesv1.RunConfiguration) argo.Template {
-	script :=
-		"set -e -o pipefail\n" +
-			fmt.Sprintf("kfp-ext --endpoint %s --output json job submit --experiment-name %s --job-name %s --pipeline-name %s --cron-expression '%s' | jq -r '.\"Job Details\".\"ID\"'",
-				workflows.Config.KfpEndpoint, workflows.Config.DefaultExperiment, runConfiguration.Name, runConfiguration.Spec.PipelineName, runConfiguration.Spec.Schedule)
+	kfpScript := fmt.Sprintf(`job submit --experiment-name %s --job-name %s --pipeline-name %s --cron-expression '%s' | jq -r '."Job Details"."ID"'`,
+		workflows.Config.DefaultExperiment, runConfiguration.Name, runConfiguration.Spec.PipelineName, runConfiguration.Spec.Schedule)
 
 	return argo.Template{
-		Name: RunConfigurationWorkflowConstants.CreationStepName,
-		Script: &argo.ScriptTemplate{
-			Container: apiv1.Container{
-				Image:           workflows.Config.KfpSdkImage,
-				ImagePullPolicy: apiv1.PullPolicy(workflows.Config.ImagePullPolicy),
-				Command:         []string{"ash"},
-			},
-			Source: script,
-		},
+		Name:   RunConfigurationWorkflowConstants.CreationStepName,
+		Script: workflows.ScriptTemplate(kfpScript),
+	}
+}
+
+func (workflows *RunConfigurationWorkflowFactory) deleter(runConfiguration *pipelinesv1.RunConfiguration) argo.Template {
+	kfpScript := fmt.Sprintf("job delete %s", runConfiguration.Status.KfpId)
+
+	return argo.Template{
+		Name:   RunConfigurationWorkflowConstants.DeletionStepName,
+		Script: workflows.ScriptTemplate(kfpScript),
 	}
 }

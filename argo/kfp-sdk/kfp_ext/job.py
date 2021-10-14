@@ -64,6 +64,15 @@ def get(ctx, job_id):
 
     _display_job(job, output_format)
 
+@job.command()
+@click.argument('job-id')
+@click.pass_context
+def delete(ctx, job_id):
+    client = ctx.obj['client']
+
+    client.delete_recurring_run(job_id=job_id)
+    click.echo("{} is deleted.".format(job_id))
+
 def _display_job(job, output_format):
     table = [
         ["ID", job.id],

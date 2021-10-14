@@ -1,5 +1,5 @@
-//go:build decoupled || integration
-// +build decoupled integration
+//go:build unit || decoupled || integration
+// +build unit decoupled integration
 
 package pipelines
 
@@ -10,15 +10,14 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	//+kubebuilder:scaffold:imports
 )
 
 type TestContext struct {
-	K8sClient         client.Client
-	ctx               context.Context
-	LookupKey     	  types.NamespacedName
-	LookupLabel       string
+	K8sClient   client.Client
+	ctx         context.Context
+	LookupKey   types.NamespacedName
+	LookupLabel string
 }
 
 func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(Gomega, map[string]string)) func(Gomega) {
@@ -42,7 +41,17 @@ func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(G
 	}
 }
 
-func (testCtx TestContext) WorkflowToMatch(operation string, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+func (testCtx TestContext) WorkflowByNameToMatch(namespacedName types.NamespacedName, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+
+	return func(g Gomega) {
+		workflow := &argo.Workflow{}
+		Expect(testCtx.K8sClient.Get(testCtx.ctx, namespacedName, workflow)).To(Succeed())
+
+		matcher(g, workflow)
+	}
+}
+
+func (testCtx TestContext) WorkflowByOperationToMatch(operation string, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
 
 	return func(g Gomega) {
 		workflow, err := testCtx.fetchWorkflow(operation)

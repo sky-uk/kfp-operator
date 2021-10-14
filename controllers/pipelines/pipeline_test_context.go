@@ -1,5 +1,5 @@
-//go:build decoupled || integration
-// +build decoupled integration
+//go:build unit || decoupled || integration
+// +build unit decoupled integration
 
 package pipelines
 
@@ -21,20 +21,20 @@ const (
 
 type PipelineTestContext struct {
 	TestContext
-	Pipeline          *pipelinesv1.Pipeline
-	PipelineVersion   string
+	Pipeline        *pipelinesv1.Pipeline
+	PipelineVersion string
 }
 
 func NewPipelineTestContext(pipeline *pipelinesv1.Pipeline, k8sClient client.Client, ctx context.Context) PipelineTestContext {
 	return PipelineTestContext{
 		TestContext: TestContext{
-			K8sClient:         k8sClient,
-			ctx:               ctx,
-			LookupKey: types.NamespacedName{Name: pipeline.Name, Namespace: PipelineNamespace},
+			K8sClient:   k8sClient,
+			ctx:         ctx,
+			LookupKey:   types.NamespacedName{Name: pipeline.Name, Namespace: PipelineNamespace},
 			LookupLabel: PipelineWorkflowConstants.PipelineNameLabelKey,
 		},
-		Pipeline:          pipeline,
-		PipelineVersion:           pipeline.Spec.ComputeVersion(),
+		Pipeline:        pipeline,
+		PipelineVersion: pipeline.Spec.ComputeVersion(),
 	}
 }
 
@@ -60,7 +60,6 @@ var SpecV2 = pipelinesv1.PipelineSpec{
 var V0 = pipelinesv1.PipelineSpec{}.ComputeVersion()
 var V1 = SpecV1.ComputeVersion()
 var V2 = SpecV2.ComputeVersion()
-
 
 func (testCtx PipelineTestContext) PipelineToMatch(matcher func(Gomega, *pipelinesv1.Pipeline)) func(Gomega) {
 	return func(g Gomega) {

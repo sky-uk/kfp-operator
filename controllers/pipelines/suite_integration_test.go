@@ -42,7 +42,6 @@ func TestPipelineControllerIntegrationSuite(t *testing.T) {
 	RunSpecs(t, "Pipeline Controller Suite")
 }
 
-
 var _ = BeforeSuite(func() {
 	wiremockClient = wiremock.NewClient("http://localhost:8081")
 
