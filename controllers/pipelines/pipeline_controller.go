@@ -23,23 +23,7 @@ var (
 type PipelineReconciler struct {
 	client.Client
 	Scheme       *runtime.Scheme
-	StateHandler StateHandler
-}
-
-type WorkflowRepository interface {
-	GetByOperation(ctx context.Context, operation string, pipelineName *pipelinesv1.Pipeline) []argo.Workflow
-}
-
-type WorkflowRepositoryImpl struct {
-	client.Client
-}
-
-func (w WorkflowRepositoryImpl) GetByOperation(ctx context.Context, operation string, pipeline *pipelinesv1.Pipeline) []argo.Workflow {
-	var workflows argo.WorkflowList
-
-	w.List(ctx, &workflows, client.InNamespace(pipeline.Namespace), client.MatchingLabels{PipelineWorkflowConstants.OperationLabelKey: operation, PipelineWorkflowConstants.PipelineNameLabelKey: pipeline.Name})
-
-	return workflows.Items
+	StateHandler PipelineStateHandler
 }
 
 //+kubebuilder:rbac:groups=argoproj.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete
@@ -81,10 +65,10 @@ func (r *PipelineReconciler) AddFinalizer(ctx context.Context, pipeline *pipelin
 	return nil
 }
 
-func (r *PipelineReconciler) RemoveFinalizer(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+func (r *PipelineReconciler) RemoveFinalizer(ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
 	if containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
 		pipeline.ObjectMeta.Finalizers = removeString(pipeline.ObjectMeta.Finalizers, finalizerName)
-		return r.Update(ctx, &pipeline)
+		return r.Update(ctx, pipeline)
 	}
 
 	return nil

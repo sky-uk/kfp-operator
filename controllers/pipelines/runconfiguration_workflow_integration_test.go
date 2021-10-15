@@ -111,7 +111,7 @@ var _ = Context("RunConfiguration Workflows", func() {
 					PipelineName: "pipeline",
 					Schedule:     "* * * * * *",
 				},
-				Status: pipelinesv1.RunConfigurationStatus{
+				Status: pipelinesv1.Status{
 					KfpId: JobId,
 				},
 			},

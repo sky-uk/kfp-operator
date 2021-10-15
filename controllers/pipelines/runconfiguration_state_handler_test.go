@@ -15,86 +15,84 @@ import (
 	"time"
 )
 
-type PipelineStateTransitionTestCase struct {
-	workflowFactory PipelineWorkflowFactory
-	Pipeline        *pipelinesv1.Pipeline
-	SystemStatus    StubbedWorkflows
-	Commands        []PipelineCommand
+type RunConfigurationStateTransitionTestCase struct {
+	workflowFactory  RunConfigurationWorkflowFactory
+	RunConfiguration *pipelinesv1.RunConfiguration
+	SystemStatus     StubbedWorkflows
+	Commands         []RunConfigurationCommand
 }
 
-func (st PipelineStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) PipelineStateTransitionTestCase {
-	return st.IssuesCommand(SetPipelineStatus{Status: pipelinesv1.Status{
+func (st RunConfigurationStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) RunConfigurationStateTransitionTestCase {
+	return st.IssuesCommand(SetRunConfigurationStatus{Status: pipelinesv1.Status{
 		KfpId:                id,
 		Version:              version,
 		SynchronizationState: state,
 	}})
 }
 
-func (st PipelineStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) PipelineStateTransitionTestCase {
+func (st RunConfigurationStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) RunConfigurationStateTransitionTestCase {
 	st.SystemStatus.AddWorkflow(*workflow)
-
 	return st
 }
 
-func (st PipelineStateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
-	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, phase))
+func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) RunConfigurationStateTransitionTestCase {
+	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.CreateOperationLabel, phase))
 }
 
-func (st PipelineStateTransitionTestCase) WithCreateWorkWithId(phase argo.WorkflowPhase, kfpId string) PipelineStateTransitionTestCase {
+func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.WorkflowPhase, kfpId string) RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
 		setWorkflowOutput(
-			st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, phase),
-			PipelineWorkflowConstants.PipelineIdParameterName, kfpId),
+			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.CreateOperationLabel, phase),
+			RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, kfpId),
 	)
 }
 
-func (st PipelineStateTransitionTestCase) WithUpdateWorkflow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
+func (st RunConfigurationStateTransitionTestCase) WithUpdateWorkflow(phase argo.WorkflowPhase) RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.UpdateOperationLabel, phase),
+		st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, phase),
 	)
 }
 
-func (st PipelineStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
+func (st RunConfigurationStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.DeleteOperationLabel, phase),
+		st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.DeleteOperationLabel, phase),
 	)
 }
 
-func (st PipelineStateTransitionTestCase) IssuesCreationWorkflow() PipelineStateTransitionTestCase {
-	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(st.Pipeline)
-	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *creationWorkflow})
+func (st RunConfigurationStateTransitionTestCase) IssuesCreationWorkflow() RunConfigurationStateTransitionTestCase {
+	creationWorkflow := st.workflowFactory.ConstructCreationWorkflow(st.RunConfiguration)
+	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *creationWorkflow})
 }
 
-func (st PipelineStateTransitionTestCase) IssuesUpdateWorkflow() PipelineStateTransitionTestCase {
-	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(st.Pipeline)
-	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *updateWorkflow})
+func (st RunConfigurationStateTransitionTestCase) IssuesUpdateWorkflow() RunConfigurationStateTransitionTestCase {
+	updateWorkflow := st.workflowFactory.ConstructUpdateWorkflow(st.RunConfiguration)
+	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *updateWorkflow})
 }
 
-func (st PipelineStateTransitionTestCase) IssuesDeletionWorkflow() PipelineStateTransitionTestCase {
-	deletionWorkflow := st.workflowFactory.ConstructDeletionWorkflow(st.Pipeline)
-	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *deletionWorkflow})
+func (st RunConfigurationStateTransitionTestCase) IssuesDeletionWorkflow() RunConfigurationStateTransitionTestCase {
+	deletionWorkflow := st.workflowFactory.ConstructDeletionWorkflow(st.RunConfiguration)
+	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *deletionWorkflow})
 }
 
-func (st PipelineStateTransitionTestCase) DeletesAllWorkflows() PipelineStateTransitionTestCase {
-	return st.IssuesCommand(DeletePipelineWorkflows{
+func (st RunConfigurationStateTransitionTestCase) DeletesAllWorkflows() RunConfigurationStateTransitionTestCase {
+	return st.IssuesCommand(DeleteRunConfigurationWorkflows{
 		Workflows: st.SystemStatus.Workflows,
 	})
 }
 
-func (st PipelineStateTransitionTestCase) IssuesCommand(commdand PipelineCommand) PipelineStateTransitionTestCase {
-	st.Commands = append(st.Commands, commdand)
+func (st RunConfigurationStateTransitionTestCase) IssuesCommand(command RunConfigurationCommand) RunConfigurationStateTransitionTestCase {
+	st.Commands = append(st.Commands, command)
 	return st
 }
 
-func (st PipelineStateTransitionTestCase) DeletionRequested() PipelineStateTransitionTestCase {
-	st.Pipeline.DeletionTimestamp = &metav1.Time{time.UnixMilli(1)}
+func (st RunConfigurationStateTransitionTestCase) DeletionRequested() RunConfigurationStateTransitionTestCase {
+	st.RunConfiguration.DeletionTimestamp = &metav1.Time{time.UnixMilli(1)}
 	return st
 }
 
-var _ = Describe("Pipeline State handler", func() {
-
+var _ = Describe("RunConfiguration State handler", func() {
 	// TODO: mock workflowFactory
-	var workflowFactory = PipelineWorkflowFactory{
+	var workflowFactory = RunConfigurationWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
 			Config: configv1.Configuration{
 				KfpSdkImage:     "kfp-sdk",
@@ -107,38 +105,38 @@ var _ = Describe("Pipeline State handler", func() {
 
 	kfpId := "12345"
 	anotherKfpId := "67890"
-	specv1 := RandomPipelineSpec()
+	specv1 := RandomRunConfigurationSpec()
 	v0 := pipelinesv1.RunConfigurationSpec{}.ComputeVersion()
 	v1 := specv1.ComputeVersion()
 
-	var Check = func(description string, transition PipelineStateTransitionTestCase) TableEntry {
+	var Check = func(description string, transition RunConfigurationStateTransitionTestCase) TableEntry {
 		return Entry(
 			description,
 			transition,
 		)
 	}
 
-	var From = func(status pipelinesv1.SynchronizationState, id string, version string) PipelineStateTransitionTestCase {
-		pipeline := RandomPipeline()
-		pipeline.Spec = specv1
-		pipeline.Status = pipelinesv1.Status{
+	var From = func(status pipelinesv1.SynchronizationState, id string, version string) RunConfigurationStateTransitionTestCase {
+		runConfiguration := RandomRunConfiguration()
+		runConfiguration.Spec = specv1
+		runConfiguration.Status = pipelinesv1.Status{
 			SynchronizationState: status,
 			Version:              version,
 			KfpId:                id,
 		}
 
-		return PipelineStateTransitionTestCase{
-			workflowFactory: workflowFactory,
-			Pipeline:        pipeline,
+		return RunConfigurationStateTransitionTestCase{
+			workflowFactory:  workflowFactory,
+			RunConfiguration: runConfiguration,
 		}
 	}
 
-	DescribeTable("State transitions", func(st PipelineStateTransitionTestCase) {
-		var stateHandler = PipelineStateHandler{
+	DescribeTable("State transitions", func(st RunConfigurationStateTransitionTestCase) {
+		var stateHandler = RunConfigurationStateHandler{
 			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    workflowFactory,
 		}
-		commands := stateHandler.StateTransition(context.Background(), st.Pipeline)
+		commands := stateHandler.StateTransition(context.Background(), st.RunConfiguration)
 		is := make([]interface{}, len(st.Commands))
 		for i, v := range st.Commands {
 			is[i] = v
@@ -167,20 +165,14 @@ var _ = Describe("Pipeline State handler", func() {
 		),
 		Check("Creation succeeds",
 			From(pipelinesv1.Creating, "", v1).
-				WithCreateWorkWithId(argo.WorkflowSucceeded, kfpId).
+				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation succeeds with existing KfpId",
 			From(pipelinesv1.Creating, anotherKfpId, v1).
-				WithCreateWorkWithId(argo.WorkflowSucceeded, kfpId).
+				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
-				DeletesAllWorkflows(),
-		),
-		Check("Creation fails with KfpId",
-			From(pipelinesv1.Creating, "", v1).
-				WithCreateWorkWithId(argo.WorkflowFailed, kfpId).
-				To(pipelinesv1.Failed, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creation fails",
@@ -285,7 +277,6 @@ var _ = Describe("Pipeline State handler", func() {
 		),
 		Check("Stay in deleted",
 			From(pipelinesv1.Deleted, kfpId, v1).
-				IssuesCommand(DeletePipeline{}),
-		),
-	)
+				IssuesCommand(DeleteRunConfiguration{}),
+		))
 })

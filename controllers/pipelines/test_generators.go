@@ -39,11 +39,33 @@ func RandomPipeline() *pipelinesv1.Pipeline {
 			Name:      RandomLowercaseString(),
 			Namespace: RandomLowercaseString(),
 		},
-		Spec: pipelinesv1.PipelineSpec{
-			Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
-			TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
-			Env:           RandomMap(),
-			BeamArgs:      RandomMap(),
+		Spec: RandomPipelineSpec(),
+	}
+}
+
+func RandomPipelineSpec() pipelinesv1.PipelineSpec {
+	return pipelinesv1.PipelineSpec{
+		Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
+		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
+		Env:           RandomMap(),
+		BeamArgs:      RandomMap(),
+	}
+}
+
+func RandomRunConfiguration() *pipelinesv1.RunConfiguration {
+	return &pipelinesv1.RunConfiguration{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandomLowercaseString(),
+			Namespace: RandomLowercaseString(),
 		},
+		Spec: RandomRunConfigurationSpec(),
+	}
+}
+
+func RandomRunConfigurationSpec() pipelinesv1.RunConfigurationSpec {
+	return pipelinesv1.RunConfigurationSpec{
+		PipelineName:      RandomString(),
+		Schedule:          RandomString(),
+		RuntimeParameters: RandomMap(),
 	}
 }

@@ -101,7 +101,7 @@ func main() {
 		Client: client,
 	}
 
-	var stateHandler = pipelinescontrollers.StateHandler{
+	var stateHandler = pipelinescontrollers.PipelineStateHandler{
 		WorkflowFactory:    workflowFactory,
 		WorkflowRepository: workflowRepository,
 	}

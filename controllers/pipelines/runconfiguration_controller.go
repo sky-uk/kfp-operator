@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -36,6 +37,36 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	// your logic here
 
 	return ctrl.Result{}, nil
+}
+
+func (r *RunConfigurationReconciler) AddFinalizer(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) error {
+	if !containsString(runconfiguration.ObjectMeta.Finalizers, finalizerName) {
+		runconfiguration.ObjectMeta.Finalizers = append(runconfiguration.ObjectMeta.Finalizers, finalizerName)
+		return r.Update(ctx, runconfiguration)
+	}
+
+	return nil
+}
+
+func (r *RunConfigurationReconciler) RemoveFinalizer(ctx context.Context, runconfiguration pipelinesv1.RunConfiguration) error {
+	if containsString(runconfiguration.ObjectMeta.Finalizers, finalizerName) {
+		runconfiguration.ObjectMeta.Finalizers = removeString(runconfiguration.ObjectMeta.Finalizers, finalizerName)
+		return r.Update(ctx, &runconfiguration)
+	}
+
+	return nil
+}
+
+func (r *RunConfigurationReconciler) CreateChildWorkflow(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration, workflow argo.Workflow) error {
+	if err := ctrl.SetControllerReference(runconfiguration, &workflow, r.Scheme); err != nil {
+		return err
+	}
+
+	if err := r.Create(ctx, &workflow); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

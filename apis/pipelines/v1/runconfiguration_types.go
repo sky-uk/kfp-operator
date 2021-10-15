@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type RunConfigurationSpec struct {
@@ -26,12 +27,6 @@ func (rcs RunConfigurationSpec) ComputeVersion() string {
 	return fmt.Sprintf("%x", hash)
 }
 
-type RunConfigurationStatus struct {
-	KfpId                string               `json:"kfpId,omitempty"`
-	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`
-	Version              string               `json:"version,omitempty"`
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
@@ -42,8 +37,15 @@ type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RunConfigurationSpec   `json:"spec,omitempty"`
-	Status RunConfigurationStatus `json:"status,omitempty"`
+	Spec   RunConfigurationSpec `json:"spec,omitempty"`
+	Status Status               `json:"status,omitempty"`
+}
+
+func (r RunConfiguration) NamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      r.Name,
+		Namespace: r.Namespace,
+	}
 }
 
 //+kubebuilder:object:root=true

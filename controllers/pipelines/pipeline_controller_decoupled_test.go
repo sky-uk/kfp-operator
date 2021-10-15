@@ -79,7 +79,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 			Client: k8sClient,
 		}
 
-		var stateHandler = StateHandler{
+		var stateHandler = PipelineStateHandler{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    workflowFactory,
 		}

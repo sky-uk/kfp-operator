@@ -1,12 +1,11 @@
-//go:build unit || decoupled || integration
-// +build unit decoupled integration
+//go:build decoupled || integration
+// +build decoupled integration
 
 package pipelines
 
 import (
 	"context"
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -14,7 +13,6 @@ import (
 )
 
 const (
-	PipelineNamespace = "default"
 	PipelineId        = "12345"
 	AnotherPipelineId = "67890"
 )
@@ -30,7 +28,7 @@ func NewPipelineTestContext(pipeline *pipelinesv1.Pipeline, k8sClient client.Cli
 		TestContext: TestContext{
 			K8sClient:   k8sClient,
 			ctx:         ctx,
-			LookupKey:   types.NamespacedName{Name: pipeline.Name, Namespace: PipelineNamespace},
+			LookupKey:   pipeline.NamespacedName(),
 			LookupLabel: PipelineWorkflowConstants.PipelineNameLabelKey,
 		},
 		Pipeline:        pipeline,
@@ -101,7 +99,7 @@ func (testCtx PipelineTestContext) UpdatePipelineStatus(updateFunc func(*pipelin
 }
 
 func (testCtx PipelineTestContext) PipelineCreated() {
-	testCtx.PipelineCreatedWithStatus(pipelinesv1.PipelineStatus{
+	testCtx.PipelineCreatedWithStatus(pipelinesv1.Status{
 		KfpId:                PipelineId,
 		SynchronizationState: pipelinesv1.Succeeded,
 		Version:              testCtx.PipelineVersion,
@@ -118,7 +116,7 @@ func (testCtx PipelineTestContext) DeletePipeline() error {
 	return testCtx.K8sClient.Delete(testCtx.ctx, pipeline)
 }
 
-func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status pipelinesv1.PipelineStatus) {
+func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status pipelinesv1.Status) {
 	Expect(testCtx.K8sClient.Create(testCtx.ctx, testCtx.Pipeline)).To(Succeed())
 
 	Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {

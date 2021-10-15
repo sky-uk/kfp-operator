@@ -6,7 +6,6 @@ package pipelines
 import (
 	"context"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -26,7 +25,7 @@ func NewRunconfigurationTestContext(runConfiguration *pipelinesv1.RunConfigurati
 		TestContext: TestContext{
 			K8sClient:   k8sClient,
 			ctx:         ctx,
-			LookupKey:   types.NamespacedName{Name: runConfiguration.Name, Namespace: runConfiguration.Namespace},
+			LookupKey:   runConfiguration.NamespacedName(),
 			LookupLabel: RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey,
 		},
 		RunConfiguration: runConfiguration,

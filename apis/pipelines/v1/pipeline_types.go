@@ -5,6 +5,7 @@ import (
 	. "github.com/docker/distribution/reference"
 	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type PipelineSpec struct {
@@ -35,12 +36,6 @@ func (ps PipelineSpec) ComputeVersion() string {
 	return fmt.Sprintf("%x", hash)
 }
 
-type PipelineStatus struct {
-	KfpId                string               `json:"kfpId,omitempty"`
-	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`
-	Version              string               `json:"version,omitempty"`
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
@@ -51,8 +46,15 @@ type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   PipelineSpec   `json:"spec,omitempty"`
-	Status PipelineStatus `json:"status,omitempty"`
+	Spec   PipelineSpec `json:"spec,omitempty"`
+	Status Status       `json:"status,omitempty"`
+}
+
+func (p Pipeline) NamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      p.Name,
+		Namespace: p.Namespace,
+	}
 }
 
 //+kubebuilder:object:root=true

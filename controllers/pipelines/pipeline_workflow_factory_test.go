@@ -42,7 +42,7 @@ var _ = Describe("Workflows", func() {
 		When("creating a workflow with valid paramters", func() {
 			It("creates a valid workflow", func() {
 				pipeline := RandomPipeline()
-				workflow, error := wf.ConstructCreationWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.Version)
+				workflow, error := wf.ConstructCreationWorkflow(pipeline)
 				Expect(error).NotTo(HaveOccurred())
 
 				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.CreateOperationLabel))
@@ -58,7 +58,7 @@ var _ = Describe("Workflows", func() {
 		When("creating a workflow with valid paramters", func() {
 			It("creates a valid workflow", func() {
 				pipeline := RandomPipeline()
-				workflow, error := wf.ConstructUpdateWorkflow(pipeline.Spec, pipeline.ObjectMeta, pipeline.Status.KfpId, pipeline.Status.Version)
+				workflow, error := wf.ConstructUpdateWorkflow(pipeline)
 				Expect(error).NotTo(HaveOccurred())
 
 				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.UpdateOperationLabel))
@@ -73,7 +73,7 @@ var _ = Describe("Workflows", func() {
 		When("creating a workflow with valid paramters", func() {
 			It("creates a valid workflow", func() {
 				pipeline := RandomPipeline()
-				workflow := wf.ConstructDeletionWorkflow(pipeline.ObjectMeta, pipeline.Status.KfpId)
+				workflow := wf.ConstructDeletionWorkflow(pipeline)
 
 				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.DeleteOperationLabel))
 				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.PipelineNameLabelKey, pipeline.Name))
@@ -88,17 +88,20 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("Some fields are copied from Pipeline resource", func() {
 		wf := PipelineWorkflowFactory{}
-		meta := v1.ObjectMeta{
-			Name: "pipelineName",
-		}
-		spec := pipelinesv1.PipelineSpec{
-			Image:         "pipelineImage",
-			TfxComponents: "pipelineTfxComponents",
-			Env: map[string]string{
-				"ea": "b",
+		pipeline := &pipelinesv1.Pipeline{
+			ObjectMeta: v1.ObjectMeta{
+				Name: "pipelineName",
+			},
+			Spec: pipelinesv1.PipelineSpec{
+				Image:         "pipelineImage",
+				TfxComponents: "pipelineTfxComponents",
+				Env: map[string]string{
+					"ea": "b",
+				},
 			},
 		}
-		compilerConfig := wf.newCompilerConfig(spec, meta)
+
+		compilerConfig := wf.newCompilerConfig(pipeline)
 
 		Expect(compilerConfig.Name).To(Equal("pipelineName"))
 		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
@@ -114,11 +117,13 @@ var _ = Describe("PipelineConfig", func() {
 				},
 			},
 		}
-		meta := v1.ObjectMeta{
-			Name: "pipelineName",
+		pipeline := &pipelinesv1.Pipeline{
+			ObjectMeta: v1.ObjectMeta{
+				Name: "pipelineName",
+			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipelinesv1.PipelineSpec{}, meta)
+		compilerConfig := wf.newCompilerConfig(pipeline)
 
 		Expect(compilerConfig.RootLocation).To(Equal("gs://bucket/pipelineName"))
 		Expect(compilerConfig.ServingLocation).To(Equal("gs://bucket/pipelineName/serving"))
@@ -126,13 +131,15 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("Original BeamArgs are copied", func() {
 		wf := PipelineWorkflowFactory{}
-		spec := pipelinesv1.PipelineSpec{
-			BeamArgs: map[string]string{
-				"a": "b",
+		pipeline := &pipelinesv1.Pipeline{
+			Spec: pipelinesv1.PipelineSpec{
+				BeamArgs: map[string]string{
+					"a": "b",
+				},
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(spec, v1.ObjectMeta{})
+		compilerConfig := wf.newCompilerConfig(pipeline)
 
 		Expect(compilerConfig.BeamArgs["a"]).To(Equal("b"))
 	})
@@ -145,16 +152,19 @@ var _ = Describe("PipelineConfig", func() {
 				},
 			},
 		}
-		meta := v1.ObjectMeta{
-			Name: "pipelineName",
-		}
-		spec := pipelinesv1.PipelineSpec{
-			BeamArgs: map[string]string{
-				"temp_location": "will be overridden",
+
+		pipeline := &pipelinesv1.Pipeline{
+			ObjectMeta: v1.ObjectMeta{
+				Name: "pipelineName",
+			},
+			Spec: pipelinesv1.PipelineSpec{
+				BeamArgs: map[string]string{
+					"temp_location": "will be overridden",
+				},
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(spec, meta)
+		compilerConfig := wf.newCompilerConfig(pipeline)
 
 		Expect(compilerConfig.BeamArgs["temp_location"]).To(Equal("gs://bucket/pipelineName/tmp"))
 	})
@@ -170,13 +180,16 @@ var _ = Describe("PipelineConfig", func() {
 				},
 			},
 		}
-		spec := pipelinesv1.PipelineSpec{
-			BeamArgs: map[string]string{
-				"bc": "bd",
+
+		pipeline := &pipelinesv1.Pipeline{
+			Spec: pipelinesv1.PipelineSpec{
+				BeamArgs: map[string]string{
+					"bc": "bd",
+				},
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(spec, v1.ObjectMeta{})
+		compilerConfig := wf.newCompilerConfig(pipeline)
 
 		Expect(compilerConfig.BeamArgs["ba"]).To(Equal("default"))
 		Expect(compilerConfig.BeamArgs["bc"]).To(Equal("bd"))
