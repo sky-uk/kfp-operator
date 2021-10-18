@@ -4,7 +4,6 @@
 package pipelines
 
 import (
-	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
@@ -12,77 +11,6 @@ import (
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-func workflowTemplates(wf argo.Workflow) map[string]argo.Template {
-	result := make(map[string]argo.Template, len(wf.Spec.Templates))
-
-	for _, template := range wf.Spec.Templates {
-		result[template.Name] = template
-	}
-
-	return result
-}
-
-var _ = Describe("Workflows", func() {
-
-	var wf = PipelineWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
-			Config: configv1.Configuration{
-				PipelineStorage: "gs://some-bucket",
-				CompilerImage:   "image:v1",
-				KfpSdkImage:     "image:v1",
-				DefaultBeamArgs: map[string]string{
-					"project": "project",
-				},
-			},
-		},
-	}
-
-	var _ = Describe("Creation Workflow", func() {
-		When("creating a workflow with valid paramters", func() {
-			It("creates a valid workflow", func() {
-				pipeline := RandomPipeline()
-				workflow, error := wf.ConstructCreationWorkflow(pipeline)
-				Expect(error).NotTo(HaveOccurred())
-
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.CreateOperationLabel))
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.PipelineNameLabelKey, pipeline.Name))
-				Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
-				Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
-				Expect(workflowTemplates(*workflow)).To(HaveKey(workflow.Spec.Entrypoint))
-			})
-		})
-	})
-
-	var _ = Describe("Update Workflow", func() {
-		When("creating a workflow with valid paramters", func() {
-			It("creates a valid workflow", func() {
-				pipeline := RandomPipeline()
-				workflow, error := wf.ConstructUpdateWorkflow(pipeline)
-				Expect(error).NotTo(HaveOccurred())
-
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.UpdateOperationLabel))
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.PipelineNameLabelKey, pipeline.Name))
-				Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
-				Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
-			})
-		})
-	})
-
-	var _ = Describe("Deletion Workflow", func() {
-		When("creating a workflow with valid paramters", func() {
-			It("creates a valid workflow", func() {
-				pipeline := RandomPipeline()
-				workflow := wf.ConstructDeletionWorkflow(pipeline)
-
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.OperationLabelKey, PipelineWorkflowConstants.DeleteOperationLabel))
-				Expect(workflow.ObjectMeta.Labels).To(HaveKeyWithValue(PipelineWorkflowConstants.PipelineNameLabelKey, pipeline.Name))
-				Expect(workflow.ObjectMeta.Namespace).To(Equal(pipeline.Namespace))
-				Expect(workflow.Spec.ServiceAccountName).To(Equal(wf.Config.ServiceAccount))
-			})
-		})
-	})
-})
 
 var _ = Describe("PipelineConfig", func() {
 
