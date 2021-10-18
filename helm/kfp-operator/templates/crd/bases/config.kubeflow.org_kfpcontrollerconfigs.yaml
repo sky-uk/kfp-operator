@@ -160,6 +160,8 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              defaultExperiment:
+                type: string
               imagePullPolicy:
                 type: string
               kfpEndpoint:

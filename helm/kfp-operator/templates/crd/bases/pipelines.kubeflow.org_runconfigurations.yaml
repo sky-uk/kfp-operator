@@ -6,14 +6,14 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: pipelines.pipelines.kubeflow.org
+  name: runconfigurations.pipelines.kubeflow.org
 spec:
   group: pipelines.kubeflow.org
   names:
-    kind: Pipeline
-    listKind: PipelineList
-    plural: pipelines
-    singular: pipeline
+    kind: RunConfiguration
+    listKind: RunConfigurationList
+    plural: runconfigurations
+    singular: runconfiguration
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -44,21 +44,14 @@ spec:
             type: object
           spec:
             properties:
-              beamArgs:
+              pipelineName:
+                type: string
+              runtimeParameters:
                 additionalProperties:
                   type: string
                 type: object
-              env:
-                additionalProperties:
-                  type: string
-                type: object
-              image:
+              schedule:
                 type: string
-              tfxComponents:
-                type: string
-            required:
-            - image
-            - tfxComponents
             type: object
           status:
             properties:
