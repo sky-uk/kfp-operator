@@ -33,6 +33,8 @@ var _ = Context("Pipeline Workflows", func() {
 		},
 	}
 
+	var kfpId = "12345"
+
 	var SucceedUpload = func(pipeline *pipelinesv1.Pipeline) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
 			WithQueryParam("name", wiremock.EqualTo(pipeline.Name)).
@@ -109,7 +111,7 @@ var _ = Context("Pipeline Workflows", func() {
 				},
 				Spec: pipelineSpec,
 				Status: pipelinesv1.Status{
-					KfpId: PipelineId,
+					KfpId: kfpId,
 				},
 			},
 			k8sClient, ctx)
@@ -133,7 +135,7 @@ var _ = Context("Pipeline Workflows", func() {
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
-					To(Equal(PipelineId))
+					To(Equal(kfpId))
 			},
 		),
 		Entry("Creation succeeds but the update fails",

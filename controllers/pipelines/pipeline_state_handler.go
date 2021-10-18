@@ -2,8 +2,6 @@ package pipelines
 
 import (
 	"context"
-	"sort"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 )
@@ -241,10 +239,6 @@ func (st PipelineStateHandler) onCreating(pipeline *pipelinesv1.Pipeline, creati
 			},
 		}
 	}
-
-	sort.Slice(creationWorkflows, func(i, j int) bool {
-		return creationWorkflows[i].ObjectMeta.CreationTimestamp.Before(&creationWorkflows[j].ObjectMeta.CreationTimestamp)
-	})
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(creationWorkflows)
 

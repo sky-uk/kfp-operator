@@ -96,7 +96,7 @@ var _ = Describe("Utils", func() {
 		})
 	})
 
-	When("latestWorkflowByPhase is called with no worklows", func() {
+	When("latestWorkflowByPhase is called with no workflows", func() {
 		It("returns all empty values", func() {
 			inProgress, succeeded, failed := latestWorkflowByPhase([]argo.Workflow{})
 			Expect(inProgress).To(BeNil())

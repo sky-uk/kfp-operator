@@ -106,16 +106,15 @@ func main() {
 		WorkflowRepository: workflowRepository,
 	}
 
-	var reconciler = pipelinescontrollers.PipelineReconciler{
+	if err = (&pipelinescontrollers.PipelineReconciler{
 		Client:       client,
 		Scheme:       mgr.GetScheme(),
 		StateHandler: stateHandler,
-	}
-
-	if err = (&reconciler).SetupWithManager(mgr); err != nil {
+	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
+
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
@@ -123,7 +122,13 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
 		os.Exit(1)
 	}
+
 	//+kubebuilder:scaffold:builder
+
+	if err = workflowRepository.SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to set up WorkflowRepository")
+		os.Exit(1)
+	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

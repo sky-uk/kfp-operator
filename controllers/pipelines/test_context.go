@@ -1,5 +1,5 @@
-//go:build unit || decoupled || integration
-// +build unit decoupled integration
+//go:build decoupled || integration
+// +build decoupled integration
 
 package pipelines
 
@@ -13,11 +13,17 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
+var (
+	k8sClient client.Client
+	ctx       context.Context
+)
+
 type TestContext struct {
-	K8sClient   client.Client
-	ctx         context.Context
-	LookupKey   types.NamespacedName
-	LookupLabel string
+	K8sClient      client.Client
+	ctx            context.Context
+	LookupKey      types.NamespacedName
+	LookupLabel    string
+	operationLabel string
 }
 
 func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(Gomega, map[string]string)) func(Gomega) {
@@ -64,6 +70,7 @@ func (testCtx TestContext) WorkflowByOperationToMatch(operation string, matcher 
 
 func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*argo.Workflow)) error {
 	workflow, err := testCtx.fetchWorkflow(operation)
+
 	if err != nil {
 		return err
 	}
@@ -75,7 +82,7 @@ func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*arg
 func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{PipelineWorkflowConstants.OperationLabelKey: operation, testCtx.LookupLabel: testCtx.LookupKey.Name}); err != nil {
+	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{testCtx.operationLabel: operation, testCtx.LookupLabel: testCtx.LookupKey.Name}); err != nil {
 		return nil, err
 	}
 

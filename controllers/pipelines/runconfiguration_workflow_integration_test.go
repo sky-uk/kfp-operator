@@ -28,6 +28,8 @@ var _ = Context("RunConfiguration Workflows", func() {
 		},
 	}
 
+	var pipelineKfpId = "12345"
+
 	var StubGetExperiment = func(experimentName string, experimentId string) error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
 			WithQueryParam("filter", wiremock.EqualTo(
@@ -56,7 +58,7 @@ var _ = Context("RunConfiguration Workflows", func() {
 		if err := StubGetExperiment(workflowFactory.Config.DefaultExperiment, ExperimentId); err != nil {
 			return err
 		}
-		if err := StubGetPipeline(runconfiguration.Spec.PipelineName, PipelineId); err != nil {
+		if err := StubGetPipeline(runconfiguration.Spec.PipelineName, pipelineKfpId); err != nil {
 			return err
 		}
 
@@ -101,7 +103,7 @@ var _ = Context("RunConfiguration Workflows", func() {
 		constructWorkflow func(*pipelinesv1.RunConfiguration) *argo.Workflow,
 		assertion func(Gomega, *argo.Workflow)) {
 
-		testCtx := NewRunconfigurationTestContext(
+		testCtx := NewRunConfigurationTestContext(
 			&pipelinesv1.RunConfiguration{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      RandomLowercaseString(),

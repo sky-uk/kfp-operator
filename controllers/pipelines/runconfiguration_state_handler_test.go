@@ -53,6 +53,14 @@ func (st RunConfigurationStateTransitionTestCase) WithUpdateWorkflow(phase argo.
 	)
 }
 
+func (st RunConfigurationStateTransitionTestCase) WithUpdateWorkflowWithId(phase argo.WorkflowPhase, kfpId string) RunConfigurationStateTransitionTestCase {
+	return st.WithWorkFlow(
+		setWorkflowOutput(
+			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, phase),
+			RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, kfpId),
+	)
+}
+
 func (st RunConfigurationStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
 		st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.DeleteOperationLabel, phase),
@@ -163,19 +171,19 @@ var _ = Describe("RunConfiguration State handler", func() {
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
-		Check("Creation succeeds",
+		Check("Creating succeeds",
 			From(pipelinesv1.Creating, "", v1).
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creation succeeds with existing KfpId",
+		Check("Creating succeeds with existing KfpId",
 			From(pipelinesv1.Creating, anotherKfpId, v1).
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creation fails",
+		Check("Creating fails",
 			From(pipelinesv1.Creating, "", v1).
 				WithCreateWorkFlow(argo.WorkflowFailed).
 				To(pipelinesv1.Failed, "", v1).
@@ -222,8 +230,8 @@ var _ = Describe("RunConfiguration State handler", func() {
 				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds",
-			From(pipelinesv1.Updating, kfpId, v1).
-				WithUpdateWorkflow(argo.WorkflowSucceeded).
+			From(pipelinesv1.Updating, anotherKfpId, v1).
+				WithUpdateWorkflowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
@@ -233,19 +241,15 @@ var _ = Describe("RunConfiguration State handler", func() {
 				To(pipelinesv1.Failed, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("updating without version",
+		Check("Updating without version",
 			From(pipelinesv1.Updating, kfpId, "").
 				To(pipelinesv1.Failed, kfpId, ""),
 		),
-		Check("updating without version",
-			From(pipelinesv1.Updating, kfpId, "").
-				To(pipelinesv1.Failed, kfpId, ""),
-		),
-		Check("updating without KfpId",
+		Check("Updating without KfpId",
 			From(pipelinesv1.Updating, "", v1).
 				To(pipelinesv1.Failed, "", v1),
 		),
-		Check("updating without KfpId or version",
+		Check("Updating without KfpId or version",
 			From(pipelinesv1.Updating, "", "").
 				To(pipelinesv1.Failed, "", ""),
 		),

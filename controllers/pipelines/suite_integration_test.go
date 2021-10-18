@@ -21,9 +21,6 @@ const (
 )
 
 var (
-	k8sClient client.Client
-	ctx       context.Context
-
 	restCfg = rest.Config{
 		Host:    "http://localhost:8080",
 		APIPath: "/api",
@@ -37,9 +34,9 @@ var (
 	wiremockClient *wiremock.Client
 )
 
-func TestPipelineControllerIntegrationSuite(t *testing.T) {
+func TestPipelineControllersIntegrationSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Pipeline Controller Suite")
+	RunSpecs(t, "Pipeline Controllers Integration Suite")
 }
 
 var _ = BeforeSuite(func() {

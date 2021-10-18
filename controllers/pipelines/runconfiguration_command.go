@@ -15,18 +15,18 @@ type SetRunConfigurationStatus struct {
 	Status pipelinesv1.Status
 }
 
-func (sps SetRunConfigurationStatus) execute(reconciler *RunConfigurationReconciler, ctx context.Context, pipeline *pipelinesv1.RunConfiguration) error {
-	pipeline.Status = sps.Status
+func (sps SetRunConfigurationStatus) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+	rc.Status = sps.Status
 
-	return reconciler.Status().Update(ctx, pipeline)
+	return reconciler.Status().Update(ctx, rc)
 }
 
 type CreateRunConfigurationWorkflow struct {
 	Workflow argo.Workflow
 }
 
-func (cw CreateRunConfigurationWorkflow) execute(reconciler *RunConfigurationReconciler, ctx context.Context, pipeline *pipelinesv1.RunConfiguration) error {
-	return reconciler.CreateChildWorkflow(ctx, pipeline, cw.Workflow)
+func (cw CreateRunConfigurationWorkflow) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+	return reconciler.CreateChildWorkflow(ctx, rc, cw.Workflow)
 }
 
 type DeleteRunConfigurationWorkflows struct {
@@ -46,6 +46,6 @@ func (dw DeleteRunConfigurationWorkflows) execute(reconciler *RunConfigurationRe
 type DeleteRunConfiguration struct {
 }
 
-func (dp DeleteRunConfiguration) execute(reconciler *RunConfigurationReconciler, ctx context.Context, pipeline *pipelinesv1.RunConfiguration) error {
-	return reconciler.RemoveFinalizer(ctx, *pipeline)
+func (dp DeleteRunConfiguration) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+	return reconciler.RemoveFinalizer(ctx, *rc)
 }

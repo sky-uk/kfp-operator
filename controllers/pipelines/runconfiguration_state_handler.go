@@ -4,7 +4,6 @@ import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	"sort"
 )
 
 type RunConfigurationStateHandler struct {
@@ -150,6 +149,13 @@ func (st RunConfigurationStateHandler) onUpdating(runconfiguration *pipelinesv1.
 
 	if succeeded != nil {
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
+		idResult, error := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
+
+		if error != nil {
+			newStatus.SynchronizationState = pipelinesv1.Failed
+		} else {
+			newStatus.KfpId = idResult
+		}
 	} else {
 		newStatus.SynchronizationState = pipelinesv1.Failed
 	}
@@ -195,6 +201,7 @@ func (st RunConfigurationStateHandler) onDeleted() []RunConfigurationCommand {
 }
 
 func (st RunConfigurationStateHandler) onCreating(runconfiguration *pipelinesv1.RunConfiguration, creationWorkflows []argo.Workflow) []RunConfigurationCommand {
+
 	if runconfiguration.Status.Version == "" {
 		return []RunConfigurationCommand{
 			SetRunConfigurationStatus{
@@ -205,10 +212,6 @@ func (st RunConfigurationStateHandler) onCreating(runconfiguration *pipelinesv1.
 			},
 		}
 	}
-
-	sort.Slice(creationWorkflows, func(i, j int) bool {
-		return creationWorkflows[i].ObjectMeta.CreationTimestamp.Before(&creationWorkflows[j].ObjectMeta.CreationTimestamp)
-	})
 
 	inProgress, succeeded, _ := latestWorkflowByPhase(creationWorkflows)
 
