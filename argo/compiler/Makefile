@@ -12,6 +12,7 @@ test: build
 ##@ Build
 
 build:
+	pip install poetry-dynamic-versioning --quiet
 	poetry install
 	@echo Nothing to build.
 
