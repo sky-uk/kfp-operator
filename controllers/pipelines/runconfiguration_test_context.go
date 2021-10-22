@@ -10,12 +10,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const (
-	JobId        = "12345"
-	NewJobId     = "abcde"
-	ExperimentId = "67890"
-)
-
 type RunConfigurationTestContext struct {
 	TestContext
 	RunConfiguration *pipelinesv1.RunConfiguration

@@ -33,7 +33,7 @@ var _ = Context("Pipeline Workflows", func() {
 		},
 	}
 
-	var kfpId = "12345"
+	var kfpId = RandomString()
 
 	var SucceedUpload = func(pipeline *pipelinesv1.Pipeline) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
