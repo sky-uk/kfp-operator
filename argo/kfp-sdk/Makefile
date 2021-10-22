@@ -7,11 +7,12 @@ all: build
 ##@ Development
 
 test: build
-	@echo Nothing to test.
+	poetry run pytest
 
 ##@ Build
 
 build:
+	poetry install
 	poetry build
 
 ##@ Containers
