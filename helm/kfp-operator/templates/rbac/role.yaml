@@ -6,67 +6,67 @@ metadata:
   creationTimestamp: null
   name: {{ include "kfp-operator.fullname" . }}-manager-role
 rules:
-  - apiGroups:
-      - argoproj.io
-    resources:
-      - workflows
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - pipelines.kubeflow.org
-    resources:
-      - pipelines
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - pipelines.kubeflow.org
-    resources:
-      - pipelines/finalizers
-    verbs:
-      - update
-  - apiGroups:
-      - pipelines.kubeflow.org
-    resources:
-      - pipelines/status
-    verbs:
-      - get
-      - patch
-      - update
-  - apiGroups:
-      - pipelines.kubeflow.org
-    resources:
-      - runconfigurations
-    verbs:
-      - create
-      - delete
-      - get
-      - list
-      - patch
-      - update
-      - watch
-  - apiGroups:
-      - pipelines.kubeflow.org
-    resources:
-      - runconfigurations/finalizers
-    verbs:
-      - update
-  - apiGroups:
-      - pipelines.kubeflow.org
-    resources:
-      - runconfigurations/status
-    verbs:
-      - get
-      - patch
-      - update
+- apiGroups:
+    - argoproj.io
+  resources:
+    - workflows
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - pipelines
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - pipelines/finalizers
+  verbs:
+    - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - pipelines/status
+  verbs:
+    - get
+    - patch
+    - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - runconfigurations
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - runconfigurations/finalizers
+  verbs:
+    - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - runconfigurations/status
+  verbs:
+    - get
+    - patch
+    - update
