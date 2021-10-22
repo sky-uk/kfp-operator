@@ -31,10 +31,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	pipeline_controller "github.com/sky-uk/kfp-operator/controllers/pipelines"
-
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
+
 	//+kubebuilder:scaffold:imports
 
 	"github.com/sky-uk/kfp-operator/external"
@@ -89,32 +89,50 @@ func main() {
 		os.Exit(1)
 	}
 
-	var client = mgr.GetClient()
+	client := mgr.GetClient()
 
-	var workflowFactory = pipeline_controller.WorkflowFactory{
-		Config: ctrlConfig.Workflows,
-	}
-
-	var workflowRepository = pipeline_controller.WorkflowRepositoryImpl{
+	workflowRepository := pipelinescontrollers.WorkflowRepositoryImpl{
 		Client: client,
 	}
 
-	var stateHandler = pipeline_controller.StateHandler{
-		WorkflowFactory:    workflowFactory,
-		WorkflowRepository: workflowRepository,
+	workflowFactory := pipelinescontrollers.WorkflowFactory{
+		Config: ctrlConfig.Workflows,
 	}
 
-	var reconciler = pipeline_controller.PipelineReconciler{
-		Client:       client,
-		Scheme:       mgr.GetScheme(),
-		StateHandler: stateHandler,
-	}
-
-	if err = (&reconciler).SetupWithManager(mgr); err != nil {
+	if err = (&pipelinescontrollers.PipelineReconciler{
+		Client: client,
+		Scheme: mgr.GetScheme(),
+		StateHandler: pipelinescontrollers.PipelineStateHandler{
+			WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
+				WorkflowFactory: workflowFactory,
+			},
+			WorkflowRepository: workflowRepository,
+		},
+	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
+
+	if err = (&pipelinescontrollers.RunConfigurationReconciler{
+		Client: client,
+		Scheme: mgr.GetScheme(),
+		StateHandler: pipelinescontrollers.RunConfigurationStateHandler{
+			WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
+				WorkflowFactory: workflowFactory,
+			},
+			WorkflowRepository: workflowRepository,
+		},
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
+		os.Exit(1)
+	}
+
 	//+kubebuilder:scaffold:builder
+
+	if err = workflowRepository.SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to set up WorkflowRepository")
+		os.Exit(1)
+	}
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up health check")

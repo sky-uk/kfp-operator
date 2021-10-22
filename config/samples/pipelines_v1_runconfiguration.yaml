@@ -1,0 +1,7 @@
+apiVersion: pipelines.kubeflow.org/v1
+kind: RunConfiguration
+metadata:
+  name: runconfiguration-sample
+spec:
+  # Add fields here
+  foo: bar

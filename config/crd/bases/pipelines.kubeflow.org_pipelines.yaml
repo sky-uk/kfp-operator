@@ -17,11 +17,11 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.synchronizationState
-      name: Status
+    - jsonPath: .status.kfpId
+      name: KfpId
       type: string
-    - jsonPath: .status.id
-      name: PipelineId
+    - jsonPath: .status.synchronizationState
+      name: SynchronizationState
       type: string
     - jsonPath: .status.version
       name: Version
@@ -62,7 +62,7 @@ spec:
             type: object
           status:
             properties:
-              id:
+              kfpId:
                 type: string
               synchronizationState:
                 type: string

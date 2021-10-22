@@ -12,119 +12,130 @@ import (
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	// +kubebuilder:scaffold:imports
+	"time"
 )
 
-var now = metav1.Now()
-
-// TODO: mock workflowFactory
-var workflowFactory = WorkflowFactory{
-	Config: configv1.Configuration{
-		KfpSdkImage:     "kfp-sdk",
-		CompilerImage:   "compiler",
-		ImagePullPolicy: "Never",
-		KfpEndpoint:     "http://www.example.com",
-	},
+type PipelineStateTransitionTestCase struct {
+	workflowFactory PipelineWorkflowFactory
+	Pipeline        *pipelinesv1.Pipeline
+	SystemStatus    StubbedWorkflows
+	Commands        []PipelineCommand
 }
 
-type StubbedWorkflows struct {
-	Workflows []argo.Workflow
-}
-
-func (sw StubbedWorkflows) GetByOperation(ctx context.Context, operation string, pipeline *pipelinesv1.Pipeline) []argo.Workflow {
-	return sw.Workflows
-}
-
-type TestCase struct {
-	Pipeline  *pipelinesv1.Pipeline
-	Workflows []argo.Workflow
-	Commands  []Command
-}
-
-func From(status pipelinesv1.SynchronizationState, id string, version string) TestCase {
-	pipeline := RandomPipeline()
-	pipeline.Spec = SpecV1
-	pipeline.Status = pipelinesv1.PipelineStatus{
-		SynchronizationState: status,
-		Version:              version,
-		Id:                   id,
-	}
-
-	return TestCase{
-		Pipeline: pipeline,
-	}
-}
-
-func (st TestCase) To(state pipelinesv1.SynchronizationState, id string, version string) TestCase {
-	return st.IssuesCommand(SetPipelineStatus{Status: pipelinesv1.PipelineStatus{
-		Id:                   id,
+func (st PipelineStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) PipelineStateTransitionTestCase {
+	return st.IssuesCommand(SetPipelineStatus{Status: pipelinesv1.Status{
+		KfpId:                id,
 		Version:              version,
 		SynchronizationState: state,
 	}})
 }
 
-func (st TestCase) DeletionRequested() TestCase {
-	st.Pipeline.DeletionTimestamp = &now
+func (st PipelineStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) PipelineStateTransitionTestCase {
+	st.SystemStatus.AddWorkflow(*workflow)
+
 	return st
 }
 
-func createWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workflow {
-	return &argo.Workflow{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      operation + "-pipeline",
-			Namespace: "default",
-			Labels: map[string]string{
-				OperationLabelKey: operation,
-			},
-		},
-		Status: argo.WorkflowStatus{
-			Phase: phase,
-		},
-	}
+func (st PipelineStateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
+	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, phase))
 }
 
-func (st TestCase) WithWorkFlow(workflow *argo.Workflow) TestCase {
-	st.Workflows = append(st.Workflows, *workflow)
-	return st
+func (st PipelineStateTransitionTestCase) WithCreateWorkWithId(phase argo.WorkflowPhase, kfpId string) PipelineStateTransitionTestCase {
+	return st.WithWorkFlow(
+		setWorkflowOutput(
+			st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, phase),
+			PipelineWorkflowConstants.PipelineIdParameterName, kfpId),
+	)
 }
 
-func (st TestCase) IssuesCreationWorkflow(version string) TestCase {
-	creationWorkflow, _ := workflowFactory.ConstructCreationWorkflow(st.Pipeline.Spec, st.Pipeline.ObjectMeta, version)
-	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
+func (st PipelineStateTransitionTestCase) WithUpdateWorkflow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
+	return st.WithWorkFlow(
+		st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.UpdateOperationLabel, phase),
+	)
 }
 
-func (st TestCase) IssuesUpdateWorkflow(version string) TestCase {
-	updateWorkflow, _ := workflowFactory.ConstructUpdateWorkflow(st.Pipeline.Spec, st.Pipeline.ObjectMeta, st.Pipeline.Status.Id, version)
-	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
+func (st PipelineStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
+	return st.WithWorkFlow(
+		st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.DeleteOperationLabel, phase),
+	)
 }
 
-func (st TestCase) IssuesDeletionWorkflow() TestCase {
-	deletionWorkflow := workflowFactory.ConstructDeletionWorkflow(st.Pipeline.ObjectMeta, st.Pipeline.Status.Id)
-	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
+func (st PipelineStateTransitionTestCase) IssuesCreationWorkflow() PipelineStateTransitionTestCase {
+	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(st.Pipeline)
+	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *creationWorkflow})
 }
 
-func (st TestCase) DeletesAllWorkflows() TestCase {
-	return st.IssuesCommand(DeleteWorkflows{
-		Workflows: st.Workflows,
+func (st PipelineStateTransitionTestCase) IssuesUpdateWorkflow() PipelineStateTransitionTestCase {
+	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(st.Pipeline)
+	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *updateWorkflow})
+}
+
+func (st PipelineStateTransitionTestCase) IssuesDeletionWorkflow() PipelineStateTransitionTestCase {
+	deletionWorkflow := st.workflowFactory.ConstructDeletionWorkflow(st.Pipeline)
+	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *deletionWorkflow})
+}
+
+func (st PipelineStateTransitionTestCase) DeletesAllWorkflows() PipelineStateTransitionTestCase {
+	return st.IssuesCommand(DeletePipelineWorkflows{
+		Workflows: st.SystemStatus.Workflows,
 	})
 }
 
-func (st TestCase) IssuesCommand(commdand Command) TestCase {
+func (st PipelineStateTransitionTestCase) IssuesCommand(commdand PipelineCommand) PipelineStateTransitionTestCase {
 	st.Commands = append(st.Commands, commdand)
 	return st
 }
 
-func Check(description string, transition TestCase) TableEntry {
-	return Entry(
-		description,
-		transition,
-	)
+func (st PipelineStateTransitionTestCase) DeletionRequested() PipelineStateTransitionTestCase {
+	st.Pipeline.DeletionTimestamp = &metav1.Time{time.UnixMilli(1)}
+	return st
 }
 
 var _ = Describe("Pipeline State handler", func() {
-	DescribeTable("State transitions", func(st TestCase) {
-		var stateHandler = StateHandler{
-			WorkflowRepository: StubbedWorkflows{st.Workflows},
+
+	// TODO: mock workflowFactory
+	var workflowFactory = PipelineWorkflowFactory{
+		WorkflowFactory: WorkflowFactory{
+			Config: configv1.Configuration{
+				KfpSdkImage:     "kfp-sdk",
+				CompilerImage:   "compiler",
+				ImagePullPolicy: "Never",
+				KfpEndpoint:     "http://www.example.com",
+			},
+		},
+	}
+
+	kfpId := "12345"
+	anotherKfpId := "67890"
+	specv1 := RandomPipelineSpec()
+	v0 := pipelinesv1.RunConfigurationSpec{}.ComputeVersion()
+	v1 := specv1.ComputeVersion()
+
+	var Check = func(description string, transition PipelineStateTransitionTestCase) TableEntry {
+		return Entry(
+			description,
+			transition,
+		)
+	}
+
+	var From = func(status pipelinesv1.SynchronizationState, id string, version string) PipelineStateTransitionTestCase {
+		pipeline := RandomPipeline()
+		pipeline.Spec = specv1
+		pipeline.Status = pipelinesv1.Status{
+			SynchronizationState: status,
+			Version:              version,
+			KfpId:                id,
+		}
+
+		return PipelineStateTransitionTestCase{
+			workflowFactory: workflowFactory,
+			Pipeline:        pipeline,
+		}
+	}
+
+	DescribeTable("State transitions", func(st PipelineStateTransitionTestCase) {
+		var stateHandler = PipelineStateHandler{
+			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    workflowFactory,
 		}
 		commands := stateHandler.StateTransition(context.Background(), st.Pipeline)
@@ -136,57 +147,46 @@ var _ = Describe("Pipeline State handler", func() {
 	},
 		Check("Unknown",
 			From(pipelinesv1.Unknown, "", "").
-				To(pipelinesv1.Creating, "", V1).
-				IssuesCreationWorkflow(V1),
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
 		),
 		Check("Unknown with version",
-			From(pipelinesv1.Unknown, "", V1).
-				To(pipelinesv1.Creating, "", V1).
-				IssuesCreationWorkflow(V1),
+			From(pipelinesv1.Unknown, "", v1).
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
 		),
 		Check("Unknown with id",
-			From(pipelinesv1.Unknown, PipelineId, "").
-				To(pipelinesv1.Updating, PipelineId, V1).
-				IssuesUpdateWorkflow(V1),
+			From(pipelinesv1.Unknown, kfpId, "").
+				To(pipelinesv1.Updating, kfpId, v1).
+				IssuesUpdateWorkflow(),
 		),
 		Check("Unknown with id and version",
-			From(pipelinesv1.Unknown, PipelineId, V1).
-				To(pipelinesv1.Updating, PipelineId, V1).
-				IssuesUpdateWorkflow(V1),
+			From(pipelinesv1.Unknown, kfpId, v1).
+				To(pipelinesv1.Updating, kfpId, v1).
+				IssuesUpdateWorkflow(),
 		),
-		Check("Creation succeeds",
-			From(pipelinesv1.Creating, "", V1).
-				WithWorkFlow(
-					setWorkflowOutput(
-						createWorkflow(CreateOperationLabel, argo.WorkflowSucceeded),
-						WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
-				).
-				To(pipelinesv1.Succeeded, PipelineId, V1).
+		Check("Creating succeeds",
+			From(pipelinesv1.Creating, "", v1).
+				WithCreateWorkWithId(argo.WorkflowSucceeded, kfpId).
+				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creation succeeds with existing Id",
-			From(pipelinesv1.Creating, AnotherPipelineId, V1).
-				WithWorkFlow(
-					setWorkflowOutput(
-						createWorkflow(CreateOperationLabel, argo.WorkflowSucceeded),
-						WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
-				).
-				To(pipelinesv1.Succeeded, PipelineId, V1).
+		Check("Creating succeeds with existing KfpId",
+			From(pipelinesv1.Creating, anotherKfpId, v1).
+				WithCreateWorkWithId(argo.WorkflowSucceeded, kfpId).
+				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creation fails with Id",
-			From(pipelinesv1.Creating, "", V1).
-				WithWorkFlow(setWorkflowOutput(
-					createWorkflow(CreateOperationLabel, argo.WorkflowFailed),
-					WorkflowFactoryConstants.pipelineIdParameterName, PipelineId),
-				).
-				To(pipelinesv1.Failed, PipelineId, V1).
+		Check("Creating fails with KfpId",
+			From(pipelinesv1.Creating, "", v1).
+				WithCreateWorkWithId(argo.WorkflowFailed, kfpId).
+				To(pipelinesv1.Failed, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creation fails",
-			From(pipelinesv1.Creating, "", V1).
-				WithWorkFlow(createWorkflow(CreateOperationLabel, argo.WorkflowFailed)).
-				To(pipelinesv1.Failed, "", V1).
+		Check("Creating fails without KfpId",
+			From(pipelinesv1.Creating, "", v1).
+				WithCreateWorkFlow(argo.WorkflowFailed).
+				To(pipelinesv1.Failed, "", v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
@@ -194,97 +194,93 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Failed, "", ""),
 		),
 		Check("Succeeded no update",
-			From(pipelinesv1.Succeeded, PipelineId, V1),
+			From(pipelinesv1.Succeeded, kfpId, v1),
 		),
 		Check("Succeeded with update",
-			From(pipelinesv1.Succeeded, PipelineId, V0).
-				To(pipelinesv1.Updating, PipelineId, V1).
-				IssuesUpdateWorkflow(V1),
+			From(pipelinesv1.Succeeded, kfpId, v0).
+				To(pipelinesv1.Updating, kfpId, v1).
+				IssuesUpdateWorkflow(),
 		),
-		Check("Succeeded with update but no Id",
-			From(pipelinesv1.Succeeded, "", V0).
-				To(pipelinesv1.Creating, "", V1).
-				IssuesCreationWorkflow(V1),
+		Check("Succeeded with update but no KfpId",
+			From(pipelinesv1.Succeeded, "", v0).
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
 		),
-		Check("Succeeded with update but no Id and no version",
+		Check("Succeeded with update but no KfpId and no version",
 			From(pipelinesv1.Succeeded, "", "").
-				To(pipelinesv1.Creating, "", V1).
-				IssuesCreationWorkflow(V1),
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
 		),
 		Check("Failed no update",
-			From(pipelinesv1.Failed, PipelineId, V1),
+			From(pipelinesv1.Failed, kfpId, v1),
 		),
 		Check("Failed with Update",
-			From(pipelinesv1.Failed, PipelineId, V0).
-				To(pipelinesv1.Updating, PipelineId, V1).
-				IssuesUpdateWorkflow(V1),
+			From(pipelinesv1.Failed, kfpId, v0).
+				To(pipelinesv1.Updating, kfpId, v1).
+				IssuesUpdateWorkflow(),
 		),
-		Check("Failed with Update but no Id",
-			From(pipelinesv1.Failed, "", V0).
-				To(pipelinesv1.Creating, "", V1).
-				IssuesCreationWorkflow(V1),
+		Check("Failed with Update but no KfpId",
+			From(pipelinesv1.Failed, "", v0).
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
 		),
-		Check("Failed with Update but no Id and no version",
+		Check("Failed with Update but no KfpId and no version",
 			From(pipelinesv1.Failed, "", "").
-				To(pipelinesv1.Creating, "", V1).
-				IssuesCreationWorkflow(V1),
+				To(pipelinesv1.Creating, "", v1).
+				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds",
-			From(pipelinesv1.Updating, PipelineId, V1).
-				WithWorkFlow(createWorkflow(UpdateOperationLabel, argo.WorkflowSucceeded)).
-				To(pipelinesv1.Succeeded, PipelineId, V1).
+			From(pipelinesv1.Updating, kfpId, v1).
+				WithUpdateWorkflow(argo.WorkflowSucceeded).
+				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
-			From(pipelinesv1.Updating, PipelineId, V1).
-				WithWorkFlow(createWorkflow(UpdateOperationLabel, argo.WorkflowFailed)).
-				To(pipelinesv1.Failed, PipelineId, V1).
+			From(pipelinesv1.Updating, kfpId, v1).
+				WithUpdateWorkflow(argo.WorkflowFailed).
+				To(pipelinesv1.Failed, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("updating without version",
-			From(pipelinesv1.Updating, PipelineId, "").
-				To(pipelinesv1.Failed, PipelineId, ""),
+		Check("Updating without version",
+			From(pipelinesv1.Updating, kfpId, "").
+				To(pipelinesv1.Failed, kfpId, ""),
 		),
-		Check("updating without version",
-			From(pipelinesv1.Updating, PipelineId, "").
-				To(pipelinesv1.Failed, PipelineId, ""),
+		Check("Updating without KfpId",
+			From(pipelinesv1.Updating, "", v1).
+				To(pipelinesv1.Failed, "", v1),
 		),
-		Check("updating without Id",
-			From(pipelinesv1.Updating, "", V1).
-				To(pipelinesv1.Failed, "", V1),
-		),
-		Check("updating without Id or version",
+		Check("Updating without KfpId or version",
 			From(pipelinesv1.Updating, "", "").
 				To(pipelinesv1.Failed, "", ""),
 		),
 		Check("Deleting from Succeeded",
-			From(pipelinesv1.Succeeded, PipelineId, V1).
+			From(pipelinesv1.Succeeded, kfpId, v1).
 				DeletionRequested().
-				To(pipelinesv1.Deleting, PipelineId, V1).
+				To(pipelinesv1.Deleting, kfpId, v1).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed",
-			From(pipelinesv1.Failed, PipelineId, V1).
+			From(pipelinesv1.Failed, kfpId, v1).
 				DeletionRequested().
-				To(pipelinesv1.Deleting, PipelineId, V1).
+				To(pipelinesv1.Deleting, kfpId, v1).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deletion succeeds",
-			From(pipelinesv1.Deleting, PipelineId, V1).
+			From(pipelinesv1.Deleting, kfpId, v1).
 				DeletionRequested().
-				WithWorkFlow(createWorkflow(DeleteOperationLabel, argo.WorkflowSucceeded)).
-				To(pipelinesv1.Deleted, PipelineId, V1).
+				WithDeletionWorkflow(argo.WorkflowSucceeded).
+				To(pipelinesv1.Deleted, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Deletion fails",
-			From(pipelinesv1.Deleting, PipelineId, V1).
+			From(pipelinesv1.Deleting, kfpId, v1).
 				DeletionRequested().
-				WithWorkFlow(createWorkflow(DeleteOperationLabel, argo.WorkflowFailed)).
-				To(pipelinesv1.Deleting, PipelineId, V1).
+				WithDeletionWorkflow(argo.WorkflowFailed).
+				To(pipelinesv1.Deleting, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Stay in deleted",
-			From(pipelinesv1.Deleted, PipelineId, V1).
+			From(pipelinesv1.Deleted, kfpId, v1).
 				IssuesCommand(DeletePipeline{}),
 		),
 	)

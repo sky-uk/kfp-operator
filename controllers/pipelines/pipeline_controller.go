@@ -11,7 +11,6 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -23,23 +22,7 @@ var (
 type PipelineReconciler struct {
 	client.Client
 	Scheme       *runtime.Scheme
-	StateHandler StateHandler
-}
-
-type WorkflowRepository interface {
-	GetByOperation(ctx context.Context, operation string, pipelineName *pipelinesv1.Pipeline) []argo.Workflow
-}
-
-type WorkflowRepositoryImpl struct {
-	client.Client
-}
-
-func (w WorkflowRepositoryImpl) GetByOperation(ctx context.Context, operation string, pipeline *pipelinesv1.Pipeline) []argo.Workflow {
-	var workflows argo.WorkflowList
-
-	w.List(ctx, &workflows, client.InNamespace(pipeline.Namespace), client.MatchingLabels{OperationLabelKey: operation, PipelineNameLabelKey: pipeline.Name})
-
-	return workflows.Items
+	StateHandler PipelineStateHandler
 }
 
 //+kubebuilder:rbac:groups=argoproj.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete
@@ -81,10 +64,10 @@ func (r *PipelineReconciler) AddFinalizer(ctx context.Context, pipeline *pipelin
 	return nil
 }
 
-func (r *PipelineReconciler) RemoveFinalizer(ctx context.Context, pipeline pipelinesv1.Pipeline) error {
+func (r *PipelineReconciler) RemoveFinalizer(ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
 	if containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
 		pipeline.ObjectMeta.Finalizers = removeString(pipeline.ObjectMeta.Finalizers, finalizerName)
-		return r.Update(ctx, &pipeline)
+		return r.Update(ctx, pipeline)
 	}
 
 	return nil
@@ -102,26 +85,7 @@ func (r *PipelineReconciler) CreateChildWorkflow(ctx context.Context, pipeline *
 	return nil
 }
 
-// SetupWithManager sets up the controller with the Manager.
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &argo.Workflow{}, workflowOwnerKey, func(rawObj client.Object) []string {
-		workflow := rawObj.(*argo.Workflow)
-
-		owner := metav1.GetControllerOf(workflow)
-
-		if owner == nil {
-			return nil
-		}
-
-		if owner.APIVersion != apiGVStr || owner.Kind != "Pipeline" {
-			return nil
-		}
-
-		return []string{owner.Name}
-	}); err != nil {
-		return err
-	}
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pipelinesv1.Pipeline{}).
 		Owns(&argo.Workflow{}).

@@ -44,3 +44,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runconfigurations/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runconfigurations/status
+  verbs:
+  - get
+  - patch
+  - update

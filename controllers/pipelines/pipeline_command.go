@@ -7,12 +7,12 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 )
 
-type Command interface {
+type PipelineCommand interface {
 	execute(*PipelineReconciler, context.Context, *pipelinesv1.Pipeline) error
 }
 
 type SetPipelineStatus struct {
-	Status pipelinesv1.PipelineStatus
+	Status pipelinesv1.Status
 }
 
 func (sps SetPipelineStatus) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
@@ -21,19 +21,19 @@ func (sps SetPipelineStatus) execute(reconciler *PipelineReconciler, ctx context
 	return reconciler.Status().Update(ctx, pipeline)
 }
 
-type CreateWorkflow struct {
+type CreatePipelineWorkflow struct {
 	Workflow argo.Workflow
 }
 
-func (cw CreateWorkflow) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+func (cw CreatePipelineWorkflow) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
 	return reconciler.CreateChildWorkflow(ctx, pipeline, cw.Workflow)
 }
 
-type DeleteWorkflows struct {
+type DeletePipelineWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (dw DeleteWorkflows) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+func (dw DeletePipelineWorkflows) execute(reconciler *PipelineReconciler, ctx context.Context, _ *pipelinesv1.Pipeline) error {
 	for i := range dw.Workflows {
 		if err := reconciler.Delete(ctx, &dw.Workflows[i]); err != nil {
 			return err
@@ -47,5 +47,5 @@ type DeletePipeline struct {
 }
 
 func (dp DeletePipeline) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
-	return reconciler.RemoveFinalizer(ctx, *pipeline)
+	return reconciler.RemoveFinalizer(ctx, pipeline)
 }

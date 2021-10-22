@@ -7,6 +7,13 @@ The [Kubebuilder Book](https://book.kubebuilder.io/) is a good introduction to t
 
 Install Go by following the instructions on the [website](https://golang.org/doc/install).
 
+We use [asdf](http://asdf-vm.com) to set up the development environment. Install it it following the [Getting Started Guide](http://asdf-vm.com/guide/getting-started.html).
+Install all tool versions as follows:
+
+```bash
+asdf install
+```
+
 Many commands in this guide will run *against your current kubernetes context*; make sure that it is set accordingly. [Minikube](https://minikube.sigs.k8s.io/docs/start/) provides a local Kubernetes cluster ideal for development.
 
 ## Run unit tests

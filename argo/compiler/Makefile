@@ -7,12 +7,13 @@ all: build
 ##@ Development
 
 test: build
-	poetry install
 	poetry run pytest
 
 ##@ Build
 
 build:
+	pip install poetry-dynamic-versioning --quiet
+	poetry install
 	@echo Nothing to build.
 
 ##@ Containers

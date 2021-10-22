@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"fmt"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 )
 
@@ -27,6 +26,7 @@ func getWorkflowOutput(workflow *argo.Workflow, key string) (string, error) {
 func setWorkflowOutput(workflow *argo.Workflow, name string, output string) *argo.Workflow {
 	result := argo.AnyString(output)
 	nodes := make(map[string]argo.NodeStatus)
+
 	nodes[workflow.Name] = argo.NodeStatus{
 		Outputs: &argo.Outputs{
 			Parameters: []argo.Parameter{
@@ -54,6 +54,7 @@ func latestWorkflow(workflow1 *argo.Workflow, workflow2 *argo.Workflow) *argo.Wo
 }
 
 func latestWorkflowByPhase(workflows []argo.Workflow) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
+
 	for i := range workflows {
 		workflow := workflows[i]
 		switch workflow.Status.Phase {

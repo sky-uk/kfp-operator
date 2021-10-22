@@ -15,6 +15,7 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | `serviceAccount` | The [k8s Service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) used to run argo workflows | `kfp-operator-sa` |
 | `pipelineStorage` | The storage location used by [TFX](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs | `gcs://kubeflow-pipelines-bucket` |
 | `defaultBeamArgs` | Default Beam arguments on which the pipeline-defined ones will be overlaid | `project: my-gcp-project` |
+| `defaultExperiment` | Default Experiment name to be used for creating pipeline runs | `Default` |
 
 An example can be found in the [local run configuration](../config/manager/controller_manager_config.yaml).
 
@@ -63,4 +64,5 @@ The pipeline operator supports the application of compile time and runtime param
 
 The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources:
 
-- [Pipelines](pipelines.md)
+- [Pipeline](pipeline.md)
+- [RunConfiguration](runconfiguration.md)

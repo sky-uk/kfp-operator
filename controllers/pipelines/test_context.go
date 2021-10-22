@@ -1,82 +1,29 @@
+//go:build decoupled || integration
+// +build decoupled integration
+
 package pipelines
 
 import (
 	"context"
 	"errors"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	//+kubebuilder:scaffold:imports
 )
 
-const (
-	PipelineNamespace = "default"
-	PipelineId        = "12345"
-	AnotherPipelineId = "67890"
+var (
+	k8sClient client.Client
+	ctx       context.Context
 )
 
 type TestContext struct {
-	K8sClient         client.Client
-	ctx               context.Context
-	Pipeline          *pipelinesv1.Pipeline
-	PipelineLookupKey types.NamespacedName
-	Version           string
-}
-
-var SpecV1 = pipelinesv1.PipelineSpec{
-	Image:         "test-pipeline",
-	TfxComponents: "pipeline.create_components",
-	Env: map[string]string{
-		"a": "aVal",
-		"b": "bVal",
-	},
-}
-
-var SpecV2 = pipelinesv1.PipelineSpec{
-	Image:         "test-pipeline",
-	TfxComponents: "pipeline.create_components",
-	Env: map[string]string{
-		"a": "aVal",
-		"b": "bVal",
-		"c": "cVal",
-	},
-}
-
-var V0 = pipelinesv1.PipelineSpec{}.ComputeVersion()
-var V1 = SpecV1.ComputeVersion()
-var V2 = SpecV2.ComputeVersion()
-
-func NewTestContextWithPipeline(pipeline *pipelinesv1.Pipeline, k8sClient client.Client, ctx context.Context) TestContext {
-	return TestContext{
-		K8sClient:         k8sClient,
-		ctx:               ctx,
-		Pipeline:          pipeline,
-		PipelineLookupKey: types.NamespacedName{Name: pipeline.Name, Namespace: PipelineNamespace},
-		Version:           pipeline.Spec.ComputeVersion(),
-	}
-}
-
-func NewTestContext(k8sClient client.Client, ctx context.Context) TestContext {
-	return NewTestContextWithPipeline(RandomPipeline(), k8sClient, ctx)
-}
-
-func (testCtx TestContext) PipelineToMatch(matcher func(Gomega, *pipelinesv1.Pipeline)) func(Gomega) {
-	return func(g Gomega) {
-		pipeline := &pipelinesv1.Pipeline{}
-		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.PipelineLookupKey, pipeline)).To(Succeed())
-		matcher(g, pipeline)
-	}
-}
-
-func (testCtx TestContext) PipelineExists() error {
-	pipeline := &pipelinesv1.Pipeline{}
-	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.PipelineLookupKey, pipeline)
-
-	return err
+	K8sClient      client.Client
+	ctx            context.Context
+	LookupKey      types.NamespacedName
+	LookupLabel    string
+	operationLabel string
 }
 
 func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(Gomega, map[string]string)) func(Gomega) {
@@ -100,7 +47,17 @@ func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(G
 	}
 }
 
-func (testCtx TestContext) WorkflowToMatch(operation string, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+func (testCtx TestContext) WorkflowByNameToMatch(namespacedName types.NamespacedName, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+
+	return func(g Gomega) {
+		workflow := &argo.Workflow{}
+		Expect(testCtx.K8sClient.Get(testCtx.ctx, namespacedName, workflow)).To(Succeed())
+
+		matcher(g, workflow)
+	}
+}
+
+func (testCtx TestContext) WorkflowByOperationToMatch(operation string, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
 
 	return func(g Gomega) {
 		workflow, err := testCtx.fetchWorkflow(operation)
@@ -113,6 +70,7 @@ func (testCtx TestContext) WorkflowToMatch(operation string, matcher func(Gomega
 
 func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*argo.Workflow)) error {
 	workflow, err := testCtx.fetchWorkflow(operation)
+
 	if err != nil {
 		return err
 	}
@@ -124,7 +82,7 @@ func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*arg
 func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{OperationLabelKey: operation, PipelineNameLabelKey: testCtx.Pipeline.Name}); err != nil {
+	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{testCtx.operationLabel: operation, testCtx.LookupLabel: testCtx.LookupKey.Name}); err != nil {
 		return nil, err
 	}
 
@@ -133,57 +91,4 @@ func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, erro
 	}
 
 	return &workflowList.Items[0], nil
-}
-
-func (testCtx TestContext) UpdatePipeline(updateFunc func(*pipelinesv1.Pipeline)) error {
-	pipeline := &pipelinesv1.Pipeline{}
-
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.PipelineLookupKey, pipeline); err != nil {
-		return err
-	}
-
-	updateFunc(pipeline)
-
-	return testCtx.K8sClient.Update(testCtx.ctx, pipeline)
-}
-
-func (testCtx TestContext) UpdatePipelineStatus(updateFunc func(*pipelinesv1.Pipeline)) error {
-	pipeline := &pipelinesv1.Pipeline{}
-
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.PipelineLookupKey, pipeline); err != nil {
-		return err
-	}
-
-	updateFunc(pipeline)
-
-	return testCtx.K8sClient.Status().Update(testCtx.ctx, pipeline)
-}
-
-func (testCtx TestContext) PipelineCreated() {
-	testCtx.PipelineCreatedWithStatus(pipelinesv1.PipelineStatus{
-		Id:                   PipelineId,
-		SynchronizationState: pipelinesv1.Succeeded,
-		Version:              testCtx.Version,
-	})
-}
-
-func (testCtx TestContext) DeletePipeline() error {
-	pipeline := &pipelinesv1.Pipeline{}
-
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.PipelineLookupKey, pipeline); err != nil {
-		return err
-	}
-
-	return testCtx.K8sClient.Delete(testCtx.ctx, pipeline)
-}
-
-func (testCtx TestContext) PipelineCreatedWithStatus(status pipelinesv1.PipelineStatus) {
-	Expect(testCtx.K8sClient.Create(testCtx.ctx, testCtx.Pipeline)).To(Succeed())
-
-	Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
-		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
-		g.Expect(testCtx.UpdatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
-			pipeline.Status = status
-		})).To(Succeed())
-	})).Should(Succeed())
 }

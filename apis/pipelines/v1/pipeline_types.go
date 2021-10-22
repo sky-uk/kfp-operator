@@ -5,6 +5,7 @@ import (
 	. "github.com/docker/distribution/reference"
 	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type PipelineSpec struct {
@@ -35,36 +36,25 @@ func (ps PipelineSpec) ComputeVersion() string {
 	return fmt.Sprintf("%x", hash)
 }
 
-type SynchronizationState string
-
-const (
-	Unknown   SynchronizationState = ""
-	Creating  SynchronizationState = "Creating"
-	Succeeded SynchronizationState = "Succeeded"
-	Updating  SynchronizationState = "Updating"
-	Deleting  SynchronizationState = "Deleting"
-	Deleted   SynchronizationState = "Deleted"
-	Failed    SynchronizationState = "Failed"
-)
-
-type PipelineStatus struct {
-	Id                   string               `json:"id,omitempty"`
-	Version              string               `json:"version,omitempty"`
-	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.synchronizationState"
-//+kubebuilder:printcolumn:name="PipelineId",type="string",JSONPath=".status.id"
+//+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
+//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   PipelineSpec   `json:"spec,omitempty"`
-	Status PipelineStatus `json:"status,omitempty"`
+	Spec   PipelineSpec `json:"spec,omitempty"`
+	Status Status       `json:"status,omitempty"`
+}
+
+func (p Pipeline) NamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      p.Name,
+		Namespace: p.Namespace,
+	}
 }
 
 //+kubebuilder:object:root=true

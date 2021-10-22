@@ -54,7 +54,7 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: ## Run decoupled acceptance tests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -coverprofile cover.out
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -parallel 1 -coverprofile cover.out
 
 integration-test-up:
 	minikube start -p argo-integration-tests
@@ -72,7 +72,7 @@ integration-test: ## Run integration tests
 	$(MAKE) -C argo/compiler docker-build && \
 	$(MAKE) -C argo/kfp-sdk docker-build && \
 	docker build docs/quickstart -t kfp-quickstart
-	go test ./... -tags=integration
+	go test ./... -tags=integration -parallel 1
 
 integration-test-down:
 	(cat config/testing/pids | xargs kill) || true
