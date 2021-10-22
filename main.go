@@ -89,35 +89,39 @@ func main() {
 		os.Exit(1)
 	}
 
-	var client = mgr.GetClient()
+	client := mgr.GetClient()
 
-	var workflowFactory = pipelinescontrollers.PipelineWorkflowFactory{
-		WorkflowFactory: pipelinescontrollers.WorkflowFactory{
-			Config: ctrlConfig.Workflows,
-		},
-	}
-
-	var workflowRepository = pipelinescontrollers.WorkflowRepositoryImpl{
+	workflowRepository := pipelinescontrollers.WorkflowRepositoryImpl{
 		Client: client,
 	}
 
-	var stateHandler = pipelinescontrollers.PipelineStateHandler{
-		WorkflowFactory:    workflowFactory,
-		WorkflowRepository: workflowRepository,
+	workflowFactory := pipelinescontrollers.WorkflowFactory{
+		Config: ctrlConfig.Workflows,
 	}
 
 	if err = (&pipelinescontrollers.PipelineReconciler{
-		Client:       client,
-		Scheme:       mgr.GetScheme(),
-		StateHandler: stateHandler,
+		Client: client,
+		Scheme: mgr.GetScheme(),
+		StateHandler: pipelinescontrollers.PipelineStateHandler{
+			WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
+				WorkflowFactory: workflowFactory,
+			},
+			WorkflowRepository: workflowRepository,
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
 
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
-		Client: mgr.GetClient(),
+		Client: client,
 		Scheme: mgr.GetScheme(),
+		StateHandler: pipelinescontrollers.RunConfigurationStateHandler{
+			WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
+				WorkflowFactory: workflowFactory,
+			},
+			WorkflowRepository: workflowRepository,
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
 		os.Exit(1)
