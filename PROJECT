@@ -12,7 +12,7 @@ resources:
   domain: kubeflow.org
   group: pipelines
   kind: Pipeline
-  path: github.com/sky-uk/kfp-operator/api/v1
+  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1
   version: v1
 - api:
     crdVersion: v1
