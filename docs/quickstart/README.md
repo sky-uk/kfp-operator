@@ -56,7 +56,7 @@ metadata:
 EOF
 ```
 
-This will trigger run of `penguin-pipeline` once every hour. Note that the cron schedule uses a 6-place space separated syntax as defined [](https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format).
+This will trigger run of `penguin-pipeline` once every hour. Note that the cron schedule uses a 6-place space separated syntax as defined [here](https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format).
 
 ## Update the serving model location when the pipeline run succeeds
 
