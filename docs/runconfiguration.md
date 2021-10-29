@@ -10,7 +10,7 @@ metadata:
     name: penguin-pipeline-recurring-run
     spec:
         pipelineName: penguin-pipeline
-        schedule: '0 * * * *'
+        schedule: '0 0 * * * *'
         runtimeParameters:
             TRAINING_RUNS: 100
 ```
