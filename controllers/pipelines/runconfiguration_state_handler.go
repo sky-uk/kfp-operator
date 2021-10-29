@@ -127,6 +127,9 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 }
 
 func (st RunConfigurationStateHandler) onUpdating(runconfiguration *pipelinesv1.RunConfiguration, updateWorkflows []argo.Workflow) []RunConfigurationCommand {
+	println(runconfiguration.Status.Version)
+	println(runconfiguration.Status.KfpId)
+
 	if runconfiguration.Status.Version == "" || runconfiguration.Status.KfpId == "" {
 		return []RunConfigurationCommand{
 			SetRunConfigurationStatus{
@@ -149,6 +152,7 @@ func (st RunConfigurationStateHandler) onUpdating(runconfiguration *pipelinesv1.
 
 	if succeeded != nil {
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
+		println(pipelinesv1.Succeeded)
 		idResult, error := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
 
 		if error != nil {

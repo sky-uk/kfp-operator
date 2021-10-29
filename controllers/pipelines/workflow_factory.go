@@ -6,7 +6,6 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -20,13 +19,13 @@ func (workflows *WorkflowFactory) ScriptTemplate(kfpScript string) *argo.ScriptT
 			fmt.Sprintf("kfp-ext --endpoint %s --output json %s",
 				workflows.Config.KfpEndpoint, kfpScript)
 
+	containerSpec := workflows.Config.Argo.ContainerDefaults.DeepCopy()
+	containerSpec.Image = workflows.Config.Argo.KfpSdkImage
+	containerSpec.Command = []string{"ash"}
+
 	return &argo.ScriptTemplate{
-		Container: apiv1.Container{
-			Image:           workflows.Config.KfpSdkImage,
-			ImagePullPolicy: apiv1.PullPolicy(workflows.Config.ImagePullPolicy),
-			Command:         []string{"ash"},
-		},
-		Source: script,
+		Container: *containerSpec,
+		Source:    script,
 	}
 }
 

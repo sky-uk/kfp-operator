@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -97,10 +98,14 @@ var _ = Describe("Pipeline State handler", func() {
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
 			Config: configv1.Configuration{
-				KfpSdkImage:     "kfp-sdk",
-				CompilerImage:   "compiler",
-				ImagePullPolicy: "Never",
-				KfpEndpoint:     "http://www.example.com",
+				Argo: configv1.ArgoConfiguration{
+					KfpSdkImage:   "kfp-sdk",
+					CompilerImage: "compiler",
+					ContainerDefaults: apiv1.Container{
+						ImagePullPolicy: "Never",
+					},
+				},
+				KfpEndpoint: "http://www.example.com",
 			},
 		},
 	}
