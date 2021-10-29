@@ -36,3 +36,13 @@ Common labels
 {{- define "kfp-operator.labels" -}}
 control-plane: controller-manager
 {{- end }}
+
+{{/*
+Configuration
+*/}}
+
+{{- define "kfp-operator.defaultConfiguration" -}}
+argo:
+    kfpSdkImage: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+    compilerImage: {{ .Values.containerRegistry }}/kfp-operator-argo-compiler:{{ .Chart.AppVersion }}
+{{- end }}

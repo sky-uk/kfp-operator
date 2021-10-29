@@ -18,12 +18,4 @@ data:
         leaderElect: false
         resourceName: kfp-operator-lock
     spec:
-      {{- if .Values.configuration -}}
-      {{ toYaml .Values.configuration | nindent 6 }}
-      {{- end }}
-      {{ if not .Values.configuration.compilerImage -}}
-      compilerImage: {{ .Values.containerRegistry }}/kfp-operator-argo-compiler:{{ .Chart.AppVersion }}
-      {{- end }}
-      {{ if not .Values.configuration.kfpSdkImage -}}
-      kfpSdkImage: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-      {{- end }}
+      {{- merge (.Values.configuration) (include "kfp-operator.defaultConfiguration" . | fromYaml) | toYaml | nindent 6 -}}

@@ -11,11 +11,11 @@ controller:
     leaderElect: false
     resourceName: kfp-operator-lock
 spec:
+  argo:
+    compilerImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-compiler:latest
+    kfpSdkImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-sdk:latest
+    serviceAccount: ${OPERATOR_SA}
   defaultBeamArgs:
     project: ${DATAFLOW_PROJECT}
-  imagePullPolicy: Always
   kfpEndpoint: ${KFP_ENDPOINT}
   pipelineStorage: ${PIPELINE_STORAGE}
-  serviceAccount: ${OPERATOR_SA}
-  compilerImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-compiler:latest
-  kfpSdkImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-sdk:latest
