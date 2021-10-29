@@ -24,8 +24,8 @@ apiVersion: pipelines.kubeflow.org/v1
 kind: Pipeline
 metadata:
     name: penguin-pipeline
-    spec:
-        image: kfp-quickstart:v1
+spec:
+    image: kfp-quickstart:v1
 EOF
 ```
 
