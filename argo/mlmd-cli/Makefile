@@ -1,6 +1,6 @@
 include ../../version.mk
 
-IMG := kfp-operator-argo-mlmc-cli
+IMG := kfp-operator-argo-mlmd-cli
 
 all: build
 
