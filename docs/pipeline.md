@@ -7,11 +7,11 @@ apiVersion: pipelines.kubeflow.com/v1
 kind: Pipeline
 metadata:
     name: penguin-pipeline
-    spec:
-        image: kfp-quickstart:v1
-        tfxComponents: base_pipeline.create_components
-        env:
-            TRAINING_RUNS: 100
+spec:
+    image: kfp-quickstart:v1
+    tfxComponents: base_pipeline.create_components
+    env:
+        TRAINING_RUNS: 100
 ```
 
 ### Fields

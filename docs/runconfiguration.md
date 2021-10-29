@@ -4,15 +4,15 @@ The RunConfiguration resource represents the lifecycle of Recurring Runs (aka Jo
 Pipeline training runs can be configured using this resource as follows:
 
 ```yaml
-apiVersion: pipelines.kubeflow.com/v1
+apiVersion: pipelines.kubeflow.org/v1
 kind: RunConfiguration
 metadata:
     name: penguin-pipeline-recurring-run
-    spec:
-        pipelineName: penguin-pipeline
-        schedule: '0 0 * * * *'
-        runtimeParameters:
-            TRAINING_RUNS: 100
+spec:
+    pipelineName: penguin-pipeline
+    schedule: '0 0 * * * *'
+    runtimeParameters:
+        TRAINING_RUNS: 100
 ```
 
 Note: The experiment will be created if it does not exist when creating the run configuration.
