@@ -154,28 +154,6 @@ spec:
             type: object
           spec:
             properties:
-              compilerImage:
-                type: string
-              debug:
-                properties:
-                  keepWorkflows:
-                    type: boolean
-                type: object
-              defaultBeamArgs:
-                additionalProperties:
-                  type: string
-                type: object
-              defaultExperiment:
-                type: string
-              imagePullPolicy:
-                type: string
-              kfpEndpoint:
-                type: string
-              kfpSdkImage:
-                type: string
-              pipelineStorage:
-                type: string
-              serviceAccount:
               argo:
                 properties:
                   compilerImage:
@@ -1288,6 +1266,11 @@ spec:
                     type: object
                   serviceAccount:
                     type: string
+                type: object
+              debug:
+                properties:
+                  keepWorkflows:
+                    type: boolean
                 type: object
               defaultBeamArgs:
                 additionalProperties:
