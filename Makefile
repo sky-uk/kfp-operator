@@ -182,10 +182,12 @@ include docker-targets.mk
 docker-build-argo:
 	$(MAKE) -C argo/compiler docker-build
 	$(MAKE) -C argo/kfp-sdk docker-build
+	$(MAKE) -C argo/mlmd-cli docker-build
 
 docker-push-argo:
 	$(MAKE) -C argo/compiler docker-push
 	$(MAKE) -C argo/kfp-sdk docker-push
+	$(MAKE) -C argo/mlmd-cli docker-push
 
 package-all: helm-package docker-build docker-build-argo
 

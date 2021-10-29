@@ -57,3 +57,23 @@ EOF
 ```
 
 This will trigger run of `penguin-pipeline` once every hour.
+
+## Update the serving model location when the pipeline run succeeds
+
+Using [Argo Event](https://argoproj.github.io/argo-events/) we can specify arbitrary actions on pipeline run completions.
+In this example, we apply a `ConfigMap` containing the model's serving location when the pipeline run succeeds.
+
+```bash
+kubectl apply -f apply-model-location.yaml
+```
+
+This creates Argo Events `EventSource` and `Sensor` which listen to pipeline run updates and apply the following configmap:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: serving-config
+data:
+    serving-model: {{serving-model-location}}
+```
