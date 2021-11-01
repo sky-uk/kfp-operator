@@ -68,17 +68,17 @@ func (st RunConfigurationStateTransitionTestCase) WithDeletionWorkflow(phase arg
 }
 
 func (st RunConfigurationStateTransitionTestCase) IssuesCreationWorkflow() RunConfigurationStateTransitionTestCase {
-	creationWorkflow := st.workflowFactory.ConstructCreationWorkflow(st.RunConfiguration)
+	creationWorkflow := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.RunConfiguration)
 	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st RunConfigurationStateTransitionTestCase) IssuesUpdateWorkflow() RunConfigurationStateTransitionTestCase {
-	updateWorkflow := st.workflowFactory.ConstructUpdateWorkflow(st.RunConfiguration)
+	updateWorkflow := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.RunConfiguration)
 	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st RunConfigurationStateTransitionTestCase) IssuesDeletionWorkflow() RunConfigurationStateTransitionTestCase {
-	deletionWorkflow := st.workflowFactory.ConstructDeletionWorkflow(st.RunConfiguration)
+	deletionWorkflow := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.RunConfiguration)
 	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *deletionWorkflow})
 }
 

@@ -33,6 +33,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
+			Eventually(testCtx.FetchWorkflow(PipelineWorkflowConstants.CreateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.UpdatePipeline(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = RandomPipelineSpec()
@@ -49,6 +50,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
+			Eventually(testCtx.FetchWorkflow(PipelineWorkflowConstants.UpdateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.DeletePipeline()).To(Succeed())
 
@@ -61,6 +63,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 			})).To(Succeed())
 
 			Eventually(testCtx.PipelineExists).Should(Not(Succeed()))
+			Eventually(testCtx.FetchWorkflow(PipelineWorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
 		})
 	})
 })

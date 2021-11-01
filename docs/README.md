@@ -16,6 +16,7 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | `pipelineStorage` | The storage location used by [TFX](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs | `gcs://kubeflow-pipelines-bucket` |
 | `defaultBeamArgs` | Default Beam arguments on which the pipeline-defined ones will be overlaid | `project: my-gcp-project` |
 | `defaultExperiment` | Default Experiment name to be used for creating pipeline runs | `Default` |
+| `debug` | Default debugging options | See [Debugging](./debugging.md) |
 
 An example can be found in the [local run configuration](../config/manager/controller_manager_config.yaml).
 

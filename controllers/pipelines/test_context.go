@@ -79,6 +79,13 @@ func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*arg
 	return testCtx.K8sClient.Update(testCtx.ctx, workflow)
 }
 
+func (testCtx TestContext) FetchWorkflow(operation string) func() error {
+	return func() error {
+		_, err := testCtx.fetchWorkflow(operation)
+		return err
+	}
+}
+
 func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 

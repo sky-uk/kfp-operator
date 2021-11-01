@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -21,8 +22,8 @@ var RunConfigurationWorkflowConstants = struct {
 	DeleteOperationLabel:            "delete-runconfiguration",
 	UpdateOperationLabel:            "update-runconfiguration",
 	RunConfigurationIdParameterName: "runconfiguration-id",
-	RunConfigurationNameLabelKey:    "pipelines.kubeflow.org/runConfiguration",
-	OperationLabelKey:               "pipelines.kubeflow.org/operation",
+	RunConfigurationNameLabelKey:    pipelinesv1.GroupVersion.Group + "/runConfiguration",
+	OperationLabelKey:               pipelinesv1.GroupVersion.Group + "/operation",
 	CreationStepName:                "create",
 	DeletionStepName:                "delete",
 }
@@ -33,7 +34,7 @@ type RunConfigurationWorkflowFactory struct {
 
 // TODO: use input parameters
 
-func (workflows *RunConfigurationWorkflowFactory) commonMeta(rc *pipelinesv1.RunConfiguration, operation string) *metav1.ObjectMeta {
+func (workflows *RunConfigurationWorkflowFactory) commonMeta(ctx context.Context, rc *pipelinesv1.RunConfiguration, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    rc.Namespace,
@@ -41,14 +42,15 @@ func (workflows *RunConfigurationWorkflowFactory) commonMeta(rc *pipelinesv1.Run
 			RunConfigurationWorkflowConstants.OperationLabelKey:            operation,
 			RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: rc.Name,
 		},
+		Annotations: workflows.Annotations(ctx, rc.ObjectMeta),
 	}
 }
 
-func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
+func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
 	entrypointName := RunConfigurationWorkflowConstants.CreateOperationLabel
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -83,11 +85,11 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 	}
 }
 
-func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
+func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
 	entrypointName := RunConfigurationWorkflowConstants.DeleteOperationLabel
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(runConfiguration, RunConfigurationWorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -111,11 +113,11 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runC
 	}
 }
 
-func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
+func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
 	entrypointName := RunConfigurationWorkflowConstants.UpdateOperationLabel
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(runConfiguration, RunConfigurationWorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
