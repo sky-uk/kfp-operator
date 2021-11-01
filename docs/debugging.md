@@ -4,9 +4,9 @@ Debugging options can be set:
  - in the `debug` section of operator's configuration
  - serialised as JSON in the `pipelines.kubeflow.org/debug` annotation of the managed resources
 
-| Flag | Description |
-| --- | --- |
-| `keepWorkflows` | Don't delete workflows after state transitions. This flag is useful for debugging workflows that the operator has created. |
+| Option | Description | Example |
+| --- | --- | --- |
+| `keepWorkflows` | Don't delete workflows after state transitions. This flag is useful for debugging workflows that the operator has created. | `true`,`false` |
 
 Options set in the operator's configuration act as the lower bound to those defined in the resources.
 This means that resources can increase debugging, but never decrease it.
