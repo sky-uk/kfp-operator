@@ -22,8 +22,8 @@ var RunConfigurationWorkflowConstants = struct {
 	DeleteOperationLabel:            "delete-runconfiguration",
 	UpdateOperationLabel:            "update-runconfiguration",
 	RunConfigurationIdParameterName: "runconfiguration-id",
-	RunConfigurationNameLabelKey:    pipelinesv1.GroupVersion.Group+"/runConfiguration",
-	OperationLabelKey:               pipelinesv1.GroupVersion.Group+"/operation",
+	RunConfigurationNameLabelKey:    pipelinesv1.GroupVersion.Group + "/runConfiguration",
+	OperationLabelKey:               pipelinesv1.GroupVersion.Group + "/operation",
 	CreationStepName:                "create",
 	DeletionStepName:                "delete",
 }

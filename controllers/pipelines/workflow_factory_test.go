@@ -20,8 +20,7 @@ var _ = Describe("WorkflowFactory.Annotations", func() {
 				},
 			}
 
-			objectMeta := metav1.ObjectMeta{Annotations: map[string]string{
-			}}
+			objectMeta := metav1.ObjectMeta{Annotations: map[string]string{}}
 
 			debugAnnotations := workflowFactory.Annotations(context.Background(), objectMeta)["pipelines.kubeflow.org/debug"]
 			Expect(debugAnnotations).To(MatchJSON(`{"keepWorkflows":true}`))

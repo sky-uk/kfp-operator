@@ -25,9 +25,9 @@ type Status struct {
 }
 
 var Annotations = struct {
-	Debug            string
+	Debug string
 }{
-	Debug:          GroupVersion.Group+"/debug",
+	Debug: GroupVersion.Group + "/debug",
 }
 
 type DebugOptions struct {
@@ -58,8 +58,7 @@ func AnnotationsFromDebugOptions(ctx context.Context, debugOptions DebugOptions)
 
 	if debugAnnotation, err := json.Marshal(debugOptions); err != nil {
 		logger.Error(err, "error marshalling debug options into json")
-		return map[string]string{
-		}
+		return map[string]string{}
 	} else {
 		return map[string]string{
 			Annotations.Debug: string(debugAnnotation),
