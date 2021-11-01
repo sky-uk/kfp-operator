@@ -19,7 +19,7 @@ type Configuration struct {
 
 	DefaultExperiment 	string `json:"defaultExperiment,omitempty"`
 
-	Debug 			 	pipelinesv1.DebugOptions `json:"debug,omitempty"`
+	Debug               pipelinesv1.DebugOptions `json:"debug,omitempty"`
 }
 
 //+kubebuilder:object:root=true
