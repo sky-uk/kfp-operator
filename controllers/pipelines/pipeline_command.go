@@ -35,8 +35,12 @@ type DeletePipelineWorkflows struct {
 
 func (dw DeletePipelineWorkflows) execute(reconciler *PipelineReconciler, ctx context.Context, _ *pipelinesv1.Pipeline) error {
 	for i := range dw.Workflows {
-		if err := reconciler.Delete(ctx, &dw.Workflows[i]); err != nil {
-			return err
+		workflow := &dw.Workflows[i]
+		workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
+		if !workflowDebugOptions.KeepWorkflows {
+			if err := reconciler.Delete(ctx, workflow); err != nil {
+				return err
+			}
 		}
 	}
 

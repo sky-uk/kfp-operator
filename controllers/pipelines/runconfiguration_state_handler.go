@@ -16,12 +16,12 @@ func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, run
 	if !runconfiguration.ObjectMeta.DeletionTimestamp.IsZero() &&
 		(runconfiguration.Status.SynchronizationState == pipelinesv1.Succeeded ||
 			runconfiguration.Status.SynchronizationState == pipelinesv1.Failed) {
-		return st.onDelete(runconfiguration)
+		return st.onDelete(ctx, runconfiguration)
 	}
 
 	switch runconfiguration.Status.SynchronizationState {
 	case pipelinesv1.Unknown:
-		return st.onUnknown(runconfiguration)
+		return st.onUnknown(ctx, runconfiguration)
 	case pipelinesv1.Creating:
 		return st.onCreating(runconfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
@@ -29,7 +29,7 @@ func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, run
 				runconfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
-		return st.onSucceededOrFailed(runconfiguration)
+		return st.onSucceededOrFailed(ctx, runconfiguration)
 	case pipelinesv1.Updating:
 		return st.onUpdating(runconfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
@@ -49,12 +49,12 @@ func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, run
 	return []RunConfigurationCommand{}
 }
 
-func (st *RunConfigurationStateHandler) onUnknown(runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
 
 	newRunconfigurationVersion := runconfiguration.Spec.ComputeVersion()
 
 	if runconfiguration.Status.KfpId != "" {
-		workflow := st.WorkflowFactory.ConstructUpdateWorkflow(runconfiguration)
+		workflow := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runconfiguration)
 
 		return []RunConfigurationCommand{
 			CreateRunConfigurationWorkflow{Workflow: *workflow},
@@ -68,7 +68,7 @@ func (st *RunConfigurationStateHandler) onUnknown(runconfiguration *pipelinesv1.
 		}
 	}
 
-	workflow := st.WorkflowFactory.ConstructCreationWorkflow(runconfiguration)
+	workflow := st.WorkflowFactory.ConstructCreationWorkflow(ctx, runconfiguration)
 
 	return []RunConfigurationCommand{
 		CreateRunConfigurationWorkflow{Workflow: *workflow},
@@ -81,8 +81,8 @@ func (st *RunConfigurationStateHandler) onUnknown(runconfiguration *pipelinesv1.
 	}
 }
 
-func (st RunConfigurationStateHandler) onDelete(runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
-	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(runconfiguration)
+func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, runconfiguration)
 
 	return []RunConfigurationCommand{
 		CreateRunConfigurationWorkflow{Workflow: *workflow},
@@ -96,7 +96,7 @@ func (st RunConfigurationStateHandler) onDelete(runconfiguration *pipelinesv1.Ru
 	}
 }
 
-func (st RunConfigurationStateHandler) onSucceededOrFailed(runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
 	newRunConfigurationVersion := runconfiguration.Spec.ComputeVersion()
 
 	if runconfiguration.Status.Version == newRunConfigurationVersion {
@@ -107,10 +107,10 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(runconfiguration *pip
 	var targetState pipelinesv1.SynchronizationState
 
 	if runconfiguration.Status.KfpId == "" {
-		workflow = st.WorkflowFactory.ConstructCreationWorkflow(runconfiguration)
+		workflow = st.WorkflowFactory.ConstructCreationWorkflow(ctx, runconfiguration)
 		targetState = pipelinesv1.Creating
 	} else {
-		workflow = st.WorkflowFactory.ConstructUpdateWorkflow(runconfiguration)
+		workflow = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runconfiguration)
 		targetState = pipelinesv1.Updating
 	}
 

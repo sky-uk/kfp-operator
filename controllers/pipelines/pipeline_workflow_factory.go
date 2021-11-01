@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"context"
 	"fmt"
 	"gopkg.in/yaml.v2"
 
@@ -33,8 +34,8 @@ var PipelineWorkflowConstants = struct {
 	UpdateStepName:            "update",
 	PipelineYamlFilePath:      "/tmp/pipeline.yaml",
 	PipelineIdFilePath:        "/tmp/pipeline.txt",
-	PipelineNameLabelKey:      "pipelines.kubeflow.org/pipeline",
-	OperationLabelKey:         "pipelines.kubeflow.org/operation",
+	PipelineNameLabelKey:      pipelinesv1.GroupVersion.Group+"/pipeline",
+	OperationLabelKey:         pipelinesv1.GroupVersion.Group+"/operation",
 	CreateOperationLabel:      "create-pipeline",
 	UpdateOperationLabel:      "update-pipeline",
 	DeleteOperationLabel:      "delete-pipeline",
@@ -97,7 +98,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	}
 }
 
-func (w *PipelineWorkflowFactory) commonMeta(pipeline *pipelinesv1.Pipeline, operation string) *metav1.ObjectMeta {
+func (w *PipelineWorkflowFactory) commonMeta(ctx context.Context, pipeline *pipelinesv1.Pipeline, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    pipeline.ObjectMeta.Namespace,
@@ -105,10 +106,11 @@ func (w *PipelineWorkflowFactory) commonMeta(pipeline *pipelinesv1.Pipeline, ope
 			PipelineWorkflowConstants.OperationLabelKey:    operation,
 			PipelineWorkflowConstants.PipelineNameLabelKey: pipeline.ObjectMeta.Name,
 		},
+		Annotations: w.Annotations(ctx, pipeline.ObjectMeta),
 	}
 }
 
-func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	compilerConfigYaml, error := w.newCompilerConfig(pipeline).AsYaml()
 
 	if error != nil {
@@ -118,7 +120,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 	entrypointName := PipelineWorkflowConstants.CreateOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipeline, PipelineWorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -198,7 +200,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 	return workflow, nil
 }
 
-func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	compilerConfigYaml, error := w.newCompilerConfig(pipeline).AsYaml()
 
 	if error != nil {
@@ -208,7 +210,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 	entrypointName := PipelineWorkflowConstants.UpdateOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipeline, PipelineWorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -258,12 +260,12 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 	return workflow, nil
 }
 
-func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) *argo.Workflow {
+func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) *argo.Workflow {
 
 	entrypointName := PipelineWorkflowConstants.DeleteOperationLabel
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(pipeline, PipelineWorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.ServiceAccount,
 			Entrypoint:         entrypointName,

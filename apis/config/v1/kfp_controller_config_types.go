@@ -1,22 +1,25 @@
 package v2
 
 import (
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	cfg "sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
 )
 
 type Configuration struct {
-	PipelineStorage string `json:"pipelineStorage,omitempty"`
-	KfpEndpoint     string `json:"kfpEndpoint,omitempty"`
-	ServiceAccount  string `json:"serviceAccount,omitempty"`
+	PipelineStorage 	string `json:"pipelineStorage,omitempty"`
+	KfpEndpoint     	string `json:"kfpEndpoint,omitempty"`
+	ServiceAccount  	string `json:"serviceAccount,omitempty"`
 
-	CompilerImage   string `json:"compilerImage,omitempty"`
-	KfpSdkImage     string `json:"kfpSdkImage,omitempty"`
-	ImagePullPolicy string `json:"imagePullPolicy,omitempty"`
+	CompilerImage   	string `json:"compilerImage,omitempty"`
+	KfpSdkImage     	string `json:"kfpSdkImage,omitempty"`
+	ImagePullPolicy 	string `json:"imagePullPolicy,omitempty"`
 
-	DefaultBeamArgs map[string]string `json:"defaultBeamArgs,omitempty"`
+	DefaultBeamArgs 	map[string]string `json:"defaultBeamArgs,omitempty"`
 
-	DefaultExperiment string `json:"defaultExperiment,omitempty"`
+	DefaultExperiment 	string `json:"defaultExperiment,omitempty"`
+
+	Debug 			 	pipelinesv1.DebugOptions `json:"debug,omitempty"`
 }
 
 //+kubebuilder:object:root=true
