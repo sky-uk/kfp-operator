@@ -52,7 +52,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx c
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
-			ServiceAccountName: workflows.Config.ServiceAccount,
+			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
 			Templates: []argo.Template{
 				{
@@ -91,7 +91,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
-			ServiceAccountName: workflows.Config.ServiceAccount,
+			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
 			Templates: []argo.Template{
 				{
@@ -119,7 +119,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx co
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
-			ServiceAccountName: workflows.Config.ServiceAccount,
+			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
 			Templates: []argo.Template{
 				{
@@ -169,8 +169,9 @@ func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipe
 		workflows.Config.DefaultExperiment, runConfiguration.Name, runConfiguration.Spec.PipelineName, runConfiguration.Spec.Schedule)
 
 	return argo.Template{
-		Name:   RunConfigurationWorkflowConstants.CreationStepName,
-		Script: workflows.ScriptTemplate(kfpScript),
+		Name:     RunConfigurationWorkflowConstants.CreationStepName,
+		Metadata: workflows.Config.Argo.MetadataDefaults,
+		Script:   workflows.ScriptTemplate(kfpScript),
 	}
 }
 
@@ -178,7 +179,8 @@ func (workflows *RunConfigurationWorkflowFactory) deleter(runConfiguration *pipe
 	kfpScript := fmt.Sprintf("job delete %s", runConfiguration.Status.KfpId)
 
 	return argo.Template{
-		Name:   RunConfigurationWorkflowConstants.DeletionStepName,
-		Script: workflows.ScriptTemplate(kfpScript),
+		Name:     RunConfigurationWorkflowConstants.DeletionStepName,
+		Metadata: workflows.Config.Argo.MetadataDefaults,
+		Script:   workflows.ScriptTemplate(kfpScript),
 	}
 }
