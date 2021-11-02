@@ -16,3 +16,8 @@ resources:
 - auth_proxy_role.yaml
 - auth_proxy_role_binding.yaml
 - auth_proxy_client_clusterrole.yaml
+# resource editor and viewer
+- pipeline_editor_role.yaml
+- pipeline_viewer_role.yaml
+- runconfiguration_editor_role.yaml
+- runconfiguration_viewer_role.yaml

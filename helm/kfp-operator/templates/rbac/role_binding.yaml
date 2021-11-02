@@ -1,3 +1,4 @@
+{{- if and .Values.rbac.create .Values.serviceAccount.create -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -8,5 +9,6 @@ roleRef:
   name: {{ include "kfp-operator.fullname" . }}-manager-role
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.controller.serviceAccount }}
-  namespace: {{ .Values.controller.namespace }}
+  name: {{ .Values.serviceAccount.name }}
+  namespace: {{ .Values.namespace }}
+{{- end -}}
