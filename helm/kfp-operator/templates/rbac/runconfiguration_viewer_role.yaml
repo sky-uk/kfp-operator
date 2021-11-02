@@ -1,0 +1,22 @@
+{{- if .Values.rbac.create -}}
+# permissions for end users to view runconfigurations.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-runconfiguration-viewer-role
+rules:
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runconfigurations
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runconfigurations/status
+  verbs:
+  - get
+{{- end -}}

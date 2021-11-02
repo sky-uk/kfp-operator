@@ -1,0 +1,26 @@
+{{- if .Values.rbac.create -}}
+# permissions for end users to edit pipelines.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-pipeline-editor-role
+rules:
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines/status
+  verbs:
+  - get
+{{- end -}}

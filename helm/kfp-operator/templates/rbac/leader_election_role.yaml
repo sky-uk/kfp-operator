@@ -1,9 +1,10 @@
+{{- if .Values.rbac.create -}}
 # permissions to do leader election.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-leader-election-role
-  namespace: {{ .Values.controller.namespace }}
+  namespace: {{ .Values.namespace }}
 rules:
 - apiGroups:
   - ""
@@ -36,3 +37,4 @@ rules:
   verbs:
   - create
   - patch
+{{- end -}}

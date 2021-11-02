@@ -1,0 +1,22 @@
+{{- if .Values.rbac.create -}}
+# permissions for end users to view pipelines.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-pipeline-viewer-role
+rules:
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - pipelines/status
+  verbs:
+  - get
+{{- end -}}
