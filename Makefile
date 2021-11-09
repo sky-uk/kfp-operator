@@ -1,5 +1,10 @@
 include version.mk
 
+define NEWLINE
+
+
+endef
+
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
@@ -162,6 +167,22 @@ helm-install: helm-package values.yaml
 helm-uninstall:
 	$(HELM) uninstall kfp-operator
 
+helm-upgrade: helm-package values.yaml
+	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+
+ifndef HELM_REPOSITORIES
+helm-publish:
+	$(error HELM_REPOSITORIES must be a space-separated list of URLs)
+else ifndef NETRC_FILE
+helm-publish:
+	$(error NETRC_FILE must be provided)
+else
+helm-publish: helm-package $(NETRC_FILE)
+	$(foreach url,$(HELM_REPOSITORIES),$(call helm-upload,$(url))$(NEWLINE))
+
+helm-upload = @echo curl --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1)
+endif
+
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
 helm-test: manifests helm-cmd kustomize yq dyff
 	$(eval TMP := $(shell mktemp -d))
@@ -189,9 +210,9 @@ docker-push-argo:
 	$(MAKE) -C argo/kfp-sdk docker-push
 	$(MAKE) -C argo/mlmd-cli docker-push
 
-package-all: helm-package docker-build docker-build-argo
+package-all: docker-build docker-build-argo helm-package
 
-publish-all: docker-push docker-push-argo
+publish-all: docker-push docker-push-argo helm-publish
 
 ##@ CI
 

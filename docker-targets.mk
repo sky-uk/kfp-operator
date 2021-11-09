@@ -5,10 +5,12 @@ else ifneq ($(VERSION), $(VERSION:-dirty=))
 docker-push:
 	$(error Refusing to push dirty image $(VERSION))
 else
-docker-push: docker-build $(CONTAINER_REGISTRY_HOSTS) ## Push container image
-$(CONTAINER_REGISTRY_HOSTS):
-	docker tag ${IMG}:${VERSION} $@/${IMG}:${VERSION}
-	docker push $@/${IMG}:${VERSION}
+docker-push: docker-build ## Push container image
+	$(foreach host,$(CONTAINER_REGISTRY_HOSTS),$(call docker-push-to-registry,$(host))$(NEWLINE))
+define docker-push-to-registry
+	docker tag ${IMG}:${VERSION} $(1)/${IMG}:${VERSION}
+	docker push $(1)/${IMG}:${VERSION}
+endef
 endif
 
 docker-build: build ## Build container image
