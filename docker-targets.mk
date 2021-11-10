@@ -6,10 +6,10 @@ docker-push:
 	$(error Refusing to push dirty image $(VERSION))
 else
 docker-push: docker-build ## Push container image
-	$(foreach host,$(CONTAINER_REGISTRY_HOSTS),$(call docker-push-to-registry,$(host))$(NEWLINE))
+	$(foreach host,$(CONTAINER_REGISTRY_HOSTS),$(call docker-push-to-registry,$(host)))
 define docker-push-to-registry
-	docker tag ${IMG}:${VERSION} $(1)/${IMG}:${VERSION}
-	docker push $(1)/${IMG}:${VERSION}
+	docker tag ${IMG}:${VERSION} $(1)/${IMG}:${VERSION}$(NEWLINE)
+	docker push $(1)/${IMG}:${VERSION}$(NEWLINE)
 endef
 endif
 

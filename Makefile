@@ -1,9 +1,5 @@
 include version.mk
-
-define NEWLINE
-
-
-endef
+include newline.mk
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
@@ -178,9 +174,9 @@ helm-publish:
 	$(error NETRC_FILE must be provided)
 else
 helm-publish: helm-package $(NETRC_FILE)
-	$(foreach url,$(HELM_REPOSITORIES),$(call helm-upload,$(url))$(NEWLINE))
+	$(foreach url,$(HELM_REPOSITORIES),$(call helm-upload,$(url)))
 
-helm-upload = @echo curl --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1)
+helm-upload = @echo curl --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1)$(NEWLINE)
 endif
 
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
