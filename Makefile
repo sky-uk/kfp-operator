@@ -176,7 +176,7 @@ else
 helm-publish: helm-package $(NETRC_FILE)
 	$(foreach url,$(HELM_REPOSITORIES),$(call helm-upload,$(url)))
 
-helm-upload = @echo curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1)$(NEWLINE)
+helm-upload = curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1)$(NEWLINE)
 endif
 
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
