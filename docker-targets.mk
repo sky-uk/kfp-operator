@@ -1,5 +1,7 @@
-include version.mk
-include newline.mk
+_DOCKER_TARGETS_MK_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+include $(_DOCKER_TARGETS_MK_DIR)/version.mk
+include $(_DOCKER_TARGETS_MK_DIR)/newline.mk
 
 ifndef CONTAINER_REGISTRY_HOSTS
 docker-push:
