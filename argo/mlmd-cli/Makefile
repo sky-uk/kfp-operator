@@ -1,6 +1,3 @@
-include ../../version.mk
-include ../../newline.mk
-
 IMG := kfp-operator-argo-mlmd-cli
 
 all: build

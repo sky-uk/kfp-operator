@@ -1,3 +1,6 @@
+include version.mk
+include newline.mk
+
 ifndef CONTAINER_REGISTRY_HOSTS
 docker-push:
 	$(error CONTAINER_REGISTRY_HOSTS must be a space-separated list of hosts)
