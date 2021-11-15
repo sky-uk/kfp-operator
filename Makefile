@@ -96,7 +96,7 @@ build: generate fmt vet ## Build manager binary.
 	go build -o bin/manager main.go
 
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./main.go --config config/manager/controller_manager_config.yaml
+	go run ./main.go --zap-devel --config config/manager/controller_manager_config.yaml
 
 ##@ Deployment
 
