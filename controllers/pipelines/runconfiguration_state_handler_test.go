@@ -121,6 +121,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 	specv1 := RandomRunConfigurationSpec()
 	v0 := pipelinesv1.RunConfigurationSpec{}.ComputeVersion()
 	v1 := specv1.ComputeVersion()
+	UnknownState := pipelinesv1.SynchronizationState(RandomString())
 
 	var Check = func(description string, transition RunConfigurationStateTransitionTestCase) TableEntry {
 		return Entry(
@@ -156,23 +157,23 @@ var _ = Describe("RunConfiguration State handler", func() {
 		}
 		Expect(commands).To(ConsistOf(is...))
 	},
-		Check("Unknown",
-			From(pipelinesv1.Unknown, "", "").
+		Check("Empty",
+			From(UnknownState, "", "").
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
-		Check("Unknown with version",
-			From(pipelinesv1.Unknown, "", v1).
+		Check("Empty with version",
+			From(UnknownState, "", v1).
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
-		Check("Unknown with id",
-			From(pipelinesv1.Unknown, kfpId, "").
+		Check("Empty with id",
+			From(UnknownState, kfpId, "").
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
-		Check("Unknown with id and version",
-			From(pipelinesv1.Unknown, kfpId, v1).
+		Check("Empty with id and version",
+			From(UnknownState, kfpId, v1).
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),

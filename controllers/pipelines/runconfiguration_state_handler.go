@@ -23,10 +23,8 @@ func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, run
 	}
 
 	switch runConfiguration.Status.SynchronizationState {
-	case pipelinesv1.Unknown:
-		return st.onUnknown(ctx, runConfiguration)
 	case pipelinesv1.Creating:
-		return st.onCreating(runConfiguration,
+		return st.onCreating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.CreateOperationLabel,
 				runConfiguration.NamespacedName(),
@@ -34,22 +32,22 @@ func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, run
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		return st.onSucceededOrFailed(ctx, runConfiguration)
 	case pipelinesv1.Updating:
-		return st.onUpdating(runConfiguration,
+		return st.onUpdating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.UpdateOperationLabel,
 				runConfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(runConfiguration,
+		return st.onDeleting(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.DeleteOperationLabel,
 				runConfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Deleted:
 		return st.onDeleted()
+	default:
+		return st.onUnknown(ctx, runConfiguration)
 	}
-
-	return []RunConfigurationCommand{}
 }
 
 func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
@@ -138,7 +136,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 	}
 }
 
-func (st RunConfigurationStateHandler) onUpdating(runConfiguration *pipelinesv1.RunConfiguration, updateWorkflows []argo.Workflow) []RunConfigurationCommand {
+func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, updateWorkflows []argo.Workflow) []RunConfigurationCommand {
 	logger := log.FromContext(ctx)
 
 	if runConfiguration.Status.Version == "" || runConfiguration.Status.KfpId == "" {
@@ -193,7 +191,7 @@ func (st RunConfigurationStateHandler) onUpdating(runConfiguration *pipelinesv1.
 	}
 }
 
-func (st RunConfigurationStateHandler) onDeleting(runConfiguration *pipelinesv1.RunConfiguration, deletionWorkflows []argo.Workflow) []RunConfigurationCommand {
+func (st RunConfigurationStateHandler) onDeleting(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, deletionWorkflows []argo.Workflow) []RunConfigurationCommand {
 	logger := log.FromContext(ctx)
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(deletionWorkflows)
@@ -230,7 +228,7 @@ func (st RunConfigurationStateHandler) onDeleted() []RunConfigurationCommand {
 	}
 }
 
-func (st RunConfigurationStateHandler) onCreating(runConfiguration *pipelinesv1.RunConfiguration, creationWorkflows []argo.Workflow) []RunConfigurationCommand {
+func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, creationWorkflows []argo.Workflow) []RunConfigurationCommand {
 	logger := log.FromContext(ctx)
 
 	if runConfiguration.Status.Version == "" {

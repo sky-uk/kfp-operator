@@ -23,8 +23,6 @@ func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pi
 	}
 
 	switch pipeline.Status.SynchronizationState {
-	case pipelinesv1.Unknown:
-		return st.onUnknown(ctx, pipeline)
 	case pipelinesv1.Creating:
 		return st.onCreating(ctx, pipeline,
 			st.WorkflowRepository.GetByOperation(ctx,
@@ -47,9 +45,9 @@ func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pi
 				PipelineWorkflowConstants.PipelineNameLabelKey))
 	case pipelinesv1.Deleted:
 		return st.onDeleted()
+	default:
+		return st.onUnknown(ctx, pipeline)
 	}
-
-	return []PipelineCommand{}
 }
 
 func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
