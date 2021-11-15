@@ -14,7 +14,7 @@ type PipelineStateHandler struct {
 
 func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
 	logger := log.FromContext(ctx)
-	logger.Info("state transition start", LogKeys.Status, pipeline.Status)
+	logger.Info("state transition start")
 
 	if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() &&
 		(pipeline.Status.SynchronizationState == pipelinesv1.Succeeded ||
@@ -58,7 +58,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 	newPipelineVersion := pipeline.Spec.ComputeVersion()
 
 	if pipeline.Status.KfpId != "" {
-		logger.Info("empty state but KfpId already exists, updating pipeline")
+		logger.Info("empty state but kfpId already exists, updating pipeline")
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, pipeline)
 
 		if err != nil {
@@ -144,11 +144,11 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 	var targetState pipelinesv1.SynchronizationState
 
 	if pipeline.Status.KfpId == "" {
-		logger.Info("no KfpId exists, creating")
+		logger.Info("no kfpId exists, creating")
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(ctx, pipeline)
 		targetState = pipelinesv1.Creating
 	} else {
-		logger.Info("KfpId exists, updating")
+		logger.Info("kfpId exists, updating")
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, pipeline)
 		targetState = pipelinesv1.Updating
 	}
@@ -206,11 +206,13 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 	if succeeded != nil {
 		logger.Info("pipeline update succeeded")
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
-	} else if failed != nil {
-		logger.Info("pipeline update failed")
-		newStatus.SynchronizationState = pipelinesv1.Failed
 	} else {
-		logger.Info("pipeline updating progress unknown, failing pipeline")
+		if failed != nil {
+			logger.Info("pipeline update failed")
+		} else {
+			logger.Info("pipeline updating progress unknown, failing pipeline")
+		}
+		newStatus.SynchronizationState = pipelinesv1.Failed
 	}
 
 	return []PipelineCommand{

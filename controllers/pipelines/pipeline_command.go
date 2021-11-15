@@ -60,7 +60,7 @@ func (dw DeletePipelineWorkflows) execute(reconciler *PipelineReconciler, ctx co
 				return err
 			}
 		} else {
-			logger.V(1).Info("keeping child workflow", LogKeys.Workflow, workflow)
+			logger.V(2).Info("keeping child workflow", LogKeys.Workflow, workflow)
 		}
 	}
 

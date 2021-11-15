@@ -2,12 +2,12 @@ package pipelines
 
 import (
 	"context"
-	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 )
@@ -25,6 +25,8 @@ type RunConfigurationReconciler struct {
 
 func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
+	startTime := time.Now()
+	logger.V(2).Info("reconciliation started")
 
 	var runConfiguration = &pipelinesv1.RunConfiguration{}
 	if err := r.Get(ctx, req.NamespacedName, runConfiguration); err != nil {
@@ -40,15 +42,20 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	for i := range commands {
 		if err := commands[i].execute(r, ctx, runConfiguration); err != nil {
-			logger.Error(err, fmt.Sprintf("Error executing command: %+v", commands[i]))
+			logger.Error(err, "error executing command", LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}
+
+	duration := time.Now().Sub(startTime)
+	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
 
 func (r *RunConfigurationReconciler) AddFinalizer(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) error {
+	logger := log.FromContext(ctx)
+	logger.V(2).Info("adding finalizer")
 	if !containsString(runconfiguration.ObjectMeta.Finalizers, finalizerName) {
 		runconfiguration.ObjectMeta.Finalizers = append(runconfiguration.ObjectMeta.Finalizers, finalizerName)
 		return r.Update(ctx, runconfiguration)
@@ -58,21 +65,11 @@ func (r *RunConfigurationReconciler) AddFinalizer(ctx context.Context, runconfig
 }
 
 func (r *RunConfigurationReconciler) RemoveFinalizer(ctx context.Context, runconfiguration pipelinesv1.RunConfiguration) error {
+	logger := log.FromContext(ctx)
+	logger.V(2).Info("removing finalizer")
 	if containsString(runconfiguration.ObjectMeta.Finalizers, finalizerName) {
 		runconfiguration.ObjectMeta.Finalizers = removeString(runconfiguration.ObjectMeta.Finalizers, finalizerName)
 		return r.Update(ctx, &runconfiguration)
-	}
-
-	return nil
-}
-
-func (r *RunConfigurationReconciler) CreateChildWorkflow(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration, workflow argo.Workflow) error {
-	if err := ctrl.SetControllerReference(runconfiguration, &workflow, r.Scheme); err != nil {
-		return err
-	}
-
-	if err := r.Create(ctx, &workflow); err != nil {
-		return err
 	}
 
 	return nil
