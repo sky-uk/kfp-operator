@@ -70,3 +70,14 @@ Finally, bring down the environment after your tests:
 ```sh
 make integration-test-down
 ```
+
+## Coding Guidelines
+
+### Logging
+Log [verbosity levels](https://github.com/go-logr/logr#why-v-levels) should be set according to the following rules:
+
+| Level | Description | Example |
+| --- | --- | --- |
+| 0 | Will always be logged. Appropriate for all major actions. | state transitions, errors |
+| 1 | Appropriate for high-level technical information. | resource creation/update/deletion |
+| 2 | Appropriate for low-level technical information. | resource retrieval, finalizers, profiling, expected errors |

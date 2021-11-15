@@ -2,12 +2,11 @@ package pipelines
 
 import (
 	"context"
-	"fmt"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -32,6 +31,8 @@ type PipelineReconciler struct {
 
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
+	startTime := time.Now()
+	logger.V(2).Info("reconciliation started")
 
 	var pipeline = &pipelinesv1.Pipeline{}
 	if err := r.Get(ctx, req.NamespacedName, pipeline); err != nil {
@@ -47,15 +48,20 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	for i := range commands {
 		if err := commands[i].execute(r, ctx, pipeline); err != nil {
-			logger.Error(err, fmt.Sprintf("Error executing command: %+v", commands[i]))
+			logger.Error(err, "error executing command", LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}
+
+	duration := time.Now().Sub(startTime)
+	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
 
 func (r *PipelineReconciler) AddFinalizer(ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+	logger := log.FromContext(ctx)
+	logger.V(2).Info("adding finalizer")
 	if !containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
 		pipeline.ObjectMeta.Finalizers = append(pipeline.ObjectMeta.Finalizers, finalizerName)
 		return r.Update(ctx, pipeline)
@@ -65,21 +71,11 @@ func (r *PipelineReconciler) AddFinalizer(ctx context.Context, pipeline *pipelin
 }
 
 func (r *PipelineReconciler) RemoveFinalizer(ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+	logger := log.FromContext(ctx)
+	logger.V(2).Info("removing finalizer")
 	if containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
 		pipeline.ObjectMeta.Finalizers = removeString(pipeline.ObjectMeta.Finalizers, finalizerName)
 		return r.Update(ctx, pipeline)
-	}
-
-	return nil
-}
-
-func (r *PipelineReconciler) CreateChildWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline, workflow argo.Workflow) error {
-	if err := ctrl.SetControllerReference(pipeline, &workflow, r.Scheme); err != nil {
-		return err
-	}
-
-	if err := r.Create(ctx, &workflow); err != nil {
-		return err
 	}
 
 	return nil
