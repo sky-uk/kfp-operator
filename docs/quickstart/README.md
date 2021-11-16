@@ -78,3 +78,4 @@ data:
     serving-model: {{serving-model-location}}
 ```
 
+![Model Serving](./model_serving.png)
