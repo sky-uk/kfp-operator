@@ -74,6 +74,7 @@ make integration-test-down
 ## Coding Guidelines
 
 ### Logging
+
 Log [verbosity levels](https://github.com/go-logr/logr#why-v-levels) should be set according to the following rules:
 
 | Level | Description | Example |

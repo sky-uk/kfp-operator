@@ -20,6 +20,7 @@ logging:
   # error is always enabled
   # info == 0
   # debug == 1
+  # see https://github.com/sky-uk/kfp-operator/blob/master/docs/development/README.md#logging for more details
   verbosity: info
 
 configuration: {}
