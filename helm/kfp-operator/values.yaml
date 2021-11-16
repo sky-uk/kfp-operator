@@ -15,4 +15,11 @@ serviceAccount:
   create: true
   name: "kfp-operator-controller-manager"
 
+logging:
+  # can be `error`, `info`, `debug` or a number > 0 where higher numbers denote more verbose logging
+  # error is always enabled
+  # info == 0
+  # debug == 1
+  verbosity: info
+
 configuration: {}

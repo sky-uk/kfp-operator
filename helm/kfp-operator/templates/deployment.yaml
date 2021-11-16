@@ -23,6 +23,7 @@ spec:
             - /manager
           args:
             - --config=controller_manager_config.yaml
+            - --zap-log-level={{ .Values.logging.verbosity }}
           image: {{ .Values.containerRegistry }}/kfp-operator-controller:{{ .Chart.AppVersion }}
           securityContext:
             allowPrivilegeEscalation: false
