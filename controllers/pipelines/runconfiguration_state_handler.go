@@ -4,6 +4,7 @@ import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type RunConfigurationStateHandler struct {
@@ -11,56 +12,58 @@ type RunConfigurationStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+	logger := log.FromContext(ctx)
+	logger.Info("state transition start")
 
-	if !runconfiguration.ObjectMeta.DeletionTimestamp.IsZero() &&
-		(runconfiguration.Status.SynchronizationState == pipelinesv1.Succeeded ||
-			runconfiguration.Status.SynchronizationState == pipelinesv1.Failed) {
-		return st.onDelete(ctx, runconfiguration)
+	if !runConfiguration.ObjectMeta.DeletionTimestamp.IsZero() &&
+		(runConfiguration.Status.SynchronizationState == pipelinesv1.Succeeded ||
+			runConfiguration.Status.SynchronizationState == pipelinesv1.Failed) {
+		return st.onDelete(ctx, runConfiguration)
 	}
 
-	switch runconfiguration.Status.SynchronizationState {
-	case pipelinesv1.Unknown:
-		return st.onUnknown(ctx, runconfiguration)
+	switch runConfiguration.Status.SynchronizationState {
 	case pipelinesv1.Creating:
-		return st.onCreating(runconfiguration,
+		return st.onCreating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.CreateOperationLabel,
-				runconfiguration.NamespacedName(),
+				runConfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
-		return st.onSucceededOrFailed(ctx, runconfiguration)
+		return st.onSucceededOrFailed(ctx, runConfiguration)
 	case pipelinesv1.Updating:
-		return st.onUpdating(runconfiguration,
+		return st.onUpdating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.UpdateOperationLabel,
-				runconfiguration.NamespacedName(),
+				runConfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(runconfiguration,
+		return st.onDeleting(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.DeleteOperationLabel,
-				runconfiguration.NamespacedName(),
+				runConfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Deleted:
 		return st.onDeleted()
+	default:
+		return st.onUnknown(ctx, runConfiguration)
 	}
-
-	return []RunConfigurationCommand{}
 }
 
-func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+	logger := log.FromContext(ctx)
 
-	newRunconfigurationVersion := runconfiguration.Spec.ComputeVersion()
+	newRunconfigurationVersion := runConfiguration.Spec.ComputeVersion()
 
-	if runconfiguration.Status.KfpId != "" {
-		workflow := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runconfiguration)
+	if runConfiguration.Status.KfpId != "" {
+		logger.Info("empty state but KfpId already exists, updating run configuration")
+		workflow := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
 
 		return []RunConfigurationCommand{
 			CreateRunConfigurationWorkflow{Workflow: *workflow},
 			SetRunConfigurationStatus{
 				Status: pipelinesv1.Status{
-					KfpId:                runconfiguration.Status.KfpId,
+					KfpId:                runConfiguration.Status.KfpId,
 					Version:              newRunconfigurationVersion,
 					SynchronizationState: pipelinesv1.Updating,
 				},
@@ -68,7 +71,8 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runconfig
 		}
 	}
 
-	workflow := st.WorkflowFactory.ConstructCreationWorkflow(ctx, runconfiguration)
+	logger.Info("empty state, creating run configuration")
+	workflow := st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
 
 	return []RunConfigurationCommand{
 		CreateRunConfigurationWorkflow{Workflow: *workflow},
@@ -81,36 +85,42 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runconfig
 	}
 }
 
-func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
-	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, runconfiguration)
+func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+	logger := log.FromContext(ctx)
+	logger.Info("deletion requested, deleting")
+	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, runConfiguration)
 
 	return []RunConfigurationCommand{
 		CreateRunConfigurationWorkflow{Workflow: *workflow},
 		SetRunConfigurationStatus{
 			Status: pipelinesv1.Status{
-				KfpId:                runconfiguration.Status.KfpId,
-				Version:              runconfiguration.Status.Version,
+				KfpId:                runConfiguration.Status.KfpId,
+				Version:              runConfiguration.Status.Version,
 				SynchronizationState: pipelinesv1.Deleting,
 			},
 		},
 	}
 }
 
-func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
-	newRunConfigurationVersion := runconfiguration.Spec.ComputeVersion()
+func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+	logger := log.FromContext(ctx)
+	newRunConfigurationVersion := runConfiguration.Spec.ComputeVersion()
 
-	if runconfiguration.Status.Version == newRunConfigurationVersion {
+	if runConfiguration.Status.Version == newRunConfigurationVersion {
+		logger.V(2).Info("run configuration version has not changed")
 		return []RunConfigurationCommand{}
 	}
 
 	var workflow *argo.Workflow
 	var targetState pipelinesv1.SynchronizationState
 
-	if runconfiguration.Status.KfpId == "" {
-		workflow = st.WorkflowFactory.ConstructCreationWorkflow(ctx, runconfiguration)
+	if runConfiguration.Status.KfpId == "" {
+		logger.Info("no kfpId exists, creating")
+		workflow = st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
 		targetState = pipelinesv1.Creating
 	} else {
-		workflow = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runconfiguration)
+		logger.Info("kfpId exists, updating")
+		workflow = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
 		targetState = pipelinesv1.Updating
 	}
 
@@ -118,7 +128,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 		CreateRunConfigurationWorkflow{Workflow: *workflow},
 		SetRunConfigurationStatus{
 			Status: pipelinesv1.Status{
-				KfpId:                runconfiguration.Status.KfpId,
+				KfpId:                runConfiguration.Status.KfpId,
 				Version:              newRunConfigurationVersion,
 				SynchronizationState: targetState,
 			},
@@ -126,37 +136,48 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 	}
 }
 
-func (st RunConfigurationStateHandler) onUpdating(runconfiguration *pipelinesv1.RunConfiguration, updateWorkflows []argo.Workflow) []RunConfigurationCommand {
-	if runconfiguration.Status.Version == "" || runconfiguration.Status.KfpId == "" {
+func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, updateWorkflows []argo.Workflow) []RunConfigurationCommand {
+	logger := log.FromContext(ctx)
+
+	if runConfiguration.Status.Version == "" || runConfiguration.Status.KfpId == "" {
+		logger.Info("updating run configuration with empty version or kfpId, failing run configuration")
 		return []RunConfigurationCommand{
 			SetRunConfigurationStatus{
 				Status: pipelinesv1.Status{
-					Version:              runconfiguration.Status.Version,
-					KfpId:                runconfiguration.Status.KfpId,
+					Version:              runConfiguration.Status.Version,
+					KfpId:                runConfiguration.Status.KfpId,
 					SynchronizationState: pipelinesv1.Failed,
 				},
 			},
 		}
 	}
 
-	inProgress, succeeded, _ := latestWorkflowByPhase(updateWorkflows)
+	inProgress, succeeded, failed := latestWorkflowByPhase(updateWorkflows)
 
 	if inProgress != nil {
+		logger.V(2).Info("run configuration update in progress")
 		return []RunConfigurationCommand{}
 	}
 
-	newStatus := runconfiguration.Status.DeepCopy()
+	newStatus := runConfiguration.Status.DeepCopy()
 
 	if succeeded != nil {
+		logger.Info("run configuration update succeeded")
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
-		idResult, error := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
+		idResult, err := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
 
-		if error != nil {
+		if err != nil {
+			logger.Error(err, "could not retrieve workflow output, failing run configuration")
 			newStatus.SynchronizationState = pipelinesv1.Failed
 		} else {
 			newStatus.KfpId = idResult
 		}
 	} else {
+		if failed != nil {
+			logger.Info("run configuration update failed")
+		} else {
+			logger.Info("run configuration creation progress unknown, failing run configuration")
+		}
 		newStatus.SynchronizationState = pipelinesv1.Failed
 	}
 
@@ -170,18 +191,25 @@ func (st RunConfigurationStateHandler) onUpdating(runconfiguration *pipelinesv1.
 	}
 }
 
-func (st RunConfigurationStateHandler) onDeleting(runconfiguration *pipelinesv1.RunConfiguration, deletionWorkflows []argo.Workflow) []RunConfigurationCommand {
+func (st RunConfigurationStateHandler) onDeleting(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, deletionWorkflows []argo.Workflow) []RunConfigurationCommand {
+	logger := log.FromContext(ctx)
 
-	inProgress, succeeded, _ := latestWorkflowByPhase(deletionWorkflows)
+	inProgress, succeeded, failed := latestWorkflowByPhase(deletionWorkflows)
 
 	if inProgress != nil {
+		logger.V(2).Info("run configuration deletion in progress")
 		return []RunConfigurationCommand{}
 	}
 
-	newStatus := runconfiguration.Status.DeepCopy()
+	newStatus := runConfiguration.Status.DeepCopy()
 
 	if succeeded != nil {
+		logger.Info("run configuration deletion succeeded")
 		newStatus.SynchronizationState = pipelinesv1.Deleted
+	} else if failed != nil {
+		logger.Info("run configuration deletion failed")
+	} else {
+		logger.Info("run configuration deletion progress unknown, failing run configuration")
 	}
 
 	return []RunConfigurationCommand{
@@ -200,37 +228,47 @@ func (st RunConfigurationStateHandler) onDeleted() []RunConfigurationCommand {
 	}
 }
 
-func (st RunConfigurationStateHandler) onCreating(runconfiguration *pipelinesv1.RunConfiguration, creationWorkflows []argo.Workflow) []RunConfigurationCommand {
+func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, creationWorkflows []argo.Workflow) []RunConfigurationCommand {
+	logger := log.FromContext(ctx)
 
-	if runconfiguration.Status.Version == "" {
+	if runConfiguration.Status.Version == "" {
+		logger.Info("creating run configuration with empty version, failing run configuration")
 		return []RunConfigurationCommand{
 			SetRunConfigurationStatus{
 				Status: pipelinesv1.Status{
-					KfpId:                runconfiguration.Status.KfpId,
+					KfpId:                runConfiguration.Status.KfpId,
 					SynchronizationState: pipelinesv1.Failed,
 				},
 			},
 		}
 	}
 
-	inProgress, succeeded, _ := latestWorkflowByPhase(creationWorkflows)
+	inProgress, succeeded, failed := latestWorkflowByPhase(creationWorkflows)
 
 	if inProgress != nil {
+		logger.V(2).Info("run configuration creation in progress")
 		return []RunConfigurationCommand{}
 	}
 
-	newStatus := runconfiguration.Status.DeepCopy()
+	newStatus := runConfiguration.Status.DeepCopy()
 
 	if succeeded != nil {
+		logger.Info("run configuration creation succeeded")
 		newStatus.SynchronizationState = pipelinesv1.Succeeded
-		idResult, error := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
+		idResult, err := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
 
-		if error != nil {
+		if err != nil {
+			logger.Error(err, "could not retrieve workflow output, failing run configuration")
 			newStatus.SynchronizationState = pipelinesv1.Failed
 		} else {
 			newStatus.KfpId = idResult
 		}
 	} else {
+		if failed != nil {
+			logger.Info("run configuration update failed")
+		} else {
+			logger.Info("run configuration creation progress unknown, failing run configuration")
+		}
 		newStatus.SynchronizationState = pipelinesv1.Failed
 	}
 

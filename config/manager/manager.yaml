@@ -27,8 +27,6 @@ spec:
       containers:
       - command:
         - /manager
-        args:
-        - --leader-elect
         image: ${CONTAINER_REGISTRY}/kfp-operator-controller:latest
         name: manager
         securityContext:

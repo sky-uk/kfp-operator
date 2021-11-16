@@ -41,10 +41,10 @@ type RunConfiguration struct {
 	Status Status               `json:"status,omitempty"`
 }
 
-func (r RunConfiguration) NamespacedName() types.NamespacedName {
+func (rc RunConfiguration) NamespacedName() types.NamespacedName {
 	return types.NamespacedName{
-		Name:      r.Name,
-		Namespace: r.Namespace,
+		Name:      rc.Name,
+		Namespace: rc.Namespace,
 	}
 }
 

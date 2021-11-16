@@ -70,3 +70,17 @@ Finally, bring down the environment after your tests:
 ```sh
 make integration-test-down
 ```
+
+## Coding Guidelines
+
+### Logging
+
+We use the [zap](https://github.com/uber-go/zap) implementation of [logr](https://github.com/go-logr/logr) via the [zapr](https://github.com/go-logr/zapr) module.
+
+[Verbosity levels](https://github.com/go-logr/logr#why-v-levels) are set according to the following rules:
+
+| Zap Level | Description | Example |
+| --- | --- | --- |
+| 0, `error`, `info` | Will always be logged. Appropriate for all major actions. | state transitions, errors |
+| 1, `debug` | Appropriate for high-level technical information. | resource creation/update/deletion |
+| 2 | Appropriate for low-level technical information. | resource retrieval, finalizers, profiling, expected errors |

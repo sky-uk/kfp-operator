@@ -9,7 +9,6 @@ import (
 type SynchronizationState string
 
 const (
-	Unknown   SynchronizationState = ""
 	Creating  SynchronizationState = "Creating"
 	Succeeded SynchronizationState = "Succeeded"
 	Updating  SynchronizationState = "Updating"
