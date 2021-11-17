@@ -85,10 +85,11 @@ unit-test: ## Run unit tests
 test: manifests generate fmt vet unit-test # decoupled-test
 
 test-argo:
-	# $(MAKE) -C argo/compiler test
+	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/kfp-sdk test
+	$(MAKE) -C argo/mlmd test
 
-test-all: test helm-test
+test-all: test helm-test test-argo
 
 ##@ Build
 
@@ -197,12 +198,12 @@ helm-test: manifests helm-cmd kustomize yq dyff
 include docker-targets.mk
 
 docker-build-argo:
-	$(MAKE) -C argo/compiler docker-build
+	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/kfp-sdk docker-build
 	$(MAKE) -C argo/mlmd-cli docker-build
 
 docker-push-argo:
-	$(MAKE) -C argo/compiler docker-push
+	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/kfp-sdk docker-push
 	$(MAKE) -C argo/mlmd-cli docker-push
 
