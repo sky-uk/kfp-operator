@@ -1,4 +1,4 @@
-from compiler import compiler
+from kfp_compiler import compiler
 
 def test_dict_to_cli_args():
     args = {
