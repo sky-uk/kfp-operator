@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "compiler"
+name = "kfp_compiler"
 version = "0.0.0" # set by poetry-dynamic-versioning
 description = ""
 authors = []
@@ -17,8 +17,11 @@ pytest = "^5.2"
 [tool.poetry-dynamic-versioning]
 enable = true
 vcs = "git"
-format-jinja = "{{base}}+{{distance}}.{{commit}}{% if dirty %}-dirty{% endif %}"
+format-jinja = "{{base}}+{{distance}}.{{commit}}{% if dirty %}.dirty{% endif %}"
 
 [build-system]
 requires = ["poetry-core>=1.1.9", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+kfp_compiler = 'kfp_compiler.__main__:main'

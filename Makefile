@@ -70,7 +70,7 @@ integration-test-up:
 
 integration-test: ## Run integration tests
 	eval $$(minikube -p argo-integration-tests docker-env) && \
-	$(MAKE) -C argo/compiler docker-build && \
+	$(MAKE) -C argo/kfp-compiler docker-build && \
 	$(MAKE) -C argo/kfp-sdk docker-build && \
 	docker build docs/quickstart -t kfp-quickstart
 	go test ./... -tags=integration -parallel 1

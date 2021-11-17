@@ -4,6 +4,7 @@
 package pipelines
 
 import (
+	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
@@ -25,7 +26,7 @@ var _ = Context("Pipeline Workflows", func() {
 				KfpEndpoint: "http://wiremock:80",
 				Argo: configv1.ArgoConfiguration{
 					KfpSdkImage:   "kfp-operator-argo-kfp-sdk",
-					CompilerImage: "kfp-operator-argo-compiler",
+					CompilerImage: "kfp-operator-argo-kfp-compiler",
 					ContainerDefaults: apiv1.Container{
 						ImagePullPolicy: "Never", // Needed for minikube to use local images
 					},
@@ -192,7 +193,7 @@ var _ = Context("Pipeline Workflows", func() {
 				Expect(SucceedDeletion(pipeline)).To(Succeed())
 			},
 			func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-				return workflowFactory.ConstructDeletionWorkflow(pipeline), nil
+				return workflowFactory.ConstructDeletionWorkflow(context.Background(), pipeline), nil
 			},
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
@@ -203,7 +204,7 @@ var _ = Context("Pipeline Workflows", func() {
 				Expect(FailDeletion(pipeline)).To(Succeed())
 			},
 			func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-				return workflowFactory.ConstructDeletionWorkflow(pipeline), nil
+				return workflowFactory.ConstructDeletionWorkflow(context.Background(), pipeline), nil
 			},
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
