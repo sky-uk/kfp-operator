@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "kfp-ext"
+name = "kfp_ext"
 version = "0.0.0" # set by poetry-dynamic-versioning
 description = ""
 authors = []

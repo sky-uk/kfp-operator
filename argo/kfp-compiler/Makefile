@@ -1,4 +1,4 @@
-IMG := kfp-operator-argo-compiler
+IMG := kfp-operator-argo-kfp-compiler
 
 all: build
 
@@ -12,8 +12,10 @@ test: build
 build:
 	pip install poetry-dynamic-versioning --quiet
 	poetry install
-	@echo Nothing to build.
+	poetry build
 
 ##@ Containers
 
+WHEEL_VERSION=$(shell poetry version | cut -d ' ' -f 2)
+DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION}
 include ../../docker-targets.mk

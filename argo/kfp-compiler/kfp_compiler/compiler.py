@@ -102,5 +102,5 @@ def dict_to_cli_args(beam_args):
     return [f'--{k}={v}' for k,v in beam_args.items()]
         
 
-if __name__ == '__main__':
+def main():
     compile()
