@@ -87,7 +87,7 @@ test: manifests generate fmt vet unit-test # decoupled-test
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/kfp-sdk test
-	$(MAKE) -C argo/mlmd-cli test
+	$(MAKE) -C argo/mlmd test
 
 test-all: test helm-test test-argo
 
