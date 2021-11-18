@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gopkg.in/yaml.v2"
+	"path/filepath"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -300,26 +301,27 @@ func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, 
 }
 
 func (workflows *PipelineWorkflowFactory) compiler(compilerConfigYaml string, pipelineImage string) argo.Template {
-	compilerVolumeName := "compiler"
-	compilerVolumePath := "/compiler"
+	sharedVolumeName := "shared"
+	sharedVolumePath := "/shared"
 
 	initContainerSpec := workflows.Config.Argo.ContainerDefaults.DeepCopy()
 	initContainerSpec.Name = PipelineWorkflowConstants.CompileStepName
 	initContainerSpec.Image = workflows.Config.Argo.CompilerImage
+	initContainerSpec.Args = []string{sharedVolumePath}
 
 	pipelineContainerSpec := workflows.Config.Argo.ContainerDefaults.DeepCopy()
 	pipelineContainerSpec.Name = "pipeline"
 	pipelineContainerSpec.Image = pipelineImage
 	pipelineContainerSpec.VolumeMounts = []apiv1.VolumeMount{
 		{
-			Name:      compilerVolumeName,
-			MountPath: compilerVolumePath,
+			Name:      sharedVolumeName,
+			MountPath: sharedVolumePath,
 		},
 	}
 
 	pipelineContainerSpec.Command = []string{"python3"}
 	pipelineContainerSpec.Args = []string{
-		"/compiler/compiler.py",
+		filepath.Join(sharedVolumePath, "compile.py"),
 		"--output_file",
 		PipelineWorkflowConstants.PipelineYamlFilePath,
 		"--pipeline_config",
@@ -346,7 +348,7 @@ func (workflows *PipelineWorkflowFactory) compiler(compilerConfigYaml string, pi
 		},
 		Volumes: []apiv1.Volume{
 			{
-				Name: compilerVolumeName,
+				Name: sharedVolumeName,
 			},
 		},
 	}
