@@ -87,9 +87,9 @@ test: manifests generate fmt vet unit-test # decoupled-test
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/kfp-sdk test
-	$(MAKE) -C argo/mlmd test
+	$(MAKE) -C argo/mlmd-cli test
 
-test-all: test helm-test test-argo
+test-all: test helm-test # test-argo See https://github.com/sky-uk/kfp-operator/issues/54
 
 ##@ Build
 
