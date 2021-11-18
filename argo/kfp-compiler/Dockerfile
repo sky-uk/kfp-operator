@@ -3,7 +3,8 @@ FROM python:3.7.12 AS PYTHON
 ARG WHEEL_VERSION
 
 COPY dist/*-${WHEEL_VERSION}-*.whl /
-RUN pip install /*-${WHEEL_VERSION}-*.whl --target=/kfp-compiler
+RUN pip install /*-${WHEEL_VERSION}-*.whl --target=/kfp-compiler && \
+    rm /*-${WHEEL_VERSION}-*.whl
 
 FROM alpine:3.14.2
 
