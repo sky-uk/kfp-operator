@@ -4,7 +4,7 @@ ARG WHEEL_VERSION
 
 RUN apk add jq
 
-COPY dist /
+COPY dist/*-${WHEEL_VERSION}-*.whl /
 RUN pip install /*-${WHEEL_VERSION}-*.whl
 
 ENTRYPOINT ["kfp-ext"]
