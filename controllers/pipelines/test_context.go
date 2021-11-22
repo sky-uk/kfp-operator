@@ -70,7 +70,6 @@ func (testCtx TestContext) WorkflowByOperationToMatch(operation string, matcher 
 }
 
 func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*argo.Workflow)) error {
-	fmt.Println("Checking")
 	workflow, err := testCtx.fetchWorkflow(operation)
 
 	if err != nil {
