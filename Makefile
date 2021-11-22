@@ -51,6 +51,9 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+git-status-check:
+	git diff --exit-code HEAD
+
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: ## Run decoupled acceptance tests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
@@ -213,6 +216,6 @@ publish-all: docker-push docker-push-argo helm-publish
 
 ##@ CI
 
-prBuild: test-all package-all
+prBuild: test-all package-all git-status-check
 
 cdBuild: prBuild publish-all
