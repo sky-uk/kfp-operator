@@ -12,42 +12,47 @@ type RunConfigurationStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
+func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (commands []RunConfigurationCommand) {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
-	if !runConfiguration.ObjectMeta.DeletionTimestamp.IsZero() &&
-		(runConfiguration.Status.SynchronizationState == pipelinesv1.Succeeded ||
-			runConfiguration.Status.SynchronizationState == pipelinesv1.Failed) {
-		return st.onDelete(ctx, runConfiguration)
-	}
-
 	switch runConfiguration.Status.SynchronizationState {
 	case pipelinesv1.Creating:
-		return st.onCreating(ctx, runConfiguration,
+		commands = st.onCreating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.CreateOperationLabel,
 				runConfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
-		return st.onSucceededOrFailed(ctx, runConfiguration)
+		if !runConfiguration.ObjectMeta.DeletionTimestamp.IsZero() {
+			commands = st.onDelete(ctx, runConfiguration)
+		} else {
+			commands = st.onSucceededOrFailed(ctx, runConfiguration)
+		}
 	case pipelinesv1.Updating:
-		return st.onUpdating(ctx, runConfiguration,
+		commands = st.onUpdating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.UpdateOperationLabel,
 				runConfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(ctx, runConfiguration,
+		commands = st.onDeleting(ctx, runConfiguration,
 			st.WorkflowRepository.GetByOperation(ctx,
 				RunConfigurationWorkflowConstants.DeleteOperationLabel,
 				runConfiguration.NamespacedName(),
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey))
 	case pipelinesv1.Deleted:
-		return st.onDeleted()
 	default:
-		return st.onUnknown(ctx, runConfiguration)
+		commands = st.onUnknown(ctx, runConfiguration)
 	}
+
+	if runConfiguration.Status.SynchronizationState == pipelinesv1.Deleted {
+		commands = append([]RunConfigurationCommand{ReleaseRunConfiguration{}}, commands...)
+	} else {
+		commands = append([]RunConfigurationCommand{AcquireRunConfiguration{}}, commands...)
+	}
+
+	return
 }
 
 func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
@@ -219,12 +224,6 @@ func (st RunConfigurationStateHandler) onDeleting(ctx context.Context, runConfig
 		DeleteRunConfigurationWorkflows{
 			Workflows: deletionWorkflows,
 		},
-	}
-}
-
-func (st RunConfigurationStateHandler) onDeleted() []RunConfigurationCommand {
-	return []RunConfigurationCommand{
-		DeleteRunConfiguration{},
 	}
 }
 

@@ -34,10 +34,6 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if runConfiguration.ObjectMeta.DeletionTimestamp.IsZero() {
-		r.AddFinalizer(ctx, runConfiguration)
-	}
-
 	commands := r.StateHandler.StateTransition(ctx, runConfiguration)
 
 	for i := range commands {
@@ -51,28 +47,6 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
-}
-
-func (r *RunConfigurationReconciler) AddFinalizer(ctx context.Context, runconfiguration *pipelinesv1.RunConfiguration) error {
-	logger := log.FromContext(ctx)
-	logger.V(2).Info("adding finalizer")
-	if !containsString(runconfiguration.ObjectMeta.Finalizers, finalizerName) {
-		runconfiguration.ObjectMeta.Finalizers = append(runconfiguration.ObjectMeta.Finalizers, finalizerName)
-		return r.Update(ctx, runconfiguration)
-	}
-
-	return nil
-}
-
-func (r *RunConfigurationReconciler) RemoveFinalizer(ctx context.Context, runconfiguration pipelinesv1.RunConfiguration) error {
-	logger := log.FromContext(ctx)
-	logger.V(2).Info("removing finalizer")
-	if containsString(runconfiguration.ObjectMeta.Finalizers, finalizerName) {
-		runconfiguration.ObjectMeta.Finalizers = removeString(runconfiguration.ObjectMeta.Finalizers, finalizerName)
-		return r.Update(ctx, &runconfiguration)
-	}
-
-	return nil
 }
 
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {

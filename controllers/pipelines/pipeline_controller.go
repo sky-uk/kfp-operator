@@ -40,10 +40,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if pipeline.ObjectMeta.DeletionTimestamp.IsZero() {
-		r.AddFinalizer(ctx, pipeline)
-	}
-
 	commands := r.StateHandler.StateTransition(ctx, pipeline)
 
 	for i := range commands {
@@ -57,28 +53,6 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
-}
-
-func (r *PipelineReconciler) AddFinalizer(ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
-	logger := log.FromContext(ctx)
-	logger.V(2).Info("adding finalizer")
-	if !containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
-		pipeline.ObjectMeta.Finalizers = append(pipeline.ObjectMeta.Finalizers, finalizerName)
-		return r.Update(ctx, pipeline)
-	}
-
-	return nil
-}
-
-func (r *PipelineReconciler) RemoveFinalizer(ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
-	logger := log.FromContext(ctx)
-	logger.V(2).Info("removing finalizer")
-	if containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
-		pipeline.ObjectMeta.Finalizers = removeString(pipeline.ObjectMeta.Finalizers, finalizerName)
-		return r.Update(ctx, pipeline)
-	}
-
-	return nil
 }
 
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
