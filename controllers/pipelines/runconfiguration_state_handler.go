@@ -60,7 +60,6 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 		workflow := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
 
 		return []RunConfigurationCommand{
-			CreateRunConfigurationWorkflow{Workflow: *workflow},
 			SetRunConfigurationStatus{
 				Status: pipelinesv1.Status{
 					KfpId:                runConfiguration.Status.KfpId,
@@ -68,6 +67,7 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 					SynchronizationState: pipelinesv1.Updating,
 				},
 			},
+			CreateRunConfigurationWorkflow{Workflow: *workflow},
 		}
 	}
 
@@ -75,13 +75,13 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 	workflow := st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
 
 	return []RunConfigurationCommand{
-		CreateRunConfigurationWorkflow{Workflow: *workflow},
 		SetRunConfigurationStatus{
 			Status: pipelinesv1.Status{
 				Version:              newRunconfigurationVersion,
 				SynchronizationState: pipelinesv1.Creating,
 			},
 		},
+		CreateRunConfigurationWorkflow{Workflow: *workflow},
 	}
 }
 
@@ -91,7 +91,6 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, runConfiguration)
 
 	return []RunConfigurationCommand{
-		CreateRunConfigurationWorkflow{Workflow: *workflow},
 		SetRunConfigurationStatus{
 			Status: pipelinesv1.Status{
 				KfpId:                runConfiguration.Status.KfpId,
@@ -99,6 +98,7 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 				SynchronizationState: pipelinesv1.Deleting,
 			},
 		},
+		CreateRunConfigurationWorkflow{Workflow: *workflow},
 	}
 }
 
@@ -125,7 +125,6 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 	}
 
 	return []RunConfigurationCommand{
-		CreateRunConfigurationWorkflow{Workflow: *workflow},
 		SetRunConfigurationStatus{
 			Status: pipelinesv1.Status{
 				KfpId:                runConfiguration.Status.KfpId,
@@ -133,6 +132,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 				SynchronizationState: targetState,
 			},
 		},
+		CreateRunConfigurationWorkflow{Workflow: *workflow},
 	}
 }
 
@@ -213,11 +213,11 @@ func (st RunConfigurationStateHandler) onDeleting(ctx context.Context, runConfig
 	}
 
 	return []RunConfigurationCommand{
-		DeleteRunConfigurationWorkflows{
-			Workflows: deletionWorkflows,
-		},
 		SetRunConfigurationStatus{
 			Status: *newStatus,
+		},
+		DeleteRunConfigurationWorkflows{
+			Workflows: deletionWorkflows,
 		},
 	}
 }

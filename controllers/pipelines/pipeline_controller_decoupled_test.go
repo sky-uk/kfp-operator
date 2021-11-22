@@ -25,10 +25,10 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToBeUpdated(PipelineWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName, kfpId)
-			})).To(Succeed())
+			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
@@ -43,9 +43,9 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(PipelineWorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToBeUpdated(PipelineWorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-			})).To(Succeed())
+			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
@@ -58,9 +58,9 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(PipelineWorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToBeUpdated(PipelineWorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-			})).To(Succeed())
+			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineExists).Should(Not(Succeed()))
 			Eventually(testCtx.FetchWorkflow(PipelineWorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))

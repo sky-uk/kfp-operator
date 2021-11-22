@@ -142,6 +142,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 		return RunConfigurationStateTransitionTestCase{
 			workflowFactory:  workflowFactory,
 			RunConfiguration: runConfiguration,
+			Commands: []RunConfigurationCommand{},
 		}
 	}
 
@@ -151,11 +152,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			WorkflowFactory:    workflowFactory,
 		}
 		commands := stateHandler.StateTransition(context.Background(), st.RunConfiguration)
-		is := make([]interface{}, len(st.Commands))
-		for i, v := range st.Commands {
-			is[i] = v
-		}
-		Expect(commands).To(ConsistOf(is...))
+		Expect(commands).To(Equal(st.Commands))
 	},
 		Check("Empty",
 			From(UnknownState, "", "").

@@ -136,6 +136,7 @@ var _ = Describe("Pipeline State handler", func() {
 		return PipelineStateTransitionTestCase{
 			workflowFactory: workflowFactory,
 			Pipeline:        pipeline,
+			Commands: []PipelineCommand{},
 		}
 	}
 
@@ -145,11 +146,7 @@ var _ = Describe("Pipeline State handler", func() {
 			WorkflowFactory:    workflowFactory,
 		}
 		commands := stateHandler.StateTransition(context.Background(), st.Pipeline)
-		is := make([]interface{}, len(st.Commands))
-		for i, v := range st.Commands {
-			is[i] = v
-		}
-		Expect(commands).To(ConsistOf(is...))
+		Expect(commands).To(Equal(st.Commands))
 	},
 		Check("Empty",
 			From(UnknownState, "", "").

@@ -26,10 +26,10 @@ var _ = Describe("RunConfiguration controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(RunConfigurationWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToBeUpdated(RunConfigurationWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, kfpId)
-			})).To(Succeed())
+			})).Should(Succeed())
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, pipeline *pipelinesv1.RunConfiguration) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
@@ -44,10 +44,10 @@ var _ = Describe("RunConfiguration controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToBeUpdated(RunConfigurationWorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, anotherKfpId)
-			})).To(Succeed())
+			})).Should(Succeed())
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, pipeline *pipelinesv1.RunConfiguration) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
@@ -60,9 +60,9 @@ var _ = Describe("RunConfiguration controller k8s integration", func() {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateWorkflow(RunConfigurationWorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToBeUpdated(RunConfigurationWorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-			})).To(Succeed())
+			})).Should(Succeed())
 
 			Eventually(testCtx.RunConfigurationExists).Should(Not(Succeed()))
 			Eventually(testCtx.FetchWorkflow(RunConfigurationWorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))

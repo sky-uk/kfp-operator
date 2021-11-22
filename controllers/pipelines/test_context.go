@@ -6,6 +6,7 @@ package pipelines
 import (
 	"context"
 	"errors"
+	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/types"
@@ -79,6 +80,12 @@ func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*arg
 	return testCtx.K8sClient.Update(testCtx.ctx, workflow)
 }
 
+func (testCtx TestContext) WorkflowToBeUpdated(operation string, updateFunc func(*argo.Workflow)) func(g Gomega) {
+	return func(g Gomega) {
+		g.Expect(testCtx.UpdateWorkflow(operation, updateFunc)).To(Succeed())
+	}
+}
+
 func (testCtx TestContext) FetchWorkflow(operation string) func() error {
 	return func() error {
 		_, err := testCtx.fetchWorkflow(operation)
@@ -93,8 +100,9 @@ func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, erro
 		return nil, err
 	}
 
-	if len(workflowList.Items) != 1 {
-		return nil, errors.New("not exactly one workflow")
+	numberOfWorkflows := len(workflowList.Items)
+	if numberOfWorkflows != 1 {
+		return nil, errors.New(fmt.Sprintf("Want exactly 1 workflow. Have %d", numberOfWorkflows))
 	}
 
 	return &workflowList.Items[0], nil

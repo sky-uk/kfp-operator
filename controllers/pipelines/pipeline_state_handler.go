@@ -73,7 +73,6 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 		}
 
 		return []PipelineCommand{
-			CreatePipelineWorkflow{Workflow: *workflow},
 			SetPipelineStatus{
 				Status: pipelinesv1.Status{
 					KfpId:                pipeline.Status.KfpId,
@@ -81,6 +80,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 					SynchronizationState: pipelinesv1.Updating,
 				},
 			},
+			CreatePipelineWorkflow{Workflow: *workflow},
 		}
 	}
 
@@ -101,13 +101,13 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 	}
 
 	return []PipelineCommand{
-		CreatePipelineWorkflow{Workflow: *workflow},
 		SetPipelineStatus{
 			Status: pipelinesv1.Status{
 				Version:              newPipelineVersion,
 				SynchronizationState: pipelinesv1.Creating,
 			},
 		},
+		CreatePipelineWorkflow{Workflow: *workflow},
 	}
 }
 
@@ -117,7 +117,6 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, pipeline)
 
 	return []PipelineCommand{
-		CreatePipelineWorkflow{Workflow: *workflow},
 		SetPipelineStatus{
 			Status: pipelinesv1.Status{
 				KfpId:                pipeline.Status.KfpId,
@@ -125,6 +124,7 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 				SynchronizationState: pipelinesv1.Deleting,
 			},
 		},
+		CreatePipelineWorkflow{Workflow: *workflow},
 	}
 }
 
@@ -165,7 +165,6 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 	}
 
 	return []PipelineCommand{
-		CreatePipelineWorkflow{Workflow: *workflow},
 		SetPipelineStatus{
 			Status: pipelinesv1.Status{
 				KfpId:                pipeline.Status.KfpId,
@@ -173,6 +172,7 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 				SynchronizationState: targetState,
 			},
 		},
+		CreatePipelineWorkflow{Workflow: *workflow},
 	}
 }
 
@@ -245,11 +245,11 @@ func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelin
 	}
 
 	return []PipelineCommand{
-		DeletePipelineWorkflows{
-			Workflows: deletionWorkflows,
-		},
 		SetPipelineStatus{
 			Status: *newStatus,
+		},
+		DeletePipelineWorkflows{
+			Workflows: deletionWorkflows,
 		},
 	}
 }
