@@ -136,7 +136,7 @@ var _ = Describe("Pipeline State handler", func() {
 		return PipelineStateTransitionTestCase{
 			workflowFactory: workflowFactory,
 			Pipeline:        pipeline,
-			Commands: []PipelineCommand{},
+			Commands:        []PipelineCommand{},
 		}
 	}
 

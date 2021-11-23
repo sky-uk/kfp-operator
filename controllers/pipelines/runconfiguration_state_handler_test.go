@@ -142,7 +142,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 		return RunConfigurationStateTransitionTestCase{
 			workflowFactory:  workflowFactory,
 			RunConfiguration: runConfiguration,
-			Commands: []RunConfigurationCommand{},
+			Commands:         []RunConfigurationCommand{},
 		}
 	}
 
