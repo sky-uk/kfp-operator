@@ -89,6 +89,14 @@ func (st RunConfigurationStateTransitionTestCase) DeletesAllWorkflows() RunConfi
 	})
 }
 
+func (st RunConfigurationStateTransitionTestCase) AcquireRunConfiguration() RunConfigurationStateTransitionTestCase {
+	return st.IssuesCommand(AcquireRunConfiguration{})
+}
+
+func (st RunConfigurationStateTransitionTestCase) ReleaseRunConfiguration() RunConfigurationStateTransitionTestCase {
+	return st.IssuesCommand(ReleaseRunConfiguration{})
+}
+
 func (st RunConfigurationStateTransitionTestCase) IssuesCommand(command RunConfigurationCommand) RunConfigurationStateTransitionTestCase {
 	st.Commands = append(st.Commands, command)
 	return st
@@ -156,120 +164,144 @@ var _ = Describe("RunConfiguration State handler", func() {
 	},
 		Check("Empty",
 			From(UnknownState, "", "").
+				AcquireRunConfiguration().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty with version",
 			From(UnknownState, "", v1).
+				AcquireRunConfiguration().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty with id",
 			From(UnknownState, kfpId, "").
+				AcquireRunConfiguration().
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Empty with id and version",
 			From(UnknownState, kfpId, v1).
+				AcquireRunConfiguration().
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Creating succeeds",
 			From(pipelinesv1.Creating, "", v1).
+				AcquireRunConfiguration().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating succeeds with existing KfpId",
 			From(pipelinesv1.Creating, anotherKfpId, v1).
+				AcquireRunConfiguration().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating fails",
 			From(pipelinesv1.Creating, "", v1).
+				AcquireRunConfiguration().
 				WithCreateWorkFlow(argo.WorkflowFailed).
 				To(pipelinesv1.Failed, "", v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
 			From(pipelinesv1.Creating, "", "").
+				AcquireRunConfiguration().
 				To(pipelinesv1.Failed, "", ""),
 		),
 		Check("Succeeded no update",
-			From(pipelinesv1.Succeeded, kfpId, v1),
+			From(pipelinesv1.Succeeded, kfpId, v1).
+				AcquireRunConfiguration(),
 		),
 		Check("Succeeded with update",
 			From(pipelinesv1.Succeeded, kfpId, v0).
+				AcquireRunConfiguration().
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Succeeded with update but no KfpId",
 			From(pipelinesv1.Succeeded, "", v0).
+				AcquireRunConfiguration().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Succeeded with update but no KfpId and no version",
 			From(pipelinesv1.Succeeded, "", "").
+				AcquireRunConfiguration().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed no update",
-			From(pipelinesv1.Failed, kfpId, v1),
+			From(pipelinesv1.Failed, kfpId, v1).
+				AcquireRunConfiguration(),
 		),
 		Check("Failed with Update",
 			From(pipelinesv1.Failed, kfpId, v0).
+				AcquireRunConfiguration().
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Failed with Update but no KfpId",
 			From(pipelinesv1.Failed, "", v0).
+				AcquireRunConfiguration().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed with Update but no KfpId and no version",
 			From(pipelinesv1.Failed, "", "").
+				AcquireRunConfiguration().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds",
 			From(pipelinesv1.Updating, anotherKfpId, v1).
+				AcquireRunConfiguration().
 				WithUpdateWorkflowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
 			From(pipelinesv1.Updating, kfpId, v1).
+				AcquireRunConfiguration().
 				WithUpdateWorkflow(argo.WorkflowFailed).
 				To(pipelinesv1.Failed, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating without version",
 			From(pipelinesv1.Updating, kfpId, "").
+				AcquireRunConfiguration().
 				To(pipelinesv1.Failed, kfpId, ""),
 		),
 		Check("Updating without KfpId",
 			From(pipelinesv1.Updating, "", v1).
+				AcquireRunConfiguration().
 				To(pipelinesv1.Failed, "", v1),
 		),
 		Check("Updating without KfpId or version",
 			From(pipelinesv1.Updating, "", "").
+				AcquireRunConfiguration().
 				To(pipelinesv1.Failed, "", ""),
 		),
 		Check("Deleting from Succeeded",
 			From(pipelinesv1.Succeeded, kfpId, v1).
+				AcquireRunConfiguration().
 				DeletionRequested().
 				To(pipelinesv1.Deleting, kfpId, v1).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed",
 			From(pipelinesv1.Failed, kfpId, v1).
+				AcquireRunConfiguration().
 				DeletionRequested().
 				To(pipelinesv1.Deleting, kfpId, v1).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deletion succeeds",
 			From(pipelinesv1.Deleting, kfpId, v1).
+				AcquireRunConfiguration().
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowSucceeded).
 				To(pipelinesv1.Deleted, kfpId, v1).
@@ -277,6 +309,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 		),
 		Check("Deletion fails",
 			From(pipelinesv1.Deleting, kfpId, v1).
+				AcquireRunConfiguration().
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowFailed).
 				To(pipelinesv1.Deleting, kfpId, v1).
@@ -284,6 +317,6 @@ var _ = Describe("RunConfiguration State handler", func() {
 		),
 		Check("Stay in deleted",
 			From(pipelinesv1.Deleted, kfpId, v1).
-				IssuesCommand(DeleteRunConfiguration{}),
+				ReleaseRunConfiguration(),
 		))
 })

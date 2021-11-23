@@ -12,42 +12,47 @@ type PipelineStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
+func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []PipelineCommand) {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
-	if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() &&
-		(pipeline.Status.SynchronizationState == pipelinesv1.Succeeded ||
-			pipeline.Status.SynchronizationState == pipelinesv1.Failed) {
-		return st.onDelete(ctx, pipeline)
-	}
-
 	switch pipeline.Status.SynchronizationState {
 	case pipelinesv1.Creating:
-		return st.onCreating(ctx, pipeline,
+		commands = st.onCreating(ctx, pipeline,
 			st.WorkflowRepository.GetByOperation(ctx,
 				PipelineWorkflowConstants.CreateOperationLabel,
 				pipeline.NamespacedName(),
 				PipelineWorkflowConstants.PipelineNameLabelKey))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
-		return st.onSucceededOrFailed(ctx, pipeline)
+		if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() {
+			commands = st.onDelete(ctx, pipeline)
+		} else {
+			commands = st.onSucceededOrFailed(ctx, pipeline)
+		}
 	case pipelinesv1.Updating:
-		return st.onUpdating(ctx, pipeline,
+		commands = st.onUpdating(ctx, pipeline,
 			st.WorkflowRepository.GetByOperation(ctx,
 				PipelineWorkflowConstants.UpdateOperationLabel,
 				pipeline.NamespacedName(),
 				PipelineWorkflowConstants.PipelineNameLabelKey))
 	case pipelinesv1.Deleting:
-		return st.onDeleting(ctx, pipeline,
+		commands = st.onDeleting(ctx, pipeline,
 			st.WorkflowRepository.GetByOperation(ctx,
 				PipelineWorkflowConstants.DeleteOperationLabel,
 				pipeline.NamespacedName(),
 				PipelineWorkflowConstants.PipelineNameLabelKey))
 	case pipelinesv1.Deleted:
-		return st.onDeleted()
 	default:
-		return st.onUnknown(ctx, pipeline)
+		commands = st.onUnknown(ctx, pipeline)
 	}
+
+	if pipeline.Status.SynchronizationState == pipelinesv1.Deleted {
+		commands = append([]PipelineCommand{ReleasePipeline{}}, commands...)
+	} else {
+		commands = append([]PipelineCommand{AcquirePipeline{}}, commands...)
+	}
+
+	return
 }
 
 func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
@@ -251,12 +256,6 @@ func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelin
 		DeletePipelineWorkflows{
 			Workflows: deletionWorkflows,
 		},
-	}
-}
-
-func (st PipelineStateHandler) onDeleted() []PipelineCommand {
-	return []PipelineCommand{
-		DeletePipeline{},
 	}
 }
 

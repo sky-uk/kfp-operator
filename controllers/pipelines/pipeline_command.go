@@ -67,12 +67,32 @@ func (dw DeletePipelineWorkflows) execute(reconciler *PipelineReconciler, ctx co
 	return nil
 }
 
-type DeletePipeline struct {
+type AcquirePipeline struct {
 }
 
-func (dp DeletePipeline) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+func (ap AcquirePipeline) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("releasing pipeline resource")
 
-	return reconciler.RemoveFinalizer(ctx, pipeline)
+	if !containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
+		logger.V(2).Info("adding finalizer")
+		pipeline.ObjectMeta.Finalizers = append(pipeline.ObjectMeta.Finalizers, finalizerName)
+		return reconciler.Update(ctx, pipeline)
+	}
+
+	return nil
+}
+
+type ReleasePipeline struct {
+}
+
+func (rp ReleasePipeline) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
+	logger := log.FromContext(ctx)
+
+	if containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
+		logger.V(2).Info("removing finalizer")
+		pipeline.ObjectMeta.Finalizers = removeString(pipeline.ObjectMeta.Finalizers, finalizerName)
+		return reconciler.Update(ctx, pipeline)
+	}
+
+	return nil
 }

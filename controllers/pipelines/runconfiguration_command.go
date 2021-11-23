@@ -68,12 +68,32 @@ func (dw DeleteRunConfigurationWorkflows) execute(reconciler *RunConfigurationRe
 	return nil
 }
 
-type DeleteRunConfiguration struct {
+type AcquireRunConfiguration struct {
 }
 
-func (dp DeleteRunConfiguration) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+func (ar AcquireRunConfiguration) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("releasing run configuration resource")
 
-	return reconciler.RemoveFinalizer(ctx, *rc)
+	if !containsString(rc.ObjectMeta.Finalizers, finalizerName) {
+		logger.V(2).Info("adding finalizer")
+		rc.ObjectMeta.Finalizers = append(rc.ObjectMeta.Finalizers, finalizerName)
+		return reconciler.Update(ctx, rc)
+	}
+
+	return nil
+}
+
+type ReleaseRunConfiguration struct {
+}
+
+func (rr ReleaseRunConfiguration) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+	logger := log.FromContext(ctx)
+
+	if containsString(rc.ObjectMeta.Finalizers, finalizerName) {
+		logger.V(2).Info("removing finalizer")
+		rc.ObjectMeta.Finalizers = removeString(rc.ObjectMeta.Finalizers, finalizerName)
+		return reconciler.Update(ctx, rc)
+	}
+
+	return nil
 }
