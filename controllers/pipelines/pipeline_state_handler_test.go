@@ -37,15 +37,25 @@ func (st PipelineStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) 
 	return st
 }
 
-func (st PipelineStateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
-	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, phase))
+func (st PipelineStateTransitionTestCase) WithFailedCreateWorkflow() PipelineStateTransitionTestCase {
+	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowFailed))
 }
 
-func (st PipelineStateTransitionTestCase) WithCreateWorkWithId(phase argo.WorkflowPhase, kfpId string) PipelineStateTransitionTestCase {
+func (st PipelineStateTransitionTestCase) WithSucceededCreateWorkflow(kfpId string, version string) PipelineStateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutput(
-			st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, phase),
-			PipelineWorkflowConstants.PipelineIdParameterName, kfpId),
+		setWorkflowOutputs(
+			st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
+			[]argo.Parameter{
+				{
+					Name:  PipelineWorkflowConstants.PipelineIdParameterName,
+					Value: argo.AnyStringPtr(kfpId),
+				},
+				{
+					Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
+					Value: argo.AnyStringPtr(version),
+				},
+			},
+		),
 	)
 }
 
@@ -180,31 +190,31 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
-		Check("Creating succeeds",
+		Check("Creating succeeds with kfpId and version",
 			From(pipelinesv1.Creating, "", v1).
 				AcquirePipeline().
-				WithCreateWorkWithId(argo.WorkflowSucceeded, kfpId).
+				WithSucceededCreateWorkflow(kfpId, v1).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creating succeeds with existing KfpId",
+		Check("Creating succeeds with different KfpId and version",
 			From(pipelinesv1.Creating, anotherKfpId, v1).
 				AcquirePipeline().
-				WithCreateWorkWithId(argo.WorkflowSucceeded, kfpId).
+				WithSucceededCreateWorkflow(kfpId, v1).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creating fails with KfpId",
+		Check("Creating succeeds with KfpId but no version",
 			From(pipelinesv1.Creating, "", v1).
 				AcquirePipeline().
-				WithCreateWorkWithId(argo.WorkflowFailed, kfpId).
+				WithSucceededCreateWorkflow(kfpId, "").
 				To(pipelinesv1.Failed, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
-		Check("Creating fails without KfpId",
+		Check("Creating fails",
 			From(pipelinesv1.Creating, "", v1).
 				AcquirePipeline().
-				WithCreateWorkFlow(argo.WorkflowFailed).
+				WithFailedCreateWorkflow().
 				To(pipelinesv1.Failed, "", v1).
 				DeletesAllWorkflows(),
 		),

@@ -42,9 +42,15 @@ func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlow(phase argo.
 
 func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.WorkflowPhase, kfpId string) RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutput(
+		setWorkflowOutputs(
 			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.CreateOperationLabel, phase),
-			RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, kfpId),
+			[]argo.Parameter{
+				{
+					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Value: argo.AnyStringPtr(kfpId),
+				},
+			},
+		),
 	)
 }
 
@@ -56,9 +62,15 @@ func (st RunConfigurationStateTransitionTestCase) WithUpdateWorkflow(phase argo.
 
 func (st RunConfigurationStateTransitionTestCase) WithUpdateWorkflowWithId(phase argo.WorkflowPhase, kfpId string) RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutput(
+		setWorkflowOutputs(
 			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, phase),
-			RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, kfpId),
+			[]argo.Parameter{
+				{
+					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Value: argo.AnyStringPtr(kfpId),
+				},
+			},
+		),
 	)
 }
 

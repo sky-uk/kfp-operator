@@ -281,39 +281,45 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 		return []PipelineCommand{}
 	}
 
-	newStatus := pipeline.Status.DeepCopy()
+	statusAfterCreating := func() (newStatus pipelinesv1.Status) {
+		newStatus = *pipeline.Status.DeepCopy()
 
-	if succeeded != nil {
-		logger.Info("pipeline creation succeeded")
-		newStatus.SynchronizationState = pipelinesv1.Succeeded
+		if succeeded == nil {
+			if failed != nil {
+				logger.Info("pipeline creation failed, failing pipeline")
+			} else {
+				logger.Info("pipeline creation progress unknown, failing pipeline")
+			}
+
+			newStatus.SynchronizationState = pipelinesv1.Failed
+			return
+		}
+
 		idResult, err := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineIdParameterName)
 
 		if err != nil {
-			logger.Error(err, "could not retrieve workflow output, failing pipeline")
+			logger.Error(err, "could not retrieve pipeline id, failing pipeline")
 			newStatus.SynchronizationState = pipelinesv1.Failed
-		} else {
-			newStatus.KfpId = idResult
-		}
-	} else {
-		if failed != nil {
-			idResult, err := getWorkflowOutput(failed, PipelineWorkflowConstants.PipelineIdParameterName)
-
-			if err != nil {
-				logger.Error(err, "pipeline creation failed, failing pipeline without kfpId")
-			} else {
-				logger.Info("pipeline creation failed, failing pipeline with kfpId")
-				newStatus.KfpId = idResult
-			}
-		} else {
-			logger.Info("pipeline creation progress unknown, failing pipeline")
+			return
 		}
 
-		newStatus.SynchronizationState = pipelinesv1.Failed
+		newStatus.KfpId = idResult
+		versionResult, err := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineVersionParameterName)
+
+		if versionResult == "" {
+			logger.Info("pipeline creation succeeded but version upload failed")
+			newStatus.SynchronizationState = pipelinesv1.Failed
+			return
+		}
+
+		logger.Info("pipeline creation succeeded")
+		newStatus.SynchronizationState = pipelinesv1.Succeeded
+		return
 	}
 
 	return []PipelineCommand{
 		SetPipelineStatus{
-			Status: *newStatus,
+			Status: statusAfterCreating(),
 		},
 		DeletePipelineWorkflows{
 			Workflows: creationWorkflows,

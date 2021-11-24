@@ -45,7 +45,7 @@ var _ = Context("Pipeline Workflows", func() {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
 			WithQueryParam("name", wiremock.EqualTo(pipeline.Name)).
 			WillReturn(
-				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}`, pipeline.Status.KfpId, pipeline.Spec.ComputeVersion()),
+				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}`, pipeline.Status.KfpId, pipeline.Name),
 				map[string]string{"Content-Type": "application/json"},
 				200,
 			))
@@ -66,7 +66,8 @@ var _ = Context("Pipeline Workflows", func() {
 			WithQueryParam("name", wiremock.EqualTo(pipeline.Spec.ComputeVersion())).
 			WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
 			WillReturn(
-				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "pipeline", "resource_references": [{"key": {"id": "%s", "apiResourceType": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
+				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "resource_references": [{"key": {"id": "%s", "apiResourceType": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
+					RandomString(),
 					pipeline.Spec.ComputeVersion(),
 					pipeline.Status.KfpId,
 					pipeline.Name),
@@ -142,6 +143,8 @@ var _ = Context("Pipeline Workflows", func() {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
 					To(Equal(kfpId))
+				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
+					To(Equal(pipelineSpec.ComputeVersion()))
 			},
 		),
 		Entry("Creation succeeds but the update fails",
@@ -151,7 +154,11 @@ var _ = Context("Pipeline Workflows", func() {
 			},
 			workflowFactory.ConstructCreationWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
+					To(Equal(kfpId))
+				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
+					To(Equal(""))
 			},
 		),
 		Entry("Creation fails",

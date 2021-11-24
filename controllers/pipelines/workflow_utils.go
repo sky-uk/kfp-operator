@@ -23,18 +23,12 @@ func getWorkflowOutput(workflow *argo.Workflow, key string) (string, error) {
 	return "", fmt.Errorf("workflow does not have %s node", workflow.Name)
 }
 
-func setWorkflowOutput(workflow *argo.Workflow, name string, output string) *argo.Workflow {
-	result := argo.AnyString(output)
+func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *argo.Workflow {
 	nodes := make(map[string]argo.NodeStatus)
 
 	nodes[workflow.Name] = argo.NodeStatus{
 		Outputs: &argo.Outputs{
-			Parameters: []argo.Parameter{
-				{
-					Name:  name,
-					Value: &result,
-				},
-			},
+			Parameters: parameters,
 		},
 	}
 
