@@ -10,6 +10,7 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	controllers "github.com/sky-uk/kfp-operator/controllers"
 )
 
 var (
@@ -19,7 +20,7 @@ var (
 )
 
 type PipelineReconciler struct {
-	client.Client
+	Client       controllers.OptInClient
 	Scheme       *runtime.Scheme
 	StateHandler PipelineStateHandler
 }
@@ -35,10 +36,12 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger.V(2).Info("reconciliation started")
 
 	var pipeline = &pipelinesv1.Pipeline{}
-	if err := r.Get(ctx, req.NamespacedName, pipeline); err != nil {
+	if err := r.Client.NonCached.Get(ctx, req.NamespacedName, pipeline); err != nil {
 		logger.Error(err, "unable to fetch pipeline")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
+	logger.V(3).Info("found pipeline", "resource", pipeline)
 
 	commands := r.StateHandler.StateTransition(ctx, pipeline)
 

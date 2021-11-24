@@ -3,6 +3,7 @@ package pipelines
 import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/sky-uk/kfp-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -14,7 +15,7 @@ import (
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
-	client.Client
+	Client       controllers.OptInClient
 	Scheme       *runtime.Scheme
 	StateHandler RunConfigurationStateHandler
 }
@@ -29,10 +30,12 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	logger.V(2).Info("reconciliation started")
 
 	var runConfiguration = &pipelinesv1.RunConfiguration{}
-	if err := r.Get(ctx, req.NamespacedName, runConfiguration); err != nil {
+	if err := r.Client.NonCached.Get(ctx, req.NamespacedName, runConfiguration); err != nil {
 		logger.Error(err, "unable to fetch run configuration")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
+	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
 	commands := r.StateHandler.StateTransition(ctx, runConfiguration)
 

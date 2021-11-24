@@ -84,3 +84,4 @@ We use the [zap](https://github.com/uber-go/zap) implementation of [logr](https:
 | 0, `error`, `info` | Will always be logged. Appropriate for all major actions. | state transitions, errors |
 | 1, `debug` | Appropriate for high-level technical information. | resource creation/update/deletion |
 | 2 | Appropriate for low-level technical information. | resource retrieval, finalizers, profiling, expected errors |
+| 3 | Appropriate for verbose debug statements. | printing resources |

@@ -23,7 +23,7 @@ func (srcs SetRunConfigurationStatus) execute(reconciler *RunConfigurationReconc
 
 	rc.Status = srcs.Status
 
-	return reconciler.Status().Update(ctx, rc)
+	return reconciler.Client.Status().Update(ctx, rc)
 }
 
 type CreateRunConfigurationWorkflow struct {
@@ -38,7 +38,7 @@ func (cw CreateRunConfigurationWorkflow) execute(reconciler *RunConfigurationRec
 		return err
 	}
 
-	if err := reconciler.Create(ctx, &cw.Workflow); err != nil {
+	if err := reconciler.Client.Create(ctx, &cw.Workflow); err != nil {
 		return err
 	}
 
@@ -57,7 +57,7 @@ func (dw DeleteRunConfigurationWorkflows) execute(reconciler *RunConfigurationRe
 		workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
 		if !workflowDebugOptions.KeepWorkflows {
 			logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
-			if err := reconciler.Delete(ctx, workflow); err != nil {
+			if err := reconciler.Client.Delete(ctx, workflow); err != nil {
 				return err
 			}
 		} else {
@@ -77,7 +77,7 @@ func (ar AcquireRunConfiguration) execute(reconciler *RunConfigurationReconciler
 	if !containsString(rc.ObjectMeta.Finalizers, finalizerName) {
 		logger.V(2).Info("adding finalizer")
 		rc.ObjectMeta.Finalizers = append(rc.ObjectMeta.Finalizers, finalizerName)
-		return reconciler.Update(ctx, rc)
+		return reconciler.Client.Update(ctx, rc)
 	}
 
 	return nil
@@ -92,7 +92,7 @@ func (rr ReleaseRunConfiguration) execute(reconciler *RunConfigurationReconciler
 	if containsString(rc.ObjectMeta.Finalizers, finalizerName) {
 		logger.V(2).Info("removing finalizer")
 		rc.ObjectMeta.Finalizers = removeString(rc.ObjectMeta.Finalizers, finalizerName)
-		return reconciler.Update(ctx, rc)
+		return reconciler.Client.Update(ctx, rc)
 	}
 
 	return nil
