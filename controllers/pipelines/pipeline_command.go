@@ -22,7 +22,7 @@ func (sps SetPipelineStatus) execute(reconciler *PipelineReconciler, ctx context
 
 	pipeline.Status = sps.Status
 
-	return reconciler.Status().Update(ctx, pipeline)
+	return reconciler.Client.Status().Update(ctx, pipeline)
 }
 
 type CreatePipelineWorkflow struct {
@@ -37,7 +37,7 @@ func (cw CreatePipelineWorkflow) execute(reconciler *PipelineReconciler, ctx con
 		return err
 	}
 
-	if err := reconciler.Create(ctx, &cw.Workflow); err != nil {
+	if err := reconciler.Client.Create(ctx, &cw.Workflow); err != nil {
 		return err
 	}
 
@@ -56,7 +56,7 @@ func (dw DeletePipelineWorkflows) execute(reconciler *PipelineReconciler, ctx co
 		workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
 		if !workflowDebugOptions.KeepWorkflows {
 			logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
-			if err := reconciler.Delete(ctx, workflow); err != nil {
+			if err := reconciler.Client.Delete(ctx, workflow); err != nil {
 				return err
 			}
 		} else {
@@ -76,7 +76,7 @@ func (ap AcquirePipeline) execute(reconciler *PipelineReconciler, ctx context.Co
 	if !containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
 		logger.V(2).Info("adding finalizer")
 		pipeline.ObjectMeta.Finalizers = append(pipeline.ObjectMeta.Finalizers, finalizerName)
-		return reconciler.Update(ctx, pipeline)
+		return reconciler.Client.Update(ctx, pipeline)
 	}
 
 	return nil
@@ -91,7 +91,7 @@ func (rp ReleasePipeline) execute(reconciler *PipelineReconciler, ctx context.Co
 	if containsString(pipeline.ObjectMeta.Finalizers, finalizerName) {
 		logger.V(2).Info("removing finalizer")
 		pipeline.ObjectMeta.Finalizers = removeString(pipeline.ObjectMeta.Finalizers, finalizerName)
-		return reconciler.Update(ctx, pipeline)
+		return reconciler.Client.Update(ctx, pipeline)
 	}
 
 	return nil

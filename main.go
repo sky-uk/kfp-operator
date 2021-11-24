@@ -33,6 +33,7 @@ import (
 
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	controllers "github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
 
 	//+kubebuilder:scaffold:imports
@@ -89,7 +90,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client := mgr.GetClient()
+	client := controllers.NewOptInClient(mgr)
 
 	workflowRepository := pipelinescontrollers.WorkflowRepositoryImpl{
 		Client: client,

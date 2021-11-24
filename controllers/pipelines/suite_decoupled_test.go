@@ -7,6 +7,7 @@ import (
 	"context"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/external"
 	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -57,19 +58,21 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	var workflowRepository = WorkflowRepositoryImpl{
-		Client: k8sClient,
-	}
-
 	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
 		Scheme: scheme.Scheme,
 	})
 	Expect(err).ToNot(HaveOccurred())
 
+	optInClient := controllers.NewOptInClient(k8sManager)
+
+	var workflowRepository = WorkflowRepositoryImpl{
+		Client: optInClient,
+	}
+
 	ctx = context.Background()
 
-	Expect((NewTestPipelineReconciler(k8sManager, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
-	Expect((NewTestRunConfigurationReconciler(k8sManager, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
+	Expect((NewTestPipelineReconciler(k8sManager, &workflowRepository, optInClient)).SetupWithManager(k8sManager)).To(Succeed())
+	Expect((NewTestRunConfigurationReconciler(k8sManager, &workflowRepository, optInClient)).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(workflowRepository.SetupWithManager(k8sManager)).To(Succeed())
 
 	go func() {
@@ -77,7 +80,7 @@ var _ = BeforeSuite(func() {
 	}()
 }, 60)
 
-func NewTestPipelineReconciler(k8sManager manager.Manager, workflowRepository WorkflowRepository) *PipelineReconciler {
+func NewTestPipelineReconciler(k8sManager manager.Manager, workflowRepository WorkflowRepository, client controllers.OptInClient) *PipelineReconciler {
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
@@ -100,13 +103,13 @@ func NewTestPipelineReconciler(k8sManager manager.Manager, workflowRepository Wo
 	}
 
 	return &PipelineReconciler{
-		Client:       k8sClient,
+		Client:       client,
 		Scheme:       k8sManager.GetScheme(),
 		StateHandler: stateHandler,
 	}
 }
 
-func NewTestRunConfigurationReconciler(k8sManager manager.Manager, workflowRepository WorkflowRepository) *RunConfigurationReconciler {
+func NewTestRunConfigurationReconciler(k8sManager manager.Manager, workflowRepository WorkflowRepository, client controllers.OptInClient) *RunConfigurationReconciler {
 	// TODO: mock workflowFactory
 	var workflowFactory = RunConfigurationWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
@@ -129,7 +132,7 @@ func NewTestRunConfigurationReconciler(k8sManager manager.Manager, workflowRepos
 	}
 
 	return &RunConfigurationReconciler{
-		Client:       k8sClient,
+		Client:       client,
 		Scheme:       k8sManager.GetScheme(),
 		StateHandler: stateHandler,
 	}
