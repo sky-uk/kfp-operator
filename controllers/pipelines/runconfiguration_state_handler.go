@@ -93,6 +93,19 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []RunConfigurationCommand {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
+
+	if runConfiguration.Status.KfpId == "" {
+		return []RunConfigurationCommand{
+			SetRunConfigurationStatus{
+				Status: pipelinesv1.Status{
+					KfpId:                runConfiguration.Status.KfpId,
+					Version:              runConfiguration.Status.Version,
+					SynchronizationState: pipelinesv1.Deleted,
+				},
+			},
+		}
+	}
+
 	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, runConfiguration)
 
 	return []RunConfigurationCommand{
