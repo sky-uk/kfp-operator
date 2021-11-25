@@ -13,33 +13,35 @@ import (
 )
 
 var PipelineWorkflowConstants = struct {
-	PipelineIdParameterName   string
-	PipelineYamlParameterName string
-	CompileStepName           string
-	UploadStepName            string
-	DeletionStepName          string
-	UpdateStepName            string
-	PipelineYamlFilePath      string
-	PipelineIdFilePath        string
-	PipelineNameLabelKey      string
-	OperationLabelKey         string
-	CreateOperationLabel      string
-	UpdateOperationLabel      string
-	DeleteOperationLabel      string
+	PipelineIdParameterName      string
+	PipelineVersionParameterName string
+	PipelineYamlParameterName    string
+	CompileStepName              string
+	UploadStepName               string
+	DeletionStepName             string
+	UpdateStepName               string
+	PipelineYamlFilePath         string
+	PipelineIdFilePath           string
+	PipelineNameLabelKey         string
+	OperationLabelKey            string
+	CreateOperationLabel         string
+	UpdateOperationLabel         string
+	DeleteOperationLabel         string
 }{
-	PipelineIdParameterName:   "pipeline-id",
-	PipelineYamlParameterName: "pipeline",
-	CompileStepName:           "compile",
-	UploadStepName:            "upload",
-	DeletionStepName:          "delete",
-	UpdateStepName:            "update",
-	PipelineYamlFilePath:      "/tmp/pipeline.yaml",
-	PipelineIdFilePath:        "/tmp/pipeline.txt",
-	PipelineNameLabelKey:      pipelinesv1.GroupVersion.Group + "/pipeline",
-	OperationLabelKey:         pipelinesv1.GroupVersion.Group + "/operation",
-	CreateOperationLabel:      "create-pipeline",
-	UpdateOperationLabel:      "update-pipeline",
-	DeleteOperationLabel:      "delete-pipeline",
+	PipelineIdParameterName:      "pipeline-id",
+	PipelineVersionParameterName: "pipeline-version",
+	PipelineYamlParameterName:    "pipeline",
+	CompileStepName:              "compile",
+	UploadStepName:               "upload",
+	DeletionStepName:             "delete",
+	UpdateStepName:               "update",
+	PipelineYamlFilePath:         "/tmp/pipeline.yaml",
+	PipelineIdFilePath:           "/tmp/pipeline.txt",
+	PipelineNameLabelKey:         pipelinesv1.GroupVersion.Group + "/pipeline",
+	OperationLabelKey:            pipelinesv1.GroupVersion.Group + "/operation",
+	CreateOperationLabel:         "create-pipeline",
+	UpdateOperationLabel:         "update-pipeline",
+	DeleteOperationLabel:         "delete-pipeline",
 }
 
 var (
@@ -159,6 +161,9 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, 
 								{
 									Name:     PipelineWorkflowConstants.UpdateStepName,
 									Template: PipelineWorkflowConstants.UpdateStepName,
+									ContinueOn: &argo.ContinueOn{
+										Failed: true,
+									},
 									Arguments: argo.Arguments{
 										Artifacts: []argo.Artifact{
 											{
@@ -186,6 +191,13 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, 
 								ValueFrom: &argo.ValueFrom{
 									Parameter: fmt.Sprintf("{{steps.%s.outputs.result}}",
 										PipelineWorkflowConstants.UploadStepName),
+								},
+							},
+							{
+								Name: PipelineWorkflowConstants.PipelineVersionParameterName,
+								ValueFrom: &argo.ValueFrom{
+									Parameter: fmt.Sprintf("{{steps.%s.outputs.result}}",
+										PipelineWorkflowConstants.UpdateStepName),
 								},
 							},
 						},
@@ -391,7 +403,7 @@ func (workflows *PipelineWorkflowFactory) deleter() argo.Template {
 }
 
 func (workflows *PipelineWorkflowFactory) updater(version string) argo.Template {
-	kfpScript := fmt.Sprintf("pipeline upload-version --pipeline-version %s --pipeline-id {{inputs.parameters.pipeline-id}} %s",
+	kfpScript := fmt.Sprintf("pipeline upload-version --pipeline-version %s --pipeline-id {{inputs.parameters.pipeline-id}} %s | jq -r '.\"Version Name\"'",
 		version, PipelineWorkflowConstants.PipelineYamlFilePath)
 
 	return argo.Template{

@@ -177,31 +177,38 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 		return []RunConfigurationCommand{}
 	}
 
-	newStatus := runConfiguration.Status.DeepCopy()
+	statusAfterUpdating := func() (newStatus pipelinesv1.Status) {
+		newStatus = *runConfiguration.Status.DeepCopy()
 
-	if succeeded != nil {
-		logger.Info("run configuration update succeeded")
-		newStatus.SynchronizationState = pipelinesv1.Succeeded
-		idResult, err := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
+		if succeeded == nil {
+			if failed != nil {
+				logger.Info("run configuration update failed")
+			} else {
+				logger.Info("run configuration creation progress unknown, failing run configuration")
+			}
 
-		if err != nil {
-			logger.Error(err, "could not retrieve workflow output, failing run configuration")
 			newStatus.SynchronizationState = pipelinesv1.Failed
-		} else {
-			newStatus.KfpId = idResult
+			return
 		}
-	} else {
-		if failed != nil {
-			logger.Info("run configuration update failed")
-		} else {
-			logger.Info("run configuration creation progress unknown, failing run configuration")
+
+		idResult, _ := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
+
+		if idResult == "" {
+			logger.Info("could not retrieve kfpId, failing run configuration")
+			newStatus.KfpId = ""
+			newStatus.SynchronizationState = pipelinesv1.Failed
+			return
 		}
-		newStatus.SynchronizationState = pipelinesv1.Failed
+
+		logger.Info("run configuration update succeeded")
+		newStatus.KfpId = idResult
+		newStatus.SynchronizationState = pipelinesv1.Succeeded
+		return
 	}
 
 	return []RunConfigurationCommand{
 		SetRunConfigurationStatus{
-			Status: *newStatus,
+			Status: statusAfterUpdating(),
 		},
 		DeleteRunConfigurationWorkflows{
 			Workflows: updateWorkflows,

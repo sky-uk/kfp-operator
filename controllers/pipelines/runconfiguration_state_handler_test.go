@@ -42,23 +42,35 @@ func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlow(phase argo.
 
 func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.WorkflowPhase, kfpId string) RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutput(
+		setWorkflowOutputs(
 			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.CreateOperationLabel, phase),
-			RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, kfpId),
+			[]argo.Parameter{
+				{
+					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Value: argo.AnyStringPtr(kfpId),
+				},
+			},
+		),
 	)
 }
 
-func (st RunConfigurationStateTransitionTestCase) WithUpdateWorkflow(phase argo.WorkflowPhase) RunConfigurationStateTransitionTestCase {
+func (st RunConfigurationStateTransitionTestCase) WithFailedUpdateWorkflow() RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, phase),
+		st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, argo.WorkflowFailed),
 	)
 }
 
-func (st RunConfigurationStateTransitionTestCase) WithUpdateWorkflowWithId(phase argo.WorkflowPhase, kfpId string) RunConfigurationStateTransitionTestCase {
+func (st RunConfigurationStateTransitionTestCase) WithSucceededUpdateWorkflowWithId(kfpId string) RunConfigurationStateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutput(
-			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, phase),
-			RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, kfpId),
+		setWorkflowOutputs(
+			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
+			[]argo.Parameter{
+				{
+					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Value: argo.AnyStringPtr(kfpId),
+				},
+			},
+		),
 	)
 }
 
@@ -256,17 +268,24 @@ var _ = Describe("RunConfiguration State handler", func() {
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
-		Check("Updating succeeds",
+		Check("Updating succeeds with kfpId",
 			From(pipelinesv1.Updating, anotherKfpId, v1).
 				AcquireRunConfiguration().
-				WithUpdateWorkflowWithId(argo.WorkflowSucceeded, kfpId).
+				WithSucceededUpdateWorkflowWithId(kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
+				DeletesAllWorkflows(),
+		),
+		Check("Updating succeeds without kfpId",
+			From(pipelinesv1.Updating, anotherKfpId, v1).
+				AcquireRunConfiguration().
+				WithSucceededUpdateWorkflowWithId("").
+				To(pipelinesv1.Failed, "", v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
 			From(pipelinesv1.Updating, kfpId, v1).
 				AcquireRunConfiguration().
-				WithUpdateWorkflow(argo.WorkflowFailed).
+				WithFailedUpdateWorkflow().
 				To(pipelinesv1.Failed, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
