@@ -192,27 +192,18 @@ var _ = Context("RunConfiguration Workflows", func() {
 				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
 					To(Equal(newJobKfpId))
 			}),
-		Entry("Deletion fails and creation succeeds", func(runconfiguration *pipelinesv1.RunConfiguration) {
-			Expect(FailDeletion(jobKfpId)).To(Succeed())
-			Expect(SucceedCreation(runconfiguration, newJobKfpId)).To(Succeed())
-		},
-			workflowFactory.ConstructUpdateWorkflow,
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
-					To(Equal(newJobKfpId))
-			}),
 		Entry("Deletion succeeds and creation fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
 			Expect(SucceedDeletion(jobKfpId)).To(Succeed())
 			Expect(FailCreation()).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
+					To(Equal(""))
 			}),
-		Entry("Deletion and creation fail", func(runconfiguration *pipelinesv1.RunConfiguration) {
+		Entry("Deletion fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
 			Expect(FailDeletion(jobKfpId)).To(Succeed())
-			Expect(FailCreation()).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {

@@ -304,7 +304,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 		}
 
 		newStatus.KfpId = idResult
-		versionResult, err := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineVersionParameterName)
+		versionResult, _ := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineVersionParameterName)
 
 		if versionResult == "" {
 			logger.Info("pipeline creation succeeded but version upload failed")

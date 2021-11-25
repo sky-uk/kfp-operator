@@ -130,9 +130,6 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx co
 								{
 									Name:     RunConfigurationWorkflowConstants.DeletionStepName,
 									Template: RunConfigurationWorkflowConstants.DeletionStepName,
-									ContinueOn: &argo.ContinueOn{
-										Failed: true,
-									},
 								},
 							},
 						},
@@ -141,6 +138,9 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx co
 								{
 									Name:     RunConfigurationWorkflowConstants.CreationStepName,
 									Template: RunConfigurationWorkflowConstants.CreationStepName,
+									ContinueOn: &argo.ContinueOn{
+										Failed: true,
+									},
 								},
 							},
 						},
