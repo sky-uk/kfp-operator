@@ -43,6 +43,6 @@ Configuration
 
 {{- define "kfp-operator.defaultConfiguration" -}}
 argo:
-    kfpSdkImage: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-    compilerImage: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
+  kfpSdkImage: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+  compilerImage: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
 {{- end }}

@@ -15,6 +15,14 @@ serviceAccount:
   create: true
   name: "kfp-operator-controller-manager"
 
+managerResources:
+  limits:
+    cpu: 100m
+    memory: 300Mi
+  requests:
+    cpu: 100m
+    memory: 200Mi
+
 # See https://github.com/sky-uk/kfp-operator/blob/master/docs/development/README.md#logging
 logging:
   verbosity: # info
