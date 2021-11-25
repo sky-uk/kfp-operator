@@ -303,12 +303,24 @@ var _ = Describe("Pipeline State handler", func() {
 				To(pipelinesv1.Deleting, kfpId, v1).
 				IssuesDeletionWorkflow(),
 		),
+		Check("Deleting from Succeeded without kfpId",
+			From(pipelinesv1.Succeeded, "", v1).
+				AcquirePipeline().
+				DeletionRequested().
+				To(pipelinesv1.Deleted, "", v1),
+		),
 		Check("Deleting from Failed",
 			From(pipelinesv1.Failed, kfpId, v1).
 				AcquirePipeline().
 				DeletionRequested().
 				To(pipelinesv1.Deleting, kfpId, v1).
 				IssuesDeletionWorkflow(),
+		),
+		Check("Deleting from Failed without kfpId",
+			From(pipelinesv1.Failed, "", v1).
+				AcquirePipeline().
+				DeletionRequested().
+				To(pipelinesv1.Deleted, "", v1),
 		),
 		Check("Deletion succeeds",
 			From(pipelinesv1.Deleting, kfpId, v1).

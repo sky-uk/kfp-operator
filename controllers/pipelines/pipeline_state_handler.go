@@ -119,6 +119,19 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
+
+	if pipeline.Status.KfpId == "" {
+		return []PipelineCommand{
+			SetPipelineStatus{
+				Status: pipelinesv1.Status{
+					KfpId:                pipeline.Status.KfpId,
+					Version:              pipeline.Status.Version,
+					SynchronizationState: pipelinesv1.Deleted,
+				},
+			},
+		}
+	}
+
 	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, pipeline)
 
 	return []PipelineCommand{
