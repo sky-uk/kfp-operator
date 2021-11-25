@@ -42,12 +42,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
-            limits:
-              cpu: 100m
-              memory: 300Mi
-            requests:
-              cpu: 100m
-              memory: 200Mi
+            {{- .Values.managerResources | toYaml | nindent 12 }}
           volumeMounts:
             - mountPath: /controller_manager_config.yaml
               name: manager-config
