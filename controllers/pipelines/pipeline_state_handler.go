@@ -298,7 +298,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 		idResult, err := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineIdParameterName)
 
 		if err != nil {
-			logger.Error(err, "could not retrieve pipeline id, failing pipeline")
+			logger.Error(err, "could not retrieve kfpId, failing pipeline")
 			newStatus.SynchronizationState = pipelinesv1.Failed
 			return
 		}

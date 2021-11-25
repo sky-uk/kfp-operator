@@ -181,7 +181,7 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 		idResult, _ := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
 
 		if idResult == "" {
-			logger.Info("could not retrieve workflow output, failing run configuration")
+			logger.Info("could not retrieve kfpId, failing run configuration")
 			newStatus.KfpId = ""
 			newStatus.SynchronizationState = pipelinesv1.Failed
 			return
