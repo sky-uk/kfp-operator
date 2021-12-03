@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package generic;
+option go_package = "pipelines.kubeflow.org/events/eventsources/model_update/server";
+
+service Eventing {
+    rpc StartEventSource(EventSource) returns (stream Event);
+}
+
+message EventSource {
+    // The event source name.
+    string name = 1;
+    // The event source configuration value.
+    bytes config = 2;
+}
+
+/**
+* Represents an event
+*/
+message Event {
+    // The event source name.
+    string name = 1;
+    // The event payload.
+    bytes payload = 2;
+}

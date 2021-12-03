@@ -62,19 +62,27 @@ decoupled-test: ## Run decoupled acceptance tests
 
 integration-test-up:
 	minikube start -p argo-integration-tests
+	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
+	# Install Argo-Events
+	kubectl create namespace argo-events --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/stable/manifests/install.yaml
+	kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/stable/manifests/install-validating-webhook.yaml
+	kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/stable/examples/eventbus/native.yaml
+	kubectl apply -f
+	# Set up mocks
 	kubectl apply -n argo -f config/testing/wiremock.yaml
 	rm -f config/testing/pids
 	kubectl wait -n argo deployment/wiremock --for condition=available --timeout=5m
 	kubectl port-forward -n argo service/wiremock 8081:80 & echo $$! >> config/testing/pids
-	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
+	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! >> config/testing/pids
 
 integration-test: ## Run integration tests
 	eval $$(minikube -p argo-integration-tests docker-env) && \
-	$(MAKE) -C argo/kfp-compiler docker-build && \
-	$(MAKE) -C argo/kfp-sdk docker-build && \
+	$(MAKE) docker-build-argo && \
 	docker build docs/quickstart -t kfp-quickstart
 	go test ./... -tags=integration -parallel 1
 
