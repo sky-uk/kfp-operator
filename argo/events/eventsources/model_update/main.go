@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/go-logr/logr"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,33 +52,27 @@ type EventSourceConfig struct {
 type eventingServer struct {
 	generic.UnimplementedEventingServer
 	k8sClient dynamic.Interface
+	logger logr.Logger
 }
 
 func (es *eventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
-	logger, err := logging.NewLogger()//TODO create outside
-	if err != nil {
-		panic(fmt.Sprintf("failed to create logger: %v", err))
-	}
-
-	ctx := logging.WithLogger(stream.Context(), logger)
-
-	logger.Info("starting stream", "eventsource", source)
+	es.logger.Info("starting stream", "eventsource", source)
 
 	eventsourceConfig := EventSourceConfig{}
 
 	if err := yaml.Unmarshal(source.Config, &eventsourceConfig); err != nil {
-		logger.Error(err, "failed to parse event source configuration")
+		es.logger.Error(err, "failed to parse event source configuration")
 		return err
 	}
 
 	kfpSdkVersionExistsRequirement, err := labels.NewRequirement(kfpSdkVersionLabel, selection.Exists, []string{})
 	if err != nil {
-		logger.Error(err, "failed to construct requirement")
+		es.logger.Error(err, "failed to construct requirement")
 		return err
 	}
 	workflowUpdateTriggeredRequirement, err := labels.NewRequirement(workflowUpdateTriggeredLabel, selection.NotEquals, []string{strconv.FormatBool(true)})
 	if err != nil {
-		logger.Error(err, "failed to construct requirement")
+		es.logger.Error(err, "failed to construct requirement")
 		return err
 	}
 
@@ -97,12 +92,12 @@ func (es *eventingServer) StartEventSource(source *generic.EventSource, stream g
 	sharedInformer := informer.Informer()
 	handlerFuncs := cache.ResourceEventHandlerFuncs{}
 	handlerFuncs.UpdateFunc = func(oldObj, newObj interface{}) {
-		logger.Info("detected update event")
+		es.logger.V(2).Info("detected update event")
 
 		uNewObj := newObj.(*unstructured.Unstructured)
 
 		if uNewObj.GetLabels()[workflowPhaseLabel] != string(argo.WorkflowSucceeded) {
-			logger.Info("rejecting workflow that hasn't succeeded yet")
+			es.logger.V(2).Info("rejecting workflow that hasn't succeeded yet")
 			return
 		}
 
@@ -111,17 +106,17 @@ func (es *eventingServer) StartEventSource(source *generic.EventSource, stream g
 			Payload: []byte(uNewObj.GetName()),
 		}
 
-		logger.Info("sending event", "event", event)
+		es.logger.V(1).Info("sending event", "event", event)
 		if err = stream.Send(event); err != nil {
-			logger.Error(err, "failed to send event")
+			es.logger.Error(err, "failed to send event")
 			return
 		}
 
 		path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 		patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-		_, err := es.k8sClient.Resource(argoWorkflowsGvr).Namespace(uNewObj.GetNamespace()).Patch(ctx, uNewObj.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+		_, err := es.k8sClient.Resource(argoWorkflowsGvr).Namespace(uNewObj.GetNamespace()).Patch(stream.Context(), uNewObj.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 		if err != nil {
-			logger.Error(err, "failed to patch resource")
+			es.logger.Error(err, "failed to patch resource")
 			return
 		}
 	}
@@ -167,7 +162,6 @@ func main() {
 		panic(fmt.Sprintf("failed to create logger: %v", err))
 	}
 
-
 	k8sClient, err := createK8sClient()
 	if err != nil {
 		logger.Error(err, "failed to create k8s client")
@@ -183,6 +177,7 @@ func main() {
 	s := grpc.NewServer()
 	generic.RegisterEventingServer(s, &eventingServer{
 		k8sClient: k8sClient,
+		logger: logger,
 	})
 	logger.Info(fmt.Sprintf("server listening at %s", lis.Addr()))
 	if err := s.Serve(lis); err != nil {

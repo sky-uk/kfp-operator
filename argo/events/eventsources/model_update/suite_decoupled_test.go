@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"google.golang.org/grpc"
@@ -156,6 +157,7 @@ var _ = BeforeSuite(func() {
 	server = grpc.NewServer()
 	generic.RegisterEventingServer(server, &eventingServer{
 		k8sClient: k8sClient,
+		logger: logr.Discard(),
 	})
 
 	go server.Serve(lis)
