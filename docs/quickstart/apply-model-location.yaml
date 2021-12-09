@@ -1,118 +1,17 @@
----
-apiVersion: argoproj.io/v1alpha1
-kind: EventSource
-metadata:
-  name: kfp-run-completion-source
-spec:
-  template:
-    # serviceAccountName: argo-events-sa
-  resource:
-    kfp-run-completion:
-      # namespace: argo
-      group: argoproj.io
-      version: v1alpha1
-      resource: workflows
-      eventTypes:
-        - UPDATE
-      filter:
-        labels:
-          - key: workflows.argoproj.io/phase
-            operation: "="
-            value: Succeeded
----
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: kfp-run-completion-sensor
+  name: model-update-sensor
+  namespace: argo-events
 spec:
   template:
-    # serviceAccountName: argo-events-sa
+    serviceAccountName: events-sa
   dependencies:
-    - name: kfp-run-completion-source
-      eventSourceName: kfp-run-completion-source
-      eventName: kfp-run-completion
-      filters:
-        data:
-          - path: body.metadata.annotations
-            type: string
-            comparator: "="
-            value:
-              - "penguin-pipeline" # Replace with the name of your pipeline
-            template: '{{ ((index (.Input | mustFromJson) "pipelines.kubeflow.org/pipeline_spec") | mustFromJson).name }}'
+    - name: model-update-eventsource
+      eventSourceName: model-update-eventsource
+      eventName: model-update
   triggers:
     - template:
-        name: argo-workflow-trigger
-        argoWorkflow:
-          operation: submit
-          source:
-            resource:
-              apiVersion: argoproj.io/v1alpha1
-              kind: Workflow
-              metadata:
-                # Use deterministic names to avoid the creation of multiple workflow for duplicate events
-                name: update-serving-model-location- # Will be appended with the name of the source's workflow
-                # namespace: argo
-              spec:
-                entrypoint: update-serving-model-location
-                # serviceAccountName: argo
-                arguments:
-                  parameters:
-                  - name: workflow-name
-                    value: ""
-                  - name: pipeline-name
-                    value: ""
-                templates:
-                - name: update-serving-model-location
-                  steps:
-                  - - name: fetch-serving-model-location
-                      template: fetch-serving-model-location
-                      arguments:
-                        parameters:
-                        - name: workflow-name
-                          value: "{{workflow.parameters.workflow-name}}"
-                        - name: pipeline-name
-                          value: "{{workflow.parameters.pipeline-name}}"
-                  - - name: apply-configmap
-                      template: apply-configmap
-                      arguments:
-                        parameters:
-                        - name: serving-model-location
-                          value: "{{steps.fetch-serving-model-location.outputs.result}}"
-                - name: fetch-serving-model-location
-                  inputs:
-                    parameters:
-                    - name: workflow-name
-                    - name: pipeline-name
-                  script:
-                    image: kfp-operator-argo-mlmd-cli
-                    imagePullPolicy: Never
-                    command: [bash]
-                    source: |
-                      mlmd --endpoint metadata-grpc-service:8080 pushed-model-artifact get --workflow-name {{inputs.parameters.workflow-name}} --pipeline-name {{inputs.parameters.pipeline-name}}
-                - name: apply-configmap
-                  inputs:
-                    parameters:
-                    - name: serving-model-location
-                  resource:
-                    action: apply
-                    manifest: | # Configure resource. You can use the sensor's parameters in the template.
-                      apiVersion: v1
-                      kind: ConfigMap
-                      metadata:
-                        name: serving-config
-                      data:
-                        serving-model: {{inputs.parameters.serving-model-location}}
-          parameters:
-            - src:
-                dependencyName: kfp-run-completion-source
-                dataKey: "body.metadata.name"
-              dest: metadata.name
-              operation: append
-            - src:
-                dependencyName: kfp-run-completion-source
-                dataKey: "body.metadata.name"
-              dest: spec.arguments.parameters.0.value
-            - src:
-                dependencyName: kfp-run-completion-source
-                dataTemplate: '{{ ((index .Input.body.metadata.annotations "pipelines.kubeflow.org/pipeline_spec") | mustFromJson).name }}'
-              dest: spec.arguments.parameters.1.value
+        # TODO: update configmap
+        name: log-trigger
+        log: {}
