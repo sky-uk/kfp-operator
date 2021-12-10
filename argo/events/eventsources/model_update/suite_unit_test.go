@@ -2,55 +2,111 @@
 // +build unit
 
 package main
-//
-//import (
-//	"context"
-//	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-//	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-//	"testing"
-//
-//	. "github.com/onsi/ginkgo"
-//	. "github.com/onsi/gomega"
-//)
-//
-//func TestUnitSuite(t *testing.T) {
-//	RegisterFailHandler(Fail)
-//	RunSpecs(t, "Model Update Event Source Unit Suite")
-//}
-//
-//func workflowInPhase(phase argo.WorkflowPhase) *unstructured.Unstructured {
-//	workflow := unstructured.Unstructured{}
-//	workflow.SetName("test-workflow")
-//	workflow.SetLabels(map[string]string{
-//		"workflows.argoproj.io/phase": string(phase),
-//	})
-//
-//	return &workflow
-//}
-//
-//var _ = Describe("Event for workflow update", func() {
-//	anEvent := &api.Event{
-//		Name:    "model-update",
-//		Payload: []byte("test-workflow"),
-//	}
-//
-//	When("the workflow succeeded", func() {
-//		oldObj := workflowInPhase(argo.WorkflowPending)
-//		newObj := workflowInPhase(argo.WorkflowSucceeded)
-//		event := eventForWorkflowUpdate(context.Background(), oldObj, newObj)
-//
-//		It("creates an event", func() {
-//			Expect(event).To(Equal(anEvent))
-//		})
-//	})
-//
-//	When("the workflow stays in succeeded", func() {
-//		oldObj := workflowInPhase(argo.WorkflowSucceeded)
-//		newObj := workflowInPhase(argo.WorkflowSucceeded)
-//		event := eventForWorkflowUpdate(context.Background(), oldObj, newObj)
-//
-//		It("creates no event", func() {
-//			Expect(event).To(BeNil())
-//		})
-//	})
-//})
+
+import (
+	"context"
+	"fmt"
+	"github.com/golang/mock/gomock"
+	"k8s.io/apimachinery/pkg/util/rand"
+	"pipelines.kubeflow.org/events/ml_metadata"
+	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+)
+
+func TestUnitSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Model Update Unit Suite")
+}
+
+var _ = Describe("gRPC Metadata Store", func() {
+	var (
+		mockCtrl *gomock.Controller
+		mockMetadataStoreServiceClient *ml_metadata.MockMetadataStoreServiceClient
+		store GrpcMetadataStore
+		pipelineName = rand.String(5)
+		workflowName = rand.String(5)
+	)
+
+	BeforeEach(func() {
+		mockCtrl = gomock.NewController(GinkgoT())
+		mockMetadataStoreServiceClient = ml_metadata.NewMockMetadataStoreServiceClient(mockCtrl)
+		store = GrpcMetadataStore{
+			MetadataStoreServiceClient: mockMetadataStoreServiceClient,
+		}
+	})
+
+	AfterEach(func() {
+		mockCtrl.Finish()
+	})
+
+	When("The service finds the artifact", func() {
+		It("Returns a ModelArtifact", func() {
+			mockMetadataStoreServiceClient.EXPECT().
+				GetArtifactsByID(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByIDRequest{ArtifactIds: nil})).
+				Return(&ml_metadata.GetArtifactsByIDResponse{
+				Artifacts: []*ml_metadata.Artifact{
+					{
+
+					},
+					{
+						CustomProperties: map[string]*ml_metadata.Value{
+							PushedDestinationCustomProperty: {
+								Value: &ml_metadata.Value_IntValue{
+									IntValue: 42,
+								},
+							},
+						},
+					},
+					{
+						CustomProperties: map[string]*ml_metadata.Value{
+							PushedDestinationCustomProperty: {
+								Value: &ml_metadata.Value_StringValue{
+									StringValue: "some://where",
+								},
+							},
+						},
+					},
+					{
+						CustomProperties: map[string]*ml_metadata.Value{
+							PushedDestinationCustomProperty: {
+								Value: &ml_metadata.Value_StringValue{
+									StringValue: "some://where.else",
+								},
+							},
+						},
+					},
+				},
+			}, nil)
+			result, err := store.GetServingModelArtifact(context.Background(), pipelineName, workflowName)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(result).To(Equal(ModelArtifact{
+				PushDestination: "some://where",
+			}))
+		})
+	})
+
+	When("the response errors", func() {
+		It("Errors", func() {
+			mockMetadataStoreServiceClient.EXPECT().
+				GetArtifactsByID(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByIDRequest{ArtifactIds: nil})).
+				Return(nil, fmt.Errorf("an error"))
+
+			_, err := store.GetServingModelArtifact(context.Background(), pipelineName, workflowName)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	When("the response does not contain an artifact with a push destination", func() {
+		It("Errors", func() {
+			mockMetadataStoreServiceClient.EXPECT().
+				GetArtifactsByID(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByIDRequest{ArtifactIds: nil})).
+				Return(&ml_metadata.GetArtifactsByIDResponse{}, nil)
+
+			_, err := store.GetServingModelArtifact(context.Background(), pipelineName, workflowName)
+			Expect(err).To(HaveOccurred())
+		})
+	})
+})

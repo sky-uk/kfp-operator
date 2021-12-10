@@ -19,7 +19,8 @@ generate: ## Generate service definitions from protobuf
     		--go_opt=Mml_metadata/proto/metadata_store.proto=/ml_metadata \
     		--go_opt=Mml_metadata/proto/metadata_source.proto=/ml_metadata \
     		--go-grpc_opt=module=ml_metadata/proto \
-    		ml_metadata/proto/metadata_store_service.proto
+    		ml_metadata/proto/metadata_store_service.proto \
+    		ml_metadata/proto/metadata_store.proto
 
 	$(call get-proto,github.com/argoproj/argo-events,v1.5.4)
 	protoc --go_out=. --go-grpc_out=eventsources/generic \
@@ -27,6 +28,8 @@ generate: ## Generate service definitions from protobuf
 		--go_opt=Meventsources/sources/generic/generic.proto=/eventsources/generic \
 		--go-grpc_opt=module=eventsources/sources/generic \
 	  	eventsources/sources/generic/generic.proto
+
+	mockgen -destination ml_metadata/metadata_store_service_grpc_mock.go -package=ml_metadata -source=ml_metadata/metadata_store_service_grpc.pb.go
 
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: ## Run decoupled acceptance tests
