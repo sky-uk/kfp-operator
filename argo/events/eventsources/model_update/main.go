@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
@@ -55,6 +56,11 @@ type eventingServer struct {
 	logger logr.Logger
 }
 
+type ModelUpdateEvent struct {
+	PipelineName 		 string `json:"pipelineName"`
+	ServingModelLocation string `json:"servingModelLocation"`
+}
+
 func (es *eventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
 	es.logger.Info("starting stream", "eventsource", source)
 
@@ -101,9 +107,19 @@ func (es *eventingServer) StartEventSource(source *generic.EventSource, stream g
 			return
 		}
 
+		jsonPayload, err := json.Marshal(ModelUpdateEvent{
+			PipelineName: "a-pipeline",
+			ServingModelLocation: "a-location",
+		})
+
+		if err != nil {
+			es.logger.Error(err,"failed to serialise event")
+			return
+		}
+
 		event := &generic.Event{
 			Name:    modelUpdateEventName,
-			Payload: []byte(uNewObj.GetName()),
+			Payload: jsonPayload,
 		}
 
 		es.logger.V(1).Info("sending event", "event", event)
@@ -114,7 +130,7 @@ func (es *eventingServer) StartEventSource(source *generic.EventSource, stream g
 
 		path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 		patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-		_, err := es.k8sClient.Resource(argoWorkflowsGvr).Namespace(uNewObj.GetNamespace()).Patch(stream.Context(), uNewObj.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+		_, err = es.k8sClient.Resource(argoWorkflowsGvr).Namespace(uNewObj.GetNamespace()).Patch(stream.Context(), uNewObj.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 		if err != nil {
 			es.logger.Error(err, "failed to patch resource")
 			return

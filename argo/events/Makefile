@@ -1,10 +1,32 @@
-generate:
-	##protoc --go_out=. --go-grpc_out=. eventsources/api/eventing.proto
-	protoc --go_out=eventsources --go-grpc_out=eventsources/generic \
-		-I $(GOPATH)/pkg/mod/github.com/argoproj/argo-events@v1.15.0/eventsources/sources/generic/ \
-		--go_opt=Mgeneric.proto=/generic \
-		generic.proto
-	## protoc -I mlmd --go_out=. --go-grpc_out=. mlmd/metadata_store_service.proto
+PROTOPATH=$(HOME)/.proto
+
+define get-proto
+	mkdir -p $(PROTOPATH) && \
+	cd $(PROTOPATH); \
+	[ -d "$(1)@$(2)" ] || { \
+		git clone --no-checkout --branch $(2) --single-branch https://$(1) $(1)@$(2) && \
+		cd $(1)@$(2) && \
+		git sparse-checkout set *.proto && \
+		git checkout tags/$(2) -b master; \
+	}
+endef
+
+generate: ## Generate service definitions from protobuf
+	$(call get-proto,github.com/google/ml-metadata,v1.5.0)
+	protoc --go_out=. --go-grpc_out=ml_metadata \
+    		-I $(PROTOPATH)/github.com/google/ml-metadata@v1.5.0/ \
+    		--go_opt=Mml_metadata/proto/metadata_store_service.proto=/ml_metadata \
+    		--go_opt=Mml_metadata/proto/metadata_store.proto=/ml_metadata \
+    		--go_opt=Mml_metadata/proto/metadata_source.proto=/ml_metadata \
+    		--go-grpc_opt=module=ml_metadata/proto \
+    		ml_metadata/proto/metadata_store_service.proto
+
+	$(call get-proto,github.com/argoproj/argo-events,v1.5.4)
+	protoc --go_out=. --go-grpc_out=eventsources/generic \
+		-I $(PROTOPATH)/github.com/argoproj/argo-events@v1.5.4/ \
+		--go_opt=Meventsources/sources/generic/generic.proto=/eventsources/generic \
+		--go-grpc_opt=module=eventsources/sources/generic \
+	  	eventsources/sources/generic/generic.proto
 
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: ## Run decoupled acceptance tests

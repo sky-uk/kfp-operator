@@ -1,5 +1,0 @@
-package mlmd
-
-func x() {
-
-}

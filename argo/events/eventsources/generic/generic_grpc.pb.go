@@ -124,5 +124,5 @@ var Eventing_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "generic.proto",
+	Metadata: "eventsources/sources/generic/generic.proto",
 }
