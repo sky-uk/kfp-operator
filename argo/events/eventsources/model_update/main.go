@@ -26,12 +26,12 @@ import (
 	"path/filepath"
 	"pipelines.kubeflow.org/events/eventsources/generic"
 	"pipelines.kubeflow.org/events/logging"
+	"pipelines.kubeflow.org/events/ml_metadata"
 	"strconv"
 	"strings"
 )
 
 var (
-	port             = flag.Int("port", 50051, "The server port")
 	argoWorkflowsGvr = schema.GroupVersionResource{
 		Group:    workflow.Group,
 		Version:  workflow.Version,
@@ -43,6 +43,7 @@ const (
 	kfpSdkVersionLabel           = "pipelines.kubeflow.org/kfp_sdk_version"
 	workflowPhaseLabel           = "workflows.argoproj.io/phase"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
+	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
 	modelUpdateEventName 		 = "model-update"
 )
 
@@ -53,12 +54,31 @@ type EventSourceConfig struct {
 type eventingServer struct {
 	generic.UnimplementedEventingServer
 	k8sClient dynamic.Interface
+	metadataStore MetadataStore
 	logger logr.Logger
 }
 
 type ModelUpdateEvent struct {
-	PipelineName 		 string `json:"pipelineName"`
-	ServingModelLocation string `json:"servingModelLocation"`
+	PipelineName          string                 `json:"pipelineName"`
+	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
+}
+
+type PipelineSpec struct {
+	Name string `json:"name"`
+}
+
+func getPipelineName(workflow *unstructured.Unstructured) (string, error) {
+	specString := workflow.GetAnnotations()[pipelineSpecAnnotationName]
+	spec := &PipelineSpec{}
+	if err := json.Unmarshal([]byte(specString), spec); err != nil {
+		return "", err
+	}
+
+	if spec.Name == "" {
+		return "", fmt.Errorf("workflow has empty pipeline name")
+	}
+
+	return spec.Name, nil
 }
 
 func (es *eventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
@@ -107,9 +127,24 @@ func (es *eventingServer) StartEventSource(source *generic.EventSource, stream g
 			return
 		}
 
+		workflowName := uNewObj.GetName()
+		pipelineName, err := getPipelineName(uNewObj)
+
+		if err != nil {
+			es.logger.Error(err,"failed to get pipeline name from workflow")
+			return
+		}
+
+		modelArtifacts, err := es.metadataStore.GetServingModelArtifact(stream.Context(), workflowName)
+
+		if err != nil {
+			es.logger.Error(err,"failed to retrieve workflow artifacts")
+			return
+		}
+
 		jsonPayload, err := json.Marshal(ModelUpdateEvent{
-			PipelineName: "a-pipeline",
-			ServingModelLocation: "a-location",
+			PipelineName:          pipelineName,
+			ServingModelArtifacts: modelArtifacts,
 		})
 
 		if err != nil {
@@ -173,6 +208,10 @@ func createK8sClient() (dynamic.Interface, error) {
 }
 
 func main() {
+	port := flag.Int("port", 50051, "The server port")
+	metadataStoreAddr := flag.String("mlmd-url", "", "The MLMD gRPC URL")
+	flag.Parse()
+
 	logger, err := logging.NewLogger()
 	if err != nil {
 		panic(fmt.Sprintf("failed to create logger: %v", err))
@@ -184,16 +223,28 @@ func main() {
 		os.Exit(1)
 	}
 
+
 	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
 	if err != nil {
 		logger.Error(err, "failed to listen")
 		os.Exit(1)
 	}
 
+
+	conn, err := grpc.Dial(*metadataStoreAddr, grpc.WithInsecure())
+	if err != nil {
+		logger.Error(err, "failed to connect connect")
+	}
+
+	metadataStoreClient := ml_metadata.NewMetadataStoreServiceClient(conn)
+
 	s := grpc.NewServer()
 	generic.RegisterEventingServer(s, &eventingServer{
 		k8sClient: k8sClient,
 		logger: logger,
+		metadataStore: &GrpcMetadataStore{
+			MetadataStoreServiceClient: metadataStoreClient,
+		},
 	})
 	logger.Info(fmt.Sprintf("server listening at %s", lis.Addr()))
 	if err := s.Serve(lis); err != nil {

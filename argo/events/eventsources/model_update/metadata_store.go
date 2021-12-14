@@ -13,20 +13,20 @@ const (
 	InvalidContextId = 0
 )
 
-type ModelArtifact struct {
-	Name string
-	PushDestination string
+type ServingModelArtifact struct {
+	Name     string
+	Location string
 }
 
 type MetadataStore interface {
-	GetServingModelArtifact(pipelineName string, workflowName string) ModelArtifact
+	GetServingModelArtifact(ctx context.Context, workflowName string) ([]ServingModelArtifact, error)
 }
 
 type GrpcMetadataStore struct {
 	MetadataStoreServiceClient ml_metadata.MetadataStoreServiceClient
 }
 
-func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]ModelArtifact, error) {
+func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]ServingModelArtifact, error) {
 	pipelineRunTypeName := PipelineRunTypeName
 	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
 	if err != nil {
@@ -45,15 +45,15 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 		return nil, err
 	}
 
-	var results []ModelArtifact
+	var results []ServingModelArtifact
 	for _, artifact := range artifactsResponse.GetArtifacts() {
 		propertyValue := artifact.GetCustomProperties()[PushedDestinationCustomProperty].GetStringValue()
 		propertyName := artifact.GetCustomProperties()[NameCustomProperty].GetStringValue()
 
 		if propertyName != "" && propertyValue != "" {
-			results = append(results, ModelArtifact{
-				Name: propertyName,
-				PushDestination: propertyValue,
+			results = append(results, ServingModelArtifact{
+				Name:     propertyName,
+				Location: propertyValue,
 			})
 		}
 	}
