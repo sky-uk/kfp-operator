@@ -1,7 +1,7 @@
 //go:build unit || decoupled
 // +build unit decoupled
 
-package main
+package model_update
 
 import "k8s.io/apimachinery/pkg/util/rand"
 

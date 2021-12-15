@@ -1,7 +1,7 @@
 //go:build decoupled
 // +build decoupled
 
-package main
+package model_update
 
 import (
 	"context"
@@ -27,9 +27,9 @@ import (
 
 var (
 	mockMetadataStore MockMetadataStore
-	server *grpc.Server
-	k8sClient dynamic.Interface
-	clientConn *grpc.ClientConn
+	server            *grpc.Server
+	k8sClient         dynamic.Interface
+	clientConn        *grpc.ClientConn
 )
 
 const (
@@ -53,7 +53,6 @@ var givenMetadataStoreReturnsArtifactsForPipeline = func(pipelineName string) []
 	}
 	mockMetadataStore.results = servingModelArtifacts
 
-
 	return servingModelArtifacts
 }
 
@@ -73,7 +72,7 @@ func startClient(ctx context.Context) (generic.Eventing_StartEventSourceClient, 
 	eventingClient := generic.NewEventingClient(clientConn)
 
 	return eventingClient.StartEventSource(ctx, &generic.EventSource{
-		Name: rand.String(10),
+		Name:   rand.String(10),
 		Config: eventSourceConfig,
 	})
 }
@@ -111,9 +110,7 @@ func updatePhase(ctx context.Context, name string, phase argo.WorkflowPhase) (*u
 func createWorkflowInPhase(ctx context.Context, pipelineName string, phase argo.WorkflowPhase) (*unstructured.Unstructured, error) {
 	workflow := unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"spec": map[string]interface{}{
-
-			},
+			"spec": map[string]interface{}{},
 		},
 	}
 	workflow.SetGroupVersionKind(argo.WorkflowSchemaGroupVersionKind)
@@ -191,10 +188,10 @@ var _ = BeforeSuite(func() {
 	server = grpc.NewServer()
 	logger, _ := logging.NewLogger()
 
-	generic.RegisterEventingServer(server, &eventingServer{
-		k8sClient: k8sClient,
-		logger: logger,
-		metadataStore: &mockMetadataStore,
+	generic.RegisterEventingServer(server, &EventingServer{
+		K8sClient:     k8sClient,
+		Logger:        logger,
+		MetadataStore: &mockMetadataStore,
 	})
 
 	go server.Serve(lis)
@@ -227,7 +224,7 @@ var _ = Describe("Model update eventsource", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 
-				workflow, err := createAndTriggerPhaseUpdate(ctx,  pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
+				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
 
 				event, err := stream.Recv()
@@ -236,7 +233,7 @@ var _ = Describe("Model update eventsource", func() {
 				Expect(event.Name).To(Equal(modelUpdateEventName))
 
 				expectedEvent := ModelUpdateEvent{
-					PipelineName: pipelineName,
+					PipelineName:          pipelineName,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
 				actualEvent := ModelUpdateEvent{}
@@ -260,7 +257,7 @@ var _ = Describe("Model update eventsource", func() {
 				pipelineName := randomString()
 				servingModelArtifacts := givenMetadataStoreReturnsArtifactsForPipeline(pipelineName)
 
-				_, err := createAndTriggerPhaseUpdate(ctx,  pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
+				_, err := createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
 
 				stream, err := startClient(ctx)
@@ -272,7 +269,7 @@ var _ = Describe("Model update eventsource", func() {
 				Expect(event.Name).To(Equal(modelUpdateEventName))
 
 				expectedEvent := ModelUpdateEvent{
-					PipelineName: pipelineName,
+					PipelineName:          pipelineName,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
 				actualEvent := ModelUpdateEvent{}

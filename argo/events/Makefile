@@ -1,3 +1,5 @@
+##@ Build
+
 PROTOPATH=$(HOME)/.proto
 
 define get-proto
@@ -31,6 +33,20 @@ generate: ## Generate service definitions from protobuf
 
 	mockgen -destination ml_metadata/metadata_store_service_grpc_mock.go -package=ml_metadata -source=ml_metadata/metadata_store_service_grpc.pb.go
 
+build: generate
+	go build -o bin/model-update-eventsource ./eventsources/model_update/cmd/main.go
+
+run-model-update-eventsource: build fmt vet
+	go run ./eventsources/model_update/cmd/main.go -mlmd-url=$(MLMD_URL)
+
+fmt: ## Run go fmt against code.
+	go fmt ./...
+
+vet: ## Run go vet against code.
+	go vet ./...
+
+##@ Development
+
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: ## Run decoupled acceptance tests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
@@ -42,14 +58,7 @@ unit-test: ## Run unit tests
 
 test: generate fmt vet unit-test
 
-build: generate
-	go build -o bin/model-update-eventsource ./eventsources/model_update/cmd/main.go
+##@ Containers
 
-run-model-update-eventsource: build fmt vet
-	go run ./eventsources/model_update/cmd/main.go
-
-fmt: ## Run go fmt against code.
-	go fmt ./...
-
-vet: ## Run go vet against code.
-	go vet ./...
+IMG := kfp-operator-argo-events-model-update-eventsource
+include ../../docker-targets.mk

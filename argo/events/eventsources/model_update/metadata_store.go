@@ -1,4 +1,4 @@
-package main
+package model_update
 
 import (
 	"context"
@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	PushedDestinationCustomProperty = "pushed_destination"
-	NameCustomProperty = "name"
-	PipelineRunTypeName = "pipeline_run"
-	InvalidContextId = 0
+	PushedModelArtifactType = "PushedModel"
+	NameCustomProperty      = "name"
+	PipelineRunTypeName     = "pipeline_run"
+	InvalidId               = 0
 )
 
 type ServingModelArtifact struct {
@@ -28,13 +28,25 @@ type GrpcMetadataStore struct {
 
 func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]ServingModelArtifact, error) {
 	pipelineRunTypeName := PipelineRunTypeName
+
+	artifactTypeName := PushedModelArtifactType
+	typeResponse, err := gms.MetadataStoreServiceClient.GetArtifactType(ctx, &ml_metadata.GetArtifactTypeRequest{TypeName: &artifactTypeName})
+	if err != nil {
+		return nil, err
+	}
+
+	artifactTypeId := typeResponse.GetArtifactType().GetId()
+	if artifactTypeId == InvalidId {
+		return nil, fmt.Errorf("invalid artifact ID")
+	}
+
 	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
 	if err != nil {
 		return nil, err
 	}
 
 	contextId := contextResponse.GetContext().GetId()
-	if contextId == InvalidContextId {
+	if contextId == InvalidId {
 		return nil, fmt.Errorf("invalid context ID")
 	}
 
@@ -47,14 +59,16 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 
 	var results []ServingModelArtifact
 	for _, artifact := range artifactsResponse.GetArtifacts() {
-		propertyValue := artifact.GetCustomProperties()[PushedDestinationCustomProperty].GetStringValue()
-		propertyName := artifact.GetCustomProperties()[NameCustomProperty].GetStringValue()
+		if artifact.GetTypeId() == artifactTypeId {
+			artifactUri := artifact.GetUri()
+			artifactName := artifact.GetCustomProperties()[NameCustomProperty].GetStringValue()
 
-		if propertyName != "" && propertyValue != "" {
-			results = append(results, ServingModelArtifact{
-				Name:     propertyName,
-				Location: propertyValue,
-			})
+			if artifactName != "" && artifactUri != "" {
+				results = append(results, ServingModelArtifact{
+					Name:     artifactName,
+					Location: artifactUri,
+				})
+			}
 		}
 	}
 

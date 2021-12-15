@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package main
+package model_update
 
 import (
 	"testing"

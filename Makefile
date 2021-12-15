@@ -97,7 +97,7 @@ test: manifests generate fmt vet unit-test # decoupled-test
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/kfp-sdk test
-	$(MAKE) -C argo/mlmd-cli test
+	$(MAKE) -C argo/events test
 
 test-all: test helm-test # test-argo See https://github.com/sky-uk/kfp-operator/issues/54
 
@@ -210,12 +210,12 @@ include docker-targets.mk
 docker-build-argo:
 	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/kfp-sdk docker-build
-	$(MAKE) -C argo/mlmd-cli docker-build
+	$(MAKE) -C argo/events docker-build
 
 docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/kfp-sdk docker-push
-	$(MAKE) -C argo/mlmd-cli docker-push
+	$(MAKE) -C argo/events docker-push
 
 package-all: docker-build docker-build-argo helm-package
 
