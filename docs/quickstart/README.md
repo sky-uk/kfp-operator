@@ -60,14 +60,13 @@ This will trigger run of `penguin-pipeline` once every hour. Note that the cron 
 
 ## Update the serving model location when the pipeline run succeeds
 
-Using [Argo Event](https://argoproj.github.io/argo-events/) we can specify arbitrary actions on pipeline run completions.
-In this example, we apply a `ConfigMap` containing the model's serving location when the pipeline run succeeds.
+If the operator has been installed with [Argo-Events](https://argoproj.github.io/argo-events/) support, we can now specify eventsources and sensors to update arbitrary Kubernetes config when a pipeline has been trained successfully. 
 
 ```bash
 kubectl apply -f apply-model-location.yaml
 ```
 
-This creates Argo Events `EventSource` and `Sensor` which listen to pipeline run updates and apply the following configmap:
+This creates an `EventSource` and a `Sensor` as well as an `EventBus`.
 
 ```yaml
 apiVersion: v1
@@ -75,7 +74,7 @@ kind: ConfigMap
 metadata:
     name: serving-config
 data:
-    serving-model: {{serving-model-location}}
+    servingModel: {{serving-model-location}}
 ```
 
 ![Model Serving](./model_serving.png)

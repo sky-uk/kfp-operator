@@ -1,8 +1,27 @@
 apiVersion: argoproj.io/v1alpha1
+kind: EventBus
+metadata:
+  name: default
+spec:
+  nats:
+    native: {}
+---
+apiVersion: argoproj.io/v1alpha1
+  kind: EventSource
+  metadata:
+    name: model-update-eventsource
+  spec:
+    generic:
+      example:
+        insecure: true
+        url: "kfp-operator-model-update-eventsource-server.kfp-operator-system.svc:50051"
+        config: |-
+          kfpNamespace: kubeflow-pipelines
+---
+apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
   name: model-update-sensor
-  namespace: argo-events
 spec:
   template:
     serviceAccountName: events-sa
@@ -10,8 +29,27 @@ spec:
     - name: model-update-eventsource
       eventSourceName: model-update-eventsource
       eventName: model-update
+      filters:
+        data:
+          - path: body.payload.pipelineName
+            type: string
+            comparator: "="
+            value:
+              - "penguin-pipeline" # Replace with the name of your pipeline
   triggers:
     - template:
-        # TODO: update configmap
-        name: log-trigger
-        log: {}
+        k8s:
+          operation: apply
+          source:
+            resource:
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                name: serving-config
+              data:
+                serving-model: {{inputs.parameters.serving-model-location}}
+      parameters:
+        - src:
+            dependencyName: model-update-eventsource
+            dataKey: "body.payload.servingModelArtifacts[0]"
+          dest: data.ServingModel

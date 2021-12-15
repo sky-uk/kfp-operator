@@ -23,6 +23,7 @@ spec:
           command:
             - /model_update_eventsource_server
           args:
+            - ==port={{ .Values.eventsourceServer.port }}
             - --mlmd-uri={{ .Values.eventsourceServer.mlmdUri }}
             {{ if .Values.logging.verbosity }}
             - --zap-log-level={{ .Values.logging.verbosity }}
@@ -32,6 +33,8 @@ spec:
             allowPrivilegeEscalation: false
           resources:
             {{- .Values.eventsourceServer.resources | toYaml | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.eventsourceServer.port }}
       serviceAccountName: {{ .Values.eventsourceServer.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
 {{ end }}
