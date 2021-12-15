@@ -66,11 +66,6 @@ integration-test-up:
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
-	# Install Argo-Events
-	kubectl create namespace argo-events --dry-run=client -o yaml | kubectl apply -f -
-	kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/stable/manifests/install.yaml
-	kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/stable/manifests/install-validating-webhook.yaml
-	kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/stable/examples/eventbus/native.yaml
 	# Set up mocks
 	kubectl apply -n argo -f config/testing/wiremock.yaml
 	rm -f config/testing/pids
