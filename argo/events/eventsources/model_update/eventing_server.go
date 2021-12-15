@@ -49,6 +49,11 @@ type EventingServer struct {
 	Logger        logr.Logger
 }
 
+type ServingModelArtifact struct {
+	Name     string `json:"name"`
+	Location string `json:"location"`
+}
+
 type ModelUpdateEvent struct {
 	PipelineName          string                 `json:"pipelineName"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
@@ -130,6 +135,11 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 
 		if err != nil {
 			es.Logger.Error(err, "failed to retrieve workflow artifacts")
+			return
+		}
+
+		if len(modelArtifacts) <= 0 {
+			es.Logger.V(2).Info("ignoring succeeded workflow without serving model artifacts")
 			return
 		}
 

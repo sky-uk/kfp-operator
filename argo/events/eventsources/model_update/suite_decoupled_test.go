@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"google.golang.org/grpc"
@@ -19,7 +20,6 @@ import (
 	"net"
 	"path/filepath"
 	"pipelines.kubeflow.org/events/eventsources/generic"
-	"pipelines.kubeflow.org/events/logging"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"testing"
 	"time"
@@ -186,11 +186,10 @@ var _ = BeforeSuite(func() {
 
 	mockMetadataStore = MockMetadataStore{}
 	server = grpc.NewServer()
-	logger, _ := logging.NewLogger()
 
 	generic.RegisterEventingServer(server, &EventingServer{
 		K8sClient:     k8sClient,
-		Logger:        logger,
+		Logger:        logr.Discard(),
 		MetadataStore: &mockMetadataStore,
 	})
 

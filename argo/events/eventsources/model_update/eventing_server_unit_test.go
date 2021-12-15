@@ -21,7 +21,7 @@ var _ = Context("Eventing Server", func() {
 			})
 		})
 
-		When("The workflow has no pipeline spec annotation is invalid", func() {
+		When("The workflow's pipeline spec annotation is invalid", func() {
 			It("Errors", func() {
 				workflow := &unstructured.Unstructured{}
 				workflow.SetAnnotations(map[string]string{
@@ -33,7 +33,7 @@ var _ = Context("Eventing Server", func() {
 			})
 		})
 
-		When("The workflow has no pipeline spec annotation is empty", func() {
+		When("The workflow's spec annotation is empty", func() {
 			It("Errors", func() {
 				workflow := &unstructured.Unstructured{}
 				workflow.SetAnnotations(map[string]string{
@@ -45,7 +45,7 @@ var _ = Context("Eventing Server", func() {
 			})
 		})
 
-		When("The workflow has no pipeline spec annotation is missing", func() {
+		When("The workflow's spec annotation is missing", func() {
 			It("Errors", func() {
 				workflow := &unstructured.Unstructured{}
 				workflow.SetAnnotations(map[string]string{

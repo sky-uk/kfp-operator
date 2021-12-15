@@ -13,11 +13,6 @@ const (
 	InvalidId               = 0
 )
 
-type ServingModelArtifact struct {
-	Name     string `json:"name"`
-	Location string `json:"location"`
-}
-
 type MetadataStore interface {
 	GetServingModelArtifact(ctx context.Context, workflowName string) ([]ServingModelArtifact, error)
 }
@@ -27,24 +22,21 @@ type GrpcMetadataStore struct {
 }
 
 func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]ServingModelArtifact, error) {
-	pipelineRunTypeName := PipelineRunTypeName
-
 	artifactTypeName := PushedModelArtifactType
 	typeResponse, err := gms.MetadataStoreServiceClient.GetArtifactType(ctx, &ml_metadata.GetArtifactTypeRequest{TypeName: &artifactTypeName})
 	if err != nil {
 		return nil, err
 	}
-
 	artifactTypeId := typeResponse.GetArtifactType().GetId()
 	if artifactTypeId == InvalidId {
 		return nil, fmt.Errorf("invalid artifact ID")
 	}
 
+	pipelineRunTypeName := PipelineRunTypeName
 	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
 	if err != nil {
 		return nil, err
 	}
-
 	contextId := contextResponse.GetContext().GetId()
 	if contextId == InvalidId {
 		return nil, fmt.Errorf("invalid context ID")
