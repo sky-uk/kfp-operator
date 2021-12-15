@@ -18,4 +18,4 @@ data:
         leaderElect: false
         resourceName: kfp-operator-lock
     spec:
-      {{- merge (.Values.configuration) (include "kfp-operator.defaultConfiguration" . | fromYaml) | toYaml | nindent 6 -}}
+      {{- merge (.Values.manager.configuration) (include "kfp-operator.defaultConfiguration" . | fromYaml) | toYaml | nindent 6 -}}

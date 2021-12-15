@@ -100,6 +100,7 @@ test-argo:
 	$(MAKE) -C argo/events test
 
 test-all: test helm-test # test-argo See https://github.com/sky-uk/kfp-operator/issues/54
+	$(MAKE) -C argo/events test
 
 ##@ Build
 

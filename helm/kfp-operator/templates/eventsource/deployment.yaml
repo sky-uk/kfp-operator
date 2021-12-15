@@ -1,0 +1,37 @@
+{{ if .Values.eventsourceServer.install }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "kfp-operator.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "kfp-operator.labels" . | nindent 6 }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "kfp-operator.labels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: model-update-eventsource-server
+          command:
+            - /model_update_eventsource_server
+          args:
+            - --mlmd-uri={{ .Values.eventsourceServer.mlmdUri }}
+            {{ if .Values.logging.verbosity }}
+            - --zap-log-level={{ .Values.logging.verbosity }}
+            {{ end }}
+          image: {{ .Values.containerRegistry }}/kfp-operator-argo-events-model-update-eventsource-server:{{ .Chart.AppVersion }}
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            {{- .Values.eventsourceServer.resources | toYaml | nindent 12 }}
+      serviceAccountName: {{ .Values.eventsourceServer.serviceAccount.name }}
+      terminationGracePeriodSeconds: 10
+{{ end }}

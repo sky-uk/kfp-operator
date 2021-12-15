@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -36,9 +38,10 @@ func createK8sClient() (dynamic.Interface, error) {
 func main() {
 	port := flag.Int("port", 50051, "The server port")
 	metadataStoreAddr := flag.String("mlmd-url", "", "The MLMD gRPC URL (required)")
+	zapLogLevel := zap.LevelFlag("zap-log-level", zapcore.InfoLevel, "The Zap log level")
 	flag.Parse()
 
-	logger, err := logging.NewLogger()
+	logger, err := logging.NewLogger(*zapLogLevel)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create logger: %v", err))
 	}
