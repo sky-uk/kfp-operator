@@ -35,20 +35,38 @@ func createK8sClient() (dynamic.Interface, error) {
 	return dynamic.NewForConfig(k8sConfig)
 }
 
-func main() {
+type CmdArguments struct {
+	Port              int
+	MetadataStoreAddr string
+	ZapLogLevel       zapcore.Level
+}
+
+func ParseCmdArguments() (CmdArguments, error) {
 	port := flag.Int("port", 50051, "The server port")
 	metadataStoreAddr := flag.String("mlmd-url", "", "The MLMD gRPC URL (required)")
 	zapLogLevel := zap.LevelFlag("zap-log-level", zapcore.InfoLevel, "The Zap log level")
 	flag.Parse()
 
-	logger, err := logging.NewLogger(*zapLogLevel)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create logger: %v", err))
+	if *metadataStoreAddr == "" {
+		return CmdArguments{}, fmt.Errorf("mlmd-url must be specified")
 	}
 
-	if *metadataStoreAddr == "" {
-		logger.Info("mlmd-url must be specified")
-		os.Exit(1)
+	return CmdArguments{
+		Port:              *port,
+		MetadataStoreAddr: *metadataStoreAddr,
+		ZapLogLevel:       *zapLogLevel,
+	}, nil
+}
+
+func main() {
+	cmdArguments, err := ParseCmdArguments()
+	if err != nil {
+		panic(fmt.Sprintf("failed to parse command line arguments: %v", err))
+	}
+
+	logger, err := logging.NewLogger(cmdArguments.ZapLogLevel)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create logger: %v", err))
 	}
 
 	k8sClient, err := createK8sClient()
@@ -57,13 +75,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", cmdArguments.Port))
 	if err != nil {
 		logger.Error(err, "failed to listen")
 		os.Exit(1)
 	}
 
-	conn, err := grpc.Dial(*metadataStoreAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(cmdArguments.MetadataStoreAddr, grpc.WithInsecure())
 	if err != nil {
 		logger.Error(err, "failed to connect connect")
 	}
