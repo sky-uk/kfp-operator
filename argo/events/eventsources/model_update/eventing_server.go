@@ -119,7 +119,7 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 		uNewObj := newObj.(*unstructured.Unstructured)
 
 		if uNewObj.GetLabels()[workflowPhaseLabel] != string(argo.WorkflowSucceeded) {
-			es.Logger.V(2).Info("rejecting workflow that hasn't succeeded yet")
+			es.Logger.V(2).Info("ignoring workflow that hasn't succeeded")
 			return
 		}
 
