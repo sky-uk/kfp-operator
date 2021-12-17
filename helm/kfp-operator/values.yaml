@@ -30,7 +30,7 @@ logging:
 eventsourceServer:
   install: true
   port: 50051
-  mlmd-uri:
+  mlmdUrl:
   rbac:
     create: true
   serviceAccount:
