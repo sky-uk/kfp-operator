@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	"net"
@@ -20,13 +21,15 @@ import (
 )
 
 func createK8sClient() (dynamic.Interface, error) {
-	var kubeconfigPath string
+	var k8sConfig *rest.Config
+	var err error
 
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfigPath = filepath.Join(home, ".kube", "config")
+	kubeconfigPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
+	if _, err := os.Stat(kubeconfigPath); err == nil {
+		k8sConfig, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	} else {
+		k8sConfig, err = clientcmd.BuildConfigFromFlags("", "")
 	}
-
-	k8sConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 
 	if err != nil {
 		return nil, err
