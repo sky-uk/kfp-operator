@@ -2,7 +2,8 @@
 
 include ../../go-get.mk
 
-PROTOPATH=$(HOME)/.proto
+PROTOPATH := $(HOME)/.proto
+IMG := kfp-operator-argo-events-model-update-eventsource-server
 
 define get-proto
 	mkdir -p $(PROTOPATH) && \
@@ -69,5 +70,4 @@ test: generate fmt vet unit-test
 
 ##@ Containers
 
-IMG := kfp-operator-argo-events-model-update-eventsource-server
 include ../../docker-targets.mk
