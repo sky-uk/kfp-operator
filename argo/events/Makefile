@@ -22,7 +22,7 @@ protoc_gen_go: ## Download protoc-gen-go locally if necessary.
 mockgen: ## Download mockgen locally if necessary.
 	$(call go-get-tool,$(PROJECT_DIR)/bin/mockgen,github.com/golang/mock/mockgen@v1.6.0)
 
-generate: protoc_gen_go mockgen## Generate service definitions from protobuf
+generate: protoc_gen_go mockgen ## Generate service definitions from protobuf
 	$(call get-proto,github.com/google/ml-metadata,v1.5.0)
 	protoc --go_out=. --go-grpc_out=ml_metadata \
     		-I $(PROTOPATH)/github.com/google/ml-metadata@v1.5.0/ \

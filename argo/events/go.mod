@@ -1,6 +1,6 @@
 module pipelines.kubeflow.org/events
 
-go 1.17
+go 1.16
 
 require (
 	github.com/argoproj/argo-workflows/v3 v3.1.8
