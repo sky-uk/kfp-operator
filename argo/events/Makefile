@@ -1,5 +1,7 @@
 ##@ Build
 
+include ../../go-get.mk
+
 PROTOPATH=$(HOME)/.proto
 
 define get-proto
@@ -13,7 +15,14 @@ define get-proto
 	}
 endef
 
-generate: ## Generate service definitions from protobuf
+protoc_gen_go: ## Download protoc-gen-go locally if necessary.
+	$(call go-get-tool,$(PROJECT_DIR)/bin/protoc-gen-go,google.golang.org/protobuf/cmd/protoc-gen-go@v1.26)
+	$(call go-get-tool,$(PROJECT_DIR)/bin/protoc-gen-go-grpc,google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1)
+
+mockgen: ## Download mockgen locally if necessary.
+	$(call go-get-tool,$(PROJECT_DIR)/bin/mockgen,github.com/golang/mock/mockgen@v1.6.0)
+
+generate: protoc_gen_go mockgen## Generate service definitions from protobuf
 	$(call get-proto,github.com/google/ml-metadata,v1.5.0)
 	protoc --go_out=. --go-grpc_out=ml_metadata \
     		-I $(PROTOPATH)/github.com/google/ml-metadata@v1.5.0/ \
