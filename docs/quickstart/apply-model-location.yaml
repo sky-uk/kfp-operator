@@ -47,9 +47,9 @@ spec:
               metadata:
                 name: serving-config
               data:
-                serving-model: {{inputs.parameters.serving-model-location}}
+                servingModel: ""
       parameters:
         - src:
             dependencyName: model-update-eventsource
             dataKey: "body.payload.servingModelArtifacts[0]"
-          dest: data.ServingModel
+          dest: data.servingModel
