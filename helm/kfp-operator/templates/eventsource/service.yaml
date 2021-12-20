@@ -1,0 +1,16 @@
+{{ if .Values.eventsourceServer.install }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "kfp-operator.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: {{ .Values.eventsourceServer.port }}
+{{ end }}

@@ -9,11 +9,13 @@ metadata:
 spec:
   selector:
     matchLabels:
+      app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
       {{- include "kfp-operator.labels" . | nindent 6 }}
   replicas: 1
   template:
     metadata:
       labels:
+        app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
         {{- include "kfp-operator.labels" . | nindent 8 }}
     spec:
       securityContext:
