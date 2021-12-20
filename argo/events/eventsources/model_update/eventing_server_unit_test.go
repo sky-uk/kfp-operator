@@ -5,15 +5,83 @@ package model_update
 
 import (
 	"fmt"
+	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	. "github.com/onsi/ginkgo/extensions/table"
 )
 
 var _ = Context("Eventing Server", func() {
+	Describe("jsonPatchPath", func() {
+		It("concatenates path segments", func() {
+			segment1 := randomString()
+			segment2 := randomString()
+			segment3 := randomString()
+
+			joinedPath := jsonPatchPath(segment1, segment2, segment3)
+
+			Expect(fmt.Sprintf("/%s/%s/%s", segment1, segment2, segment3)).To(Equal(joinedPath))
+		})
+
+		It("escapes '/'", func() {
+			segment1 := randomString()
+			segment2 := randomString()
+
+			toBeEscaped := fmt.Sprintf("%s/%s", segment1, segment2)
+			escaped := fmt.Sprintf("/%s~1%s", segment1, segment2)
+			Expect(jsonPatchPath(toBeEscaped)).To(Equal(escaped))
+		})
+
+		It("escapes '~'", func() {
+			segment1 := randomString()
+			segment2 := randomString()
+
+			toBeEscaped := fmt.Sprintf("%s~%s", segment1, segment2)
+			escaped := fmt.Sprintf("/%s~0%s", segment1, segment2)
+			Expect(jsonPatchPath(toBeEscaped)).To(Equal(escaped))
+		})
+	})
+
+	Describe("workflowHasSucceeded", func() {
+		When("The workflow has no status", func() {
+			It("Returns false", func() {
+				workflow := &unstructured.Unstructured{}
+				Expect(workflowHasSucceeded(workflow)).To(BeFalse())
+			})
+		})
+
+		When("The workflow has not succeeded", func() {
+			DescribeTable("Returns false",
+				func(phase argo.WorkflowPhase) {
+					workflow := &unstructured.Unstructured{}
+					workflow.SetLabels(map[string]string{
+						workflowPhaseLabel: string(phase),
+					})
+					Expect(workflowHasSucceeded(workflow)).To(BeFalse())
+				},
+				Entry("unknown", argo.WorkflowUnknown),
+				Entry("pending", argo.WorkflowPending),
+				Entry("running", argo.WorkflowRunning),
+				Entry("error", argo.WorkflowError),
+				Entry("failed", argo.WorkflowFailed),
+			)
+		})
+
+		When("The workflow has succeeded", func() {
+			It("Returns true", func() {
+				workflow := &unstructured.Unstructured{}
+				workflow.SetLabels(map[string]string{
+					workflowPhaseLabel: string(argo.WorkflowSucceeded),
+				})
+				Expect(workflowHasSucceeded(workflow)).To(BeTrue())
+			})
+		})
+	})
+
 	Describe("getPipelineName", func() {
 		When("The workflow has no pipeline spec annotation", func() {
-			It("Errors", func() {
+			It("Returns false", func() {
 				workflow := &unstructured.Unstructured{}
 
 				_, err := getPipelineName(workflow)

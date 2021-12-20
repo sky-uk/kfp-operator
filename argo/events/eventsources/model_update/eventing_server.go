@@ -116,15 +116,15 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 	handlerFuncs.UpdateFunc = func(oldObj, newObj interface{}) {
 		es.Logger.V(2).Info("detected update event")
 
-		uNewObj := newObj.(*unstructured.Unstructured)
+		workflow := newObj.(*unstructured.Unstructured)
 
-		if uNewObj.GetLabels()[workflowPhaseLabel] != string(argo.WorkflowSucceeded) {
+		if !workflowHasSucceeded(workflow) {
 			es.Logger.V(2).Info("ignoring workflow that hasn't succeeded")
 			return
 		}
 
-		workflowName := uNewObj.GetName()
-		pipelineName, err := getPipelineName(uNewObj)
+		workflowName := workflow.GetName()
+		pipelineName, err := getPipelineName(workflow)
 
 		if err != nil {
 			es.Logger.Error(err, "failed to get pipeline name from workflow")
@@ -132,11 +132,6 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 		}
 
 		modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(stream.Context(), workflowName)
-
-		if err != nil {
-			es.Logger.Error(err, "failed to retrieve workflow artifacts")
-			return
-		}
 
 		if len(modelArtifacts) <= 0 {
 			es.Logger.V(2).Info("ignoring succeeded workflow without serving model artifacts")
@@ -166,7 +161,7 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 
 		path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 		patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-		_, err = es.K8sClient.Resource(argoWorkflowsGvr).Namespace(uNewObj.GetNamespace()).Patch(stream.Context(), uNewObj.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+		_, err = es.K8sClient.Resource(argoWorkflowsGvr).Namespace(workflow.GetNamespace()).Patch(stream.Context(), workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 		if err != nil {
 			es.Logger.Error(err, "failed to patch resource")
 			return
@@ -177,6 +172,10 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 	sharedInformer.Run(stream.Context().Done())
 
 	return nil
+}
+
+func workflowHasSucceeded(workflow *unstructured.Unstructured) bool {
+	return workflow.GetLabels()[workflowPhaseLabel] == string(argo.WorkflowSucceeded)
 }
 
 func jsonPatchPath(segments ...string) string {
