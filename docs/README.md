@@ -68,3 +68,11 @@ The Kubeflow Pipelines operator manages the lifecycle of pipelines and related r
 
 - [Pipeline](pipeline.md)
 - [RunConfiguration](runconfiguration.md)
+
+## Eventing Support
+
+The Kubeflow Pipelines operator can optionally be installed with [Argo-Events](https://argoproj.github.io/argo-events/) eventsources which lets users react to events.
+
+Currently, we support the following eventsources:
+
+- [Model Update Eventsource](model_updates.md)

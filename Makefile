@@ -1,5 +1,6 @@
 include version.mk
 include newline.mk
+include go-get.mk
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
@@ -62,19 +63,21 @@ decoupled-test: ## Run decoupled acceptance tests
 
 integration-test-up:
 	minikube start -p argo-integration-tests
+	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
+	# Set up mocks
 	kubectl apply -n argo -f config/testing/wiremock.yaml
 	rm -f config/testing/pids
 	kubectl wait -n argo deployment/wiremock --for condition=available --timeout=5m
 	kubectl port-forward -n argo service/wiremock 8081:80 & echo $$! >> config/testing/pids
-	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
+	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! >> config/testing/pids
 
 integration-test: ## Run integration tests
 	eval $$(minikube -p argo-integration-tests docker-env) && \
-	$(MAKE) -C argo/kfp-compiler docker-build && \
-	$(MAKE) -C argo/kfp-sdk docker-build && \
+	$(MAKE) docker-build-argo && \
 	docker build docs/quickstart -t kfp-quickstart
 	go test ./... -tags=integration -parallel 1
 
@@ -90,9 +93,10 @@ test: manifests generate fmt vet unit-test # decoupled-test
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/kfp-sdk test
-	$(MAKE) -C argo/mlmd-cli test
+	$(MAKE) -C argo/events test
 
 test-all: test helm-test # test-argo See https://github.com/sky-uk/kfp-operator/issues/54
+	$(MAKE) -C argo/events test
 
 ##@ Build
 
@@ -142,20 +146,6 @@ KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 
-# go-get-tool will 'go get' any package $2 and install it to $1.
-PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
-define go-get-tool
-@[ -f $(1) ] || { \
-set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
-rm -rf $$TMP_DIR ;\
-}
-endef
-
 ##@ Package
 
 helm-package: helm-cmd
@@ -203,12 +193,12 @@ include docker-targets.mk
 docker-build-argo:
 	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/kfp-sdk docker-build
-	$(MAKE) -C argo/mlmd-cli docker-build
+	$(MAKE) -C argo/events docker-build
 
 docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/kfp-sdk docker-push
-	$(MAKE) -C argo/mlmd-cli docker-push
+	$(MAKE) -C argo/events docker-push
 
 package-all: docker-build docker-build-argo helm-package
 

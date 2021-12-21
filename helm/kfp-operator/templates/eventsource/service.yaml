@@ -1,0 +1,17 @@
+{{ if .Values.eventsourceServer.install }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+spec:
+  selector:
+    app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+  ports:
+    - name: grpc
+      port: 8080
+      protocol: TCP
+      targetPort: grpc
+{{ end }}

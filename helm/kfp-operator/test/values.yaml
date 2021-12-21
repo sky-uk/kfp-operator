@@ -1,9 +1,12 @@
 fullnameOverride: kfp-operator
 containerRegistry: ${CONTAINER_REGISTRY}
-configuration:
-  kfpEndpoint: ${KFP_ENDPOINT}
-  pipelineStorage: ${PIPELINE_STORAGE}
-  defaultBeamArgs:
-    project: ${DATAFLOW_PROJECT}
-  argo:
-    serviceAccount: ${OPERATOR_SA}
+manager:
+  configuration:
+    kfpEndpoint: ${KFP_ENDPOINT}
+    pipelineStorage: ${PIPELINE_STORAGE}
+    defaultBeamArgs:
+      project: ${DATAFLOW_PROJECT}
+    argo:
+      serviceAccount: ${OPERATOR_SA}
+eventsourceServer:
+  install: false

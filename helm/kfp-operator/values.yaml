@@ -8,23 +8,38 @@ fullnameOverride: ""
 
 namespace: "kfp-operator-system"
 
-rbac:
-  create: true
-
-serviceAccount:
-  create: true
-  name: "kfp-operator-controller-manager"
-
-managerResources:
-  limits:
-    cpu: 100m
-    memory: 300Mi
-  requests:
-    cpu: 100m
-    memory: 200Mi
+manager:
+  rbac:
+    create: true
+  serviceAccount:
+    create: true
+    name: "kfp-operator-controller-manager"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 300Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  configuration: {}
 
 # See https://github.com/sky-uk/kfp-operator/blob/master/docs/development/README.md#logging
 logging:
   verbosity: # info
 
-configuration: {}
+eventsourceServer:
+  install: true
+  port: 50051
+  mlmdUrl:
+  rbac:
+    create: true
+  serviceAccount:
+    create: true
+    name: "kfp-operator-model-update-eventsource-server"
+  resources:
+    limits:
+      cpu: 100m
+      memory: 300Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi

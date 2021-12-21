@@ -42,7 +42,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
-            {{- .Values.managerResources | toYaml | nindent 12 }}
+            {{- .Values.manager.resources | toYaml | nindent 12 }}
           volumeMounts:
             - mountPath: /controller_manager_config.yaml
               name: manager-config
@@ -61,5 +61,5 @@ spec:
         - configMap:
             name: kfp-operator-manager-config
           name: manager-config
-      serviceAccountName: {{ .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.manager.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
