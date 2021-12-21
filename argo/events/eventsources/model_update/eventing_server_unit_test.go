@@ -19,9 +19,9 @@ var _ = Context("Eventing Server", func() {
 			segment2 := randomString()
 			segment3 := randomString()
 
-			joinedPath := jsonPatchPath(segment1, segment2, segment3)
+			expectedPath := fmt.Sprintf("/%s/%s/%s", segment1, segment2, segment3)
 
-			Expect(fmt.Sprintf("/%s/%s/%s", segment1, segment2, segment3)).To(Equal(joinedPath))
+			Expect(jsonPatchPath(segment1, segment2, segment3)).To(Equal(expectedPath))
 		})
 
 		It("escapes '/'", func() {
