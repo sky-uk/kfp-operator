@@ -7,9 +7,9 @@ import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	. "github.com/onsi/ginkgo/extensions/table"
 )
 
 var _ = Context("Eventing Server", func() {

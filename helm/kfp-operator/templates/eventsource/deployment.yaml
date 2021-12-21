@@ -5,18 +5,16 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "kfp-operator.labels" . | nindent 4 }}
+    app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
 spec:
   selector:
     matchLabels:
       app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
-      {{- include "kfp-operator.labels" . | nindent 6 }}
   replicas: 1
   template:
     metadata:
       labels:
         app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
-        {{- include "kfp-operator.labels" . | nindent 8 }}
     spec:
       securityContext:
         runAsNonRoot: true
@@ -36,7 +34,9 @@ spec:
           resources:
             {{- .Values.eventsourceServer.resources | toYaml | nindent 12 }}
           ports:
-            - containerPort: {{ .Values.eventsourceServer.port }}
+            - name: grpc
+              containerPort: {{ .Values.eventsourceServer.port }}
+              protocol: TCP
       serviceAccountName: {{ .Values.eventsourceServer.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
 {{ end }}

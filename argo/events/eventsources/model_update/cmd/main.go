@@ -78,7 +78,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", cmdArguments.Port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cmdArguments.Port))
 	if err != nil {
 		logger.Error(err, "failed to listen")
 		os.Exit(1)

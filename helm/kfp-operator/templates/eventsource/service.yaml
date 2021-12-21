@@ -5,12 +5,13 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "kfp-operator.labels" . | nindent 4 }}
+    app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
 spec:
   selector:
     app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
   ports:
-    - protocol: TCP
+    - name: grpc
       port: 8080
-      targetPort: {{ .Values.eventsourceServer.port }}
+      protocol: TCP
+      targetPort: grpc
 {{ end }}
