@@ -12,7 +12,7 @@ apiVersion: argoproj.io/v1alpha1
     name: model-update-eventsource
   spec:
     generic:
-      example:
+      model-update:
         insecure: true
         url: "kfp-operator-model-update-eventsource-server.kfp-operator-system.svc:50051"
         config: |-
@@ -31,7 +31,8 @@ spec:
       eventName: model-update
       filters:
         data:
-          - path: body.payload.pipelineName
+          - path: body
+            template: '{{ ((b64dec .Input) | mustFromJson).pipelineName }}'
             type: string
             comparator: "="
             value:
