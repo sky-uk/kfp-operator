@@ -1,4 +1,4 @@
-## RunConfiguration Resource
+# RunConfiguration Resource
 
 The RunConfiguration resource represents the lifecycle of Recurring Runs (aka Jobs) on Kubeflow Pipelines.
 Pipeline training runs can be configured using this resource as follows:
@@ -17,7 +17,7 @@ spec:
 
 Note: The experiment will be created if it does not exist when creating the run configuration.
 
-### Fields
+## Fields
 
 | Name | Description |
 | --- | --- |

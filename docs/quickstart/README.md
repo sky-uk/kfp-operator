@@ -76,5 +76,3 @@ metadata:
 data:
     servingModel: {{serving-model-location}}
 ```
-
-![Model Serving](./model_serving.png)

@@ -52,5 +52,5 @@ spec:
       parameters:
         - src:
             dependencyName: model-update-eventsource
-            dataKey: "body.payload.servingModelArtifacts[0]"
+            dataKey: '{{ (index ((b64dec .Input) | mustFromJson).servingModelArtifacts 0).location }}'
           dest: data.servingModel
