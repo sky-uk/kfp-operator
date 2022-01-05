@@ -6,7 +6,7 @@ authors = []
 
 [tool.poetry.dependencies]
 python = "^3.7"
-kfp = "^1.8.4"
+kfp = "1.8.10"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
