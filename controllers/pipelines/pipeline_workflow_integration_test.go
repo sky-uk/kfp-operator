@@ -45,7 +45,7 @@ var _ = Context("Pipeline Workflows", func() {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
 			WithQueryParam("name", wiremock.EqualTo(pipeline.Name)).
 			WillReturn(
-				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}`, pipeline.Status.KfpId, pipeline.Name),
+				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "default_version": {"id": "%s"}}`, pipeline.Status.KfpId, pipeline.Name, pipeline.Name),
 				map[string]string{"Content-Type": "application/json"},
 				200,
 			))
@@ -66,7 +66,7 @@ var _ = Context("Pipeline Workflows", func() {
 			WithQueryParam("name", wiremock.EqualTo(pipeline.Spec.ComputeVersion())).
 			WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
 			WillReturn(
-				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "resource_references": [{"key": {"id": "%s", "apiResourceType": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
+				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "resource_references": [{"key": {"id": "%s", "type": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
 					RandomString(),
 					pipeline.Spec.ComputeVersion(),
 					pipeline.Status.KfpId,
