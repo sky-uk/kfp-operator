@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-controller-manager
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.namespace.name }}
   labels:
     {{- include "kfp-operator.labels" . | nindent 4 }}
 spec:
