@@ -12,6 +12,7 @@ namespace:
 
 
 manager:
+  metadata: {}
   rbac:
     create: true
   serviceAccount:

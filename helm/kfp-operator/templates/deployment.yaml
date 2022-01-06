@@ -12,8 +12,8 @@ spec:
   replicas: 1
   template:
     metadata:
-      labels:
-        {{- include "kfp-operator.labels" . | nindent 8 }}
+      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
+      {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
     spec:
       securityContext:
         runAsNonRoot: true
