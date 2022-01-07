@@ -6,9 +6,13 @@ containerRegistry: ""
 nameOverride: ""
 fullnameOverride: ""
 
-namespace: "kfp-operator-system"
+namespace:
+  create: true
+  name: "kfp-operator-system"
+
 
 manager:
+  metadata: {}
   rbac:
     create: true
   serviceAccount:

@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
 spec:

@@ -10,5 +10,5 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {{ .Values.manager.serviceAccount.name }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.namespace.name }}
 {{- end -}}
