@@ -33,6 +33,7 @@ logging:
 
 eventsourceServer:
   install: true
+  metadata: {}
   port: 50051
   mlmdUrl:
   rbac:
