@@ -5,16 +5,16 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
   namespace: {{ .Values.namespace.name }}
   labels:
-    app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+    {{- include "kfp-operator.eventsourceServer.labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+      {{- include "kfp-operator.eventsourceServer.labels" . | nindent 6 }}
   replicas: 1
   template:
     metadata:
-      labels:
-        app: {{ include "kfp-operator.fullname" . }}-model-update-eventsource-server
+      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.eventsourceServer.labels" .) | fromYaml) -}}
+      {{- (merge .Values.eventsourceServer.metadata $defaultMetadata) | toYaml | nindent 6 }}
     spec:
       securityContext:
         runAsNonRoot: true
