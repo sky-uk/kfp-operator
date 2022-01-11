@@ -163,13 +163,17 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.
 }
 
 func (workflows *ExperimentWorkflowFactory) creator(experiment *pipelinesv1.Experiment) argo.Template {
-	kfpScript := workflows.KfpExt(fmt.Sprintf(`experiment create %s | jq -r '."ID"'`,
+	kfpScript := workflows.KfpExt(fmt.Sprintf(`experiment create %s`,
 		experiment.Name))
+
+	if experiment.Spec.Description != "" {
+		kfpScript = fmt.Sprintf("%s --description %s", kfpScript, experiment.Spec.Description)
+	}
 
 	return argo.Template{
 		Name:     ExperimentWorkflowConstants.CreationStepName,
 		Metadata: workflows.Config.Argo.MetadataDefaults,
-		Script:   workflows.ScriptTemplate(kfpScript),
+		Script:   workflows.ScriptTemplate(fmt.Sprintf(`%s | jq -r '."ID"'`, kfpScript)),
 	}
 }
 

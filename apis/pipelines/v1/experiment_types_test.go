@@ -10,7 +10,6 @@ import (
 
 var _ = Context("Experiment", func() {
 	var _ = Describe("ComputeHash", func() {
-
 		Specify("Description should change the hash", func() {
 			rcs := ExperimentSpec{}
 			hash1 := rcs.ComputeHash()
@@ -23,7 +22,6 @@ var _ = Context("Experiment", func() {
 	})
 
 	var _ = Describe("ComputeVersion", func() {
-
 		Specify("Should have the spec hash only", func() {
 			Expect(ExperimentSpec{}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
 		})
