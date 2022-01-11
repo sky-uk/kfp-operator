@@ -3,4 +3,4 @@ kind: Experiment
 metadata:
   name: experiment-sample
 spec:
-  # TODO(user): Add fields here
+  description: "This is a sample experiment"
