@@ -7,28 +7,61 @@ import (
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 type WorkflowFactory struct {
 	Config configv1.Configuration
 }
 
-func (workflows *WorkflowFactory) KfpExt(kfpScript string) string {
-	return fmt.Sprintf("kfp-ext --endpoint %s --output json %s",
-		workflows.Config.KfpEndpoint, kfpScript)
+type KfpExtCommandBuilder struct {
+	commandParts []string
 }
 
-func (workflows *WorkflowFactory) ScriptTemplate(kfpScript string) *argo.ScriptTemplate {
-	script :=
-		"set -e -o pipefail\n" + kfpScript
+func escapeSingleQuotes(unescaped string) string {
+	return strings.Replace(unescaped, "'", "\\'", -1)
+}
 
+func (kec *KfpExtCommandBuilder) Arg(argument string) *KfpExtCommandBuilder {
+	kec.commandParts = append(kec.commandParts, fmt.Sprintf(`'%s'`, escapeSingleQuotes(argument)))
+
+	return kec
+}
+
+func (kec *KfpExtCommandBuilder) Param(key string, value string) *KfpExtCommandBuilder {
+	if value != "" {
+		kec.commandParts = append(kec.commandParts, key)
+		kec.commandParts = append(kec.commandParts, fmt.Sprintf(`'%s'`, escapeSingleQuotes(value)))
+	}
+
+	return kec
+}
+
+func (kec *KfpExtCommandBuilder) Build() string {
+	return strings.Join(kec.commandParts, " ")
+}
+
+func (workflows *WorkflowFactory) KfpExt(command string) *KfpExtCommandBuilder {
+	return &KfpExtCommandBuilder{
+		commandParts: []string{
+			"kfp-ext",
+			"--endpoint",
+			workflows.Config.KfpEndpoint,
+			"--output",
+			"json",
+			command,
+		},
+	}
+}
+
+func (workflows *WorkflowFactory) ScriptTemplate(script string) *argo.ScriptTemplate {
 	containerSpec := workflows.Config.Argo.ContainerDefaults.DeepCopy()
 	containerSpec.Image = workflows.Config.Argo.KfpSdkImage
 	containerSpec.Command = []string{"ash"}
 
 	return &argo.ScriptTemplate{
 		Container: *containerSpec,
-		Source:    script,
+		Source:    "set -e -o pipefail\n" + script,
 	}
 }
 

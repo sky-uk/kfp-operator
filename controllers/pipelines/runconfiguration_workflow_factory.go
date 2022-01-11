@@ -165,18 +165,22 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx co
 }
 
 func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipelinesv1.RunConfiguration) argo.Template {
-	kfpScript := workflows.KfpExt(fmt.Sprintf(`job submit --experiment-name %s --job-name %s --pipeline-name %s --cron-expression '%s' | jq -r '."Job Details"."ID"'`,
-		workflows.Config.DefaultExperiment, runConfiguration.Name, runConfiguration.Spec.PipelineName, runConfiguration.Spec.Schedule))
+	kfpScript := workflows.KfpExt("job submit").
+		Param("--experiment-name", workflows.Config.DefaultExperiment).
+		Param("--job-name", runConfiguration.Name).
+		Param("--pipeline-name", runConfiguration.Spec.PipelineName).
+		Param("--cron-expression", runConfiguration.Spec.Schedule).
+		Build()
 
 	return argo.Template{
 		Name:     RunConfigurationWorkflowConstants.CreationStepName,
 		Metadata: workflows.Config.Argo.MetadataDefaults,
-		Script:   workflows.ScriptTemplate(kfpScript),
+		Script:   workflows.ScriptTemplate(fmt.Sprintf(`%s | jq -r '."Job Details"."ID"'`, kfpScript)),
 	}
 }
 
 func (workflows *RunConfigurationWorkflowFactory) deleter(runConfiguration *pipelinesv1.RunConfiguration) argo.Template {
-	kfpScript := workflows.KfpExt(fmt.Sprintf("job delete %s", runConfiguration.Status.KfpId))
+	kfpScript := workflows.KfpExt("job delete").Arg(runConfiguration.Status.KfpId).Build()
 
 	return argo.Template{
 		Name:     RunConfigurationWorkflowConstants.DeletionStepName,

@@ -9,6 +9,69 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var _ = Describe("KfpExtCommandBuilder", func() {
+	When("Only a command is given", func() {
+		It("prints boilerplate and the command", func() {
+			workflowFactory := WorkflowFactory{
+				Config: configv1.Configuration{
+					KfpEndpoint: "www.example.com",
+				},
+			}
+
+			kfpScript := workflowFactory.KfpExt("do sth")
+
+			Expect(kfpScript.Build()).To(Equal("kfp-ext --endpoint www.example.com --output json do sth"))
+		})
+	})
+
+	When("A command, an argument and a parameter are given", func() {
+		It("prints boilerplate, the command, the parameter and the argument", func() {
+			workflowFactory := WorkflowFactory{
+				Config: configv1.Configuration{
+					KfpEndpoint: "www.example.com",
+				},
+			}
+
+			kfpScript := workflowFactory.KfpExt("do sth").
+				Param("--parameter", "value").
+				Arg("anArgument")
+
+			Expect(kfpScript.Build()).To(Equal(`kfp-ext --endpoint www.example.com --output json do sth --parameter 'value' 'anArgument'`))
+		})
+	})
+
+	When("A command and an empty parameter are given", func() {
+		It("omits the parameter", func() {
+			workflowFactory := WorkflowFactory{
+				Config: configv1.Configuration{
+					KfpEndpoint: "www.example.com",
+				},
+			}
+
+			kfpScript := workflowFactory.KfpExt("do sth").Param("--param", "")
+
+			Expect(kfpScript.Build()).To(Equal("kfp-ext --endpoint www.example.com --output json do sth"))
+		})
+	})
+
+	When("Single quotes are given", func() {
+		It("escapes the quotes", func() {
+			workflowFactory := WorkflowFactory{
+				Config: configv1.Configuration{
+					KfpEndpoint: "www.example.com",
+				},
+			}
+
+			kfpScript := workflowFactory.KfpExt("do sth").
+				Param("--param", "this is 'a parameter'").
+				Arg("this is 'an argument'")
+
+			Expect(kfpScript.Build()).
+				To(Equal("kfp-ext --endpoint www.example.com --output json do sth --param 'this is \\'a parameter\\'' 'this is \\'an argument\\''"))
+		})
+	})
+})
+
 var _ = Describe("WorkflowFactory.Annotations", func() {
 	When("no debug annotation is present on the ObjectMeta", func() {
 		It("uses the configured defaults", func() {

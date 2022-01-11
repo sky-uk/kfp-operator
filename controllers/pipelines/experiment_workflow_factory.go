@@ -163,12 +163,10 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.
 }
 
 func (workflows *ExperimentWorkflowFactory) creator(experiment *pipelinesv1.Experiment) argo.Template {
-	kfpScript := workflows.KfpExt(fmt.Sprintf(`experiment create %s`,
-		experiment.Name))
-
-	if experiment.Spec.Description != "" {
-		kfpScript = fmt.Sprintf("%s --description %s", kfpScript, experiment.Spec.Description)
-	}
+	kfpScript := workflows.KfpExt("experiment create").
+		Param("--description", experiment.Spec.Description).
+		Arg(experiment.Name).
+		Build()
 
 	return argo.Template{
 		Name:     ExperimentWorkflowConstants.CreationStepName,
@@ -178,7 +176,7 @@ func (workflows *ExperimentWorkflowFactory) creator(experiment *pipelinesv1.Expe
 }
 
 func (workflows *ExperimentWorkflowFactory) deleter(experiment *pipelinesv1.Experiment) argo.Template {
-	kfpScript := workflows.KfpExt(fmt.Sprintf("experiment delete %s", experiment.Status.KfpId))
+	kfpScript := workflows.KfpExt("experiment delete").Arg(experiment.Status.KfpId).Build()
 
 	return argo.Template{
 		Name:     ExperimentWorkflowConstants.DeletionStepName,
