@@ -56,7 +56,7 @@ git-status-check:
 	git diff --exit-code HEAD
 
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-decoupled-test: ## Run decoupled acceptance tests
+decoupled-test: manifests generate ## Run decoupled acceptance tests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -parallel 1 -coverprofile cover.out
@@ -75,7 +75,7 @@ integration-test-up:
 	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! >> config/testing/pids
 
-integration-test: ## Run integration tests
+integration-test: manifests generate ## Run integration tests
 	eval $$(minikube -p argo-integration-tests docker-env) && \
 	$(MAKE) docker-build-argo && \
 	docker build docs/quickstart -t kfp-quickstart
@@ -85,10 +85,10 @@ integration-test-down:
 	(cat config/testing/pids | xargs kill) || true
 	minikube stop -p argo-integration-tests
 
-unit-test: ## Run unit tests
+unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
 
-test: manifests generate fmt vet unit-test # decoupled-test
+test: fmt vet unit-test # decoupled-test
 
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test

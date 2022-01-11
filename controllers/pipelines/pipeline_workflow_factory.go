@@ -367,8 +367,8 @@ func (workflows *PipelineWorkflowFactory) compiler(compilerConfigYaml string, pi
 }
 
 func (workflows *PipelineWorkflowFactory) uploader(pipelineName string) argo.Template {
-	kfpScript := fmt.Sprintf(`pipeline upload --pipeline-name %s %s  | jq -r '."Pipeline Details"."Pipeline ID"'`,
-		pipelineName, PipelineWorkflowConstants.PipelineYamlFilePath)
+	kfpScript := workflows.KfpExt(fmt.Sprintf(`pipeline upload --pipeline-name %s %s  | jq -r '."Pipeline Details"."Pipeline ID"'`,
+		pipelineName, PipelineWorkflowConstants.PipelineYamlFilePath))
 
 	return argo.Template{
 		Name:     PipelineWorkflowConstants.UploadStepName,
@@ -386,7 +386,7 @@ func (workflows *PipelineWorkflowFactory) uploader(pipelineName string) argo.Tem
 }
 
 func (workflows *PipelineWorkflowFactory) deleter() argo.Template {
-	kfpScript := "pipeline delete {{inputs.parameters.pipeline-id}}"
+	kfpScript := workflows.KfpExt("pipeline delete {{inputs.parameters.pipeline-id}}")
 
 	return argo.Template{
 		Name:     PipelineWorkflowConstants.DeletionStepName,
@@ -403,8 +403,8 @@ func (workflows *PipelineWorkflowFactory) deleter() argo.Template {
 }
 
 func (workflows *PipelineWorkflowFactory) updater(version string) argo.Template {
-	kfpScript := fmt.Sprintf("pipeline upload-version --pipeline-version %s --pipeline-id {{inputs.parameters.pipeline-id}} %s | jq -r '.\"Version name\"'",
-		version, PipelineWorkflowConstants.PipelineYamlFilePath)
+	kfpScript := workflows.KfpExt(fmt.Sprintf("pipeline upload-version --pipeline-version %s --pipeline-id {{inputs.parameters.pipeline-id}} %s | jq -r '.\"Version name\"'",
+		version, PipelineWorkflowConstants.PipelineYamlFilePath))
 
 	return argo.Template{
 		Name:     PipelineWorkflowConstants.UpdateStepName,

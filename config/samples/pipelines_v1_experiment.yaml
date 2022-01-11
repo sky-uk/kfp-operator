@@ -1,0 +1,6 @@
+apiVersion: pipelines.kubeflow.org/v1
+kind: Experiment
+metadata:
+  name: experiment-sample
+spec:
+  # TODO(user): Add fields here

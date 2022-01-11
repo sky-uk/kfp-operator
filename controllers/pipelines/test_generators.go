@@ -69,3 +69,19 @@ func RandomRunConfigurationSpec() pipelinesv1.RunConfigurationSpec {
 		RuntimeParameters: RandomMap(),
 	}
 }
+
+func RandomExperiment() *pipelinesv1.Experiment {
+	return &pipelinesv1.Experiment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandomLowercaseString(),
+			Namespace: RandomLowercaseString(),
+		},
+		Spec: RandomExperimentSpec(),
+	}
+}
+
+func RandomExperimentSpec() pipelinesv1.ExperimentSpec {
+	return pipelinesv1.ExperimentSpec{
+		Description:      RandomString(),
+	}
+}

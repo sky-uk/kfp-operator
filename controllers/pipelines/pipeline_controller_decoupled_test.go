@@ -27,7 +27,19 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(PipelineWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName, kfpId)
+				setWorkflowOutputs(
+					workflow,
+					[]argo.Parameter{
+						{
+							Name:  PipelineWorkflowConstants.PipelineIdParameterName,
+							Value: argo.AnyStringPtr(kfpId),
+						},
+						{
+							Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
+							Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
+						},
+					},
+				)
 			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {

@@ -73,6 +73,7 @@ var _ = BeforeSuite(func() {
 
 	Expect((NewTestPipelineReconciler(k8sManager, &workflowRepository, optInClient)).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((NewTestRunConfigurationReconciler(k8sManager, &workflowRepository, optInClient)).SetupWithManager(k8sManager)).To(Succeed())
+	Expect((NewTestExperimentReconciler(k8sManager, &workflowRepository, optInClient)).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(workflowRepository.SetupWithManager(k8sManager)).To(Succeed())
 
 	go func() {
@@ -132,6 +133,35 @@ func NewTestRunConfigurationReconciler(k8sManager manager.Manager, workflowRepos
 	}
 
 	return &RunConfigurationReconciler{
+		Client:       client,
+		Scheme:       k8sManager.GetScheme(),
+		StateHandler: stateHandler,
+	}
+}
+
+func NewTestExperimentReconciler(k8sManager manager.Manager, workflowRepository WorkflowRepository, client controllers.OptInClient) *ExperimentReconciler {
+	// TODO: mock workflowFactory
+	var workflowFactory = ExperimentWorkflowFactory{
+		WorkflowFactory: WorkflowFactory{
+			Config: configv1.Configuration{
+				Argo: configv1.ArgoConfiguration{
+					KfpSdkImage:   "kfp-sdk",
+					CompilerImage: "compiler",
+					ContainerDefaults: apiv1.Container{
+						ImagePullPolicy: "Never",
+					},
+				},
+				KfpEndpoint: "http://www.example.com",
+			},
+		},
+	}
+
+	var stateHandler = ExperimentStateHandler{
+		WorkflowRepository: workflowRepository,
+		WorkflowFactory:    workflowFactory,
+	}
+
+	return &ExperimentReconciler{
 		Client:       client,
 		Scheme:       k8sManager.GetScheme(),
 		StateHandler: stateHandler,

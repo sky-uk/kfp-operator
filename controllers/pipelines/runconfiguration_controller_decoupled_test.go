@@ -28,7 +28,15 @@ var _ = Describe("RunConfiguration controller k8s integration", func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(RunConfigurationWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, kfpId)
+				setWorkflowOutputs(
+					workflow,
+					[]argo.Parameter{
+						{
+							Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+							Value: argo.AnyStringPtr(kfpId),
+						},
+					},
+				)
 			})).Should(Succeed())
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, pipeline *pipelinesv1.RunConfiguration) {
@@ -46,7 +54,15 @@ var _ = Describe("RunConfiguration controller k8s integration", func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(RunConfigurationWorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName, anotherKfpId)
+				setWorkflowOutputs(
+					workflow,
+					[]argo.Parameter{
+						{
+							Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+							Value: argo.AnyStringPtr(anotherKfpId),
+						},
+					},
+				)
 			})).Should(Succeed())
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, pipeline *pipelinesv1.RunConfiguration) {

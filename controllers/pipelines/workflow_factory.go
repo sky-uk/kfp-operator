@@ -13,11 +13,14 @@ type WorkflowFactory struct {
 	Config configv1.Configuration
 }
 
+func (workflows *WorkflowFactory) KfpExt(kfpScript string) string {
+	return fmt.Sprintf("kfp-ext --endpoint %s --output json %s",
+		workflows.Config.KfpEndpoint, kfpScript)
+}
+
 func (workflows *WorkflowFactory) ScriptTemplate(kfpScript string) *argo.ScriptTemplate {
 	script :=
-		"set -e -o pipefail\n" +
-			fmt.Sprintf("kfp-ext --endpoint %s --output json %s",
-				workflows.Config.KfpEndpoint, kfpScript)
+		"set -e -o pipefail\n" + kfpScript
 
 	containerSpec := workflows.Config.Argo.ContainerDefaults.DeepCopy()
 	containerSpec.Image = workflows.Config.Argo.KfpSdkImage
