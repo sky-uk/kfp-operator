@@ -12,8 +12,8 @@ var ExperimentWorkflowConstants = struct {
 	CreateOperationLabel            string
 	DeleteOperationLabel            string
 	UpdateOperationLabel            string
-	ExperimentIdParameterName 		string
-	ExperimentNameLabelKey    		string
+	ExperimentIdParameterName       string
+	ExperimentNameLabelKey          string
 	OperationLabelKey               string
 	CreationStepName                string
 	DeletionStepName                string
@@ -21,8 +21,8 @@ var ExperimentWorkflowConstants = struct {
 	CreateOperationLabel:            "create-experiment",
 	DeleteOperationLabel:            "delete-experiment",
 	UpdateOperationLabel:            "update-experiment",
-	ExperimentIdParameterName: 		 "experiment-id",
-	ExperimentNameLabelKey:    		 pipelinesv1.GroupVersion.Group + "/experiment",
+	ExperimentIdParameterName:       "experiment-id",
+	ExperimentNameLabelKey:          pipelinesv1.GroupVersion.Group + "/experiment",
 	OperationLabelKey:               pipelinesv1.GroupVersion.Group + "/operation",
 	CreationStepName:                "create",
 	DeletionStepName:                "delete",
