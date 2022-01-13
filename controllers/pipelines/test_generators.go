@@ -19,7 +19,7 @@ func RandomShortHash() string {
 }
 
 func RandomString() string {
-	return randstr.String(rand.Intn(20))
+	return randstr.String(rand.Intn(20)+1)
 }
 
 func RandomMap() map[string]string {

@@ -114,13 +114,23 @@ func (w *PipelineWorkflowFactory) commonMeta(ctx context.Context, pipeline *pipe
 }
 
 func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, error := w.newCompilerConfig(pipeline).AsYaml()
+	compilerConfigYaml, err := w.newCompilerConfig(pipeline).AsYaml()
 
-	if error != nil {
-		return nil, error
+	if err != nil {
+		return nil, err
 	}
 
 	entrypointName := PipelineWorkflowConstants.CreateOperationLabel
+
+	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
+	uploadScriptTemplate, err := w.uploader(pipeline.ObjectMeta.Name)
+	if err != nil {
+		return nil, err
+	}
+	updateScriptTemplate, err := w.updater(pipeline.Spec.ComputeVersion())
+	if err != nil {
+		return nil, err
+	}
 
 	workflow := &argo.Workflow{
 		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.CreateOperationLabel),
@@ -203,9 +213,9 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, 
 						},
 					},
 				},
-				w.compiler(compilerConfigYaml, pipeline.Spec.Image),
-				w.uploader(pipeline.ObjectMeta.Name),
-				w.updater(pipeline.Spec.ComputeVersion()),
+				compilerScriptTemplate,
+				uploadScriptTemplate,
+				updateScriptTemplate,
 			},
 		},
 	}
@@ -214,13 +224,18 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, 
 }
 
 func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, error := w.newCompilerConfig(pipeline).AsYaml()
+	compilerConfigYaml, err := w.newCompilerConfig(pipeline).AsYaml()
 
-	if error != nil {
-		return nil, error
+	if err != nil {
+		return nil, err
 	}
 
 	entrypointName := PipelineWorkflowConstants.UpdateOperationLabel
+	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
+	updateScriptTemplate, err := w.updater(pipeline.Spec.ComputeVersion())
+	if err != nil {
+		return nil, err
+	}
 
 	workflow := &argo.Workflow{
 		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.UpdateOperationLabel),
@@ -264,8 +279,8 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pi
 						},
 					},
 				},
-				w.compiler(compilerConfigYaml, pipeline.Spec.Image),
-				w.updater(pipeline.Spec.ComputeVersion()),
+				compilerScriptTemplate,
+				updateScriptTemplate,
 			},
 		},
 	}
@@ -273,11 +288,16 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pi
 	return workflow, nil
 }
 
-func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) *argo.Workflow {
+func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 
 	entrypointName := PipelineWorkflowConstants.DeleteOperationLabel
 
-	workflow := &argo.Workflow{
+	deletionScriptTemplate, err := w.deleter()
+	if err != nil {
+		return nil, err
+	}
+
+	return &argo.Workflow{
 		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
@@ -304,12 +324,10 @@ func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, 
 						},
 					},
 				},
-				w.deleter(),
+				deletionScriptTemplate,
 			},
 		},
-	}
-
-	return workflow
+	}, nil
 }
 
 func (workflows *PipelineWorkflowFactory) compiler(compilerConfigYaml string, pipelineImage string) argo.Template {
@@ -366,11 +384,15 @@ func (workflows *PipelineWorkflowFactory) compiler(compilerConfigYaml string, pi
 	}
 }
 
-func (workflows *PipelineWorkflowFactory) uploader(pipelineName string) argo.Template {
-	kfpScript := workflows.KfpExt("pipeline upload").
+func (workflows *PipelineWorkflowFactory) uploader(pipelineName string) (argo.Template, error) {
+	kfpScript, err := workflows.KfpExt("pipeline upload").
 		Param("--pipeline-name", pipelineName).
 		Arg(PipelineWorkflowConstants.PipelineYamlFilePath).
 		Build()
+
+	if err != nil {
+		return argo.Template{}, err
+	}
 
 	return argo.Template{
 		Name:     PipelineWorkflowConstants.UploadStepName,
@@ -384,11 +406,15 @@ func (workflows *PipelineWorkflowFactory) uploader(pipelineName string) argo.Tem
 			},
 		},
 		Script: workflows.ScriptTemplate(fmt.Sprintf(`%s | jq -r '."Pipeline Details"."Pipeline ID"'`, kfpScript)),
-	}
+	}, nil
 }
 
-func (workflows *PipelineWorkflowFactory) deleter() argo.Template {
-	kfpScript := workflows.KfpExt("pipeline delete").Arg("{{inputs.parameters.pipeline-id}}").Build()
+func (workflows *PipelineWorkflowFactory) deleter() (argo.Template, error) {
+	kfpScript, err := workflows.KfpExt("pipeline delete").Arg("{{inputs.parameters.pipeline-id}}").Build()
+
+	if err != nil {
+		return argo.Template{}, err
+	}
 
 	return argo.Template{
 		Name:     PipelineWorkflowConstants.DeletionStepName,
@@ -401,15 +427,19 @@ func (workflows *PipelineWorkflowFactory) deleter() argo.Template {
 			},
 		},
 		Script: workflows.ScriptTemplate(kfpScript),
-	}
+	}, nil
 }
 
-func (workflows *PipelineWorkflowFactory) updater(version string) argo.Template {
-	kfpScript := workflows.KfpExt("pipeline upload-version").
+func (workflows *PipelineWorkflowFactory) updater(version string) (argo.Template, error) {
+	kfpScript, err := workflows.KfpExt("pipeline upload-version").
 		Param("--pipeline-version", version).
 		Param("--pipeline-id", "{{inputs.parameters.pipeline-id}}").
 		Arg( PipelineWorkflowConstants.PipelineYamlFilePath).
 		Build()
+
+	if err != nil {
+		return argo.Template{}, err
+	}
 
 	return argo.Template{
 		Name:     PipelineWorkflowConstants.UpdateStepName,
@@ -428,5 +458,5 @@ func (workflows *PipelineWorkflowFactory) updater(version string) argo.Template 
 			},
 		},
 		Script: workflows.ScriptTemplate(fmt.Sprintf(`%s | jq -r '."Version name"'`, kfpScript)),
-	}
+	}, nil
 }

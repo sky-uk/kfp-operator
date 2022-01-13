@@ -16,6 +16,7 @@ type WorkflowFactory struct {
 
 type KfpExtCommandBuilder struct {
 	commandParts []string
+	error error
 }
 
 func escapeSingleQuotes(unescaped string) string {
@@ -23,12 +24,27 @@ func escapeSingleQuotes(unescaped string) string {
 }
 
 func (kec *KfpExtCommandBuilder) Arg(argument string) *KfpExtCommandBuilder {
-	kec.commandParts = append(kec.commandParts, fmt.Sprintf(`'%s'`, escapeSingleQuotes(argument)))
+	if argument == "" {
+		kec.error = fmt.Errorf("argument must not be empty")
+		return kec
+	}
 
+	kec.commandParts = append(kec.commandParts, fmt.Sprintf(`'%s'`, escapeSingleQuotes(argument)))
 	return kec
 }
 
 func (kec *KfpExtCommandBuilder) Param(key string, value string) *KfpExtCommandBuilder {
+	if value == "" {
+		kec.error = fmt.Errorf("parameter %s must not be empty", key)
+		return kec
+	}
+
+	kec.commandParts = append(kec.commandParts, key)
+	kec.commandParts = append(kec.commandParts, fmt.Sprintf(`'%s'`, escapeSingleQuotes(value)))
+	return kec
+}
+
+func (kec *KfpExtCommandBuilder) OptParam(key string, value string) *KfpExtCommandBuilder {
 	if value != "" {
 		kec.commandParts = append(kec.commandParts, key)
 		kec.commandParts = append(kec.commandParts, fmt.Sprintf(`'%s'`, escapeSingleQuotes(value)))
@@ -37,8 +53,8 @@ func (kec *KfpExtCommandBuilder) Param(key string, value string) *KfpExtCommandB
 	return kec
 }
 
-func (kec *KfpExtCommandBuilder) Build() string {
-	return strings.Join(kec.commandParts, " ")
+func (kec *KfpExtCommandBuilder) Build() (string, error) {
+	return strings.Join(kec.commandParts, " "), kec.error
 }
 
 func (workflows *WorkflowFactory) KfpExt(command string) *KfpExtCommandBuilder {

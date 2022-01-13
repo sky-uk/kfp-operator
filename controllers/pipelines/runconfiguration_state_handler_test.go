@@ -81,17 +81,17 @@ func (st RunConfigurationStateTransitionTestCase) WithDeletionWorkflow(phase arg
 }
 
 func (st RunConfigurationStateTransitionTestCase) IssuesCreationWorkflow() RunConfigurationStateTransitionTestCase {
-	creationWorkflow := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.RunConfiguration)
+	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.RunConfiguration)
 	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st RunConfigurationStateTransitionTestCase) IssuesUpdateWorkflow() RunConfigurationStateTransitionTestCase {
-	updateWorkflow := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.RunConfiguration)
+	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.RunConfiguration)
 	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st RunConfigurationStateTransitionTestCase) IssuesDeletionWorkflow() RunConfigurationStateTransitionTestCase {
-	deletionWorkflow := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.RunConfiguration)
+	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.RunConfiguration)
 	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *deletionWorkflow})
 }
 
@@ -124,6 +124,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 	var workflowFactory = RunConfigurationWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
 			Config: configv1.Configuration{
+				DefaultExperiment: "Default",
 				Argo: configv1.ArgoConfiguration{
 					KfpSdkImage:   "kfp-sdk",
 					CompilerImage: "compiler",

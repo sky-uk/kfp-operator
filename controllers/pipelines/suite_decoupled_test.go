@@ -115,6 +115,7 @@ func NewTestRunConfigurationReconciler(k8sManager manager.Manager, workflowRepos
 	var workflowFactory = RunConfigurationWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
 			Config: configv1.Configuration{
+				DefaultExperiment: "Default",
 				Argo: configv1.ArgoConfiguration{
 					KfpSdkImage:   "kfp-sdk",
 					CompilerImage: "compiler",

@@ -109,7 +109,7 @@ var _ = Context("RunConfiguration Workflows", func() {
 
 	var AssertWorkflow = func(
 		setUp func(runconfiguration *pipelinesv1.RunConfiguration),
-		constructWorkflow func(context.Context, *pipelinesv1.RunConfiguration) *argo.Workflow,
+		constructWorkflow func(context.Context, *pipelinesv1.RunConfiguration) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
 		testCtx := NewRunConfigurationTestContext(
@@ -129,8 +129,9 @@ var _ = Context("RunConfiguration Workflows", func() {
 			k8sClient, ctx)
 
 		setUp(testCtx.RunConfiguration)
-		workflow := constructWorkflow(testCtx.ctx, testCtx.RunConfiguration)
+		workflow, err := constructWorkflow(testCtx.ctx, testCtx.RunConfiguration)
 
+		Expect(err).NotTo(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
 
 		Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},

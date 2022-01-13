@@ -46,8 +46,13 @@ func (workflows *RunConfigurationWorkflowFactory) commonMeta(ctx context.Context
 	}
 }
 
-func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
+func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	entrypointName := RunConfigurationWorkflowConstants.CreateOperationLabel
+
+	creationScriptTemplate, err := workflows.creator(runConfiguration)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel),
@@ -79,14 +84,19 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx c
 						},
 					},
 				},
-				workflows.creator(runConfiguration),
+				creationScriptTemplate,
 			},
 		},
-	}
+	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
+func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	entrypointName := RunConfigurationWorkflowConstants.DeleteOperationLabel
+
+	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.DeleteOperationLabel),
@@ -107,14 +117,24 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx 
 						},
 					},
 				},
-				workflows.deleter(runConfiguration),
+				deletionScriptTemplate,
 			},
 		},
-	}
+	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) *argo.Workflow {
+func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	entrypointName := RunConfigurationWorkflowConstants.UpdateOperationLabel
+
+	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
+	if err != nil {
+		return nil, err
+	}
+
+	creationScriptTemplate, err := workflows.creator(runConfiguration)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.UpdateOperationLabel),
@@ -157,34 +177,42 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx co
 						},
 					},
 				},
-				workflows.deleter(runConfiguration),
-				workflows.creator(runConfiguration),
+				deletionScriptTemplate,
+				creationScriptTemplate,
 			},
 		},
-	}
+	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipelinesv1.RunConfiguration) argo.Template {
-	kfpScript := workflows.KfpExt("job submit").
+func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipelinesv1.RunConfiguration) (argo.Template, error) {
+	kfpScript, err := workflows.KfpExt("job submit").
 		Param("--experiment-name", workflows.Config.DefaultExperiment).
 		Param("--job-name", runConfiguration.Name).
 		Param("--pipeline-name", runConfiguration.Spec.PipelineName).
 		Param("--cron-expression", runConfiguration.Spec.Schedule).
 		Build()
 
+	if err != nil {
+		return argo.Template{}, err
+	}
+
 	return argo.Template{
 		Name:     RunConfigurationWorkflowConstants.CreationStepName,
 		Metadata: workflows.Config.Argo.MetadataDefaults,
 		Script:   workflows.ScriptTemplate(fmt.Sprintf(`%s | jq -r '."Job Details"."ID"'`, kfpScript)),
-	}
+	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) deleter(runConfiguration *pipelinesv1.RunConfiguration) argo.Template {
-	kfpScript := workflows.KfpExt("job delete").Arg(runConfiguration.Status.KfpId).Build()
+func (workflows *RunConfigurationWorkflowFactory) deleter(runConfiguration *pipelinesv1.RunConfiguration) (argo.Template, error) {
+	kfpScript, err := workflows.KfpExt("job delete").Arg(runConfiguration.Status.KfpId).Build()
+
+	if err != nil {
+		return argo.Template{}, err
+	}
 
 	return argo.Template{
 		Name:     RunConfigurationWorkflowConstants.DeletionStepName,
 		Metadata: workflows.Config.Argo.MetadataDefaults,
 		Script:   workflows.ScriptTemplate(kfpScript),
-	}
+	}, nil
 }

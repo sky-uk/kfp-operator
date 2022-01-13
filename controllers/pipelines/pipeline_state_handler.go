@@ -132,7 +132,20 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 		}
 	}
 
-	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, pipeline)
+	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, pipeline)
+
+	if err != nil {
+		logger.Error(err, "error constructing deletion workflow, failing pipeline")
+
+		return []PipelineCommand{
+			SetPipelineStatus{
+				Status: pipelinesv1.Status{
+					Version:              pipeline.Status.Version,
+					SynchronizationState: pipelinesv1.Failed,
+				},
+			},
+		}
+	}
 
 	return []PipelineCommand{
 		SetPipelineStatus{

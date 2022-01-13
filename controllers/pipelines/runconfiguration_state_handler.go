@@ -62,7 +62,20 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 
 	if runConfiguration.Status.KfpId != "" {
 		logger.Info("empty state but KfpId already exists, updating run configuration")
-		workflow := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
+		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
+
+		if err != nil {
+			logger.Error(err, "error constructing update workflow, failing run configuration")
+
+			return []RunConfigurationCommand{
+				SetRunConfigurationStatus{
+					Status: pipelinesv1.Status{
+						Version:              runConfiguration.Status.Version,
+						SynchronizationState: pipelinesv1.Failed,
+					},
+				},
+			}
+		}
 
 		return []RunConfigurationCommand{
 			SetRunConfigurationStatus{
@@ -77,7 +90,19 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 	}
 
 	logger.Info("empty state, creating run configuration")
-	workflow := st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
+	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
+	if err != nil {
+		logger.Error(err, "error constructing creation workflow, failing run configuration")
+
+		return []RunConfigurationCommand{
+			SetRunConfigurationStatus{
+				Status: pipelinesv1.Status{
+					Version:              runConfiguration.Status.Version,
+					SynchronizationState: pipelinesv1.Failed,
+				},
+			},
+		}
+	}
 
 	return []RunConfigurationCommand{
 		SetRunConfigurationStatus{
@@ -106,7 +131,19 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 		}
 	}
 
-	workflow := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, runConfiguration)
+	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, runConfiguration)
+	if err != nil {
+		logger.Error(err, "error constructing deletion workflow, failing run configuration")
+
+		return []RunConfigurationCommand{
+			SetRunConfigurationStatus{
+				Status: pipelinesv1.Status{
+					Version:              runConfiguration.Status.Version,
+					SynchronizationState: pipelinesv1.Failed,
+				},
+			},
+		}
+	}
 
 	return []RunConfigurationCommand{
 		SetRunConfigurationStatus{
@@ -130,15 +167,42 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 	}
 
 	var workflow *argo.Workflow
+	var err error
 	var targetState pipelinesv1.SynchronizationState
 
 	if runConfiguration.Status.KfpId == "" {
 		logger.Info("no kfpId exists, creating")
-		workflow = st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
+		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
+		if err != nil {
+			logger.Error(err, "error constructing creation workflow, failing run configuration")
+
+			return []RunConfigurationCommand{
+				SetRunConfigurationStatus{
+					Status: pipelinesv1.Status{
+						Version:              runConfiguration.Status.Version,
+						SynchronizationState: pipelinesv1.Failed,
+					},
+				},
+			}
+		}
+
 		targetState = pipelinesv1.Creating
 	} else {
 		logger.Info("kfpId exists, updating")
-		workflow = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
+		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
+		if err != nil {
+			logger.Error(err, "error constructing update workflow, failing run configuration")
+
+			return []RunConfigurationCommand{
+				SetRunConfigurationStatus{
+					Status: pipelinesv1.Status{
+						Version:              runConfiguration.Status.Version,
+						SynchronizationState: pipelinesv1.Failed,
+					},
+				},
+			}
+		}
+
 		targetState = pipelinesv1.Updating
 	}
 

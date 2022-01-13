@@ -82,7 +82,7 @@ func (st PipelineStateTransitionTestCase) IssuesUpdateWorkflow() PipelineStateTr
 }
 
 func (st PipelineStateTransitionTestCase) IssuesDeletionWorkflow() PipelineStateTransitionTestCase {
-	deletionWorkflow := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.Pipeline)
+	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.Pipeline)
 	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *deletionWorkflow})
 }
 

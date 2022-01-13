@@ -44,8 +44,13 @@ func (workflows *ExperimentWorkflowFactory) commonMeta(ctx context.Context, rc *
 	}
 }
 
-func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) *argo.Workflow {
+func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	entrypointName := ExperimentWorkflowConstants.CreateOperationLabel
+
+	creationScriptTemplate, err := workflows.creator(experiment)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, experiment, ExperimentWorkflowConstants.CreateOperationLabel),
@@ -77,14 +82,19 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(ctx context
 						},
 					},
 				},
-				workflows.creator(experiment),
+				creationScriptTemplate,
 			},
 		},
-	}
+	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) *argo.Workflow {
+func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	entrypointName := ExperimentWorkflowConstants.DeleteOperationLabel
+
+	deletionScriptTemplate, err := workflows.deleter(experiment)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, experiment, ExperimentWorkflowConstants.DeleteOperationLabel),
@@ -105,14 +115,24 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(ctx contex
 						},
 					},
 				},
-				workflows.deleter(experiment),
+				deletionScriptTemplate,
 			},
 		},
-	}
+	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) *argo.Workflow {
+func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	entrypointName := ExperimentWorkflowConstants.UpdateOperationLabel
+
+	deletionScriptTemplate, err := workflows.deleter(experiment)
+	if err != nil {
+		return nil, err
+	}
+
+	creationScriptTemplate, err := workflows.creator(experiment)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.commonMeta(ctx, experiment, ExperimentWorkflowConstants.UpdateOperationLabel),
@@ -155,32 +175,41 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.
 						},
 					},
 				},
-				workflows.deleter(experiment),
-				workflows.creator(experiment),
+				deletionScriptTemplate,
+				creationScriptTemplate,
 			},
 		},
-	}
+	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) creator(experiment *pipelinesv1.Experiment) argo.Template {
-	kfpScript := workflows.KfpExt("experiment create").
-		Param("--description", experiment.Spec.Description).
+func (workflows *ExperimentWorkflowFactory) creator(experiment *pipelinesv1.Experiment) (argo.Template, error) {
+	kfpScript, err := workflows.KfpExt("experiment create").
+		OptParam("--description", experiment.Spec.Description).
 		Arg(experiment.Name).
 		Build()
+
+	if err != nil {
+		return argo.Template{}, err
+	}
 
 	return argo.Template{
 		Name:     ExperimentWorkflowConstants.CreationStepName,
 		Metadata: workflows.Config.Argo.MetadataDefaults,
 		Script:   workflows.ScriptTemplate(fmt.Sprintf(`%s | jq -r '."ID"'`, kfpScript)),
-	}
+	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) deleter(experiment *pipelinesv1.Experiment) argo.Template {
-	kfpScript := workflows.KfpExt("experiment delete").Arg(experiment.Status.KfpId).Build()
+func (workflows *ExperimentWorkflowFactory) deleter(experiment *pipelinesv1.Experiment) (argo.Template, error) {
+	kfpScript, err := workflows.KfpExt("experiment delete").Arg(experiment.Status.KfpId).Build()
+
+	if err != nil {
+		return argo.Template{}, err
+	}
 
 	return argo.Template{
 		Name:     ExperimentWorkflowConstants.DeletionStepName,
 		Metadata: workflows.Config.Argo.MetadataDefaults,
+		// The KFP SDK requires confirmation of the deletion and does not provide a flag to circumnavigate this
 		Script:   workflows.ScriptTemplate(fmt.Sprintf("echo y | %s", kfpScript)),
-	}
+	}, nil
 }

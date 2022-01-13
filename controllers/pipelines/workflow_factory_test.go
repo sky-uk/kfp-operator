@@ -18,29 +18,65 @@ var _ = Describe("KfpExtCommandBuilder", func() {
 				},
 			}
 
-			kfpScript := workflowFactory.KfpExt("do sth")
+			kfpScript, err := workflowFactory.KfpExt("do sth").Build()
 
-			Expect(kfpScript.Build()).To(Equal("kfp-ext --endpoint www.example.com --output json do sth"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(kfpScript).To(Equal("kfp-ext --endpoint www.example.com --output json do sth"))
 		})
 	})
 
-	When("A command, an argument and a parameter are given", func() {
-		It("prints boilerplate, the command, the parameter and the argument", func() {
+	When("A command, a parameter, an optional parameter and an argument  are given", func() {
+		It("prints boilerplate, the command, the parameters and the argument", func() {
 			workflowFactory := WorkflowFactory{
 				Config: configv1.Configuration{
 					KfpEndpoint: "www.example.com",
 				},
 			}
 
-			kfpScript := workflowFactory.KfpExt("do sth").
+			kfpScript, err := workflowFactory.KfpExt("do sth").
 				Param("--parameter", "value").
-				Arg("anArgument")
+				OptParam("--opt-parameter", "optional value").
+				Arg("anArgument").
+				Build()
 
-			Expect(kfpScript.Build()).To(Equal(`kfp-ext --endpoint www.example.com --output json do sth --parameter 'value' 'anArgument'`))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(kfpScript).To(Equal(`kfp-ext --endpoint www.example.com --output json do sth --parameter 'value' --opt-parameter 'optional value' 'anArgument'`))
 		})
 	})
 
-	When("A command and an empty parameter are given", func() {
+	When("An empty parameter is given", func() {
+		It("errors", func() {
+			workflowFactory := WorkflowFactory{
+				Config: configv1.Configuration{
+					KfpEndpoint: "www.example.com",
+				},
+			}
+
+			_, err := workflowFactory.KfpExt("do sth").
+				Param("--param", "").
+				Build()
+
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	When("A an empty argument is given", func() {
+		It("errors", func() {
+			workflowFactory := WorkflowFactory{
+				Config: configv1.Configuration{
+					KfpEndpoint: "www.example.com",
+				},
+			}
+
+			_, err := workflowFactory.KfpExt("do sth").
+				Arg("").
+				Build()
+
+			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	When("An empty optional parameter is given", func() {
 		It("omits the parameter", func() {
 			workflowFactory := WorkflowFactory{
 				Config: configv1.Configuration{
@@ -48,9 +84,12 @@ var _ = Describe("KfpExtCommandBuilder", func() {
 				},
 			}
 
-			kfpScript := workflowFactory.KfpExt("do sth").Param("--param", "")
+			kfpScript, err := workflowFactory.KfpExt("do sth").
+				OptParam("--param", "").
+				Build()
 
-			Expect(kfpScript.Build()).To(Equal("kfp-ext --endpoint www.example.com --output json do sth"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(kfpScript).To(Equal(`kfp-ext --endpoint www.example.com --output json do sth`))
 		})
 	})
 
@@ -62,12 +101,14 @@ var _ = Describe("KfpExtCommandBuilder", func() {
 				},
 			}
 
-			kfpScript := workflowFactory.KfpExt("do sth").
+			kfpScript, err := workflowFactory.KfpExt("do sth").
 				Param("--param", "this is 'a parameter'").
-				Arg("this is 'an argument'")
+				OptParam("--opt-param", "this is 'an optional parameter'").
+				Arg("this is 'an argument'").
+				Build()
 
-			Expect(kfpScript.Build()).
-				To(Equal("kfp-ext --endpoint www.example.com --output json do sth --param 'this is \\'a parameter\\'' 'this is \\'an argument\\''"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(kfpScript).To(Equal("kfp-ext --endpoint www.example.com --output json do sth --param 'this is \\'a parameter\\'' --opt-param 'this is \\'an optional parameter\\'' 'this is \\'an argument\\''"))
 		})
 	})
 })

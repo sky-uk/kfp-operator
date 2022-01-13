@@ -85,7 +85,7 @@ var _ = Context("Experiment Workflows", func() {
 
 	var AssertWorkflow = func(
 		setUp func(experiment *pipelinesv1.Experiment),
-		constructWorkflow func(context.Context, *pipelinesv1.Experiment) *argo.Workflow,
+		constructWorkflow func(context.Context, *pipelinesv1.Experiment) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
 		testCtx := NewExperimentTestContext(
@@ -104,8 +104,9 @@ var _ = Context("Experiment Workflows", func() {
 			k8sClient, ctx)
 
 		setUp(testCtx.Experiment)
-		workflow := constructWorkflow(testCtx.ctx, testCtx.Experiment)
+		workflow, err := constructWorkflow(testCtx.ctx, testCtx.Experiment)
 
+		Expect(err).NotTo(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
 
 		Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
