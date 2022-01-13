@@ -8,16 +8,16 @@ The specification of the eventsource follows those of other [generic Argo-Events
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
-  kind: EventSource
-  metadata:
-    name: run-completion-eventsource
-  spec:
-    generic:
-      run-completion:
-        insecure: true
-        url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:50051"
-        config: |-
-          kfpNamespace: kubeflow-pipelines
+kind: EventSource
+metadata:
+  name: model-update-eventsource
+spec:
+  generic:
+    model-update:
+      insecure: true
+      url: "kfp-operator-model-update-eventsource-server.kfp-operator-system.svc:50051"
+      config: |-
+        kfpNamespace: kubeflow-pipelines
 ```
 
 The configuration currently has a single field `kfpNamespace` which defines what namespace to watch pipeline workflows in.
