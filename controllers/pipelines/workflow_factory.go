@@ -16,7 +16,7 @@ type WorkflowFactory struct {
 
 type KfpExtCommandBuilder struct {
 	commandParts []string
-	error error
+	error        error
 }
 
 func escapeSingleQuotes(unescaped string) string {

@@ -17,10 +17,10 @@ import (
 )
 
 type ExperimentStateTransitionTestCase struct {
-	workflowFactory  ExperimentWorkflowFactory
-	Experiment *pipelinesv1.Experiment
-	SystemStatus     StubbedWorkflows
-	Commands         []ExperimentCommand
+	workflowFactory ExperimentWorkflowFactory
+	Experiment      *pipelinesv1.Experiment
+	SystemStatus    StubbedWorkflows
+	Commands        []ExperimentCommand
 }
 
 func (st ExperimentStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) ExperimentStateTransitionTestCase {
@@ -160,9 +160,9 @@ var _ = Describe("Experiment State handler", func() {
 		}
 
 		return ExperimentStateTransitionTestCase{
-			workflowFactory:  workflowFactory,
-			Experiment: experiment,
-			Commands:         []ExperimentCommand{},
+			workflowFactory: workflowFactory,
+			Experiment:      experiment,
+			Commands:        []ExperimentCommand{},
 		}
 	}
 

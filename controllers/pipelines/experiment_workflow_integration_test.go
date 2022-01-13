@@ -40,9 +40,9 @@ var _ = Context("Experiment Workflows", func() {
 	var NoExperimentExists = func() error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
 			WillReturn(
-			fmt.Sprintf(`{}`),
-			map[string]string{"Content-Type": "application/json"},
-			200,
+				fmt.Sprintf(`{}`),
+				map[string]string{"Content-Type": "application/json"},
+				200,
 			))
 	}
 

@@ -19,7 +19,7 @@ func RandomShortHash() string {
 }
 
 func RandomString() string {
-	return randstr.String(rand.Intn(20)+1)
+	return randstr.String(rand.Intn(20) + 1)
 }
 
 func RandomMap() map[string]string {
@@ -82,6 +82,6 @@ func RandomExperiment() *pipelinesv1.Experiment {
 
 func RandomExperimentSpec() pipelinesv1.ExperimentSpec {
 	return pipelinesv1.ExperimentSpec{
-		Description:      RandomString(),
+		Description: RandomString(),
 	}
 }

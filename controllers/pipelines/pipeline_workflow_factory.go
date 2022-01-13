@@ -434,7 +434,7 @@ func (workflows *PipelineWorkflowFactory) updater(version string) (argo.Template
 	kfpScript, err := workflows.KfpExt("pipeline upload-version").
 		Param("--pipeline-version", version).
 		Param("--pipeline-id", "{{inputs.parameters.pipeline-id}}").
-		Arg( PipelineWorkflowConstants.PipelineYamlFilePath).
+		Arg(PipelineWorkflowConstants.PipelineYamlFilePath).
 		Build()
 
 	if err != nil {

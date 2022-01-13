@@ -9,23 +9,23 @@ import (
 )
 
 var ExperimentWorkflowConstants = struct {
-	CreateOperationLabel            string
-	DeleteOperationLabel            string
-	UpdateOperationLabel            string
-	ExperimentIdParameterName       string
-	ExperimentNameLabelKey          string
-	OperationLabelKey               string
-	CreationStepName                string
-	DeletionStepName                string
+	CreateOperationLabel      string
+	DeleteOperationLabel      string
+	UpdateOperationLabel      string
+	ExperimentIdParameterName string
+	ExperimentNameLabelKey    string
+	OperationLabelKey         string
+	CreationStepName          string
+	DeletionStepName          string
 }{
-	CreateOperationLabel:            "create-experiment",
-	DeleteOperationLabel:            "delete-experiment",
-	UpdateOperationLabel:            "update-experiment",
-	ExperimentIdParameterName:       "experiment-id",
-	ExperimentNameLabelKey:          pipelinesv1.GroupVersion.Group + "/experiment",
-	OperationLabelKey:               pipelinesv1.GroupVersion.Group + "/operation",
-	CreationStepName:                "create",
-	DeletionStepName:                "delete",
+	CreateOperationLabel:      "create-experiment",
+	DeleteOperationLabel:      "delete-experiment",
+	UpdateOperationLabel:      "update-experiment",
+	ExperimentIdParameterName: "experiment-id",
+	ExperimentNameLabelKey:    pipelinesv1.GroupVersion.Group + "/experiment",
+	OperationLabelKey:         pipelinesv1.GroupVersion.Group + "/operation",
+	CreationStepName:          "create",
+	DeletionStepName:          "delete",
 }
 
 type ExperimentWorkflowFactory struct {
@@ -37,7 +37,7 @@ func (workflows *ExperimentWorkflowFactory) commonMeta(ctx context.Context, rc *
 		GenerateName: operation + "-",
 		Namespace:    rc.Namespace,
 		Labels: map[string]string{
-			ExperimentWorkflowConstants.OperationLabelKey:            operation,
+			ExperimentWorkflowConstants.OperationLabelKey:      operation,
 			ExperimentWorkflowConstants.ExperimentNameLabelKey: rc.Name,
 		},
 		Annotations: workflows.Annotations(ctx, rc.ObjectMeta),
@@ -210,6 +210,6 @@ func (workflows *ExperimentWorkflowFactory) deleter(experiment *pipelinesv1.Expe
 		Name:     ExperimentWorkflowConstants.DeletionStepName,
 		Metadata: workflows.Config.Argo.MetadataDefaults,
 		// The KFP SDK requires confirmation of the deletion and does not provide a flag to circumnavigate this
-		Script:   workflows.ScriptTemplate(fmt.Sprintf("echo y | %s", kfpScript)),
+		Script: workflows.ScriptTemplate(fmt.Sprintf("echo y | %s", kfpScript)),
 	}, nil
 }
