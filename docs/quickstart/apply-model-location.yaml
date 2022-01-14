@@ -40,7 +40,7 @@ spec:
   triggers:
     - template:
         k8s:
-          operation: apply
+          operation: update
           source:
             resource:
               apiVersion: v1
