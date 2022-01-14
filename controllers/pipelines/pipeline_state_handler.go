@@ -68,12 +68,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 			logger.Error(err, "error constructing update workflow, failing pipeline")
 
 			return []PipelineCommand{
-				SetPipelineStatus{
-					Status: pipelinesv1.Status{
-						Version:              pipeline.Status.Version,
-						SynchronizationState: pipelinesv1.Failed,
-					},
-				},
+				SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Failed),
 			}
 		}
 
@@ -122,13 +117,7 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 
 	if pipeline.Status.KfpId == "" {
 		return []PipelineCommand{
-			SetPipelineStatus{
-				Status: pipelinesv1.Status{
-					KfpId:                pipeline.Status.KfpId,
-					Version:              pipeline.Status.Version,
-					SynchronizationState: pipelinesv1.Deleted,
-				},
-			},
+			SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Deleted),
 		}
 	}
 
@@ -138,23 +127,12 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 		logger.Error(err, "error constructing deletion workflow, failing pipeline")
 
 		return []PipelineCommand{
-			SetPipelineStatus{
-				Status: pipelinesv1.Status{
-					Version:              pipeline.Status.Version,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Failed),
 		}
 	}
 
 	return []PipelineCommand{
-		SetPipelineStatus{
-			Status: pipelinesv1.Status{
-				KfpId:                pipeline.Status.KfpId,
-				Version:              pipeline.Status.Version,
-				SynchronizationState: pipelinesv1.Deleting,
-			},
-		},
+		SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Deleting),
 		CreatePipelineWorkflow{Workflow: *workflow},
 	}
 }
@@ -213,13 +191,7 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 	if pipeline.Status.Version == "" || pipeline.Status.KfpId == "" {
 		logger.Info("updating pipeline with empty version or kfpId, failing pipeline")
 		return []PipelineCommand{
-			SetPipelineStatus{
-				Status: pipelinesv1.Status{
-					Version:              pipeline.Status.Version,
-					KfpId:                pipeline.Status.KfpId,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Failed),
 		}
 	}
 
@@ -230,24 +202,22 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 		return []PipelineCommand{}
 	}
 
-	newStatus := pipeline.Status.DeepCopy()
+	var newState pipelinesv1.SynchronizationState
 
 	if succeeded != nil {
 		logger.Info("pipeline update succeeded")
-		newStatus.SynchronizationState = pipelinesv1.Succeeded
+		newState = pipelinesv1.Succeeded
 	} else {
 		if failed != nil {
 			logger.Info("pipeline update failed")
 		} else {
 			logger.Info("pipeline updating progress unknown, failing pipeline")
 		}
-		newStatus.SynchronizationState = pipelinesv1.Failed
+		newState = pipelinesv1.Failed
 	}
 
 	return []PipelineCommand{
-		SetPipelineStatus{
-			Status: *newStatus,
-		},
+		SetPipelineSynchronizationStateOnly(pipeline, newState),
 		DeletePipelineWorkflows{
 			Workflows: updateWorkflows,
 		},
@@ -291,12 +261,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 	if pipeline.Status.Version == "" {
 		logger.Info("creating pipeline with empty version, failing pipeline")
 		return []PipelineCommand{
-			SetPipelineStatus{
-				Status: pipelinesv1.Status{
-					KfpId:                pipeline.Status.KfpId,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Failed),
 		}
 	}
 

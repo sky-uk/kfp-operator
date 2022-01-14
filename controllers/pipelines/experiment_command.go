@@ -17,6 +17,16 @@ type SetExperimentStatus struct {
 	Status pipelinesv1.Status
 }
 
+func SetExperimentSynchronizationStateOnly(experiment *pipelinesv1.Experiment, state pipelinesv1.SynchronizationState) SetExperimentStatus {
+	return SetExperimentStatus{
+		Status: pipelinesv1.Status{
+			KfpId:                experiment.Status.KfpId,
+			Version:              experiment.Status.Version,
+			SynchronizationState: state,
+		},
+	}
+}
+
 func (srcs SetExperimentStatus) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting experiment status", LogKeys.OldStatus, rc.Status, LogKeys.NewStatus, srcs.Status)

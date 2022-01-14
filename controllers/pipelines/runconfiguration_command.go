@@ -17,6 +17,16 @@ type SetRunConfigurationStatus struct {
 	Status pipelinesv1.Status
 }
 
+func SetRunConfigurationSynchronizationStateOnly(runConfiguration *pipelinesv1.RunConfiguration, state pipelinesv1.SynchronizationState) SetRunConfigurationStatus {
+	return SetRunConfigurationStatus{
+		Status: pipelinesv1.Status{
+			KfpId:                runConfiguration.Status.KfpId,
+			Version:              runConfiguration.Status.Version,
+			SynchronizationState: state,
+		},
+	}
+}
+
 func (srcs SetRunConfigurationStatus) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting run configuration status", LogKeys.OldStatus, rc.Status, LogKeys.NewStatus, srcs.Status)

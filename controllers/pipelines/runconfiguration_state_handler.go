@@ -68,12 +68,7 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 			logger.Error(err, "error constructing update workflow, failing run configuration")
 
 			return []RunConfigurationCommand{
-				SetRunConfigurationStatus{
-					Status: pipelinesv1.Status{
-						Version:              runConfiguration.Status.Version,
-						SynchronizationState: pipelinesv1.Failed,
-					},
-				},
+				SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Failed),
 			}
 		}
 
@@ -95,12 +90,7 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 		logger.Error(err, "error constructing creation workflow, failing run configuration")
 
 		return []RunConfigurationCommand{
-			SetRunConfigurationStatus{
-				Status: pipelinesv1.Status{
-					Version:              runConfiguration.Status.Version,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Failed),
 		}
 	}
 
@@ -121,13 +111,7 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 
 	if runConfiguration.Status.KfpId == "" {
 		return []RunConfigurationCommand{
-			SetRunConfigurationStatus{
-				Status: pipelinesv1.Status{
-					KfpId:                runConfiguration.Status.KfpId,
-					Version:              runConfiguration.Status.Version,
-					SynchronizationState: pipelinesv1.Deleted,
-				},
-			},
+			SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Deleted),
 		}
 	}
 
@@ -136,23 +120,12 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 		logger.Error(err, "error constructing deletion workflow, failing run configuration")
 
 		return []RunConfigurationCommand{
-			SetRunConfigurationStatus{
-				Status: pipelinesv1.Status{
-					Version:              runConfiguration.Status.Version,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Failed),
 		}
 	}
 
 	return []RunConfigurationCommand{
-		SetRunConfigurationStatus{
-			Status: pipelinesv1.Status{
-				KfpId:                runConfiguration.Status.KfpId,
-				Version:              runConfiguration.Status.Version,
-				SynchronizationState: pipelinesv1.Deleting,
-			},
-		},
+		SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Deleting),
 		CreateRunConfigurationWorkflow{Workflow: *workflow},
 	}
 }
@@ -177,12 +150,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 			logger.Error(err, "error constructing creation workflow, failing run configuration")
 
 			return []RunConfigurationCommand{
-				SetRunConfigurationStatus{
-					Status: pipelinesv1.Status{
-						Version:              runConfiguration.Status.Version,
-						SynchronizationState: pipelinesv1.Failed,
-					},
-				},
+				SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Failed),
 			}
 		}
 
@@ -194,12 +162,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 			logger.Error(err, "error constructing update workflow, failing run configuration")
 
 			return []RunConfigurationCommand{
-				SetRunConfigurationStatus{
-					Status: pipelinesv1.Status{
-						Version:              runConfiguration.Status.Version,
-						SynchronizationState: pipelinesv1.Failed,
-					},
-				},
+				SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Failed),
 			}
 		}
 
@@ -224,13 +187,7 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 	if runConfiguration.Status.Version == "" || runConfiguration.Status.KfpId == "" {
 		logger.Info("updating run configuration with empty version or kfpId, failing run configuration")
 		return []RunConfigurationCommand{
-			SetRunConfigurationStatus{
-				Status: pipelinesv1.Status{
-					Version:              runConfiguration.Status.Version,
-					KfpId:                runConfiguration.Status.KfpId,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Failed),
 		}
 	}
 
@@ -317,12 +274,7 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 	if runConfiguration.Status.Version == "" {
 		logger.Info("creating run configuration with empty version, failing run configuration")
 		return []RunConfigurationCommand{
-			SetRunConfigurationStatus{
-				Status: pipelinesv1.Status{
-					KfpId:                runConfiguration.Status.KfpId,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetRunConfigurationSynchronizationStateOnly(runConfiguration, pipelinesv1.Failed),
 		}
 	}
 

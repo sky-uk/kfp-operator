@@ -68,12 +68,7 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 			logger.Error(err, "error constructing update workflow, failing experiment")
 
 			return []ExperimentCommand{
-				SetExperimentStatus{
-					Status: pipelinesv1.Status{
-						Version:              experiment.Status.Version,
-						SynchronizationState: pipelinesv1.Failed,
-					},
-				},
+				SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
 			}
 		}
 
@@ -96,12 +91,7 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 		logger.Error(err, "error constructing creation workflow, failing experiment")
 
 		return []ExperimentCommand{
-			SetExperimentStatus{
-				Status: pipelinesv1.Status{
-					Version:              experiment.Status.Version,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
 		}
 	}
 
@@ -122,13 +112,7 @@ func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipel
 
 	if experiment.Status.KfpId == "" {
 		return []ExperimentCommand{
-			SetExperimentStatus{
-				Status: pipelinesv1.Status{
-					KfpId:                experiment.Status.KfpId,
-					Version:              experiment.Status.Version,
-					SynchronizationState: pipelinesv1.Deleted,
-				},
-			},
+			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Deleted),
 		}
 	}
 
@@ -138,23 +122,12 @@ func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipel
 		logger.Error(err, "error constructing deletion workflow, failing experiment")
 
 		return []ExperimentCommand{
-			SetExperimentStatus{
-				Status: pipelinesv1.Status{
-					Version:              experiment.Status.Version,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
 		}
 	}
 
 	return []ExperimentCommand{
-		SetExperimentStatus{
-			Status: pipelinesv1.Status{
-				KfpId:                experiment.Status.KfpId,
-				Version:              experiment.Status.Version,
-				SynchronizationState: pipelinesv1.Deleting,
-			},
-		},
+		SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Deleting),
 		CreateExperimentWorkflow{Workflow: *workflow},
 	}
 }
@@ -180,12 +153,7 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 			logger.Error(err, "error constructing creation workflow, failing experiment")
 
 			return []ExperimentCommand{
-				SetExperimentStatus{
-					Status: pipelinesv1.Status{
-						Version:              experiment.Status.Version,
-						SynchronizationState: pipelinesv1.Failed,
-					},
-				},
+				SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
 			}
 		}
 
@@ -198,12 +166,7 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 			logger.Error(err, "error constructing update workflow, failing experiment")
 
 			return []ExperimentCommand{
-				SetExperimentStatus{
-					Status: pipelinesv1.Status{
-						Version:              experiment.Status.Version,
-						SynchronizationState: pipelinesv1.Failed,
-					},
-				},
+				SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
 			}
 		}
 
@@ -228,13 +191,7 @@ func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pip
 	if experiment.Status.Version == "" || experiment.Status.KfpId == "" {
 		logger.Info("updating run configuration with empty version or kfpId, failing run configuration")
 		return []ExperimentCommand{
-			SetExperimentStatus{
-				Status: pipelinesv1.Status{
-					Version:              experiment.Status.Version,
-					KfpId:                experiment.Status.KfpId,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
 		}
 	}
 
@@ -321,12 +278,7 @@ func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pip
 	if experiment.Status.Version == "" {
 		logger.Info("creating run configuration with empty version, failing run configuration")
 		return []ExperimentCommand{
-			SetExperimentStatus{
-				Status: pipelinesv1.Status{
-					KfpId:                experiment.Status.KfpId,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
 		}
 	}
 
