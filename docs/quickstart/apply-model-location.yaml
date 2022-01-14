@@ -14,7 +14,7 @@ spec:
   generic:
     model-update:
       insecure: true
-      url: "kfp-operator-model-update-eventsource-server.kfp-operator-system.svc:50051"
+      url: "kfp-operator-model-update-eventsource-server.kfp-operator-system.svc:8080"
       config: |-
         kfpNamespace: kubeflow-pipelines
 ---
