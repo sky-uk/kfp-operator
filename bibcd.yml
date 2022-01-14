@@ -5,6 +5,6 @@ triggering: master-and-prs
 modules:
   root:
     directory: /
-    pipelineShape: buildOnly
+    pipelineShape: prodManualApproval
 
 defaultTaskExecution: 'make ${phase}'
