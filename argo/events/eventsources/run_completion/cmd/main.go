@@ -15,7 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"pipelines.kubeflow.org/events/eventsources/generic"
-	"pipelines.kubeflow.org/events/eventsources/model_update"
+	"pipelines.kubeflow.org/events/eventsources/run_completion"
 	"pipelines.kubeflow.org/events/logging"
 	"pipelines.kubeflow.org/events/ml_metadata"
 )
@@ -92,10 +92,10 @@ func main() {
 	metadataStoreClient := ml_metadata.NewMetadataStoreServiceClient(conn)
 
 	s := grpc.NewServer()
-	generic.RegisterEventingServer(s, &model_update.EventingServer{
+	generic.RegisterEventingServer(s, &run_completion.EventingServer{
 		K8sClient: k8sClient,
 		Logger:    logger,
-		MetadataStore: &model_update.GrpcMetadataStore{
+		MetadataStore: &run_completion.GrpcMetadataStore{
 			MetadataStoreServiceClient: metadataStoreClient,
 		},
 	})

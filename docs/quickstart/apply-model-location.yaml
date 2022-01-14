@@ -9,26 +9,26 @@ spec:
 apiVersion: argoproj.io/v1alpha1
   kind: EventSource
   metadata:
-    name: model-update-eventsource
+    name: run-completion-eventsource
   spec:
     generic:
-      model-update:
+      run-completion:
         insecure: true
-        url: "kfp-operator-model-update-eventsource-server.kfp-operator-system.svc:50051"
+        url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:50051"
         config: |-
           kfpNamespace: kubeflow-pipelines
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: model-update-sensor
+  name: run-completion-sensor
 spec:
   template:
     serviceAccountName: events-sa
   dependencies:
-    - name: model-update-eventsource
-      eventSourceName: model-update-eventsource
-      eventName: model-update
+    - name: run-completion-eventsource
+      eventSourceName: run-completion-eventsource
+      eventName: run-succeeded
       filters:
         data:
           - path: body
@@ -51,6 +51,6 @@ spec:
                 servingModel: ""
       parameters:
         - src:
-            dependencyName: model-update-eventsource
+            dependencyName: run-completion-eventsource
             dataKey: '{{ (index ((b64dec .Input) | mustFromJson).servingModelArtifacts 0).location }}'
           dest: data.servingModel

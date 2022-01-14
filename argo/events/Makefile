@@ -3,7 +3,7 @@
 include ../../go-get.mk
 
 PROTOPATH := $(HOME)/.proto
-IMG := kfp-operator-argo-events-model-update-eventsource-server
+IMG := kfp-operator-argo-events-run-completion-eventsource-server
 
 define get-proto
 	mkdir -p $(PROTOPATH) && \
@@ -44,10 +44,10 @@ generate: protoc_gen_go mockgen ## Generate service definitions from protobuf
 	mockgen -destination ml_metadata/metadata_store_service_grpc_mock.go -package=ml_metadata -source=ml_metadata/metadata_store_service_grpc.pb.go
 
 build: generate
-	go build -o bin/model-update-eventsource ./eventsources/model_update/cmd/main.go
+	go build -o bin/run-completion-eventsource ./eventsources/run_completion/cmd/main.go
 
-run-model-update-eventsource: build fmt vet
-	go run ./eventsources/model_update/cmd/main.go -mlmd-url=$(MLMD_URL)
+run-run-completion-eventsource: build fmt vet
+	go run ./eventsources/run_completion/cmd/main.go -mlmd-url=$(MLMD_URL)
 
 fmt: ## Run go fmt against code.
 	go fmt ./...

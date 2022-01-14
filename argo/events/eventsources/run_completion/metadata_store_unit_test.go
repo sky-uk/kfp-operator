@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package model_update
+package run_completion
 
 import (
 	"context"

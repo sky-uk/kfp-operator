@@ -1,4 +1,4 @@
-package model_update
+package run_completion
 
 import (
 	"encoding/json"
@@ -35,7 +35,8 @@ const (
 	workflowPhaseLabel           = "workflows.argoproj.io/phase"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
 	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
-	modelUpdateEventName         = "model-update"
+	runSucceededEventName        = "run-succeeded"
+	runFailedEventName           = "run-failed"
 )
 
 type EventSourceConfig struct {
@@ -54,7 +55,11 @@ type ServingModelArtifact struct {
 	Location string `json:"location"`
 }
 
-type ModelUpdateEvent struct {
+type RunFailedEvent struct {
+	PipelineName string
+}
+
+type RunSucceededEvent struct {
 	PipelineName          string                 `json:"pipelineName"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }
@@ -118,8 +123,8 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 
 		workflow := newObj.(*unstructured.Unstructured)
 
-		if !workflowHasSucceeded(workflow) {
-			es.Logger.V(2).Info("ignoring workflow that hasn't succeeded")
+		if !workflowHasFinished(workflow) {
+			es.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
 			return
 		}
 
@@ -131,26 +136,39 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 			return
 		}
 
-		modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(stream.Context(), workflowName)
+		var event *generic.Event
 
-		if len(modelArtifacts) <= 0 {
-			es.Logger.V(2).Info("ignoring succeeded workflow without serving model artifacts")
-			return
-		}
+		if workflowHasSucceeded(workflow) {
+			modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(stream.Context(), workflowName)
 
-		jsonPayload, err := json.Marshal(ModelUpdateEvent{
-			PipelineName:          pipelineName,
-			ServingModelArtifacts: modelArtifacts,
-		})
+			jsonPayload, err := json.Marshal(RunSucceededEvent{
+				PipelineName:          pipelineName,
+				ServingModelArtifacts: modelArtifacts,
+			})
 
-		if err != nil {
-			es.Logger.Error(err, "failed to serialise event")
-			return
-		}
+			if err != nil {
+				es.Logger.Error(err, "failed to serialise event")
+				return
+			}
 
-		event := &generic.Event{
-			Name:    modelUpdateEventName,
-			Payload: jsonPayload,
+			event = &generic.Event{
+				Name:    runSucceededEventName,
+				Payload: jsonPayload,
+			}
+		} else {
+			jsonPayload, err := json.Marshal(RunFailedEvent{
+				PipelineName: pipelineName,
+			})
+
+			if err != nil {
+				es.Logger.Error(err, "failed to serialise event")
+				return
+			}
+
+			event = &generic.Event{
+				Name:    runFailedEventName,
+				Payload: jsonPayload,
+			}
 		}
 
 		es.Logger.V(1).Info("sending event", "event", event)
@@ -176,6 +194,15 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 
 func workflowHasSucceeded(workflow *unstructured.Unstructured) bool {
 	return workflow.GetLabels()[workflowPhaseLabel] == string(argo.WorkflowSucceeded)
+}
+
+func workflowHasFinished(workflow *unstructured.Unstructured) bool {
+	switch workflow.GetLabels()[workflowPhaseLabel] {
+	case string(argo.WorkflowSucceeded), string(argo.WorkflowFailed), string(argo.WorkflowError):
+		return true
+	default:
+		return false
+	}
 }
 
 func jsonPatchPath(segments ...string) string {
