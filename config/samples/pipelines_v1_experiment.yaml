@@ -1,0 +1,6 @@
+apiVersion: pipelines.kubeflow.org/v1
+kind: Experiment
+metadata:
+  name: experiment-sample
+spec:
+  description: "This is a sample experiment"

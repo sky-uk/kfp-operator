@@ -3,5 +3,5 @@ kind: RunConfiguration
 metadata:
   name: runconfiguration-sample
 spec:
-  # Add fields here
-  foo: bar
+  pipelineName: pipeline-sample
+  schedule: * * * * * *

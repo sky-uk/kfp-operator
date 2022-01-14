@@ -19,7 +19,7 @@ func RandomShortHash() string {
 }
 
 func RandomString() string {
-	return randstr.String(rand.Intn(20))
+	return randstr.String(rand.Intn(20) + 1)
 }
 
 func RandomMap() map[string]string {
@@ -67,5 +67,21 @@ func RandomRunConfigurationSpec() pipelinesv1.RunConfigurationSpec {
 		PipelineName:      RandomString(),
 		Schedule:          RandomString(),
 		RuntimeParameters: RandomMap(),
+	}
+}
+
+func RandomExperiment() *pipelinesv1.Experiment {
+	return &pipelinesv1.Experiment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandomLowercaseString(),
+			Namespace: RandomLowercaseString(),
+		},
+		Spec: RandomExperimentSpec(),
+	}
+}
+
+func RandomExperimentSpec() pipelinesv1.ExperimentSpec {
+	return pipelinesv1.ExperimentSpec{
+		Description: RandomString(),
 	}
 }

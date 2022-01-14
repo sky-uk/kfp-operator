@@ -31,4 +31,13 @@ resources:
   kind: RunConfiguration
   path: github.com/sky-uk/kfp-operator/apis/pipelines/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kubeflow.org
+  group: pipelines
+  kind: Experiment
+  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1
+  version: v1
 version: "3"

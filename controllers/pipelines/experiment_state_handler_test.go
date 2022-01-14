@@ -16,37 +16,37 @@ import (
 	"time"
 )
 
-type RunConfigurationStateTransitionTestCase struct {
-	workflowFactory  RunConfigurationWorkflowFactory
-	RunConfiguration *pipelinesv1.RunConfiguration
-	SystemStatus     StubbedWorkflows
-	Commands         []RunConfigurationCommand
+type ExperimentStateTransitionTestCase struct {
+	workflowFactory ExperimentWorkflowFactory
+	Experiment      *pipelinesv1.Experiment
+	SystemStatus    StubbedWorkflows
+	Commands        []ExperimentCommand
 }
 
-func (st RunConfigurationStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) RunConfigurationStateTransitionTestCase {
-	return st.IssuesCommand(SetRunConfigurationStatus{Status: pipelinesv1.Status{
+func (st ExperimentStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) ExperimentStateTransitionTestCase {
+	return st.IssuesCommand(SetExperimentStatus{Status: pipelinesv1.Status{
 		KfpId:                id,
 		Version:              version,
 		SynchronizationState: state,
 	}})
 }
 
-func (st RunConfigurationStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) RunConfigurationStateTransitionTestCase {
+func (st ExperimentStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) ExperimentStateTransitionTestCase {
 	st.SystemStatus.AddWorkflow(*workflow)
 	return st
 }
 
-func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) RunConfigurationStateTransitionTestCase {
-	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.CreateOperationLabel, phase))
+func (st ExperimentStateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) ExperimentStateTransitionTestCase {
+	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.CreateOperationLabel, phase))
 }
 
-func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.WorkflowPhase, kfpId string) RunConfigurationStateTransitionTestCase {
+func (st ExperimentStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.WorkflowPhase, kfpId string) ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
 		setWorkflowOutputs(
-			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.CreateOperationLabel, phase),
+			st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.CreateOperationLabel, phase),
 			[]argo.Parameter{
 				{
-					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
 					Value: argo.AnyStringPtr(kfpId),
 				},
 			},
@@ -54,19 +54,19 @@ func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlowWithId(phase
 	)
 }
 
-func (st RunConfigurationStateTransitionTestCase) WithFailedUpdateWorkflow() RunConfigurationStateTransitionTestCase {
+func (st ExperimentStateTransitionTestCase) WithFailedUpdateWorkflow() ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, argo.WorkflowFailed),
+		st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.UpdateOperationLabel, argo.WorkflowFailed),
 	)
 }
 
-func (st RunConfigurationStateTransitionTestCase) WithSucceededUpdateWorkflowWithId(kfpId string) RunConfigurationStateTransitionTestCase {
+func (st ExperimentStateTransitionTestCase) WithSucceededUpdateWorkflowWithId(kfpId string) ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
 		setWorkflowOutputs(
-			st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
+			st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
 			[]argo.Parameter{
 				{
-					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
 					Value: argo.AnyStringPtr(kfpId),
 				},
 			},
@@ -74,57 +74,56 @@ func (st RunConfigurationStateTransitionTestCase) WithSucceededUpdateWorkflowWit
 	)
 }
 
-func (st RunConfigurationStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) RunConfigurationStateTransitionTestCase {
+func (st ExperimentStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(RunConfigurationWorkflowConstants.DeleteOperationLabel, phase),
+		st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.DeleteOperationLabel, phase),
 	)
 }
 
-func (st RunConfigurationStateTransitionTestCase) IssuesCreationWorkflow() RunConfigurationStateTransitionTestCase {
-	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.RunConfiguration)
-	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *creationWorkflow})
+func (st ExperimentStateTransitionTestCase) IssuesCreationWorkflow() ExperimentStateTransitionTestCase {
+	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.Experiment)
+	return st.IssuesCommand(CreateExperimentWorkflow{Workflow: *creationWorkflow})
 }
 
-func (st RunConfigurationStateTransitionTestCase) IssuesUpdateWorkflow() RunConfigurationStateTransitionTestCase {
-	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.RunConfiguration)
-	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *updateWorkflow})
+func (st ExperimentStateTransitionTestCase) IssuesUpdateWorkflow() ExperimentStateTransitionTestCase {
+	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.Experiment)
+	return st.IssuesCommand(CreateExperimentWorkflow{Workflow: *updateWorkflow})
 }
 
-func (st RunConfigurationStateTransitionTestCase) IssuesDeletionWorkflow() RunConfigurationStateTransitionTestCase {
-	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.RunConfiguration)
-	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *deletionWorkflow})
+func (st ExperimentStateTransitionTestCase) IssuesDeletionWorkflow() ExperimentStateTransitionTestCase {
+	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.Experiment)
+	return st.IssuesCommand(CreateExperimentWorkflow{Workflow: *deletionWorkflow})
 }
 
-func (st RunConfigurationStateTransitionTestCase) DeletesAllWorkflows() RunConfigurationStateTransitionTestCase {
-	return st.IssuesCommand(DeleteRunConfigurationWorkflows{
+func (st ExperimentStateTransitionTestCase) DeletesAllWorkflows() ExperimentStateTransitionTestCase {
+	return st.IssuesCommand(DeleteExperimentWorkflows{
 		Workflows: st.SystemStatus.Workflows,
 	})
 }
 
-func (st RunConfigurationStateTransitionTestCase) AcquireRunConfiguration() RunConfigurationStateTransitionTestCase {
-	return st.IssuesCommand(AcquireRunConfiguration{})
+func (st ExperimentStateTransitionTestCase) AcquireExperiment() ExperimentStateTransitionTestCase {
+	return st.IssuesCommand(AcquireExperiment{})
 }
 
-func (st RunConfigurationStateTransitionTestCase) ReleaseRunConfiguration() RunConfigurationStateTransitionTestCase {
-	return st.IssuesCommand(ReleaseRunConfiguration{})
+func (st ExperimentStateTransitionTestCase) ReleaseExperiment() ExperimentStateTransitionTestCase {
+	return st.IssuesCommand(ReleaseExperiment{})
 }
 
-func (st RunConfigurationStateTransitionTestCase) IssuesCommand(command RunConfigurationCommand) RunConfigurationStateTransitionTestCase {
+func (st ExperimentStateTransitionTestCase) IssuesCommand(command ExperimentCommand) ExperimentStateTransitionTestCase {
 	st.Commands = append(st.Commands, command)
 	return st
 }
 
-func (st RunConfigurationStateTransitionTestCase) DeletionRequested() RunConfigurationStateTransitionTestCase {
-	st.RunConfiguration.DeletionTimestamp = &metav1.Time{time.UnixMilli(1)}
+func (st ExperimentStateTransitionTestCase) DeletionRequested() ExperimentStateTransitionTestCase {
+	st.Experiment.DeletionTimestamp = &metav1.Time{time.UnixMilli(1)}
 	return st
 }
 
-var _ = Describe("RunConfiguration State handler", func() {
+var _ = Describe("Experiment State handler", func() {
 	// TODO: mock workflowFactory
-	var workflowFactory = RunConfigurationWorkflowFactory{
+	var workflowFactory = ExperimentWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
 			Config: configv1.Configuration{
-				DefaultExperiment: "Default",
 				Argo: configv1.ArgoConfiguration{
 					KfpSdkImage:   "kfp-sdk",
 					CompilerImage: "compiler",
@@ -139,201 +138,201 @@ var _ = Describe("RunConfiguration State handler", func() {
 
 	kfpId := "12345"
 	anotherKfpId := "67890"
-	specv1 := RandomRunConfigurationSpec()
-	v0 := pipelinesv1.RunConfigurationSpec{}.ComputeVersion()
+	specv1 := RandomExperimentSpec()
+	v0 := pipelinesv1.ExperimentSpec{}.ComputeVersion()
 	v1 := specv1.ComputeVersion()
 	UnknownState := pipelinesv1.SynchronizationState(RandomString())
 
-	var Check = func(description string, transition RunConfigurationStateTransitionTestCase) TableEntry {
+	var Check = func(description string, transition ExperimentStateTransitionTestCase) TableEntry {
 		return Entry(
 			description,
 			transition,
 		)
 	}
 
-	var From = func(status pipelinesv1.SynchronizationState, id string, version string) RunConfigurationStateTransitionTestCase {
-		runConfiguration := RandomRunConfiguration()
-		runConfiguration.Spec = specv1
-		runConfiguration.Status = pipelinesv1.Status{
+	var From = func(status pipelinesv1.SynchronizationState, id string, version string) ExperimentStateTransitionTestCase {
+		experiment := RandomExperiment()
+		experiment.Spec = specv1
+		experiment.Status = pipelinesv1.Status{
 			SynchronizationState: status,
 			Version:              version,
 			KfpId:                id,
 		}
 
-		return RunConfigurationStateTransitionTestCase{
-			workflowFactory:  workflowFactory,
-			RunConfiguration: runConfiguration,
-			Commands:         []RunConfigurationCommand{},
+		return ExperimentStateTransitionTestCase{
+			workflowFactory: workflowFactory,
+			Experiment:      experiment,
+			Commands:        []ExperimentCommand{},
 		}
 	}
 
-	DescribeTable("State transitions", func(st RunConfigurationStateTransitionTestCase) {
-		var stateHandler = RunConfigurationStateHandler{
+	DescribeTable("State transitions", func(st ExperimentStateTransitionTestCase) {
+		var stateHandler = ExperimentStateHandler{
 			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    workflowFactory,
 		}
-		commands := stateHandler.StateTransition(context.Background(), st.RunConfiguration)
+		commands := stateHandler.StateTransition(context.Background(), st.Experiment)
 		Expect(commands).To(Equal(st.Commands))
 	},
 		Check("Empty",
 			From(UnknownState, "", "").
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty with version",
 			From(UnknownState, "", v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty with id",
 			From(UnknownState, kfpId, "").
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Empty with id and version",
 			From(UnknownState, kfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Creating succeeds",
 			From(pipelinesv1.Creating, "", v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating succeeds with existing KfpId",
 			From(pipelinesv1.Creating, anotherKfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating fails",
 			From(pipelinesv1.Creating, "", v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				WithCreateWorkFlow(argo.WorkflowFailed).
 				To(pipelinesv1.Failed, "", v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
 			From(pipelinesv1.Creating, "", "").
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Failed, "", ""),
 		),
 		Check("Succeeded no update",
 			From(pipelinesv1.Succeeded, kfpId, v1).
-				AcquireRunConfiguration(),
+				AcquireExperiment(),
 		),
 		Check("Succeeded with update",
 			From(pipelinesv1.Succeeded, kfpId, v0).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Succeeded with update but no KfpId",
 			From(pipelinesv1.Succeeded, "", v0).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Succeeded with update but no KfpId and no version",
 			From(pipelinesv1.Succeeded, "", "").
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed no update",
 			From(pipelinesv1.Failed, kfpId, v1).
-				AcquireRunConfiguration(),
+				AcquireExperiment(),
 		),
 		Check("Failed with Update",
 			From(pipelinesv1.Failed, kfpId, v0).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Updating, kfpId, v1).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Failed with Update but no KfpId",
 			From(pipelinesv1.Failed, "", v0).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed with Update but no KfpId and no version",
 			From(pipelinesv1.Failed, "", "").
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Creating, "", v1).
 				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds with kfpId",
 			From(pipelinesv1.Updating, anotherKfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				WithSucceededUpdateWorkflowWithId(kfpId).
 				To(pipelinesv1.Succeeded, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating succeeds without kfpId",
 			From(pipelinesv1.Updating, anotherKfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				WithSucceededUpdateWorkflowWithId("").
 				To(pipelinesv1.Failed, "", v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
 			From(pipelinesv1.Updating, kfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				WithFailedUpdateWorkflow().
 				To(pipelinesv1.Failed, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating without version",
 			From(pipelinesv1.Updating, kfpId, "").
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Failed, kfpId, ""),
 		),
 		Check("Updating without KfpId",
 			From(pipelinesv1.Updating, "", v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Failed, "", v1),
 		),
 		Check("Updating without KfpId or version",
 			From(pipelinesv1.Updating, "", "").
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				To(pipelinesv1.Failed, "", ""),
 		),
 		Check("Deleting from Succeeded",
 			From(pipelinesv1.Succeeded, kfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				DeletionRequested().
 				To(pipelinesv1.Deleting, kfpId, v1).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Succeeded without kfpId",
 			From(pipelinesv1.Succeeded, "", v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				DeletionRequested().
 				To(pipelinesv1.Deleted, "", v1),
 		),
 		Check("Deleting from Failed",
 			From(pipelinesv1.Failed, kfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				DeletionRequested().
 				To(pipelinesv1.Deleting, kfpId, v1).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed without kfpId",
 			From(pipelinesv1.Failed, "", v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				DeletionRequested().
 				To(pipelinesv1.Deleted, "", v1),
 		),
 		Check("Deletion succeeds",
 			From(pipelinesv1.Deleting, kfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowSucceeded).
 				To(pipelinesv1.Deleted, kfpId, v1).
@@ -341,7 +340,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 		),
 		Check("Deletion fails",
 			From(pipelinesv1.Deleting, kfpId, v1).
-				AcquireRunConfiguration().
+				AcquireExperiment().
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowFailed).
 				To(pipelinesv1.Deleting, kfpId, v1).
@@ -349,6 +348,6 @@ var _ = Describe("RunConfiguration State handler", func() {
 		),
 		Check("Stay in deleted",
 			From(pipelinesv1.Deleted, kfpId, v1).
-				ReleaseRunConfiguration(),
+				ReleaseExperiment(),
 		))
 })

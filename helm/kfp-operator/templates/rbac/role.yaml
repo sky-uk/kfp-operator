@@ -21,6 +21,32 @@ rules:
 - apiGroups:
     - pipelines.kubeflow.org
   resources:
+    - experiments
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - experiments/finalizers
+  verbs:
+    - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - experiments/status
+  verbs:
+    - get
+    - patch
+    - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
     - pipelines
   verbs:
     - create

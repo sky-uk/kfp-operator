@@ -128,6 +128,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&pipelinescontrollers.ExperimentReconciler{
+		Client: client,
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err = workflowRepository.SetupWithManager(mgr); err != nil {

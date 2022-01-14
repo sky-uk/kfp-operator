@@ -9,38 +9,38 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 )
 
-type RunConfigurationCommand interface {
-	execute(*RunConfigurationReconciler, context.Context, *pipelinesv1.RunConfiguration) error
+type ExperimentCommand interface {
+	execute(*ExperimentReconciler, context.Context, *pipelinesv1.Experiment) error
 }
 
-type SetRunConfigurationStatus struct {
+type SetExperimentStatus struct {
 	Status pipelinesv1.Status
 }
 
-func SetRunConfigurationSynchronizationStateOnly(runConfiguration *pipelinesv1.RunConfiguration, state pipelinesv1.SynchronizationState) SetRunConfigurationStatus {
-	return SetRunConfigurationStatus{
+func SetExperimentSynchronizationStateOnly(experiment *pipelinesv1.Experiment, state pipelinesv1.SynchronizationState) SetExperimentStatus {
+	return SetExperimentStatus{
 		Status: pipelinesv1.Status{
-			KfpId:                runConfiguration.Status.KfpId,
-			Version:              runConfiguration.Status.Version,
+			KfpId:                experiment.Status.KfpId,
+			Version:              experiment.Status.Version,
 			SynchronizationState: state,
 		},
 	}
 }
 
-func (srcs SetRunConfigurationStatus) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+func (srcs SetExperimentStatus) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("setting run configuration status", LogKeys.OldStatus, rc.Status, LogKeys.NewStatus, srcs.Status)
+	logger.V(1).Info("setting experiment status", LogKeys.OldStatus, rc.Status, LogKeys.NewStatus, srcs.Status)
 
 	rc.Status = srcs.Status
 
 	return reconciler.Client.Status().Update(ctx, rc)
 }
 
-type CreateRunConfigurationWorkflow struct {
+type CreateExperimentWorkflow struct {
 	Workflow argo.Workflow
 }
 
-func (cw CreateRunConfigurationWorkflow) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+func (cw CreateExperimentWorkflow) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("creating child workflow", LogKeys.Workflow, cw.Workflow)
 
@@ -55,11 +55,11 @@ func (cw CreateRunConfigurationWorkflow) execute(reconciler *RunConfigurationRec
 	return nil
 }
 
-type DeleteRunConfigurationWorkflows struct {
+type DeleteExperimentWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (dw DeleteRunConfigurationWorkflows) execute(reconciler *RunConfigurationReconciler, ctx context.Context, _ *pipelinesv1.RunConfiguration) error {
+func (dw DeleteExperimentWorkflows) execute(reconciler *ExperimentReconciler, ctx context.Context, _ *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
 
 	for i := range dw.Workflows {
@@ -78,10 +78,10 @@ func (dw DeleteRunConfigurationWorkflows) execute(reconciler *RunConfigurationRe
 	return nil
 }
 
-type AcquireRunConfiguration struct {
+type AcquireExperiment struct {
 }
 
-func (ar AcquireRunConfiguration) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+func (ar AcquireExperiment) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
 
 	if !containsString(rc.ObjectMeta.Finalizers, finalizerName) {
@@ -93,10 +93,10 @@ func (ar AcquireRunConfiguration) execute(reconciler *RunConfigurationReconciler
 	return nil
 }
 
-type ReleaseRunConfiguration struct {
+type ReleaseExperiment struct {
 }
 
-func (rr ReleaseRunConfiguration) execute(reconciler *RunConfigurationReconciler, ctx context.Context, rc *pipelinesv1.RunConfiguration) error {
+func (rr ReleaseExperiment) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
 
 	if containsString(rc.ObjectMeta.Finalizers, finalizerName) {

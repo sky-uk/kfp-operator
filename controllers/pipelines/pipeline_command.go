@@ -16,6 +16,16 @@ type SetPipelineStatus struct {
 	Status pipelinesv1.Status
 }
 
+func SetPipelineSynchronizationStateOnly(pipeline *pipelinesv1.Pipeline, state pipelinesv1.SynchronizationState) SetPipelineStatus {
+	return SetPipelineStatus{
+		Status: pipelinesv1.Status{
+			KfpId:                pipeline.Status.KfpId,
+			Version:              pipeline.Status.Version,
+			SynchronizationState: state,
+		},
+	}
+}
+
 func (sps SetPipelineStatus) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, pipeline.Status, LogKeys.NewStatus, sps.Status)
