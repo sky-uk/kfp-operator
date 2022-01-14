@@ -10,12 +10,12 @@ The specification of the eventsource follows those of other [generic Argo-Events
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: model-update-eventsource
+  name: run-completion-eventsource
 spec:
   generic:
-    model-update:
+    run-completion:
       insecure: true
-      url: "kfp-operator-model-update-eventsource-server.kfp-operator-system.svc:8080"
+      url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080"
       config: |-
         kfpNamespace: kubeflow-pipelines
 ```
@@ -48,7 +48,7 @@ metadata:
 spec:
   dependencies:
     - name: run-completion-eventsource
-      eventSourceName: model-update-eventsource
+      eventSourceName: run-completion-eventsource
       eventName: run-completion
       filters:
         data:

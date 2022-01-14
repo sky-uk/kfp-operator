@@ -11,7 +11,7 @@ spec:
     {{- include "kfp-operator.eventsourceServer.labels" . | nindent 4 }}
   ports:
     - name: grpc
-      port: 8080
+      port: {{ .Values.eventsourceServer.port }}
       protocol: TCP
       targetPort: grpc
 {{ end }}

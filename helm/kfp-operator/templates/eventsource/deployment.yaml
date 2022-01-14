@@ -35,7 +35,7 @@ spec:
             {{- .Values.eventsourceServer.resources | toYaml | nindent 12 }}
           ports:
             - name: grpc
-              containerPort: {{ .Values.eventsourceServer.port }}
+              containerPort: 50051
               protocol: TCP
       serviceAccountName: {{ .Values.eventsourceServer.serviceAccount.name }}
       terminationGracePeriodSeconds: 10

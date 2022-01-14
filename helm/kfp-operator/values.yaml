@@ -39,7 +39,7 @@ logging:
 eventsourceServer:
   create: true
   metadata: {}
-  port: 50051
+  port: 8080
   mlmdUrl:
   rbac:
     create: true
