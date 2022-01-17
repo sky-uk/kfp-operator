@@ -157,7 +157,7 @@ func furtherEvents(ctx context.Context, stream generic.Eventing_StartEventSource
 		return err
 	}
 
-	actualEvent := RunSucceededEvent{}
+	actualEvent := RunCompletionEvent{}
 	err = json.Unmarshal(event.Payload, &actualEvent)
 	if err != nil {
 		return err
@@ -234,13 +234,14 @@ var _ = Describe("Run completion eventsource", func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runSucceededEventName))
+				Expect(event.Name).To(Equal(runCompletionEventName))
 
-				expectedEvent := RunSucceededEvent{
+				expectedEvent := RunCompletionEvent{
+					Status: Succeeded,
 					PipelineName:          pipelineName,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
-				actualEvent := RunSucceededEvent{}
+				actualEvent := RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -269,12 +270,13 @@ var _ = Describe("Run completion eventsource", func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runSucceededEventName))
+				Expect(event.Name).To(Equal(runCompletionEventName))
 
-				expectedEvent := RunSucceededEvent{
+				expectedEvent := RunCompletionEvent{
+					Status: Succeeded,
 					PipelineName: pipelineName,
 				}
-				actualEvent := RunSucceededEvent{}
+				actualEvent := RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -303,12 +305,13 @@ var _ = Describe("Run completion eventsource", func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runFailedEventName))
+				Expect(event.Name).To(Equal(runCompletionEventName))
 
-				expectedEvent := RunFailedEvent{
+				expectedEvent := RunCompletionEvent{
+					Status: Failed,
 					PipelineName: pipelineName,
 				}
-				actualEvent := RunFailedEvent{}
+				actualEvent := RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -337,12 +340,13 @@ var _ = Describe("Run completion eventsource", func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runSucceededEventName))
+				Expect(event.Name).To(Equal(runCompletionEventName))
 
-				expectedEvent := RunSucceededEvent{
+				expectedEvent := RunCompletionEvent{
+					Status: Succeeded,
 					PipelineName: pipelineName,
 				}
-				actualEvent := RunSucceededEvent{}
+				actualEvent := RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))

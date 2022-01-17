@@ -34,9 +34,8 @@ const (
 	kfpSdkVersionLabel           = "pipelines.kubeflow.org/kfp_sdk_version"
 	workflowPhaseLabel           = "workflows.argoproj.io/phase"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
-	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
-	runSucceededEventName        = "run-succeeded"
-	runFailedEventName           = "run-failed"
+	pipelineSpecAnnotationName = "pipelines.kubeflow.org/pipeline_spec"
+	runCompletionEventName     = "run-completion"
 )
 
 type EventSourceConfig struct {
@@ -55,11 +54,15 @@ type ServingModelArtifact struct {
 	Location string `json:"location"`
 }
 
-type RunFailedEvent struct {
-	PipelineName string
-}
+type RunCompletionStatus string
 
-type RunSucceededEvent struct {
+const (
+	Succeeded  RunCompletionStatus = "succeeded"
+	Failed  RunCompletionStatus = "failed"
+)
+
+type RunCompletionEvent struct {
+	Status RunCompletionStatus
 	PipelineName          string                 `json:"pipelineName"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }
@@ -136,43 +139,40 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 			return
 		}
 
-		var event *generic.Event
+		var runCompletionEvent RunCompletionEvent
 
 		if workflowHasSucceeded(workflow) {
 			modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(stream.Context(), workflowName)
 
-			jsonPayload, err := json.Marshal(RunSucceededEvent{
+			if err != nil {
+				es.Logger.Error(err, "failed to retrieve serving model artifact")
+				return
+			}
+
+			runCompletionEvent = RunCompletionEvent{
+				Status: Succeeded,
 				PipelineName:          pipelineName,
 				ServingModelArtifacts: modelArtifacts,
-			})
-
-			if err != nil {
-				es.Logger.Error(err, "failed to serialise event")
-				return
-			}
-
-			event = &generic.Event{
-				Name:    runSucceededEventName,
-				Payload: jsonPayload,
 			}
 		} else {
-			jsonPayload, err := json.Marshal(RunFailedEvent{
+			runCompletionEvent = RunCompletionEvent{
+				Status: Failed,
 				PipelineName: pipelineName,
-			})
-
-			if err != nil {
-				es.Logger.Error(err, "failed to serialise event")
-				return
-			}
-
-			event = &generic.Event{
-				Name:    runFailedEventName,
-				Payload: jsonPayload,
 			}
 		}
 
-		es.Logger.V(1).Info("sending event", "event", event)
-		if err = stream.Send(event); err != nil {
+		jsonPayload, err := json.Marshal(runCompletionEvent)
+
+		if err != nil {
+			es.Logger.Error(err, "failed to serialise event")
+			return
+		}
+
+		es.Logger.V(1).Info("sending run completion event", "event", runCompletionEvent)
+		if err = stream.Send(&generic.Event{
+			Name:    runCompletionEventName,
+			Payload: jsonPayload,
+		}); err != nil {
 			es.Logger.Error(err, "failed to send event")
 			return
 		}
