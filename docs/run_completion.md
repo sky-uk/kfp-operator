@@ -69,7 +69,7 @@ spec:
         log: {}
 ```
 
-For more information and an in-depth example, see the [Quickstart Guide](./quickstart/README.md#deploy-newly-trained-models) and [Argo-Events Documentation](https://argoproj.github.io/argo-events/)
+For more information and an in-depth example, see the [Quickstart Guide](./quickstart/README.md#deploy-newly-trained-models) and [Argo-Events Documentation](https://argoproj.github.io/argo-events/).
 
 Please make sure to provide an event bus for the eventsource and the sensor to connect to.
 You can define a default event bus, which does not require further configuration on either end, as follows:
