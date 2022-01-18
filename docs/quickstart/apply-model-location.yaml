@@ -21,22 +21,28 @@ apiVersion: argoproj.io/v1alpha1
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: run-completion-sensor
+  name: penguin-pipeline-model-update-sensor
 spec:
   template:
     serviceAccountName: events-sa
   dependencies:
     - name: run-completion-eventsource
       eventSourceName: run-completion-eventsource
-      eventName: run-succeeded
+      eventName: run-completion
       filters:
         data:
+          - path: body
+            template: '{{ ((b64dec .Input) | mustFromJson).status }}'
+            type: string
+            comparator: "="
+            value:
+              - "succeeded"
           - path: body
             template: '{{ ((b64dec .Input) | mustFromJson).pipelineName }}'
             type: string
             comparator: "="
             value:
-              - "penguin-pipeline" # Replace with the name of your pipeline
+              - "penguin-pipeline"
   triggers:
     - template:
         k8s:

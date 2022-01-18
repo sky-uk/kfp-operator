@@ -13,7 +13,7 @@ apiVersion: argoproj.io/v1alpha1
     name: run-completion-eventsource
   spec:
     generic:
-      model-update:
+      run-completion:
         insecure: true
         url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:50051"
         config: |-
@@ -22,31 +22,54 @@ apiVersion: argoproj.io/v1alpha1
 
 The configuration currently has a single field `kfpNamespace` which defines what namespace to watch pipeline workflows in.
 
+The events have the following format:
+
+```json
+{
+  "status": "succeeded|failed",
+  "pipelineName":"{{ PIPELINE_NAME }}",
+  "servingModelArtifacts": [
+    {
+      "name":"{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
+      "location":"gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}"
+    }
+  ]
+}
+```
+
 Note that Argo-Events emits the body of these messages as base64 encoded Json string. 
-A sensor can read these fields as follows:
+A sensor for the pipeline `penguin-pipeline` could look as follows:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: model-update-sensor
+  name: penguin-pipeline-model-update-sensor
 spec:
   dependencies:
-    - name: model-update-eventsource
+    - name: run-completion-eventsource
       eventSourceName: model-update-eventsource
-      eventName: run-succeeded
+      eventName: run-completion
       filters:
         data:
+          - path: body
+            template: '{{ ((b64dec .Input) | mustFromJson).status }}'
+            type: string
+            comparator: "="
+            value:
+              - "succeeded"
           - path: body
             template: '{{ ((b64dec .Input) | mustFromJson).pipelineName }}'
             type: string
             comparator: "="
             value:
-              - "pipeline-name"
+              - "penguin-pipeline"
   triggers:
     - template:
         log: {}
 ```
+
+For more information and an in-depth example, see the [Quickstart Guide](./quickstart/README.md#deploy-newly-trained-models) and [Argo-Events Documentation](https://argoproj.github.io/argo-events/)
 
 Please make sure to provide an event bus for the eventsource and the sensor to connect to.
 You can define a default event bus, which does not require further configuration on either end, as follows:
@@ -59,39 +82,4 @@ metadata:
 spec:
   nats:
     native: {}
-```
-
-## Event Types
-
-The following events are currently emitted:
-
-### Run Failed
-
-**Event Type:** 
-`run-failed`
-
-**Event format:**
-
-```json
-{
-  "pipelineName":"penguin-pipeline"
-}
-```
-
-### Run Succeeded
-
-**Event Type:** `run-succeeded`
-
-**Event format:**
-
-```json
-{
-  "pipelineName":"penguin-pipeline",
-  "servingModelArtifacts": [
-    {
-      "name":"{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
-      "location":"gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}"
-    }
-  ]
-}
 ```

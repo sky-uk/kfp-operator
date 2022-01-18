@@ -58,9 +58,10 @@ EOF
 
 This will trigger run of `penguin-pipeline` once every hour. Note that the cron schedule uses a 6-place space separated syntax as defined [here](https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format).
 
-## Update the serving model location when the pipeline run succeeds
+## Deploy newly trained models
 
 If the operator has been installed with [Argo-Events](https://argoproj.github.io/argo-events/) support, we can now specify eventsources and sensors to update arbitrary Kubernetes config when a pipeline has been trained successfully. 
+In this example we are updating a serving component with the location of the newly trained model.
 
 ```bash
 kubectl apply -f apply-model-location.yaml
