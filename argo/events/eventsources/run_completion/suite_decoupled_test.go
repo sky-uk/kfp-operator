@@ -377,24 +377,6 @@ var _ = Describe("Run completion eventsource", func() {
 	})
 
 	When("A pipeline run succeeds but the artifact store is unavailable", func() {
-		It("Stops processing", func() {
-			WithTestContext(func(ctx context.Context) {
-				pipelineName := randomString()
-				givenMetadataStoreErrors(errors.New("error calling metadata store"))
-
-				stream, err := startClient(ctx)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
-				Expect(err).NotTo(HaveOccurred())
-
-				_, err = stream.Recv()
-				Expect(err).To(HaveOccurred())
-			})
-		})
-	})
-
-	When("A pipeline run succeeds but the artifact store is unavailable", func() {
 		It("Retries", func() {
 			WithTestContext(func(ctx context.Context) {
 				pipelineName := randomString()
