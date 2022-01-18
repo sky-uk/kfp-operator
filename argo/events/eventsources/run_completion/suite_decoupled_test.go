@@ -228,7 +228,7 @@ func WithTestContext(fun func(context.Context)) {
 
 var _ = Describe("Run completion eventsource", func() {
 	When("A pipeline run succeeds and a model has been pushed", func() {
-		It("Triggers an event with a serving model artifacts", func() {
+		It("Triggers an event with serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
 				pipelineName := randomString()
