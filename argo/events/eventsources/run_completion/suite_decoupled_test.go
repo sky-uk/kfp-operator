@@ -394,8 +394,8 @@ var _ = Describe("Run completion eventsource", func() {
 		})
 	})
 
-	When("A pipeline run succeeds but the artifact store is unavailable and the client is restarted", func() {
-		It("Catches up and triggers an event", func() {
+	When("A pipeline run succeeds but the artifact store is unavailable", func() {
+		It("Retries", func() {
 			WithTestContext(func(ctx context.Context) {
 				pipelineName := randomString()
 
