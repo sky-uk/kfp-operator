@@ -1,6 +1,7 @@
 package run_completion
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
@@ -34,8 +35,8 @@ const (
 	kfpSdkVersionLabel           = "pipelines.kubeflow.org/kfp_sdk_version"
 	workflowPhaseLabel           = "workflows.argoproj.io/phase"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
-	pipelineSpecAnnotationName = "pipelines.kubeflow.org/pipeline_spec"
-	runCompletionEventName     = "run-completion"
+	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
+	runCompletionEventName       = "run-completion"
 )
 
 type EventSourceConfig struct {
@@ -57,12 +58,12 @@ type ServingModelArtifact struct {
 type RunCompletionStatus string
 
 const (
-	Succeeded  RunCompletionStatus = "succeeded"
-	Failed  RunCompletionStatus = "failed"
+	Succeeded RunCompletionStatus = "succeeded"
+	Failed    RunCompletionStatus = "failed"
 )
 
 type RunCompletionEvent struct {
-	Status RunCompletionStatus
+	Status                RunCompletionStatus
 	PipelineName          string                 `json:"pipelineName"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }
@@ -117,6 +118,8 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 		*listOptions = kfpWorkflowListOptions
 	})
 
+	ctx, cancel := context.WithCancel(stream.Context())
+
 	informer := factory.ForResource(argoWorkflowsGvr)
 
 	sharedInformer := informer.Informer()
@@ -142,21 +145,22 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 		var runCompletionEvent RunCompletionEvent
 
 		if workflowHasSucceeded(workflow) {
-			modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(stream.Context(), workflowName)
+			modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(ctx, workflowName)
 
 			if err != nil {
 				es.Logger.Error(err, "failed to retrieve serving model artifact")
+				cancel()
 				return
 			}
 
 			runCompletionEvent = RunCompletionEvent{
-				Status: Succeeded,
+				Status:                Succeeded,
 				PipelineName:          pipelineName,
 				ServingModelArtifacts: modelArtifacts,
 			}
 		} else {
 			runCompletionEvent = RunCompletionEvent{
-				Status: Failed,
+				Status:       Failed,
 				PipelineName: pipelineName,
 			}
 		}
@@ -179,7 +183,7 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 
 		path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 		patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-		_, err = es.K8sClient.Resource(argoWorkflowsGvr).Namespace(workflow.GetNamespace()).Patch(stream.Context(), workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+		_, err = es.K8sClient.Resource(argoWorkflowsGvr).Namespace(workflow.GetNamespace()).Patch(ctx, workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 		if err != nil {
 			es.Logger.Error(err, "failed to patch resource")
 			return
@@ -187,7 +191,7 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 	}
 
 	sharedInformer.AddEventHandler(handlerFuncs)
-	sharedInformer.Run(stream.Context().Done())
+	sharedInformer.Run(ctx.Done())
 
 	return nil
 }
