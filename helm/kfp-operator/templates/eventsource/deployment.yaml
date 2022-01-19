@@ -1,4 +1,4 @@
-{{ if .Values.eventsourceServer.install }}
+{{ if .Values.eventsourceServer.create }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -17,4 +17,4 @@ manager:
         tlsConfig:
           insecureSkipVerify: true
 eventsourceServer:
-  install: false
+  create: false
