@@ -8,5 +8,13 @@ manager:
       project: ${DATAFLOW_PROJECT}
     argo:
       serviceAccount: ${OPERATOR_SA}
+  monitoring:
+    rbacSecured: true
+    serviceMonitor:
+      create: true
+      endpointConfiguration:
+        bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+        tlsConfig:
+          insecureSkipVerify: true
 eventsourceServer:
-  install: false
+  create: false

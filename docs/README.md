@@ -29,12 +29,37 @@ The operator can be installed using helm by providing a valid `values.yaml` file
 make helm-install
 ```
 
-When installing with Helm, the above configuration can be set in the `configuration` section of `values.yaml`.
-Note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied.
+Valid configuration options are:
+
+| Parameter name | Description |
+| --- | --- |
+| `containerRegistry` | Container Registry base path for all container images |
+| `namespace.create` | Create the namespace for the operator |
+| `namespace.name` | Operator namespace name |
+| `manager.metadata` | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the manager's pods |
+| `manager.rbac.create` | Create roles and rolebindings for the operator |
+| `manager.serviceAccount.create` | Create the manager's service account |
+| `manager.serviceAccount.name` | Manager service account's name |
+| `manager.resources` | Manager resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) |
+| `manager.configuration` | Manager configuration as defined [above](#configuration) (note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied) |
+| `manager.monitoring.create` | Create the manager's monitoring resources |
+| `manager.monitoring.rbacSecured` | Enable addtional RBAC-based security |
+| `manager.monitoring.serviceMonitor.create` | Create a ServiceMonitor for the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) |
+| `manager.monitoring.serviceMonitor.endpointConfiguration` | Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided) |
+| `logging.verbosity` | Logging verbosity for all components. See the [logging documentation](development/README.md#logging) for valid values |
+| `eventsourceServer.create` | Create the [Argo-Events eventsource server](#eventing-support) |
+| `eventsourceServer.metadata` | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the eventsource server's pods |
+| `eventsourceServer.port` | Service port of the eventsource server |
+| `eventsourceServer.rbac.create` | Create roles and rolebindings for the eventsource server |
+| `eventsourceServer.serviceAccount.create` | Create the eventsource server's service account |
+| `eventsourceServer.serviceAccount.name` | Eventsource server's service account |
+| `eventsourceServer.resources` | Eventsource server resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) |
+
+Examples for these values can be found in the [test configuration](../helm/kfp-operator/test/values.yaml)
 
 ## TFX Pipelines and Components
 
-Unlike imparative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don't have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.
+Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don't have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.
 
 For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the [penguin pipeline](./quickstart/penguin_pipeline/pipeline.py) for an example.
 

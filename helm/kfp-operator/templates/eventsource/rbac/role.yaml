@@ -1,4 +1,4 @@
-{{- if and .Values.eventsourceServer.install .Values.eventsourceServer.rbac.create -}}
+{{- if and .Values.eventsourceServer.create .Values.eventsourceServer.rbac.create -}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
