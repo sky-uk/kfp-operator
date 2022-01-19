@@ -1,0 +1,25 @@
+{{- if and .Values.manager.monitoring.create .Values.manager.monitoring.serviceMonitor.create -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: {{ include "kfp-operator.fullname" . }}-controller-manager-metrics-monitor
+  namespace: {{ .Values.namespace.name }}
+spec:
+  endpoints:
+    - path: /metrics
+      {{ if .Values.manager.monitoring.rbacSecured -}}
+      port: https
+      scheme: https
+      {{- else -}}
+      port: http
+      scheme: http
+      {{- end }}
+      {{ if not (empty .Values.manager.monitoring.serviceMonitor.endpointConfiguration) -}}
+      {{- .Values.manager.monitoring.serviceMonitor.endpointConfiguration | toYaml | nindent 6 }}
+      {{- end }}
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+{{- end }}

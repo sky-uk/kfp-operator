@@ -1,4 +1,4 @@
-{{- if .Values.manager.rbac.create -}}
+{{- if and .Values.manager.rbac.create .Values.manager.monitoring.create .Values.manager.monitoring.rbacSecured -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

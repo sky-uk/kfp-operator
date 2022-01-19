@@ -1,4 +1,4 @@
-{{- if .Values.manager.rbac.create -}}
+{{- if .Values.manager.monitoring.create -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,9 +8,15 @@ metadata:
   namespace: {{ .Values.namespace.name }}
 spec:
   ports:
+    {{ if .Values.manager.monitoring.rbacSecured -}}
     - name: https
       port: 8443
       targetPort: https
+    {{- else -}}
+    - name: http
+      port: 8080
+      targetPort: http
+    {{- end }}
   selector:
     control-plane: controller-manager
 {{- end -}}

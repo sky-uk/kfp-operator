@@ -47,6 +47,12 @@ spec:
             - mountPath: /controller_manager_config.yaml
               name: manager-config
               subPath: controller_manager_config.yaml
+        {{- if .Values.manager.monitoring.create }}
+        {{ if not .Values.manager.monitoring.rbacSecured }}
+          ports:
+            - containerPort: 8080
+              name: http
+        {{- else -}}
         - name: kube-rbac-proxy
           image: gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
           args:
@@ -57,6 +63,8 @@ spec:
           ports:
             - containerPort: 8443
               name: https
+        {{ end }}
+        {{- end }}
       volumes:
         - configMap:
             name: kfp-operator-manager-config
