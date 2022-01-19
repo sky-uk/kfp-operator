@@ -1,8 +1,8 @@
-# Model Update Eventsource
+# Run Completion Eventsource
 
-The Model Update Eventsource allows reacting to finished pipeline runs that produce serving artifacts.
+The Run Completion Eventsource allows reacting to finished pipeline runs.
 
-![Model Serving](./model_serving.png)
+![Model Serving](./run_completion.png)
 
 The specification of the eventsource follows those of other [generic Argo-Events eventsources](https://argoproj.github.io/argo-events/eventsources/generic/):
 
@@ -10,12 +10,12 @@ The specification of the eventsource follows those of other [generic Argo-Events
 apiVersion: argoproj.io/v1alpha1
   kind: EventSource
   metadata:
-    name: model-update-eventsource
+    name: run-completion-eventsource
   spec:
     generic:
-      model-update:
+      run-completion:
         insecure: true
-        url: "kfp-operator-model-update-eventsource-server.kfp-operator-system.svc:50051"
+        url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:50051"
         config: |-
           kfpNamespace: kubeflow-pipelines
 ```
@@ -26,7 +26,8 @@ The events have the following format:
 
 ```json
 {
-  "pipelineName":"penguin-pipeline",
+  "status": "succeeded|failed",
+  "pipelineName":"{{ PIPELINE_NAME }}",
   "servingModelArtifacts": [
     {
       "name":"{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
@@ -37,30 +38,38 @@ The events have the following format:
 ```
 
 Note that Argo-Events emits the body of these messages as base64 encoded Json string. 
-A sensor can read these fields as follows:
+A sensor for the pipeline `penguin-pipeline` could look as follows:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: model-update-sensor
+  name: penguin-pipeline-model-update-sensor
 spec:
   dependencies:
-    - name: model-update-eventsource
+    - name: run-completion-eventsource
       eventSourceName: model-update-eventsource
-      eventName: model-update
+      eventName: run-completion
       filters:
         data:
+          - path: body
+            template: '{{ ((b64dec .Input) | mustFromJson).status }}'
+            type: string
+            comparator: "="
+            value:
+              - "succeeded"
           - path: body
             template: '{{ ((b64dec .Input) | mustFromJson).pipelineName }}'
             type: string
             comparator: "="
             value:
-              - "pipeline-name"
+              - "penguin-pipeline"
   triggers:
     - template:
         log: {}
 ```
+
+For more information and an in-depth example, see the [Quickstart Guide](./quickstart/README.md#deploy-newly-trained-models) and [Argo-Events Documentation](https://argoproj.github.io/argo-events/).
 
 Please make sure to provide an event bus for the eventsource and the sensor to connect to.
 You can define a default event bus, which does not require further configuration on either end, as follows:

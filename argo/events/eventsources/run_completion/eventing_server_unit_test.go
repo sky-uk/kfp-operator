@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package model_update
+package run_completion
 
 import (
 	"fmt"
@@ -76,6 +76,45 @@ var _ = Context("Eventing Server", func() {
 				})
 				Expect(workflowHasSucceeded(workflow)).To(BeTrue())
 			})
+		})
+	})
+
+	Describe("workflowHasFinished", func() {
+		When("The workflow has no status", func() {
+			It("Returns false", func() {
+				workflow := &unstructured.Unstructured{}
+				Expect(workflowHasSucceeded(workflow)).To(BeFalse())
+			})
+		})
+
+		When("The workflow has not finished", func() {
+			DescribeTable("Returns false",
+				func(phase argo.WorkflowPhase) {
+					workflow := &unstructured.Unstructured{}
+					workflow.SetLabels(map[string]string{
+						workflowPhaseLabel: string(phase),
+					})
+					Expect(workflowHasFinished(workflow)).To(BeFalse())
+				},
+				Entry("unknown", argo.WorkflowUnknown),
+				Entry("pending", argo.WorkflowPending),
+				Entry("running", argo.WorkflowRunning),
+			)
+		})
+
+		When("The workflow has finished", func() {
+			DescribeTable("Returns true",
+				func(phase argo.WorkflowPhase) {
+					workflow := &unstructured.Unstructured{}
+					workflow.SetLabels(map[string]string{
+						workflowPhaseLabel: string(phase),
+					})
+					Expect(workflowHasFinished(workflow)).To(BeTrue())
+				},
+				Entry("unknown", argo.WorkflowFailed),
+				Entry("pending", argo.WorkflowError),
+				Entry("running", argo.WorkflowSucceeded),
+			)
 		})
 	})
 

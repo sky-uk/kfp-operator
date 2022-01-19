@@ -75,4 +75,4 @@ The Kubeflow Pipelines operator can optionally be installed with [Argo-Events](h
 
 Currently, we support the following eventsources:
 
-- [Model Update Eventsource](model_updates.md)
+- [Model Update Eventsource](run_completion.md)

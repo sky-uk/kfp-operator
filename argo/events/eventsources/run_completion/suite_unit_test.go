@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package model_update
+package run_completion
 
 import (
 	"testing"
@@ -12,5 +12,5 @@ import (
 
 func TestUnitSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Model Update Unit Suite")
+	RunSpecs(t, "Run completion Unit Suite")
 }

@@ -40,7 +40,7 @@ eventsourceServer:
     create: true
   serviceAccount:
     create: true
-    name: "kfp-operator-model-update-eventsource-server"
+    name: "kfp-operator-run-completion-eventsource-server"
   resources:
     limits:
       cpu: 100m

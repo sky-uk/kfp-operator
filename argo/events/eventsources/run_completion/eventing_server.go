@@ -1,6 +1,7 @@
-package model_update
+package run_completion
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
@@ -35,7 +36,7 @@ const (
 	workflowPhaseLabel           = "workflows.argoproj.io/phase"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
 	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
-	modelUpdateEventName         = "model-update"
+	runCompletionEventName       = "run-completion"
 )
 
 type EventSourceConfig struct {
@@ -54,7 +55,15 @@ type ServingModelArtifact struct {
 	Location string `json:"location"`
 }
 
-type ModelUpdateEvent struct {
+type RunCompletionStatus string
+
+const (
+	Succeeded RunCompletionStatus = "succeeded"
+	Failed    RunCompletionStatus = "failed"
+)
+
+type RunCompletionEvent struct {
+	Status                RunCompletionStatus
 	PipelineName          string                 `json:"pipelineName"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }
@@ -109,6 +118,8 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 		*listOptions = kfpWorkflowListOptions
 	})
 
+	ctx, cancel := context.WithCancel(stream.Context())
+
 	informer := factory.ForResource(argoWorkflowsGvr)
 
 	sharedInformer := informer.Informer()
@@ -118,8 +129,8 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 
 		workflow := newObj.(*unstructured.Unstructured)
 
-		if !workflowHasSucceeded(workflow) {
-			es.Logger.V(2).Info("ignoring workflow that hasn't succeeded")
+		if !workflowHasFinished(workflow) {
+			es.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
 			return
 		}
 
@@ -131,37 +142,48 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 			return
 		}
 
-		modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(stream.Context(), workflowName)
+		var runCompletionEvent RunCompletionEvent
 
-		if len(modelArtifacts) <= 0 {
-			es.Logger.V(2).Info("ignoring succeeded workflow without serving model artifacts")
-			return
+		if workflowHasSucceeded(workflow) {
+			modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(ctx, workflowName)
+
+			if err != nil {
+				es.Logger.Error(err, "failed to retrieve serving model artifact")
+				cancel()
+				return
+			}
+
+			runCompletionEvent = RunCompletionEvent{
+				Status:                Succeeded,
+				PipelineName:          pipelineName,
+				ServingModelArtifacts: modelArtifacts,
+			}
+		} else {
+			runCompletionEvent = RunCompletionEvent{
+				Status:       Failed,
+				PipelineName: pipelineName,
+			}
 		}
 
-		jsonPayload, err := json.Marshal(ModelUpdateEvent{
-			PipelineName:          pipelineName,
-			ServingModelArtifacts: modelArtifacts,
-		})
+		jsonPayload, err := json.Marshal(runCompletionEvent)
 
 		if err != nil {
 			es.Logger.Error(err, "failed to serialise event")
 			return
 		}
 
-		event := &generic.Event{
-			Name:    modelUpdateEventName,
+		es.Logger.V(1).Info("sending run completion event", "event", runCompletionEvent)
+		if err = stream.Send(&generic.Event{
+			Name:    runCompletionEventName,
 			Payload: jsonPayload,
-		}
-
-		es.Logger.V(1).Info("sending event", "event", event)
-		if err = stream.Send(event); err != nil {
+		}); err != nil {
 			es.Logger.Error(err, "failed to send event")
 			return
 		}
 
 		path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 		patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-		_, err = es.K8sClient.Resource(argoWorkflowsGvr).Namespace(workflow.GetNamespace()).Patch(stream.Context(), workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+		_, err = es.K8sClient.Resource(argoWorkflowsGvr).Namespace(workflow.GetNamespace()).Patch(ctx, workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 		if err != nil {
 			es.Logger.Error(err, "failed to patch resource")
 			return
@@ -169,13 +191,22 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 	}
 
 	sharedInformer.AddEventHandler(handlerFuncs)
-	sharedInformer.Run(stream.Context().Done())
+	sharedInformer.Run(ctx.Done())
 
 	return nil
 }
 
 func workflowHasSucceeded(workflow *unstructured.Unstructured) bool {
 	return workflow.GetLabels()[workflowPhaseLabel] == string(argo.WorkflowSucceeded)
+}
+
+func workflowHasFinished(workflow *unstructured.Unstructured) bool {
+	switch workflow.GetLabels()[workflowPhaseLabel] {
+	case string(argo.WorkflowSucceeded), string(argo.WorkflowFailed), string(argo.WorkflowError):
+		return true
+	default:
+		return false
+	}
 }
 
 func jsonPatchPath(segments ...string) string {

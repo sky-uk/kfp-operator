@@ -1,11 +1,12 @@
 //go:build decoupled
 // +build decoupled
 
-package model_update
+package run_completion
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
@@ -38,27 +39,38 @@ const (
 
 type MockMetadataStore struct {
 	results []ServingModelArtifact
+	err     error
 }
 
 func (mms *MockMetadataStore) GetServingModelArtifact(_ context.Context, _ string) ([]ServingModelArtifact, error) {
-	return mms.results, nil
+	return mms.results, mms.err
+}
+
+func resetMetadataStore() {
+	mockMetadataStore.results = nil
+	mockMetadataStore.err = nil
 }
 
 var givenMetadataStoreReturnsArtifactsForPipeline = func(pipelineName string) []ServingModelArtifact {
-	servingModelArtifacts := []ServingModelArtifact{
+	mockMetadataStore.results = []ServingModelArtifact{
 		{
 			randomString(),
 			randomString(),
 		},
 	}
-	mockMetadataStore.results = servingModelArtifacts
+	mockMetadataStore.err = nil
 
-	return servingModelArtifacts
+	return mockMetadataStore.results
+}
+
+var givenMetadataStoreErrors = func(err error) {
+	mockMetadataStore.results = nil
+	mockMetadataStore.err = err
 }
 
 func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Model Update EventSource Decoupled Suite")
+	RunSpecs(t, "Run Completion EventSource Decoupled Suite")
 }
 
 func startClient(ctx context.Context) (generic.Eventing_StartEventSourceClient, error) {
@@ -153,7 +165,7 @@ func furtherEvents(ctx context.Context, stream generic.Eventing_StartEventSource
 		return err
 	}
 
-	actualEvent := ModelUpdateEvent{}
+	actualEvent := RunCompletionEvent{}
 	err = json.Unmarshal(event.Payload, &actualEvent)
 	if err != nil {
 		return err
@@ -209,13 +221,14 @@ func WithTestContext(fun func(context.Context)) {
 	defer cancel()
 
 	Expect(deleteAllWorkflows(ctx)).To(Succeed())
+	resetMetadataStore()
 
 	fun(ctx)
 }
 
-var _ = Describe("Model update eventsource", func() {
-	When("A pipeline run succeeds", func() {
-		It("Triggers an event", func() {
+var _ = Describe("Run completion eventsource", func() {
+	When("A pipeline run succeeds and a model has been pushed", func() {
+		It("Triggers an event with serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
 				pipelineName := randomString()
@@ -229,13 +242,14 @@ var _ = Describe("Model update eventsource", func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(modelUpdateEventName))
+				Expect(event.Name).To(Equal(runCompletionEventName))
 
-				expectedEvent := ModelUpdateEvent{
+				expectedEvent := RunCompletionEvent{
+					Status:                Succeeded,
 					PipelineName:          pipelineName,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
-				actualEvent := ModelUpdateEvent{}
+				actualEvent := RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -250,11 +264,80 @@ var _ = Describe("Model update eventsource", func() {
 		})
 	})
 
-	When("A pipeline run succeeds before the stream is started", func() {
+	When("A pipeline run succeeds and no model has been pushed", func() {
+		It("Triggers an event without a serving model artifacts", func() {
+			WithTestContext(func(ctx context.Context) {
+				stream, err := startClient(ctx)
+				pipelineName := randomString()
+
+				Expect(err).NotTo(HaveOccurred())
+
+				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
+				Expect(err).NotTo(HaveOccurred())
+
+				event, err := stream.Recv()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(event.Name).To(Equal(runCompletionEventName))
+
+				expectedEvent := RunCompletionEvent{
+					Status:       Succeeded,
+					PipelineName: pipelineName,
+				}
+				actualEvent := RunCompletionEvent{}
+				err = json.Unmarshal(event.Payload, &actualEvent)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actualEvent).To(Equal(expectedEvent))
+
+				Eventually(func(g Gomega) {
+					g.Expect(workflowLabel(ctx, workflow.GetName(), workflowUpdateTriggeredLabel)).To(Equal("true"))
+				}).Should(Succeed())
+
+				Expect(triggerUpdate(ctx, workflow.GetName())).To(Succeed())
+				Expect(furtherEvents(ctx, stream)).NotTo(HaveOccurred())
+			})
+		})
+	})
+
+	When("A pipeline run fails", func() {
+		It("Triggers an event", func() {
+			WithTestContext(func(ctx context.Context) {
+				stream, err := startClient(ctx)
+				pipelineName := randomString()
+
+				Expect(err).NotTo(HaveOccurred())
+
+				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowFailed)
+				Expect(err).NotTo(HaveOccurred())
+
+				event, err := stream.Recv()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(event.Name).To(Equal(runCompletionEventName))
+
+				expectedEvent := RunCompletionEvent{
+					Status:       Failed,
+					PipelineName: pipelineName,
+				}
+				actualEvent := RunCompletionEvent{}
+				err = json.Unmarshal(event.Payload, &actualEvent)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actualEvent).To(Equal(expectedEvent))
+
+				Eventually(func(g Gomega) {
+					g.Expect(workflowLabel(ctx, workflow.GetName(), workflowUpdateTriggeredLabel)).To(Equal("true"))
+				}).Should(Succeed())
+
+				Expect(triggerUpdate(ctx, workflow.GetName())).To(Succeed())
+				Expect(furtherEvents(ctx, stream)).NotTo(HaveOccurred())
+			})
+		})
+	})
+
+	When("A pipeline run finishes before the stream is started", func() {
 		It("Catches up and triggers an event", func() {
 			WithTestContext(func(ctx context.Context) {
 				pipelineName := randomString()
-				servingModelArtifacts := givenMetadataStoreReturnsArtifactsForPipeline(pipelineName)
 
 				_, err := createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
@@ -265,13 +348,13 @@ var _ = Describe("Model update eventsource", func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(modelUpdateEventName))
+				Expect(event.Name).To(Equal(runCompletionEventName))
 
-				expectedEvent := ModelUpdateEvent{
-					PipelineName:          pipelineName,
-					ServingModelArtifacts: servingModelArtifacts,
+				expectedEvent := RunCompletionEvent{
+					Status:       Succeeded,
+					PipelineName: pipelineName,
 				}
-				actualEvent := ModelUpdateEvent{}
+				actualEvent := RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -279,7 +362,7 @@ var _ = Describe("Model update eventsource", func() {
 		})
 	})
 
-	When("A pipeline run does not succeed", func() {
+	When("A pipeline run doesn't finish", func() {
 		It("Does not trigger an event", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
@@ -289,6 +372,45 @@ var _ = Describe("Model update eventsource", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(furtherEvents(ctx, stream)).NotTo(HaveOccurred())
+			})
+		})
+	})
+
+	When("A pipeline run succeeds but the artifact store is unavailable", func() {
+		It("Retries", func() {
+			WithTestContext(func(ctx context.Context) {
+				pipelineName := randomString()
+
+				givenMetadataStoreErrors(errors.New("error calling metadata store"))
+
+				stream, err := startClient(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = stream.Recv()
+				Expect(err).To(HaveOccurred())
+
+				servingModelArtifacts := givenMetadataStoreReturnsArtifactsForPipeline(pipelineName)
+
+				stream, err = startClient(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				event, err := stream.Recv()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(event.Name).To(Equal(runCompletionEventName))
+
+				expectedEvent := RunCompletionEvent{
+					Status:                Succeeded,
+					PipelineName:          pipelineName,
+					ServingModelArtifacts: servingModelArtifacts,
+				}
+				actualEvent := RunCompletionEvent{}
+				err = json.Unmarshal(event.Payload, &actualEvent)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actualEvent).To(Equal(expectedEvent))
 			})
 		})
 	})
