@@ -2,10 +2,12 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"strings"
 )
 
 type PipelineCommand interface {
@@ -13,26 +15,40 @@ type PipelineCommand interface {
 }
 
 type SetPipelineStatus struct {
+	Message string
 	Status pipelinesv1.Status
 }
 
-func SetPipelineSynchronizationStateOnly(pipeline *pipelinesv1.Pipeline, state pipelinesv1.SynchronizationState) SetPipelineStatus {
-	return SetPipelineStatus{
-		Status: pipelinesv1.Status{
-			KfpId:                pipeline.Status.KfpId,
-			Version:              pipeline.Status.Version,
-			SynchronizationState: state,
-		},
+func FromState(pipeline *pipelinesv1.Pipeline) *SetPipelineStatus {
+	return &SetPipelineStatus{
+		Status: pipeline.Status,
 	}
+}
+
+func (sps *SetPipelineStatus) To(state pipelinesv1.SynchronizationState) *SetPipelineStatus {
+	sps.Status.SynchronizationState = state
+
+	return sps
+}
+
+func (sps *SetPipelineStatus) WithMessage(message string) *SetPipelineStatus {
+	sps.Message = message
+	return sps
 }
 
 func (sps SetPipelineStatus) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, pipeline.Status, LogKeys.NewStatus, sps.Status)
 
-	pipeline.Status = sps.Status
+	eventMessage := fmt.Sprintf("pipeline status set from %s to %s", pipeline.Status.SynchronizationState, sps.Status.SynchronizationState)
+	eventMessage = strings.Join([]string{eventMessage, sps.Message}, ": ")
 
-	return reconciler.Client.Status().Update(ctx, pipeline)
+	pipeline.Status = sps.Status
+	err := reconciler.Client.Status().Update(ctx, pipeline)
+
+	reconciler.Recorder.Event(pipeline, "Normal", string(sps.Status.SynchronizationState), eventMessage)
+
+	return err
 }
 
 type CreatePipelineWorkflow struct {

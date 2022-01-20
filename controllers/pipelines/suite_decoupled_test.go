@@ -107,6 +107,7 @@ func NewTestPipelineReconciler(k8sManager manager.Manager, workflowRepository Wo
 		Client:       client,
 		Scheme:       k8sManager.GetScheme(),
 		StateHandler: stateHandler,
+		Recorder: k8sManager.GetEventRecorderFor("pipeline-controller"),
 	}
 }
 
@@ -137,6 +138,7 @@ func NewTestRunConfigurationReconciler(k8sManager manager.Manager, workflowRepos
 		Client:       client,
 		Scheme:       k8sManager.GetScheme(),
 		StateHandler: stateHandler,
+		Recorder: k8sManager.GetEventRecorderFor("pipeline-controller"),
 	}
 }
 
@@ -166,6 +168,7 @@ func NewTestExperimentReconciler(k8sManager manager.Manager, workflowRepository 
 		Client:       client,
 		Scheme:       k8sManager.GetScheme(),
 		StateHandler: stateHandler,
+		Recorder: k8sManager.GetEventRecorderFor("pipeline-controller"),
 	}
 }
 

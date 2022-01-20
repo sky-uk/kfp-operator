@@ -109,6 +109,7 @@ func main() {
 			},
 			WorkflowRepository: workflowRepository,
 		},
+		Recorder: mgr.GetEventRecorderFor("pipeline-controller"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)

@@ -3,6 +3,7 @@ package pipelines
 import (
 	"context"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -23,6 +24,7 @@ type PipelineReconciler struct {
 	Client       controllers.OptInClient
 	Scheme       *runtime.Scheme
 	StateHandler PipelineStateHandler
+	Recorder     record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=argoproj.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete
