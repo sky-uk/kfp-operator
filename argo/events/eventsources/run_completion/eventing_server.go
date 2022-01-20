@@ -63,7 +63,7 @@ const (
 )
 
 type RunCompletionEvent struct {
-	Status                RunCompletionStatus
+	Status                RunCompletionStatus    `json:"status"`
 	PipelineName          string                 `json:"pipelineName"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }
