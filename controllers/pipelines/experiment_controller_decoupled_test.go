@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	v1 "k8s.io/api/core/v1"
 )
 
 var _ = Describe("Experiment controller k8s integration", func() {
@@ -83,17 +82,6 @@ var _ = Describe("Experiment controller k8s integration", func() {
 
 			Eventually(testCtx.ExperimentExists).Should(Not(Succeed()))
 			Eventually(testCtx.FetchWorkflow(ExperimentWorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
-
-			Eventually(testCtx.EmittedEventsToMatch(func (g Gomega, events []v1.Event) {
-				g.Expect(events).To(ConsistOf(
-					HaveReason(string(pipelinesv1.Creating)),
-					HaveReason(string(pipelinesv1.Succeeded)),
-					HaveReason(string(pipelinesv1.Updating)),
-					HaveReason(string(pipelinesv1.Succeeded)),
-					HaveReason(string(pipelinesv1.Deleting)),
-					HaveReason(string(pipelinesv1.Deleted)),
-				))
-			})).Should(Succeed())
 		})
 	})
 })

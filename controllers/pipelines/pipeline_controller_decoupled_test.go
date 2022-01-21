@@ -78,7 +78,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 			Eventually(testCtx.PipelineExists).Should(Not(Succeed()))
 			Eventually(testCtx.FetchWorkflow(PipelineWorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
 
-			Eventually(testCtx.EmittedEventsToMatch(func (g Gomega, events []v1.Event) {
+			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(
 					HaveReason(string(pipelinesv1.Creating)),
 					HaveReason(string(pipelinesv1.Succeeded)),

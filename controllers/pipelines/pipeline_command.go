@@ -7,8 +7,15 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"strings"
 )
+
+var EventTypes = struct {
+	Normal string
+	Warning string
+}{
+	Warning: "Warning",
+	Normal: "Normal",
+}
 
 type PipelineCommand interface {
 	execute(*PipelineReconciler, context.Context, *pipelinesv1.Pipeline) error
@@ -16,7 +23,7 @@ type PipelineCommand interface {
 
 type SetPipelineStatus struct {
 	Message string
-	Status pipelinesv1.Status
+	Status  pipelinesv1.Status
 }
 
 func FromState(pipeline *pipelinesv1.Pipeline) *SetPipelineStatus {
@@ -25,8 +32,24 @@ func FromState(pipeline *pipelinesv1.Pipeline) *SetPipelineStatus {
 	}
 }
 
+func FromEmpty() *SetPipelineStatus {
+	return &SetPipelineStatus{}
+}
+
 func (sps *SetPipelineStatus) To(state pipelinesv1.SynchronizationState) *SetPipelineStatus {
 	sps.Status.SynchronizationState = state
+
+	return sps
+}
+
+func (sps *SetPipelineStatus) WithVersion(version string) *SetPipelineStatus {
+	sps.Status.Version = version
+
+	return sps
+}
+
+func (sps *SetPipelineStatus) WithKfpId(kfpId string) *SetPipelineStatus {
+	sps.Status.KfpId = kfpId
 
 	return sps
 }
@@ -36,17 +59,35 @@ func (sps *SetPipelineStatus) WithMessage(message string) *SetPipelineStatus {
 	return sps
 }
 
+func eventMessage(sps SetPipelineStatus) (message string) {
+	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.SynchronizationState), sps.Status.Version)
+
+	if sps.Message != "" {
+		message = fmt.Sprintf("%s: %s", message, sps.Message)
+	}
+
+	return
+}
+
+func eventType(sps SetPipelineStatus) string {
+	if sps.Status.SynchronizationState == pipelinesv1.Failed {
+		return EventTypes.Warning
+	} else {
+	    return EventTypes.Normal
+	}
+}
+
+
 func (sps SetPipelineStatus) execute(reconciler *PipelineReconciler, ctx context.Context, pipeline *pipelinesv1.Pipeline) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, pipeline.Status, LogKeys.NewStatus, sps.Status)
 
-	eventMessage := fmt.Sprintf("pipeline status set from %s to %s", pipeline.Status.SynchronizationState, sps.Status.SynchronizationState)
-	eventMessage = strings.Join([]string{eventMessage, sps.Message}, ": ")
-
 	pipeline.Status = sps.Status
 	err := reconciler.Client.Status().Update(ctx, pipeline)
 
-	reconciler.Recorder.Event(pipeline, "Normal", string(sps.Status.SynchronizationState), eventMessage)
+	if err == nil {
+		reconciler.Recorder.Event(pipeline, eventType(sps), string(sps.Status.SynchronizationState), eventMessage(sps))
+	}
 
 	return err
 }

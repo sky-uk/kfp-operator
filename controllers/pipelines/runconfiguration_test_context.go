@@ -7,7 +7,6 @@ import (
 	"context"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -64,13 +63,4 @@ func (testCtx RunConfigurationTestContext) DeleteRunConfiguration() error {
 	}
 
 	return testCtx.K8sClient.Delete(testCtx.ctx, rc)
-}
-
-func (testCtx RunConfigurationTestContext) EmittedEventsToMatch(matcher func(Gomega, []v1.Event)) func(Gomega) {
-	return func(g Gomega) {
-		eventList := &v1.EventList{}
-		Expect(testCtx.K8sClient.List(testCtx.ctx, eventList, client.MatchingFields{"involvedObject.name": testCtx.RunConfiguration.Name})).To(Succeed())
-
-		matcher(g, eventList.Items)
-	}
 }

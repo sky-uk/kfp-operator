@@ -2,10 +2,8 @@ package pipelines
 
 import (
 	"context"
-	"fmt"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"strings"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -16,7 +14,6 @@ type ExperimentCommand interface {
 }
 
 type SetExperimentStatus struct {
-	Message string
 	Status pipelinesv1.Status
 }
 
@@ -30,30 +27,24 @@ func SetExperimentSynchronizationStateOnly(experiment *pipelinesv1.Experiment, s
 	}
 }
 
-func (ses SetExperimentStatus) execute(reconciler *ExperimentReconciler, ctx context.Context, experiment *pipelinesv1.Experiment) error {
+func (srcs SetExperimentStatus) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, experiment.Status, LogKeys.NewStatus, ses.Status)
+	logger.V(1).Info("setting experiment status", LogKeys.OldStatus, rc.Status, LogKeys.NewStatus, srcs.Status)
 
-	eventMessage := fmt.Sprintf("pipeline status set from %s to %s", experiment.Status.SynchronizationState, ses.Status.SynchronizationState)
-	eventMessage = strings.Join([]string{eventMessage, ses.Message}, ": ")
+	rc.Status = srcs.Status
 
-	experiment.Status = ses.Status
-	err := reconciler.Client.Status().Update(ctx, experiment)
-
-	reconciler.Recorder.Event(experiment, "Normal", string(ses.Status.SynchronizationState), eventMessage)
-
-	return err
+	return reconciler.Client.Status().Update(ctx, rc)
 }
 
 type CreateExperimentWorkflow struct {
 	Workflow argo.Workflow
 }
 
-func (cw CreateExperimentWorkflow) execute(reconciler *ExperimentReconciler, ctx context.Context, experiment *pipelinesv1.Experiment) error {
+func (cw CreateExperimentWorkflow) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("creating child workflow", LogKeys.Workflow, cw.Workflow)
 
-	if err := ctrl.SetControllerReference(experiment, &cw.Workflow, reconciler.Scheme); err != nil {
+	if err := ctrl.SetControllerReference(rc, &cw.Workflow, reconciler.Scheme); err != nil {
 		return err
 	}
 
@@ -90,13 +81,13 @@ func (dw DeleteExperimentWorkflows) execute(reconciler *ExperimentReconciler, ct
 type AcquireExperiment struct {
 }
 
-func (ar AcquireExperiment) execute(reconciler *ExperimentReconciler, ctx context.Context, experiment *pipelinesv1.Experiment) error {
+func (ar AcquireExperiment) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
 
-	if !containsString(experiment.ObjectMeta.Finalizers, finalizerName) {
+	if !containsString(rc.ObjectMeta.Finalizers, finalizerName) {
 		logger.V(2).Info("adding finalizer")
-		experiment.ObjectMeta.Finalizers = append(experiment.ObjectMeta.Finalizers, finalizerName)
-		return reconciler.Client.Update(ctx, experiment)
+		rc.ObjectMeta.Finalizers = append(rc.ObjectMeta.Finalizers, finalizerName)
+		return reconciler.Client.Update(ctx, rc)
 	}
 
 	return nil
@@ -105,13 +96,13 @@ func (ar AcquireExperiment) execute(reconciler *ExperimentReconciler, ctx contex
 type ReleaseExperiment struct {
 }
 
-func (rr ReleaseExperiment) execute(reconciler *ExperimentReconciler, ctx context.Context, experiment *pipelinesv1.Experiment) error {
+func (rr ReleaseExperiment) execute(reconciler *ExperimentReconciler, ctx context.Context, rc *pipelinesv1.Experiment) error {
 	logger := log.FromContext(ctx)
 
-	if containsString(experiment.ObjectMeta.Finalizers, finalizerName) {
+	if containsString(rc.ObjectMeta.Finalizers, finalizerName) {
 		logger.V(2).Info("removing finalizer")
-		experiment.ObjectMeta.Finalizers = removeString(experiment.ObjectMeta.Finalizers, finalizerName)
-		return reconciler.Client.Update(ctx, experiment)
+		rc.ObjectMeta.Finalizers = removeString(rc.ObjectMeta.Finalizers, finalizerName)
+		return reconciler.Client.Update(ctx, rc)
 	}
 
 	return nil
