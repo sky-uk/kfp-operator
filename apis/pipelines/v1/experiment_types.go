@@ -37,6 +37,14 @@ type Experiment struct {
 	Status Status         `json:"status,omitempty"`
 }
 
+func (e *Experiment) GetStatus() Status {
+	return e.Status
+}
+
+func (e *Experiment) SetStatus(status Status) {
+	e.Status = status
+}
+
 func (e Experiment) NamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      e.Name,

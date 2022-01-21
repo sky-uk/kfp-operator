@@ -12,7 +12,7 @@ type ExperimentStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st *ExperimentStateHandler) StateTransition(ctx context.Context, experiment *pipelinesv1.Experiment) (commands []ExperimentCommand) {
+func (st *ExperimentStateHandler) StateTransition(ctx context.Context, experiment *pipelinesv1.Experiment) (commands []Command) {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
@@ -47,15 +47,15 @@ func (st *ExperimentStateHandler) StateTransition(ctx context.Context, experimen
 	}
 
 	if experiment.Status.SynchronizationState == pipelinesv1.Deleted {
-		commands = append([]ExperimentCommand{ReleaseExperiment{}}, commands...)
+		commands = append([]Command{ReleaseResource{}}, commands...)
 	} else {
-		commands = append([]ExperimentCommand{AcquireExperiment{}}, commands...)
+		commands = append([]Command{AcquireResource{}}, commands...)
 	}
 
 	return
 }
 
-func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pipelinesv1.Experiment) []ExperimentCommand {
+func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pipelinesv1.Experiment) []Command {
 	logger := log.FromContext(ctx)
 
 	newRunconfigurationVersion := experiment.Spec.ComputeVersion()
@@ -67,20 +67,20 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 		if err != nil {
 			logger.Error(err, "error constructing update workflow, failing experiment")
 
-			return []ExperimentCommand{
-				SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
+			return []Command{
+				*FromState(experiment).To(pipelinesv1.Failed),
 			}
 		}
 
-		return []ExperimentCommand{
-			SetExperimentStatus{
+		return []Command{
+			SetStatus{
 				Status: pipelinesv1.Status{
 					KfpId:                experiment.Status.KfpId,
 					Version:              newRunconfigurationVersion,
 					SynchronizationState: pipelinesv1.Updating,
 				},
 			},
-			CreateExperimentWorkflow{Workflow: *workflow},
+			CreateWorkflow{Workflow: *workflow},
 		}
 	}
 
@@ -90,29 +90,29 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 	if err != nil {
 		logger.Error(err, "error constructing creation workflow, failing experiment")
 
-		return []ExperimentCommand{
-			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
+		return []Command{
+			*FromState(experiment).To(pipelinesv1.Failed),
 		}
 	}
 
-	return []ExperimentCommand{
-		SetExperimentStatus{
+	return []Command{
+		SetStatus{
 			Status: pipelinesv1.Status{
 				Version:              newRunconfigurationVersion,
 				SynchronizationState: pipelinesv1.Creating,
 			},
 		},
-		CreateExperimentWorkflow{Workflow: *workflow},
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipelinesv1.Experiment) []ExperimentCommand {
+func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipelinesv1.Experiment) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
 	if experiment.Status.KfpId == "" {
-		return []ExperimentCommand{
-			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Deleted),
+		return []Command{
+			*FromState(experiment).To(pipelinesv1.Deleted),
 		}
 	}
 
@@ -121,24 +121,24 @@ func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipel
 	if err != nil {
 		logger.Error(err, "error constructing deletion workflow, failing experiment")
 
-		return []ExperimentCommand{
-			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
+		return []Command{
+			*FromState(experiment).To(pipelinesv1.Failed),
 		}
 	}
 
-	return []ExperimentCommand{
-		SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Deleting),
-		CreateExperimentWorkflow{Workflow: *workflow},
+	return []Command{
+		*FromState(experiment).To(pipelinesv1.Deleting),
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experiment *pipelinesv1.Experiment) []ExperimentCommand {
+func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experiment *pipelinesv1.Experiment) []Command {
 	logger := log.FromContext(ctx)
 	newExperimentVersion := experiment.Spec.ComputeVersion()
 
 	if experiment.Status.Version == newExperimentVersion {
 		logger.V(2).Info("run configuration version has not changed")
-		return []ExperimentCommand{}
+		return []Command{}
 	}
 
 	var workflow *argo.Workflow
@@ -152,8 +152,8 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 		if err != nil {
 			logger.Error(err, "error constructing creation workflow, failing experiment")
 
-			return []ExperimentCommand{
-				SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
+			return []Command{
+				*FromState(experiment).To(pipelinesv1.Failed),
 			}
 		}
 
@@ -165,33 +165,33 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 		if err != nil {
 			logger.Error(err, "error constructing update workflow, failing experiment")
 
-			return []ExperimentCommand{
-				SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
+			return []Command{
+				*FromState(experiment).To(pipelinesv1.Failed),
 			}
 		}
 
 		targetState = pipelinesv1.Updating
 	}
 
-	return []ExperimentCommand{
-		SetExperimentStatus{
+	return []Command{
+		SetStatus{
 			Status: pipelinesv1.Status{
 				KfpId:                experiment.Status.KfpId,
 				Version:              newExperimentVersion,
 				SynchronizationState: targetState,
 			},
 		},
-		CreateExperimentWorkflow{Workflow: *workflow},
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pipelinesv1.Experiment, updateWorkflows []argo.Workflow) []ExperimentCommand {
+func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pipelinesv1.Experiment, updateWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	if experiment.Status.Version == "" || experiment.Status.KfpId == "" {
 		logger.Info("updating run configuration with empty version or kfpId, failing run configuration")
-		return []ExperimentCommand{
-			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
+		return []Command{
+			*FromState(experiment).To(pipelinesv1.Failed),
 		}
 	}
 
@@ -199,7 +199,7 @@ func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pip
 
 	if inProgress != nil {
 		logger.V(2).Info("run configuration update in progress")
-		return []ExperimentCommand{}
+		return []Command{}
 	}
 
 	statusAfterUpdating := func() (newStatus pipelinesv1.Status) {
@@ -231,24 +231,24 @@ func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pip
 		return
 	}
 
-	return []ExperimentCommand{
-		SetExperimentStatus{
+	return []Command{
+		SetStatus{
 			Status: statusAfterUpdating(),
 		},
-		DeleteExperimentWorkflows{
+		DeleteWorkflows{
 			Workflows: updateWorkflows,
 		},
 	}
 }
 
-func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pipelinesv1.Experiment, deletionWorkflows []argo.Workflow) []ExperimentCommand {
+func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pipelinesv1.Experiment, deletionWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(deletionWorkflows)
 
 	if inProgress != nil {
 		logger.V(2).Info("run configuration deletion in progress")
-		return []ExperimentCommand{}
+		return []Command{}
 	}
 
 	newStatus := experiment.Status.DeepCopy()
@@ -262,23 +262,23 @@ func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pip
 		logger.Info("run configuration deletion progress unknown, failing run configuration")
 	}
 
-	return []ExperimentCommand{
-		SetExperimentStatus{
+	return []Command{
+		SetStatus{
 			Status: *newStatus,
 		},
-		DeleteExperimentWorkflows{
+		DeleteWorkflows{
 			Workflows: deletionWorkflows,
 		},
 	}
 }
 
-func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pipelinesv1.Experiment, creationWorkflows []argo.Workflow) []ExperimentCommand {
+func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pipelinesv1.Experiment, creationWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	if experiment.Status.Version == "" {
 		logger.Info("creating run configuration with empty version, failing run configuration")
-		return []ExperimentCommand{
-			SetExperimentSynchronizationStateOnly(experiment, pipelinesv1.Failed),
+		return []Command{
+			*FromState(experiment).To(pipelinesv1.Failed),
 		}
 	}
 
@@ -286,7 +286,7 @@ func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pip
 
 	if inProgress != nil {
 		logger.V(2).Info("run configuration creation in progress")
-		return []ExperimentCommand{}
+		return []Command{}
 	}
 
 	newStatus := experiment.Status.DeepCopy()
@@ -311,11 +311,11 @@ func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pip
 		newStatus.SynchronizationState = pipelinesv1.Failed
 	}
 
-	return []ExperimentCommand{
-		SetExperimentStatus{
+	return []Command{
+		SetStatus{
 			Status: *newStatus,
 		},
-		DeleteExperimentWorkflows{
+		DeleteWorkflows{
 			Workflows: creationWorkflows,
 		},
 	}

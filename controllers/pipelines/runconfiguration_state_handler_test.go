@@ -20,11 +20,11 @@ type RunConfigurationStateTransitionTestCase struct {
 	workflowFactory  RunConfigurationWorkflowFactory
 	RunConfiguration *pipelinesv1.RunConfiguration
 	SystemStatus     StubbedWorkflows
-	Commands         []RunConfigurationCommand
+	Commands         []Command
 }
 
 func (st RunConfigurationStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) RunConfigurationStateTransitionTestCase {
-	return st.IssuesCommand(SetRunConfigurationStatus{Status: pipelinesv1.Status{
+	return st.IssuesCommand(SetStatus{Status: pipelinesv1.Status{
 		KfpId:                id,
 		Version:              version,
 		SynchronizationState: state,
@@ -82,34 +82,34 @@ func (st RunConfigurationStateTransitionTestCase) WithDeletionWorkflow(phase arg
 
 func (st RunConfigurationStateTransitionTestCase) IssuesCreationWorkflow() RunConfigurationStateTransitionTestCase {
 	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.RunConfiguration)
-	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *creationWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st RunConfigurationStateTransitionTestCase) IssuesUpdateWorkflow() RunConfigurationStateTransitionTestCase {
 	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.RunConfiguration)
-	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *updateWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st RunConfigurationStateTransitionTestCase) IssuesDeletionWorkflow() RunConfigurationStateTransitionTestCase {
 	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.RunConfiguration)
-	return st.IssuesCommand(CreateRunConfigurationWorkflow{Workflow: *deletionWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
 func (st RunConfigurationStateTransitionTestCase) DeletesAllWorkflows() RunConfigurationStateTransitionTestCase {
-	return st.IssuesCommand(DeleteRunConfigurationWorkflows{
+	return st.IssuesCommand(DeleteWorkflows{
 		Workflows: st.SystemStatus.Workflows,
 	})
 }
 
 func (st RunConfigurationStateTransitionTestCase) AcquireRunConfiguration() RunConfigurationStateTransitionTestCase {
-	return st.IssuesCommand(AcquireRunConfiguration{})
+	return st.IssuesCommand(AcquireResource{})
 }
 
 func (st RunConfigurationStateTransitionTestCase) ReleaseRunConfiguration() RunConfigurationStateTransitionTestCase {
-	return st.IssuesCommand(ReleaseRunConfiguration{})
+	return st.IssuesCommand(ReleaseResource{})
 }
 
-func (st RunConfigurationStateTransitionTestCase) IssuesCommand(command RunConfigurationCommand) RunConfigurationStateTransitionTestCase {
+func (st RunConfigurationStateTransitionTestCase) IssuesCommand(command Command) RunConfigurationStateTransitionTestCase {
 	st.Commands = append(st.Commands, command)
 	return st
 }
@@ -163,7 +163,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 		return RunConfigurationStateTransitionTestCase{
 			workflowFactory:  workflowFactory,
 			RunConfiguration: runConfiguration,
-			Commands:         []RunConfigurationCommand{},
+			Commands:         []Command{},
 		}
 	}
 

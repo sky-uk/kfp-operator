@@ -20,7 +20,7 @@ type PipelineStateTransitionTestCase struct {
 	workflowFactory PipelineWorkflowFactory
 	Pipeline        *pipelinesv1.Pipeline
 	SystemStatus    StubbedWorkflows
-	Commands        []PipelineCommand
+	Commands        []Command
 }
 
 func (st PipelineStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) PipelineStateTransitionTestCase {
@@ -65,34 +65,34 @@ func (st PipelineStateTransitionTestCase) WithDeletionWorkflow(phase argo.Workfl
 
 func (st PipelineStateTransitionTestCase) IssuesCreationWorkflow() PipelineStateTransitionTestCase {
 	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.Pipeline)
-	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *creationWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st PipelineStateTransitionTestCase) IssuesUpdateWorkflow() PipelineStateTransitionTestCase {
 	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.Pipeline)
-	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *updateWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st PipelineStateTransitionTestCase) IssuesDeletionWorkflow() PipelineStateTransitionTestCase {
 	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.Pipeline)
-	return st.IssuesCommand(CreatePipelineWorkflow{Workflow: *deletionWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
 func (st PipelineStateTransitionTestCase) DeletesAllWorkflows() PipelineStateTransitionTestCase {
-	return st.IssuesCommand(DeletePipelineWorkflows{
+	return st.IssuesCommand(DeleteWorkflows{
 		Workflows: st.SystemStatus.Workflows,
 	})
 }
 
 func (st PipelineStateTransitionTestCase) AcquirePipeline() PipelineStateTransitionTestCase {
-	return st.IssuesCommand(AcquirePipeline{})
+	return st.IssuesCommand(AcquireResource{})
 }
 
 func (st PipelineStateTransitionTestCase) ReleasePipeline() PipelineStateTransitionTestCase {
-	return st.IssuesCommand(ReleasePipeline{})
+	return st.IssuesCommand(ReleaseResource{})
 }
 
-func (st PipelineStateTransitionTestCase) IssuesCommand(command PipelineCommand) PipelineStateTransitionTestCase {
+func (st PipelineStateTransitionTestCase) IssuesCommand(command Command) PipelineStateTransitionTestCase {
 	st.Commands = append(st.Commands, command)
 	return st
 }
@@ -146,7 +146,7 @@ var _ = Describe("Pipeline State handler", func() {
 		return PipelineStateTransitionTestCase{
 			workflowFactory: workflowFactory,
 			Pipeline:        pipeline,
-			Commands:        []PipelineCommand{},
+			Commands:        []Command{},
 		}
 	}
 

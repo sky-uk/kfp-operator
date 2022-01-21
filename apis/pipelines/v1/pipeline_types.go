@@ -50,6 +50,14 @@ type Pipeline struct {
 	Status Status       `json:"status,omitempty"`
 }
 
+func (p *Pipeline) GetStatus() Status {
+	return p.Status
+}
+
+func (p *Pipeline) SetStatus(status Status) {
+	p.Status = status
+}
+
 func (p Pipeline) NamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      p.Name,

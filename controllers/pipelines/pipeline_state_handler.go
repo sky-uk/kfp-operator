@@ -12,7 +12,7 @@ type PipelineStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []PipelineCommand) {
+func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []Command) {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
@@ -47,15 +47,15 @@ func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pi
 	}
 
 	if pipeline.Status.SynchronizationState == pipelinesv1.Deleted {
-		commands = append([]PipelineCommand{ReleasePipeline{}}, commands...)
+		commands = append([]Command{ReleaseResource{}}, commands...)
 	} else {
-		commands = append([]PipelineCommand{AcquirePipeline{}}, commands...)
+		commands = append([]Command{AcquireResource{}}, commands...)
 	}
 
 	return
 }
 
-func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
+func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {
 	logger := log.FromContext(ctx)
 
 	newPipelineVersion := pipeline.Spec.ComputeVersion()
@@ -68,18 +68,18 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 			failureMessage := "error constructing update workflow, failing pipeline"
 			logger.Error(err, failureMessage)
 
-			return []PipelineCommand{
+			return []Command{
 				*FromState(pipeline).
 					To(pipelinesv1.Failed).
 					WithMessage(failureMessage),
 			}
 		}
 
-		return []PipelineCommand{
+		return []Command{
 			*FromState(pipeline).
 				To(pipelinesv1.Updating).
 				WithVersion(newPipelineVersion),
-			CreatePipelineWorkflow{Workflow: *workflow},
+			CreateWorkflow{Workflow: *workflow},
 		}
 	}
 
@@ -90,7 +90,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 		failureMessage := "error constructing creation workflow, failing pipeline"
 		logger.Error(err, failureMessage)
 
-		return []PipelineCommand{
+		return []Command{
 			*FromState(pipeline).
 				To(pipelinesv1.Failed).
 				WithVersion(newPipelineVersion).
@@ -98,20 +98,20 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 		}
 	}
 
-	return []PipelineCommand{
+	return []Command{
 		*FromState(pipeline).
 			To(pipelinesv1.Creating).
 			WithVersion(newPipelineVersion),
-		CreatePipelineWorkflow{Workflow: *workflow},
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
+func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
 	if pipeline.Status.KfpId == "" {
-		return []PipelineCommand{
+		return []Command{
 			*FromState(pipeline).To(pipelinesv1.Deleted),
 		}
 	}
@@ -122,26 +122,26 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 		failureMessage := "error constructing deletion workflow, failing pipeline"
 		logger.Error(err, failureMessage)
 
-		return []PipelineCommand{
+		return []Command{
 			*FromState(pipeline).
 				To(pipelinesv1.Failed).
 				WithMessage(failureMessage),
 		}
 	}
 
-	return []PipelineCommand{
+	return []Command{
 		*FromState(pipeline).To(pipelinesv1.Deleting),
-		CreatePipelineWorkflow{Workflow: *workflow},
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
+func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {
 	logger := log.FromContext(ctx)
 	newPipelineVersion := pipeline.Spec.ComputeVersion()
 
 	if pipeline.Status.Version == newPipelineVersion {
 		logger.V(2).Info("pipeline version has not changed")
-		return []PipelineCommand{}
+		return []Command{}
 	}
 
 	var workflow *argo.Workflow
@@ -160,29 +160,29 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 
 	if err != nil {
 		logger.Info("error constructing workflow, failing pipeline")
-		return []PipelineCommand{
+		return []Command{
 			*FromState(pipeline).
 				To(pipelinesv1.Failed).
 				WithVersion(newPipelineVersion),
 		}
 	}
 
-	return []PipelineCommand{
+	return []Command{
 		*FromState(pipeline).
 			To(targetState).
 			WithVersion(newPipelineVersion),
-		CreatePipelineWorkflow{Workflow: *workflow},
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelinesv1.Pipeline, updateWorkflows []argo.Workflow) []PipelineCommand {
+func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelinesv1.Pipeline, updateWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	if pipeline.Status.Version == "" || pipeline.Status.KfpId == "" {
 		failureMessage := "updating pipeline with empty version or kfpId, failing pipeline"
 		logger.Info(failureMessage)
 
-		return []PipelineCommand{
+		return []Command{
 			*FromState(pipeline).To(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
@@ -191,7 +191,7 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 
 	if inProgress != nil {
 		logger.V(2).Info("pipeline update in progress")
-		return []PipelineCommand{}
+		return []Command{}
 	}
 
 	var newState pipelinesv1.SynchronizationState
@@ -208,25 +208,25 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 		newState = pipelinesv1.Failed
 	}
 
-	return []PipelineCommand{
+	return []Command{
 		*FromState(pipeline).To(newState),
-		DeletePipelineWorkflows{
+		DeleteWorkflows{
 			Workflows: updateWorkflows,
 		},
 	}
 }
 
-func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelinesv1.Pipeline, deletionWorkflows []argo.Workflow) []PipelineCommand {
+func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelinesv1.Pipeline, deletionWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(deletionWorkflows)
 
 	if inProgress != nil {
 		logger.V(2).Info("pipeline deletion in progress")
-		return []PipelineCommand{}
+		return []Command{}
 	}
 
-	var statusCommand *SetPipelineStatus
+	var statusCommand *SetStatus
 
 	if succeeded != nil {
 		logger.Info("pipeline deletion succeeded")
@@ -241,22 +241,22 @@ func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelin
 		statusCommand = FromState(pipeline)
 	}
 
-	return []PipelineCommand{
+	return []Command{
 		*statusCommand,
-		DeletePipelineWorkflows{
+		DeleteWorkflows{
 			Workflows: deletionWorkflows,
 		},
 	}
 }
 
-func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelinesv1.Pipeline, creationWorkflows []argo.Workflow) []PipelineCommand {
+func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelinesv1.Pipeline, creationWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	if pipeline.Status.Version == "" {
 		failureMessage := "creating pipeline with empty version, failing pipeline"
 		logger.Info(failureMessage)
 
-		return []PipelineCommand{
+		return []Command{
 			*FromState(pipeline).To(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
@@ -265,10 +265,10 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 
 	if inProgress != nil {
 		logger.V(2).Info("pipeline creation in progress")
-		return []PipelineCommand{}
+		return []Command{}
 	}
 
-	statusAfterCreating := func() *SetPipelineStatus {
+	statusAfterCreating := func() *SetStatus {
 		if succeeded == nil {
 			var message string
 			if failed != nil {
@@ -304,9 +304,9 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 		return FromState(pipeline).To(pipelinesv1.Succeeded).WithKfpId(idResult)
 	}
 
-	return []PipelineCommand{
+	return []Command{
 		*statusAfterCreating(),
-		DeletePipelineWorkflows{
+		DeleteWorkflows{
 			Workflows: creationWorkflows,
 		},
 	}

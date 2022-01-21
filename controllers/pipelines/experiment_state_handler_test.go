@@ -20,11 +20,11 @@ type ExperimentStateTransitionTestCase struct {
 	workflowFactory ExperimentWorkflowFactory
 	Experiment      *pipelinesv1.Experiment
 	SystemStatus    StubbedWorkflows
-	Commands        []ExperimentCommand
+	Commands        []Command
 }
 
 func (st ExperimentStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) ExperimentStateTransitionTestCase {
-	return st.IssuesCommand(SetExperimentStatus{Status: pipelinesv1.Status{
+	return st.IssuesCommand(SetStatus{Status: pipelinesv1.Status{
 		KfpId:                id,
 		Version:              version,
 		SynchronizationState: state,
@@ -82,34 +82,34 @@ func (st ExperimentStateTransitionTestCase) WithDeletionWorkflow(phase argo.Work
 
 func (st ExperimentStateTransitionTestCase) IssuesCreationWorkflow() ExperimentStateTransitionTestCase {
 	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.Experiment)
-	return st.IssuesCommand(CreateExperimentWorkflow{Workflow: *creationWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st ExperimentStateTransitionTestCase) IssuesUpdateWorkflow() ExperimentStateTransitionTestCase {
 	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.Experiment)
-	return st.IssuesCommand(CreateExperimentWorkflow{Workflow: *updateWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st ExperimentStateTransitionTestCase) IssuesDeletionWorkflow() ExperimentStateTransitionTestCase {
 	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.Experiment)
-	return st.IssuesCommand(CreateExperimentWorkflow{Workflow: *deletionWorkflow})
+	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
 func (st ExperimentStateTransitionTestCase) DeletesAllWorkflows() ExperimentStateTransitionTestCase {
-	return st.IssuesCommand(DeleteExperimentWorkflows{
+	return st.IssuesCommand(DeleteWorkflows{
 		Workflows: st.SystemStatus.Workflows,
 	})
 }
 
 func (st ExperimentStateTransitionTestCase) AcquireExperiment() ExperimentStateTransitionTestCase {
-	return st.IssuesCommand(AcquireExperiment{})
+	return st.IssuesCommand(AcquireResource{})
 }
 
 func (st ExperimentStateTransitionTestCase) ReleaseExperiment() ExperimentStateTransitionTestCase {
-	return st.IssuesCommand(ReleaseExperiment{})
+	return st.IssuesCommand(ReleaseResource{})
 }
 
-func (st ExperimentStateTransitionTestCase) IssuesCommand(command ExperimentCommand) ExperimentStateTransitionTestCase {
+func (st ExperimentStateTransitionTestCase) IssuesCommand(command Command) ExperimentStateTransitionTestCase {
 	st.Commands = append(st.Commands, command)
 	return st
 }
@@ -162,7 +162,7 @@ var _ = Describe("Experiment State handler", func() {
 		return ExperimentStateTransitionTestCase{
 			workflowFactory: workflowFactory,
 			Experiment:      experiment,
-			Commands:        []ExperimentCommand{},
+			Commands:        []Command{},
 		}
 	}
 
