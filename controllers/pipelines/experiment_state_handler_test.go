@@ -23,14 +23,6 @@ type ExperimentStateTransitionTestCase struct {
 	Commands        []Command
 }
 
-func (st ExperimentStateTransitionTestCase) To(state pipelinesv1.SynchronizationState, id string, version string) ExperimentStateTransitionTestCase {
-	return st.IssuesCommand(SetStatus{Status: pipelinesv1.Status{
-		KfpId:                id,
-		Version:              version,
-		SynchronizationState: state,
-	}})
-}
-
 func (st ExperimentStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) ExperimentStateTransitionTestCase {
 	st.SystemStatus.AddWorkflow(*workflow)
 	return st
@@ -177,52 +169,73 @@ var _ = Describe("Experiment State handler", func() {
 		Check("Empty",
 			From(UnknownState, "", "").
 				AcquireExperiment().
-				To(pipelinesv1.Creating, "", v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Creating).
+					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty with version",
 			From(UnknownState, "", v1).
 				AcquireExperiment().
-				To(pipelinesv1.Creating, "", v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Creating).
+					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty with id",
 			From(UnknownState, kfpId, "").
 				AcquireExperiment().
-				To(pipelinesv1.Updating, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Updating).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Empty with id and version",
 			From(UnknownState, kfpId, v1).
 				AcquireExperiment().
-				To(pipelinesv1.Updating, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Updating).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Creating succeeds",
 			From(pipelinesv1.Creating, "", v1).
 				AcquireExperiment().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
-				To(pipelinesv1.Succeeded, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Succeeded).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating succeeds with existing KfpId",
 			From(pipelinesv1.Creating, anotherKfpId, v1).
 				AcquireExperiment().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
-				To(pipelinesv1.Succeeded, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Succeeded).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating fails",
 			From(pipelinesv1.Creating, "", v1).
 				AcquireExperiment().
 				WithCreateWorkFlow(argo.WorkflowFailed).
-				To(pipelinesv1.Failed, "", v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Failed).
+					WithVersion(v1).
+					WithMessage("experiment creation failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
 			From(pipelinesv1.Creating, "", "").
 				AcquireExperiment().
-				To(pipelinesv1.Failed, "", ""),
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Failed).
+					WithMessage("creating experiment with empty version")),
 		),
 		Check("Succeeded no update",
 			From(pipelinesv1.Succeeded, kfpId, v1).
@@ -231,19 +244,26 @@ var _ = Describe("Experiment State handler", func() {
 		Check("Succeeded with update",
 			From(pipelinesv1.Succeeded, kfpId, v0).
 				AcquireExperiment().
-				To(pipelinesv1.Updating, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Updating).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Succeeded with update but no KfpId",
 			From(pipelinesv1.Succeeded, "", v0).
 				AcquireExperiment().
-				To(pipelinesv1.Creating, "", v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Creating).
+					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Succeeded with update but no KfpId and no version",
 			From(pipelinesv1.Succeeded, "", "").
 				AcquireExperiment().
-				To(pipelinesv1.Creating, "", v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Creating).
+					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed no update",
@@ -253,97 +273,139 @@ var _ = Describe("Experiment State handler", func() {
 		Check("Failed with Update",
 			From(pipelinesv1.Failed, kfpId, v0).
 				AcquireExperiment().
-				To(pipelinesv1.Updating, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Updating).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Failed with Update but no KfpId",
 			From(pipelinesv1.Failed, "", v0).
 				AcquireExperiment().
-				To(pipelinesv1.Creating, "", v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Creating).
+					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed with Update but no KfpId and no version",
 			From(pipelinesv1.Failed, "", "").
 				AcquireExperiment().
-				To(pipelinesv1.Creating, "", v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Creating).
+					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds with kfpId",
 			From(pipelinesv1.Updating, anotherKfpId, v1).
 				AcquireExperiment().
 				WithSucceededUpdateWorkflowWithId(kfpId).
-				To(pipelinesv1.Succeeded, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Succeeded).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating succeeds without kfpId",
 			From(pipelinesv1.Updating, anotherKfpId, v1).
 				AcquireExperiment().
 				WithSucceededUpdateWorkflowWithId("").
-				To(pipelinesv1.Failed, "", v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Failed).
+					WithVersion(v1).
+					WithMessage("could not retrieve kfpId")).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
 			From(pipelinesv1.Updating, kfpId, v1).
 				AcquireExperiment().
 				WithFailedUpdateWorkflow().
-				To(pipelinesv1.Failed, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Failed).
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage("experiment update failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating without version",
 			From(pipelinesv1.Updating, kfpId, "").
 				AcquireExperiment().
-				To(pipelinesv1.Failed, kfpId, ""),
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Failed).
+					WithKfpId(kfpId).
+					WithMessage("updating experiment with empty version or kfpId")),
 		),
 		Check("Updating without KfpId",
 			From(pipelinesv1.Updating, "", v1).
 				AcquireExperiment().
-				To(pipelinesv1.Failed, "", v1),
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Failed).
+					WithVersion(v1).
+					WithMessage("updating experiment with empty version or kfpId")),
 		),
 		Check("Updating without KfpId or version",
 			From(pipelinesv1.Updating, "", "").
 				AcquireExperiment().
-				To(pipelinesv1.Failed, "", ""),
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Failed).
+					WithMessage("updating experiment with empty version or kfpId")),
 		),
 		Check("Deleting from Succeeded",
 			From(pipelinesv1.Succeeded, kfpId, v1).
 				AcquireExperiment().
 				DeletionRequested().
-				To(pipelinesv1.Deleting, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Deleting).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Succeeded without kfpId",
 			From(pipelinesv1.Succeeded, "", v1).
 				AcquireExperiment().
 				DeletionRequested().
-				To(pipelinesv1.Deleted, "", v1),
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Deleted).
+					WithVersion(v1)),
 		),
 		Check("Deleting from Failed",
 			From(pipelinesv1.Failed, kfpId, v1).
 				AcquireExperiment().
 				DeletionRequested().
-				To(pipelinesv1.Deleting, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Deleting).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed without kfpId",
 			From(pipelinesv1.Failed, "", v1).
 				AcquireExperiment().
 				DeletionRequested().
-				To(pipelinesv1.Deleted, "", v1),
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Deleted).
+					WithVersion(v1)),
 		),
 		Check("Deletion succeeds",
 			From(pipelinesv1.Deleting, kfpId, v1).
 				AcquireExperiment().
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowSucceeded).
-				To(pipelinesv1.Deleted, kfpId, v1).
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Deleted).
+					WithKfpId(kfpId).
+					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
 		Check("Deletion fails",
 			From(pipelinesv1.Deleting, kfpId, v1).
 				AcquireExperiment().
 				DeletionRequested().
+				IssuesCommand(*NewSetStatus().
+				WithState(pipelinesv1.Deleting).
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage("experiment deletion failed")).
 				WithDeletionWorkflow(argo.WorkflowFailed).
-				To(pipelinesv1.Deleting, kfpId, v1).
 				DeletesAllWorkflows(),
 		),
 		Check("Stay in deleted",

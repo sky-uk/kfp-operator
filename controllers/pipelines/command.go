@@ -35,17 +35,17 @@ type SetStatus struct {
 	Status  pipelinesv1.Status
 }
 
-func FromState(resource Resource) *SetStatus {
+func From(status pipelinesv1.Status) *SetStatus {
 	return &SetStatus{
-		Status: resource.GetStatus(),
+		Status: status,
 	}
 }
 
-func FromEmpty() *SetStatus {
+func NewSetStatus() *SetStatus {
 	return &SetStatus{}
 }
 
-func (sps *SetStatus) To(state pipelinesv1.SynchronizationState) *SetStatus {
+func (sps *SetStatus) WithState(state pipelinesv1.SynchronizationState) *SetStatus {
 	sps.Status.SynchronizationState = state
 
 	return sps
