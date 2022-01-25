@@ -229,7 +229,7 @@ var _ = Describe("Pipeline State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
-					WithMessage("pipeline creation failed, failing pipeline")).
+					WithMessage("pipeline creation failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
@@ -237,7 +237,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(pipelinesv1.Failed).
-					WithMessage("creating pipeline with empty version, failing pipeline")),
+					WithMessage("creating pipeline with empty version")),
 		),
 		Check("Succeeded no update",
 			From(pipelinesv1.Succeeded, kfpId, v1).
@@ -314,7 +314,8 @@ var _ = Describe("Pipeline State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).
-					WithVersion(v1)).
+					WithVersion(v1).
+					WithMessage("pipeline update failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating without version",
@@ -323,7 +324,7 @@ var _ = Describe("Pipeline State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).
-					WithMessage("updating pipeline with empty version or kfpId, failing pipeline")),
+					WithMessage("updating pipeline with empty version or kfpId")),
 		),
 		Check("Updating without KfpId",
 			From(pipelinesv1.Updating, "", v1).
@@ -331,14 +332,14 @@ var _ = Describe("Pipeline State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
-					WithMessage("updating pipeline with empty version or kfpId, failing pipeline")),
+					WithMessage("updating pipeline with empty version or kfpId")),
 		),
 		Check("Updating without KfpId or version",
 			From(pipelinesv1.Updating, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(pipelinesv1.Failed).
-					WithMessage("updating pipeline with empty version or kfpId, failing pipeline")),
+					WithMessage("updating pipeline with empty version or kfpId")),
 		),
 		Check("Deleting from Succeeded",
 			From(pipelinesv1.Succeeded, kfpId, v1).

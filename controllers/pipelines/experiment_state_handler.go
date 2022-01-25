@@ -59,7 +59,7 @@ func (st *ExperimentStateHandler) StateTransition(ctx context.Context, experimen
 func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pipelinesv1.Experiment) []Command {
 	logger := log.FromContext(ctx)
 
-	newExperimentVErsion := experiment.Spec.ComputeVersion()
+	newExperimentVersion := experiment.Spec.ComputeVersion()
 
 	if experiment.Status.KfpId != "" {
 		logger.Info("empty state but KfpId already exists, updating experiment")
@@ -77,7 +77,7 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 		return []Command{
 			*From(experiment.Status).
 				WithSynchronizationState(pipelinesv1.Updating).
-				WithVersion(newExperimentVErsion),
+				WithVersion(newExperimentVersion),
 			CreateWorkflow{Workflow: *workflow},
 		}
 	}
@@ -97,7 +97,7 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 	return []Command{
 		SetStatus{
 			Status: pipelinesv1.Status{
-				Version:              newExperimentVErsion,
+				Version:              newExperimentVersion,
 				SynchronizationState: pipelinesv1.Creating,
 			},
 		},
@@ -236,14 +236,14 @@ func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pip
 	}
 }
 
-func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pipelinesv1.Experiment, deletionWorkflows []argo.Workflow) (commands []Command) {
+func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pipelinesv1.Experiment, deletionWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(deletionWorkflows)
 
 	if inProgress != nil {
 		logger.V(2).Info("experiment deletion in progress")
-		return
+		return []Command{}
 	}
 
 	var setStatusCommand *SetStatus
@@ -272,7 +272,7 @@ func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pip
 	}
 }
 
-func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pipelinesv1.Experiment, creationWorkflows []argo.Workflow) (commands []Command) {
+func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pipelinesv1.Experiment, creationWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	if experiment.Status.Version == "" {

@@ -59,7 +59,7 @@ func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, run
 func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []Command {
 	logger := log.FromContext(ctx)
 
-	newRunConfigurationVErsion := runConfiguration.Spec.ComputeVersion()
+	newRunConfigurationVersion := runConfiguration.Spec.ComputeVersion()
 
 	if runConfiguration.Status.KfpId != "" {
 		logger.Info("empty state but KfpId already exists, updating runConfiguration")
@@ -77,7 +77,7 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 		return []Command{
 			*From(runConfiguration.Status).
 				WithSynchronizationState(pipelinesv1.Updating).
-				WithVersion(newRunConfigurationVErsion),
+				WithVersion(newRunConfigurationVersion),
 			CreateWorkflow{Workflow: *workflow},
 		}
 	}
@@ -97,7 +97,7 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 	return []Command{
 		SetStatus{
 			Status: pipelinesv1.Status{
-				Version:              newRunConfigurationVErsion,
+				Version:              newRunConfigurationVersion,
 				SynchronizationState: pipelinesv1.Creating,
 			},
 		},
@@ -236,14 +236,14 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 	}
 }
 
-func (st RunConfigurationStateHandler) onDeleting(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, deletionWorkflows []argo.Workflow) (commands []Command) {
+func (st RunConfigurationStateHandler) onDeleting(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, deletionWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(deletionWorkflows)
 
 	if inProgress != nil {
 		logger.V(2).Info("run configuration deletion in progress")
-		return
+		return []Command{}
 	}
 
 	var setStatusCommand *SetStatus
@@ -272,7 +272,7 @@ func (st RunConfigurationStateHandler) onDeleting(ctx context.Context, runConfig
 	}
 }
 
-func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, creationWorkflows []argo.Workflow) (commands []Command) {
+func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, creationWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	if runConfiguration.Status.Version == "" {
