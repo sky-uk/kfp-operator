@@ -162,7 +162,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(UnknownState, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -170,7 +170,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(UnknownState, "", v1).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -178,7 +178,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(UnknownState, kfpId, "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -187,7 +187,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(UnknownState, kfpId, v1).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -197,7 +197,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				WithSucceededCreateWorkflow(kfpId, v1).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Succeeded).
+				WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -207,7 +207,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				WithSucceededCreateWorkflow(kfpId, v1).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Succeeded).
+				WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -217,7 +217,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				WithSucceededCreateWorkflow(kfpId, "").
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).WithVersion(v1).
 					WithMessage("pipeline creation succeeded but version upload failed")).
 				DeletesAllWorkflows(),
@@ -227,7 +227,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				WithFailedCreateWorkflow().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
 					WithMessage("pipeline creation failed, failing pipeline")).
 				DeletesAllWorkflows(),
@@ -236,7 +236,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Creating, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithMessage("creating pipeline with empty version, failing pipeline")),
 		),
 		Check("Succeeded no update",
@@ -247,7 +247,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Succeeded, kfpId, v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -256,7 +256,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Succeeded, "", v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -264,7 +264,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Succeeded, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -276,7 +276,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Failed, kfpId, v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -285,7 +285,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Failed, "", v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -293,7 +293,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Failed, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -302,7 +302,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				WithUpdateWorkflow(argo.WorkflowSucceeded).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Succeeded).
+				WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -312,7 +312,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				WithUpdateWorkflow(argo.WorkflowFailed).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -321,7 +321,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Updating, kfpId, "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).
 					WithMessage("updating pipeline with empty version or kfpId, failing pipeline")),
 		),
@@ -329,7 +329,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Updating, "", v1).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
 					WithMessage("updating pipeline with empty version or kfpId, failing pipeline")),
 		),
@@ -337,7 +337,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Updating, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithMessage("updating pipeline with empty version or kfpId, failing pipeline")),
 		),
 		Check("Deleting from Succeeded",
@@ -345,7 +345,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleting).
+				WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
@@ -355,7 +355,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleted).
+				WithSynchronizationState(pipelinesv1.Deleted).
 					WithVersion(v1)),
 		),
 		Check("Deleting from Failed",
@@ -363,7 +363,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleting).
+				WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
@@ -373,7 +373,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleted).
+				WithSynchronizationState(pipelinesv1.Deleted).
 					WithVersion(v1)),
 		),
 		Check("Deletion succeeds",
@@ -382,7 +382,7 @@ var _ = Describe("Pipeline State handler", func() {
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowSucceeded).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleted).
+				WithSynchronizationState(pipelinesv1.Deleted).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -392,7 +392,7 @@ var _ = Describe("Pipeline State handler", func() {
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleting).
+				WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage("pipeline deletion failed")).

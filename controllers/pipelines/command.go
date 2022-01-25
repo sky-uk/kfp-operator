@@ -45,7 +45,7 @@ func NewSetStatus() *SetStatus {
 	return &SetStatus{}
 }
 
-func (sps *SetStatus) WithState(state pipelinesv1.SynchronizationState) *SetStatus {
+func (sps *SetStatus) WithSynchronizationState(state pipelinesv1.SynchronizationState) *SetStatus {
 	sps.Status.SynchronizationState = state
 
 	return sps

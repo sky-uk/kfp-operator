@@ -70,14 +70,14 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 
 			return []Command{
 				*From(pipeline.Status).
-					WithState(pipelinesv1.Failed).
+					WithSynchronizationState(pipelinesv1.Failed).
 					WithMessage(failureMessage),
 			}
 		}
 
 		return []Command{
 			*From(pipeline.Status).
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 				WithVersion(newPipelineVersion),
 			CreateWorkflow{Workflow: *workflow},
 		}
@@ -92,7 +92,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 
 		return []Command{
 			*From(pipeline.Status).
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 				WithVersion(newPipelineVersion).
 				WithMessage(failureMessage),
 		}
@@ -100,7 +100,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 
 	return []Command{
 		*From(pipeline.Status).
-			WithState(pipelinesv1.Creating).
+			WithSynchronizationState(pipelinesv1.Creating).
 			WithVersion(newPipelineVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
@@ -112,7 +112,7 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 
 	if pipeline.Status.KfpId == "" {
 		return []Command{
-			*From(pipeline.Status).WithState(pipelinesv1.Deleted),
+			*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleted),
 		}
 	}
 
@@ -124,13 +124,13 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 
 		return []Command{
 			*From(pipeline.Status).
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 				WithMessage(failureMessage),
 		}
 	}
 
 	return []Command{
-		*From(pipeline.Status).WithState(pipelinesv1.Deleting),
+		*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleting),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -162,14 +162,14 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 		logger.Info("error constructing workflow, failing pipeline")
 		return []Command{
 			*From(pipeline.Status).
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 				WithVersion(newPipelineVersion),
 		}
 	}
 
 	return []Command{
 		*From(pipeline.Status).
-			WithState(targetState).
+			WithSynchronizationState(targetState).
 			WithVersion(newPipelineVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
@@ -183,7 +183,7 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 		logger.Info(failureMessage)
 
 		return []Command{
-			*From(pipeline.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -209,7 +209,7 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 	}
 
 	return []Command{
-		*From(pipeline.Status).WithState(newState),
+		*From(pipeline.Status).WithSynchronizationState(newState),
 		DeleteWorkflows{
 			Workflows: updateWorkflows,
 		},
@@ -230,7 +230,7 @@ func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelin
 
 	if succeeded != nil {
 		logger.Info("pipeline deletion succeeded")
-		setStatusCommand = From(pipeline.Status).WithState(pipelinesv1.Deleted)
+		setStatusCommand = From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleted)
 	} else {
 		var failureMessage string
 
@@ -261,7 +261,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 
 		return []Command{
 			*From(pipeline.Status).
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 				WithMessage(failureMessage),
 		}
 	}
@@ -283,7 +283,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 			}
 
 			logger.Info(message)
-			return From(pipeline.Status).WithState(pipelinesv1.Failed).WithMessage(message)
+			return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(message)
 		}
 
 		idResult, err := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineIdParameterName)
@@ -291,7 +291,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 		if err != nil {
 			failureMessage := "could not retrieve kfpId, failing pipeline"
 			logger.Error(err, failureMessage)
-			return From(pipeline.Status).WithState(pipelinesv1.Failed)
+			return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed)
 		}
 
 		versionResult, _ := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineVersionParameterName)
@@ -300,13 +300,13 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 			message := "pipeline creation succeeded but version upload failed"
 			logger.Info(message)
 			return From(pipeline.Status).
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 				WithKfpId(idResult).
 				WithMessage(message)
 		}
 
 		logger.Info("pipeline creation succeeded")
-		return From(pipeline.Status).WithState(pipelinesv1.Succeeded).WithKfpId(idResult)
+		return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Succeeded).WithKfpId(idResult)
 	}
 
 	return []Command{

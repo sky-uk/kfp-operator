@@ -170,7 +170,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(UnknownState, "", "").
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -178,7 +178,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(UnknownState, "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -186,7 +186,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(UnknownState, kfpId, "").
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -195,7 +195,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(UnknownState, kfpId, v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -205,7 +205,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Succeeded).
+				WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -215,7 +215,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Succeeded).
+				WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -225,7 +225,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				WithCreateWorkFlow(argo.WorkflowFailed).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
 					WithMessage("experiment creation failed")).
 				DeletesAllWorkflows(),
@@ -234,7 +234,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Creating, "", "").
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithMessage("creating experiment with empty version")),
 		),
 		Check("Succeeded no update",
@@ -245,7 +245,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Succeeded, kfpId, v0).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -254,7 +254,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Succeeded, "", v0).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -262,7 +262,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Succeeded, "", "").
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -274,7 +274,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Failed, kfpId, v0).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -283,7 +283,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Failed, "", v0).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -291,7 +291,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Failed, "", "").
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Creating).
+				WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -300,7 +300,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				WithSucceededUpdateWorkflowWithId(kfpId).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Succeeded).
+				WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -310,7 +310,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				WithSucceededUpdateWorkflowWithId("").
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
 					WithMessage("could not retrieve kfpId")).
 				DeletesAllWorkflows(),
@@ -320,7 +320,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				WithFailedUpdateWorkflow().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage("experiment update failed")).
@@ -330,7 +330,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Updating, kfpId, "").
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).
 					WithMessage("updating experiment with empty version or kfpId")),
 		),
@@ -338,7 +338,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Updating, "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
 					WithMessage("updating experiment with empty version or kfpId")),
 		),
@@ -346,7 +346,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Updating, "", "").
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Failed).
+				WithSynchronizationState(pipelinesv1.Failed).
 					WithMessage("updating experiment with empty version or kfpId")),
 		),
 		Check("Deleting from Succeeded",
@@ -354,7 +354,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleting).
+				WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
@@ -364,7 +364,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleted).
+				WithSynchronizationState(pipelinesv1.Deleted).
 					WithVersion(v1)),
 		),
 		Check("Deleting from Failed",
@@ -372,7 +372,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleting).
+				WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
@@ -382,7 +382,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleted).
+				WithSynchronizationState(pipelinesv1.Deleted).
 					WithVersion(v1)),
 		),
 		Check("Deletion succeeds",
@@ -391,7 +391,7 @@ var _ = Describe("Experiment State handler", func() {
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowSucceeded).
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleted).
+				WithSynchronizationState(pipelinesv1.Deleted).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -401,7 +401,7 @@ var _ = Describe("Experiment State handler", func() {
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithState(pipelinesv1.Deleting).
+				WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage("experiment deletion failed")).

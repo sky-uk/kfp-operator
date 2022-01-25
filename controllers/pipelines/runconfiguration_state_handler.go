@@ -70,13 +70,13 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 			return []Command{
-				*From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 			}
 		}
 
 		return []Command{
 			*From(runConfiguration.Status).
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 				WithVersion(newRunConfigurationVErsion),
 			CreateWorkflow{Workflow: *workflow},
 		}
@@ -90,7 +90,7 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 		logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 		return []Command{
-			*From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -111,7 +111,7 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 
 	if runConfiguration.Status.KfpId == "" {
 		return []Command{
-			*From(runConfiguration.Status).WithState(pipelinesv1.Deleted),
+			*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Deleted),
 		}
 	}
 
@@ -122,12 +122,12 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 		logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 		return []Command{
-			*From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
 	return []Command{
-		*From(runConfiguration.Status).WithState(pipelinesv1.Deleting),
+		*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Deleting),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -154,7 +154,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 			return []Command{
-				*From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 			}
 		}
 
@@ -168,7 +168,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 			return []Command{
-				*From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 			}
 		}
 
@@ -177,7 +177,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 
 	return []Command{
 		*From(runConfiguration.Status).
-			WithState(targetState).
+			WithSynchronizationState(targetState).
 			WithVersion(newRunConfigurationVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
@@ -191,7 +191,7 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 		logger.Info(fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 		return []Command{
-			*From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -213,7 +213,7 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 			}
 
 			logger.Info(fmt.Sprintf("%s, failing run configuration", failureMessage))
-			return From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage)
+			return From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 		}
 
 		idResult, _ := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
@@ -221,11 +221,11 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 		if idResult == "" {
 			failureMessage := "could not retrieve kfpId"
 			logger.Info(fmt.Sprintf("%s, failing run configuration", failureMessage))
-			return From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithKfpId("").WithMessage(failureMessage)
+			return From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithKfpId("").WithMessage(failureMessage)
 		}
 
 		logger.Info("run configuration update succeeded")
-		return From(runConfiguration.Status).WithState(pipelinesv1.Succeeded).WithKfpId(idResult)
+		return From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Succeeded).WithKfpId(idResult)
 	}
 
 	return []Command{
@@ -250,7 +250,7 @@ func (st RunConfigurationStateHandler) onDeleting(ctx context.Context, runConfig
 
 	if succeeded != nil {
 		logger.Info("run configuration deletion succeeded")
-		setStatusCommand = From(runConfiguration.Status).WithState(pipelinesv1.Deleted)
+		setStatusCommand = From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Deleted)
 	} else {
 		var failureMessage string
 
@@ -280,7 +280,7 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 		logger.Info(fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 		return []Command{
-			*From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -300,9 +300,9 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
-			setStatusCommand = From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage)
+			setStatusCommand = From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 		} else {
-			setStatusCommand = From(runConfiguration.Status).WithState(pipelinesv1.Succeeded).WithKfpId(idResult)
+			setStatusCommand = From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Succeeded).WithKfpId(idResult)
 		}
 	} else {
 		var failureMessage string
@@ -314,7 +314,7 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 		}
 
 		logger.Info(fmt.Sprintf("%s, failing run configuration", failureMessage))
-		setStatusCommand = From(runConfiguration.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage)
+		setStatusCommand = From(runConfiguration.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 	}
 
 	return []Command{

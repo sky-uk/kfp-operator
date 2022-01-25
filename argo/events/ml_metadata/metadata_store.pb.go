@@ -3273,7 +3273,7 @@ type ListOperationOptions struct {
 	//    - contexts_a.name = 'my_run'
 	//    - contexts_a.create_time_since_epoch = 1626761453
 	//    - contexts_a.last_update_time_since_epoch = 1626761453
-	//    WithState filter nodes with conditions on multiple contexts:
+	//    To filter nodes with conditions on multiple contexts:
 	//    - contexts_a.name = 'my_run' AND contexts_b.name = 'my_pipeline'
 	//
 	// e) to filter nodes condition on their properties

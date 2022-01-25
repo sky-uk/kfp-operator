@@ -16,7 +16,7 @@ var _ = Describe("eventMessage", func() {
 		version := RandomString()
 		Expect(
 			eventMessage(*NewSetStatus().
-				WithState(state).
+				WithSynchronizationState(state).
 				WithVersion(version),
 			),
 		).To(Equal(fmt.Sprintf(`%s [version: "%s"]`, string(state), version)))
@@ -34,7 +34,7 @@ var _ = Describe("eventMessage", func() {
 
 		Expect(
 			eventMessage(*NewSetStatus().
-				WithState(state).
+				WithSynchronizationState(state).
 				WithMessage(message),
 			),
 		).To(HaveSuffix(fmt.Sprintf(": %s", message)))
@@ -51,7 +51,7 @@ var _ = Describe("eventMessage", func() {
 var _ = Describe("eventType", func() {
 	DescribeTable("is 'Normal' for all states but 'Failed'", func(state pipelinesv1.SynchronizationState) {
 		Expect(
-			eventType(*NewSetStatus().WithState(state)),
+			eventType(*NewSetStatus().WithSynchronizationState(state)),
 		).To(Equal(EventTypes.Normal))
 	},
 		Entry("Creating", pipelinesv1.Creating),
@@ -64,7 +64,7 @@ var _ = Describe("eventType", func() {
 	When("called on 'Failed'", func() {
 		It("results in 'Warning'", func() {
 			Expect(
-				eventType(*NewSetStatus().WithState(pipelinesv1.Failed)),
+				eventType(*NewSetStatus().WithSynchronizationState(pipelinesv1.Failed)),
 			).To(Equal(EventTypes.Warning))
 		})
 	})

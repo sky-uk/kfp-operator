@@ -70,13 +70,13 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 			return []Command{
-				*From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 			}
 		}
 
 		return []Command{
 			*From(experiment.Status).
-				WithState(pipelinesv1.Updating).
+				WithSynchronizationState(pipelinesv1.Updating).
 				WithVersion(newExperimentVErsion),
 			CreateWorkflow{Workflow: *workflow},
 		}
@@ -90,7 +90,7 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 		logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 		return []Command{
-			*From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -111,7 +111,7 @@ func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipel
 
 	if experiment.Status.KfpId == "" {
 		return []Command{
-			*From(experiment.Status).WithState(pipelinesv1.Deleted),
+			*From(experiment.Status).WithSynchronizationState(pipelinesv1.Deleted),
 		}
 	}
 
@@ -122,12 +122,12 @@ func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipel
 		logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 		return []Command{
-			*From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
 	return []Command{
-		*From(experiment.Status).WithState(pipelinesv1.Deleting),
+		*From(experiment.Status).WithSynchronizationState(pipelinesv1.Deleting),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -154,7 +154,7 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 			return []Command{
-				*From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 			}
 		}
 
@@ -168,7 +168,7 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 			return []Command{
-				*From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 			}
 		}
 
@@ -177,7 +177,7 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 
 	return []Command{
 		*From(experiment.Status).
-			WithState(targetState).
+			WithSynchronizationState(targetState).
 			WithVersion(newExperimentVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
@@ -191,7 +191,7 @@ func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pip
 		logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
 
 		return []Command{
-			*From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -213,7 +213,7 @@ func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pip
 			}
 
 			logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
-			return From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage)
+			return From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 		}
 
 		idResult, _ := getWorkflowOutput(succeeded, ExperimentWorkflowConstants.ExperimentIdParameterName)
@@ -221,11 +221,11 @@ func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pip
 		if idResult == "" {
 			failureMessage := "could not retrieve kfpId"
 			logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
-			return From(experiment.Status).WithState(pipelinesv1.Failed).WithKfpId("").WithMessage(failureMessage)
+			return From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithKfpId("").WithMessage(failureMessage)
 		}
 
 		logger.Info("experiment update succeeded")
-		return From(experiment.Status).WithState(pipelinesv1.Succeeded).WithKfpId(idResult)
+		return From(experiment.Status).WithSynchronizationState(pipelinesv1.Succeeded).WithKfpId(idResult)
 	}
 
 	return []Command{
@@ -250,7 +250,7 @@ func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pip
 
 	if succeeded != nil {
 		logger.Info("experiment deletion succeeded")
-		setStatusCommand = From(experiment.Status).WithState(pipelinesv1.Deleted)
+		setStatusCommand = From(experiment.Status).WithSynchronizationState(pipelinesv1.Deleted)
 	} else {
 		var failureMessage string
 
@@ -280,7 +280,7 @@ func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pip
 		logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
 
 		return []Command{
-			*From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -300,9 +300,9 @@ func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pip
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
-			setStatusCommand = From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage)
+			setStatusCommand = From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 		} else {
-			setStatusCommand = From(experiment.Status).WithState(pipelinesv1.Succeeded).WithKfpId(idResult)
+			setStatusCommand = From(experiment.Status).WithSynchronizationState(pipelinesv1.Succeeded).WithKfpId(idResult)
 		}
 	} else {
 		var failureMessage string
@@ -314,7 +314,7 @@ func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pip
 		}
 
 		logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
-		setStatusCommand = From(experiment.Status).WithState(pipelinesv1.Failed).WithMessage(failureMessage)
+		setStatusCommand = From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 	}
 
 	return []Command{
