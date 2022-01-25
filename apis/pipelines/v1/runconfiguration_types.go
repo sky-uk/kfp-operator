@@ -41,6 +41,14 @@ type RunConfiguration struct {
 	Status Status               `json:"status,omitempty"`
 }
 
+func (rc *RunConfiguration) GetStatus() Status {
+	return rc.Status
+}
+
+func (rc *RunConfiguration) SetStatus(status Status) {
+	rc.Status = status
+}
+
 func (rc RunConfiguration) NamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      rc.Name,

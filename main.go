@@ -100,9 +100,14 @@ func main() {
 		Config: ctrlConfig.Workflows,
 	}
 
+	ec := pipelinescontrollers.K8sExecutionContext{
+		Client:   client,
+		Scheme:   mgr.GetScheme(),
+		Recorder: mgr.GetEventRecorderFor("kfp-operator"),
+	}
+
 	if err = (&pipelinescontrollers.PipelineReconciler{
-		Client: client,
-		Scheme: mgr.GetScheme(),
+		EC: ec,
 		StateHandler: pipelinescontrollers.PipelineStateHandler{
 			WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
 				WorkflowFactory: workflowFactory,
@@ -115,8 +120,7 @@ func main() {
 	}
 
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
-		Client: client,
-		Scheme: mgr.GetScheme(),
+		EC: ec,
 		StateHandler: pipelinescontrollers.RunConfigurationStateHandler{
 			WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
 				WorkflowFactory: workflowFactory,
@@ -129,8 +133,13 @@ func main() {
 	}
 
 	if err = (&pipelinescontrollers.ExperimentReconciler{
-		Client: client,
-		Scheme: mgr.GetScheme(),
+		EC: ec,
+		StateHandler: pipelinescontrollers.ExperimentStateHandler{
+			WorkflowFactory: pipelinescontrollers.ExperimentWorkflowFactory{
+				WorkflowFactory: workflowFactory,
+			},
+			WorkflowRepository: workflowRepository,
+		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
 		os.Exit(1)

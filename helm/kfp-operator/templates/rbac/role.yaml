@@ -7,6 +7,13 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-manager-role
 rules:
 - apiGroups:
+    - ""
+  resources:
+    - events
+  verbs:
+    - create
+    - patch
+- apiGroups:
     - argoproj.io
   resources:
     - workflows

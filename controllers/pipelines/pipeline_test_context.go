@@ -6,6 +6,7 @@ package pipelines
 import (
 	"context"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -90,4 +91,13 @@ func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status pipelinesv1.
 			pipeline.Status = status
 		})).To(Succeed())
 	})).Should(Succeed())
+}
+
+func (testCtx PipelineTestContext) EmittedEventsToMatch(matcher func(Gomega, []v1.Event)) func(Gomega) {
+	return func(g Gomega) {
+		eventList := &v1.EventList{}
+		Expect(testCtx.K8sClient.List(testCtx.ctx, eventList, client.MatchingFields{"involvedObject.name": testCtx.Pipeline.Name})).To(Succeed())
+
+		matcher(g, eventList.Items)
+	}
 }

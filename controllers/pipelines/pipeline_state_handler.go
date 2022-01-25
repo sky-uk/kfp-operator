@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -12,7 +13,7 @@ type PipelineStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []PipelineCommand) {
+func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []Command) {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
@@ -47,15 +48,15 @@ func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pi
 	}
 
 	if pipeline.Status.SynchronizationState == pipelinesv1.Deleted {
-		commands = append([]PipelineCommand{ReleasePipeline{}}, commands...)
+		commands = append([]Command{ReleaseResource{}}, commands...)
 	} else {
-		commands = append([]PipelineCommand{AcquirePipeline{}}, commands...)
+		commands = append([]Command{AcquireResource{}}, commands...)
 	}
 
 	return
 }
 
-func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
+func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {
 	logger := log.FromContext(ctx)
 
 	newPipelineVersion := pipeline.Spec.ComputeVersion()
@@ -65,22 +66,21 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, pipeline)
 
 		if err != nil {
-			logger.Error(err, "error constructing update workflow, failing pipeline")
+			failureMessage := "error constructing update workflow"
+			logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
 
-			return []PipelineCommand{
-				SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Failed),
+			return []Command{
+				*From(pipeline.Status).
+					WithSynchronizationState(pipelinesv1.Failed).
+					WithMessage(failureMessage),
 			}
 		}
 
-		return []PipelineCommand{
-			SetPipelineStatus{
-				Status: pipelinesv1.Status{
-					KfpId:                pipeline.Status.KfpId,
-					Version:              newPipelineVersion,
-					SynchronizationState: pipelinesv1.Updating,
-				},
-			},
-			CreatePipelineWorkflow{Workflow: *workflow},
+		return []Command{
+			*From(pipeline.Status).
+				WithSynchronizationState(pipelinesv1.Updating).
+				WithVersion(newPipelineVersion),
+			CreateWorkflow{Workflow: *workflow},
 		}
 	}
 
@@ -88,62 +88,61 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(ctx, pipeline)
 
 	if err != nil {
-		logger.Error(err, "error constructing creation workflow, failing pipeline")
+		failureMessage := "error constructing creation workflow"
+		logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
 
-		return []PipelineCommand{
-			SetPipelineStatus{
-				Status: pipelinesv1.Status{
-					Version:              newPipelineVersion,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+		return []Command{
+			*From(pipeline.Status).
+				WithSynchronizationState(pipelinesv1.Failed).
+				WithVersion(newPipelineVersion).
+				WithMessage(failureMessage),
 		}
 	}
 
-	return []PipelineCommand{
-		SetPipelineStatus{
-			Status: pipelinesv1.Status{
-				Version:              newPipelineVersion,
-				SynchronizationState: pipelinesv1.Creating,
-			},
-		},
-		CreatePipelineWorkflow{Workflow: *workflow},
+	return []Command{
+		*From(pipeline.Status).
+			WithSynchronizationState(pipelinesv1.Creating).
+			WithVersion(newPipelineVersion),
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
+func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
 	if pipeline.Status.KfpId == "" {
-		return []PipelineCommand{
-			SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Deleted),
+		return []Command{
+			*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleted),
 		}
 	}
 
 	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, pipeline)
 
 	if err != nil {
-		logger.Error(err, "error constructing deletion workflow, failing pipeline")
+		failureMessage := "error constructing deletion workflow"
+		logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
 
-		return []PipelineCommand{
-			SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Failed),
+		return []Command{
+			*From(pipeline.Status).
+				WithSynchronizationState(pipelinesv1.Failed).
+				WithMessage(failureMessage),
 		}
 	}
 
-	return []PipelineCommand{
-		SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Deleting),
-		CreatePipelineWorkflow{Workflow: *workflow},
+	return []Command{
+		*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleting),
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline *pipelinesv1.Pipeline) []PipelineCommand {
+func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {
 	logger := log.FromContext(ctx)
 	newPipelineVersion := pipeline.Spec.ComputeVersion()
 
 	if pipeline.Status.Version == newPipelineVersion {
 		logger.V(2).Info("pipeline version has not changed")
-		return []PipelineCommand{}
+		return []Command{}
 	}
 
 	var workflow *argo.Workflow
@@ -161,37 +160,32 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 	}
 
 	if err != nil {
-		logger.Info("error constructing workflow, failing pipeline")
-		return []PipelineCommand{
-			SetPipelineStatus{
-				Status: pipelinesv1.Status{
-					KfpId:                pipeline.Status.KfpId,
-					Version:              newPipelineVersion,
-					SynchronizationState: pipelinesv1.Failed,
-				},
-			},
+		failureMessage := "error constructing workflow"
+		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
+		return []Command{
+			*From(pipeline.Status).
+				WithSynchronizationState(pipelinesv1.Failed).
+				WithVersion(newPipelineVersion),
 		}
 	}
 
-	return []PipelineCommand{
-		SetPipelineStatus{
-			Status: pipelinesv1.Status{
-				KfpId:                pipeline.Status.KfpId,
-				Version:              newPipelineVersion,
-				SynchronizationState: targetState,
-			},
-		},
-		CreatePipelineWorkflow{Workflow: *workflow},
+	return []Command{
+		*From(pipeline.Status).
+			WithSynchronizationState(targetState).
+			WithVersion(newPipelineVersion),
+		CreateWorkflow{Workflow: *workflow},
 	}
 }
 
-func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelinesv1.Pipeline, updateWorkflows []argo.Workflow) []PipelineCommand {
+func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelinesv1.Pipeline, updateWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	if pipeline.Status.Version == "" || pipeline.Status.KfpId == "" {
-		logger.Info("updating pipeline with empty version or kfpId, failing pipeline")
-		return []PipelineCommand{
-			SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Failed),
+		failureMessage := "updating pipeline with empty version or kfpId"
+		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
+
+		return []Command{
+			*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -199,69 +193,83 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 
 	if inProgress != nil {
 		logger.V(2).Info("pipeline update in progress")
-		return []PipelineCommand{}
+		return []Command{}
 	}
 
-	var newState pipelinesv1.SynchronizationState
+	var setStatusCommand *SetStatus
 
 	if succeeded != nil {
 		logger.Info("pipeline update succeeded")
-		newState = pipelinesv1.Succeeded
+		setStatusCommand = From(pipeline.Status).WithSynchronizationState(pipelinesv1.Succeeded)
 	} else {
+		var failureMessage string
 		if failed != nil {
-			logger.Info("pipeline update failed")
+			failureMessage = "pipeline update failed"
 		} else {
-			logger.Info("pipeline updating progress unknown, failing pipeline")
+			failureMessage = "pipeline updating progress unknown"
 		}
-		newState = pipelinesv1.Failed
+
+		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
+		setStatusCommand = From(pipeline.Status).
+			WithSynchronizationState(pipelinesv1.Failed).
+			WithMessage(failureMessage)
 	}
 
-	return []PipelineCommand{
-		SetPipelineSynchronizationStateOnly(pipeline, newState),
-		DeletePipelineWorkflows{
+	return []Command{
+		*setStatusCommand,
+		DeleteWorkflows{
 			Workflows: updateWorkflows,
 		},
 	}
 }
 
-func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelinesv1.Pipeline, deletionWorkflows []argo.Workflow) []PipelineCommand {
+func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelinesv1.Pipeline, deletionWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(deletionWorkflows)
 
 	if inProgress != nil {
 		logger.V(2).Info("pipeline deletion in progress")
-		return []PipelineCommand{}
+		return []Command{}
 	}
 
-	newStatus := pipeline.Status.DeepCopy()
+	var setStatusCommand *SetStatus
 
 	if succeeded != nil {
 		logger.Info("pipeline deletion succeeded")
-		newStatus.SynchronizationState = pipelinesv1.Deleted
-	} else if failed != nil {
-		logger.Info("pipeline deletion failed")
+		setStatusCommand = From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleted)
 	} else {
-		logger.Info("pipeline deletion progress unknown, failing pipeline")
+		var failureMessage string
+
+		if failed != nil {
+			failureMessage = "pipeline deletion failed"
+		} else {
+			failureMessage = "pipeline deletion progress unknown"
+		}
+
+		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
+		setStatusCommand = From(pipeline.Status).WithMessage(failureMessage)
 	}
 
-	return []PipelineCommand{
-		SetPipelineStatus{
-			Status: *newStatus,
-		},
-		DeletePipelineWorkflows{
+	return []Command{
+		*setStatusCommand,
+		DeleteWorkflows{
 			Workflows: deletionWorkflows,
 		},
 	}
 }
 
-func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelinesv1.Pipeline, creationWorkflows []argo.Workflow) []PipelineCommand {
+func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelinesv1.Pipeline, creationWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
 	if pipeline.Status.Version == "" {
-		logger.Info("creating pipeline with empty version, failing pipeline")
-		return []PipelineCommand{
-			SetPipelineSynchronizationStateOnly(pipeline, pipelinesv1.Failed),
+		failureMessage := "creating pipeline with empty version"
+		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
+
+		return []Command{
+			*From(pipeline.Status).
+				WithSynchronizationState(pipelinesv1.Failed).
+				WithMessage(failureMessage),
 		}
 	}
 
@@ -269,50 +277,48 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 
 	if inProgress != nil {
 		logger.V(2).Info("pipeline creation in progress")
-		return []PipelineCommand{}
+		return []Command{}
 	}
 
-	statusAfterCreating := func() (newStatus pipelinesv1.Status) {
-		newStatus = *pipeline.Status.DeepCopy()
-
+	statusAfterCreating := func() *SetStatus {
 		if succeeded == nil {
+			var failureMessage string
 			if failed != nil {
-				logger.Info("pipeline creation failed, failing pipeline")
+				failureMessage = "pipeline creation failed"
 			} else {
-				logger.Info("pipeline creation progress unknown, failing pipeline")
+				failureMessage = "pipeline creation progress unknown"
 			}
 
-			newStatus.SynchronizationState = pipelinesv1.Failed
-			return
+			logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
+			return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 		}
 
 		idResult, err := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineIdParameterName)
 
 		if err != nil {
-			logger.Error(err, "could not retrieve kfpId, failing pipeline")
-			newStatus.SynchronizationState = pipelinesv1.Failed
-			return
+			failureMessage := "could not retrieve kfpId"
+			logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
+			return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed)
 		}
 
-		newStatus.KfpId = idResult
 		versionResult, _ := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineVersionParameterName)
 
 		if versionResult == "" {
-			logger.Info("pipeline creation succeeded but version upload failed")
-			newStatus.SynchronizationState = pipelinesv1.Failed
-			return
+			failureMessage := "pipeline creation succeeded but version upload failed"
+			logger.Info(failureMessage)
+			return From(pipeline.Status).
+				WithSynchronizationState(pipelinesv1.Failed).
+				WithKfpId(idResult).
+				WithMessage(failureMessage)
 		}
 
 		logger.Info("pipeline creation succeeded")
-		newStatus.SynchronizationState = pipelinesv1.Succeeded
-		return
+		return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Succeeded).WithKfpId(idResult)
 	}
 
-	return []PipelineCommand{
-		SetPipelineStatus{
-			Status: statusAfterCreating(),
-		},
-		DeletePipelineWorkflows{
+	return []Command{
+		*statusAfterCreating(),
+		DeleteWorkflows{
 			Workflows: creationWorkflows,
 		},
 	}
