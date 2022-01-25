@@ -21,6 +21,16 @@ var _ = Context("RunConfiguration", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
+		Specify("ExperimentName should change the hash", func() {
+			rcs := RunConfigurationSpec{}
+			hash1 := rcs.ComputeHash()
+
+			rcs.ExperimentName = "notempty"
+			hash2 := rcs.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
 		Specify("Schedule should change the hash", func() {
 			rcs := RunConfigurationSpec{}
 			hash1 := rcs.ComputeHash()

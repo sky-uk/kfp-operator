@@ -185,8 +185,16 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx co
 }
 
 func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipelinesv1.RunConfiguration) (argo.Template, error) {
+	var experimentName string
+
+	if runConfiguration.Spec.ExperimentName == "" {
+		experimentName = workflows.Config.DefaultExperiment
+	} else {
+		experimentName = runConfiguration.Spec.ExperimentName
+	}
+
 	kfpScript, err := workflows.KfpExt("job submit").
-		Param("--experiment-name", workflows.Config.DefaultExperiment).
+		Param("--experiment-name", experimentName).
 		Param("--job-name", runConfiguration.Name).
 		Param("--pipeline-name", runConfiguration.Spec.PipelineName).
 		Param("--cron-expression", runConfiguration.Spec.Schedule).

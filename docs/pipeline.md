@@ -1,6 +1,9 @@
 # Pipeline Resource
 
-The Pipeline resource represents the lifecycle of TFX pipelines on Kubeflow Pipelines. Pipelines can be created, updated and deleted via this resource. The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables. It then submits the pipeline to kubeflow and manages versions accordingly.
+The Pipeline resource represents the lifecycle of TFX pipelines on Kubeflow Pipelines.
+Pipelines can be created, updated and deleted via this resource.
+The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
+It then submits the pipeline to Kubeflow and manages versions accordingly.
 
 ```yaml
 apiVersion: pipelines.kubeflow.com/v1

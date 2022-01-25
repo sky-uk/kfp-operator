@@ -9,6 +9,7 @@ import (
 
 type RunConfigurationSpec struct {
 	PipelineName      string            `json:"pipelineName,omitempty"`
+	ExperimentName    string            `json:"experimentName,omitempty"`
 	Schedule          string            `json:"schedule,omitempty"`
 	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
 }
@@ -16,6 +17,7 @@ type RunConfigurationSpec struct {
 func (rcs RunConfigurationSpec) ComputeHash() []byte {
 	oh := objecthasher.New()
 	oh.WriteStringField(rcs.PipelineName)
+	oh.WriteStringField(rcs.ExperimentName)
 	oh.WriteStringField(rcs.Schedule)
 	oh.WriteMapField(rcs.RuntimeParameters)
 	return oh.Sum()

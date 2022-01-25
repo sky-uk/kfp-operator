@@ -40,9 +40,26 @@ penguin-pipeline   Succeeded              53905abe-0337-48de-875d-67b9285f3cf7
 
 Now visit you Kubeflow Pipelines UI. You should be able to see the newly created pipeline named `penguin-pipeline`. Note that you will see two versions: 'penguin-pipeline' and 'v1'. This is due to an [open issue on Kubeflow](https://github.com/kubeflow/pipelines/issues/5881) where you can't specify a version when creating a pipeline.
 
+## Create an Experiment resource
+
+Note: this step is optional. You can continue with the next step if you want to use the `Default` experiment instead.
+
+```bash
+cat << EOF | kubectl apply -f
+apiVersion: pipelines.kubeflow.com/v1
+kind: Experiment
+metadata:
+    name: penguin-experiment
+    spec:
+        Description: 'An experiment for the penguin pipeline'
+EOF
+```
+
 ## Create a pipeline RunConfiguration resource
 
-We can now define a recurring run delcaratively using the `RunConfiguration` resource:
+We can now define a recurring run declaratively using the `RunConfiguration` resource.
+
+Note: remove `experimentName` if you want to use the `Default` experiment instead of `penguin-experiment`
 
 ```bash
 cat << EOF | kubectl apply -f
@@ -52,6 +69,7 @@ metadata:
     name: penguin-pipeline-recurring-run
     spec:
         pipelineName: penguin-pipeline
+        experimentName: penguin-experiment
         schedule: '0 0 * * * *'
 EOF
 ```

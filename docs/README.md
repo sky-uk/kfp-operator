@@ -92,6 +92,7 @@ The pipeline operator supports the application of compile time and runtime param
 The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources:
 
 - [Pipeline](pipeline.md)
+- [Experiment](experiment.md)
 - [RunConfiguration](runconfiguration.md)
 
 ## Eventing Support
