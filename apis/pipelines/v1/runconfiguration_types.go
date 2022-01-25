@@ -9,7 +9,7 @@ import (
 
 type RunConfigurationSpec struct {
 	PipelineName      string            `json:"pipelineName,omitempty"`
-	ExperimentName	  string			`json:"experimentName,omitempty"`
+	ExperimentName    string            `json:"experimentName,omitempty"`
 	Schedule          string            `json:"schedule,omitempty"`
 	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
 }

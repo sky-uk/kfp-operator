@@ -10,17 +10,17 @@ metadata:
     name: penguin-pipeline-recurring-run
 spec:
     pipelineName: penguin-pipeline
+    experimentName: penguin-experiment
     schedule: '0 0 * * * *'
     runtimeParameters:
         TRAINING_RUNS: 100
 ```
-
-Note: The experiment will be created if it does not exist when creating the run configuration.
 
 ## Fields
 
 | Name | Description |
 | --- | --- |
 | `spec.pipelineName` | The name of the corresponding pipeline resource to run |
+| `spec.experimentName` | The name of the corresponding experiment resource (Optional - the `Default` Experiment as defined in the [Installation and Configuration section of the documentation](README.md#configuration) will be used if no `experimentName` is provided) |
 | `spec.schedule` | A cron schedule to execute training runs |
 | `spec.runtimeParameters` | Dictionary of runtime-time parameters as exposed by the pipeline |
