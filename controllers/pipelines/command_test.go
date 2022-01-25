@@ -69,3 +69,18 @@ var _ = Describe("eventType", func() {
 		})
 	})
 })
+
+var _ = Describe("eventReason", func() {
+	DescribeTable("is the expected reason for any given SynchronizationState", func(state pipelinesv1.SynchronizationState, expectedReason string) {
+		Expect(
+			eventReason(*NewSetStatus().WithSynchronizationState(state)),
+		).To(Equal(expectedReason))
+	},
+		Entry("Creating", pipelinesv1.Creating, EventReasons.Syncing),
+		Entry("Succeeded", pipelinesv1.Succeeded, EventReasons.Synced),
+		Entry("Updating", pipelinesv1.Updating, EventReasons.Syncing),
+		Entry("Deleting", pipelinesv1.Deleting, EventReasons.Syncing),
+		Entry("Deleted", pipelinesv1.Deleted, EventReasons.Synced),
+		Entry("Failed", pipelinesv1.Failed, EventReasons.SyncFailed),
+	)
+})

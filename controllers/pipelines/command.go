@@ -20,6 +20,16 @@ var EventTypes = struct {
 	Normal:  "Normal",
 }
 
+var EventReasons = struct {
+	Syncing    string
+	Synced     string
+	SyncFailed string
+}{
+	Syncing:    "Syncing",
+	Synced:     "Synced",
+	SyncFailed: "SyncFailed",
+}
+
 type K8sExecutionContext struct {
 	Client   controllers.OptInClient
 	Scheme   *runtime.Scheme
@@ -86,6 +96,17 @@ func eventType(sps SetStatus) string {
 	}
 }
 
+func eventReason(sps SetStatus) string {
+	switch sps.Status.SynchronizationState {
+	case pipelinesv1.Succeeded, pipelinesv1.Deleted:
+		return EventReasons.Synced
+	case pipelinesv1.Failed:
+		return EventReasons.SyncFailed
+	default:
+		return EventReasons.Syncing
+	}
+}
+
 func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource Resource) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, resource.GetStatus(), LogKeys.NewStatus, sps.Status)
@@ -95,7 +116,7 @@ func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resour
 	err := ec.Client.Status().Update(ctx, resource)
 
 	if err == nil {
-		ec.Recorder.Event(resource, eventType(sps), string(sps.Status.SynchronizationState), eventMessage(sps))
+		ec.Recorder.Event(resource, eventType(sps), eventReason(sps), eventMessage(sps))
 	}
 
 	return err

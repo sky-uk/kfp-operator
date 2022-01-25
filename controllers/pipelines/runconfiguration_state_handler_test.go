@@ -171,7 +171,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(UnknownState, "", "").
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -179,7 +179,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(UnknownState, "", v1).
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -187,7 +187,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(UnknownState, kfpId, "").
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Updating).
+					WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -196,7 +196,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(UnknownState, kfpId, v1).
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Updating).
+					WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -206,7 +206,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Succeeded).
+					WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -216,7 +216,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Succeeded).
+					WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -226,7 +226,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				WithCreateWorkFlow(argo.WorkflowFailed).
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
 					WithMessage("run configuration creation failed")).
 				DeletesAllWorkflows(),
@@ -235,7 +235,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Creating, "", "").
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(pipelinesv1.Failed).
 					WithMessage("creating run configuration with empty version")),
 		),
 		Check("Succeeded no update",
@@ -246,7 +246,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Succeeded, kfpId, v0).
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Updating).
+					WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -255,7 +255,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Succeeded, "", v0).
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -263,7 +263,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Succeeded, "", "").
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -275,7 +275,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Failed, kfpId, v0).
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Updating).
+					WithSynchronizationState(pipelinesv1.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -284,7 +284,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Failed, "", v0).
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -292,7 +292,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Failed, "", "").
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -301,7 +301,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				WithSucceededUpdateWorkflowWithId(kfpId).
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Succeeded).
+					WithSynchronizationState(pipelinesv1.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -311,7 +311,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				WithSucceededUpdateWorkflowWithId("").
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
 					WithMessage("could not retrieve kfpId")).
 				DeletesAllWorkflows(),
@@ -321,7 +321,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				WithFailedUpdateWorkflow().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage("run configuration update failed")).
@@ -331,7 +331,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Updating, kfpId, "").
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(pipelinesv1.Failed).
 					WithKfpId(kfpId).
 					WithMessage("updating run configuration with empty version or kfpId")),
 		),
@@ -339,7 +339,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Updating, "", v1).
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(pipelinesv1.Failed).
 					WithVersion(v1).
 					WithMessage("updating run configuration with empty version or kfpId")),
 		),
@@ -347,7 +347,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 			From(pipelinesv1.Updating, "", "").
 				AcquireRunConfiguration().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(pipelinesv1.Failed).
 					WithMessage("updating run configuration with empty version or kfpId")),
 		),
 		Check("Deleting from Succeeded",
@@ -355,7 +355,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Deleting).
+					WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
@@ -365,7 +365,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Deleted).
+					WithSynchronizationState(pipelinesv1.Deleted).
 					WithVersion(v1)),
 		),
 		Check("Deleting from Failed",
@@ -373,7 +373,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Deleting).
+					WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
@@ -383,7 +383,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Deleted).
+					WithSynchronizationState(pipelinesv1.Deleted).
 					WithVersion(v1)),
 		),
 		Check("Deletion succeeds",
@@ -392,7 +392,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowSucceeded).
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Deleted).
+					WithSynchronizationState(pipelinesv1.Deleted).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
@@ -402,7 +402,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 				AcquireRunConfiguration().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-				WithSynchronizationState(pipelinesv1.Deleting).
+					WithSynchronizationState(pipelinesv1.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage("run configuration deletion failed")).
