@@ -9,6 +9,7 @@ import (
 const (
 	PushedModelArtifactType = "PushedModel"
 	NameCustomProperty      = "name"
+	PushedCustomProperty    = "pushed"
 	PipelineRunTypeName     = "pipeline_run"
 	InvalidId               = 0
 )
@@ -54,8 +55,9 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 		if artifact.GetTypeId() == artifactTypeId {
 			artifactUri := artifact.GetUri()
 			artifactName := artifact.GetCustomProperties()[NameCustomProperty].GetStringValue()
+			modelHasBeenPushed := artifact.GetCustomProperties()[PushedCustomProperty].GetIntValue()
 
-			if artifactName != "" && artifactUri != "" {
+			if artifactName != "" && artifactUri != "" && modelHasBeenPushed == 1 {
 				results = append(results, ServingModelArtifact{
 					Name:     artifactName,
 					Location: artifactUri,

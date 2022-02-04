@@ -234,6 +234,51 @@ var _ = Context("gRPC Metadata Store", func() {
 			})
 		})
 
+		When("GetArtifactsByContext returns an artifact without the 'pushed' flag being true", func() {
+			It("filters out invalid artifacts", func() {
+				artifactId := givenArtifactTypeIdId()
+				contextId := givenContextId()
+				artifactLocation := randomString()
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
+							{
+								TypeId: &artifactId,
+								Uri:    &artifactLocation,
+								CustomProperties: map[string]*ml_metadata.Value{
+									NameCustomProperty: {
+										Value: &ml_metadata.Value_StringValue{
+											StringValue: "first-model",
+										},
+									},
+								},
+							},
+							{
+								TypeId: &artifactId,
+								Uri:    &artifactLocation,
+								CustomProperties: map[string]*ml_metadata.Value{
+									NameCustomProperty: {
+										Value: &ml_metadata.Value_StringValue{
+											StringValue: "first-model",
+										},
+									},
+									PushedCustomProperty: {
+										Value: &ml_metadata.Value_IntValue{
+											IntValue: 0,
+										},
+									},
+								},
+							},
+						},
+					}, nil)
+
+				results, err := store.GetServingModelArtifact(context.Background(), workflowName)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+		})
+
 		When("GetArtifactsByContext returns valid artifacts", func() {
 			It("Returns all ServingModelLocations", func() {
 				artifactId := givenArtifactTypeIdId()
@@ -253,6 +298,11 @@ var _ = Context("gRPC Metadata Store", func() {
 											StringValue: "first-model",
 										},
 									},
+									PushedCustomProperty: {
+										Value: &ml_metadata.Value_IntValue{
+											IntValue: 1,
+										},
+									},
 								},
 							},
 							{
@@ -262,6 +312,11 @@ var _ = Context("gRPC Metadata Store", func() {
 									NameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
 											StringValue: "second-model",
+										},
+									},
+									PushedCustomProperty: {
+										Value: &ml_metadata.Value_IntValue{
+											IntValue: 1,
 										},
 									},
 								},
