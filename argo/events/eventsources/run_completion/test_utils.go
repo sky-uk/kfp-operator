@@ -12,3 +12,11 @@ func randomString() string {
 func randomInt64() int64 {
 	return int64(rand.Int())
 }
+
+func randomExceptOne() int64 {
+	if n := randomInt64(); n == 1 {
+		return 2
+	} else {
+		return n
+	}
+}
