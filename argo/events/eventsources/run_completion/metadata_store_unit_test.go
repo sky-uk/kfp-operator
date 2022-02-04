@@ -141,7 +141,7 @@ var _ = Context("gRPC Metadata Store", func() {
 								TypeId: &anotherArtifactTypeId,
 								Uri:    &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
-									NameCustomProperty: {
+									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
 											StringValue: randomString(),
 										},
@@ -169,7 +169,7 @@ var _ = Context("gRPC Metadata Store", func() {
 								TypeId: &artifactId,
 								Uri:    &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
-									NameCustomProperty: {
+									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_IntValue{
 											IntValue: 42,
 										},
@@ -218,7 +218,7 @@ var _ = Context("gRPC Metadata Store", func() {
 							{
 								TypeId: &artifactId,
 								CustomProperties: map[string]*ml_metadata.Value{
-									NameCustomProperty: {
+									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
 											StringValue: "first-model",
 										},
@@ -247,7 +247,7 @@ var _ = Context("gRPC Metadata Store", func() {
 								TypeId: &artifactId,
 								Uri:    &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
-									NameCustomProperty: {
+									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
 											StringValue: "first-model",
 										},
@@ -258,14 +258,14 @@ var _ = Context("gRPC Metadata Store", func() {
 								TypeId: &artifactId,
 								Uri:    &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
-									NameCustomProperty: {
+									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
 											StringValue: "first-model",
 										},
 									},
 									PushedCustomProperty: {
 										Value: &ml_metadata.Value_IntValue{
-											IntValue: 0,
+											IntValue: randomExceptOne(),
 										},
 									},
 								},
@@ -293,7 +293,7 @@ var _ = Context("gRPC Metadata Store", func() {
 								TypeId: &artifactId,
 								Uri:    &firstArtifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
-									NameCustomProperty: {
+									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
 											StringValue: "first-model",
 										},
@@ -309,7 +309,7 @@ var _ = Context("gRPC Metadata Store", func() {
 								TypeId: &artifactId,
 								Uri:    &secondArtifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
-									NameCustomProperty: {
+									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
 											StringValue: "second-model",
 										},
