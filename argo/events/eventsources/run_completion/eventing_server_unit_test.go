@@ -118,64 +118,118 @@ var _ = Context("Eventing Server", func() {
 		})
 	})
 
-	Describe("getPipelineName", func() {
+	Describe("getPipelineNameFromAnnotation", func() {
 		When("The workflow has no pipeline spec annotation", func() {
-			It("Returns false", func() {
+			It("Returns empty string", func() {
 				workflow := &unstructured.Unstructured{}
 
-				_, err := getPipelineName(workflow)
-				Expect(err).To(HaveOccurred())
+				extractedName := getPipelineNameFromAnnotation(workflow)
+				Expect(extractedName).To(BeEmpty())
 			})
 		})
 
 		When("The workflow's pipeline spec annotation is invalid", func() {
-			It("Errors", func() {
+			It("Returns empty string", func() {
 				workflow := &unstructured.Unstructured{}
 				workflow.SetAnnotations(map[string]string{
 					pipelineSpecAnnotationName: fmt.Sprintf(`{invalid`),
 				})
 
-				_, err := getPipelineName(workflow)
-				Expect(err).To(HaveOccurred())
+				extractedName := getPipelineNameFromAnnotation(workflow)
+				Expect(extractedName).To(BeEmpty())
 			})
 		})
 
-		When("The workflow's spec annotation is empty", func() {
-			It("Errors", func() {
-				workflow := &unstructured.Unstructured{}
-				workflow.SetAnnotations(map[string]string{
-					pipelineSpecAnnotationName: fmt.Sprintf(`{"name": ""}`),
-				})
-
-				_, err := getPipelineName(workflow)
-				Expect(err).To(HaveOccurred())
-			})
-		})
-
-		When("The workflow's spec annotation is missing", func() {
-			It("Errors", func() {
+		When("The name is missing from workflow's spec annotation", func() {
+			It("Returns empty string", func() {
 				workflow := &unstructured.Unstructured{}
 				workflow.SetAnnotations(map[string]string{
 					pipelineSpecAnnotationName: fmt.Sprintf(`{}`),
 				})
 
-				_, err := getPipelineName(workflow)
-				Expect(err).To(HaveOccurred())
+				extractedName := getPipelineNameFromAnnotation(workflow)
+				Expect(extractedName).To(BeEmpty())
 			})
 		})
 
 		When("The workflow has a pipeline spec annotation with the pipeline name", func() {
-			It("returns the name", func() {
+			It("Returns the spec's value as the pipeline name", func() {
 				pipelineName := randomString()
 				workflow := &unstructured.Unstructured{}
 				workflow.SetAnnotations(map[string]string{
 					pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
 				})
 
-				extractedName, err := getPipelineName(workflow)
-				Expect(err).NotTo(HaveOccurred())
+				extractedName := getPipelineNameFromAnnotation(workflow)
 				Expect(extractedName).To(Equal(pipelineName))
 			})
 		})
 	})
+
+	Describe("getPipelineNameFromEntrypoint", func() {
+		When("The workflow has no entrypoint", func() {
+			It("Returns empty string", func() {
+				workflow := &unstructured.Unstructured{}
+
+				extractedName := getPipelineNameFromEntrypoint(workflow)
+				Expect(extractedName).To(BeEmpty())
+			})
+		})
+
+		When("The workflow's entrypoint is empty'", func() {
+			It("Returns empty string", func() {
+				workflow := &unstructured.Unstructured{
+					Object: map[string]interface{}{
+						"spec": map[string]interface{}{
+							"entrypoint": "",
+						},
+					},
+				}
+
+				extractedName := getPipelineNameFromEntrypoint(workflow)
+				Expect(extractedName).To(BeEmpty())
+			})
+		})
+
+		When("The workflow has an entrypoint'", func() {
+			It("Returns the entrypoint as the pipeline name", func() {
+				pipelineName := randomString()
+
+				workflow := &unstructured.Unstructured{
+					Object: map[string]interface{}{
+						"spec": map[string]interface{}{
+							"entrypoint": pipelineName,
+						},
+					},
+				}
+
+				extractedName := getPipelineNameFromEntrypoint(workflow)
+				Expect(extractedName).To(Equal(pipelineName))
+			})
+		})
+	})
+
+	pipelineName := randomString()
+	entrypoint := randomString()
+
+	DescribeTable("getPipelineName", func(annotationValue string, entrypoint string, expected string) {
+		workflow := &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"spec": map[string]interface{}{
+					"entrypoint": entrypoint,
+				},
+			},
+		}
+		workflow.SetAnnotations(map[string]string{
+			pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, annotationValue),
+		})
+
+		extractedName := getPipelineName(workflow)
+		Expect(extractedName).To(Equal(expected))
+	},
+		Entry("Returns empty when none is present", "", "", ""),
+		Entry("Returns the annotation value", pipelineName, "", pipelineName),
+		Entry("Falls back to the entrypoint", "", entrypoint, entrypoint),
+		Entry("Prefers the annotation value", pipelineName, entrypoint, pipelineName),
+	)
 })

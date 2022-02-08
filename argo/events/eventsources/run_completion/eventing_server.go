@@ -32,7 +32,7 @@ var (
 )
 
 const (
-	kfpSdkVersionLabel           = "pipelines.kubeflow.org/kfp_sdk_version"
+	pipelineRunIdLabel           = "pipeline/runid"
 	workflowPhaseLabel           = "workflows.argoproj.io/phase"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
 	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
@@ -72,18 +72,34 @@ type PipelineSpec struct {
 	Name string `json:"name"`
 }
 
-func getPipelineName(workflow *unstructured.Unstructured) (string, error) {
+func getPipelineNameFromAnnotation(workflow *unstructured.Unstructured) string {
 	specString := workflow.GetAnnotations()[pipelineSpecAnnotationName]
 	spec := &PipelineSpec{}
 	if err := json.Unmarshal([]byte(specString), spec); err != nil {
-		return "", err
+		return ""
 	}
 
-	if spec.Name == "" {
-		return "", fmt.Errorf("workflow has empty pipeline name")
+	return spec.Name
+}
+
+func getPipelineNameFromEntrypoint(workflow *unstructured.Unstructured) string {
+	name, ok, err := unstructured.NestedString(workflow.Object, "spec", "entrypoint")
+
+	if !ok || err != nil {
+		return ""
 	}
 
-	return spec.Name, nil
+	return name
+}
+
+func getPipelineName(workflow *unstructured.Unstructured) (name string) {
+	name = getPipelineNameFromAnnotation(workflow)
+
+	if name == "" {
+		name = getPipelineNameFromEntrypoint(workflow)
+	}
+
+	return
 }
 
 func (es *EventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
@@ -96,7 +112,7 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 
 	es.Logger.Info("starting stream", "eventsource", eventsourceConfig)
 
-	kfpSdkVersionExistsRequirement, err := labels.NewRequirement(kfpSdkVersionLabel, selection.Exists, []string{})
+	kfpSdkVersionExistsRequirement, err := labels.NewRequirement(pipelineRunIdLabel, selection.Exists, []string{})
 	if err != nil {
 		es.Logger.Error(err, "failed to construct requirement")
 		return err
@@ -135,10 +151,10 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 		}
 
 		workflowName := workflow.GetName()
-		pipelineName, err := getPipelineName(workflow)
+		pipelineName := getPipelineName(workflow)
 
-		if err != nil {
-			es.Logger.Error(err, "failed to get pipeline name from workflow")
+		if pipelineName == "" {
+			es.Logger.Info("failed to get pipeline name from workflow")
 			return
 		}
 

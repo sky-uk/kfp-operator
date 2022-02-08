@@ -129,7 +129,7 @@ func createWorkflowInPhase(ctx context.Context, pipelineName string, phase argo.
 	workflow.SetName(rand.String(10))
 	workflow.SetLabels(map[string]string{
 		workflowPhaseLabel: string(phase),
-		kfpSdkVersionLabel: rand.String(5),
+		pipelineRunIdLabel: rand.String(5),
 	})
 	workflow.SetAnnotations(map[string]string{
 		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
