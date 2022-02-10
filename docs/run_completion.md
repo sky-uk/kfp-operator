@@ -10,7 +10,7 @@ The specification of the eventsource follows those of other [generic Argo-Events
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: run-completion-eventsource
+  name: run-completion
 spec:
   generic:
     run-completion:
@@ -44,11 +44,11 @@ A sensor for the pipeline `penguin-pipeline` could look as follows:
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: penguin-pipeline-model-update-sensor
+  name: penguin-pipeline-model-update
 spec:
   dependencies:
-    - name: run-completion-eventsource
-      eventSourceName: run-completion-eventsource
+    - name: run-completion
+      eventSourceName: run-completion
       eventName: run-completion
       filters:
         data:
