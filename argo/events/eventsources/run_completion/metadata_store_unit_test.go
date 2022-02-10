@@ -182,6 +182,7 @@ var _ = Context("gRPC Metadata Store", func() {
 				results, err := store.GetServingModelArtifact(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(BeEmpty())
+				Expect(results).To(Not(BeNil()))
 			})
 		})
 
@@ -204,6 +205,7 @@ var _ = Context("gRPC Metadata Store", func() {
 				results, err := store.GetServingModelArtifact(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(BeEmpty())
+				Expect(results).To(Not(BeNil()))
 			})
 		})
 
@@ -231,6 +233,7 @@ var _ = Context("gRPC Metadata Store", func() {
 				results, err := store.GetServingModelArtifact(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(BeEmpty())
+				Expect(results).To(Not(BeNil()))
 			})
 		})
 
@@ -276,6 +279,7 @@ var _ = Context("gRPC Metadata Store", func() {
 				results, err := store.GetServingModelArtifact(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(BeEmpty())
+				Expect(results).To(Not(BeNil()))
 			})
 		})
 

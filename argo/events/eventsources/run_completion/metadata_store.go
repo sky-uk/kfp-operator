@@ -50,7 +50,7 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 		return nil, err
 	}
 
-	var results []ServingModelArtifact
+	results := make([]ServingModelArtifact, 0)
 	for _, artifact := range artifactsResponse.GetArtifacts() {
 		if artifact.GetTypeId() == artifactTypeId {
 			artifactUri := artifact.GetUri()
