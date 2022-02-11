@@ -8,16 +8,16 @@ The specification of the eventsource follows those of other [generic Argo-Events
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
-  kind: EventSource
-  metadata:
-    name: run-completion-eventsource
-  spec:
-    generic:
-      run-completion:
-        insecure: true
-        url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:50051"
-        config: |-
-          kfpNamespace: kubeflow-pipelines
+kind: EventSource
+metadata:
+  name: run-completion
+spec:
+  generic:
+    run-completion:
+      insecure: true
+      url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080"
+      config: |-
+        kfpNamespace: kubeflow-pipelines
 ```
 
 The configuration currently has a single field `kfpNamespace` which defines what namespace to watch pipeline workflows in.
@@ -44,11 +44,11 @@ A sensor for the pipeline `penguin-pipeline` could look as follows:
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: penguin-pipeline-model-update-sensor
+  name: penguin-pipeline-model-update
 spec:
   dependencies:
-    - name: run-completion-eventsource
-      eventSourceName: model-update-eventsource
+    - name: run-completion
+      eventSourceName: run-completion
       eventName: run-completion
       filters:
         data:

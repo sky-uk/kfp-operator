@@ -7,27 +7,27 @@ spec:
     native: {}
 ---
 apiVersion: argoproj.io/v1alpha1
-  kind: EventSource
-  metadata:
-    name: run-completion-eventsource
-  spec:
-    generic:
-      run-completion:
-        insecure: true
-        url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:50051"
-        config: |-
-          kfpNamespace: kubeflow-pipelines
+kind: EventSource
+metadata:
+  name: run-completion
+spec:
+  generic:
+    run-completion:
+      insecure: true
+      url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080"
+      config: |-
+        kfpNamespace: kubeflow-pipelines
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: penguin-pipeline-model-update-sensor
+  name: penguin-pipeline-model-update
 spec:
   template:
     serviceAccountName: events-sa
   dependencies:
-    - name: run-completion-eventsource
-      eventSourceName: run-completion-eventsource
+    - name: run-completion
+      eventSourceName: run-completion
       eventName: run-completion
       filters:
         data:
@@ -57,6 +57,6 @@ spec:
                 servingModel: ""
       parameters:
         - src:
-            dependencyName: run-completion-eventsource
+            dependencyName: run-completion
             dataKey: '{{ (index ((b64dec .Input) | mustFromJson).servingModelArtifacts 0).location }}'
           dest: data.servingModel
