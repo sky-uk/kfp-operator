@@ -4,13 +4,36 @@
 package run_completion
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
+
+func setWorkflowPhase(workflow *unstructured.Unstructured, phase argo.WorkflowPhase) {
+	workflow.SetLabels(map[string]string{
+		workflowPhaseLabel: string(phase),
+	})
+}
+
+func setWorkflowEntryPoint(workflow *unstructured.Unstructured, entrypoint string) {
+	workflow.Object = map[string]interface{}{
+		"spec": map[string]interface{}{
+			"entrypoint": entrypoint,
+		},
+	}
+}
+
+func setPipelineNameInSpec(workflow *unstructured.Unstructured, pipelineName string) {
+	workflow.SetAnnotations(map[string]string{
+		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
+	})
+}
 
 var _ = Context("Eventing Server", func() {
 	Describe("jsonPatchPath", func() {
@@ -45,167 +68,98 @@ var _ = Context("Eventing Server", func() {
 
 	Describe("runCompletionStatus", func() {
 		When("The workflow has no status", func() {
-			It("Returns Failed", func() {
-				workflow := &unstructured.Unstructured{}
-				Expect(runCompletionStatus(workflow)).To(Equal(Failed))
-			})
-		})
-
-		When("The workflow has not succeeded", func() {
-			DescribeTable("Returns Failed",
-				func(phase argo.WorkflowPhase) {
-					workflow := &unstructured.Unstructured{}
-					workflow.SetLabels(map[string]string{
-						workflowPhaseLabel: string(phase),
-					})
-					Expect(runCompletionStatus(workflow)).To(Equal(Failed))
-				},
-				Entry("unknown", argo.WorkflowUnknown),
-				Entry("pending", argo.WorkflowPending),
-				Entry("running", argo.WorkflowRunning),
-				Entry("error", argo.WorkflowError),
-				Entry("failed", argo.WorkflowFailed),
-			)
-		})
-
-		When("The workflow has succeeded", func() {
-			It("Returns Succeeded", func() {
-				workflow := &unstructured.Unstructured{}
-				workflow.SetLabels(map[string]string{
-					workflowPhaseLabel: string(argo.WorkflowSucceeded),
-				})
-				Expect(runCompletionStatus(workflow)).To(Equal(Succeeded))
-			})
+			workflow := &unstructured.Unstructured{}
+			_, hasFinished := runCompletionStatus(workflow)
+			Expect(hasFinished).To(BeFalse())
 		})
 	})
 
-	Describe("workflowHasFinished", func() {
-		When("The workflow has no status", func() {
-			It("Returns false", func() {
-				workflow := &unstructured.Unstructured{}
-				Expect(workflowHasFinished(workflow)).To(BeFalse())
-			})
-		})
+	DescribeTable("runCompletionStatus",
+		func(phase argo.WorkflowPhase) {
+			workflow := &unstructured.Unstructured{}
+			setWorkflowPhase(workflow, phase)
+			_, hasFinished := runCompletionStatus(workflow)
+			Expect(hasFinished).To(Equal(false))
+		},
+		Entry("unknown", argo.WorkflowUnknown),
+		Entry("pending", argo.WorkflowPending),
+		Entry("running", argo.WorkflowRunning),
+	)
 
-		When("The workflow has not finished", func() {
-			DescribeTable("Returns false",
-				func(phase argo.WorkflowPhase) {
-					workflow := &unstructured.Unstructured{}
-					workflow.SetLabels(map[string]string{
-						workflowPhaseLabel: string(phase),
-					})
-					Expect(workflowHasFinished(workflow)).To(BeFalse())
-				},
-				Entry("unknown", argo.WorkflowUnknown),
-				Entry("pending", argo.WorkflowPending),
-				Entry("running", argo.WorkflowRunning),
-			)
-		})
-
-		When("The workflow has finished", func() {
-			DescribeTable("Returns true",
-				func(phase argo.WorkflowPhase) {
-					workflow := &unstructured.Unstructured{}
-					workflow.SetLabels(map[string]string{
-						workflowPhaseLabel: string(phase),
-					})
-					Expect(workflowHasFinished(workflow)).To(BeTrue())
-				},
-				Entry("unknown", argo.WorkflowFailed),
-				Entry("pending", argo.WorkflowError),
-				Entry("running", argo.WorkflowSucceeded),
-			)
-		})
-	})
+	DescribeTable("runCompletionStatus",
+		func(phase argo.WorkflowPhase, expectedStatus RunCompletionStatus) {
+			workflow := &unstructured.Unstructured{}
+			setWorkflowPhase(workflow, phase)
+			status, hasFinished := runCompletionStatus(workflow)
+			Expect(status).To(Equal(expectedStatus))
+			Expect(hasFinished).To(Equal(true))
+		},
+		Entry("error", argo.WorkflowError, Failed),
+		Entry("failed", argo.WorkflowFailed, Failed),
+		Entry("succeeded", argo.WorkflowSucceeded, Succeeded),
+	)
 
 	Describe("getPipelineNameFromAnnotation", func() {
 		When("The workflow has no pipeline spec annotation", func() {
-			It("Returns empty string", func() {
-				workflow := &unstructured.Unstructured{}
+			workflow := &unstructured.Unstructured{}
 
-				extractedName := getPipelineNameFromAnnotation(workflow)
-				Expect(extractedName).To(BeEmpty())
-			})
+			extractedName := getPipelineNameFromAnnotation(workflow)
+			Expect(extractedName).To(BeEmpty())
 		})
 
 		When("The workflow's pipeline spec annotation is invalid", func() {
-			It("Returns empty string", func() {
-				workflow := &unstructured.Unstructured{}
-				workflow.SetAnnotations(map[string]string{
-					pipelineSpecAnnotationName: fmt.Sprintf(`{invalid`),
-				})
-
-				extractedName := getPipelineNameFromAnnotation(workflow)
-				Expect(extractedName).To(BeEmpty())
+			workflow := &unstructured.Unstructured{}
+			workflow.SetAnnotations(map[string]string{
+				pipelineSpecAnnotationName: fmt.Sprintf(`{invalid`),
 			})
+
+			extractedName := getPipelineNameFromAnnotation(workflow)
+			Expect(extractedName).To(BeEmpty())
 		})
 
 		When("The name is missing from workflow's spec annotation", func() {
-			It("Returns empty string", func() {
-				workflow := &unstructured.Unstructured{}
-				workflow.SetAnnotations(map[string]string{
-					pipelineSpecAnnotationName: fmt.Sprintf(`{}`),
-				})
-
-				extractedName := getPipelineNameFromAnnotation(workflow)
-				Expect(extractedName).To(BeEmpty())
+			workflow := &unstructured.Unstructured{}
+			workflow.SetAnnotations(map[string]string{
+				pipelineSpecAnnotationName: fmt.Sprintf(`{}`),
 			})
+
+			extractedName := getPipelineNameFromAnnotation(workflow)
+			Expect(extractedName).To(BeEmpty())
 		})
 
 		When("The workflow has a pipeline spec annotation with the pipeline name", func() {
-			It("Returns the spec's value as the pipeline name", func() {
-				pipelineName := randomString()
-				workflow := &unstructured.Unstructured{}
-				workflow.SetAnnotations(map[string]string{
-					pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
-				})
+			pipelineName := randomString()
+			workflow := &unstructured.Unstructured{}
+			setPipelineNameInSpec(workflow, pipelineName)
 
-				extractedName := getPipelineNameFromAnnotation(workflow)
-				Expect(extractedName).To(Equal(pipelineName))
-			})
+			extractedName := getPipelineNameFromAnnotation(workflow)
+			Expect(extractedName).To(Equal(pipelineName))
 		})
 	})
 
 	Describe("getPipelineNameFromEntrypoint", func() {
 		When("The workflow has no entrypoint", func() {
-			It("Returns empty string", func() {
-				workflow := &unstructured.Unstructured{}
+			workflow := &unstructured.Unstructured{}
 
-				extractedName := getPipelineNameFromEntrypoint(workflow)
-				Expect(extractedName).To(BeEmpty())
-			})
+			extractedName := getPipelineNameFromEntrypoint(workflow)
+			Expect(extractedName).To(BeEmpty())
 		})
 
 		When("The workflow's entrypoint is empty'", func() {
-			It("Returns empty string", func() {
-				workflow := &unstructured.Unstructured{
-					Object: map[string]interface{}{
-						"spec": map[string]interface{}{
-							"entrypoint": "",
-						},
-					},
-				}
+			workflow := &unstructured.Unstructured{}
+			setWorkflowEntryPoint(workflow, "")
 
-				extractedName := getPipelineNameFromEntrypoint(workflow)
-				Expect(extractedName).To(BeEmpty())
-			})
+			extractedName := getPipelineNameFromEntrypoint(workflow)
+			Expect(extractedName).To(BeEmpty())
 		})
 
 		When("The workflow has an entrypoint'", func() {
-			It("Returns the entrypoint as the pipeline name", func() {
-				pipelineName := randomString()
+			pipelineName := randomString()
+			workflow := &unstructured.Unstructured{}
+			setWorkflowEntryPoint(workflow, pipelineName)
 
-				workflow := &unstructured.Unstructured{
-					Object: map[string]interface{}{
-						"spec": map[string]interface{}{
-							"entrypoint": pipelineName,
-						},
-					},
-				}
-
-				extractedName := getPipelineNameFromEntrypoint(workflow)
-				Expect(extractedName).To(Equal(pipelineName))
-			})
+			extractedName := getPipelineNameFromEntrypoint(workflow)
+			Expect(extractedName).To(Equal(pipelineName))
 		})
 	})
 
@@ -213,16 +167,9 @@ var _ = Context("Eventing Server", func() {
 	entrypoint := randomString()
 
 	DescribeTable("getPipelineName", func(annotationValue string, entrypoint string, expected string) {
-		workflow := &unstructured.Unstructured{
-			Object: map[string]interface{}{
-				"spec": map[string]interface{}{
-					"entrypoint": entrypoint,
-				},
-			},
-		}
-		workflow.SetAnnotations(map[string]string{
-			pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, annotationValue),
-		})
+		workflow := &unstructured.Unstructured{}
+		setWorkflowEntryPoint(workflow, entrypoint)
+		setPipelineNameInSpec(workflow, annotationValue)
 
 		extractedName := getPipelineName(workflow)
 		Expect(extractedName).To(Equal(expected))
@@ -231,5 +178,76 @@ var _ = Context("Eventing Server", func() {
 		Entry("Returns the annotation value", pipelineName, "", pipelineName),
 		Entry("Falls back to the entrypoint", "", entrypoint, entrypoint),
 		Entry("Prefers the annotation value", pipelineName, entrypoint, pipelineName),
+	)
+
+	Describe("eventForWorkflow", func() {
+		When("The workflow has not finished", func() {
+			workflow := &unstructured.Unstructured{}
+
+			eventingServer := EventingServer{
+				Logger: logr.Discard(),
+			}
+
+			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
+			Expect(event).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		When("The workflow has no pipeline name", func() {
+			workflow := &unstructured.Unstructured{}
+			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
+
+			eventingServer := EventingServer{
+				Logger: logr.Discard(),
+			}
+
+			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
+			Expect(event).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		When("The artifact store errors", func() {
+			workflow := &unstructured.Unstructured{}
+			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
+			setPipelineNameInSpec(workflow, randomString())
+
+			mockMetadataStore := MockMetadataStore{}
+
+			eventingServer := EventingServer{
+				Logger:        logr.Discard(),
+				MetadataStore: &mockMetadataStore,
+			}
+
+			expectedError := errors.New("an error occurred")
+			mockMetadataStore.error(expectedError)
+
+			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
+			Expect(event).To(BeNil())
+			Expect(err).To(Equal(expectedError))
+		})
+	})
+
+	DescribeTable("eventForWorkflow", func(phase argo.WorkflowPhase) {
+		workflow := &unstructured.Unstructured{}
+		setWorkflowPhase(workflow, phase)
+		setPipelineNameInSpec(workflow, randomString())
+		workflow.SetName(randomString())
+
+		mockMetadataStore := MockMetadataStore{}
+
+		eventingServer := EventingServer{
+			Logger:        logr.Discard(),
+			MetadataStore: &mockMetadataStore,
+		}
+
+		artifacts := mockMetadataStore.returnArtifactForPipeline()
+		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
+
+		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
+		Expect(err).NotTo(HaveOccurred())
+	},
+		Entry("workflow succeeded", argo.WorkflowSucceeded),
+		Entry("workflow failed", argo.WorkflowFailed),
+		Entry("workflow errored", argo.WorkflowError),
 	)
 })
