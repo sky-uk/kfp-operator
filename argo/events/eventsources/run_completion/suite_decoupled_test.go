@@ -37,37 +37,6 @@ const (
 	defaultNamespace = "default"
 )
 
-type MockMetadataStore struct {
-	results []ServingModelArtifact
-	err     error
-}
-
-func (mms *MockMetadataStore) GetServingModelArtifact(_ context.Context, _ string) ([]ServingModelArtifact, error) {
-	return mms.results, mms.err
-}
-
-func resetMetadataStore() {
-	mockMetadataStore.results = nil
-	mockMetadataStore.err = nil
-}
-
-var givenMetadataStoreReturnsArtifactsForPipeline = func(pipelineName string) []ServingModelArtifact {
-	mockMetadataStore.results = []ServingModelArtifact{
-		{
-			randomString(),
-			randomString(),
-		},
-	}
-	mockMetadataStore.err = nil
-
-	return mockMetadataStore.results
-}
-
-var givenMetadataStoreErrors = func(err error) {
-	mockMetadataStore.results = nil
-	mockMetadataStore.err = err
-}
-
 func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Run Completion EventSource Decoupled Suite")
@@ -221,7 +190,7 @@ func WithTestContext(fun func(context.Context)) {
 	defer cancel()
 
 	Expect(deleteAllWorkflows(ctx)).To(Succeed())
-	resetMetadataStore()
+	mockMetadataStore.reset()
 
 	fun(ctx)
 }
@@ -232,7 +201,7 @@ var _ = Describe("Run completion eventsource", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
 				pipelineName := randomString()
-				servingModelArtifacts := givenMetadataStoreReturnsArtifactsForPipeline(pipelineName)
+				servingModelArtifacts := mockMetadataStore.returnArtifactForPipeline()
 
 				Expect(err).NotTo(HaveOccurred())
 
@@ -381,7 +350,7 @@ var _ = Describe("Run completion eventsource", func() {
 			WithTestContext(func(ctx context.Context) {
 				pipelineName := randomString()
 
-				givenMetadataStoreErrors(errors.New("error calling metadata store"))
+				mockMetadataStore.error(errors.New("error calling metadata store"))
 
 				stream, err := startClient(ctx)
 				Expect(err).NotTo(HaveOccurred())
@@ -392,7 +361,7 @@ var _ = Describe("Run completion eventsource", func() {
 				_, err = stream.Recv()
 				Expect(err).To(HaveOccurred())
 
-				servingModelArtifacts := givenMetadataStoreReturnsArtifactsForPipeline(pipelineName)
+				servingModelArtifacts := mockMetadataStore.returnArtifactForPipeline()
 
 				stream, err = startClient(ctx)
 				Expect(err).NotTo(HaveOccurred())

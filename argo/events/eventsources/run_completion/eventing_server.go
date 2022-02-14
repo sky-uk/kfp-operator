@@ -145,40 +145,15 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 
 		workflow := newObj.(*unstructured.Unstructured)
 
-		if !workflowHasFinished(workflow) {
-			es.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
+		runCompletionEvent, err := es.eventForWorkflow(ctx, workflow)
+
+		if err != nil {
+			cancel() //force client to disconnect
 			return
 		}
 
-		workflowName := workflow.GetName()
-		pipelineName := getPipelineName(workflow)
-
-		if pipelineName == "" {
-			es.Logger.Info("failed to get pipeline name from workflow")
+		if runCompletionEvent == nil {
 			return
-		}
-
-		var runCompletionEvent RunCompletionEvent
-
-		if workflowHasSucceeded(workflow) {
-			modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(ctx, workflowName)
-
-			if err != nil {
-				es.Logger.Error(err, "failed to retrieve serving model artifact")
-				cancel()
-				return
-			}
-
-			runCompletionEvent = RunCompletionEvent{
-				Status:                Succeeded,
-				PipelineName:          pipelineName,
-				ServingModelArtifacts: modelArtifacts,
-			}
-		} else {
-			runCompletionEvent = RunCompletionEvent{
-				Status:       Failed,
-				PipelineName: pipelineName,
-			}
 		}
 
 		jsonPayload, err := json.Marshal(runCompletionEvent)
@@ -212,16 +187,44 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 	return nil
 }
 
-func workflowHasSucceeded(workflow *unstructured.Unstructured) bool {
-	return workflow.GetLabels()[workflowPhaseLabel] == string(argo.WorkflowSucceeded)
+func (es *EventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*RunCompletionEvent, error) {
+	status, hasFinished := runCompletionStatus(workflow)
+
+	if !hasFinished {
+		es.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
+		return nil, nil
+	}
+
+	workflowName := workflow.GetName()
+	pipelineName := getPipelineName(workflow)
+
+	if pipelineName == "" {
+		es.Logger.Info("failed to get pipeline name from workflow")
+		return nil, nil
+	}
+
+	modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(ctx, workflowName)
+
+	if err != nil {
+		es.Logger.Error(err, "failed to retrieve serving model artifact")
+		return nil, err
+	}
+
+	return &RunCompletionEvent{
+		Status:                status,
+		PipelineName:          pipelineName,
+		ServingModelArtifacts: modelArtifacts,
+	}, nil
 }
 
-func workflowHasFinished(workflow *unstructured.Unstructured) bool {
+func runCompletionStatus(workflow *unstructured.Unstructured) (RunCompletionStatus, bool) {
 	switch workflow.GetLabels()[workflowPhaseLabel] {
-	case string(argo.WorkflowSucceeded), string(argo.WorkflowFailed), string(argo.WorkflowError):
-		return true
+	case string(argo.WorkflowSucceeded):
+		return Succeeded, true
+	case string(argo.WorkflowFailed), string(argo.WorkflowError):
+		return Failed, true
 	default:
-		return false
+		return "", false
 	}
 }
 
