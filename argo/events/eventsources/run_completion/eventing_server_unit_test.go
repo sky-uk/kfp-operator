@@ -43,22 +43,22 @@ var _ = Context("Eventing Server", func() {
 		})
 	})
 
-	Describe("workflowHasSucceeded", func() {
+	Describe("runCompletionStatus", func() {
 		When("The workflow has no status", func() {
-			It("Returns false", func() {
+			It("Returns Failed", func() {
 				workflow := &unstructured.Unstructured{}
-				Expect(workflowHasSucceeded(workflow)).To(BeFalse())
+				Expect(runCompletionStatus(workflow)).To(Equal(Failed))
 			})
 		})
 
 		When("The workflow has not succeeded", func() {
-			DescribeTable("Returns false",
+			DescribeTable("Returns Failed",
 				func(phase argo.WorkflowPhase) {
 					workflow := &unstructured.Unstructured{}
 					workflow.SetLabels(map[string]string{
 						workflowPhaseLabel: string(phase),
 					})
-					Expect(workflowHasSucceeded(workflow)).To(BeFalse())
+					Expect(runCompletionStatus(workflow)).To(Equal(Failed))
 				},
 				Entry("unknown", argo.WorkflowUnknown),
 				Entry("pending", argo.WorkflowPending),
@@ -69,12 +69,12 @@ var _ = Context("Eventing Server", func() {
 		})
 
 		When("The workflow has succeeded", func() {
-			It("Returns true", func() {
+			It("Returns Succeeded", func() {
 				workflow := &unstructured.Unstructured{}
 				workflow.SetLabels(map[string]string{
 					workflowPhaseLabel: string(argo.WorkflowSucceeded),
 				})
-				Expect(workflowHasSucceeded(workflow)).To(BeTrue())
+				Expect(runCompletionStatus(workflow)).To(Equal(Succeeded))
 			})
 		})
 	})
@@ -83,7 +83,7 @@ var _ = Context("Eventing Server", func() {
 		When("The workflow has no status", func() {
 			It("Returns false", func() {
 				workflow := &unstructured.Unstructured{}
-				Expect(workflowHasSucceeded(workflow)).To(BeFalse())
+				Expect(workflowHasFinished(workflow)).To(BeFalse())
 			})
 		})
 

@@ -158,27 +158,18 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 			return
 		}
 
-		var runCompletionEvent RunCompletionEvent
+		modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(ctx, workflowName)
 
-		if workflowHasSucceeded(workflow) {
-			modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(ctx, workflowName)
+		if err != nil {
+			es.Logger.Error(err, "failed to retrieve serving model artifact")
+			cancel()
+			return
+		}
 
-			if err != nil {
-				es.Logger.Error(err, "failed to retrieve serving model artifact")
-				cancel()
-				return
-			}
-
-			runCompletionEvent = RunCompletionEvent{
-				Status:                Succeeded,
-				PipelineName:          pipelineName,
-				ServingModelArtifacts: modelArtifacts,
-			}
-		} else {
-			runCompletionEvent = RunCompletionEvent{
-				Status:       Failed,
-				PipelineName: pipelineName,
-			}
+		runCompletionEvent := RunCompletionEvent{
+			Status:                runCompletionStatus(workflow),
+			PipelineName:          pipelineName,
+			ServingModelArtifacts: modelArtifacts,
 		}
 
 		jsonPayload, err := json.Marshal(runCompletionEvent)
@@ -212,8 +203,12 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 	return nil
 }
 
-func workflowHasSucceeded(workflow *unstructured.Unstructured) bool {
-	return workflow.GetLabels()[workflowPhaseLabel] == string(argo.WorkflowSucceeded)
+func runCompletionStatus(workflow *unstructured.Unstructured) RunCompletionStatus {
+	if workflow.GetLabels()[workflowPhaseLabel] == string(argo.WorkflowSucceeded) {
+		return Succeeded
+	} else {
+		return Failed
+	}
 }
 
 func workflowHasFinished(workflow *unstructured.Unstructured) bool {
