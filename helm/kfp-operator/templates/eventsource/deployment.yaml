@@ -23,7 +23,7 @@ spec:
           command:
             - /run_completion_eventsource_server
           args:
-            - --port={{ .Values.eventsourceServer.port }}
+            - --port=50051
             - --mlmd-url={{ .Values.eventsourceServer.mlmdUrl }}
             {{ if .Values.logging.verbosity }}
             - --zap-log-level={{ .Values.logging.verbosity }}
