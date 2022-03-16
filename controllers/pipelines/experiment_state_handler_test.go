@@ -163,7 +163,7 @@ var _ = Describe("Experiment State handler", func() {
 			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    workflowFactory,
 		}
-		commands := stateHandler.StateTransition(context.Background(), st.Experiment)
+		commands := stateHandler.stateTransition(context.Background(), st.Experiment)
 		Expect(commands).To(Equal(st.Commands))
 	},
 		Check("Empty",

@@ -13,10 +13,7 @@ type ExperimentStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st *ExperimentStateHandler) StateTransition(ctx context.Context, experiment *pipelinesv1.Experiment) (commands []Command) {
-	logger := log.FromContext(ctx)
-	logger.Info("state transition start")
-
+func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experiment *pipelinesv1.Experiment) (commands []Command) {
 	switch experiment.Status.SynchronizationState {
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, experiment,
@@ -54,6 +51,14 @@ func (st *ExperimentStateHandler) StateTransition(ctx context.Context, experimen
 	}
 
 	return
+}
+
+func (st *ExperimentStateHandler) StateTransition(ctx context.Context, experiment *pipelinesv1.Experiment) []Command {
+	logger := log.FromContext(ctx)
+	logger.Info("state transition start")
+
+	stateTransitionCommands := st.stateTransition(ctx, experiment)
+	return alwaysSetObservedGeneration(ctx, stateTransitionCommands, experiment)
 }
 
 func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pipelinesv1.Experiment) []Command {
