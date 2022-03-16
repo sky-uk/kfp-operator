@@ -1,6 +1,5 @@
 package pipelines
 
-import "C"
 import (
 	"context"
 	"fmt"
