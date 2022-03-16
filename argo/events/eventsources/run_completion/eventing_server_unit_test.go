@@ -67,7 +67,7 @@ var _ = Context("Eventing Server", func() {
 	})
 
 	Describe("runCompletionStatus", func() {
-		When("The workflow has no status", func() {
+		It("returns false when the workflow has no status", func() {
 			workflow := &unstructured.Unstructured{}
 			_, hasFinished := runCompletionStatus(workflow)
 			Expect(hasFinished).To(BeFalse())
@@ -100,14 +100,14 @@ var _ = Context("Eventing Server", func() {
 	)
 
 	Describe("getPipelineNameFromAnnotation", func() {
-		When("The workflow has no pipeline spec annotation", func() {
+		It("returns empty when the workflow has no pipeline spec annotation", func() {
 			workflow := &unstructured.Unstructured{}
 
 			extractedName := getPipelineNameFromAnnotation(workflow)
 			Expect(extractedName).To(BeEmpty())
 		})
 
-		When("The workflow's pipeline spec annotation is invalid", func() {
+		It("returns empty when the workflow's pipeline spec annotation is invalid", func() {
 			workflow := &unstructured.Unstructured{}
 			workflow.SetAnnotations(map[string]string{
 				pipelineSpecAnnotationName: fmt.Sprintf(`{invalid`),
@@ -117,7 +117,7 @@ var _ = Context("Eventing Server", func() {
 			Expect(extractedName).To(BeEmpty())
 		})
 
-		When("The name is missing from workflow's spec annotation", func() {
+		It("returns empty when the name is missing from workflow's spec annotation", func() {
 			workflow := &unstructured.Unstructured{}
 			workflow.SetAnnotations(map[string]string{
 				pipelineSpecAnnotationName: fmt.Sprintf(`{}`),
@@ -127,7 +127,7 @@ var _ = Context("Eventing Server", func() {
 			Expect(extractedName).To(BeEmpty())
 		})
 
-		When("The workflow has a pipeline spec annotation with the pipeline name", func() {
+		It("returns the pipeline's name when the workflow has a pipeline spec annotation with the pipeline name", func() {
 			pipelineName := randomString()
 			workflow := &unstructured.Unstructured{}
 			setPipelineNameInSpec(workflow, pipelineName)
@@ -138,14 +138,14 @@ var _ = Context("Eventing Server", func() {
 	})
 
 	Describe("getPipelineNameFromEntrypoint", func() {
-		When("The workflow has no entrypoint", func() {
+		It("returns empty when the workflow has no entrypoint", func() {
 			workflow := &unstructured.Unstructured{}
 
 			extractedName := getPipelineNameFromEntrypoint(workflow)
 			Expect(extractedName).To(BeEmpty())
 		})
 
-		When("The workflow's entrypoint is empty'", func() {
+		It("returns empty when the workflow's entrypoint is empty'", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowEntryPoint(workflow, "")
 
@@ -153,7 +153,7 @@ var _ = Context("Eventing Server", func() {
 			Expect(extractedName).To(BeEmpty())
 		})
 
-		When("The workflow has an entrypoint'", func() {
+		It("returns the pipeline's name when the workflow has an entrypoint'", func() {
 			pipelineName := randomString()
 			workflow := &unstructured.Unstructured{}
 			setWorkflowEntryPoint(workflow, pipelineName)
@@ -181,7 +181,7 @@ var _ = Context("Eventing Server", func() {
 	)
 
 	Describe("eventForWorkflow", func() {
-		When("The workflow has not finished", func() {
+		It("Doesn't emit an event when the workflow has not finished", func() {
 			workflow := &unstructured.Unstructured{}
 
 			eventingServer := EventingServer{
@@ -193,7 +193,7 @@ var _ = Context("Eventing Server", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		When("The workflow has no pipeline name", func() {
+		It("Doesn't emit an event when the workflow has no pipeline name", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 
@@ -206,7 +206,7 @@ var _ = Context("Eventing Server", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		When("The artifact store errors", func() {
+		It("errors when the artifact store errors", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 			setPipelineNameInSpec(workflow, randomString())

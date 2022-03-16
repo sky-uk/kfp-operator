@@ -4,11 +4,13 @@
 package pipelines
 
 import (
+	"context"
 	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	"math/rand"
 )
 
 var _ = Describe("eventMessage", func() {
@@ -83,4 +85,80 @@ var _ = Describe("eventReason", func() {
 		Entry("Deleted", pipelinesv1.Deleted, EventReasons.Synced),
 		Entry("Failed", pipelinesv1.Failed, EventReasons.SyncFailed),
 	)
+})
+
+var _ = Describe("alwaysSetObservedGeneration", func() {
+	It("updates existing SetStatus", func() {
+		commands := []Command{
+			AcquireResource{},
+			SetStatus{
+				Status: pipelinesv1.Status{SynchronizationState: pipelinesv1.Succeeded},
+			},
+			ReleaseResource{},
+		}
+		resource := &pipelinesv1.Pipeline{
+			Status: pipelinesv1.Status{
+				ObservedGeneration: -1,
+			},
+		}
+		resource.SetGeneration(rand.Int63())
+
+		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+
+		Expect(modifiedCommands).To(Equal(
+			[]Command{
+				AcquireResource{},
+				SetStatus{
+					Status: pipelinesv1.Status{
+						SynchronizationState: pipelinesv1.Succeeded,
+						ObservedGeneration:   resource.Generation,
+					},
+				},
+				ReleaseResource{},
+			}))
+	})
+
+	It("appends SetStatus when it doesn't exist", func() {
+		commands := []Command{
+			AcquireResource{},
+			ReleaseResource{},
+		}
+		resource := &pipelinesv1.Pipeline{
+			Status: pipelinesv1.Status{
+				ObservedGeneration: -1,
+			},
+		}
+		resource.SetGeneration(rand.Int63())
+
+		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+
+		Expect(modifiedCommands).To(Equal(
+			[]Command{
+				AcquireResource{},
+				ReleaseResource{},
+				SetStatus{
+					Status: pipelinesv1.Status{
+						ObservedGeneration: resource.GetGeneration(),
+					},
+				},
+			}))
+	})
+
+	It("leaves commands unchanged when the generation hasn't changed", func() {
+		commands := []Command{
+			AcquireResource{},
+			ReleaseResource{},
+		}
+		generation := rand.Int63()
+		resource := &pipelinesv1.Pipeline{
+			Status: pipelinesv1.Status{
+				ObservedGeneration: generation,
+			},
+		}
+		resource.SetGeneration(generation)
+
+		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+
+		Expect(modifiedCommands).To(Equal(commands))
+	})
 })

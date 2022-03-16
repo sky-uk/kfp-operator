@@ -40,6 +40,38 @@ type Command interface {
 	execute(context.Context, K8sExecutionContext, Resource) error
 }
 
+func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource Resource) []Command {
+	if resource.GetGeneration() == resource.GetStatus().ObservedGeneration {
+		return commands
+	}
+
+	logger := log.FromContext(ctx)
+	setStatusExists := false
+	var modifiedCommands []Command
+
+	for _, command := range commands {
+		setStatus, isSetStatus := command.(SetStatus)
+
+		if isSetStatus {
+			if setStatusExists {
+				logger.Info("attempting to set status more than once in the same reconciliation, this is likely to cause inconsistencies")
+			}
+
+			setStatusExists = true
+			setStatus.Status.ObservedGeneration = resource.GetGeneration()
+			modifiedCommands = append(modifiedCommands, setStatus)
+		} else {
+			modifiedCommands = append(modifiedCommands, command)
+		}
+	}
+
+	if !setStatusExists {
+		modifiedCommands = append(modifiedCommands, SetStatus{Status: pipelinesv1.Status{ObservedGeneration: resource.GetGeneration()}})
+	}
+
+	return modifiedCommands
+}
+
 type SetStatus struct {
 	Message string
 	Status  pipelinesv1.Status
