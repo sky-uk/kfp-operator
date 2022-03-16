@@ -59,6 +59,9 @@ spec:
             properties:
               kfpId:
                 type: string
+              observedGeneration:
+                format: int64
+                type: integer
               synchronizationState:
                 type: string
               version:
