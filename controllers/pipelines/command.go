@@ -41,7 +41,6 @@ type Command interface {
 }
 
 func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource Resource) []Command {
-
 	if resource.GetGeneration() == resource.GetStatus().ObservedGeneration {
 		return commands
 	}
