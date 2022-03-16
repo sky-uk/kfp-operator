@@ -13,7 +13,7 @@ type PipelineStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []Command) {
+func (st PipelineStateHandler) stateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []Command) {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
@@ -54,6 +54,14 @@ func (st PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pi
 	}
 
 	return
+}
+
+func (st *PipelineStateHandler) StateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {
+	logger := log.FromContext(ctx)
+	logger.Info("state transition start")
+
+	stateTransitionCommands := st.stateTransition(ctx, pipeline)
+	return alwaysSetObservedGeneration(ctx, stateTransitionCommands, pipeline)
 }
 
 func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipelinesv1.Pipeline) []Command {

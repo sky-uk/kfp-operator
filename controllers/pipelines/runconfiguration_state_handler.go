@@ -13,7 +13,7 @@ type RunConfigurationStateHandler struct {
 	WorkflowRepository WorkflowRepository
 }
 
-func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (commands []Command) {
+func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (commands []Command) {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
@@ -54,6 +54,14 @@ func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, run
 	}
 
 	return
+}
+
+func (st *RunConfigurationStateHandler) StateTransition(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []Command {
+	logger := log.FromContext(ctx)
+	logger.Info("state transition start")
+
+	stateTransitionCommands := st.stateTransition(ctx, runConfiguration)
+	return alwaysSetObservedGeneration(ctx, stateTransitionCommands, runConfiguration)
 }
 
 func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) []Command {

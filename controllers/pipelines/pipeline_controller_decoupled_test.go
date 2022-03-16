@@ -24,6 +24,7 @@ var _ = Describe("Pipeline controller k8s integration", func() {
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
+				g.Expect(pipeline.Status.ObservedGeneration).To(Equal(pipeline.GetGeneration()))
 			})).Should(Succeed())
 
 			Eventually(testCtx.WorkflowToBeUpdated(PipelineWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
