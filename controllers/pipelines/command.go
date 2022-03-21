@@ -41,7 +41,8 @@ type Command interface {
 }
 
 func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource Resource) []Command {
-	if resource.GetGeneration() == resource.GetStatus().ObservedGeneration {
+	currentGeneration := resource.GetGeneration()
+	if currentGeneration == resource.GetStatus().ObservedGeneration {
 		return commands
 	}
 
@@ -58,7 +59,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 			}
 
 			setStatusExists = true
-			setStatus.Status.ObservedGeneration = resource.GetGeneration()
+			setStatus.Status.ObservedGeneration = currentGeneration
 			modifiedCommands = append(modifiedCommands, setStatus)
 		} else {
 			modifiedCommands = append(modifiedCommands, command)
@@ -66,7 +67,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	}
 
 	if !setStatusExists {
-		modifiedCommands = append(modifiedCommands, SetStatus{Status: pipelinesv1.Status{ObservedGeneration: resource.GetGeneration()}})
+		modifiedCommands = append(modifiedCommands, SetStatus{Status: pipelinesv1.Status{ObservedGeneration: currentGeneration}})
 	}
 
 	return modifiedCommands
