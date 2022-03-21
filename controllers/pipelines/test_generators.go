@@ -88,3 +88,26 @@ func RandomExperimentSpec() pipelinesv1.ExperimentSpec {
 		Description: RandomString(),
 	}
 }
+
+func RandomSynchronizationState() pipelinesv1.SynchronizationState {
+	synchronizationStates := []pipelinesv1.SynchronizationState{
+		"",
+		pipelinesv1.Creating,
+		pipelinesv1.Succeeded,
+		pipelinesv1.Updating,
+		pipelinesv1.Deleting,
+		pipelinesv1.Deleted,
+		pipelinesv1.Failed,
+	}
+
+	return synchronizationStates[rand.Intn(len(synchronizationStates))]
+}
+
+func RandomStatus() pipelinesv1.Status {
+	return pipelinesv1.Status{
+		SynchronizationState: RandomSynchronizationState(),
+		Version:              RandomString(),
+		KfpId:                RandomString(),
+		ObservedGeneration:   rand.Int63(),
+	}
+}

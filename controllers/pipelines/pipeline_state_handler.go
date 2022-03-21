@@ -14,9 +14,6 @@ type PipelineStateHandler struct {
 }
 
 func (st PipelineStateHandler) stateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []Command) {
-	logger := log.FromContext(ctx)
-	logger.Info("state transition start")
-
 	switch pipeline.Status.SynchronizationState {
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, pipeline,
