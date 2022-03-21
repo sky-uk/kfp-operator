@@ -67,7 +67,9 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	}
 
 	if !setStatusExists {
-		modifiedCommands = append(modifiedCommands, SetStatus{Status: pipelinesv1.Status{ObservedGeneration: currentGeneration}})
+		newStatus := resource.GetStatus()
+		newStatus.ObservedGeneration = currentGeneration
+		modifiedCommands = append(modifiedCommands, SetStatus{Status: newStatus})
 	}
 
 	return modifiedCommands

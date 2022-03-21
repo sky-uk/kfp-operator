@@ -124,22 +124,22 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			ReleaseResource{},
 		}
 		resource := &pipelinesv1.Pipeline{
-			Status: pipelinesv1.Status{
-				ObservedGeneration: -1,
-			},
+			Status: RandomStatus(),
 		}
 		resource.SetGeneration(rand.Int63())
+		resource.Status.ObservedGeneration = -1
 
 		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+
+		expectedResource := resource.Status.DeepCopy()
+		expectedResource.ObservedGeneration = resource.GetGeneration()
 
 		Expect(modifiedCommands).To(Equal(
 			[]Command{
 				AcquireResource{},
 				ReleaseResource{},
 				SetStatus{
-					Status: pipelinesv1.Status{
-						ObservedGeneration: resource.GetGeneration(),
-					},
+					Status: *expectedResource,
 				},
 			}))
 	})
