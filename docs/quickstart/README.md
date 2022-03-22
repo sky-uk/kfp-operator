@@ -19,7 +19,7 @@ docker push kfp-quickstart:v1
 Now that we have a pipeline image, we can create a `pipeline` resource to manage the lifecycle of this pipeline on Kubeflow:
 
 ```bash
-cat << EOF | kubectl apply -f
+cat << EOF | kubectl apply -f -
 apiVersion: pipelines.kubeflow.org/v1
 kind: Pipeline
 metadata:
@@ -45,8 +45,8 @@ Now visit you Kubeflow Pipelines UI. You should be able to see the newly created
 Note: this step is optional. You can continue with the next step if you want to use the `Default` experiment instead.
 
 ```bash
-cat << EOF | kubectl apply -f
-apiVersion: pipelines.kubeflow.com/v1
+cat << EOF | kubectl apply -f -
+apiVersion: pipelines.kubeflow.org/v1
 kind: Experiment
 metadata:
     name: penguin-experiment
@@ -62,15 +62,15 @@ We can now define a recurring run declaratively using the `RunConfiguration` res
 Note: remove `experimentName` if you want to use the `Default` experiment instead of `penguin-experiment`
 
 ```bash
-cat << EOF | kubectl apply -f
-apiVersion: pipelines.kubeflow.com/v1
+cat << EOF | kubectl apply -f -
+apiVersion: pipelines.kubeflow.org/v1
 kind: RunConfiguration
 metadata:
     name: penguin-pipeline-recurring-run
-    spec:
-        pipelineName: penguin-pipeline
-        experimentName: penguin-experiment
-        schedule: '0 0 * * * *'
+spec:
+    pipelineName: penguin-pipeline
+    experimentName: penguin-experiment
+    schedule: '0 0 * * * *'
 EOF
 ```
 
