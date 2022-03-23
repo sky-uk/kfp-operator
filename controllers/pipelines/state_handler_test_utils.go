@@ -30,7 +30,7 @@ func (sw *StubbedWorkflows) AddWorkflow(workflow argo.Workflow) {
 	sw.Workflows = append(sw.Workflows, workflow)
 }
 
-func (sw *StubbedWorkflows) CreateTestWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workflow {
+func CreateTestWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workflow {
 	return &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      operation,
