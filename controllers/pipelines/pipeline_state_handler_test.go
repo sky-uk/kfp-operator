@@ -30,13 +30,13 @@ func (st PipelineStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) 
 }
 
 func (st PipelineStateTransitionTestCase) WithFailedCreateWorkflow() PipelineStateTransitionTestCase {
-	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowFailed))
+	return st.WithWorkFlow(st.SystemStatus.CreateTestWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowFailed))
 }
 
 func (st PipelineStateTransitionTestCase) WithSucceededCreateWorkflow(kfpId string, version string) PipelineStateTransitionTestCase {
 	return st.WithWorkFlow(
 		setWorkflowOutputs(
-			st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
+			st.SystemStatus.CreateTestWorkflow(PipelineWorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
 			[]argo.Parameter{
 				{
 					Name:  PipelineWorkflowConstants.PipelineIdParameterName,
@@ -53,13 +53,13 @@ func (st PipelineStateTransitionTestCase) WithSucceededCreateWorkflow(kfpId stri
 
 func (st PipelineStateTransitionTestCase) WithUpdateWorkflow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.UpdateOperationLabel, phase),
+		st.SystemStatus.CreateTestWorkflow(PipelineWorkflowConstants.UpdateOperationLabel, phase),
 	)
 }
 
 func (st PipelineStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) PipelineStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(PipelineWorkflowConstants.DeleteOperationLabel, phase),
+		st.SystemStatus.CreateTestWorkflow(PipelineWorkflowConstants.DeleteOperationLabel, phase),
 	)
 }
 

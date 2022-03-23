@@ -34,6 +34,7 @@ type K8sExecutionContext struct {
 	Client   controllers.OptInClient
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
+	WorkflowRepository WorkflowRepository
 }
 
 type Command interface {
@@ -180,19 +181,11 @@ type DeleteWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (dw DeleteWorkflows) execute(ctx context.Context, ec K8sExecutionContext, resource Resource) error {
-	logger := log.FromContext(ctx)
-
+func (dw DeleteWorkflows) execute(ctx context.Context, ec K8sExecutionContext, _ Resource) error {
 	for i := range dw.Workflows {
 		workflow := &dw.Workflows[i]
-		workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
-		if !workflowDebugOptions.KeepWorkflows {
-			logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
-			if err := ec.Client.Delete(ctx, workflow); err != nil {
-				return err
-			}
-		} else {
-			logger.V(2).Info("keeping child workflow", LogKeys.Workflow, workflow)
+		if err := ec.WorkflowRepository.DeleteWorkflow(ctx, workflow); err != nil {
+			return err
 		}
 	}
 

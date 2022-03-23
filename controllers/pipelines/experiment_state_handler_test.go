@@ -29,13 +29,13 @@ func (st ExperimentStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow
 }
 
 func (st ExperimentStateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) ExperimentStateTransitionTestCase {
-	return st.WithWorkFlow(st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.CreateOperationLabel, phase))
+	return st.WithWorkFlow(st.SystemStatus.CreateTestWorkflow(ExperimentWorkflowConstants.CreateOperationLabel, phase))
 }
 
 func (st ExperimentStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.WorkflowPhase, kfpId string) ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
 		setWorkflowOutputs(
-			st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.CreateOperationLabel, phase),
+			st.SystemStatus.CreateTestWorkflow(ExperimentWorkflowConstants.CreateOperationLabel, phase),
 			[]argo.Parameter{
 				{
 					Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
@@ -48,14 +48,14 @@ func (st ExperimentStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.
 
 func (st ExperimentStateTransitionTestCase) WithFailedUpdateWorkflow() ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.UpdateOperationLabel, argo.WorkflowFailed),
+		st.SystemStatus.CreateTestWorkflow(ExperimentWorkflowConstants.UpdateOperationLabel, argo.WorkflowFailed),
 	)
 }
 
 func (st ExperimentStateTransitionTestCase) WithSucceededUpdateWorkflowWithId(kfpId string) ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
 		setWorkflowOutputs(
-			st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
+			st.SystemStatus.CreateTestWorkflow(ExperimentWorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
 			[]argo.Parameter{
 				{
 					Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
@@ -68,7 +68,7 @@ func (st ExperimentStateTransitionTestCase) WithSucceededUpdateWorkflowWithId(kf
 
 func (st ExperimentStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
-		st.SystemStatus.CreateWorkflow(ExperimentWorkflowConstants.DeleteOperationLabel, phase),
+		st.SystemStatus.CreateTestWorkflow(ExperimentWorkflowConstants.DeleteOperationLabel, phase),
 	)
 }
 

@@ -104,6 +104,7 @@ func main() {
 		Client:   client,
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("kfp-operator"),
+		WorkflowRepository: workflowRepository,
 	}
 
 	if err = (&pipelinescontrollers.PipelineReconciler{

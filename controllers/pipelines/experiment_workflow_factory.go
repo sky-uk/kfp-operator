@@ -32,7 +32,7 @@ type ExperimentWorkflowFactory struct {
 	WorkflowFactory
 }
 
-func (workflows *ExperimentWorkflowFactory) commonMeta(ctx context.Context, rc *pipelinesv1.Experiment, operation string) *metav1.ObjectMeta {
+func (workflows *ExperimentWorkflowFactory) commonMeta(_ context.Context, rc *pipelinesv1.Experiment, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    rc.Namespace,
@@ -40,7 +40,6 @@ func (workflows *ExperimentWorkflowFactory) commonMeta(ctx context.Context, rc *
 			ExperimentWorkflowConstants.OperationLabelKey:      operation,
 			ExperimentWorkflowConstants.ExperimentNameLabelKey: rc.Name,
 		},
-		Annotations: workflows.Annotations(ctx, rc.ObjectMeta),
 	}
 }
 

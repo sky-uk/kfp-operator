@@ -14,15 +14,23 @@ type StubbedWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (sw StubbedWorkflows) GetByOperation(_ context.Context, _ string, _ types.NamespacedName, _ string) []argo.Workflow {
+func (sw StubbedWorkflows) GetByLabels(_ context.Context, _ types.NamespacedName, _ map[string]string) []argo.Workflow {
 	return sw.Workflows
+}
+
+func (sw StubbedWorkflows) CreateWorkflow(ctx context.Context, workflow *argo.Workflow) error {
+	return nil
+}
+
+func (sw StubbedWorkflows) DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error {
+	return nil
 }
 
 func (sw *StubbedWorkflows) AddWorkflow(workflow argo.Workflow) {
 	sw.Workflows = append(sw.Workflows, workflow)
 }
 
-func (sw *StubbedWorkflows) CreateWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workflow {
+func (sw *StubbedWorkflows) CreateTestWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workflow {
 	return &argo.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      operation,
