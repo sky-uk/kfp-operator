@@ -18,7 +18,7 @@ func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experimen
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.NamespacedName(), map[string]string{
-				PipelineWorkflowConstants.OperationLabelKey: ExperimentWorkflowConstants.CreateOperationLabel,
+				PipelineWorkflowConstants.OperationLabelKey:        ExperimentWorkflowConstants.CreateOperationLabel,
 				ExperimentWorkflowConstants.ExperimentNameLabelKey: experiment.GetName(),
 			}))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
@@ -30,13 +30,13 @@ func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experimen
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.NamespacedName(), map[string]string{
-				PipelineWorkflowConstants.OperationLabelKey: ExperimentWorkflowConstants.UpdateOperationLabel,
+				PipelineWorkflowConstants.OperationLabelKey:        ExperimentWorkflowConstants.UpdateOperationLabel,
 				ExperimentWorkflowConstants.ExperimentNameLabelKey: experiment.GetName(),
 			}))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.NamespacedName(), map[string]string{
-				PipelineWorkflowConstants.OperationLabelKey: ExperimentWorkflowConstants.DeleteOperationLabel,
+				PipelineWorkflowConstants.OperationLabelKey:        ExperimentWorkflowConstants.DeleteOperationLabel,
 				ExperimentWorkflowConstants.ExperimentNameLabelKey: experiment.GetName(),
 			}))
 	case pipelinesv1.Deleted:

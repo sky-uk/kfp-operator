@@ -31,9 +31,9 @@ var EventReasons = struct {
 }
 
 type K8sExecutionContext struct {
-	Client   controllers.OptInClient
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Client             controllers.OptInClient
+	Scheme             *runtime.Scheme
+	Recorder           record.EventRecorder
 	WorkflowRepository WorkflowRepository
 }
 

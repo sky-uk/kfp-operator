@@ -18,7 +18,7 @@ func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, run
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.NamespacedName(), map[string]string{
-				RunConfigurationWorkflowConstants.OperationLabelKey: RunConfigurationWorkflowConstants.CreateOperationLabel,
+				RunConfigurationWorkflowConstants.OperationLabelKey:            RunConfigurationWorkflowConstants.CreateOperationLabel,
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
 			}))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
@@ -30,13 +30,13 @@ func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, run
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.NamespacedName(), map[string]string{
-				RunConfigurationWorkflowConstants.OperationLabelKey: RunConfigurationWorkflowConstants.UpdateOperationLabel,
+				RunConfigurationWorkflowConstants.OperationLabelKey:            RunConfigurationWorkflowConstants.UpdateOperationLabel,
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
 			}))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.NamespacedName(), map[string]string{
-				RunConfigurationWorkflowConstants.OperationLabelKey: RunConfigurationWorkflowConstants.DeleteOperationLabel,
+				RunConfigurationWorkflowConstants.OperationLabelKey:            RunConfigurationWorkflowConstants.DeleteOperationLabel,
 				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
 			}))
 	case pipelinesv1.Deleted:

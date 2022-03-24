@@ -70,9 +70,9 @@ var _ = BeforeSuite(func() {
 	}
 
 	ec := K8sExecutionContext{
-		Client:   optInClient,
-		Scheme:   k8sManager.GetScheme(),
-		Recorder: k8sManager.GetEventRecorderFor("decoupled-test-controller"),
+		Client:             optInClient,
+		Scheme:             k8sManager.GetScheme(),
+		Recorder:           k8sManager.GetEventRecorderFor("decoupled-test-controller"),
 		WorkflowRepository: workflowRepository,
 	}
 

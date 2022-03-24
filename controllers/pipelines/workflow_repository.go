@@ -23,8 +23,8 @@ var WorkflowRepositoryConstants = struct {
 
 type WorkflowRepository interface {
 	CreateWorkflow(ctx context.Context, workflow *argo.Workflow) error
-	GetByLabels(ctx context.Context,namespacedName types.NamespacedName, matchingLabels map[string]string) []argo.Workflow
-    DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error
+	GetByLabels(ctx context.Context, namespacedName types.NamespacedName, matchingLabels map[string]string) []argo.Workflow
+	DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error
 }
 
 type WorkflowRepositoryImpl struct {
