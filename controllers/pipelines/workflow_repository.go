@@ -95,18 +95,21 @@ func (w WorkflowRepositoryImpl) SetupWithManager(mgr ctrl.Manager) error {
 func (w WorkflowRepositoryImpl) DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error {
 	logger := log.FromContext(ctx)
 
+	logger.V(1).Info("marking child workflow as processed", LogKeys.Workflow, workflow)
+	workflow.GetLabels()[WorkflowRepositoryConstants.WorkflowProcessedLabel] = "true"
+	if err := w.Client.Update(ctx, workflow); err != nil {
+		return err
+	}
+
 	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
 	if !workflowDebugOptions.KeepWorkflows {
 		logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
+
 		if err := w.Client.Delete(ctx, workflow); err != nil {
 			return err
 		}
 	} else {
 		logger.V(2).Info("keeping child workflow", LogKeys.Workflow, workflow)
-		workflow.GetLabels()[WorkflowRepositoryConstants.WorkflowProcessedLabel] = "true"
-		if err := w.Client.Update(ctx, workflow); err != nil {
-			return err
-		}
 	}
 
 	return nil
