@@ -7,14 +7,13 @@ import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 type StubbedWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (sw StubbedWorkflows) GetByLabels(_ context.Context, _ types.NamespacedName, _ map[string]string) []argo.Workflow {
+func (sw StubbedWorkflows) GetByLabels(_ context.Context, _ string, _ map[string]string) []argo.Workflow {
 	return sw.Workflows
 }
 

@@ -11,7 +11,6 @@ import (
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 var _ = Context("WorkflowRepository K8s integration", func() {
@@ -28,17 +27,8 @@ var _ = Context("WorkflowRepository K8s integration", func() {
 			},
 		}
 
-		operation := RandomString()
-		owner := types.NamespacedName{
-			Name:      RandomString(),
-			Namespace: namespace,
-		}
-
+		owner := RandomString()
 		workflow := &argo.Workflow{}
-		workflow.SetLabels(map[string]string{
-			ExperimentWorkflowConstants.OperationLabelKey:      operation,
-			ExperimentWorkflowConstants.ExperimentNameLabelKey: owner.Name,
-		})
 		workflow.SetNamespace(namespace)
 		workflow.SetName(RandomLowercaseString())
 
@@ -47,5 +37,5 @@ var _ = Context("WorkflowRepository K8s integration", func() {
 		Expect(workflowRepository.GetByLabels(ctx, owner, map[string]string{})).To(BeEmpty())
 	},
 		Entry("Deletes workflows when keepWorkflows==false", false),
-		Entry("Labels and filters workflows when keepWorkflows==true", true))
+		Entry("Filters workflows when keepWorkflows==true", true))
 })

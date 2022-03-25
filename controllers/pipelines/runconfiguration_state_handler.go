@@ -17,10 +17,8 @@ func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, run
 	switch runConfiguration.Status.SynchronizationState {
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, runConfiguration,
-			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.NamespacedName(), map[string]string{
-				RunConfigurationWorkflowConstants.OperationLabelKey:            RunConfigurationWorkflowConstants.CreateOperationLabel,
-				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
-			}))
+			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
+				st.WorkflowFactory.Labels(runConfiguration.GetName(), RunConfigurationWorkflowConstants.CreateOperationLabel)))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		if !runConfiguration.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, runConfiguration)
@@ -29,16 +27,12 @@ func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, run
 		}
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, runConfiguration,
-			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.NamespacedName(), map[string]string{
-				RunConfigurationWorkflowConstants.OperationLabelKey:            RunConfigurationWorkflowConstants.UpdateOperationLabel,
-				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
-			}))
+			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
+				st.WorkflowFactory.Labels(runConfiguration.GetName(), RunConfigurationWorkflowConstants.UpdateOperationLabel)))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, runConfiguration,
-			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.NamespacedName(), map[string]string{
-				RunConfigurationWorkflowConstants.OperationLabelKey:            RunConfigurationWorkflowConstants.DeleteOperationLabel,
-				RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
-			}))
+			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
+				st.WorkflowFactory.Labels(runConfiguration.GetName(), RunConfigurationWorkflowConstants.DeleteOperationLabel)))
 	case pipelinesv1.Deleted:
 	default:
 		commands = st.onUnknown(ctx, runConfiguration)

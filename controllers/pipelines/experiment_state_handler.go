@@ -17,10 +17,8 @@ func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experimen
 	switch experiment.Status.SynchronizationState {
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, experiment,
-			st.WorkflowRepository.GetByLabels(ctx, experiment.NamespacedName(), map[string]string{
-				PipelineWorkflowConstants.OperationLabelKey:        ExperimentWorkflowConstants.CreateOperationLabel,
-				ExperimentWorkflowConstants.ExperimentNameLabelKey: experiment.GetName(),
-			}))
+			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
+				st.WorkflowFactory.Labels(experiment.GetName(), ExperimentWorkflowConstants.CreateOperationLabel)))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		if !experiment.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, experiment)
@@ -29,16 +27,12 @@ func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experimen
 		}
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, experiment,
-			st.WorkflowRepository.GetByLabels(ctx, experiment.NamespacedName(), map[string]string{
-				PipelineWorkflowConstants.OperationLabelKey:        ExperimentWorkflowConstants.UpdateOperationLabel,
-				ExperimentWorkflowConstants.ExperimentNameLabelKey: experiment.GetName(),
-			}))
+			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
+				st.WorkflowFactory.Labels(experiment.GetName(), ExperimentWorkflowConstants.UpdateOperationLabel)))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, experiment,
-			st.WorkflowRepository.GetByLabels(ctx, experiment.NamespacedName(), map[string]string{
-				PipelineWorkflowConstants.OperationLabelKey:        ExperimentWorkflowConstants.DeleteOperationLabel,
-				ExperimentWorkflowConstants.ExperimentNameLabelKey: experiment.GetName(),
-			}))
+			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
+				st.WorkflowFactory.Labels(experiment.GetName(), ExperimentWorkflowConstants.DeleteOperationLabel)))
 	case pipelinesv1.Deleted:
 	default:
 		commands = st.onUnknown(ctx, experiment)

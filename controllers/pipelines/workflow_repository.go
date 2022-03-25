@@ -9,7 +9,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/selection"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -23,7 +22,7 @@ var WorkflowRepositoryConstants = struct {
 
 type WorkflowRepository interface {
 	CreateWorkflow(ctx context.Context, workflow *argo.Workflow) error
-	GetByLabels(ctx context.Context, namespacedName types.NamespacedName, matchingLabels map[string]string) []argo.Workflow
+	GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow
 	DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error
 }
 
@@ -32,17 +31,17 @@ type WorkflowRepositoryImpl struct {
 	Config configv1.Configuration
 }
 
-func (w *WorkflowRepositoryImpl) annotations(ctx context.Context, meta metav1.ObjectMeta) map[string]string {
+func (w *WorkflowRepositoryImpl) debugAnnotations(ctx context.Context, meta metav1.ObjectMeta) map[string]string {
 	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, meta.Annotations).WithDefaults(w.Config.Debug)
 	return pipelinesv1.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
 }
 
 func (w WorkflowRepositoryImpl) CreateWorkflow(ctx context.Context, workflow *argo.Workflow) error {
-	workflow.SetAnnotations(w.annotations(ctx, workflow.ObjectMeta))
+	workflow.SetAnnotations(w.debugAnnotations(ctx, workflow.ObjectMeta))
 	return w.Client.Create(ctx, workflow)
 }
 
-func (w WorkflowRepositoryImpl) GetByLabels(ctx context.Context, namespacedName types.NamespacedName, matchingLabels map[string]string) []argo.Workflow {
+func (w WorkflowRepositoryImpl) GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow {
 	logger := log.FromContext(ctx)
 	var workflows argo.WorkflowList
 
@@ -62,8 +61,7 @@ func (w WorkflowRepositoryImpl) GetByLabels(ctx context.Context, namespacedName 
 		sel = sel.Add(*req)
 	}
 
-	if err := w.Client.NonCached.List(ctx, &workflows, client.InNamespace(namespacedName.Namespace), client.MatchingLabelsSelector{Selector: sel}); err != nil {
-		//TODO: errors should be propagated to the caller
+	if err := w.Client.NonCached.List(ctx, &workflows, client.InNamespace(namespace), client.MatchingLabelsSelector{Selector: sel}); err != nil {
 		logger.V(3).Error(err, "no matching workflows")
 	} else {
 		logger.V(3).Info("matching workflows", "workflows", workflows.Items)
@@ -95,16 +93,13 @@ func (w WorkflowRepositoryImpl) SetupWithManager(mgr ctrl.Manager) error {
 func (w WorkflowRepositoryImpl) DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error {
 	logger := log.FromContext(ctx)
 
-	logger.V(1).Info("marking child workflow as processed", LogKeys.Workflow, workflow)
-	workflow.GetLabels()[WorkflowRepositoryConstants.WorkflowProcessedLabel] = "true"
-	if err := w.Client.Update(ctx, workflow); err != nil {
+	if err := w.markAsProcessed(ctx, workflow); err != nil {
 		return err
 	}
 
 	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
 	if !workflowDebugOptions.KeepWorkflows {
 		logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
-
 		if err := w.Client.Delete(ctx, workflow); err != nil {
 			return err
 		}
@@ -113,4 +108,18 @@ func (w WorkflowRepositoryImpl) DeleteWorkflow(ctx context.Context, workflow *ar
 	}
 
 	return nil
+}
+
+func (w WorkflowRepositoryImpl) markAsProcessed(ctx context.Context, workflow *argo.Workflow) error {
+	logger := log.FromContext(ctx)
+
+	logger.V(1).Info("marking child workflow as processed", LogKeys.Workflow, workflow)
+	workflowLabels := workflow.GetLabels()
+	if workflowLabels == nil {
+		workflowLabels = map[string]string{}
+	}
+	workflowLabels[WorkflowRepositoryConstants.WorkflowProcessedLabel] = "true"
+	workflow.SetLabels(workflowLabels)
+
+	return w.Client.Update(ctx, workflow)
 }
