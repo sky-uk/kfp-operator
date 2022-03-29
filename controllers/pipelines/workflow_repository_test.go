@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("WorkflowRepository.Annotations", func() {
@@ -20,9 +19,9 @@ var _ = Describe("WorkflowRepository.Annotations", func() {
 				},
 			}
 
-			objectMeta := metav1.ObjectMeta{Annotations: map[string]string{}}
+			annotations := map[string]string{}
 
-			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), objectMeta)["pipelines.kubeflow.org/debug"]
+			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), annotations)["pipelines.kubeflow.org/debug"]
 			Expect(debugAnnotations).To(MatchJSON(`{"keepWorkflows":true}`))
 		})
 	})
@@ -37,11 +36,11 @@ var _ = Describe("WorkflowRepository.Annotations", func() {
 				},
 			}
 
-			objectMeta := metav1.ObjectMeta{Annotations: map[string]string{
+			annotations := map[string]string{
 				"pipelines.kubeflow.org/debug": "broken:",
-			}}
+			}
 
-			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), objectMeta)["pipelines.kubeflow.org/debug"]
+			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), annotations)["pipelines.kubeflow.org/debug"]
 			Expect(debugAnnotations).To(MatchJSON(`{"keepWorkflows":true}`))
 		})
 	})
@@ -56,11 +55,11 @@ var _ = Describe("WorkflowRepository.Annotations", func() {
 				},
 			}
 
-			objectMeta := metav1.ObjectMeta{Annotations: map[string]string{
+			annotations := map[string]string{
 				"pipelines.kubeflow.org/debug": `{"keepWorkflows":true}`,
-			}}
+			}
 
-			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), objectMeta)["pipelines.kubeflow.org/debug"]
+			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), annotations)["pipelines.kubeflow.org/debug"]
 			Expect(debugAnnotations).To(MatchJSON(`{"keepWorkflows":true}`))
 		})
 	})
@@ -75,11 +74,11 @@ var _ = Describe("WorkflowRepository.Annotations", func() {
 				},
 			}
 
-			objectMeta := metav1.ObjectMeta{Annotations: map[string]string{
+			annotations := map[string]string{
 				"pipelines.kubeflow.org/debug": `{"keepWorkflows":false}`,
-			}}
+			}
 
-			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), objectMeta)["pipelines.kubeflow.org/debug"]
+			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), annotations)["pipelines.kubeflow.org/debug"]
 			Expect(debugAnnotations).To(MatchJSON(`{"keepWorkflows":true}`))
 		})
 	})

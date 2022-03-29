@@ -17,11 +17,11 @@ func (sw StubbedWorkflows) GetByLabels(_ context.Context, _ string, _ map[string
 	return sw.Workflows
 }
 
-func (sw StubbedWorkflows) CreateWorkflow(ctx context.Context, workflow *argo.Workflow) error {
+func (sw StubbedWorkflows) CreateWorkflowForResource(_ context.Context, _ *argo.Workflow, _ Resource) error {
 	return nil
 }
 
-func (sw StubbedWorkflows) DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error {
+func (sw StubbedWorkflows) DeleteWorkflow(_ context.Context, _ *argo.Workflow) error {
 	return nil
 }
 

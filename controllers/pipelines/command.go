@@ -6,9 +6,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -32,7 +30,6 @@ var EventReasons = struct {
 
 type K8sExecutionContext struct {
 	Client             controllers.OptInClient
-	Scheme             *runtime.Scheme
 	Recorder           record.EventRecorder
 	WorkflowRepository WorkflowRepository
 }
@@ -166,11 +163,7 @@ func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, re
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("creating child workflow", LogKeys.Workflow, cw.Workflow)
 
-	if err := ctrl.SetControllerReference(resource, &cw.Workflow, ec.Scheme); err != nil {
-		return err
-	}
-
-	if err := ec.Client.Create(ctx, &cw.Workflow); err != nil {
+	if err := ec.WorkflowRepository.CreateWorkflowForResource(ctx, &cw.Workflow, resource); err != nil {
 		return err
 	}
 

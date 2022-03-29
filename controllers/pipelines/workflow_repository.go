@@ -8,6 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/selection"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,7 +22,7 @@ var WorkflowRepositoryConstants = struct {
 }
 
 type WorkflowRepository interface {
-	CreateWorkflow(ctx context.Context, workflow *argo.Workflow) error
+	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource Resource) error
 	GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow
 	DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error
 }
@@ -29,15 +30,20 @@ type WorkflowRepository interface {
 type WorkflowRepositoryImpl struct {
 	Client controllers.OptInClient
 	Config configv1.Configuration
+	Scheme *runtime.Scheme
 }
 
-func (w *WorkflowRepositoryImpl) debugAnnotations(ctx context.Context, meta metav1.ObjectMeta) map[string]string {
-	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, meta.Annotations).WithDefaults(w.Config.Debug)
+func (w *WorkflowRepositoryImpl) debugAnnotations(ctx context.Context, annotations map[string]string) map[string]string {
+	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, annotations).WithDefaults(w.Config.Debug)
 	return pipelinesv1.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
 }
 
-func (w WorkflowRepositoryImpl) CreateWorkflow(ctx context.Context, workflow *argo.Workflow) error {
-	workflow.SetAnnotations(w.debugAnnotations(ctx, workflow.ObjectMeta))
+func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource Resource) error {
+	if err := ctrl.SetControllerReference(resource, workflow, w.Scheme); err != nil {
+		return err
+	}
+
+	workflow.SetAnnotations(w.debugAnnotations(ctx, resource.GetAnnotations()))
 	return w.Client.Create(ctx, workflow)
 }
 
