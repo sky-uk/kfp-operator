@@ -15,34 +15,70 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-var _ = Context("WorkflowRepository K8s integration", func() {
-	DescribeTable("Returns only non-processed workflows on retrieval", func(keepWorkflows bool) {
-		optInClient := controllers.NewOptInClient(k8sManager)
-		namespace := "default"
+const namespace = "default"
 
-		scheme := runtime.NewScheme()
-		pipelinesv1.AddToScheme(scheme)
+func createWorkflowRepository(keepWorkflows bool) WorkflowRepositoryImpl {
+	optInClient := controllers.NewOptInClient(k8sManager)
 
-		workflowRepository := WorkflowRepositoryImpl{
-			Client: optInClient,
-			Scheme: scheme,
-			Config: configv1.Configuration{
-				Debug: pipelinesv1.DebugOptions{
-					KeepWorkflows: keepWorkflows,
-				},
+	scheme := runtime.NewScheme()
+	pipelinesv1.AddToScheme(scheme)
+
+	return WorkflowRepositoryImpl{
+		Client: optInClient,
+		Scheme: scheme,
+		Config: configv1.Configuration{
+			Debug: pipelinesv1.DebugOptions{
+				KeepWorkflows: keepWorkflows,
 			},
-		}
+		},
+	}
+}
 
-		owner := &pipelinesv1.Pipeline{}
-		owner.SetName(RandomString())
-		owner.SetUID(types.UID(RandomString()))
-		workflow := &argo.Workflow{}
-		workflow.SetNamespace(namespace)
-		workflow.SetName(RandomLowercaseString())
+func randomResource() Resource {
+	resource := &pipelinesv1.Pipeline{}
+	resource.SetName(RandomString())
+	resource.SetUID(types.UID(RandomString()))
+
+	return resource
+}
+
+func randomWorkflow() *argo.Workflow {
+	workflow := &argo.Workflow{}
+	workflow.SetNamespace(namespace)
+	workflow.SetName(RandomLowercaseString())
+
+	randomLabels := map[string]string{
+		RandomString(): RandomString(),
+	}
+	workflow.SetLabels(randomLabels)
+
+	return workflow
+}
+
+var _ = Context("WorkflowRepository K8s integration", func() {
+	_ = Describe("Creating Workflows", func() {
+		It("Sets ownership", func() {
+			workflowRepository := createWorkflowRepository(false)
+
+			owner := randomResource()
+			workflow := randomWorkflow()
+
+			Expect(workflowRepository.CreateWorkflowForResource(ctx, workflow, owner)).To(Succeed())
+			retrievedWorkflows := workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())
+			Expect(retrievedWorkflows[0].GetOwnerReferences()[0].UID).To(Equal(owner.GetUID()))
+		})
+	})
+
+	DescribeTable("Returns only non-processed workflows on retrieval", func(keepWorkflows bool) {
+		workflowRepository := createWorkflowRepository(keepWorkflows)
+
+		owner := randomResource()
+		workflow := randomWorkflow()
 
 		Expect(workflowRepository.CreateWorkflowForResource(ctx, workflow, owner)).To(Succeed())
+		workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())
 		Expect(workflowRepository.DeleteWorkflow(ctx, workflow)).To(Succeed())
-		Expect(workflowRepository.GetByLabels(ctx, owner.Name, map[string]string{})).To(BeEmpty())
+		Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(BeEmpty())
 	},
 		Entry("Deletes workflows when keepWorkflows==false", false),
 		Entry("Filters workflows when keepWorkflows==true", true))
