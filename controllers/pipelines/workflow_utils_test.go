@@ -11,7 +11,7 @@ import (
 )
 
 var _ = Describe("Utils", func() {
-	When("getWorkflowOutput is called with a worklow that has a output with the given key", func() {
+	When("getWorkflowOutput is called with a workflow that has an output with the given key", func() {
 		It("returns the output value", func() {
 			workflow := argo.Workflow{
 				ObjectMeta: metav1.ObjectMeta{

@@ -32,15 +32,18 @@ type ExperimentWorkflowFactory struct {
 	WorkflowFactory
 }
 
-func (workflows *ExperimentWorkflowFactory) commonMeta(ctx context.Context, rc *pipelinesv1.Experiment, operation string) *metav1.ObjectMeta {
+func (workflows *ExperimentWorkflowFactory) commonMeta(_ context.Context, experiment *pipelinesv1.Experiment, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
-		Namespace:    rc.Namespace,
-		Labels: map[string]string{
-			ExperimentWorkflowConstants.OperationLabelKey:      operation,
-			ExperimentWorkflowConstants.ExperimentNameLabelKey: rc.Name,
-		},
-		Annotations: workflows.Annotations(ctx, rc.ObjectMeta),
+		Namespace:    experiment.GetNamespace(),
+		Labels:       workflows.Labels(experiment, operation),
+	}
+}
+
+func (workflows *ExperimentWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
+	return map[string]string{
+		ExperimentWorkflowConstants.OperationLabelKey:      operation,
+		ExperimentWorkflowConstants.ExperimentNameLabelKey: resource.GetName(),
 	}
 }
 

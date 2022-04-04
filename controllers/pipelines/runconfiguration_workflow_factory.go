@@ -32,17 +32,18 @@ type RunConfigurationWorkflowFactory struct {
 	WorkflowFactory
 }
 
-// TODO: use input parameters
-
-func (workflows *RunConfigurationWorkflowFactory) commonMeta(ctx context.Context, rc *pipelinesv1.RunConfiguration, operation string) *metav1.ObjectMeta {
+func (workflows *RunConfigurationWorkflowFactory) commonMeta(_ context.Context, rc *pipelinesv1.RunConfiguration, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
-		Namespace:    rc.Namespace,
-		Labels: map[string]string{
-			RunConfigurationWorkflowConstants.OperationLabelKey:            operation,
-			RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: rc.Name,
-		},
-		Annotations: workflows.Annotations(ctx, rc.ObjectMeta),
+		Namespace:    rc.GetNamespace(),
+		Labels:       workflows.Labels(rc, operation),
+	}
+}
+
+func (workflows *RunConfigurationWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
+	return map[string]string{
+		RunConfigurationWorkflowConstants.OperationLabelKey:            operation,
+		RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: resource.GetName(),
 	}
 }
 

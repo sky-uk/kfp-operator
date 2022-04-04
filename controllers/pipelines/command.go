@@ -6,9 +6,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -31,9 +29,9 @@ var EventReasons = struct {
 }
 
 type K8sExecutionContext struct {
-	Client   controllers.OptInClient
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Client             controllers.OptInClient
+	Recorder           record.EventRecorder
+	WorkflowRepository WorkflowRepository
 }
 
 type Command interface {
@@ -165,11 +163,7 @@ func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, re
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("creating child workflow", LogKeys.Workflow, cw.Workflow)
 
-	if err := ctrl.SetControllerReference(resource, &cw.Workflow, ec.Scheme); err != nil {
-		return err
-	}
-
-	if err := ec.Client.Create(ctx, &cw.Workflow); err != nil {
+	if err := ec.WorkflowRepository.CreateWorkflowForResource(ctx, &cw.Workflow, resource); err != nil {
 		return err
 	}
 
@@ -180,19 +174,11 @@ type DeleteWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (dw DeleteWorkflows) execute(ctx context.Context, ec K8sExecutionContext, resource Resource) error {
-	logger := log.FromContext(ctx)
-
+func (dw DeleteWorkflows) execute(ctx context.Context, ec K8sExecutionContext, _ Resource) error {
 	for i := range dw.Workflows {
 		workflow := &dw.Workflows[i]
-		workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
-		if !workflowDebugOptions.KeepWorkflows {
-			logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
-			if err := ec.Client.Delete(ctx, workflow); err != nil {
-				return err
-			}
-		} else {
-			logger.V(2).Info("keeping child workflow", LogKeys.Workflow, workflow)
+		if err := ec.WorkflowRepository.DeleteWorkflow(ctx, workflow); err != nil {
+			return err
 		}
 	}
 

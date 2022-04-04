@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"gopkg.in/yaml.v2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"path/filepath"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	apiv1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var PipelineWorkflowConstants = struct {
@@ -101,15 +101,18 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	}
 }
 
-func (w *PipelineWorkflowFactory) commonMeta(ctx context.Context, pipeline *pipelinesv1.Pipeline, operation string) *metav1.ObjectMeta {
+func (workflows *PipelineWorkflowFactory) commonMeta(_ context.Context, pipeline *pipelinesv1.Pipeline, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
-		Namespace:    pipeline.ObjectMeta.Namespace,
-		Labels: map[string]string{
-			PipelineWorkflowConstants.OperationLabelKey:    operation,
-			PipelineWorkflowConstants.PipelineNameLabelKey: pipeline.ObjectMeta.Name,
-		},
-		Annotations: w.Annotations(ctx, pipeline.ObjectMeta),
+		Namespace:    pipeline.GetNamespace(),
+		Labels:       workflows.Labels(pipeline, operation),
+	}
+}
+
+func (workflows *PipelineWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
+	return map[string]string{
+		PipelineWorkflowConstants.OperationLabelKey:    operation,
+		PipelineWorkflowConstants.PipelineNameLabelKey: resource.GetName(),
 	}
 }
 

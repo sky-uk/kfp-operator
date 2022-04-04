@@ -94,6 +94,7 @@ func main() {
 
 	workflowRepository := pipelinescontrollers.WorkflowRepositoryImpl{
 		Client: client,
+		Scheme: mgr.GetScheme(),
 	}
 
 	workflowFactory := pipelinescontrollers.WorkflowFactory{
@@ -101,9 +102,9 @@ func main() {
 	}
 
 	ec := pipelinescontrollers.K8sExecutionContext{
-		Client:   client,
-		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor("kfp-operator"),
+		Client:             client,
+		Recorder:           mgr.GetEventRecorderFor("kfp-operator"),
+		WorkflowRepository: workflowRepository,
 	}
 
 	if err = (&pipelinescontrollers.PipelineReconciler{
