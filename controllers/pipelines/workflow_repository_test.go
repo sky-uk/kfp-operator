@@ -2,13 +2,15 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 )
 
-var _ = Describe("WorkflowRepository.Annotations", func() {
+var _ = Describe("WorkflowRepository.debugAnnotations", func() {
 	When("no debug annotation is present on the ObjectMeta", func() {
 		It("uses the configured defaults", func() {
 			workflowRepository := WorkflowRepositoryImpl{
@@ -45,41 +47,25 @@ var _ = Describe("WorkflowRepository.Annotations", func() {
 		})
 	})
 
-	When("the annotation is valid and ObjectMeta overrides the default config", func() {
-		It("uses the overrides", func() {
-			workflowRepository := WorkflowRepositoryImpl{
-				Config: configv1.Configuration{
-					Debug: pipelinesv1.DebugOptions{
-						KeepWorkflows: false,
-					},
+	DescribeTable("the annotation is valid", func(enabledInAnnotation bool, enabledInConfig bool, expectation string) {
+		workflowRepository := WorkflowRepositoryImpl{
+			Config: configv1.Configuration{
+				Debug: pipelinesv1.DebugOptions{
+					KeepWorkflows: enabledInConfig,
 				},
-			}
+			},
+		}
 
-			annotations := map[string]string{
-				"pipelines.kubeflow.org/debug": `{"keepWorkflows":true}`,
-			}
+		annotations := map[string]string{
+			"pipelines.kubeflow.org/debug": fmt.Sprintf(`{"keepWorkflows":%t}`, enabledInAnnotation),
+		}
 
-			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), annotations)["pipelines.kubeflow.org/debug"]
-			Expect(debugAnnotations).To(MatchJSON(`{"keepWorkflows":true}`))
-		})
-	})
-
-	When("the annotation is valid and the ObjectMeta does not override the default config", func() {
-		It("uses the configured defaults", func() {
-			workflowRepository := WorkflowRepositoryImpl{
-				Config: configv1.Configuration{
-					Debug: pipelinesv1.DebugOptions{
-						KeepWorkflows: true,
-					},
-				},
-			}
-
-			annotations := map[string]string{
-				"pipelines.kubeflow.org/debug": `{"keepWorkflows":false}`,
-			}
-
-			debugAnnotations := workflowRepository.debugAnnotations(context.Background(), annotations)["pipelines.kubeflow.org/debug"]
-			Expect(debugAnnotations).To(MatchJSON(`{"keepWorkflows":true}`))
-		})
-	})
+		debugAnnotations := workflowRepository.debugAnnotations(context.Background(), annotations)["pipelines.kubeflow.org/debug"]
+		Expect(debugAnnotations).To(MatchJSON(expectation))
+	},
+		Entry("enabled in annotation and config", true, true, `{"keepWorkflows":true}`),
+		Entry("enabled in annotation but disabled in config", true, false, `{"keepWorkflows":true}`),
+		Entry("disabled in annotation but enabled in config", false, true, `{"keepWorkflows":true}`),
+		Entry("disabled in annotation and config", false, false, `{}`),
+	)
 })
