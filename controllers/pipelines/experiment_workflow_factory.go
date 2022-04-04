@@ -36,14 +36,14 @@ func (workflows *ExperimentWorkflowFactory) commonMeta(_ context.Context, experi
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    experiment.GetNamespace(),
-		Labels:       workflows.Labels(experiment.GetName(), operation),
+		Labels:       workflows.Labels(experiment, operation),
 	}
 }
 
-func (workflows *ExperimentWorkflowFactory) Labels(owner string, operation string) map[string]string {
+func (workflows *ExperimentWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
 	return map[string]string{
 		ExperimentWorkflowConstants.OperationLabelKey:      operation,
-		ExperimentWorkflowConstants.ExperimentNameLabelKey: owner,
+		ExperimentWorkflowConstants.ExperimentNameLabelKey: resource.GetName(),
 	}
 }
 

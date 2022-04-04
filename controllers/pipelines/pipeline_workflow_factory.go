@@ -105,14 +105,14 @@ func (workflows *PipelineWorkflowFactory) commonMeta(_ context.Context, pipeline
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    pipeline.GetNamespace(),
-		Labels:       workflows.Labels(pipeline.GetName(), operation),
+		Labels:       workflows.Labels(pipeline, operation),
 	}
 }
 
-func (workflows *PipelineWorkflowFactory) Labels(owner string, operation string) map[string]string {
+func (workflows *PipelineWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
 	return map[string]string{
 		PipelineWorkflowConstants.OperationLabelKey:    operation,
-		PipelineWorkflowConstants.PipelineNameLabelKey: owner,
+		PipelineWorkflowConstants.PipelineNameLabelKey: resource.GetName(),
 	}
 }
 

@@ -36,14 +36,14 @@ func (workflows *RunConfigurationWorkflowFactory) commonMeta(_ context.Context, 
 	return &metav1.ObjectMeta{
 		GenerateName: operation + "-",
 		Namespace:    rc.GetNamespace(),
-		Labels:       workflows.Labels(rc.GetName(), operation),
+		Labels:       workflows.Labels(rc, operation),
 	}
 }
 
-func (workflows *RunConfigurationWorkflowFactory) Labels(owner string, operation string) map[string]string {
+func (workflows *RunConfigurationWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
 	return map[string]string{
 		RunConfigurationWorkflowConstants.OperationLabelKey:            operation,
-		RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: owner,
+		RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: resource.GetName(),
 	}
 }
 
