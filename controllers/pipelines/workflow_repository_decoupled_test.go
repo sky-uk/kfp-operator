@@ -76,10 +76,11 @@ var _ = Context("WorkflowRepository K8s integration", func() {
 		workflow := randomWorkflow()
 
 		Expect(workflowRepository.CreateWorkflowForResource(ctx, workflow, owner)).To(Succeed())
-		workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())
+		Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(Not(BeEmpty()))
 		Expect(workflowRepository.DeleteWorkflow(ctx, workflow)).To(Succeed())
 		Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(BeEmpty())
 	},
-		Entry("Deletes workflows when keepWorkflows==false", false),
-		Entry("Filters workflows when keepWorkflows==true", true))
+		Entry("keepWorkflows is disabled", false),
+		Entry("keepWorkflows is enabled", true),
+	)
 })
