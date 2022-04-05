@@ -19,7 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"testing"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -86,7 +86,7 @@ var _ = BeforeSuite(func() {
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
 	}()
-}, 60)
+})
 
 func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *PipelineReconciler {
 	// TODO: mock workflowFactory

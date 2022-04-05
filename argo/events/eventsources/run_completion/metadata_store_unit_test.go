@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/golang/mock/gomock"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"pipelines.kubeflow.org/events/ml_metadata"
 )

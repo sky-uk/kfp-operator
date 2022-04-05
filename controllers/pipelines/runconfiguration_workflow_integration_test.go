@@ -7,8 +7,7 @@ import (
 	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -18,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-var _ = Context("RunConfiguration Workflows", func() {
+var _ = Context("RunConfiguration Workflows", Serial, func() {
 	workflowFactory := RunConfigurationWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
 			Config: configv1.Configuration{
