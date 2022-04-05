@@ -195,7 +195,7 @@ func WithTestContext(fun func(context.Context)) {
 	fun(ctx)
 }
 
-var _ = Describe("Run completion eventsource", func() {
+var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run succeeds and a model has been pushed", func() {
 		It("Triggers an event with serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {

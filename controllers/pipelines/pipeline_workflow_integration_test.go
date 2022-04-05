@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-var _ = Context("Pipeline Workflows", func() {
+var _ = Context("Pipeline Workflows", Serial, func() {
 
 	workflowFactory := PipelineWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{

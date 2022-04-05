@@ -17,7 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-var _ = Context("RunConfiguration Workflows", func() {
+var _ = Context("RunConfiguration Workflows", Serial, func() {
 	workflowFactory := RunConfigurationWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
 			Config: configv1.Configuration{

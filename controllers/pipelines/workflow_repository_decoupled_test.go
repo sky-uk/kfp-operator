@@ -54,7 +54,7 @@ func randomWorkflow() *argo.Workflow {
 	return workflow
 }
 
-var _ = Context("WorkflowRepository K8s integration", func() {
+var _ = Context("WorkflowRepository K8s integration", Serial, func() {
 	_ = Describe("Creating Workflows", func() {
 		It("Sets ownership", func() {
 			workflowRepository := createWorkflowRepository(false)
