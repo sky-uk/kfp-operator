@@ -17,7 +17,7 @@ def create_components() -> List[BaseNode]:
 
     # Uses user-provided Python function that trains a model.
     trainer = Trainer(
-        run_fn='trainer.runFn',
+        run_fn='trainer.run_fn',
         examples=example_gen.outputs['examples'],
         train_args=trainer_pb2.TrainArgs(num_steps=100),
         eval_args=trainer_pb2.EvalArgs(num_steps=5))
