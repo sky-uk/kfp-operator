@@ -14,19 +14,25 @@ type RunConfigurationSpec struct {
 	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
 }
 
-func (rcs RunConfigurationSpec) ComputeHash() []byte {
+func (rcs RunConfiguration) ComputeHash() []byte {
 	oh := objecthasher.New()
-	oh.WriteStringField(rcs.PipelineName)
-	oh.WriteStringField(rcs.ExperimentName)
-	oh.WriteStringField(rcs.Schedule)
-	oh.WriteMapField(rcs.RuntimeParameters)
+	oh.WriteStringField(rcs.Spec.PipelineName)
+	oh.WriteStringField(rcs.Spec.ExperimentName)
+	oh.WriteStringField(rcs.Spec.Schedule)
+	oh.WriteMapField(rcs.Spec.RuntimeParameters)
+	oh.WriteStringField(rcs.Status.DesiredPipelineVersion)
 	return oh.Sum()
 }
 
-func (rcs RunConfigurationSpec) ComputeVersion() string {
+func (rcs RunConfiguration) ComputeVersion() string {
 	hash := rcs.ComputeHash()[0:3]
 
 	return fmt.Sprintf("%x", hash)
+}
+
+type RunConfigurationStatus struct {
+	Status 				  `json:",inline"`
+	DesiredPipelineVersion string `json:"desiredPipelineVersion,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -39,16 +45,16 @@ type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RunConfigurationSpec `json:"spec,omitempty"`
-	Status Status               `json:"status,omitempty"`
+	Spec   RunConfigurationSpec   `json:"spec,omitempty"`
+	Status RunConfigurationStatus `json:"status,omitempty"`
 }
 
 func (rc *RunConfiguration) GetStatus() Status {
-	return rc.Status
+	return rc.Status.Status
 }
 
 func (rc *RunConfiguration) SetStatus(status Status) {
-	rc.Status = status
+	rc.Status.Status = status
 }
 
 func (rc RunConfiguration) NamespacedName() types.NamespacedName {

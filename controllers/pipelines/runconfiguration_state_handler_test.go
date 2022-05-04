@@ -130,9 +130,9 @@ var _ = Describe("RunConfiguration State handler", func() {
 
 	kfpId := "12345"
 	anotherKfpId := "67890"
-	specv1 := RandomRunConfigurationSpec()
-	v0 := pipelinesv1.RunConfigurationSpec{}.ComputeVersion()
-	v1 := specv1.ComputeVersion()
+	rcv1 := RandomRunConfiguration()
+	v0 := pipelinesv1.RunConfiguration{}.ComputeVersion()
+	v1 := rcv1.ComputeVersion()
 	UnknownState := pipelinesv1.SynchronizationState(RandomString())
 
 	var Check = func(description string, transition RunConfigurationStateTransitionTestCase) TableEntry {
@@ -144,8 +144,8 @@ var _ = Describe("RunConfiguration State handler", func() {
 
 	var From = func(status pipelinesv1.SynchronizationState, id string, version string) RunConfigurationStateTransitionTestCase {
 		runConfiguration := RandomRunConfiguration()
-		runConfiguration.Spec = specv1
-		runConfiguration.Status = pipelinesv1.Status{
+		runConfiguration.Spec = rcv1.Spec
+		runConfiguration.Status.Status = pipelinesv1.Status{
 			SynchronizationState: status,
 			Version:              version,
 			KfpId:                id,

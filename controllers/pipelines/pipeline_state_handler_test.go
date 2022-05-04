@@ -122,7 +122,7 @@ var _ = Describe("Pipeline State handler", func() {
 	kfpId := "12345"
 	anotherKfpId := "67890"
 	specv1 := RandomPipelineSpec()
-	v0 := pipelinesv1.RunConfigurationSpec{}.ComputeVersion()
+	v0 := pipelinesv1.PipelineSpec{}.ComputeVersion()
 	v1 := specv1.ComputeVersion()
 	UnknownState := pipelinesv1.SynchronizationState(RandomString())
 

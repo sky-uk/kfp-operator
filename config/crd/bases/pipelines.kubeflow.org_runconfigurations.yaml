@@ -57,6 +57,8 @@ spec:
             type: object
           status:
             properties:
+              desiredPipelineVersion:
+                type: string
               kfpId:
                 type: string
               observedGeneration:
