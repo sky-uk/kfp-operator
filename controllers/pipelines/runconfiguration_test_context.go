@@ -17,40 +17,6 @@ type RunConfigurationTestContext struct {
 	RunConfiguration *pipelinesv1.RunConfiguration
 }
 
-func (testCtx RunConfigurationTestContext) PipelineCreated(pipeline *pipelinesv1.Pipeline) bool {
-	kfpId := RandomPipeline()
-	pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
-
-	Expect(k8sClient.Create(ctx, pipelineTestCtx.Pipeline)).To(Succeed())
-
-	Eventually(pipelineTestCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
-		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
-	})).Should(Succeed())
-
-	Eventually(pipelineTestCtx.WorkflowToBeUpdated(PipelineWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
-		workflow.Status.Phase = argo.WorkflowSucceeded
-		setWorkflowOutputs(
-			workflow,
-			[]argo.Parameter{
-				{
-					Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-					Value: argo.AnyStringPtr(kfpId),
-				},
-				{
-					Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
-					Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
-				},
-			},
-		)
-	})).Should(Succeed())
-
-	Eventually(pipelineTestCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
-		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
-	})).Should(Succeed())
-
-	return true
-}
-
 func NewRunConfigurationTestContext(runConfiguration *pipelinesv1.RunConfiguration, k8sClient client.Client, ctx context.Context) RunConfigurationTestContext {
 	return RunConfigurationTestContext{
 		TestContext: TestContext{
