@@ -20,8 +20,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
 			pipelineTestCtx.PipelineCreatedWithStatus(
 				pipelinesv1.Status{
-					Version: pipeline.Spec.ComputeVersion(),
-					KfpId: RandomString(),
+					Version:              pipeline.Spec.ComputeVersion(),
+					KfpId:                RandomString(),
 					SynchronizationState: pipelinesv1.Succeeded,
 				})
 
@@ -88,15 +88,15 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	})
 
 	When("Updating the referenced pipeline", func() {
-		It("updates the run configuration", func() {
+		It("triggers an update of the run configuration", func() {
 			pipeline := RandomPipeline()
 			pipeline.Namespace = "default"
 
 			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
 			pipelineTestCtx.PipelineCreatedWithStatus(
 				pipelinesv1.Status{
-					Version: RandomString(),
-					KfpId: RandomString(),
+					Version:              RandomString(),
+					KfpId:                RandomString(),
 					SynchronizationState: pipelinesv1.Succeeded,
 				})
 
@@ -108,11 +108,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
 				Status: pipelinesv1.Status{
-					Version: RandomString(),
-					KfpId: RandomString(),
+					Version:              RandomString(),
+					KfpId:                RandomString(),
 					SynchronizationState: pipelinesv1.Succeeded,
 				},
-				DesiredPipelineVersion: RandomString(),
+				LastKnownPipelineVersion: RandomString(),
 			})
 
 			Expect(pipelineTestCtx.UpdatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
@@ -121,12 +121,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
-			})).Should(Succeed())
-
-			runCfgTestCtx.WorkflowSucceeded(RunConfigurationWorkflowConstants.UpdateOperationLabel)
-
-			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
 		})
 	})

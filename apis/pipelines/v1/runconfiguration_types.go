@@ -20,7 +20,7 @@ func (rcs RunConfiguration) ComputeHash() []byte {
 	oh.WriteStringField(rcs.Spec.ExperimentName)
 	oh.WriteStringField(rcs.Spec.Schedule)
 	oh.WriteMapField(rcs.Spec.RuntimeParameters)
-	oh.WriteStringField(rcs.Status.DesiredPipelineVersion)
+	oh.WriteStringField(rcs.Status.LastKnownPipelineVersion)
 	return oh.Sum()
 }
 
@@ -31,8 +31,8 @@ func (rcs RunConfiguration) ComputeVersion() string {
 }
 
 type RunConfigurationStatus struct {
-	Status 				  `json:",inline"`
-	DesiredPipelineVersion string `json:"desiredPipelineVersion,omitempty"`
+	Status                   `json:",inline"`
+	LastKnownPipelineVersion string `json:"lastKnownPipelineVersion,omitempty"`
 }
 
 //+kubebuilder:object:root=true

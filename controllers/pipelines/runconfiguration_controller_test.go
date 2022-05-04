@@ -10,21 +10,21 @@ import (
 )
 
 var _ = Describe("RunConfiguration Controller", func() {
-		empty := ""
-		version := RandomString()
+	empty := ""
+	version := RandomString()
 
-		pipelineInState := func(state pipelinesv1.SynchronizationState) *pipelinesv1.Pipeline {
-			return &pipelinesv1.Pipeline{
-				Status: pipelinesv1.Status{
-					SynchronizationState: state,
-					Version: version,
-				},
-			}
+	pipelineInState := func(state pipelinesv1.SynchronizationState) *pipelinesv1.Pipeline {
+		return &pipelinesv1.Pipeline{
+			Status: pipelinesv1.Status{
+				SynchronizationState: state,
+				Version:              version,
+			},
 		}
+	}
 
-		DescribeTable("dependentPipelineVersion", func(pipeline *pipelinesv1.Pipeline, expectedVersion *string) {
-			Expect(dependentPipelineVersion(pipeline)).To(Equal(expectedVersion))
-		},
+	DescribeTable("dependentPipelineVersion", func(pipeline *pipelinesv1.Pipeline, expectedVersion *string) {
+		Expect(dependentPipelineVersion(pipeline)).To(Equal(expectedVersion))
+	},
 		Entry(nil, pipelineInState(pipelinesv1.Succeeded), &version),
 		Entry(nil, pipelineInState(pipelinesv1.Deleted), &empty),
 		Entry(nil, nil, &empty),

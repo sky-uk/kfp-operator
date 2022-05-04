@@ -41,11 +41,11 @@ var _ = Context("RunConfiguration", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("DesiredPipelineVersion should change the hash", func() {
+		Specify("lastKnownPipelineVersion should change the hash", func() {
 			rcs := RunConfiguration{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.Status.DesiredPipelineVersion = "notempty"
+			rcs.Status.LastKnownPipelineVersion = "notempty"
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
