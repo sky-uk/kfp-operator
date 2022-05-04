@@ -10,42 +10,27 @@ import (
 )
 
 var _ = Describe("RunConfiguration Controller", func() {
-		v0 := RandomString()
-		v1 := RandomString()
 		empty := ""
+		version := RandomString()
 
-		DescribeTable("newDependentPipelineVersion", func(state pipelinesv1.SynchronizationState, desiredVersion string, pipelineVersion string, expectedVersion *string) {
-			rc := pipelinesv1.RunConfiguration{
-				Status: pipelinesv1.RunConfigurationStatus{
-					DesiredPipelineVersion: desiredVersion,
-				},
-			}
-
-			pipeline := pipelinesv1.Pipeline{
+		pipelineInState := func(state pipelinesv1.SynchronizationState) *pipelinesv1.Pipeline {
+			return &pipelinesv1.Pipeline{
 				Status: pipelinesv1.Status{
 					SynchronizationState: state,
-					Version: pipelineVersion,
+					Version: version,
 				},
 			}
-			Expect(newDependentPipelineVersion(&rc, &pipeline)).To(Equal(expectedVersion))
+		}
+
+		DescribeTable("dependentPipelineVersion", func(pipeline *pipelinesv1.Pipeline, expectedVersion *string) {
+			Expect(dependentPipelineVersion(pipeline)).To(Equal(expectedVersion))
 		},
-		Entry(nil, pipelinesv1.Succeeded, v0, v0, nil),
-		Entry(nil, pipelinesv1.Succeeded, v0, v1, &v1),
-		Entry(nil, pipelinesv1.Succeeded, v0, empty, &empty),
-		Entry(nil, pipelinesv1.Deleting,  v0, v0, &empty),
-		Entry(nil, pipelinesv1.Deleting,  empty, v0, nil),
-		Entry(nil, pipelinesv1.Deleting,  v0, v1, &empty),
-		Entry(nil, pipelinesv1.Deleted,  v0, v0, &empty),
-		Entry(nil, pipelinesv1.Deleted,  empty, v0, nil),
-		Entry(nil, pipelinesv1.Deleted,  v0, v1, &empty),
-		Entry(nil, pipelinesv1.Creating, v0, v0, nil),
-		Entry(nil, pipelinesv1.Creating, v0, v1, nil),
-		Entry(nil, pipelinesv1.Creating, v0, empty, nil),
-		Entry(nil, pipelinesv1.Updating, v0, v0, nil),
-		Entry(nil, pipelinesv1.Updating, v0, v1, nil),
-		Entry(nil, pipelinesv1.Updating, v0, empty, nil),
-		Entry(nil, pipelinesv1.Failed, v0, v0, nil),
-		Entry(nil, pipelinesv1.Failed, v0, v1, nil),
-		Entry(nil, pipelinesv1.Failed, v0, empty, nil),
+		Entry(nil, pipelineInState(pipelinesv1.Succeeded), &version),
+		Entry(nil, pipelineInState(pipelinesv1.Deleted), &empty),
+		Entry(nil, nil, &empty),
+		Entry(nil, pipelineInState(pipelinesv1.Creating), nil),
+		Entry(nil, pipelineInState(pipelinesv1.Updating), nil),
+		Entry(nil, pipelineInState(pipelinesv1.Deleting), nil),
+		Entry(nil, pipelineInState(pipelinesv1.Failed), nil),
 	)
 })

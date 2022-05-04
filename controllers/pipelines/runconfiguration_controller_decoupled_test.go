@@ -87,21 +87,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
-	When("The referenced pipeline is missing", func() {
-		It("fails the run configuration", func() {
-			runConfiguration := RandomRunConfiguration()
-			runConfiguration.Namespace = "default"
-
-			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-
-			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
-
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Failed))
-			})).Should(Succeed())
-		})
-	})
-
 	When("Updating the referenced pipeline", func() {
 		It("updates the run configuration", func() {
 			pipeline := RandomPipeline()

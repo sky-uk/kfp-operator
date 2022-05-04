@@ -3,8 +3,10 @@ package pipelines
 import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
+	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,22 +49,18 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
-	var pipeline = &pipelinesv1.Pipeline{}
-	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: runConfiguration.Spec.PipelineName}, pipeline); err != nil {
-		msg := "unable to fetch dependent pipeline"
-		logger.Error(err, msg)
+	pipeline, err := r.fetchDependentPipeline(ctx, runConfiguration)
 
-		runConfiguration.Status.SynchronizationState = pipelinesv1.Failed
-		if err := r.EC.Client.Status().Update(ctx, runConfiguration); err != nil {
-			return ctrl.Result{}, err
-		}
-
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if newDesiredVersion := newDependentPipelineVersion(runConfiguration, pipeline); newDesiredVersion != nil {
+	newDesiredVersion := dependentPipelineVersion(pipeline)
+
+	if newDesiredVersion != nil && *newDesiredVersion != runConfiguration.Status.DesiredPipelineVersion {
 		runConfiguration.Status.DesiredPipelineVersion = *newDesiredVersion
 		err := r.EC.Client.Status().Update(ctx, runConfiguration)
+
 		if err != nil {
 			logger.Error(err, "error updating run configuration with new desired pipeline version")
 			return ctrl.Result{}, err
@@ -86,25 +84,43 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-func newDependentPipelineVersion(runConfiguration *pipelinesv1.RunConfiguration, dependentPipeline *pipelinesv1.Pipeline) *string {
+func (r *RunConfigurationReconciler) fetchDependentPipeline(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Pipeline, error) {
+	logger := log.FromContext(ctx)
+
+	if runConfiguration.Spec.PipelineName == "" {
+		return nil, nil
+	}
+
+	pipeline := &pipelinesv1.Pipeline{}
+
+	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: runConfiguration.Spec.PipelineName}, pipeline); err != nil {
+		if statusError, isStatusError := err.(*errors.StatusError); !isStatusError || statusError.ErrStatus.Code != http.StatusNotFound {
+			logger.Error(err, "unable to fetch dependent pipeline")
+
+			return nil, err
+		}
+
+		logger.Info("dependent pipeline not found")
+		return nil, nil
+	}
+
+	return pipeline, nil
+}
+
+func dependentPipelineVersion(dependentPipeline *pipelinesv1.Pipeline) *string {
 	empty := ""
 
-
-	switch dependentPipeline.Status.SynchronizationState {
+	if dependentPipeline == nil {
+		return &empty
+	} else {
+		switch dependentPipeline.Status.SynchronizationState {
 		case pipelinesv1.Succeeded:
-			if runConfiguration.Status.DesiredPipelineVersion != dependentPipeline.Status.Version {
-				return &dependentPipeline.Status.Version
-			} else {
-				return nil
-			}
-		case pipelinesv1.Deleting, pipelinesv1.Deleted:
-			if runConfiguration.Status.DesiredPipelineVersion != "" {
-				return &empty
-			} else {
-				return nil
-			}
+			return &dependentPipeline.Status.Version
+		case pipelinesv1.Deleted:
+			return &empty
 		default:
 			return nil
+		}
 	}
 }
 
