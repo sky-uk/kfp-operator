@@ -59,7 +59,7 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: manifests generate ## Run decoupled acceptance tests
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -coverprofile cover.out
+	unset ETCD_VERSION; source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -coverprofile cover.out
 
 integration-test-up:
 	minikube start -p argo-integration-tests
@@ -88,7 +88,7 @@ integration-test-down:
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
 
-test: fmt vet unit-test # decoupled-test
+test: fmt vet unit-test decoupled-test
 
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
