@@ -22,8 +22,8 @@ var _ = Describe("RunConfiguration Controller", func() {
 		}
 	}
 
-	DescribeTable("dependentPipelineVersion", func(pipeline *pipelinesv1.Pipeline, expectedVersion *string) {
-		Expect(dependentPipelineVersion(pipeline)).To(Equal(expectedVersion))
+	DescribeTable("dependentPipelineVersionIfStable", func(pipeline *pipelinesv1.Pipeline, expectedVersion *string) {
+		Expect(dependentPipelineVersionIfStable(pipeline)).To(Equal(expectedVersion))
 	},
 		Entry(nil, pipelineInState(pipelinesv1.Succeeded), &version),
 		Entry(nil, pipelineInState(pipelinesv1.Deleted), &empty),

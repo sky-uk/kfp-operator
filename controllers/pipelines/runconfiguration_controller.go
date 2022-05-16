@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	pipelineField = ".spec.pipelineName"
+	pipelineRefField = ".spec.pipelineName"
 )
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
@@ -55,7 +55,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	desiredVersion := dependentPipelineVersion(pipeline)
+	desiredVersion := dependentPipelineVersionIfStable(pipeline)
 
 	if desiredVersion != nil && *desiredVersion != runConfiguration.Status.ObservedPipelineVersion {
 		runConfiguration.Status.ObservedPipelineVersion = *desiredVersion
@@ -107,7 +107,7 @@ func (r *RunConfigurationReconciler) fetchDependentPipeline(ctx context.Context,
 	return pipeline, nil
 }
 
-func dependentPipelineVersion(dependentPipeline *pipelinesv1.Pipeline) *string {
+func dependentPipelineVersionIfStable(dependentPipeline *pipelinesv1.Pipeline) *string {
 	empty := ""
 
 	if dependentPipeline == nil {
@@ -124,19 +124,19 @@ func dependentPipelineVersion(dependentPipeline *pipelinesv1.Pipeline) *string {
 	}
 }
 
-func (r *RunConfigurationReconciler) findPipeline(pipeline client.Object) []reconcile.Request {
-	attachedRunConfigurations := &pipelinesv1.RunConfigurationList{}
+func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline client.Object) []reconcile.Request {
+	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
 	listOps := &client.ListOptions{
-		FieldSelector: fields.OneTermEqualSelector(pipelineField, pipeline.GetName()),
+		FieldSelector: fields.OneTermEqualSelector(pipelineRefField, pipeline.GetName()),
 		Namespace:     pipeline.GetNamespace(),
 	}
-	err := r.EC.Client.Cached.List(context.TODO(), attachedRunConfigurations, listOps)
+	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, listOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
 
-	requests := make([]reconcile.Request, len(attachedRunConfigurations.Items))
-	for i, item := range attachedRunConfigurations.Items {
+	requests := make([]reconcile.Request, len(referencingRunConfigurations.Items))
+	for i, item := range referencingRunConfigurations.Items {
 		requests[i] = reconcile.Request{
 			NamespacedName: types.NamespacedName{
 				Name:      item.GetName(),
@@ -148,7 +148,7 @@ func (r *RunConfigurationReconciler) findPipeline(pipeline client.Object) []reco
 }
 
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &pipelinesv1.RunConfiguration{}, pipelineField, func(rawObj client.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &pipelinesv1.RunConfiguration{}, pipelineRefField, func(rawObj client.Object) []string {
 		runConfiguration := rawObj.(*pipelinesv1.RunConfiguration)
 		if runConfiguration.Spec.PipelineName == "" {
 			return nil
@@ -163,7 +163,7 @@ func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&argo.Workflow{}).
 		Watches(
 			&source.Kind{Type: &pipelinesv1.Pipeline{}},
-			handler.EnqueueRequestsFromMapFunc(r.findPipeline),
+			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsForPipeline),
 			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 		).
 		Complete(r)
