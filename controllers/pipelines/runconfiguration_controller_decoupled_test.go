@@ -14,20 +14,8 @@ import (
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
-			pipeline := RandomPipeline()
-			pipeline.Namespace = "default"
-
-			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
-			pipelineTestCtx.PipelineCreatedWithStatus(
-				pipelinesv1.Status{
-					Version:              pipeline.Spec.ComputeVersion(),
-					KfpId:                RandomString(),
-					SynchronizationState: pipelinesv1.Succeeded,
-				})
-
 			runConfiguration := RandomRunConfiguration()
 			runConfiguration.Namespace = "default"
-			runConfiguration.Spec.PipelineName = pipeline.Name
 
 			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
 
@@ -47,7 +35,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(testCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec = RandomRunConfigurationSpec()
-				runConfiguration.Spec.PipelineName = pipeline.Name
 			})).To(Succeed())
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
@@ -91,21 +78,13 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		It("triggers an update of the run configuration", func() {
 			pipeline := RandomPipeline()
 			pipeline.Namespace = "default"
-
-			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
-			pipelineTestCtx.PipelineCreatedWithStatus(
-				pipelinesv1.Status{
-					Version:              RandomString(),
-					KfpId:                RandomString(),
-					SynchronizationState: pipelinesv1.Succeeded,
-				})
+			pipelineVersion := RandomString()
 
 			runConfiguration := RandomRunConfiguration()
 			runConfiguration.Spec.PipelineName = pipeline.Name
 			runConfiguration.Namespace = "default"
 
 			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-
 			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
 				Status: pipelinesv1.Status{
 					Version:              RandomString(),
@@ -115,12 +94,17 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				ObservedPipelineVersion: RandomString(),
 			})
 
-			Expect(pipelineTestCtx.UpdatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
-				pipeline.Status.Version = RandomString()
-			})).To(Succeed())
+			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
+			pipelineTestCtx.PipelineCreatedWithStatus(
+				pipelinesv1.Status{
+					Version:              pipelineVersion,
+					KfpId:                RandomString(),
+					SynchronizationState: pipelinesv1.Succeeded,
+				})
 
 			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
+				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
 	})
