@@ -59,11 +59,11 @@ spec:
             properties:
               kfpId:
                 type: string
-              lastKnownPipelineVersion:
-                type: string
               observedGeneration:
                 format: int64
                 type: integer
+              observedPipelineVersion:
+                type: string
               synchronizationState:
                 type: string
               version:

@@ -57,8 +57,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	desiredVersion := dependentPipelineVersion(pipeline)
 
-	if desiredVersion != nil && *desiredVersion != runConfiguration.Status.LastKnownPipelineVersion {
-		runConfiguration.Status.LastKnownPipelineVersion = *desiredVersion
+	if desiredVersion != nil && *desiredVersion != runConfiguration.Status.ObservedPipelineVersion {
+		runConfiguration.Status.ObservedPipelineVersion = *desiredVersion
 		err := r.EC.Client.Status().Update(ctx, runConfiguration)
 
 		if err != nil {

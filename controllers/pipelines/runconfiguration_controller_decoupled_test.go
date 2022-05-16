@@ -112,7 +112,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 					KfpId:                RandomString(),
 					SynchronizationState: pipelinesv1.Succeeded,
 				},
-				LastKnownPipelineVersion: RandomString(),
+				ObservedPipelineVersion: RandomString(),
 			})
 
 			Expect(pipelineTestCtx.UpdatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
