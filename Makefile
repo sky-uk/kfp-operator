@@ -88,7 +88,7 @@ integration-test-down:
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
 
-test: fmt vet unit-test # decoupled-test
+test: fmt vet unit-test decoupled-test
 
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
