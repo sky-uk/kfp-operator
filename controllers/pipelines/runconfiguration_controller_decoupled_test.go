@@ -17,8 +17,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration := RandomRunConfiguration()
 			runConfiguration.Namespace = "default"
 
-			kfpId := "12345"
-			anotherKfpId := "67890"
 			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
 
 			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
@@ -28,18 +26,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(RunConfigurationWorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
-				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutputs(
-					workflow,
-					[]argo.Parameter{
-						{
-							Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
-							Value: argo.AnyStringPtr(kfpId),
-						},
-					},
-				)
-			})).Should(Succeed())
+			testCtx.WorkflowSucceeded(RunConfigurationWorkflowConstants.CreateOperationLabel)
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
@@ -54,18 +41,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(RunConfigurationWorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
-				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutputs(
-					workflow,
-					[]argo.Parameter{
-						{
-							Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
-							Value: argo.AnyStringPtr(anotherKfpId),
-						},
-					},
-				)
-			})).Should(Succeed())
+			testCtx.WorkflowSucceeded(RunConfigurationWorkflowConstants.UpdateOperationLabel)
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
@@ -94,6 +70,41 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 					HaveReason(EventReasons.Syncing),
 					HaveReason(EventReasons.Synced),
 				))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Updating the referenced pipeline", func() {
+		It("triggers an update of the run configuration", func() {
+			pipeline := RandomPipeline()
+			pipeline.Namespace = "default"
+			pipelineVersion := RandomString()
+
+			runConfiguration := RandomRunConfiguration()
+			runConfiguration.Spec.PipelineName = pipeline.Name
+			runConfiguration.Namespace = "default"
+
+			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
+			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
+				Status: pipelinesv1.Status{
+					Version:              RandomString(),
+					KfpId:                RandomString(),
+					SynchronizationState: pipelinesv1.Succeeded,
+				},
+				ObservedPipelineVersion: RandomString(),
+			})
+
+			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
+			pipelineTestCtx.PipelineCreatedWithStatus(
+				pipelinesv1.Status{
+					Version:              pipelineVersion,
+					KfpId:                RandomString(),
+					SynchronizationState: pipelinesv1.Succeeded,
+				})
+
+			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
+				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
 	})

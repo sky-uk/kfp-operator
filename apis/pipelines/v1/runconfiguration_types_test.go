@@ -12,47 +12,57 @@ var _ = Context("RunConfiguration", func() {
 	var _ = Describe("ComputeHash", func() {
 
 		Specify("PipelineName should change the hash", func() {
-			rcs := RunConfigurationSpec{}
+			rcs := RunConfiguration{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.PipelineName = "notempty"
+			rcs.Spec.PipelineName = "notempty"
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("ExperimentName should change the hash", func() {
-			rcs := RunConfigurationSpec{}
+			rcs := RunConfiguration{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.ExperimentName = "notempty"
+			rcs.Spec.ExperimentName = "notempty"
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("Schedule should change the hash", func() {
-			rcs := RunConfigurationSpec{}
+			rcs := RunConfiguration{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.Schedule = "notempty"
+			rcs.Spec.Schedule = "notempty"
+			hash2 := rcs.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
+		Specify("lastKnownPipelineVersion should change the hash", func() {
+			rcs := RunConfiguration{}
+			hash1 := rcs.ComputeHash()
+
+			rcs.Status.ObservedPipelineVersion = "notempty"
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("All RuntimeParameters keys should change the hash", func() {
-			rcs := RunConfigurationSpec{}
+			rcs := RunConfiguration{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.RuntimeParameters = map[string]string{
+			rcs.Spec.RuntimeParameters = map[string]string{
 				"a": "",
 			}
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			rcs.RuntimeParameters = map[string]string{
+			rcs.Spec.RuntimeParameters = map[string]string{
 				"b": "notempty",
 			}
 			hash3 := rcs.ComputeHash()
@@ -64,7 +74,7 @@ var _ = Context("RunConfiguration", func() {
 	var _ = Describe("ComputeVersion", func() {
 
 		Specify("Should have the spec hash only", func() {
-			Expect(RunConfigurationSpec{}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
+			Expect(RunConfiguration{}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
 		})
 	})
 })
