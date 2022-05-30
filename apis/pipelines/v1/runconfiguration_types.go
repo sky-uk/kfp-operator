@@ -36,6 +36,7 @@ type RunConfigurationStatus struct {
 }
 
 //+kubebuilder:object:root=true
+//+kubebuilder:resource:shortName="mlrc"
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"

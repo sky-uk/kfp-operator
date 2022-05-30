@@ -37,6 +37,7 @@ func (ps PipelineSpec) ComputeVersion() string {
 }
 
 //+kubebuilder:object:root=true
+//+kubebuilder:resource:shortName="mlp"
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
