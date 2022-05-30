@@ -62,7 +62,7 @@ decoupled-test: manifests generate ## Run decoupled acceptance tests
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -coverprofile cover.out
 
 integration-test-up:
-	minikube start -p argo-integration-tests
+	minikube start -p kfp-operator-tests
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
@@ -76,14 +76,14 @@ integration-test-up:
 	kubectl proxy --port=8080 & echo $$! >> config/testing/pids
 
 integration-test: manifests generate ## Run integration tests
-	eval $$(minikube -p argo-integration-tests docker-env) && \
+	eval $$(minikube -p kfp-operator-tests docker-env) && \
 	$(MAKE) docker-build-argo && \
 	docker build docs/quickstart -t kfp-quickstart
 	go test ./... -tags=integration
 
 integration-test-down:
 	(cat config/testing/pids | xargs kill) || true
-	minikube stop -p argo-integration-tests
+	minikube stop -p kfp-operator-tests
 
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
