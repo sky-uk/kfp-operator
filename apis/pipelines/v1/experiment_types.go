@@ -25,6 +25,7 @@ func (es ExperimentSpec) ComputeVersion() string {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:shortName="mlexp"
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
