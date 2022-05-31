@@ -121,8 +121,10 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					PipelineName: "pipeline",
 					Schedule:     "* * * * * *",
 				},
-				Status: pipelinesv1.Status{
-					KfpId: jobKfpId,
+				Status: pipelinesv1.RunConfigurationStatus{
+					Status: pipelinesv1.Status{
+						KfpId: jobKfpId,
+					},
 				},
 			},
 			k8sClient, ctx)
