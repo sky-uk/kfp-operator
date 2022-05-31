@@ -219,9 +219,11 @@ func (workflows *RunConfigurationWorkflowFactory) deleter(runConfiguration *pipe
 		return argo.Template{}, err
 	}
 
+	succeedOnNotFound := fmt.Sprintf(`KFP_RESULT=$(%s 2>&1) || echo $KFP_RESULT | grep 'HTTP response body:.*"code":\s*5'`, kfpScript)
+
 	return argo.Template{
 		Name:     RunConfigurationWorkflowConstants.DeletionStepName,
 		Metadata: workflows.Config.Argo.MetadataDefaults,
-		Script:   workflows.ScriptTemplate(kfpScript),
+		Script:   workflows.ScriptTemplate(succeedOnNotFound),
 	}, nil
 }
