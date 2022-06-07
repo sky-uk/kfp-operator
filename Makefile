@@ -160,17 +160,24 @@ helm-uninstall:
 helm-upgrade: helm-package values.yaml
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
-ifndef HELM_REPOSITORIES
+ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
 helm-publish:
-	$(error HELM_REPOSITORIES must be a space-separated list of URLs)
-else ifndef NETRC_FILE
-helm-publish:
-	$(error NETRC_FILE must be provided)
+	$(error OSS_HELM_REPOSITORIES or HELM_REPOSITORIES must be provided as space-separated lists of URLs)
 else
-helm-publish: helm-package $(NETRC_FILE)
-	$(foreach url,$(HELM_REPOSITORIES),$(call helm-upload,$(url)))
+ifdef NETRC_FILE
+helm-publish:: $(NETRC_FILE)
+endif
 
-helm-upload = curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1)$(NEWLINE)
+helm-publish:: helm-package
+	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES),$(call helm-upload,$(url)))
+
+define helm-upload
+if [[ $(1) == "oci://"* ]]; then \
+helm push dist/kfp-operator-$(VERSION).tgz $(1)/kfp-operator; \
+else \
+curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1); \
+fi
+endef
 endif
 
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
