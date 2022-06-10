@@ -1,7 +1,8 @@
-baseURL = 'http://example.org/'
+baseURL = 'https://sky-uk.github.io/kfp-operator'
 languageCode = 'en-gb'
 title = 'Kubeflow Pipelines'
 theme = "github.com/google/docsy"
+publishDir = '../docs'
 
 [module]
 
