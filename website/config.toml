@@ -1,4 +1,4 @@
-baseURL = 'https://sky-uk.github.io/kfp-operator'
+baseURL = 'https://solid-goggles-5e2413f7.pages.github.io'
 languageCode = 'en-gb'
 title = 'KFP-Operator'
 theme = "github.com/google/docsy"
@@ -9,7 +9,7 @@ publishDir = '../docs'
     name = "Documentation"
     weight = -101
     pre = "<i class='fas fa-book pr-2'></i>"
-    url = "docs/"
+    url = "/docs/"
   [[menu.main]]
     name = "GitHub"
     weight = -99
