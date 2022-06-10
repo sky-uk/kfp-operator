@@ -1,11 +1,1 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-  xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url>
-    <loc>http://example.org/categories/</loc>
-  </url><url>
-    <loc>http://example.org/</loc>
-  </url><url>
-    <loc>http://example.org/tags/</loc>
-  </url>
-</urlset>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml"><url><loc>https://sky-uk.github.io/kfp-operator/</loc></url><url><loc>https://sky-uk.github.io/kfp-operator/categories/</loc></url><url><loc>https://sky-uk.github.io/kfp-operator/docs/</loc></url><url><loc>https://sky-uk.github.io/kfp-operator/docs/getting-started/</loc></url><url><loc>https://sky-uk.github.io/kfp-operator/docs/installation/</loc></url><url><loc>https://sky-uk.github.io/kfp-operator/docs/reference/</loc></url><url><loc>https://sky-uk.github.io/kfp-operator/tags/</loc></url></urlset>

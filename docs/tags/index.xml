@@ -1,18 +1,1 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Kubeflow Pipelines – Tags</title>
-    <link>http://example.org/tags/</link>
-    <description>Recent content in Tags on Kubeflow Pipelines</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-gb</language>
-    
-	  <atom:link href="http://example.org/tags/index.xml" rel="self" type="application/rss+xml" />
-    
-    
-      
-        
-      
-    
-    
-  </channel>
-</rss>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Tags</title><link>https://sky-uk.github.io/kfp-operator/tags/</link><description>Recent content in Tags on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/tags/index.xml" rel="self" type="application/rss+xml"/></channel></rss>
