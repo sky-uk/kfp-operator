@@ -1,0 +1,8 @@
+apiVersion: pipelines.kubeflow.org/v1
+kind: RunConfiguration
+metadata:
+    name: penguin-pipeline-recurring-run
+spec:
+    pipelineName: penguin-pipeline
+    experimentName: penguin-experiment
+    schedule: '0 0 * * * *'
