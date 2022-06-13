@@ -18,7 +18,7 @@ func (st PipelineStateHandler) stateTransition(ctx context.Context, pipeline *pi
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
-				st.WorkflowFactory.Labels(pipeline, WorkflowConstants.CreateOperationLabel)))
+				CommonWorkflowLabels(pipeline.NamespacedName(), WorkflowConstants.CreateOperationLabel, PipelineWorkflowConstants.PipelineKind)))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, pipeline)
@@ -28,11 +28,11 @@ func (st PipelineStateHandler) stateTransition(ctx context.Context, pipeline *pi
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
-				st.WorkflowFactory.Labels(pipeline, WorkflowConstants.UpdateOperationLabel)))
+				CommonWorkflowLabels(pipeline.NamespacedName(), WorkflowConstants.UpdateOperationLabel, PipelineWorkflowConstants.PipelineKind)))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
-				st.WorkflowFactory.Labels(pipeline, WorkflowConstants.DeleteOperationLabel)))
+				CommonWorkflowLabels(pipeline.NamespacedName(), WorkflowConstants.DeleteOperationLabel, PipelineWorkflowConstants.PipelineKind)))
 	case pipelinesv1.Deleted:
 	default:
 		commands = st.onUnknown(ctx, pipeline)
@@ -62,7 +62,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 
 	if pipeline.Status.KfpId != "" {
 		logger.Info("empty state but kfpId already exists, updating pipeline")
-		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, pipeline)
+		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(pipeline)
 
 		if err != nil {
 			failureMessage := "error constructing update workflow"
@@ -84,7 +84,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 	}
 
 	logger.Info("empty state, creating pipeline")
-	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(ctx, pipeline)
+	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(pipeline)
 
 	if err != nil {
 		failureMessage := "error constructing creation workflow"
@@ -116,7 +116,7 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 		}
 	}
 
-	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, pipeline)
+	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(pipeline)
 
 	if err != nil {
 		failureMessage := "error constructing deletion workflow"
@@ -150,11 +150,11 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 
 	if pipeline.Status.KfpId == "" {
 		logger.Info("no kfpId exists, creating")
-		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(ctx, pipeline)
+		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(pipeline)
 		targetState = pipelinesv1.Creating
 	} else {
 		logger.Info("kfpId exists, updating")
-		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, pipeline)
+		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(pipeline)
 		targetState = pipelinesv1.Updating
 	}
 

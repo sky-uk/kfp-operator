@@ -1,10 +1,8 @@
 package pipelines
 
 import (
-	"context"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"path/filepath"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -22,6 +20,7 @@ var PipelineWorkflowConstants = struct {
 	UpdateStepName               string
 	PipelineYamlFilePath         string
 	PipelineIdFilePath           string
+	PipelineKind                 string
 }{
 	PipelineIdParameterName:      "pipeline-id",
 	PipelineVersionParameterName: "pipeline-version",
@@ -32,6 +31,7 @@ var PipelineWorkflowConstants = struct {
 	UpdateStepName:               "update",
 	PipelineYamlFilePath:         "/tmp/pipeline.yaml",
 	PipelineIdFilePath:           "/tmp/pipeline.txt",
+	PipelineKind:                 "pipeline",
 }
 
 var (
@@ -91,23 +91,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	}
 }
 
-func (workflows *PipelineWorkflowFactory) commonMeta(_ context.Context, pipeline *pipelinesv1.Pipeline, operation string) *metav1.ObjectMeta {
-	return &metav1.ObjectMeta{
-		GenerateName: operation + "-",
-		Namespace:    pipeline.GetNamespace(),
-		Labels:       workflows.Labels(pipeline, operation),
-	}
-}
-
-func (workflows *PipelineWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
-	return map[string]string{
-		WorkflowConstants.OperationLabelKey: operation,
-		WorkflowConstants.OwnerKindLabelKey: "pipeline",
-		WorkflowConstants.OwnerNameLabelKey: resource.GetName(),
-	}
-}
-
-func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	compilerConfigYaml, err := w.newCompilerConfig(pipeline).AsYaml()
 
 	if err != nil {
@@ -127,7 +111,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, 
 	}
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(ctx, pipeline, WorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(pipeline.NamespacedName(), WorkflowConstants.CreateOperationLabel, PipelineWorkflowConstants.PipelineKind),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -217,7 +201,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, 
 	return workflow, nil
 }
 
-func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	compilerConfigYaml, err := w.newCompilerConfig(pipeline).AsYaml()
 
 	if err != nil {
@@ -232,7 +216,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pi
 	}
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(ctx, pipeline, WorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(pipeline.NamespacedName(), WorkflowConstants.UpdateOperationLabel, PipelineWorkflowConstants.PipelineKind),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -282,7 +266,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pi
 	return workflow, nil
 }
 
-func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 
 	entrypointName := WorkflowConstants.DeleteOperationLabel
 
@@ -292,7 +276,7 @@ func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, 
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *w.commonMeta(ctx, pipeline, WorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(pipeline.NamespacedName(), WorkflowConstants.DeleteOperationLabel, PipelineWorkflowConstants.PipelineKind),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,

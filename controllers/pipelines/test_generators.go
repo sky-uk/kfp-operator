@@ -5,12 +5,12 @@ package pipelines
 
 import (
 	"fmt"
-
 	"math/rand"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	"github.com/thanhpk/randstr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func RandomLowercaseString() string {
@@ -109,5 +109,12 @@ func RandomStatus() pipelinesv1.Status {
 		Version:              RandomString(),
 		KfpId:                RandomString(),
 		ObservedGeneration:   rand.Int63(),
+	}
+}
+
+func RandomNamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Name:      RandomString(),
+		Namespace: RandomString(),
 	}
 }

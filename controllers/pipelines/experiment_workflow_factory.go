@@ -1,44 +1,28 @@
 package pipelines
 
 import (
-	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var ExperimentWorkflowConstants = struct {
 	ExperimentIdParameterName string
 	CreationStepName          string
 	DeletionStepName          string
+	ExperimentKind            string
 }{
 	ExperimentIdParameterName: "experiment-id",
 	CreationStepName:          "create",
 	DeletionStepName:          "delete",
+	ExperimentKind:            "experiment",
 }
 
 type ExperimentWorkflowFactory struct {
 	WorkflowFactory
 }
 
-func (workflows *ExperimentWorkflowFactory) commonMeta(_ context.Context, experiment *pipelinesv1.Experiment, operation string) *metav1.ObjectMeta {
-	return &metav1.ObjectMeta{
-		GenerateName: operation + "-",
-		Namespace:    experiment.GetNamespace(),
-		Labels:       workflows.Labels(experiment, operation),
-	}
-}
-
-func (workflows *ExperimentWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
-	return map[string]string{
-		WorkflowConstants.OperationLabelKey: operation,
-		WorkflowConstants.OwnerKindLabelKey: "experiment",
-		WorkflowConstants.OwnerNameLabelKey: resource.GetName(),
-	}
-}
-
-func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	entrypointName := WorkflowConstants.CreateOperationLabel
 
 	creationScriptTemplate, err := workflows.creator(experiment)
@@ -47,7 +31,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(ctx context
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, experiment, WorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(experiment.NamespacedName(), WorkflowConstants.CreateOperationLabel, ExperimentWorkflowConstants.ExperimentKind),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -82,7 +66,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(ctx context
 	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	entrypointName := WorkflowConstants.DeleteOperationLabel
 
 	deletionScriptTemplate, err := workflows.deleter(experiment)
@@ -91,7 +75,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(ctx contex
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, experiment, WorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(experiment.NamespacedName(), WorkflowConstants.DeleteOperationLabel, ExperimentWorkflowConstants.ExperimentKind),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -115,7 +99,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(ctx contex
 	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	entrypointName := WorkflowConstants.UpdateOperationLabel
 
 	deletionScriptTemplate, err := workflows.deleter(experiment)
@@ -129,7 +113,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, experiment, WorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(experiment.NamespacedName(), WorkflowConstants.UpdateOperationLabel, ExperimentWorkflowConstants.ExperimentKind),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,

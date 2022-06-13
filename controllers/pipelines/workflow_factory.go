@@ -5,19 +5,21 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var WorkflowConstants = struct {
-	OwnerKindLabelKey string
-	OwnerNameLabelKey string
-	OperationLabelKey string
+	OwnerKindLabelKey    string
+	OwnerNameLabelKey    string
+	OperationLabelKey    string
 	CreateOperationLabel string
 	DeleteOperationLabel string
 	UpdateOperationLabel string
 }{
-	OwnerKindLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.kind",
-	OwnerNameLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.name",
+	OwnerKindLabelKey:    pipelinesv1.GroupVersion.Group + "/NamespacedName.kind",
+	OwnerNameLabelKey:    pipelinesv1.GroupVersion.Group + "/NamespacedName.name",
 	OperationLabelKey:    pipelinesv1.GroupVersion.Group + "/operation",
 	CreateOperationLabel: "create",
 	DeleteOperationLabel: "delete",
@@ -25,12 +27,29 @@ var WorkflowConstants = struct {
 }
 
 type WorkflowFactory struct {
-	Config configv1.Configuration
+	ResourceKind string
+	Config       configv1.Configuration
 }
 
 type KfpExtCommandBuilder struct {
 	commandParts []string
 	error        error
+}
+
+func CommonWorkflowMeta(owner types.NamespacedName, operation string, ownerKind string) *metav1.ObjectMeta {
+	return &metav1.ObjectMeta{
+		GenerateName: operation + "-" + ownerKind + "-",
+		Namespace:    owner.Namespace,
+		Labels:       CommonWorkflowLabels(owner, operation, ownerKind),
+	}
+}
+
+func CommonWorkflowLabels(owner types.NamespacedName, operation string, ownerKind string) map[string]string {
+	return map[string]string{
+		WorkflowConstants.OperationLabelKey: operation,
+		WorkflowConstants.OwnerKindLabelKey: ownerKind,
+		WorkflowConstants.OwnerNameLabelKey: owner.Name,
+	}
 }
 
 func escapeSingleQuotes(unescaped string) string {

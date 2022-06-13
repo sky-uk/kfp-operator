@@ -6,6 +6,23 @@ import (
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 )
 
+var _ = Describe("CommonWorkflowMeta", func() {
+	It("creates metadata", func() {
+		resource := RandomNamespacedName()
+		operation := RandomString()
+		ownerKind := RandomString()
+
+		meta := CommonWorkflowMeta(resource, operation, ownerKind)
+
+		Expect(meta.Namespace).To(Equal(resource.Namespace))
+		Expect(meta.GetGenerateName()).To(Equal(operation + "-" + ownerKind + "-"))
+
+		Expect(meta.Labels[WorkflowConstants.OwnerKindLabelKey]).To(Equal(ownerKind))
+		Expect(meta.Labels[WorkflowConstants.OwnerNameLabelKey]).To(Equal(resource.Name))
+		Expect(meta.Labels[WorkflowConstants.OperationLabelKey]).To(Equal(operation))
+	})
+})
+
 var _ = Describe("KfpExtCommandBuilder", func() {
 	When("Only a command is given", func() {
 		It("prints boilerplate and the command", func() {
