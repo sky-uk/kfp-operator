@@ -35,7 +35,7 @@ func CreateTestWorkflow(operation string, phase argo.WorkflowPhase) *argo.Workfl
 			Name:      operation,
 			Namespace: "default",
 			Labels: map[string]string{
-				PipelineWorkflowConstants.OperationLabelKey: operation,
+				WorkflowConstants.OperationLabelKey: operation,
 			},
 		},
 		Status: argo.WorkflowStatus{

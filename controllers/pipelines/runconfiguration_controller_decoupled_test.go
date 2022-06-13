@@ -26,12 +26,12 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 			})).Should(Succeed())
 
-			testCtx.WorkflowSucceeded(RunConfigurationWorkflowConstants.CreateOperationLabel)
+			testCtx.WorkflowSucceeded(WorkflowConstants.CreateOperationLabel)
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
-			Eventually(testCtx.FetchWorkflow(RunConfigurationWorkflowConstants.CreateOperationLabel)).Should(Not(Succeed()))
+			Eventually(testCtx.FetchWorkflow(WorkflowConstants.CreateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec = RandomRunConfigurationSpec()
@@ -41,12 +41,12 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			testCtx.WorkflowSucceeded(RunConfigurationWorkflowConstants.UpdateOperationLabel)
+			testCtx.WorkflowSucceeded(WorkflowConstants.UpdateOperationLabel)
 
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
-			Eventually(testCtx.FetchWorkflow(RunConfigurationWorkflowConstants.UpdateOperationLabel)).Should(Not(Succeed()))
+			Eventually(testCtx.FetchWorkflow(WorkflowConstants.UpdateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.DeleteRunConfiguration()).To(Succeed())
 
@@ -54,12 +54,12 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(RunConfigurationWorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).Should(Succeed())
 
 			Eventually(testCtx.RunConfigurationExists).Should(Not(Succeed()))
-			Eventually(testCtx.FetchWorkflow(RunConfigurationWorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
+			Eventually(testCtx.FetchWorkflow(WorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
 
 			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(

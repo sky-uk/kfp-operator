@@ -24,9 +24,8 @@ func NewPipelineTestContext(pipeline *pipelinesv1.Pipeline, k8sClient client.Cli
 		TestContext: TestContext{
 			K8sClient:      k8sClient,
 			ctx:            ctx,
-			LookupKey:      pipeline.NamespacedName(),
-			LookupLabel:    PipelineWorkflowConstants.PipelineNameLabelKey,
-			operationLabel: PipelineWorkflowConstants.OperationLabelKey,
+			OwnerName:      pipeline.Name,
+			OwnerKind: "pipeline",
 		},
 		Pipeline:        pipeline,
 		PipelineVersion: pipeline.Spec.ComputeVersion(),
@@ -36,14 +35,14 @@ func NewPipelineTestContext(pipeline *pipelinesv1.Pipeline, k8sClient client.Cli
 func (testCtx PipelineTestContext) PipelineToMatch(matcher func(Gomega, *pipelinesv1.Pipeline)) func(Gomega) {
 	return func(g Gomega) {
 		pipeline := &pipelinesv1.Pipeline{}
-		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, pipeline)).To(Succeed())
+		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.Pipeline.NamespacedName(), pipeline)).To(Succeed())
 		matcher(g, pipeline)
 	}
 }
 
 func (testCtx PipelineTestContext) PipelineExists() error {
 	pipeline := &pipelinesv1.Pipeline{}
-	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, pipeline)
+	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Pipeline.NamespacedName(), pipeline)
 
 	return err
 }
@@ -51,7 +50,7 @@ func (testCtx PipelineTestContext) PipelineExists() error {
 func (testCtx PipelineTestContext) UpdatePipeline(updateFunc func(*pipelinesv1.Pipeline)) error {
 	pipeline := &pipelinesv1.Pipeline{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, pipeline); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Pipeline.NamespacedName(), pipeline); err != nil {
 		return err
 	}
 
@@ -63,7 +62,7 @@ func (testCtx PipelineTestContext) UpdatePipeline(updateFunc func(*pipelinesv1.P
 func (testCtx PipelineTestContext) UpdatePipelineStatus(updateFunc func(*pipelinesv1.Pipeline)) error {
 	pipeline := &pipelinesv1.Pipeline{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, pipeline); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Pipeline.NamespacedName(), pipeline); err != nil {
 		return err
 	}
 
@@ -75,7 +74,7 @@ func (testCtx PipelineTestContext) UpdatePipelineStatus(updateFunc func(*pipelin
 func (testCtx PipelineTestContext) DeletePipeline() error {
 	pipeline := &pipelinesv1.Pipeline{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, pipeline); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Pipeline.NamespacedName(), pipeline); err != nil {
 		return err
 	}
 

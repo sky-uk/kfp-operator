@@ -22,11 +22,6 @@ var PipelineWorkflowConstants = struct {
 	UpdateStepName               string
 	PipelineYamlFilePath         string
 	PipelineIdFilePath           string
-	PipelineNameLabelKey         string
-	OperationLabelKey            string
-	CreateOperationLabel         string
-	UpdateOperationLabel         string
-	DeleteOperationLabel         string
 }{
 	PipelineIdParameterName:      "pipeline-id",
 	PipelineVersionParameterName: "pipeline-version",
@@ -37,11 +32,6 @@ var PipelineWorkflowConstants = struct {
 	UpdateStepName:               "update",
 	PipelineYamlFilePath:         "/tmp/pipeline.yaml",
 	PipelineIdFilePath:           "/tmp/pipeline.txt",
-	PipelineNameLabelKey:         pipelinesv1.GroupVersion.Group + "/pipeline",
-	OperationLabelKey:            pipelinesv1.GroupVersion.Group + "/operation",
-	CreateOperationLabel:         "create-pipeline",
-	UpdateOperationLabel:         "update-pipeline",
-	DeleteOperationLabel:         "delete-pipeline",
 }
 
 var (
@@ -111,8 +101,9 @@ func (workflows *PipelineWorkflowFactory) commonMeta(_ context.Context, pipeline
 
 func (workflows *PipelineWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
 	return map[string]string{
-		PipelineWorkflowConstants.OperationLabelKey:    operation,
-		PipelineWorkflowConstants.PipelineNameLabelKey: resource.GetName(),
+		WorkflowConstants.OperationLabelKey: operation,
+		WorkflowConstants.OwnerKindLabelKey: "pipeline",
+		WorkflowConstants.OwnerNameLabelKey: resource.GetName(),
 	}
 }
 
@@ -123,7 +114,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, 
 		return nil, err
 	}
 
-	entrypointName := PipelineWorkflowConstants.CreateOperationLabel
+	entrypointName := WorkflowConstants.CreateOperationLabel
 
 	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
 	uploadScriptTemplate, err := w.uploader(pipeline.ObjectMeta.Name)
@@ -136,7 +127,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, 
 	}
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *w.commonMeta(ctx, pipeline, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -233,7 +224,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pi
 		return nil, err
 	}
 
-	entrypointName := PipelineWorkflowConstants.UpdateOperationLabel
+	entrypointName := WorkflowConstants.UpdateOperationLabel
 	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
 	updateScriptTemplate, err := w.updater(pipeline.Spec.ComputeVersion())
 	if err != nil {
@@ -241,7 +232,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pi
 	}
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *w.commonMeta(ctx, pipeline, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -293,7 +284,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, pi
 
 func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 
-	entrypointName := PipelineWorkflowConstants.DeleteOperationLabel
+	entrypointName := WorkflowConstants.DeleteOperationLabel
 
 	deletionScriptTemplate, err := w.deleter()
 	if err != nil {
@@ -301,7 +292,7 @@ func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, 
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *w.commonMeta(ctx, pipeline, PipelineWorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *w.commonMeta(ctx, pipeline, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,

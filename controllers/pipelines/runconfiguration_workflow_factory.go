@@ -9,21 +9,11 @@ import (
 )
 
 var RunConfigurationWorkflowConstants = struct {
-	CreateOperationLabel            string
-	DeleteOperationLabel            string
-	UpdateOperationLabel            string
 	RunConfigurationIdParameterName string
-	RunConfigurationNameLabelKey    string
-	OperationLabelKey               string
 	CreationStepName                string
 	DeletionStepName                string
 }{
-	CreateOperationLabel:            "create-runconfiguration",
-	DeleteOperationLabel:            "delete-runconfiguration",
-	UpdateOperationLabel:            "update-runconfiguration",
 	RunConfigurationIdParameterName: "runconfiguration-id",
-	RunConfigurationNameLabelKey:    pipelinesv1.GroupVersion.Group + "/runConfiguration",
-	OperationLabelKey:               pipelinesv1.GroupVersion.Group + "/operation",
 	CreationStepName:                "create",
 	DeletionStepName:                "delete",
 }
@@ -42,13 +32,14 @@ func (workflows *RunConfigurationWorkflowFactory) commonMeta(_ context.Context, 
 
 func (workflows *RunConfigurationWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
 	return map[string]string{
-		RunConfigurationWorkflowConstants.OperationLabelKey:            operation,
-		RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: resource.GetName(),
+		WorkflowConstants.OperationLabelKey: operation,
+		WorkflowConstants.OwnerKindLabelKey: "runconfiguration",
+		WorkflowConstants.OwnerNameLabelKey: resource.GetName(),
 	}
 }
 
 func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := RunConfigurationWorkflowConstants.CreateOperationLabel
+	entrypointName := WorkflowConstants.OperationLabelKey
 
 	creationScriptTemplate, err := workflows.creator(runConfiguration)
 	if err != nil {
@@ -56,7 +47,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx c
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -92,7 +83,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx c
 }
 
 func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := RunConfigurationWorkflowConstants.DeleteOperationLabel
+	entrypointName := WorkflowConstants.DeleteOperationLabel
 
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
@@ -100,7 +91,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx 
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -125,7 +116,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx 
 }
 
 func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := RunConfigurationWorkflowConstants.UpdateOperationLabel
+	entrypointName := WorkflowConstants.UpdateOperationLabel
 
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
@@ -138,7 +129,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx co
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
