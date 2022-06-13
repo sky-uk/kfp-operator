@@ -63,17 +63,17 @@ func (st PipelineStateTransitionTestCase) WithDeletionWorkflow(phase argo.Workfl
 }
 
 func (st PipelineStateTransitionTestCase) IssuesCreationWorkflow() PipelineStateTransitionTestCase {
-	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(context.Background(), st.Pipeline)
+	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(st.Pipeline)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st PipelineStateTransitionTestCase) IssuesUpdateWorkflow() PipelineStateTransitionTestCase {
-	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(context.Background(), st.Pipeline)
+	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(st.Pipeline)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st PipelineStateTransitionTestCase) IssuesDeletionWorkflow() PipelineStateTransitionTestCase {
-	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(context.Background(), st.Pipeline)
+	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(st.Pipeline)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
