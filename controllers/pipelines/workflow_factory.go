@@ -4,8 +4,25 @@ import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	"strings"
 )
+
+var WorkflowConstants = struct {
+	OwnerKindLabelKey string
+	OwnerNameLabelKey string
+	OperationLabelKey string
+	CreateOperationLabel string
+	DeleteOperationLabel string
+	UpdateOperationLabel string
+}{
+	OwnerKindLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.kind",
+	OwnerNameLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.name",
+	OperationLabelKey:    pipelinesv1.GroupVersion.Group + "/operation",
+	CreateOperationLabel: "create",
+	DeleteOperationLabel: "delete",
+	UpdateOperationLabel: "update",
+}
 
 type WorkflowFactory struct {
 	Config configv1.Configuration

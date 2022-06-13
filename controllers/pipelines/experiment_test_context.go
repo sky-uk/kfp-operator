@@ -21,9 +21,8 @@ func NewExperimentTestContext(experiment *pipelinesv1.Experiment, k8sClient clie
 		TestContext: TestContext{
 			K8sClient:      k8sClient,
 			ctx:            ctx,
-			LookupKey:      experiment.NamespacedName(),
-			LookupLabel:    ExperimentWorkflowConstants.ExperimentNameLabelKey,
-			operationLabel: ExperimentWorkflowConstants.OperationLabelKey,
+			OwnerName:      experiment.Name,
+			OwnerKind:      "experiment",
 		},
 		Experiment: experiment,
 	}
@@ -32,14 +31,14 @@ func NewExperimentTestContext(experiment *pipelinesv1.Experiment, k8sClient clie
 func (testCtx ExperimentTestContext) ExperimentToMatch(matcher func(Gomega, *pipelinesv1.Experiment)) func(Gomega) {
 	return func(g Gomega) {
 		rc := &pipelinesv1.Experiment{}
-		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, rc)).To(Succeed())
+		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.Experiment.NamespacedName(), rc)).To(Succeed())
 		matcher(g, rc)
 	}
 }
 
 func (testCtx ExperimentTestContext) ExperimentExists() error {
 	rc := &pipelinesv1.Experiment{}
-	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, rc)
+	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Experiment.NamespacedName(), rc)
 
 	return err
 }
@@ -47,7 +46,7 @@ func (testCtx ExperimentTestContext) ExperimentExists() error {
 func (testCtx ExperimentTestContext) UpdateExperiment(updateFunc func(*pipelinesv1.Experiment)) error {
 	rc := &pipelinesv1.Experiment{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, rc); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Experiment.NamespacedName(), rc); err != nil {
 		return err
 	}
 
@@ -59,7 +58,7 @@ func (testCtx ExperimentTestContext) UpdateExperiment(updateFunc func(*pipelines
 func (testCtx ExperimentTestContext) DeleteExperiment() error {
 	rc := &pipelinesv1.Experiment{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, rc); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Experiment.NamespacedName(), rc); err != nil {
 		return err
 	}
 

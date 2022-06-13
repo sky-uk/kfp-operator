@@ -22,9 +22,8 @@ func NewRunConfigurationTestContext(runConfiguration *pipelinesv1.RunConfigurati
 		TestContext: TestContext{
 			K8sClient:      k8sClient,
 			ctx:            ctx,
-			LookupKey:      runConfiguration.NamespacedName(),
-			LookupLabel:    RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey,
-			operationLabel: RunConfigurationWorkflowConstants.OperationLabelKey,
+			OwnerName:      runConfiguration.Name,
+			OwnerKind: "runconfiguration",
 		},
 		RunConfiguration: runConfiguration,
 	}
@@ -33,14 +32,14 @@ func NewRunConfigurationTestContext(runConfiguration *pipelinesv1.RunConfigurati
 func (testCtx RunConfigurationTestContext) RunConfigurationToMatch(matcher func(Gomega, *pipelinesv1.RunConfiguration)) func(Gomega) {
 	return func(g Gomega) {
 		rc := &pipelinesv1.RunConfiguration{}
-		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, rc)).To(Succeed())
+		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.RunConfiguration.NamespacedName(), rc)).To(Succeed())
 		matcher(g, rc)
 	}
 }
 
 func (testCtx RunConfigurationTestContext) RunConfigurationExists() error {
 	rc := &pipelinesv1.RunConfiguration{}
-	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, rc)
+	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.RunConfiguration.NamespacedName(), rc)
 
 	return err
 }
@@ -48,7 +47,7 @@ func (testCtx RunConfigurationTestContext) RunConfigurationExists() error {
 func (testCtx RunConfigurationTestContext) UpdateRunConfiguration(updateFunc func(*pipelinesv1.RunConfiguration)) error {
 	rc := &pipelinesv1.RunConfiguration{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, rc); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.RunConfiguration.NamespacedName(), rc); err != nil {
 		return err
 	}
 
@@ -60,7 +59,7 @@ func (testCtx RunConfigurationTestContext) UpdateRunConfiguration(updateFunc fun
 func (testCtx RunConfigurationTestContext) DeleteRunConfiguration() error {
 	rc := &pipelinesv1.RunConfiguration{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, rc); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.RunConfiguration.NamespacedName(), rc); err != nil {
 		return err
 	}
 
@@ -94,7 +93,7 @@ func (testCtx RunConfigurationTestContext) WorkflowSucceeded(operation string) {
 func (testCtx RunConfigurationTestContext) UpdateRunConfigurationStatus(updateFunc func(configuration *pipelinesv1.RunConfiguration)) error {
 	runConfiguration := &pipelinesv1.RunConfiguration{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.LookupKey, runConfiguration); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.RunConfiguration.NamespacedName(), runConfiguration); err != nil {
 		return err
 	}
 
