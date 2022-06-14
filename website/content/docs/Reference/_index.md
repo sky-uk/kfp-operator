@@ -1,7 +1,10 @@
 ---
 title: "Reference"
+weight: 3
 ---
 
-{{% pageinfo %}}
-KFP-Operator Reference
-{{% /pageinfo %}}
+- [Operator Configuration](configuration)
+- [Pipeline Resource](pipeline)
+- [Experiment Resource](experiment)
+- [RunConfiguration Resource](runconfiguration)
+- [Model Update Eventsource](run_completion)
