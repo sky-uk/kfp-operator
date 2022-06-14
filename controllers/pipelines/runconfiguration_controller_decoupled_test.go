@@ -17,40 +17,62 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration := RandomRunConfiguration()
 			runConfiguration.Namespace = "default"
 
-			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
+			testCtx := NewRunConfigurationTestContext(runConfiguration)
 
-			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
+			Expect(testCtx.CreateResource()).To(Succeed())
 
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 				g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 			})).Should(Succeed())
 
-			testCtx.WorkflowSucceeded(WorkflowConstants.CreateOperationLabel)
+			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
+				workflow.Status.Phase = argo.WorkflowSucceeded
+				setWorkflowOutputs(
+					workflow,
+					[]argo.Parameter{
+						{
+							Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+							Value: argo.AnyStringPtr(RandomString()),
+						},
+					},
+				)
+			})).Should(Succeed())
 
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
 			Eventually(testCtx.FetchWorkflow(WorkflowConstants.CreateOperationLabel)).Should(Not(Succeed()))
 
-			Expect(testCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
+			Expect(testCtx.UpdateResource(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec = RandomRunConfigurationSpec()
 			})).To(Succeed())
 
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
-			testCtx.WorkflowSucceeded(WorkflowConstants.UpdateOperationLabel)
+			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
+				workflow.Status.Phase = argo.WorkflowSucceeded
+				setWorkflowOutputs(
+					workflow,
+					[]argo.Parameter{
+						{
+							Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+							Value: argo.AnyStringPtr(RandomString()),
+						},
+					},
+				)
+			})).Should(Succeed())
 
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
 			Eventually(testCtx.FetchWorkflow(WorkflowConstants.UpdateOperationLabel)).Should(Not(Succeed()))
 
-			Expect(testCtx.DeleteRunConfiguration()).To(Succeed())
+			Expect(testCtx.DeleteResource()).To(Succeed())
 
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
@@ -58,7 +80,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).Should(Succeed())
 
-			Eventually(testCtx.RunConfigurationExists).Should(Not(Succeed()))
+			Eventually(testCtx.ResourceExists).Should(Not(Succeed()))
 			Eventually(testCtx.FetchWorkflow(WorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
 
 			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
@@ -84,25 +106,22 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.PipelineName = pipeline.Name
 			runConfiguration.Namespace = "default"
 
-			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
-				Status: pipelinesv1.Status{
-					Version:              RandomString(),
-					KfpId:                RandomString(),
-					SynchronizationState: pipelinesv1.Succeeded,
-				},
-				ObservedPipelineVersion: RandomString(),
+			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration)
+			runCfgTestCtx.ResourceCreatedWithStatus(pipelinesv1.Status{
+				Version:              RandomString(),
+				KfpId:                RandomString(),
+				SynchronizationState: pipelinesv1.Succeeded,
 			})
 
-			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
-			pipelineTestCtx.PipelineCreatedWithStatus(
+			pipelineTestCtx := NewPipelineTestContext(pipeline)
+			pipelineTestCtx.ResourceCreatedWithStatus(
 				pipelinesv1.Status{
 					Version:              pipelineVersion,
 					KfpId:                RandomString(),
 					SynchronizationState: pipelinesv1.Succeeded,
 				})
 
-			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(runCfgTestCtx.ResourceToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())

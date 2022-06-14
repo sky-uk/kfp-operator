@@ -278,6 +278,7 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 		failureMessage := "creating run configuration with empty version"
 		logger.Info(fmt.Sprintf("%s, failing run configuration", failureMessage))
 
+		fmt.Println("1")
 		return []Command{
 			*From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
 		}
@@ -299,6 +300,7 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
+			fmt.Println("2")
 			setStatusCommand = From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 		} else {
 			setStatusCommand = From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Succeeded).WithKfpId(idResult)
@@ -313,6 +315,7 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 		}
 
 		logger.Info(fmt.Sprintf("%s, failing run configuration", failureMessage))
+		fmt.Println("3")
 		setStatusCommand = From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 	}
 

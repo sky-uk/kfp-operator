@@ -19,11 +19,11 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			kfpId := "12345"
 			anotherKfpId := "67890"
-			testCtx := NewExperimentTestContext(experiment, k8sClient, ctx)
+			testCtx := NewExperimentTestContext(experiment)
 
-			Expect(k8sClient.Create(ctx, testCtx.Experiment)).To(Succeed())
+			Expect(testCtx.CreateResource()).To(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
 				g.Expect(experiment.Status.ObservedGeneration).To(Equal(experiment.GetGeneration()))
 			})).Should(Succeed())
@@ -41,16 +41,16 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 				)
 			})).Should(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
 			Eventually(testCtx.FetchWorkflow(WorkflowConstants.CreateOperationLabel)).Should(Not(Succeed()))
 
-			Expect(testCtx.UpdateExperiment(func(pipeline *pipelinesv1.Experiment) {
+			Expect(testCtx.UpdateResource(func(pipeline *pipelinesv1.Experiment) {
 				pipeline.Spec = RandomExperimentSpec()
 			})).To(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 			})).Should(Succeed())
 
@@ -67,14 +67,14 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 				)
 			})).Should(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
 			})).Should(Succeed())
 			Eventually(testCtx.FetchWorkflow(WorkflowConstants.UpdateOperationLabel)).Should(Not(Succeed()))
 
-			Expect(testCtx.DeleteExperiment()).To(Succeed())
+			Expect(testCtx.DeleteResource()).To(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(testCtx.ResourceToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
 			})).Should(Succeed())
 
@@ -82,7 +82,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 			})).Should(Succeed())
 
-			Eventually(testCtx.ExperimentExists).Should(Not(Succeed()))
+			Eventually(testCtx.ResourceExists).Should(Not(Succeed()))
 			Eventually(testCtx.FetchWorkflow(WorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
 
 			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
