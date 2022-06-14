@@ -20,9 +20,9 @@ type RunConfigurationTestContext struct {
 func NewRunConfigurationTestContext(runConfiguration *pipelinesv1.RunConfiguration, k8sClient client.Client, ctx context.Context) RunConfigurationTestContext {
 	return RunConfigurationTestContext{
 		TestContext: TestContext{
-			K8sClient: k8sClient,
-			ctx:       ctx,
-			OwnerKind: RunConfigurationWorkflowConstants.RunConfigurationKind,
+			K8sClient:      k8sClient,
+			ctx:            ctx,
+			OwnerKind:      RunConfigurationWorkflowConstants.RunConfigurationKind,
 			NamespacedName: runConfiguration.NamespacedName(),
 		},
 		RunConfiguration: runConfiguration,

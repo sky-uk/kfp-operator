@@ -21,9 +21,9 @@ type PipelineTestContext struct {
 func NewPipelineTestContext(pipeline *pipelinesv1.Pipeline, k8sClient client.Client, ctx context.Context) PipelineTestContext {
 	return PipelineTestContext{
 		TestContext: TestContext{
-			K8sClient: k8sClient,
-			ctx:       ctx,
-			OwnerKind: PipelineWorkflowConstants.PipelineKind,
+			K8sClient:      k8sClient,
+			ctx:            ctx,
+			OwnerKind:      PipelineWorkflowConstants.PipelineKind,
 			NamespacedName: pipeline.NamespacedName(),
 		},
 		Pipeline: pipeline,

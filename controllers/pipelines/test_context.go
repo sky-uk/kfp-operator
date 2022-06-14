@@ -20,8 +20,8 @@ var (
 )
 
 type TestContext struct {
-	K8sClient client.Client
-	ctx       context.Context
+	K8sClient      client.Client
+	ctx            context.Context
 	OwnerKind      string
 	NamespacedName types.NamespacedName
 }
