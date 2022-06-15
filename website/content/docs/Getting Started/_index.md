@@ -1,6 +1,6 @@
 ---
 title: "Getting Started"
-weight: 2
+weight: 3
 ---
 
 This tutorial walks you through the creation of a simple TFX pipeline and shows you how to manage pipelines via Kubernetes Custom Resources.

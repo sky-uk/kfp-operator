@@ -1,4 +1,4 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Reference</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/</link><description>Recent content in Reference on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://solid-goggles-5e2413f7.pages.github.io/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs:</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/configuration/</guid><description>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Reference</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/</link><description>Recent content in Reference on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://solid-goggles-5e2413f7.pages.github.io/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Configuration</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/configuration/</guid><description>
 &lt;h3 id="configuration">Configuration&lt;/h3>
 &lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
 &lt;table>
@@ -62,8 +62,7 @@
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
-&lt;p>An example can be found in the &lt;a href="../config/manager/controller_manager_config.yaml">local run configuration&lt;/a>.&lt;/p></description></item><item><title>Docs:</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/debugging/</guid><description>
-&lt;h1 id="debugging">Debugging&lt;/h1>
+&lt;p>An example can be found in the &lt;a href="../config/manager/controller_manager_config.yaml">local run configuration&lt;/a>.&lt;/p></description></item><item><title>Docs: Debugging</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/debugging/</guid><description>
 &lt;h2 id="configuration">Configuration&lt;/h2>
 &lt;p>Debugging options can be set:&lt;/p>
 &lt;ul>
@@ -118,121 +117,8 @@ This means that resources can increase debugging, but never decrease it.&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Warning SyncFailed 101s kfp-operator Failed &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>: pipeline update failed
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs:</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/experiment/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/experiment/</guid><description>
-&lt;h1 id="experiment-resource">Experiment Resource&lt;/h1>
-&lt;p>The Experiment resource represents the lifecycle of Experiments on Kubeflow Pipelines,
-and can be configured as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Experiment&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">description&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;An experiment for the penguin pipeline&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>spec.description&lt;/code>&lt;/td>
-&lt;td>The description of the experiment&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table></description></item><item><title>Docs:</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/pipeline/</guid><description>
-&lt;h1 id="pipeline-resource">Pipeline Resource&lt;/h1>
-&lt;p>The Pipeline resource represents the lifecycle of TFX pipelines on Kubeflow Pipelines.
-Pipelines can be created, updated and deleted via this resource.
-The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
-It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-quickstart:v1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">tfxComponents&lt;/span>: &lt;span style="color:#ae81ff">base_pipeline.create_components&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">env&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">TRAINING_RUNS&lt;/span>: &lt;span style="color:#ae81ff">100&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>spec.image&lt;/code>&lt;/td>
-&lt;td>Container image containing TFX component definitions&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.tfxComponents&lt;/code>&lt;/td>
-&lt;td>Fully qualified name of the Python function creating pipeline components&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.env&lt;/code>&lt;/td>
-&lt;td>Dictionary of compile-time parameters. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.beamArgs&lt;/code>&lt;/td>
-&lt;td>Dictionary of Beam arguments. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;h2 id="versioning">Versioning&lt;/h2>
-&lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this on Kubeflow Pipelines, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>Docs:</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/readme/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/readme/</guid><description>
-&lt;h1 id="documentation">Documentation&lt;/h1>
-&lt;h2 id="installation">Installation&lt;/h2>
-&lt;h2 id="tfx-pipelines-and-components">TFX Pipelines and Components&lt;/h2>
-&lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.&lt;/p>
-&lt;p>For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the &lt;a href="./quickstart/penguin_pipeline/pipeline.py">penguin pipeline&lt;/a> for an example.&lt;/p>
-&lt;h3 id="lifecycle-phases-and-parameter-types">Lifecycle phases and Parameter types&lt;/h3>
-&lt;p>TFX Pipelines go through certain lifecycle phases that are unique to this technology. It is helpful to understand where these differ and where they are executed.&lt;/p>
-&lt;p>&lt;strong>Development:&lt;/strong> Creating the components definition as code.&lt;/p>
-&lt;p>&lt;strong>Compilation:&lt;/strong> Applying compile-time parameters and defining the execution runtime (aka DAG runner) for the pipeline to be compiled into a deployable artifact.&lt;/p>
-&lt;p>&lt;strong>Deployment:&lt;/strong> Creating a pipeline representation in the target environment.&lt;/p>
-&lt;p>&lt;strong>Running:&lt;/strong> Instantiating the pipeline, applying runtime parameters and running all pipeline steps involved to completion.&lt;/p>
-&lt;p>&lt;em>Note:&lt;/em> Local runners usually skip compilation and deployment and run the pipeline straight away.&lt;/p>
-&lt;p>TFX allows the parameterisation of Pipelines in most lifecycle stages:&lt;/p>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Parameter type&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;th>Example&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>Named Constants&lt;/td>
-&lt;td>Code constants&lt;/td>
-&lt;td>ANN layer size&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>Compile-time parameter&lt;/td>
-&lt;td>Parameters that are unlikely to change between pipeline runs supplied as environment variabels to the pipeline function&lt;/td>
-&lt;td>Bigquery dataset&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>Runtime parameter&lt;/td>
-&lt;td>Parameters exposed as TFX &lt;a href="https://www.tensorflow.org/tfx/api_docs/python/tfx/v1/dsl/experimental/RuntimeParameter?hl=en">RuntimeParameter&lt;/a> which can be overridden at runtime allow simplified experimentation without having to recompile the pipeline&lt;/td>
-&lt;td>Number of training runs&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;p>The pipeline operator supports the application of compile time and runtime parameters through its custom resources. We strongly encourage the usage of both of these parameter types to speed up development and experimentation lifecycles. Note that Runtime parameters can initialised to default values from both constants and compile-time parameters&lt;/p>
-&lt;h2 id="operator-resources">Operator Resources&lt;/h2>
-&lt;p>The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources:&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="pipeline.md">Pipeline&lt;/a>&lt;/li>
-&lt;li>&lt;a href="experiment.md">Experiment&lt;/a>&lt;/li>
-&lt;li>&lt;a href="runconfiguration.md">RunConfiguration&lt;/a>&lt;/li>
-&lt;/ul>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Resources</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/resources/</guid><description>
+&lt;p>The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources.&lt;/p>
 &lt;p>All resources managed by the operator have the following common status fields:&lt;/p>
 &lt;table>
 &lt;thead>
@@ -259,14 +145,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;td>The last processed &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">generation&lt;/a> of the resource&lt;/td>
 &lt;/tr>
 &lt;/tbody>
-&lt;/table>
-&lt;h2 id="eventing-support">Eventing Support&lt;/h2>
-&lt;p>The Kubeflow Pipelines operator can optionally be installed with &lt;a href="https://argoproj.github.io/argo-events/">Argo-Events&lt;/a> eventsources which lets users react to events.&lt;/p>
-&lt;p>Currently, we support the following eventsources:&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="run_completion.md">Model Update Eventsource&lt;/a>&lt;/li>
-&lt;/ul></description></item><item><title>Docs:</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/run_completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/run_completion/</guid><description>
-&lt;h1 id="run-completion-eventsource">Run Completion Eventsource&lt;/h1>
+&lt;/table></description></item><item><title>Docs: Run Completion EventSource</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/run_completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/run_completion/</guid><description>
 &lt;p>The Run Completion Eventsource allows reacting to finished pipeline runs.&lt;/p>
 &lt;p>&lt;img src="https://solid-goggles-5e2413f7.pages.github.io/run_completion.png" alt="Model Serving">&lt;/p>
 &lt;p>The specification of the eventsource follows those of other &lt;a href="https://argoproj.github.io/argo-events/eventsources/generic/">generic Argo-Events eventsources&lt;/a>:&lt;/p>
@@ -331,44 +210,4 @@ You can define a default event bus, which does not require further configuration
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">nats&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">native&lt;/span>: {}
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs:</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/runconfiguration/</guid><description>
-&lt;h1 id="runconfiguration-resource">RunConfiguration Resource&lt;/h1>
-&lt;p>The RunConfiguration resource represents the lifecycle of Recurring Runs (aka Jobs) on Kubeflow Pipelines.
-Pipeline training runs can be configured using this resource as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-recurring-run&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipelineName&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">schedule&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;0 0 * * * *&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">TRAINING_RUNS&lt;/span>: &lt;span style="color:#ae81ff">100&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>spec.pipelineName&lt;/code>&lt;/td>
-&lt;td>The name of the corresponding pipeline resource to run&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.experimentName&lt;/code>&lt;/td>
-&lt;td>The name of the corresponding experiment resource (Optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided)&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.schedule&lt;/code>&lt;/td>
-&lt;td>A cron schedule to execute training runs&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.runtimeParameters&lt;/code>&lt;/td>
-&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table></description></item></channel></rss>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>

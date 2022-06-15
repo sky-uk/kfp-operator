@@ -1,4 +1,6 @@
-# Experiment Resource
+---
+title: "Experiment"
+---
 
 The Experiment resource represents the lifecycle of Experiments on Kubeflow Pipelines,
 and can be configured as follows:

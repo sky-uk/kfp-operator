@@ -1,4 +1,6 @@
-# Install using Helm
+---
+title: "Install Using Helm"
+---
 
 ## Prerequisites
 

@@ -1,3 +1,7 @@
+---
+title: "Configuration"
+---
+
 ### Configuration
 
 The Kubeflow Pipelines operator can be configured with the following parameters:

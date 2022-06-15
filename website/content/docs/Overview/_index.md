@@ -1,8 +1,9 @@
-# Documentation
+---
+title: "Overview"
+weight: 1
+---
 
-## Installation
-
-
+The Kubeflow Pipelines Operator provides a declarative API for managing and running machine learning pipelines on Kubeflow with Resource Definitions.
 
 ## TFX Pipelines and Components
 
@@ -34,24 +35,6 @@ TFX allows the parameterisation of Pipelines in most lifecycle stages:
 
 The pipeline operator supports the application of compile time and runtime parameters through its custom resources. We strongly encourage the usage of both of these parameter types to speed up development and experimentation lifecycles. Note that Runtime parameters can initialised to default values from both constants and compile-time parameters
 
-## Operator Resources
-
-The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources:
-
-- [Pipeline](pipeline.md)
-- [Experiment](experiment.md)
-- [RunConfiguration](runconfiguration.md)
-
-All resources managed by the operator have the following common status fields:
-
-| Name | Description |
-| --- | --- |
-| `kfpId` | The resource identifier inside Kubeflow Pipelines |
-| `version` | The resource version |
-| `synchronizationState` | The current synchronization state with Kubeflow Pipelines |
-| `observedGeneration` | The last processed [generation](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) of the resource |
-
-
 ## Eventing Support
 
 The Kubeflow Pipelines operator can optionally be installed with [Argo-Events](https://argoproj.github.io/argo-events/) eventsources which lets users react to events.
@@ -59,3 +42,12 @@ The Kubeflow Pipelines operator can optionally be installed with [Argo-Events](h
 Currently, we support the following eventsources:
 
 - [Model Update Eventsource](run_completion.md)
+
+## Architecture Overview
+
+![Architecture](/architecture.png)
+
+## Limitations
+
+- The operator currently only supports TFX Pipelines - pipelines created using the KFP DSL are not supported yet.
+- The operator currently only supports KFP standalone - a full KFP installation is not supported yet.

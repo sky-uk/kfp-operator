@@ -1,4 +1,6 @@
-# Pipeline Resource
+---
+title: "Pipeline"
+---
 
 The Pipeline resource represents the lifecycle of TFX pipelines on Kubeflow Pipelines.
 Pipelines can be created, updated and deleted via this resource.
