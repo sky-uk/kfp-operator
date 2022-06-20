@@ -97,10 +97,10 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			))
 	}
 
-	var FailDeletion = func(jobKfpId string) error {
+	var FailDeletionWithCode = func(jobKfpId string, code int64) error {
 		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/jobs/"+jobKfpId)).
 			WillReturn(
-				`{"status": "failed"}`,
+				fmt.Sprintf(`HTTP response body: {"status": "failed", "code": %d}`, code),
 				map[string]string{"Content-Type": "application/json"},
 				404,
 			))
@@ -174,11 +174,20 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		),
 		Entry("Deletion fails",
 			func(runconfiguration *pipelinesv1.RunConfiguration) {
-				Expect(FailDeletion(jobKfpId)).To(Succeed())
+				Expect(FailDeletionWithCode(jobKfpId, 7)).To(Succeed())
 			},
 			workflowFactory.ConstructDeletionWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+			},
+		),
+		Entry("Deletion fails with RC not found",
+			func(runconfiguration *pipelinesv1.RunConfiguration) {
+				Expect(FailDeletionWithCode(jobKfpId, 5)).To(Succeed())
+			},
+			workflowFactory.ConstructDeletionWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 			},
 		),
 	)
@@ -205,11 +214,21 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					To(Equal(""))
 			}),
 		Entry("Deletion fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
-			Expect(FailDeletion(jobKfpId)).To(Succeed())
+			Expect(FailDeletionWithCode(jobKfpId, 55)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+			}),
+		Entry("Deletion fails with RC not found and creation succeeds", func(runconfiguration *pipelinesv1.RunConfiguration) {
+			Expect(FailDeletionWithCode(jobKfpId, 5)).To(Succeed())
+			Expect(SucceedCreation(runconfiguration, newJobKfpId)).To(Succeed())
+		},
+			workflowFactory.ConstructUpdateWorkflow,
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
+					To(Equal(newJobKfpId))
 			}),
 	)
 })
