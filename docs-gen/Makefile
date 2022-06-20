@@ -1,8 +1,8 @@
-build:
+build: clean
 	hugo --minify
 
 clean:
-	hugo mod clean
+	rm -rf ../docs/
 
 serve:
 	hugo server
