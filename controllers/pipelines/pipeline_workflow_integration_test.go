@@ -199,7 +199,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 				Expect(SucceedDeletion(pipeline)).To(Succeed())
 			},
 			func(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-				return workflowFactory.ConstructDeletionWorkflow(context.Background(), pipeline)
+				return workflowFactory.ConstructDeletionWorkflow(pipeline)
 			},
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
@@ -210,7 +210,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 				Expect(FailDeletion(pipeline)).To(Succeed())
 			},
 			func(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-				return workflowFactory.ConstructDeletionWorkflow(context.Background(), pipeline)
+				return workflowFactory.ConstructDeletionWorkflow(pipeline)
 			},
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
