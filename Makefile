@@ -201,6 +201,7 @@ docker-push-argo:
 	$(MAKE) -C argo/events docker-push
 
 package-all: docker-build docker-build-argo helm-package
+	$(MAKE) -C website
 
 publish-all: docker-push docker-push-argo helm-publish
 
