@@ -214,7 +214,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					To(Equal(""))
 			}),
 		Entry("Deletion fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
-			Expect(FailDeletionWithCode(jobKfpId, 7)).To(Succeed())
+			Expect(FailDeletionWithCode(jobKfpId, 55)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
