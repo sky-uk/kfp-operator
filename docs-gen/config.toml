@@ -1,4 +1,4 @@
-baseURL = 'https://solid-goggles-5e2413f7.pages.github.io'
+baseURL = 'https://sky-uk.github.io/kfp-operator'
 languageCode = 'en-gb'
 title = 'KFP-Operator'
 theme = "github.com/google/docsy"
@@ -28,6 +28,6 @@ publishDir = '../docs'
 
 [params]
   github_repo = "https://github.com/sky-uk/kfp-operator"
-  github_subdir = "website"
+  github_subdir = "docs-gen"
   github_branch = "master"
   github_project_repo = "https://github.com/sky-uk/kfp-operator"
