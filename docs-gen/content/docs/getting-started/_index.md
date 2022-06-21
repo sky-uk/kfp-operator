@@ -17,20 +17,20 @@ Create `pipeline.py`.
 Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:
 
 ```python
-{{% readfile file="includes/quickstart/penguin_pipeline/pipeline.py" code="true" lang="python" %}}
+{{% readfile file="includes/quickstart/penguin_pipeline/pipeline.py" %}}
 ```
 
 Create `trainer.py`.
 The training code remains unchanged:
 
 ```python
-{{% readfile file="includes/quickstart/penguin_pipeline/trainer.py" code="true" lang="python" %}}
+{{% readfile file="includes/quickstart/penguin_pipeline/trainer.py" %}}
 ```
 
 Create `Dockerfile`.
 
 ```dockerfile
-{{% readfile file="includes/quickstart/Dockerfile" code="true" lang="dockerfile" %}}
+{{% readfile file="includes/quickstart/Dockerfile" %}}
 ```
 
 Next, build the pipeline as a Docker container and push it:
@@ -46,7 +46,7 @@ docker push kfp-quickstart:v1
 Now that we have a pipeline image, we can create a `pipeline.yaml` resource to manage the lifecycle of this pipeline on Kubeflow:
 
 ```yaml
-{{% readfile file="includes/quickstart/resources/pipeline.yaml" code="true" lang="yaml" %}}
+{{% readfile file="includes/quickstart/resources/pipeline.yaml" %}}
 ```
 
 ```bash
@@ -87,7 +87,7 @@ Note: remove `experimentName` if you want to use the `Default` experiment instea
 Create `runconfiguration.yaml`:
 
 ```yaml
-{{% readfile file="includes/quickstart/resources/runconfiguration.yaml" code="true" lang="yaml" %}}
+{{% readfile file="includes/quickstart/resources/runconfiguration.yaml" %}}
 ```
 
 ```bash
@@ -104,7 +104,7 @@ In this example we are updating a serving component with the location of the new
 Create `apply-model-location.yaml`. This creates an `EventSource` and a `Sensor` as well as an `EventBus`:
 
 ```yaml
-{{% readfile file="includes/quickstart/resources/apply-model-location.yaml" code="true" lang="yaml" %}}
+{{% readfile file="includes/quickstart/resources/apply-model-location.yaml" %}}
 ```
 
 ```bash
