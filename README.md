@@ -8,6 +8,5 @@ We currently only support TFX pipelines.
 
 ## Documentation:
 
-- [Documentation](docs)
-- [Quickstart](docs/quickstart)
-- [Development Guide](docs/development)
+- [Documentation](https://sky-uk.github.io/kfp-operator)
+- [Development Guide](CONTRIBUTING.md)

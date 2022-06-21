@@ -9,7 +9,7 @@ The Kubeflow Pipelines Operator provides a declarative API for managing and runn
 
 Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don't have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.
 
-For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the [penguin pipeline](./quickstart/penguin_pipeline/pipeline.py) for an example.
+For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the [penguin pipeline]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/quickstart/penguin_pipeline/pipeline.py) for an example.
 
 ### Lifecycle phases and Parameter types
 
@@ -41,11 +41,11 @@ The Kubeflow Pipelines operator can optionally be installed with [Argo-Events](h
 
 Currently, we support the following eventsources:
 
-- [Model Update Eventsource](run_completion.md)
+- [Run Completion Eventsource](../reference/run-completion)
 
 ## Architecture Overview
 
-![Architecture](/architecture.png)
+![Architecture](/kfp-operator/architecture.png)
 
 ## Limitations
 

@@ -4,7 +4,7 @@ title: "Run Completion EventSource"
 
 The Run Completion Eventsource allows reacting to finished pipeline runs.
 
-![Model Serving](/run_completion.png)
+![Model Serving](/kfp-operator/run_completion.png)
 
 The specification of the eventsource follows those of other [generic Argo-Events eventsources](https://argoproj.github.io/argo-events/eventsources/generic/):
 
@@ -71,7 +71,7 @@ spec:
         log: {}
 ```
 
-For more information and an in-depth example, see the [Quickstart Guide](./quickstart/README.md#deploy-newly-trained-models) and [Argo-Events Documentation](https://argoproj.github.io/argo-events/).
+For more information and an in-depth example, see the [Quickstart Guide](../../getting-started#5-optional-deploy-newly-trained-models) and [Argo-Events Documentation](https://argoproj.github.io/argo-events/).
 
 Please make sure to provide an event bus for the eventsource and the sensor to connect to.
 You can define a default event bus, which does not require further configuration on either end, as follows:

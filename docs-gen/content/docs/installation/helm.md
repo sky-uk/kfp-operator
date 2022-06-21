@@ -28,12 +28,12 @@ Valid configuration options to override the [Default `values.yaml`]({{< param "g
 | `manager.serviceAccount.create` | Create the manager's service account |
 | `manager.serviceAccount.name` | Manager service account's name |
 | `manager.resources` | Manager resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) |
-| `manager.configuration` | Manager configuration as defined in [Configuration](/docs/reference/configuration) (note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied) |
+| `manager.configuration` | Manager configuration as defined in [Configuration](../../reference/configuration) (note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied) |
 | `manager.monitoring.create` | Create the manager's monitoring resources |
 | `manager.monitoring.rbacSecured` | Enable addtional RBAC-based security |
 | `manager.monitoring.serviceMonitor.create` | Create a ServiceMonitor for the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) |
 | `manager.monitoring.serviceMonitor.endpointConfiguration` | Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided) |
-| `logging.verbosity` | Logging verbosity for all components. See the [logging documentation](development/README.md#logging) for valid values |
+| `logging.verbosity` | Logging verbosity for all components. See the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values |
 | `eventsourceServer.create` | Create the [Argo-Events eventsource server](#eventing-support) |
 | `eventsourceServer.metadata` | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the eventsource server's pods |
 | `eventsourceServer.port` | Service port of the eventsource server |
