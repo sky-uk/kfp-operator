@@ -1,5 +1,6 @@
 ---
 title: "Experiment"
+weight: 3
 ---
 
 The Experiment resource represents the lifecycle of Experiments on Kubeflow Pipelines,

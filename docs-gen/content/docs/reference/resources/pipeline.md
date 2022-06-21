@@ -1,5 +1,6 @@
 ---
 title: "Pipeline"
+weight: 1
 ---
 
 The Pipeline resource represents the lifecycle of TFX pipelines on Kubeflow Pipelines.
