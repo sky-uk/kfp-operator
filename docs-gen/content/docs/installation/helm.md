@@ -34,7 +34,7 @@ Valid configuration options to override the [Default `values.yaml`]({{< param "g
 | `manager.monitoring.serviceMonitor.create` | Create a ServiceMonitor for the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) |
 | `manager.monitoring.serviceMonitor.endpointConfiguration` | Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided) |
 | `logging.verbosity` | Logging verbosity for all components. See the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values |
-| `eventsourceServer.create` | Create the [Argo-Events eventsource server](#eventing-support) |
+| `eventsourceServer.create` | Create the [Argo-Events eventsource server](../../reference/run-completion) |
 | `eventsourceServer.metadata` | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the eventsource server's pods |
 | `eventsourceServer.port` | Service port of the eventsource server |
 | `eventsourceServer.rbac.create` | Create roles and rolebindings for the eventsource server |
