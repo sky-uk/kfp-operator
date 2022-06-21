@@ -16,7 +16,7 @@ helm install -f values.yaml kfp-operator TODO
 
 ## Configuration Values
 
-Valid configuration options to override the [Default `values.yaml`](https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/values.yaml) are:
+Valid configuration options to override the [Default `values.yaml`]({{< param "github_project_repo" >}}/blob/master/helm/kfp-operator/values.yaml) are:
 
 | Parameter name | Description |
 | --- | --- |
@@ -42,4 +42,4 @@ Valid configuration options to override the [Default `values.yaml`](https://gith
 | `eventsourceServer.serviceAccount.name` | Eventsource server's service account |
 | `eventsourceServer.resources` | Eventsource server resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) |
 
-Examples for these values can be found in the [test configuration](https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml)
+Examples for these values can be found in the [test configuration]({{< param "github_project_repo" >}}/blob/master/helm/kfp-operator/test/values.yaml)
