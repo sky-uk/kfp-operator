@@ -1,4 +1,4 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Installation</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/</link><description>Recent content in Installation on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://solid-goggles-5e2413f7.pages.github.io/docs/installation/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Install Using Helm</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/helm/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/helm/</guid><description>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/installation/</link><description>Recent content in Installation on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/installation/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Install Using Helm</title><link>https://sky-uk.github.io/kfp-operator/docs/installation/helm/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/installation/helm/</guid><description>
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>
 &lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
 &lt;h2 id="chart-repository">Chart Repository&lt;/h2>
@@ -48,7 +48,7 @@
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>manager.configuration&lt;/code>&lt;/td>
-&lt;td>Manager configuration as defined in &lt;a href="https://solid-goggles-5e2413f7.pages.github.io/docs/reference/configuration">Configuration&lt;/a> (note that you can omit &lt;code>compilerImage&lt;/code> and &lt;code>kfpSdkImage&lt;/code> when specifying &lt;code>containerRegistry&lt;/code> as default values will be applied)&lt;/td>
+&lt;td>Manager configuration as defined in &lt;a href="../../reference/configuration">Configuration&lt;/a> (note that you can omit &lt;code>compilerImage&lt;/code> and &lt;code>kfpSdkImage&lt;/code> when specifying &lt;code>containerRegistry&lt;/code> as default values will be applied)&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>manager.monitoring.create&lt;/code>&lt;/td>
@@ -68,11 +68,11 @@
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>logging.verbosity&lt;/code>&lt;/td>
-&lt;td>Logging verbosity for all components. See the &lt;a href="development/README.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
+&lt;td>Logging verbosity for all components. See the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>eventsourceServer.create&lt;/code>&lt;/td>
-&lt;td>Create the &lt;a href="#eventing-support">Argo-Events eventsource server&lt;/a>&lt;/td>
+&lt;td>Create the &lt;a href="../../reference/run-completion">Argo-Events eventsource server&lt;/a>&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>eventsourceServer.metadata&lt;/code>&lt;/td>
@@ -100,4 +100,5 @@
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
-&lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml">test configuration&lt;/a>&lt;/p></description></item><item><title>Docs: Install Using Kustomize</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/kustomize/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/kustomize/</guid><description/></item></channel></rss>
+&lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml">test configuration&lt;/a>&lt;/p></description></item><item><title>Docs: Install Using Kustomize</title><link>https://sky-uk.github.io/kfp-operator/docs/installation/kustomize/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/installation/kustomize/</guid><description>
+&lt;p>TODO&lt;/p></description></item></channel></rss>
