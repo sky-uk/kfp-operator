@@ -127,24 +127,24 @@ PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 
 DYFF = $(PROJECT_DIR)/bin/dyff
 dyff: ## Download dyff locally if necessary.
-	$(call go-get-tool,$(DYFF),github.com/homeport/dyff/cmd/dyff@v1.4.5)
+	$(call go-install,$(DYFF),github.com/homeport/dyff/cmd/dyff@v1.4.5)
 
 YQ = $(PROJECT_DIR)/bin/yq
 yq: ## Download yq locally if necessary.
-	$(call go-get-tool,$(YQ),github.com/mikefarah/yq/v4@v4.13.2)
+	$(call go-install,$(YQ),github.com/mikefarah/yq/v4@v4.13.2)
 
 HELM := $(PROJECT_DIR)/bin/helm
 # Can't be named helm because it's already a directory
 helm-cmd: ## Download helm locally if necessary.
-	$(call go-get-tool,$(HELM),helm.sh/helm/v3/cmd/helm@v3.7.0)
+	$(call go-install,$(HELM),helm.sh/helm/v3/cmd/helm@v3.7.0)
 
 CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
+	$(call go-install,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
 
 KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
 ##@ Package
 
