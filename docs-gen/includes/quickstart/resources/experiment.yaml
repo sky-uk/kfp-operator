@@ -1,0 +1,6 @@
+apiVersion: pipelines.kubeflow.org/v1
+kind: Experiment
+metadata:
+  name: penguin-experiment
+spec:
+  Description: 'An experiment for the penguin pipeline'

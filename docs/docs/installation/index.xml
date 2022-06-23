@@ -1,0 +1,104 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Installation</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/</link><description>Recent content in Installation on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://solid-goggles-5e2413f7.pages.github.io/docs/installation/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Install Using Helm</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/helm/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/helm/</guid><description>
+&lt;h2 id="prerequisites">Prerequisites&lt;/h2>
+&lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
+&lt;h2 id="chart-repository">Chart Repository&lt;/h2>
+&lt;p>KFP-Operator Helm charts can be found in our &lt;a href="TODO">Chart Repository&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>helm install -f values.yaml kfp-operator TODO
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="configuration-values">Configuration Values&lt;/h2>
+&lt;p>Valid configuration options to override the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/values.yaml">Default &lt;code>values.yaml&lt;/code>&lt;/a> are:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>containerRegistry&lt;/code>&lt;/td>
+&lt;td>Container Registry base path for all container images&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>namespace.create&lt;/code>&lt;/td>
+&lt;td>Create the namespace for the operator&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>namespace.name&lt;/code>&lt;/td>
+&lt;td>Operator namespace name&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.metadata&lt;/code>&lt;/td>
+&lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the manager&amp;rsquo;s pods&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.rbac.create&lt;/code>&lt;/td>
+&lt;td>Create roles and rolebindings for the operator&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the manager&amp;rsquo;s service account&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.serviceAccount.name&lt;/code>&lt;/td>
+&lt;td>Manager service account&amp;rsquo;s name&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.resources&lt;/code>&lt;/td>
+&lt;td>Manager resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.configuration&lt;/code>&lt;/td>
+&lt;td>Manager configuration as defined in &lt;a href="../../reference/configuration">Configuration&lt;/a> (note that you can omit &lt;code>compilerImage&lt;/code> and &lt;code>kfpSdkImage&lt;/code> when specifying &lt;code>containerRegistry&lt;/code> as default values will be applied)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.monitoring.create&lt;/code>&lt;/td>
+&lt;td>Create the manager&amp;rsquo;s monitoring resources&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.monitoring.rbacSecured&lt;/code>&lt;/td>
+&lt;td>Enable addtional RBAC-based security&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.monitoring.serviceMonitor.create&lt;/code>&lt;/td>
+&lt;td>Create a ServiceMonitor for the &lt;a href="https://github.com/prometheus-operator/prometheus-operator">Prometheus Operator&lt;/a>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.monitoring.serviceMonitor.endpointConfiguration&lt;/code>&lt;/td>
+&lt;td>Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>logging.verbosity&lt;/code>&lt;/td>
+&lt;td>Logging verbosity for all components. See the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.create&lt;/code>&lt;/td>
+&lt;td>Create the &lt;a href="../../reference/run-completion">Argo-Events eventsource server&lt;/a>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.metadata&lt;/code>&lt;/td>
+&lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the eventsource server&amp;rsquo;s pods&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.port&lt;/code>&lt;/td>
+&lt;td>Service port of the eventsource server&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.rbac.create&lt;/code>&lt;/td>
+&lt;td>Create roles and rolebindings for the eventsource server&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the eventsource server&amp;rsquo;s service account&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.serviceAccount.name&lt;/code>&lt;/td>
+&lt;td>Eventsource server&amp;rsquo;s service account&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.resources&lt;/code>&lt;/td>
+&lt;td>Eventsource server resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml">test configuration&lt;/a>&lt;/p></description></item><item><title>Docs: Install Using Kustomize</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/kustomize/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/installation/kustomize/</guid><description>
+&lt;p>TODO&lt;/p></description></item></channel></rss>
