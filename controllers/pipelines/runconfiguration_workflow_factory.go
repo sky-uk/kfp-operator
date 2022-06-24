@@ -23,7 +23,7 @@ type RunConfigurationWorkflowFactory struct {
 }
 
 func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := WorkflowConstants.OperationLabelKey
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.CreateOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)
 
 	creationScriptTemplate, err := workflows.creator(runConfiguration)
 	if err != nil {
@@ -67,7 +67,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 }
 
 func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := WorkflowConstants.DeleteOperationLabel
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.DeleteOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)
 
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
@@ -100,7 +100,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runC
 }
 
 func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := WorkflowConstants.UpdateOperationLabel
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.UpdateOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)
 
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {

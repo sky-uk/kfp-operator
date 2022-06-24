@@ -18,8 +18,8 @@ var WorkflowConstants = struct {
 	DeleteOperationLabel string
 	UpdateOperationLabel string
 }{
-	OwnerKindLabelKey:    pipelinesv1.GroupVersion.Group + "/NamespacedName.kind",
-	OwnerNameLabelKey:    pipelinesv1.GroupVersion.Group + "/NamespacedName.name",
+	OwnerKindLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.kind",
+	OwnerNameLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.name",
 	OperationLabelKey:    pipelinesv1.GroupVersion.Group + "/operation",
 	CreateOperationLabel: "create",
 	DeleteOperationLabel: "delete",

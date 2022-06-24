@@ -4,7 +4,6 @@
 package pipelines
 
 import (
-	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
@@ -108,7 +107,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 
 	var AssertWorkflow = func(
 		setUp func(runconfiguration *pipelinesv1.RunConfiguration),
-		constructWorkflow func(context.Context, *pipelinesv1.RunConfiguration) (*argo.Workflow, error),
+		constructWorkflow func(*pipelinesv1.RunConfiguration) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
 		testCtx := NewRunConfigurationTestContext(
@@ -130,7 +129,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			k8sClient, ctx)
 
 		setUp(testCtx.RunConfiguration)
-		workflow, err := constructWorkflow(testCtx.ctx, testCtx.RunConfiguration)
+		workflow, err := constructWorkflow(testCtx.RunConfiguration)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())

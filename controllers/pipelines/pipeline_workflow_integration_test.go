@@ -4,7 +4,6 @@
 package pipelines
 
 import (
-	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
@@ -106,7 +105,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 
 	var AssertWorkflow = func(
 		setUp func(pipeline *pipelinesv1.Pipeline),
-		constructWorkflow func(context.Context, *pipelinesv1.Pipeline) (*argo.Workflow, error),
+		constructWorkflow func(*pipelinesv1.Pipeline) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
 		testCtx := NewPipelineTestContext(
@@ -123,7 +122,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 			k8sClient, ctx)
 
 		setUp(testCtx.Pipeline)
-		workflow, err := constructWorkflow(testCtx.ctx, testCtx.Pipeline)
+		workflow, err := constructWorkflow(testCtx.Pipeline)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
 
@@ -198,7 +197,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 			func(pipeline *pipelinesv1.Pipeline) {
 				Expect(SucceedDeletion(pipeline)).To(Succeed())
 			},
-			func(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+			func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 				return workflowFactory.ConstructDeletionWorkflow(pipeline)
 			},
 			func(g Gomega, workflow *argo.Workflow) {
@@ -209,7 +208,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 			func(pipeline *pipelinesv1.Pipeline) {
 				Expect(FailDeletion(pipeline)).To(Succeed())
 			},
-			func(ctx context.Context, pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+			func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 				return workflowFactory.ConstructDeletionWorkflow(pipeline)
 			},
 			func(g Gomega, workflow *argo.Workflow) {

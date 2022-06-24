@@ -23,7 +23,7 @@ type ExperimentWorkflowFactory struct {
 }
 
 func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := WorkflowConstants.CreateOperationLabel
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.CreateOperationLabel, ExperimentWorkflowConstants.ExperimentKind)
 
 	creationScriptTemplate, err := workflows.creator(experiment)
 	if err != nil {
@@ -67,7 +67,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 }
 
 func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := WorkflowConstants.DeleteOperationLabel
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.DeleteOperationLabel, ExperimentWorkflowConstants.ExperimentKind)
 
 	deletionScriptTemplate, err := workflows.deleter(experiment)
 	if err != nil {
@@ -100,7 +100,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment
 }
 
 func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := WorkflowConstants.UpdateOperationLabel
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.UpdateOperationLabel, ExperimentWorkflowConstants.ExperimentKind)
 
 	deletionScriptTemplate, err := workflows.deleter(experiment)
 	if err != nil {

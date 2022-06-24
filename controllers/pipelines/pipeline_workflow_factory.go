@@ -98,7 +98,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 		return nil, err
 	}
 
-	entrypointName := WorkflowConstants.CreateOperationLabel
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.CreateOperationLabel, PipelineWorkflowConstants.PipelineKind)
 
 	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
 	uploadScriptTemplate, err := w.uploader(pipeline.ObjectMeta.Name)
@@ -208,7 +208,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 		return nil, err
 	}
 
-	entrypointName := WorkflowConstants.UpdateOperationLabel
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.UpdateOperationLabel, PipelineWorkflowConstants.PipelineKind)
 	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
 	updateScriptTemplate, err := w.updater(pipeline.Spec.ComputeVersion())
 	if err != nil {
@@ -268,7 +268,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 
 func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 
-	entrypointName := WorkflowConstants.DeleteOperationLabel
+	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.DeleteOperationLabel, PipelineWorkflowConstants.PipelineKind)
 
 	deletionScriptTemplate, err := w.deleter()
 	if err != nil {
