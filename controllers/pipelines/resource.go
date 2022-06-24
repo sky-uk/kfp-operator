@@ -4,6 +4,7 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type Resource interface {
@@ -11,4 +12,5 @@ type Resource interface {
 	runtime.Object
 	GetStatus() pipelinesv1.Status
 	SetStatus(pipelinesv1.Status)
+	GetNamespacedName() types.NamespacedName
 }

@@ -10,12 +10,10 @@ var ExperimentWorkflowConstants = struct {
 	ExperimentIdParameterName string
 	CreationStepName          string
 	DeletionStepName          string
-	ExperimentKind            string
 }{
 	ExperimentIdParameterName: "experiment-id",
 	CreationStepName:          "create",
 	DeletionStepName:          "delete",
-	ExperimentKind:            "experiment",
 }
 
 type ExperimentWorkflowFactory struct {
@@ -23,7 +21,7 @@ type ExperimentWorkflowFactory struct {
 }
 
 func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.CreateOperationLabel, ExperimentWorkflowConstants.ExperimentKind)
+	entrypointName := "create-experiment"
 
 	creationScriptTemplate, err := workflows.creator(experiment)
 	if err != nil {
@@ -31,7 +29,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(experiment.NamespacedName(), WorkflowConstants.CreateOperationLabel, ExperimentWorkflowConstants.ExperimentKind),
+		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -67,7 +65,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 }
 
 func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.DeleteOperationLabel, ExperimentWorkflowConstants.ExperimentKind)
+	entrypointName := "delete-experiment"
 
 	deletionScriptTemplate, err := workflows.deleter(experiment)
 	if err != nil {
@@ -75,7 +73,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(experiment.NamespacedName(), WorkflowConstants.DeleteOperationLabel, ExperimentWorkflowConstants.ExperimentKind),
+		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -100,7 +98,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment
 }
 
 func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.UpdateOperationLabel, ExperimentWorkflowConstants.ExperimentKind)
+	entrypointName := "update-experiment"
 
 	deletionScriptTemplate, err := workflows.deleter(experiment)
 	if err != nil {
@@ -113,7 +111,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(experiment.NamespacedName(), WorkflowConstants.UpdateOperationLabel, ExperimentWorkflowConstants.ExperimentKind),
+		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,

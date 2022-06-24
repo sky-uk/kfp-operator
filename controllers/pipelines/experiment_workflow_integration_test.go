@@ -83,7 +83,7 @@ var _ = Context("Experiment Workflows", Serial, func() {
 
 	var AssertWorkflow = func(
 		setUp func(experiment *pipelinesv1.Experiment),
-		constructWorkflow func( *pipelinesv1.Experiment) (*argo.Workflow, error),
+		constructWorkflow func(*pipelinesv1.Experiment) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
 		testCtx := NewExperimentTestContext(

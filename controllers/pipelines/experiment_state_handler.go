@@ -18,7 +18,7 @@ func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experimen
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
-				CommonWorkflowLabels(experiment.NamespacedName(), WorkflowConstants.CreateOperationLabel, ExperimentWorkflowConstants.ExperimentKind)))
+				CommonWorkflowLabels(experiment, WorkflowConstants.CreateOperationLabel)))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		if !experiment.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, experiment)
@@ -28,11 +28,11 @@ func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experimen
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
-				CommonWorkflowLabels(experiment.NamespacedName(), WorkflowConstants.UpdateOperationLabel, ExperimentWorkflowConstants.ExperimentKind)))
+				CommonWorkflowLabels(experiment, WorkflowConstants.UpdateOperationLabel)))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
-				CommonWorkflowLabels(experiment.NamespacedName(), WorkflowConstants.DeleteOperationLabel, ExperimentWorkflowConstants.ExperimentKind)))
+				CommonWorkflowLabels(experiment, WorkflowConstants.DeleteOperationLabel)))
 	case pipelinesv1.Deleted:
 	default:
 		commands = st.onUnknown(ctx, experiment)

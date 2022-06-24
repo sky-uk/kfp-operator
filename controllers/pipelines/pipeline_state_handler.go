@@ -18,7 +18,7 @@ func (st PipelineStateHandler) stateTransition(ctx context.Context, pipeline *pi
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
-				CommonWorkflowLabels(pipeline.NamespacedName(), WorkflowConstants.CreateOperationLabel, PipelineWorkflowConstants.PipelineKind)))
+				CommonWorkflowLabels(pipeline, WorkflowConstants.CreateOperationLabel)))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, pipeline)
@@ -28,11 +28,11 @@ func (st PipelineStateHandler) stateTransition(ctx context.Context, pipeline *pi
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
-				CommonWorkflowLabels(pipeline.NamespacedName(), WorkflowConstants.UpdateOperationLabel, PipelineWorkflowConstants.PipelineKind)))
+				CommonWorkflowLabels(pipeline, WorkflowConstants.UpdateOperationLabel)))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
-				CommonWorkflowLabels(pipeline.NamespacedName(), WorkflowConstants.DeleteOperationLabel, PipelineWorkflowConstants.PipelineKind)))
+				CommonWorkflowLabels(pipeline, WorkflowConstants.DeleteOperationLabel)))
 	case pipelinesv1.Deleted:
 	default:
 		commands = st.onUnknown(ctx, pipeline)

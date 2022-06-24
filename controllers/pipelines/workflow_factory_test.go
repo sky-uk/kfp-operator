@@ -11,17 +11,16 @@ import (
 
 var _ = Describe("CommonWorkflowMeta", func() {
 	It("creates metadata", func() {
-		resource := RandomNamespacedName()
+		resource := RandomResource()
 		operation := RandomString()
-		ownerKind := RandomString()
 
-		meta := CommonWorkflowMeta(resource, operation, ownerKind)
+		meta := CommonWorkflowMeta(resource, operation)
 
-		Expect(meta.Namespace).To(Equal(resource.Namespace))
-		Expect(meta.GetGenerateName()).To(Equal(operation + "-" + ownerKind + "-"))
+		Expect(meta.Namespace).To(Equal(resource.GetNamespace()))
+		Expect(meta.GetGenerateName()).To(Equal(operation + "-" + resource.GetObjectKind().GroupVersionKind().Kind + "-"))
 
-		Expect(meta.Labels[WorkflowConstants.OwnerKindLabelKey]).To(Equal(ownerKind))
-		Expect(meta.Labels[WorkflowConstants.OwnerNameLabelKey]).To(Equal(resource.Name))
+		Expect(meta.Labels[WorkflowConstants.OwnerKindLabelKey]).To(Equal(resource.GetObjectKind().GroupVersionKind().Kind))
+		Expect(meta.Labels[WorkflowConstants.OwnerNameLabelKey]).To(Equal(resource.GetName()))
 		Expect(meta.Labels[WorkflowConstants.OperationLabelKey]).To(Equal(operation))
 	})
 })

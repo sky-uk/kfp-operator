@@ -5,6 +5,8 @@ package pipelines
 
 import (
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"math/rand"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -34,6 +36,43 @@ func RandomMap() map[string]string {
 	}
 
 	return rMap
+}
+
+type TestResource struct {
+	metav1.TypeMeta
+	metav1.ObjectMeta
+	NamespacedName types.NamespacedName
+
+	Status pipelinesv1.Status
+}
+
+func (tr *TestResource) GetStatus() pipelinesv1.Status {
+	return tr.GetStatus()
+}
+
+func (tr *TestResource) SetStatus(status pipelinesv1.Status) {
+	tr.Status = status
+}
+
+func (tr *TestResource) DeepCopyObject() runtime.Object {
+	return tr
+}
+
+func (tr *TestResource) GetNamespacedName() types.NamespacedName {
+	return tr.NamespacedName
+}
+
+func RandomResource() Resource {
+	resource := TestResource{
+		Status:         RandomStatus(),
+		NamespacedName: RandomNamespacedName(),
+	}
+
+	resource.SetGroupVersionKind(schema.GroupVersionKind{
+		Kind: RandomString(),
+	})
+
+	return &resource
 }
 
 func RandomPipeline() *pipelinesv1.Pipeline {

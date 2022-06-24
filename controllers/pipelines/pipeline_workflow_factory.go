@@ -20,7 +20,6 @@ var PipelineWorkflowConstants = struct {
 	UpdateStepName               string
 	PipelineYamlFilePath         string
 	PipelineIdFilePath           string
-	PipelineKind                 string
 }{
 	PipelineIdParameterName:      "pipeline-id",
 	PipelineVersionParameterName: "pipeline-version",
@@ -31,7 +30,6 @@ var PipelineWorkflowConstants = struct {
 	UpdateStepName:               "update",
 	PipelineYamlFilePath:         "/tmp/pipeline.yaml",
 	PipelineIdFilePath:           "/tmp/pipeline.txt",
-	PipelineKind:                 "pipeline",
 }
 
 var (
@@ -98,7 +96,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 		return nil, err
 	}
 
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.CreateOperationLabel, PipelineWorkflowConstants.PipelineKind)
+	entrypointName := "create-pipeline"
 
 	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
 	uploadScriptTemplate, err := w.uploader(pipeline.ObjectMeta.Name)
@@ -111,7 +109,7 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 	}
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline.NamespacedName(), WorkflowConstants.CreateOperationLabel, PipelineWorkflowConstants.PipelineKind),
+		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -208,7 +206,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 		return nil, err
 	}
 
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.UpdateOperationLabel, PipelineWorkflowConstants.PipelineKind)
+	entrypointName := "update-pipeline"
 	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
 	updateScriptTemplate, err := w.updater(pipeline.Spec.ComputeVersion())
 	if err != nil {
@@ -216,7 +214,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 	}
 
 	workflow := &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline.NamespacedName(), WorkflowConstants.UpdateOperationLabel, PipelineWorkflowConstants.PipelineKind),
+		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -268,7 +266,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 
 func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.DeleteOperationLabel, PipelineWorkflowConstants.PipelineKind)
+	entrypointName := "delete-pipeline"
 
 	deletionScriptTemplate, err := w.deleter()
 	if err != nil {
@@ -276,7 +274,7 @@ func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline.NamespacedName(), WorkflowConstants.DeleteOperationLabel, PipelineWorkflowConstants.PipelineKind),
+		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,

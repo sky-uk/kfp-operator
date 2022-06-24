@@ -18,7 +18,7 @@ func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, run
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
-				CommonWorkflowLabels(runConfiguration.NamespacedName(), WorkflowConstants.CreateOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)))
+				CommonWorkflowLabels(runConfiguration, WorkflowConstants.CreateOperationLabel)))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		if !runConfiguration.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, runConfiguration)
@@ -28,11 +28,11 @@ func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, run
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
-				CommonWorkflowLabels(runConfiguration.NamespacedName(), WorkflowConstants.UpdateOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)))
+				CommonWorkflowLabels(runConfiguration, WorkflowConstants.UpdateOperationLabel)))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
-				CommonWorkflowLabels(runConfiguration.NamespacedName(), WorkflowConstants.DeleteOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)))
+				CommonWorkflowLabels(runConfiguration, WorkflowConstants.DeleteOperationLabel)))
 	case pipelinesv1.Deleted:
 	default:
 		commands = st.onUnknown(ctx, runConfiguration)

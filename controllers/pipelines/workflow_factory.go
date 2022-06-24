@@ -6,7 +6,6 @@ import (
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"strings"
 )
 
@@ -36,19 +35,19 @@ type KfpExtCommandBuilder struct {
 	error        error
 }
 
-func CommonWorkflowMeta(owner types.NamespacedName, operation string, ownerKind string) *metav1.ObjectMeta {
+func CommonWorkflowMeta(owner Resource, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
-		GenerateName: operation + "-" + ownerKind + "-",
-		Namespace:    owner.Namespace,
-		Labels:       CommonWorkflowLabels(owner, operation, ownerKind),
+		GenerateName: fmt.Sprintf("%s-%s-", operation, owner.GetObjectKind().GroupVersionKind().Kind),
+		Namespace:    owner.GetNamespace(),
+		Labels:       CommonWorkflowLabels(owner, operation),
 	}
 }
 
-func CommonWorkflowLabels(owner types.NamespacedName, operation string, ownerKind string) map[string]string {
+func CommonWorkflowLabels(owner Resource, operation string) map[string]string {
 	return map[string]string{
 		WorkflowConstants.OperationLabelKey: operation,
-		WorkflowConstants.OwnerKindLabelKey: ownerKind,
-		WorkflowConstants.OwnerNameLabelKey: owner.Name,
+		WorkflowConstants.OwnerKindLabelKey: owner.GetObjectKind().GroupVersionKind().Kind,
+		WorkflowConstants.OwnerNameLabelKey: owner.GetName(),
 	}
 }
 

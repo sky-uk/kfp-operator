@@ -10,12 +10,10 @@ var RunConfigurationWorkflowConstants = struct {
 	RunConfigurationIdParameterName string
 	CreationStepName                string
 	DeletionStepName                string
-	RunConfigurationKind            string
 }{
 	RunConfigurationIdParameterName: "runconfiguration-id",
 	CreationStepName:                "create",
 	DeletionStepName:                "delete",
-	RunConfigurationKind:            "runconfiguration",
 }
 
 type RunConfigurationWorkflowFactory struct {
@@ -23,7 +21,7 @@ type RunConfigurationWorkflowFactory struct {
 }
 
 func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.CreateOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)
+	entrypointName := "create-runconfiguration"
 
 	creationScriptTemplate, err := workflows.creator(runConfiguration)
 	if err != nil {
@@ -31,7 +29,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(runConfiguration.NamespacedName(), WorkflowConstants.CreateOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind),
+		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -67,7 +65,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 }
 
 func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.DeleteOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)
+	entrypointName := "delete-runconfiguration"
 
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
@@ -75,7 +73,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runC
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(runConfiguration.NamespacedName(), WorkflowConstants.DeleteOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind),
+		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,
@@ -100,7 +98,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runC
 }
 
 func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := fmt.Sprintf("%s-%s", WorkflowConstants.UpdateOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind)
+	entrypointName := "update-runconfiguration"
 
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
@@ -113,7 +111,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runCon
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(runConfiguration.NamespacedName(), WorkflowConstants.UpdateOperationLabel, RunConfigurationWorkflowConstants.RunConfigurationKind),
+		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
 			Entrypoint:         entrypointName,

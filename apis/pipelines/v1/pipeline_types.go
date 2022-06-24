@@ -59,7 +59,7 @@ func (p *Pipeline) SetStatus(status Status) {
 	p.Status = status
 }
 
-func (p Pipeline) NamespacedName() types.NamespacedName {
+func (p Pipeline) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      p.Name,
 		Namespace: p.Namespace,

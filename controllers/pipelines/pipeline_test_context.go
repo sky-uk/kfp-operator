@@ -21,10 +21,9 @@ type PipelineTestContext struct {
 func NewPipelineTestContext(pipeline *pipelinesv1.Pipeline, k8sClient client.Client, ctx context.Context) PipelineTestContext {
 	return PipelineTestContext{
 		TestContext: TestContext{
-			K8sClient:      k8sClient,
-			ctx:            ctx,
-			OwnerKind:      PipelineWorkflowConstants.PipelineKind,
-			NamespacedName: pipeline.NamespacedName(),
+			K8sClient: k8sClient,
+			ctx:       ctx,
+			Resource:  pipeline,
 		},
 		Pipeline: pipeline,
 	}
@@ -33,14 +32,14 @@ func NewPipelineTestContext(pipeline *pipelinesv1.Pipeline, k8sClient client.Cli
 func (testCtx PipelineTestContext) PipelineToMatch(matcher func(Gomega, *pipelinesv1.Pipeline)) func(Gomega) {
 	return func(g Gomega) {
 		pipeline := &pipelinesv1.Pipeline{}
-		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.NamespacedName, pipeline)).To(Succeed())
+		Expect(testCtx.K8sClient.Get(testCtx.ctx, testCtx.Resource.GetNamespacedName(), pipeline)).To(Succeed())
 		matcher(g, pipeline)
 	}
 }
 
 func (testCtx PipelineTestContext) PipelineExists() error {
 	pipeline := &pipelinesv1.Pipeline{}
-	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.NamespacedName, pipeline)
+	err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Resource.GetNamespacedName(), pipeline)
 
 	return err
 }
@@ -48,7 +47,7 @@ func (testCtx PipelineTestContext) PipelineExists() error {
 func (testCtx PipelineTestContext) UpdatePipeline(updateFunc func(*pipelinesv1.Pipeline)) error {
 	pipeline := &pipelinesv1.Pipeline{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.NamespacedName, pipeline); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Resource.GetNamespacedName(), pipeline); err != nil {
 		return err
 	}
 
@@ -60,7 +59,7 @@ func (testCtx PipelineTestContext) UpdatePipeline(updateFunc func(*pipelinesv1.P
 func (testCtx PipelineTestContext) UpdatePipelineStatus(updateFunc func(*pipelinesv1.Pipeline)) error {
 	pipeline := &pipelinesv1.Pipeline{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.NamespacedName, pipeline); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Resource.GetNamespacedName(), pipeline); err != nil {
 		return err
 	}
 
@@ -72,7 +71,7 @@ func (testCtx PipelineTestContext) UpdatePipelineStatus(updateFunc func(*pipelin
 func (testCtx PipelineTestContext) DeletePipeline() error {
 	pipeline := &pipelinesv1.Pipeline{}
 
-	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.NamespacedName, pipeline); err != nil {
+	if err := testCtx.K8sClient.Get(testCtx.ctx, testCtx.Resource.GetNamespacedName(), pipeline); err != nil {
 		return err
 	}
 
@@ -93,7 +92,7 @@ func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status pipelinesv1.
 func (testCtx PipelineTestContext) EmittedEventsToMatch(matcher func(Gomega, []v1.Event)) func(Gomega) {
 	return func(g Gomega) {
 		eventList := &v1.EventList{}
-		Expect(testCtx.K8sClient.List(testCtx.ctx, eventList, client.MatchingFields{"involvedObject.name": testCtx.NamespacedName.Name})).To(Succeed())
+		Expect(testCtx.K8sClient.List(testCtx.ctx, eventList, client.MatchingFields{"involvedObject.name": testCtx.Resource.GetName()})).To(Succeed())
 
 		matcher(g, eventList.Items)
 	}
