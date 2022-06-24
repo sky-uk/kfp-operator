@@ -16,6 +16,7 @@ var WorkflowConstants = struct {
 	CreateOperationLabel string
 	DeleteOperationLabel string
 	UpdateOperationLabel string
+	EntryPointName       string
 }{
 	OwnerKindLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.kind",
 	OwnerNameLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.name",
@@ -23,6 +24,7 @@ var WorkflowConstants = struct {
 	CreateOperationLabel: "create",
 	DeleteOperationLabel: "delete",
 	UpdateOperationLabel: "update",
+	EntryPointName:       "main",
 }
 
 type WorkflowFactory struct {

@@ -21,8 +21,6 @@ type RunConfigurationWorkflowFactory struct {
 }
 
 func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := "create-runconfiguration"
-
 	creationScriptTemplate, err := workflows.creator(runConfiguration)
 	if err != nil {
 		return nil, err
@@ -32,10 +30,10 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -65,8 +63,6 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 }
 
 func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := "delete-runconfiguration"
-
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
 		return nil, err
@@ -76,10 +72,10 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runC
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -98,8 +94,6 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runC
 }
 
 func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := "update-runconfiguration"
-
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
 		return nil, err
@@ -114,10 +108,10 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runCon
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{

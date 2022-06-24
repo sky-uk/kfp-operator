@@ -21,8 +21,6 @@ type ExperimentWorkflowFactory struct {
 }
 
 func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := "create-experiment"
-
 	creationScriptTemplate, err := workflows.creator(experiment)
 	if err != nil {
 		return nil, err
@@ -32,10 +30,10 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -65,8 +63,6 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 }
 
 func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := "delete-experiment"
-
 	deletionScriptTemplate, err := workflows.deleter(experiment)
 	if err != nil {
 		return nil, err
@@ -76,10 +72,10 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment
 		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -98,8 +94,6 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment
 }
 
 func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := "update-experiment"
-
 	deletionScriptTemplate, err := workflows.deleter(experiment)
 	if err != nil {
 		return nil, err
@@ -114,10 +108,10 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *
 		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{

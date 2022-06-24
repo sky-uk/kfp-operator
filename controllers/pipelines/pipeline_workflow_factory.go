@@ -96,8 +96,6 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 		return nil, err
 	}
 
-	entrypointName := "create-pipeline"
-
 	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
 	uploadScriptTemplate, err := w.uploader(pipeline.ObjectMeta.Name)
 	if err != nil {
@@ -112,10 +110,10 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -206,7 +204,6 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 		return nil, err
 	}
 
-	entrypointName := "update-pipeline"
 	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
 	updateScriptTemplate, err := w.updater(pipeline.Spec.ComputeVersion())
 	if err != nil {
@@ -217,10 +214,10 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -265,9 +262,6 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 }
 
 func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-
-	entrypointName := "delete-pipeline"
-
 	deletionScriptTemplate, err := w.deleter()
 	if err != nil {
 		return nil, err
@@ -277,10 +271,10 @@ func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: w.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
