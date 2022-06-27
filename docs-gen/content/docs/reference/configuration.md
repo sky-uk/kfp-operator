@@ -3,8 +3,6 @@ title: "Configuration"
 weight: 1
 ---
 
-### Configuration
-
 The Kubeflow Pipelines operator can be configured with the following parameters:
 
 | Parameter name | Description | Example |

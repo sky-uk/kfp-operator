@@ -3,7 +3,7 @@ title: "Debugging"
 weight: 3
 ---
 
-## Configuration
+## Debugging Configuration
 
 Debugging options can be set:
  - in the `debug` section of operator's configuration

@@ -45,7 +45,7 @@ Currently, we support the following eventsources:
 
 ## Architecture Overview
 
-![Architecture](/kfp-operator/architecture.png)
+![Architecture]({{% static "/architecture.png" %}})
 
 ## Limitations
 

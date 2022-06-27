@@ -1,8 +1,9 @@
 ---
-title: "Install Using Helm"
+title: "Installation"
+weight: 2
 ---
 
-## Prerequisites
+We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.
 
 This guide assumes you are familiar with [Helm](https://helm.sh/).
 
@@ -16,7 +17,7 @@ helm install -f values.yaml kfp-operator TODO
 
 ## Configuration Values
 
-Valid configuration options to override the [Default `values.yaml`]({{< param "github_project_repo" >}}/blob/master/helm/kfp-operator/values.yaml) are:
+Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/values.yaml" >}}) are:
 
 | Parameter name | Description |
 | --- | --- |
@@ -42,4 +43,4 @@ Valid configuration options to override the [Default `values.yaml`]({{< param "g
 | `eventsourceServer.serviceAccount.name` | Eventsource server's service account |
 | `eventsourceServer.resources` | Eventsource server resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) |
 
-Examples for these values can be found in the [test configuration]({{< param "github_project_repo" >}}/blob/master/helm/kfp-operator/test/values.yaml)
+Examples for these values can be found in the [test configuration]({{< ghblob "/helm/kfp-operator/test/values.yaml" >}})
