@@ -1,5 +1,4 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Reference</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/</link><description>Recent content in Reference on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://solid-goggles-5e2413f7.pages.github.io/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Configuration</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/configuration/</guid><description>
-&lt;h3 id="configuration">Configuration&lt;/h3>
 &lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
 &lt;table>
 &lt;thead>
@@ -91,7 +90,7 @@
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Debugging</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/debugging/</guid><description>
-&lt;h2 id="configuration">Configuration&lt;/h2>
+&lt;h2 id="debugging-configuration">Debugging Configuration&lt;/h2>
 &lt;p>Debugging options can be set:&lt;/p>
 &lt;ul>
 &lt;li>in the &lt;code>debug&lt;/code> section of operator&amp;rsquo;s configuration&lt;/li>
@@ -147,7 +146,7 @@ This means that resources can increase debugging, but never decrease it.&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Run Completion EventSource</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/run-completion/</guid><description>
 &lt;p>The Run Completion Eventsource allows reacting to finished pipeline runs.&lt;/p>
-&lt;p>&lt;img src="https://solid-goggles-5e2413f7.pages.github.io/kfp-operator/run_completion.png" alt="Model Serving">&lt;/p>
+&lt;p>&lt;img src="run_completion.png" alt="Model Serving">&lt;/p>
 &lt;p>The specification of the eventsource follows those of other &lt;a href="https://argoproj.github.io/argo-events/eventsources/generic/">generic Argo-Events eventsources&lt;/a>:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventSource&lt;/span>
