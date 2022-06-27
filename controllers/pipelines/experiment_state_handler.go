@@ -18,7 +18,7 @@ func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experimen
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
-				st.WorkflowFactory.Labels(experiment, ExperimentWorkflowConstants.CreateOperationLabel)))
+				CommonWorkflowLabels(experiment, WorkflowConstants.CreateOperationLabel)))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		if !experiment.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, experiment)
@@ -28,11 +28,11 @@ func (st *ExperimentStateHandler) stateTransition(ctx context.Context, experimen
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
-				st.WorkflowFactory.Labels(experiment, ExperimentWorkflowConstants.UpdateOperationLabel)))
+				CommonWorkflowLabels(experiment, WorkflowConstants.UpdateOperationLabel)))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, experiment,
 			st.WorkflowRepository.GetByLabels(ctx, experiment.GetNamespace(),
-				st.WorkflowFactory.Labels(experiment, ExperimentWorkflowConstants.DeleteOperationLabel)))
+				CommonWorkflowLabels(experiment, WorkflowConstants.DeleteOperationLabel)))
 	case pipelinesv1.Deleted:
 	default:
 		commands = st.onUnknown(ctx, experiment)
@@ -62,7 +62,7 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 
 	if experiment.Status.KfpId != "" {
 		logger.Info("empty state but KfpId already exists, updating experiment")
-		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, experiment)
+		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(experiment)
 
 		if err != nil {
 			failureMessage := "error constructing update workflow"
@@ -82,7 +82,7 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 	}
 
 	logger.Info("empty state, creating experiment")
-	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(ctx, experiment)
+	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(experiment)
 
 	if err != nil {
 		failureMessage := "error constructing creation workflow"
@@ -114,7 +114,7 @@ func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipel
 		}
 	}
 
-	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, experiment)
+	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(experiment)
 
 	if err != nil {
 		failureMessage := "error constructing deletion workflow"
@@ -146,7 +146,7 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 
 	if experiment.Status.KfpId == "" {
 		logger.Info("no kfpId exists, creating")
-		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(ctx, experiment)
+		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(experiment)
 
 		if err != nil {
 			failureMessage := "error constructing creation workflow"
@@ -160,7 +160,7 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 		targetState = pipelinesv1.Creating
 	} else {
 		logger.Info("kfpId exists, updating")
-		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, experiment)
+		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(experiment)
 
 		if err != nil {
 			failureMessage := "error constructing update workflow"

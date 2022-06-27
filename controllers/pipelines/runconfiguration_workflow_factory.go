@@ -1,29 +1,17 @@
 package pipelines
 
 import (
-	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var RunConfigurationWorkflowConstants = struct {
-	CreateOperationLabel            string
-	DeleteOperationLabel            string
-	UpdateOperationLabel            string
 	RunConfigurationIdParameterName string
-	RunConfigurationNameLabelKey    string
-	OperationLabelKey               string
 	CreationStepName                string
 	DeletionStepName                string
 }{
-	CreateOperationLabel:            "create-runconfiguration",
-	DeleteOperationLabel:            "delete-runconfiguration",
-	UpdateOperationLabel:            "update-runconfiguration",
 	RunConfigurationIdParameterName: "runconfiguration-id",
-	RunConfigurationNameLabelKey:    pipelinesv1.GroupVersion.Group + "/runConfiguration",
-	OperationLabelKey:               pipelinesv1.GroupVersion.Group + "/operation",
 	CreationStepName:                "create",
 	DeletionStepName:                "delete",
 }
@@ -32,37 +20,20 @@ type RunConfigurationWorkflowFactory struct {
 	WorkflowFactory
 }
 
-func (workflows *RunConfigurationWorkflowFactory) commonMeta(_ context.Context, rc *pipelinesv1.RunConfiguration, operation string) *metav1.ObjectMeta {
-	return &metav1.ObjectMeta{
-		GenerateName: operation + "-",
-		Namespace:    rc.GetNamespace(),
-		Labels:       workflows.Labels(rc, operation),
-	}
-}
-
-func (workflows *RunConfigurationWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
-	return map[string]string{
-		RunConfigurationWorkflowConstants.OperationLabelKey:            operation,
-		RunConfigurationWorkflowConstants.RunConfigurationNameLabelKey: resource.GetName(),
-	}
-}
-
-func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := RunConfigurationWorkflowConstants.CreateOperationLabel
-
+func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	creationScriptTemplate, err := workflows.creator(runConfiguration)
 	if err != nil {
 		return nil, err
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -91,22 +62,20 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(ctx c
 	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := RunConfigurationWorkflowConstants.DeleteOperationLabel
-
+func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
 		return nil, err
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -124,9 +93,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(ctx 
 	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	entrypointName := RunConfigurationWorkflowConstants.UpdateOperationLabel
-
+func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	deletionScriptTemplate, err := workflows.deleter(runConfiguration)
 	if err != nil {
 		return nil, err
@@ -138,13 +105,13 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(ctx co
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, runConfiguration, RunConfigurationWorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{

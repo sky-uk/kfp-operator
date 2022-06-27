@@ -20,11 +20,9 @@ var (
 )
 
 type TestContext struct {
-	K8sClient      client.Client
-	ctx            context.Context
-	LookupKey      types.NamespacedName
-	LookupLabel    string
-	operationLabel string
+	K8sClient client.Client
+	ctx       context.Context
+	Resource  Resource
 }
 
 func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(Gomega, map[string]string)) func(Gomega) {
@@ -96,7 +94,7 @@ func (testCtx TestContext) FetchWorkflow(operation string) func() error {
 func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels{testCtx.operationLabel: operation, testCtx.LookupLabel: testCtx.LookupKey.Name}); err != nil {
+	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels(CommonWorkflowLabels(testCtx.Resource, operation))); err != nil {
 		return nil, err
 	}
 

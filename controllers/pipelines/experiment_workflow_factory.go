@@ -1,29 +1,17 @@
 package pipelines
 
 import (
-	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var ExperimentWorkflowConstants = struct {
-	CreateOperationLabel      string
-	DeleteOperationLabel      string
-	UpdateOperationLabel      string
 	ExperimentIdParameterName string
-	ExperimentNameLabelKey    string
-	OperationLabelKey         string
 	CreationStepName          string
 	DeletionStepName          string
 }{
-	CreateOperationLabel:      "create-experiment",
-	DeleteOperationLabel:      "delete-experiment",
-	UpdateOperationLabel:      "update-experiment",
 	ExperimentIdParameterName: "experiment-id",
-	ExperimentNameLabelKey:    pipelinesv1.GroupVersion.Group + "/experiment",
-	OperationLabelKey:         pipelinesv1.GroupVersion.Group + "/operation",
 	CreationStepName:          "create",
 	DeletionStepName:          "delete",
 }
@@ -32,37 +20,20 @@ type ExperimentWorkflowFactory struct {
 	WorkflowFactory
 }
 
-func (workflows *ExperimentWorkflowFactory) commonMeta(_ context.Context, experiment *pipelinesv1.Experiment, operation string) *metav1.ObjectMeta {
-	return &metav1.ObjectMeta{
-		GenerateName: operation + "-",
-		Namespace:    experiment.GetNamespace(),
-		Labels:       workflows.Labels(experiment, operation),
-	}
-}
-
-func (workflows *ExperimentWorkflowFactory) Labels(resource Resource, operation string) map[string]string {
-	return map[string]string{
-		ExperimentWorkflowConstants.OperationLabelKey:      operation,
-		ExperimentWorkflowConstants.ExperimentNameLabelKey: resource.GetName(),
-	}
-}
-
-func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := ExperimentWorkflowConstants.CreateOperationLabel
-
+func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	creationScriptTemplate, err := workflows.creator(experiment)
 	if err != nil {
 		return nil, err
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, experiment, ExperimentWorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -91,22 +62,20 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(ctx context
 	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := ExperimentWorkflowConstants.DeleteOperationLabel
-
+func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	deletionScriptTemplate, err := workflows.deleter(experiment)
 	if err != nil {
 		return nil, err
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, experiment, ExperimentWorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{
@@ -124,9 +93,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(ctx contex
 	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.Context, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	entrypointName := ExperimentWorkflowConstants.UpdateOperationLabel
-
+func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	deletionScriptTemplate, err := workflows.deleter(experiment)
 	if err != nil {
 		return nil, err
@@ -138,13 +105,13 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(ctx context.
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.commonMeta(ctx, experiment, ExperimentWorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			ServiceAccountName: workflows.Config.Argo.ServiceAccount,
-			Entrypoint:         entrypointName,
+			Entrypoint:         WorkflowConstants.EntryPointName,
 			Templates: []argo.Template{
 				{
-					Name: entrypointName,
+					Name: WorkflowConstants.EntryPointName,
 					Steps: []argo.ParallelSteps{
 						{
 							Steps: []argo.WorkflowStep{

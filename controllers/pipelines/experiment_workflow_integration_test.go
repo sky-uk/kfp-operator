@@ -4,7 +4,6 @@
 package pipelines
 
 import (
-	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
@@ -84,7 +83,7 @@ var _ = Context("Experiment Workflows", Serial, func() {
 
 	var AssertWorkflow = func(
 		setUp func(experiment *pipelinesv1.Experiment),
-		constructWorkflow func(context.Context, *pipelinesv1.Experiment) (*argo.Workflow, error),
+		constructWorkflow func(*pipelinesv1.Experiment) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
 		testCtx := NewExperimentTestContext(
@@ -103,7 +102,7 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			k8sClient, ctx)
 
 		setUp(testCtx.Experiment)
-		workflow, err := constructWorkflow(testCtx.ctx, testCtx.Experiment)
+		workflow, err := constructWorkflow(testCtx.Experiment)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())

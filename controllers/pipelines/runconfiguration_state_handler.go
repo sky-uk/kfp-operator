@@ -18,7 +18,7 @@ func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, run
 	case pipelinesv1.Creating:
 		commands = st.onCreating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
-				st.WorkflowFactory.Labels(runConfiguration, RunConfigurationWorkflowConstants.CreateOperationLabel)))
+				CommonWorkflowLabels(runConfiguration, WorkflowConstants.CreateOperationLabel)))
 	case pipelinesv1.Succeeded, pipelinesv1.Failed:
 		if !runConfiguration.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, runConfiguration)
@@ -28,11 +28,11 @@ func (st *RunConfigurationStateHandler) stateTransition(ctx context.Context, run
 	case pipelinesv1.Updating:
 		commands = st.onUpdating(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
-				st.WorkflowFactory.Labels(runConfiguration, RunConfigurationWorkflowConstants.UpdateOperationLabel)))
+				CommonWorkflowLabels(runConfiguration, WorkflowConstants.UpdateOperationLabel)))
 	case pipelinesv1.Deleting:
 		commands = st.onDeleting(ctx, runConfiguration,
 			st.WorkflowRepository.GetByLabels(ctx, runConfiguration.GetNamespace(),
-				st.WorkflowFactory.Labels(runConfiguration, RunConfigurationWorkflowConstants.DeleteOperationLabel)))
+				CommonWorkflowLabels(runConfiguration, WorkflowConstants.DeleteOperationLabel)))
 	case pipelinesv1.Deleted:
 	default:
 		commands = st.onUnknown(ctx, runConfiguration)
@@ -62,7 +62,7 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 
 	if runConfiguration.Status.Status.KfpId != "" {
 		logger.Info("empty state but KfpId already exists, updating runConfiguration")
-		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
+		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(runConfiguration)
 
 		if err != nil {
 			failureMessage := "error constructing update workflow"
@@ -82,7 +82,7 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 	}
 
 	logger.Info("empty state, creating runConfiguration")
-	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
+	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(runConfiguration)
 
 	if err != nil {
 		failureMessage := "error constructing creation workflow"
@@ -114,7 +114,7 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 		}
 	}
 
-	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(ctx, runConfiguration)
+	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(runConfiguration)
 
 	if err != nil {
 		failureMessage := "error constructing deletion workflow"
@@ -146,7 +146,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 
 	if runConfiguration.Status.Status.KfpId == "" {
 		logger.Info("no kfpId exists, creating")
-		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(ctx, runConfiguration)
+		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(runConfiguration)
 
 		if err != nil {
 			failureMessage := "error constructing creation workflow"
@@ -160,7 +160,7 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 		targetState = pipelinesv1.Creating
 	} else {
 		logger.Info("kfpId exists, updating")
-		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(ctx, runConfiguration)
+		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(runConfiguration)
 
 		if err != nil {
 			failureMessage := "error constructing update workflow"

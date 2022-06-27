@@ -46,7 +46,7 @@ func (e *Experiment) SetStatus(status Status) {
 	e.Status = status
 }
 
-func (e Experiment) NamespacedName() types.NamespacedName {
+func (e Experiment) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      e.Name,
 		Namespace: e.Namespace,
