@@ -53,7 +53,7 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 git-status-check:
-	git diff --exit-code HEAD
+	test -z "$$(git status -s)"
 
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: manifests generate ## Run decoupled acceptance tests
