@@ -1,1 +1,1 @@
-{{ (urls.Parse .Site.BaseURL).Path }}{{ strings.TrimPrefix "/" (.Get 0) }}
+{{ strings.TrimSuffix "/" (urls.Parse .Site.BaseURL).Path }}/{{ strings.TrimPrefix "/" (.Get 0) }}
