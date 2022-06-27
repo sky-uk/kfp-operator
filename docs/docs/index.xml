@@ -108,7 +108,7 @@
 &lt;li>&lt;a href="../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
 &lt;/ul>
 &lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
-&lt;p>&lt;img src="architecture.png" alt="Architecture">&lt;/p>
+&lt;p>&lt;img src="https://solid-goggles-5e2413f7.pages.github.io/images/architecture.png" alt="Architecture">&lt;/p>
 &lt;h2 id="limitations">Limitations&lt;/h2>
 &lt;ul>
 &lt;li>The operator currently only supports TFX Pipelines - pipelines created using the KFP DSL are not supported yet.&lt;/li>
@@ -674,7 +674,7 @@ and can be configured as follows:&lt;/p>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Run Completion EventSource</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/reference/run-completion/</guid><description>
 &lt;p>The Run Completion Eventsource allows reacting to finished pipeline runs.&lt;/p>
-&lt;p>&lt;img src="run_completion.png" alt="Model Serving">&lt;/p>
+&lt;p>&lt;img src="https://solid-goggles-5e2413f7.pages.github.io/images/run_completion.png" alt="Model Serving">&lt;/p>
 &lt;p>The specification of the eventsource follows those of other &lt;a href="https://argoproj.github.io/argo-events/eventsources/generic/">generic Argo-Events eventsources&lt;/a>:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventSource&lt;/span>

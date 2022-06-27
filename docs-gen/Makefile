@@ -5,4 +5,4 @@ clean:
 	rm -rf ../docs/
 
 serve:
-	hugo server
+	hugo server -b http://localhost:1313/

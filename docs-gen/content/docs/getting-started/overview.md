@@ -45,7 +45,7 @@ Currently, we support the following eventsources:
 
 ## Architecture Overview
 
-![Architecture]({{% static "/architecture.png" %}})
+![Architecture](/images/architecture.png)
 
 ## Limitations
 
