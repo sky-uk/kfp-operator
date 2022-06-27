@@ -45,7 +45,7 @@ Currently, we support the following eventsources:
 
 ## Architecture Overview
 
-![Architecture](/architecture.png)
+![Architecture](/images/architecture.png)
 
 ## Limitations
 
