@@ -172,7 +172,8 @@ helm-publish:: helm-package
 	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES),$(call helm-upload,$(url)))
 
 define helm-upload
-if [[ $(1) == "oci://"* ]]; then \
+@echo "Pushing helm chart to $(1)"
+@if [[ $(1) == "oci://"* ]]; then \
 helm push dist/kfp-operator-$(VERSION).tgz $(1)/kfp-operator; \
 else \
 curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1); \
