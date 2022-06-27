@@ -53,7 +53,7 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 git-status-check:
-	test -z "$$(git status -s)"
+	@if [ -n "$$(git status -s)" ]; then echo "Uncommitted or untracked files: "; git status -s ; exit 1; fi
 
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: manifests generate ## Run decoupled acceptance tests
