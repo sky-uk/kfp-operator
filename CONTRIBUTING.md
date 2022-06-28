@@ -8,6 +8,6 @@ If you want to propose a new feature, please raise a [feature request](https://g
 
 ## Contributing
 
-If you want to submit a change, please fork this repository and submit a pull request to merge you changes.
+If you want to submit a change, please fork this repository and submit a pull request to merge your changes.
 
 Please refer to the [development guide](DEVELOPMENT.md) to get started.
