@@ -1,4 +1,4 @@
-baseURL = 'https://solid-goggles-5e2413f7.pages.github.io'
+baseURL = 'https://sky-uk.github.io/kfp-operator'
 languageCode = 'en-gb'
 title = 'KFP-Operator'
 theme = "github.com/google/docsy"
