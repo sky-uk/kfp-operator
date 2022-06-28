@@ -13,4 +13,5 @@ type Resource interface {
 	GetStatus() pipelinesv1.Status
 	SetStatus(pipelinesv1.Status)
 	GetNamespacedName() types.NamespacedName
+	GetKind() string
 }

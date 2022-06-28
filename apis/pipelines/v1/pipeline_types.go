@@ -66,6 +66,10 @@ func (p Pipeline) GetNamespacedName() types.NamespacedName {
 	}
 }
 
+func (p Pipeline) GetKind() string {
+	return "pipeline"
+}
+
 //+kubebuilder:object:root=true
 
 type PipelineList struct {

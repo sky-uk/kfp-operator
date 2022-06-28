@@ -53,6 +53,10 @@ func (e Experiment) GetNamespacedName() types.NamespacedName {
 	}
 }
 
+func (e Experiment) GetKind() string {
+	return "experiment"
+}
+
 //+kubebuilder:object:root=true
 
 type ExperimentList struct {

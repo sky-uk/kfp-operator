@@ -39,7 +39,7 @@ type KfpExtCommandBuilder struct {
 
 func CommonWorkflowMeta(owner Resource, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
-		GenerateName: fmt.Sprintf("%s-%s-", operation, owner.GetObjectKind().GroupVersionKind().Kind),
+		GenerateName: fmt.Sprintf("%s-%s-", operation, owner.GetKind()),
 		Namespace:    owner.GetNamespace(),
 		Labels:       CommonWorkflowLabels(owner, operation),
 	}
@@ -48,7 +48,7 @@ func CommonWorkflowMeta(owner Resource, operation string) *metav1.ObjectMeta {
 func CommonWorkflowLabels(owner Resource, operation string) map[string]string {
 	return map[string]string{
 		WorkflowConstants.OperationLabelKey: operation,
-		WorkflowConstants.OwnerKindLabelKey: owner.GetObjectKind().GroupVersionKind().Kind,
+		WorkflowConstants.OwnerKindLabelKey: owner.GetKind(),
 		WorkflowConstants.OwnerNameLabelKey: owner.GetName(),
 	}
 }
