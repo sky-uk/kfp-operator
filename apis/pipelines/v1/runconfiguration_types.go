@@ -65,6 +65,10 @@ func (rc RunConfiguration) GetNamespacedName() types.NamespacedName {
 	}
 }
 
+func (rc RunConfiguration) GetKind() string {
+	return "runconfiguration"
+}
+
 //+kubebuilder:object:root=true
 
 type RunConfigurationList struct {

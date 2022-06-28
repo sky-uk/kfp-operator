@@ -13,4 +13,6 @@ type Resource interface {
 	GetStatus() pipelinesv1.Status
 	SetStatus(pipelinesv1.Status)
 	GetNamespacedName() types.NamespacedName
+	// GetKind is a workaround to address https://github.com/sky-uk/kfp-operator/issues/137
+	GetKind() string
 }

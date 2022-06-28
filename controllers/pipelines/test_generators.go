@@ -6,7 +6,6 @@ package pipelines
 import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"math/rand"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
@@ -43,6 +42,7 @@ type TestResource struct {
 	metav1.ObjectMeta
 	NamespacedName types.NamespacedName
 
+	Kind   string
 	Status pipelinesv1.Status
 }
 
@@ -62,17 +62,16 @@ func (tr *TestResource) GetNamespacedName() types.NamespacedName {
 	return tr.NamespacedName
 }
 
+func (tr *TestResource) GetKind() string {
+	return tr.Kind
+}
+
 func RandomResource() Resource {
-	resource := TestResource{
+	return &TestResource{
 		Status:         RandomStatus(),
 		NamespacedName: RandomNamespacedName(),
+		Kind:           RandomString(),
 	}
-
-	resource.SetGroupVersionKind(schema.GroupVersionKind{
-		Kind: RandomString(),
-	})
-
-	return &resource
 }
 
 func RandomPipeline() *pipelinesv1.Pipeline {
