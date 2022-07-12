@@ -15,7 +15,7 @@ data:
       webhook:
         port: 9443
       leaderElection:
-        leaderElect: false
+        leaderElect: true
         resourceName: kfp-operator-lock
     spec:
       {{- merge (.Values.manager.configuration) (include "kfp-operator.defaultConfiguration" . | fromYaml) | toYaml | nindent 6 -}}

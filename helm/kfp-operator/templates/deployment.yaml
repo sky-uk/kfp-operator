@@ -9,7 +9,7 @@ spec:
   selector:
     matchLabels:
       {{- include "kfp-operator.labels" . | nindent 6 }}
-  replicas: 1
+  replicas: {{ .Values.manager.replicas }}
   template:
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}

@@ -8,7 +8,7 @@ controller:
   webhook:
     port: 9443
   leaderElection:
-    leaderElect: false
+    leaderElect: true
     resourceName: kfp-operator-lock
 spec:
   argo:
