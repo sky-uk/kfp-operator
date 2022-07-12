@@ -25,6 +25,7 @@ manager:
     requests:
       cpu: 100m
       memory: 200Mi
+  replicas: 1
   configuration: {}
   monitoring:
     create: true
