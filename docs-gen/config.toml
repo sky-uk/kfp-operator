@@ -3,6 +3,7 @@ languageCode = 'en-gb'
 title = 'KFP-Operator'
 theme = "github.com/google/docsy"
 publishDir = '../docs'
+canonifyURLs = true
 
 [menu]
   [[menu.main]]
