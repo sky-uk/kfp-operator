@@ -28,7 +28,7 @@ Note: on first execution, the test environment will get downloaded and the comma
 
 ### Building and publishing container images
 
-Build the controller images as follows:
+Build the operator's container images as follows:
 
 ```sh
 make docker-build docker-build-argo
@@ -38,6 +38,12 @@ Push to the container registry:
 
 ```sh
 CONTAINER_REGISTRY_HOSTS=<YOUR_CONTAINER_REGISTRY> make docker-push docker-push-argo
+```
+
+For example, to push to Google Artifact Registry:
+
+```sh
+CONTAINER_REGISTRY_HOSTS=europe-docker.pkg.dev/<PROJECT_NAME>/images make docker-push docker-push-argo
 ```
 
 ### Building and publishing the Helm chart
@@ -54,6 +60,10 @@ Push the Helm chart using one of the following options:
 ```shell
 HELM_REPOSITORIES=oci://<YOUR_CHART_REPOSITORY> make helm-publish
 ```
+
+For example, to push to Google Artifact Registry::
+
+HELM_REPOSITORIES=oci://europe-docker.pkg.dev/<PROJECT_NAME>/charts make helm-publish
 
 2. `.tar.gz` archive
 
