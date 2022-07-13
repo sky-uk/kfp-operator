@@ -86,7 +86,8 @@ To run integration tests, we currently require a one-off setup of the Kubernetes
 make integration-test-up
 ```
 
-You can now run the integration tests as follows:
+You can now run the integration tests as follows (this can take several minutes to complete):
+
 ```sh
 make integration-test
 ```
