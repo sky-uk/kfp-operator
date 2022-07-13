@@ -28,6 +28,7 @@ Valid configuration options to override the [Default `values.yaml`]({{< ghblob "
 | `manager.rbac.create` | Create roles and rolebindings for the operator |
 | `manager.serviceAccount.create` | Create the manager's service account |
 | `manager.serviceAccount.name` | Manager service account's name |
+| `manager.replicas` | Number of replicas for the manager deployment |
 | `manager.resources` | Manager resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) |
 | `manager.configuration` | Manager configuration as defined in [Configuration](../../reference/configuration) (note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied) |
 | `manager.monitoring.create` | Create the manager's monitoring resources |
