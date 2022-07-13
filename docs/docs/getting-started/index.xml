@@ -1,4 +1,4 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Getting Started</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/getting-started/</link><description>Recent content in Getting Started on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://solid-goggles-5e2413f7.pages.github.io/docs/getting-started/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Overview</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/getting-started/overview/</guid><description>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Getting Started</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/</link><description>Recent content in Getting Started on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/getting-started/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>
 &lt;p>The Kubeflow Pipelines Operator provides a declarative API for managing and running machine learning pipelines on Kubeflow with Resource Definitions.&lt;/p>
 &lt;h2 id="tfx-pipelines-and-components">TFX Pipelines and Components&lt;/h2>
 &lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.&lt;/p>
@@ -45,17 +45,19 @@
 &lt;li>&lt;a href="../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
 &lt;/ul>
 &lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
-&lt;p>&lt;img src="https://solid-goggles-5e2413f7.pages.github.io/images/architecture.png" alt="Architecture">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/architecture.png" alt="Architecture">&lt;/p>
 &lt;h2 id="limitations">Limitations&lt;/h2>
 &lt;ul>
 &lt;li>The operator currently only supports TFX Pipelines - pipelines created using the KFP DSL are not supported yet.&lt;/li>
 &lt;li>The operator currently only supports KFP standalone - a full KFP installation is not supported yet.&lt;/li>
-&lt;/ul></description></item><item><title>Docs: Installation</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/getting-started/installation/</guid><description>
+&lt;/ul></description></item><item><title>Docs: Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>
 &lt;p>We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p>
 &lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
-&lt;h2 id="chart-repository">Chart Repository&lt;/h2>
-&lt;p>KFP-Operator Helm charts can be found in our &lt;a href="TODO">Chart Repository&lt;/a>&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>helm install -f values.yaml kfp-operator TODO
+&lt;h2 id="build-and-install">Build and Install&lt;/h2>
+&lt;p>At the moment, you will have to build and publish the container images to run the operator manually.
+We are looking to publish images to a public repository in the near future.
+Please follow the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/DEVELOPMENT.md#building-and-publishing">Development Guide&lt;/a> to publish these images.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>helm install -f values.yaml kfp-operator &amp;lt;YOUR_CHART_REPOSITORY&amp;gt;/kfp-operator
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="configuration-values">Configuration Values&lt;/h2>
 &lt;p>Valid configuration options to override the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/values.yaml
 ">Default &lt;code>values.yaml&lt;/code>&lt;/a> are:&lt;/p>
@@ -94,6 +96,10 @@
 &lt;tr>
 &lt;td>&lt;code>manager.serviceAccount.name&lt;/code>&lt;/td>
 &lt;td>Manager service account&amp;rsquo;s name&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.replicas&lt;/code>&lt;/td>
+&lt;td>Number of replicas for the manager deployment&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>manager.resources&lt;/code>&lt;/td>
@@ -154,7 +160,7 @@
 &lt;/tbody>
 &lt;/table>
 &lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
-">test configuration&lt;/a>&lt;/p></description></item><item><title>Docs: Example</title><link>https://solid-goggles-5e2413f7.pages.github.io/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://solid-goggles-5e2413f7.pages.github.io/docs/getting-started/example/</guid><description>
+">test configuration&lt;/a>&lt;/p></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
 &lt;p>This tutorial walks you through the creation of a simple TFX pipeline and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p>
 &lt;p>All code samples can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart">GitHub&lt;/a>.&lt;/p>
 &lt;p>We assume that you are already familiar with TFX and Kubeflow and that you have access to a running instance of Kubeflow Pipelines.&lt;/p>

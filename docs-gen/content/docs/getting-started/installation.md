@@ -7,12 +7,14 @@ We recommend the installation using Helm as it allows a declarative approach to 
 
 This guide assumes you are familiar with [Helm](https://helm.sh/).
 
-## Chart Repository
+## Build and Install
 
-KFP-Operator Helm charts can be found in our [Chart Repository](TODO)
+At the moment, you will have to build and publish the container images to run the operator manually.
+We are looking to publish images to a public repository in the near future.
+Please follow the [Development Guide](https://github.com/sky-uk/kfp-operator/blob/master/DEVELOPMENT.md#building-and-publishing) to publish these images.
 
 ```bash
-helm install -f values.yaml kfp-operator TODO
+helm install -f values.yaml kfp-operator <YOUR_CHART_REPOSITORY>/kfp-operator
 ```
 
 ## Configuration Values
@@ -28,6 +30,7 @@ Valid configuration options to override the [Default `values.yaml`]({{< ghblob "
 | `manager.rbac.create` | Create roles and rolebindings for the operator |
 | `manager.serviceAccount.create` | Create the manager's service account |
 | `manager.serviceAccount.name` | Manager service account's name |
+| `manager.replicas` | Number of replicas for the manager deployment |
 | `manager.resources` | Manager resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) |
 | `manager.configuration` | Manager configuration as defined in [Configuration](../../reference/configuration) (note that you can omit `compilerImage` and `kfpSdkImage` when specifying `containerRegistry` as default values will be applied) |
 | `manager.monitoring.create` | Create the manager's monitoring resources |
