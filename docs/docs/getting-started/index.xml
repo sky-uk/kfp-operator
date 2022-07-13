@@ -53,9 +53,11 @@
 &lt;/ul></description></item><item><title>Docs: Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>
 &lt;p>We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p>
 &lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
-&lt;h2 id="chart-repository">Chart Repository&lt;/h2>
-&lt;p>KFP-Operator Helm charts can be found in our &lt;a href="TODO">Chart Repository&lt;/a>&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>helm install -f values.yaml kfp-operator TODO
+&lt;h2 id="build-and-install">Build and Install&lt;/h2>
+&lt;p>At the moment, you will have to build and publish the container images to run the operator manually.
+We are looking to publish images to a public repository in the near future.
+Please follow the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/DEVELOPMENT.md#building-and-publishing">Development Guide&lt;/a> to publish these images.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>helm install -f values.yaml kfp-operator &amp;lt;YOUR_CHART_REPOSITORY&amp;gt;/kfp-operator
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="configuration-values">Configuration Values&lt;/h2>
 &lt;p>Valid configuration options to override the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/values.yaml
 ">Default &lt;code>values.yaml&lt;/code>&lt;/a> are:&lt;/p>

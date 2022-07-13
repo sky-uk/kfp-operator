@@ -24,24 +24,50 @@ make test
 
 Note: on first execution, the test environment will get downloaded and the command will therefore take longer to complete.
 
+## Building and Publishing
+
+### Building and publishing container images
+
+Build the controller images as follows:
+
+```sh
+make docker-build docker-build-argo
+```
+
+Push to the container registry:
+
+```sh
+CONTAINER_REGISTRY_HOSTS=<YOUR_CONTAINER_REGISTRY> make docker-push docker-push-argo
+```
+
+### Building and publishing the Helm chart
+
+Build the Helm chart as follows:
+
+```shell
+make helm-package
+```
+
+Push the Helm chart using one of the following options:
+
+1. OCI Image
+```shell
+HELM_REPOSITORIES=oci://<YOUR_CHART_REPOSITORY> make helm-publish
+```
+
+2. `.tar.gz` archive
+
+```shell
+HELM_REPOSITORIES=https://<YOUR_CHART_REPOSITORY> NETRC_FILE=<YOUR_NETRC_FILE> make helm-publish
+```
+
+Provide an optional [.netrc file](https://www.gnu.org/software/inetutils/manual/html_node/The-_002enetrc-file.html) for credentials:
+
 ## Running locally
-
-Build all images as follows:
-
-```sh
-make docker-build-argo
-```
-
-Push to the container registry used by the Kubernetes cluster:
-
-```sh
-export CONTAINER_REGISTRY_HOSTS=host:port # <- replace this
-make docker-push-argo
-```
 
 Configure the controller to your environment in [controller_manager_config.yaml](../../config/manager/controller_manager_config.yaml) replacing the placeholders (see [docs](../README.md#configuration)).
 
-Next install Custom Resource Defitions and run the controller:
+Next install Custom Resource Definitions and run the controller:
 
 ```sh
 make install

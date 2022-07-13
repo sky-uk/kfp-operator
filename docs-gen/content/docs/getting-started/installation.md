@@ -7,12 +7,14 @@ We recommend the installation using Helm as it allows a declarative approach to 
 
 This guide assumes you are familiar with [Helm](https://helm.sh/).
 
-## Chart Repository
+## Build and Install
 
-KFP-Operator Helm charts can be found in our [Chart Repository](TODO)
+At the moment, you will have to build and publish the container images to run the operator manually.
+We are looking to publish images to a public repository in the near future.
+Please follow the [Development Guide](https://github.com/sky-uk/kfp-operator/blob/master/DEVELOPMENT.md#building-and-publishing) to publish these images.
 
 ```bash
-helm install -f values.yaml kfp-operator TODO
+helm install -f values.yaml kfp-operator <YOUR_CHART_REPOSITORY>/kfp-operator
 ```
 
 ## Configuration Values
