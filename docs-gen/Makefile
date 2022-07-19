@@ -4,7 +4,7 @@ build: clean
 	$(eval URL_PATH = $(shell grep baseURL config.toml | sed "s/'//g" |  cut -d '/' -f 4))
 	@ if [ ! -z "$(URL_PATH)" ]; \
 	  then \
-	    sed -i '' "s/background-image:url(/background-image:url(\/$(URL_PATH)/g" ../docs/index.html; \
+	    sed -i.bak "s/background-image:url(/background-image:url(\/$(URL_PATH)/g" ../docs/index.html && rm ../docs/index.html.bak; \
       fi
 
 clean:
