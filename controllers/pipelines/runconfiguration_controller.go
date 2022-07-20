@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	pipelineRefField = ".spec.pipelineName"
+	pipelineRefField = ".spec.pipeline"
 )
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
@@ -158,10 +158,12 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &pipelinesv1.RunConfiguration{}, pipelineRefField, func(rawObj client.Object) []string {
 		runConfiguration := rawObj.(*pipelinesv1.RunConfiguration)
-		if runConfiguration.Spec.PipelineName == "" {
+		if runConfiguration.Spec.Pipeline == "" {
 			return nil
 		}
-		return []string{runConfiguration.Spec.PipelineName}
+
+		pipelineName, _ := runConfiguration.ExtractPipelineNameVersion()
+		return []string{pipelineName}
 	}); err != nil {
 		return err
 	}

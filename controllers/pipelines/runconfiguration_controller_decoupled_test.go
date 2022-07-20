@@ -103,7 +103,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
 			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
 				Status: pipelinesv1.Status{
-					Version:              RandomString(),
+					Version:              runConfiguration.ComputeVersion(),
 					KfpId:                RandomString(),
 					SynchronizationState: pipelinesv1.Succeeded,
 				},
@@ -119,8 +119,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				})
 
 			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				// TODO: The RunConfigurationCreatedWithStatus method (called above) sets the SynchronizationState to Updating
-				// regardless of whether the pipeline is updated or not - so what's the point of this assertion?
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
@@ -139,7 +137,14 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Namespace = "default"
 
 			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-			Expect(k8sClient.Create(ctx, runCfgTestCtx.RunConfiguration)).To(Succeed())
+			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
+				Status: pipelinesv1.Status{
+					Version:              runConfiguration.ComputeVersion(),
+					KfpId:                RandomString(),
+					SynchronizationState: pipelinesv1.Succeeded,
+				},
+				ObservedPipelineVersion: fixedPipelineVersion,
+			})
 
 			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
 			pipelineTestCtx.PipelineCreatedWithStatus(
@@ -149,10 +154,14 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 					SynchronizationState: pipelinesv1.Succeeded,
 				})
 
+			// TODO: Document why we need to trigger an additional update of the RC here in order to validate
+			// that the RC doesn't update on Pipeline changes if it has a fixed version.
+			runCfgTestCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
+				runConfiguration.Spec.Schedule = RandomString()
+			})
+
 			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				// TODO - Similar to the TODO comment above: there's no way to check that the RunConfig doesn't enter an Updating state
-				// after the pipeline is updated. The following will be Creating.
-				g.Expect(runConfiguration.Status.SynchronizationState).NotTo(Equal(pipelinesv1.Updating))
+				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedPipelineVersion))
 			})).Should(Succeed())
 		})

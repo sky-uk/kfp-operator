@@ -50,8 +50,6 @@ spec:
                 type: string
               pipeline:
                 type: string
-              pipelineName:
-                type: string
               runtimeParameters:
                 additionalProperties:
                   type: string

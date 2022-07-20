@@ -10,7 +10,6 @@ import (
 )
 
 type RunConfigurationSpec struct {
-	PipelineName      string            `json:"pipelineName,omitempty"` // TODO: Remove PipelineName
 	Pipeline          string            `json:"pipeline,omitempty"`
 	ExperimentName    string            `json:"experimentName,omitempty"`
 	Schedule          string            `json:"schedule,omitempty"`
