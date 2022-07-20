@@ -48,6 +48,8 @@ spec:
             properties:
               experimentName:
                 type: string
+              pipeline:
+                type: string
               pipelineName:
                 type: string
               runtimeParameters:

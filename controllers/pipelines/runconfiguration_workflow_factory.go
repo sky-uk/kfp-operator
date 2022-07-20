@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"fmt"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
 )
@@ -164,8 +165,10 @@ func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipe
 	kfpScript, err := workflows.KfpExt("job submit").
 		Param("--experiment-name", experimentName).
 		Param("--job-name", runConfiguration.Name).
+		// TODO: Get pipeline name from runConfiguration.Pipeline field
 		Param("--pipeline-name", runConfiguration.Spec.PipelineName).
 		Param("--cron-expression", runConfiguration.Spec.Schedule).
+		// TODO: Pass pipeline version param if specified on runConfiguration
 		Build()
 
 	if err != nil {

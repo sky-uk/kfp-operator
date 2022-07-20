@@ -74,14 +74,30 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
-	When("Updating the referenced pipeline", func() {
+	When("Creating with a fixed pipeline version", func() {
+		It("creates a RC with an ObervedPipelineVersion that matches the fixed version", func() {
+			runConfiguration := RandomRunConfiguration()
+			runConfiguration.Namespace = "default"
+			pipelineVersion := "12345-abcde"
+			runConfiguration.Spec.Pipeline = "dummy-pipeline:" + pipelineVersion
+
+			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
+			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
+
+			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Updating the referenced pipeline with no version specified on the RC", func() {
 		It("triggers an update of the run configuration", func() {
 			pipeline := RandomPipeline()
 			pipeline.Namespace = "default"
 			pipelineVersion := RandomString()
 
 			runConfiguration := RandomRunConfiguration()
-			runConfiguration.Spec.PipelineName = pipeline.Name
+			runConfiguration.Spec.Pipeline = pipeline.Name
 			runConfiguration.Namespace = "default"
 
 			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
@@ -103,8 +119,41 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				})
 
 			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				// TODO: The RunConfigurationCreatedWithStatus method (called above) sets the SynchronizationState to Updating
+				// regardless of whether the pipeline is updated or not - so what's the point of this assertion?
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Updating the referenced pipeline with a fixed version specified on the RC", func() {
+		It("does not trigger an update of the run configuration", func() {
+			pipeline := RandomPipeline()
+			pipeline.Namespace = "default"
+			pipelineVersion := RandomString()
+
+			runConfiguration := RandomRunConfiguration()
+			fixedPipelineVersion := "12345-abcde"
+			runConfiguration.Spec.Pipeline = pipeline.Name + ":" + fixedPipelineVersion
+			runConfiguration.Namespace = "default"
+
+			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
+			Expect(k8sClient.Create(ctx, runCfgTestCtx.RunConfiguration)).To(Succeed())
+
+			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
+			pipelineTestCtx.PipelineCreatedWithStatus(
+				pipelinesv1.Status{
+					Version:              pipelineVersion,
+					KfpId:                RandomString(),
+					SynchronizationState: pipelinesv1.Succeeded,
+				})
+
+			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				// TODO - Similar to the TODO comment above: there's no way to check that the RunConfig doesn't enter an Updating state
+				// after the pipeline is updated. The following will be Creating.
+				g.Expect(runConfiguration.Status.SynchronizationState).NotTo(Equal(pipelinesv1.Updating))
+				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedPipelineVersion))
 			})).Should(Succeed())
 		})
 	})

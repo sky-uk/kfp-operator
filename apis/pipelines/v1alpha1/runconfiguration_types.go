@@ -2,13 +2,16 @@ package v1alpha1
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type RunConfigurationSpec struct {
-	PipelineName      string            `json:"pipelineName,omitempty"`
+	PipelineName      string            `json:"pipelineName,omitempty"` // TODO: Remove PipelineName
+	Pipeline          string            `json:"pipeline,omitempty"`
 	ExperimentName    string            `json:"experimentName,omitempty"`
 	Schedule          string            `json:"schedule,omitempty"`
 	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
@@ -16,7 +19,7 @@ type RunConfigurationSpec struct {
 
 func (rcs RunConfiguration) ComputeHash() []byte {
 	oh := objecthasher.New()
-	oh.WriteStringField(rcs.Spec.PipelineName)
+	oh.WriteStringField(rcs.Spec.Pipeline)
 	oh.WriteStringField(rcs.Spec.ExperimentName)
 	oh.WriteStringField(rcs.Spec.Schedule)
 	oh.WriteMapField(rcs.Spec.RuntimeParameters)
@@ -28,6 +31,20 @@ func (rcs RunConfiguration) ComputeVersion() string {
 	hash := rcs.ComputeHash()[0:3]
 
 	return fmt.Sprintf("%x", hash)
+}
+
+func (rcs RunConfiguration) ExtractPipelineNameVersion() (string, string) {
+	if rcs.Spec.Pipeline == "" {
+		return "", ""
+	}
+
+	nameVersion := strings.Split(rcs.Spec.Pipeline, ":")
+
+	if len(nameVersion) < 2 {
+		return nameVersion[0], ""
+	}
+
+	return nameVersion[0], nameVersion[1]
 }
 
 type RunConfigurationStatus struct {

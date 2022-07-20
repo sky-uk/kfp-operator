@@ -2,11 +2,13 @@ package pipelines
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
-	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -15,7 +17,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
 )
@@ -49,13 +50,19 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
-	pipeline, err := r.fetchDependentPipeline(ctx, runConfiguration)
+	var desiredVersion *string
+	_, version := runConfiguration.ExtractPipelineNameVersion()
 
-	if err != nil {
-		return ctrl.Result{}, err
+	if version == "" {
+		pipeline, err := r.fetchDependentPipeline(ctx, runConfiguration)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
+		desiredVersion = dependentPipelineVersionIfStable(pipeline)
+	} else {
+		desiredVersion = &version
 	}
-
-	desiredVersion := dependentPipelineVersionIfStable(pipeline)
 
 	if desiredVersion != nil && *desiredVersion != runConfiguration.Status.ObservedPipelineVersion {
 		runConfiguration.Status.ObservedPipelineVersion = *desiredVersion
@@ -87,13 +94,14 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 func (r *RunConfigurationReconciler) fetchDependentPipeline(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Pipeline, error) {
 	logger := log.FromContext(ctx)
 
-	if runConfiguration.Spec.PipelineName == "" {
+	if runConfiguration.Spec.Pipeline == "" {
 		return nil, nil
 	}
 
 	pipeline := &pipelinesv1.Pipeline{}
+	pipelineName, _ := runConfiguration.ExtractPipelineNameVersion()
 
-	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: runConfiguration.Spec.PipelineName}, pipeline); err != nil {
+	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: pipelineName}, pipeline); err != nil {
 		if statusError, isStatusError := err.(*errors.StatusError); !isStatusError || statusError.ErrStatus.Code != http.StatusNotFound {
 			logger.Error(err, "unable to fetch dependent pipeline")
 

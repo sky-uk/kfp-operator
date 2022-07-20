@@ -104,9 +104,9 @@ func (testCtx RunConfigurationTestContext) UpdateRunConfigurationStatus(updateFu
 func (testCtx RunConfigurationTestContext) RunConfigurationCreatedWithStatus(status pipelinesv1.RunConfigurationStatus) {
 	Expect(testCtx.K8sClient.Create(testCtx.ctx, testCtx.RunConfiguration)).To(Succeed())
 
-	Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, pipeline *pipelinesv1.RunConfiguration) {
+	Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, pipeline *pipelinesv1.RunConfiguration) { // TODO: Should the parameter name be runConfiguration instead of pipeline?
 		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
-		g.Expect(testCtx.UpdateRunConfigurationStatus(func(pipeline *pipelinesv1.RunConfiguration) {
+		g.Expect(testCtx.UpdateRunConfigurationStatus(func(pipeline *pipelinesv1.RunConfiguration) { // TODO: same here
 			pipeline.Status = status
 		})).To(Succeed())
 	})).Should(Succeed())
