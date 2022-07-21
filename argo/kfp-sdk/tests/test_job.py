@@ -13,6 +13,8 @@ class TestJob(unittest.TestCase):
     job_id = '67890'
     pipeline_name = 'a_pipeline'
     pipeline_id = 'abcdef'
+    version_name = 'a_version'
+    version_id = 'ghijkl'
     cron_expression = '* * * * * *'
 
     @staticmethod
@@ -27,6 +29,15 @@ class TestJob(unittest.TestCase):
         job.id = id
         job.name = name
         return job
+
+    @staticmethod
+    def versions(id, name):
+        response = Mock()
+        version = Mock()
+        version.id = id
+        version.name = name
+        response.versions = [version]
+        return response
 
     def test_get_table(self):
         client = Mock()
@@ -126,7 +137,7 @@ class TestJob(unittest.TestCase):
             ], obj={'client': client, 'output': OutputFormat.table.name})
 
 
-        client.create_recurring_run.assert_called_once_with(experiment_id=self.experiment_id, job_name=self.job_name, cron_expression=self.cron_expression, pipeline_id=self.pipeline_id)
+        client.create_recurring_run.assert_called_once_with(experiment_id=self.experiment_id, job_name=self.job_name, cron_expression=self.cron_expression, pipeline_id=self.pipeline_id, version_id=None)
         self.assertEqual(result.exit_code, 0)
         # Output format is tested in test_get_*
         self.assertIn(self.job_id, result.output)
@@ -145,11 +156,48 @@ class TestJob(unittest.TestCase):
                 '--cron-expression', self.cron_expression
             ], obj={'client': client, 'output': OutputFormat.table.name})
 
-        client.create_recurring_run.assert_called_once_with(experiment_id=self.experiment_id, job_name=self.job_name, cron_expression=self.cron_expression, pipeline_id=self.pipeline_id)
+        client.create_recurring_run.assert_called_once_with(experiment_id=self.experiment_id, job_name=self.job_name, cron_expression=self.cron_expression, pipeline_id=self.pipeline_id, version_id=None)
         self.assertEqual(result.exit_code, 0)
         # Output format is tested in test_get_*
         self.assertIn(self.job_id, result.output)
         self.assertIn(self.job_name, result.output)
+
+    def test_submit_job_with_version_id(self):
+        client = Mock()
+        client.create_experiment.return_value = self.experiment_with_id(self.experiment_id)
+        client.create_recurring_run.return_value = self.job(self.job_id, self.job_name)
+
+        result = self.runner.invoke(job, [
+            'submit',
+            '--job-name', self.job_name,
+            '--pipeline-id', self.pipeline_id,
+            '--version-id', self.version_id,
+            '--experiment-name', self.experiment_name,
+            '--cron-expression', self.cron_expression
+        ], obj={'client': client, 'output': OutputFormat.table.name})
+
+        client.create_recurring_run.assert_called_once_with(experiment_id=self.experiment_id, job_name=self.job_name, cron_expression=self.cron_expression, pipeline_id=self.pipeline_id, version_id=self.version_id)
+        self.assertEqual(result.exit_code, 0)
+        # Output format is tested in test_get_*
+        self.assertIn(self.job_id, result.output)
+        self.assertIn(self.job_name, result.output)
+
+    def test_submit_job_with_version_name(self):
+        client = Mock()
+        client.create_experiment.return_value = self.experiment_with_id(self.experiment_id)
+        client.list_pipeline_versions.return_value = self.versions(self.version_id, self.version_name)
+        client.create_recurring_run.return_value = self.job(self.job_id, self.job_name)
+
+        result = self.runner.invoke(job, [
+            'submit',
+            '--job-name', self.job_name,
+            '--pipeline-id', self.pipeline_id,
+            '--version-name', self.version_name,
+            '--experiment-name', self.experiment_name,
+            '--cron-expression', self.cron_expression
+        ], obj={'client': client, 'output': OutputFormat.table.name})
+
+        client.create_recurring_run.assert_called_once_with(experiment_id=self.experiment_id, job_name=self.job_name, cron_expression=self.cron_expression, pipeline_id=self.pipeline_id, version_id=self.version_id)
 
     def test_delete_job_without_id(self):
         client = Mock()

@@ -33,6 +33,8 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 	}
 
 	pipelineKfpId := RandomString()
+	versionKfpId := RandomString()
+	versionName := RandomString()
 	jobKfpId := RandomString()
 	newJobKfpId := RandomString()
 	experimentKfpId := RandomString()
@@ -61,11 +63,26 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			))
 	}
 
+	var StubGetPipelineVersions = func() error {
+		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/pipeline_versions")).
+			WithQueryParam("resource_key.id", wiremock.EqualTo(pipelineKfpId)).
+			WithQueryParam("filter", wiremock.EqualTo(
+				fmt.Sprintf(`{"predicates": [{"op": "EQUALS", "key": "name", "string_value": "%s"}]}`, versionName))).
+			WillReturn(
+				fmt.Sprintf(`{"versions": [{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}]}`,
+					versionKfpId, versionName),
+				map[string]string{"Content-Type": "application/json"},
+				200,
+			))
+	}
+
 	var SucceedCreation = func(runconfiguration *pipelinesv1.RunConfiguration, jobKfpId string) error {
 		if err := StubGetExperiment(workflowFactory.Config.DefaultExperiment, experimentKfpId); err != nil {
 			return err
 		}
-		if err := StubGetPipeline(runconfiguration.Spec.PipelineName, pipelineKfpId); err != nil {
+
+		pipelineName, _ := runconfiguration.ExtractPipelineNameVersion()
+		if err := StubGetPipeline(pipelineName, pipelineKfpId); err != nil {
 			return err
 		}
 
@@ -117,7 +134,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					Namespace: "argo",
 				},
 				Spec: pipelinesv1.RunConfigurationSpec{
-					PipelineName: "pipeline",
+					Pipeline: "pipeline:" + versionName,
 					Schedule:     "* * * * * *",
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
@@ -141,6 +158,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 	DescribeTable("Creation Workflow", AssertWorkflow,
 		Entry("Creation succeeds",
 			func(runconfiguration *pipelinesv1.RunConfiguration) {
+				Expect(StubGetPipelineVersions()).To(Succeed())
 				Expect(SucceedCreation(runconfiguration, jobKfpId)).To(Succeed())
 			},
 			workflowFactory.ConstructCreationWorkflow,
@@ -194,6 +212,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 	DescribeTable("Update Workflow", AssertWorkflow,
 		Entry("Deletion and creation succeed", func(runconfiguration *pipelinesv1.RunConfiguration) {
 			Expect(SucceedDeletion(jobKfpId)).To(Succeed())
+			Expect(StubGetPipelineVersions()).To(Succeed())
 			Expect(SucceedCreation(runconfiguration, newJobKfpId)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
