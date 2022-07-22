@@ -12,6 +12,11 @@ canonifyURLs = true
     pre = "<i class='fas fa-book pr-2'></i>"
     url = "/docs/"
   [[menu.main]]
+    name = "Discuss"
+    weight = -100
+    pre = "<i class='fas fa-comments'></i>"
+    url = "https://github.com/sky-uk/kfp-operator/discussions"
+  [[menu.main]]
     name = "GitHub"
     weight = -99
     pre = "<i class='fab fa-github pr-2'></i>"
