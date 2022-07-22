@@ -48,7 +48,7 @@ spec:
             properties:
               experimentName:
                 type: string
-              pipelineName:
+              pipeline:
                 type: string
               runtimeParameters:
                 additionalProperties:
