@@ -5,8 +5,8 @@ package pipelines
 
 import (
 	"context"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/external"
 	apiv1 "k8s.io/api/core/v1"

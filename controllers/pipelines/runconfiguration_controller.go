@@ -17,7 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
 )
 
 const (

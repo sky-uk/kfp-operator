@@ -8,7 +8,7 @@ import (
 	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
 )
 
 var (

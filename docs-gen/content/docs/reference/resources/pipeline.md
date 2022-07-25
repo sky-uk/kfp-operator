@@ -9,7 +9,7 @@ The operator compiles the pipeline into a deployable artifact while providing co
 It then submits the pipeline to Kubeflow and manages versions accordingly.
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1
+apiVersion: pipelines.kubeflow.org/v1alpha1
 kind: Pipeline
 metadata:
     name: penguin-pipeline
