@@ -154,8 +154,9 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 					SynchronizationState: pipelinesv1.Succeeded,
 				})
 
-			// TODO: Document why we need to trigger an additional update of the RC here in order to validate
-			// that the RC doesn't update on Pipeline changes if it has a fixed version.
+			// To verify the absence of additional RC updates, force another update of the resource.
+			// If the update is processed but the pipeline version hasn't changed,
+			// given that reconciliation requests are processed in-order, we can conclude that the RC is fixed.
 			runCfgTestCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec.Schedule = RandomString()
 			})
