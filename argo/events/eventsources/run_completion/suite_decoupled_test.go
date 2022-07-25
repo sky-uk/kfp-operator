@@ -28,6 +28,7 @@ import (
 
 var (
 	mockMetadataStore MockMetadataStore
+	mockKfpApi        MockKfpApi
 	server            *grpc.Server
 	k8sClient         dynamic.Interface
 	clientConn        *grpc.ClientConn
@@ -166,12 +167,14 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	mockMetadataStore = MockMetadataStore{}
+	mockKfpApi = MockKfpApi{}
 	server = grpc.NewServer()
 
 	generic.RegisterEventingServer(server, &EventingServer{
 		K8sClient:     k8sClient,
 		Logger:        logr.Discard(),
 		MetadataStore: &mockMetadataStore,
+		KfpApi:        &mockKfpApi,
 	})
 
 	go server.Serve(lis)
@@ -191,6 +194,7 @@ func WithTestContext(fun func(context.Context)) {
 
 	Expect(deleteAllWorkflows(ctx)).To(Succeed())
 	mockMetadataStore.reset()
+	mockKfpApi.reset()
 
 	fun(ctx)
 }
@@ -202,6 +206,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				stream, err := startClient(ctx)
 				pipelineName := randomString()
 				servingModelArtifacts := mockMetadataStore.returnArtifactForPipeline()
+				runConfiguration := mockKfpApi.returnRunConfigurationForRun()
 
 				Expect(err).NotTo(HaveOccurred())
 
@@ -216,6 +221,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				expectedEvent := RunCompletionEvent{
 					Status:                Succeeded,
 					PipelineName:          pipelineName,
+					RunConfigurationName:  runConfiguration,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
 				actualEvent := RunCompletionEvent{}
@@ -233,7 +239,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		})
 	})
 
-	When("A pipeline run succeeds and no model has been pushed", func() {
+	When("A pipeline run succeeds and no model has been pushed and no RunConfiguration is found", func() {
 		It("Triggers an event without a serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
@@ -375,6 +381,45 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					Status:                Succeeded,
 					PipelineName:          pipelineName,
 					ServingModelArtifacts: servingModelArtifacts,
+				}
+				actualEvent := RunCompletionEvent{}
+				err = json.Unmarshal(event.Payload, &actualEvent)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(actualEvent).To(Equal(expectedEvent))
+			})
+		})
+	})
+
+	When("A pipeline run succeeds but the KFP API is unavailable", func() {
+		It("Retries", func() {
+			WithTestContext(func(ctx context.Context) {
+				pipelineName := randomString()
+
+				mockKfpApi.error(errors.New("error calling KFP API"))
+
+				stream, err := startClient(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = stream.Recv()
+				Expect(err).To(HaveOccurred())
+
+				runConfiguration := mockKfpApi.returnRunConfigurationForRun()
+
+				stream, err = startClient(ctx)
+				Expect(err).NotTo(HaveOccurred())
+
+				event, err := stream.Recv()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(event.Name).To(Equal(runCompletionEventName))
+
+				expectedEvent := RunCompletionEvent{
+					Status:                Succeeded,
+					PipelineName:          pipelineName,
+					RunConfigurationName: runConfiguration,
 				}
 				actualEvent := RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
