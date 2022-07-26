@@ -417,8 +417,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				Expect(event.Name).To(Equal(runCompletionEventName))
 
 				expectedEvent := RunCompletionEvent{
-					Status:                Succeeded,
-					PipelineName:          pipelineName,
+					Status:               Succeeded,
+					PipelineName:         pipelineName,
 					RunConfigurationName: runConfiguration,
 				}
 				actualEvent := RunCompletionEvent{}

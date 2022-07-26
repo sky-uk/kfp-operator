@@ -1,10 +1,13 @@
+//go:build decoupled || unit
+// +build decoupled unit
+
 package run_completion
 
 import "context"
 
 type MockKfpApi struct {
 	runConfiguration string
-	err     error
+	err              error
 }
 
 func (mka *MockKfpApi) GetRunConfiguration(_ context.Context, _ string) (string, error) {
