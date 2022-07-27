@@ -5,8 +5,8 @@ import (
 	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 )
 
 var _ = Describe("WorkflowRepository.debugAnnotations", func() {
