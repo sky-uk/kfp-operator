@@ -7,7 +7,7 @@ The RunConfiguration resource represents the lifecycle of Recurring Runs (aka Jo
 Pipeline training runs can be configured using this resource as follows:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1
+apiVersion: pipelines.kubeflow.org/v1alpha1
 kind: RunConfiguration
 metadata:
     name: penguin-pipeline-recurring-run

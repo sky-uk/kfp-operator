@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package v1
+package v1alpha1
 
 import (
 	. "github.com/onsi/ginkgo"
