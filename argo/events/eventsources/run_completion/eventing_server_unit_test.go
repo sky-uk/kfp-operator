@@ -233,16 +233,20 @@ var _ = Context("Eventing Server", func() {
 		workflow.SetName(randomString())
 
 		mockMetadataStore := MockMetadataStore{}
+		mockKfpApi := MockKfpApi{}
 
 		eventingServer := EventingServer{
 			Logger:        logr.Discard(),
 			MetadataStore: &mockMetadataStore,
+			KfpApi:        &mockKfpApi,
 		}
 
 		artifacts := mockMetadataStore.returnArtifactForPipeline()
+		runConfiguration := mockKfpApi.returnRunConfigurationForRun()
 		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 
 		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
+		Expect(event.RunConfigurationName).To(Equal(runConfiguration))
 		Expect(err).NotTo(HaveOccurred())
 	},
 		Entry("workflow succeeded", argo.WorkflowSucceeded),
