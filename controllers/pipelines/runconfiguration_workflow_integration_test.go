@@ -135,7 +135,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 				},
 				Spec: pipelinesv1.RunConfigurationSpec{
 					Pipeline: "pipeline:" + versionName,
-					Schedule:     "* * * * * *",
+					Schedule: "* * * * * *",
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
 					Status: pipelinesv1.Status{
