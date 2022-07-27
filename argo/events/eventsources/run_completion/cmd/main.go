@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
@@ -84,7 +85,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn, err := grpc.Dial(cmdArguments.MetadataStoreAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(cmdArguments.MetadataStoreAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logger.Error(err, "failed to connect connect")
 	}
