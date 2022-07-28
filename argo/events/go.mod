@@ -7,6 +7,7 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/go-logr/zapr v0.4.0
 	github.com/golang/mock v1.6.0
+	github.com/kubeflow/pipelines v1.7.0-alpha.3
 	github.com/onsi/gomega v1.17.0
 	go.uber.org/zap v1.19.0
 	google.golang.org/grpc v1.42.0
@@ -69,3 +70,5 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	k8s.io/apiextensions-apiserver v0.21.1 // indirect
 )
+
+replace k8s.io/kubernetes => k8s.io/kubernetes v1.11.1
