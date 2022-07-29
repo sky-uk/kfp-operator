@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Values.namespace.name }}
 data:
   controller_manager_config.yaml: |
-    apiVersion: config.kubeflow.org/v1
+    apiVersion: config.kubeflow.org/v1alpha1
     kind: KfpControllerConfig
     controller:
       health:
