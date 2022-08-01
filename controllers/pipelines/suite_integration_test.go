@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	TestTimeout = 12000
+	TestTimeout = 120
 )
 
 var (
