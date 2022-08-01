@@ -3,6 +3,6 @@ kind: RunConfiguration
 metadata:
     name: penguin-pipeline-recurring-run
 spec:
-    pipelineName: penguin-pipeline
+    pipeline: penguin-pipeline
     experimentName: penguin-experiment
     schedule: '0 0 * * * *'
