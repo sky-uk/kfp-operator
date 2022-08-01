@@ -27,13 +27,13 @@ mockgen: ## Download mockgen locally if necessary.
 generate: protoc_gen_go mockgen ## Generate service definitions from protobuf
 	$(call get-proto,github.com/google/ml-metadata,v1.5.0)
 	protoc --go_out=. --go-grpc_out=ml_metadata \
-			-I $(PROTOPATH)/github.com/google/ml-metadata@v1.5.0/ \
-			--go_opt=Mml_metadata/proto/metadata_store_service.proto=/ml_metadata \
-			--go_opt=Mml_metadata/proto/metadata_store.proto=/ml_metadata \
-			--go_opt=Mml_metadata/proto/metadata_source.proto=/ml_metadata \
-			--go-grpc_opt=module=ml_metadata/proto \
-			ml_metadata/proto/metadata_store_service.proto \
-			ml_metadata/proto/metadata_store.proto
+		-I $(PROTOPATH)/github.com/google/ml-metadata@v1.5.0/ \
+		--go_opt=Mml_metadata/proto/metadata_store_service.proto=/ml_metadata \
+		--go_opt=Mml_metadata/proto/metadata_store.proto=/ml_metadata \
+		--go_opt=Mml_metadata/proto/metadata_source.proto=/ml_metadata \
+		--go-grpc_opt=module=ml_metadata/proto \
+		ml_metadata/proto/metadata_store_service.proto \
+		ml_metadata/proto/metadata_store.proto
 
 	$(call get-proto,github.com/argoproj/argo-events,v1.5.4)
 	protoc --go_out=. --go-grpc_out=eventsources/generic \
