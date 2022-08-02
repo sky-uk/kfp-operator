@@ -16,28 +16,28 @@ type RunConfigurationSpec struct {
 	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
 }
 
-func (rcs RunConfiguration) ComputeHash() []byte {
+func (rc RunConfiguration) ComputeHash() []byte {
 	oh := objecthasher.New()
-	oh.WriteStringField(rcs.Spec.Pipeline)
-	oh.WriteStringField(rcs.Spec.ExperimentName)
-	oh.WriteStringField(rcs.Spec.Schedule)
-	oh.WriteMapField(rcs.Spec.RuntimeParameters)
-	oh.WriteStringField(rcs.Status.ObservedPipelineVersion)
+	oh.WriteStringField(rc.Spec.Pipeline)
+	oh.WriteStringField(rc.Spec.ExperimentName)
+	oh.WriteStringField(rc.Spec.Schedule)
+	oh.WriteMapField(rc.Spec.RuntimeParameters)
+	oh.WriteStringField(rc.Status.ObservedPipelineVersion)
 	return oh.Sum()
 }
 
-func (rcs RunConfiguration) ComputeVersion() string {
-	hash := rcs.ComputeHash()[0:3]
+func (rc RunConfiguration) ComputeVersion() string {
+	hash := rc.ComputeHash()[0:3]
 
 	return fmt.Sprintf("%x", hash)
 }
 
-func (rcs RunConfiguration) ExtractPipelineNameVersion() (string, string) {
-	if rcs.Spec.Pipeline == "" {
+func (rc RunConfiguration) ExtractPipelineNameVersion() (string, string) {
+	if rc.Spec.Pipeline == "" {
 		return "", ""
 	}
 
-	nameVersion := strings.Split(rcs.Spec.Pipeline, ":")
+	nameVersion := strings.Split(rc.Spec.Pipeline, ":")
 
 	if len(nameVersion) < 2 {
 		return nameVersion[0], ""
