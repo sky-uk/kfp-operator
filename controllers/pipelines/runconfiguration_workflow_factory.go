@@ -162,13 +162,11 @@ func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipe
 		experimentName = runConfiguration.Spec.ExperimentName
 	}
 
-	pipelineName, pipelineVersion := runConfiguration.ExtractPipelineNameVersion()
-
 	kfpScript, err := workflows.KfpExt("job submit").
 		Param("--experiment-name", experimentName).
 		Param("--job-name", runConfiguration.Name).
-		Param("--pipeline-name", pipelineName).
-		OptParam(("--version-name"), pipelineVersion).
+		Param("--pipeline-name", runConfiguration.Spec.Pipeline.Name).
+		OptParam(("--version-name"), runConfiguration.Spec.Pipeline.Version).
 		Param("--cron-expression", runConfiguration.Spec.Schedule).
 		Build()
 

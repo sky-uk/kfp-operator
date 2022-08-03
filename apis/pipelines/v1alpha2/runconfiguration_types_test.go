@@ -15,7 +15,7 @@ var _ = Context("RunConfiguration", func() {
 			rcs := RunConfiguration{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.Spec.Pipeline = "notempty"
+			rcs.Spec.Pipeline = PipelineIdentifier{Name: "notempty"}
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
@@ -75,27 +75,6 @@ var _ = Context("RunConfiguration", func() {
 
 		Specify("Should have the spec hash only", func() {
 			Expect(RunConfiguration{}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
-		})
-	})
-
-	var _ = Describe("ExtractPipelineNameVersion", func() {
-
-		Specify("Should return name and version if both exist", func() {
-			rcs := RunConfiguration{}
-			rcs.Spec.Pipeline = "dummy-pipeline:12345-abcde"
-			name, version := rcs.ExtractPipelineNameVersion()
-
-			Expect(name).To(Equal("dummy-pipeline"))
-			Expect(version).To(Equal("12345-abcde"))
-		})
-
-		Specify("Should return pipeline name and empty version if version doesn't exist", func() {
-			rcs := RunConfiguration{}
-			rcs.Spec.Pipeline = "my-pipeline"
-			name, version := rcs.ExtractPipelineNameVersion()
-
-			Expect(name).To(Equal("my-pipeline"))
-			Expect(version).To(Equal(""))
 		})
 	})
 })

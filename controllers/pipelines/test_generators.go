@@ -105,7 +105,7 @@ func RandomRunConfiguration() *pipelinesv1.RunConfiguration {
 
 func RandomRunConfigurationSpec() pipelinesv1.RunConfigurationSpec {
 	return pipelinesv1.RunConfigurationSpec{
-		Pipeline:          RandomString() + ":" + RandomString(),
+		Pipeline:          pipelinesv1.PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		Schedule:          RandomString(),
 		RuntimeParameters: RandomMap(),
 	}

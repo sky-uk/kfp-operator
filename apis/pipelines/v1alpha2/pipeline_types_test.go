@@ -93,4 +93,38 @@ var _ = Context("Pipeline", func() {
 			}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
 		})
 	})
+
+	var _ = Describe("MarshalJSON", func() {
+
+		Specify("Returns pipeline name if version is missing", func() {
+			pid := PipelineIdentifier{Name: "dummy-pipeline"}
+			json, err := pid.MarshalJSON()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(string(json)).To(Equal("\"dummy-pipeline\""))
+		})
+
+		Specify("Returns pipeline name and version if both exist", func() {
+			pid := PipelineIdentifier{Name: "dummy-pipeline", Version: "dummy-version"}
+			json, err := pid.MarshalJSON()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(string(json)).To(Equal("\"dummy-pipeline:dummy-version\""))
+		})
+	})
+
+	var _ = Describe("UnmarshalJSON", func() {
+
+		Specify("Returns pipeline name if version is missing", func() {
+			pid := PipelineIdentifier{Name: "dummy-pipeline"}
+			json, err := pid.MarshalJSON()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(string(json)).To(Equal("\"dummy-pipeline\""))
+		})
+
+		Specify("Returns pipeline name and version if both exist", func() {
+			pid := PipelineIdentifier{Name: "dummy-pipeline", Version: "dummy-version"}
+			json, err := pid.MarshalJSON()
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(string(json)).To(Equal("\"dummy-pipeline:dummy-version\""))
+		})
+	})
 })

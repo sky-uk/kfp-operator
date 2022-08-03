@@ -51,9 +51,9 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
 	var desiredVersion *string
-	_, version := runConfiguration.ExtractPipelineNameVersion()
+	pipelineVersion := runConfiguration.Spec.Pipeline.Version
 
-	if version == "" {
+	if pipelineVersion == "" {
 		pipeline, err := r.fetchDependentPipeline(ctx, runConfiguration)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -61,7 +61,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 		desiredVersion = dependentPipelineVersionIfStable(pipeline)
 	} else {
-		desiredVersion = &version
+		desiredVersion = &pipelineVersion
 	}
 
 	if desiredVersion != nil && *desiredVersion != runConfiguration.Status.ObservedPipelineVersion {
@@ -94,14 +94,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 func (r *RunConfigurationReconciler) fetchDependentPipeline(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Pipeline, error) {
 	logger := log.FromContext(ctx)
 
-	if runConfiguration.Spec.Pipeline == "" {
-		return nil, nil
-	}
-
 	pipeline := &pipelinesv1.Pipeline{}
-	pipelineName, _ := runConfiguration.ExtractPipelineNameVersion()
-
-	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: pipelineName}, pipeline); err != nil {
+	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: runConfiguration.Spec.Pipeline.Name}, pipeline); err != nil {
 		if statusError, isStatusError := err.(*errors.StatusError); !isStatusError || statusError.ErrStatus.Code != http.StatusNotFound {
 			logger.Error(err, "unable to fetch dependent pipeline")
 
@@ -158,12 +152,7 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &pipelinesv1.RunConfiguration{}, pipelineRefField, func(rawObj client.Object) []string {
 		runConfiguration := rawObj.(*pipelinesv1.RunConfiguration)
-		if runConfiguration.Spec.Pipeline == "" {
-			return nil
-		}
-
-		pipelineName, _ := runConfiguration.ExtractPipelineNameVersion()
-		return []string{pipelineName}
+		return []string{runConfiguration.Spec.Pipeline.Name}
 	}); err != nil {
 		return err
 	}

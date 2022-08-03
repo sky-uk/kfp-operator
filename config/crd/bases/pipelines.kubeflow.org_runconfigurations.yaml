@@ -49,6 +49,7 @@ spec:
               experimentName:
                 type: string
               pipeline:
+                pattern: ^[\w-]+(?::[\w-]+)?$
                 type: string
               runtimeParameters:
                 additionalProperties:

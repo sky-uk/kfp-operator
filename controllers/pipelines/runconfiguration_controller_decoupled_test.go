@@ -79,7 +79,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration := RandomRunConfiguration()
 			runConfiguration.Namespace = "default"
 			pipelineVersion := "12345-abcde"
-			runConfiguration.Spec.Pipeline = "dummy-pipeline:" + pipelineVersion
+			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: "dummy-pipeline", Version: pipelineVersion}
 
 			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
 			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
@@ -97,7 +97,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			pipelineVersion := RandomString()
 
 			runConfiguration := RandomRunConfiguration()
-			runConfiguration.Spec.Pipeline = pipeline.Name
+			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: pipeline.Name}
 			runConfiguration.Namespace = "default"
 
 			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
@@ -133,7 +133,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			runConfiguration := RandomRunConfiguration()
 			fixedPipelineVersion := "12345-abcde"
-			runConfiguration.Spec.Pipeline = pipeline.Name + ":" + fixedPipelineVersion
+			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: pipeline.Name, Version: fixedPipelineVersion}
 			runConfiguration.Namespace = "default"
 
 			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)

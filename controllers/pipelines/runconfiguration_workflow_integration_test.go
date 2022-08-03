@@ -81,8 +81,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			return err
 		}
 
-		pipelineName, _ := runconfiguration.ExtractPipelineNameVersion()
-		if err := StubGetPipeline(pipelineName, pipelineKfpId); err != nil {
+		if err := StubGetPipeline(runconfiguration.Spec.Pipeline.Name, pipelineKfpId); err != nil {
 			return err
 		}
 
@@ -134,7 +133,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					Namespace: "argo",
 				},
 				Spec: pipelinesv1.RunConfigurationSpec{
-					Pipeline: "pipeline:" + versionName,
+					Pipeline: pipelinesv1.PipelineIdentifier{Name: "pipeline", Version: versionName},
 					Schedule: "* * * * * *",
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
