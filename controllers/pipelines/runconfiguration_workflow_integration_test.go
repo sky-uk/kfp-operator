@@ -8,8 +8,8 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	"github.com/walkerus/go-wiremock"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,13 +33,15 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 	}
 
 	pipelineKfpId := RandomString()
+	versionKfpId := RandomString()
+	versionName := RandomString()
 	jobKfpId := RandomString()
 	newJobKfpId := RandomString()
 	experimentKfpId := RandomString()
 
 	var StubGetExperiment = func(experimentName string, experimentKfpId string) error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
-			WithQueryParam("filter", wiremock.EqualTo(
+			WithQueryParam("filter", wiremock.EqualToJson(
 				fmt.Sprintf(`{"predicates": [{"op": 1, "key": "name", "stringValue": "%s"}]}`, experimentName))).
 			WillReturn(
 				fmt.Sprintf(`{"experiments": [{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}]}`,
@@ -51,11 +53,24 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 
 	var StubGetPipeline = func(pipelineName string, pipelineId string) error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines")).
-			WithQueryParam("filter", wiremock.EqualTo(
+			WithQueryParam("filter", wiremock.EqualToJson(
 				fmt.Sprintf(`{"predicates": [{"op": 1, "key": "name", "stringValue": "%s"}]}`, pipelineName))).
 			WillReturn(
-				fmt.Sprintf(`{"experiments": [{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}]}`,
+				fmt.Sprintf(`{"pipelines": [{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}]}`,
 					pipelineId, pipelineName),
+				map[string]string{"Content-Type": "application/json"},
+				200,
+			))
+	}
+
+	var StubGetPipelineVersions = func(pipelineKfpId string) error {
+		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/pipeline_versions")).
+			WithQueryParam("resource_key.id", wiremock.EqualTo(pipelineKfpId)).
+			WithQueryParam("filter", wiremock.EqualToJson(
+				fmt.Sprintf(`{"predicates": [{"op": "EQUALS", "key": "name", "string_value": "%s"}]}`, versionName))).
+			WillReturn(
+				fmt.Sprintf(`{"versions": [{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}]}`,
+					versionKfpId, versionName),
 				map[string]string{"Content-Type": "application/json"},
 				200,
 			))
@@ -65,7 +80,8 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		if err := StubGetExperiment(workflowFactory.Config.DefaultExperiment, experimentKfpId); err != nil {
 			return err
 		}
-		if err := StubGetPipeline(runconfiguration.Spec.PipelineName, pipelineKfpId); err != nil {
+
+		if err := StubGetPipeline(runconfiguration.Spec.Pipeline.Name, pipelineKfpId); err != nil {
 			return err
 		}
 
@@ -117,8 +133,8 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					Namespace: "argo",
 				},
 				Spec: pipelinesv1.RunConfigurationSpec{
-					PipelineName: "pipeline",
-					Schedule:     "* * * * * *",
+					Pipeline: pipelinesv1.PipelineIdentifier{Name: "pipeline", Version: versionName},
+					Schedule: "* * * * * *",
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
 					Status: pipelinesv1.Status{
@@ -141,6 +157,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 	DescribeTable("Creation Workflow", AssertWorkflow,
 		Entry("Creation succeeds",
 			func(runconfiguration *pipelinesv1.RunConfiguration) {
+				Expect(StubGetPipelineVersions(pipelineKfpId)).To(Succeed())
 				Expect(SucceedCreation(runconfiguration, jobKfpId)).To(Succeed())
 			},
 			workflowFactory.ConstructCreationWorkflow,
@@ -194,6 +211,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 	DescribeTable("Update Workflow", AssertWorkflow,
 		Entry("Deletion and creation succeed", func(runconfiguration *pipelinesv1.RunConfiguration) {
 			Expect(SucceedDeletion(jobKfpId)).To(Succeed())
+			Expect(StubGetPipelineVersions(pipelineKfpId)).To(Succeed())
 			Expect(SucceedCreation(runconfiguration, newJobKfpId)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
@@ -220,6 +238,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
 			}),
 		Entry("Deletion fails with RC not found and creation succeeds", func(runconfiguration *pipelinesv1.RunConfiguration) {
+			Expect(StubGetPipelineVersions(pipelineKfpId)).To(Succeed())
 			Expect(FailDeletionWithCode(jobKfpId, 5)).To(Succeed())
 			Expect(SucceedCreation(runconfiguration, newJobKfpId)).To(Succeed())
 		},

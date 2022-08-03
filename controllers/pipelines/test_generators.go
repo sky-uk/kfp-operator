@@ -8,7 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"math/rand"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	"github.com/thanhpk/randstr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -105,7 +105,7 @@ func RandomRunConfiguration() *pipelinesv1.RunConfiguration {
 
 func RandomRunConfigurationSpec() pipelinesv1.RunConfigurationSpec {
 	return pipelinesv1.RunConfigurationSpec{
-		PipelineName:      RandomString(),
+		Pipeline:          pipelinesv1.PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		Schedule:          RandomString(),
 		RuntimeParameters: RandomMap(),
 	}

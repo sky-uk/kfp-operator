@@ -28,7 +28,7 @@ spec:
     - jsonPath: .status.version
       name: Version
       type: string
-    name: v1alpha1
+    name: v1alpha2
     schema:
       openAPIV3Schema:
         properties:
@@ -48,7 +48,8 @@ spec:
             properties:
               experimentName:
                 type: string
-              pipelineName:
+              pipeline:
+                pattern: ^[\w-]+(?::[\w-]+)?$
                 type: string
               runtimeParameters:
                 additionalProperties:

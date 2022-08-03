@@ -7,7 +7,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -74,20 +74,36 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
-	When("Updating the referenced pipeline", func() {
+	When("Creating with a fixed pipeline version", func() {
+		It("creates a RC with an ObervedPipelineVersion that matches the fixed version", func() {
+			runConfiguration := RandomRunConfiguration()
+			runConfiguration.Namespace = "default"
+			pipelineVersion := "12345-abcde"
+			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: "dummy-pipeline", Version: pipelineVersion}
+
+			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
+			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
+
+			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Updating the referenced pipeline with no version specified on the RC", func() {
 		It("triggers an update of the run configuration", func() {
 			pipeline := RandomPipeline()
 			pipeline.Namespace = "default"
 			pipelineVersion := RandomString()
 
 			runConfiguration := RandomRunConfiguration()
-			runConfiguration.Spec.PipelineName = pipeline.Name
+			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: pipeline.Name}
 			runConfiguration.Namespace = "default"
 
 			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
 			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
 				Status: pipelinesv1.Status{
-					Version:              RandomString(),
+					Version:              runConfiguration.ComputeVersion(),
 					KfpId:                RandomString(),
 					SynchronizationState: pipelinesv1.Succeeded,
 				},
@@ -105,6 +121,49 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Updating the referenced pipeline with a fixed version specified on the RC", func() {
+		It("does not trigger an update of the run configuration", func() {
+			pipeline := RandomPipeline()
+			pipeline.Namespace = "default"
+			pipelineVersion := RandomString()
+
+			runConfiguration := RandomRunConfiguration()
+			fixedPipelineVersion := "12345-abcde"
+			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: pipeline.Name, Version: fixedPipelineVersion}
+			runConfiguration.Namespace = "default"
+
+			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
+			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
+				Status: pipelinesv1.Status{
+					Version:              runConfiguration.ComputeVersion(),
+					KfpId:                RandomString(),
+					SynchronizationState: pipelinesv1.Succeeded,
+				},
+				ObservedPipelineVersion: fixedPipelineVersion,
+			})
+
+			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
+			pipelineTestCtx.PipelineCreatedWithStatus(
+				pipelinesv1.Status{
+					Version:              pipelineVersion,
+					KfpId:                RandomString(),
+					SynchronizationState: pipelinesv1.Succeeded,
+				})
+
+			// To verify the absence of additional RC updates, force another update of the resource.
+			// If the update is processed but the pipeline version hasn't changed,
+			// given that reconciliation requests are processed in-order, we can conclude that the RC is fixed.
+			runCfgTestCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
+				runConfiguration.Spec.Schedule = RandomString()
+			})
+
+			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
+				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedPipelineVersion))
 			})).Should(Succeed())
 		})
 	})

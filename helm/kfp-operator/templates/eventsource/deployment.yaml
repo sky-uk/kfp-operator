@@ -25,6 +25,7 @@ spec:
           args:
             - --port=50051
             - --mlmd-url={{ .Values.eventsourceServer.mlmdUrl }}
+            - --kfp-url={{ .Values.eventsourceServer.kfpUrl }}
             {{ if .Values.logging.verbosity }}
             - --zap-log-level={{ .Values.logging.verbosity }}
             {{ end }}

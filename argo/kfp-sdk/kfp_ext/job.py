@@ -1,5 +1,6 @@
 import click
 from kfp.cli.output import print_output, OutputFormat
+import sys
 
 @click.group()
 def job():
@@ -14,6 +15,8 @@ def job():
     help='Name of the Job.')
 @click.option('-p', '--pipeline-id', help='ID of the pipeline template.')
 @click.option('-n', '--pipeline-name', help='Name of the pipeline template.')
+@click.option('-v', '--version-name', help='Name of the pipeline version.')
+@click.option('--version-id', help='ID of the pipeline version.')
 @click.option(
     '-e',
     '--experiment-name',
@@ -30,7 +33,7 @@ def job():
     required=True,
     help='Cron Expression of the run.')
 @click.pass_context
-def submit(ctx, job_name, pipeline_id, pipeline_name, experiment_name, cron_expression):
+def submit(ctx, job_name, pipeline_id, pipeline_name, version_name, version_id, experiment_name, cron_expression):
     client = ctx.obj['client']
     output_format = ctx.obj['output']
 
@@ -45,11 +48,20 @@ def submit(ctx, job_name, pipeline_id, pipeline_name, experiment_name, cron_expr
                 err=True)
             sys.exit(1)
 
+    if not version_id:
+      if version_name:
+          pipeline_versions = client.list_pipeline_versions(
+              resource_key_id=pipeline_id,
+              filter=f'{{"predicates": [{{"key":"name", "op":"EQUALS", "string_value":"{version_name}"}}]}}'
+          )
+          version_id = pipeline_versions.versions[0].id
+
     job = client.create_recurring_run(
         experiment_id=experiment.id,
         job_name=job_name,
         cron_expression=cron_expression,
-        pipeline_id=pipeline_id)
+        pipeline_id=pipeline_id,
+        version_id=version_id)
 
     _display_job(job, output_format)
 

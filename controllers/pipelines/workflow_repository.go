@@ -3,8 +3,8 @@ package pipelines
 import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	"github.com/sky-uk/kfp-operator/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"

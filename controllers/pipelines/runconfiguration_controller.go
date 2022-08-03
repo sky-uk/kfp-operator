@@ -2,11 +2,13 @@ package pipelines
 
 import (
 	"context"
+	"net/http"
+	"time"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
-	"net/http"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -15,13 +17,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"time"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 )
 
 const (
-	pipelineRefField = ".spec.pipelineName"
+	pipelineRefField = ".spec.pipeline"
 )
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
@@ -49,13 +50,19 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
-	pipeline, err := r.fetchDependentPipeline(ctx, runConfiguration)
+	var desiredVersion *string
+	pipelineVersion := runConfiguration.Spec.Pipeline.Version
 
-	if err != nil {
-		return ctrl.Result{}, err
+	if pipelineVersion == "" {
+		pipeline, err := r.fetchDependentPipeline(ctx, runConfiguration)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
+		desiredVersion = dependentPipelineVersionIfStable(pipeline)
+	} else {
+		desiredVersion = &pipelineVersion
 	}
-
-	desiredVersion := dependentPipelineVersionIfStable(pipeline)
 
 	if desiredVersion != nil && *desiredVersion != runConfiguration.Status.ObservedPipelineVersion {
 		runConfiguration.Status.ObservedPipelineVersion = *desiredVersion
@@ -87,13 +94,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 func (r *RunConfigurationReconciler) fetchDependentPipeline(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Pipeline, error) {
 	logger := log.FromContext(ctx)
 
-	if runConfiguration.Spec.PipelineName == "" {
-		return nil, nil
-	}
-
 	pipeline := &pipelinesv1.Pipeline{}
-
-	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: runConfiguration.Spec.PipelineName}, pipeline); err != nil {
+	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: runConfiguration.Spec.Pipeline.Name}, pipeline); err != nil {
 		if statusError, isStatusError := err.(*errors.StatusError); !isStatusError || statusError.ErrStatus.Code != http.StatusNotFound {
 			logger.Error(err, "unable to fetch dependent pipeline")
 
@@ -150,10 +152,7 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &pipelinesv1.RunConfiguration{}, pipelineRefField, func(rawObj client.Object) []string {
 		runConfiguration := rawObj.(*pipelinesv1.RunConfiguration)
-		if runConfiguration.Spec.PipelineName == "" {
-			return nil
-		}
-		return []string{runConfiguration.Spec.PipelineName}
+		return []string{runConfiguration.Spec.Pipeline.Name}
 	}); err != nil {
 		return err
 	}

@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package v1alpha1
+package v1alpha2
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -11,11 +11,11 @@ import (
 var _ = Context("RunConfiguration", func() {
 	var _ = Describe("ComputeHash", func() {
 
-		Specify("PipelineName should change the hash", func() {
+		Specify("Pipeline should change the hash", func() {
 			rcs := RunConfiguration{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.Spec.PipelineName = "notempty"
+			rcs.Spec.Pipeline = PipelineIdentifier{Name: "notempty"}
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))

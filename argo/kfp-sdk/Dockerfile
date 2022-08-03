@@ -1,4 +1,4 @@
-FROM python:3.7.12-alpine3.14
+FROM python:3.10.5-alpine3.16
 
 ARG WHEEL_VERSION
 

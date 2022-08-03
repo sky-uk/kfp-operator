@@ -1,4 +1,4 @@
-package v1alpha1
+package v1alpha2
 
 import (
 	"fmt"
@@ -8,24 +8,24 @@ import (
 )
 
 type RunConfigurationSpec struct {
-	PipelineName      string            `json:"pipelineName,omitempty"`
-	ExperimentName    string            `json:"experimentName,omitempty"`
-	Schedule          string            `json:"schedule,omitempty"`
-	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
+	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
+	ExperimentName    string             `json:"experimentName,omitempty"`
+	Schedule          string             `json:"schedule,omitempty"`
+	RuntimeParameters map[string]string  `json:"runtimeParameters,omitempty"`
 }
 
-func (rcs RunConfiguration) ComputeHash() []byte {
+func (rc RunConfiguration) ComputeHash() []byte {
 	oh := objecthasher.New()
-	oh.WriteStringField(rcs.Spec.PipelineName)
-	oh.WriteStringField(rcs.Spec.ExperimentName)
-	oh.WriteStringField(rcs.Spec.Schedule)
-	oh.WriteMapField(rcs.Spec.RuntimeParameters)
-	oh.WriteStringField(rcs.Status.ObservedPipelineVersion)
+	oh.WriteStringField(rc.Spec.Pipeline.String())
+	oh.WriteStringField(rc.Spec.ExperimentName)
+	oh.WriteStringField(rc.Spec.Schedule)
+	oh.WriteMapField(rc.Spec.RuntimeParameters)
+	oh.WriteStringField(rc.Status.ObservedPipelineVersion)
 	return oh.Sum()
 }
 
-func (rcs RunConfiguration) ComputeVersion() string {
-	hash := rcs.ComputeHash()[0:3]
+func (rc RunConfiguration) ComputeVersion() string {
+	hash := rc.ComputeHash()[0:3]
 
 	return fmt.Sprintf("%x", hash)
 }

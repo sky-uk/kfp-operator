@@ -2,8 +2,9 @@ package pipelines
 
 import (
 	"fmt"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 )
 
 var RunConfigurationWorkflowConstants = struct {
@@ -164,7 +165,8 @@ func (workflows *RunConfigurationWorkflowFactory) creator(runConfiguration *pipe
 	kfpScript, err := workflows.KfpExt("job submit").
 		Param("--experiment-name", experimentName).
 		Param("--job-name", runConfiguration.Name).
-		Param("--pipeline-name", runConfiguration.Spec.PipelineName).
+		Param("--pipeline-name", runConfiguration.Spec.Pipeline.Name).
+		OptParam(("--version-name"), runConfiguration.Spec.Pipeline.Version).
 		Param("--cron-expression", runConfiguration.Spec.Schedule).
 		Build()
 

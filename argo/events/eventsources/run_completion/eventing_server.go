@@ -47,6 +47,7 @@ type EventingServer struct {
 	generic.UnimplementedEventingServer
 	K8sClient     dynamic.Interface
 	MetadataStore MetadataStore
+	KfpApi        KfpApi
 	Logger        logr.Logger
 }
 
@@ -65,6 +66,7 @@ const (
 type RunCompletionEvent struct {
 	Status                RunCompletionStatus    `json:"status"`
 	PipelineName          string                 `json:"pipelineName"`
+	RunConfigurationName  string                 `json:"runConfigurationName,omitempty"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }
 
@@ -210,9 +212,18 @@ func (es *EventingServer) eventForWorkflow(ctx context.Context, workflow *unstru
 		return nil, err
 	}
 
+	runId := workflow.GetLabels()[pipelineRunIdLabel]
+	runConfigurationName, err := es.KfpApi.GetRunConfiguration(ctx, runId)
+
+	if err != nil {
+		es.Logger.Error(err, "failed to retrieve RunConfiguration name")
+		return nil, err
+	}
+
 	return &RunCompletionEvent{
 		Status:                status,
 		PipelineName:          pipelineName,
+		RunConfigurationName:  runConfigurationName,
 		ServingModelArtifacts: modelArtifacts,
 	}, nil
 }

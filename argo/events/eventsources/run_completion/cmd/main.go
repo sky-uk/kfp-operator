@@ -3,9 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
@@ -41,12 +43,14 @@ func createK8sClient() (dynamic.Interface, error) {
 type CmdArguments struct {
 	Port              int
 	MetadataStoreAddr string
+	KfpApiAddr        string
 	ZapLogLevel       zapcore.Level
 }
 
 func ParseCmdArguments() (CmdArguments, error) {
 	port := flag.Int("port", 50051, "The server port")
 	metadataStoreAddr := flag.String("mlmd-url", "", "The MLMD gRPC URL (required)")
+	kfpApiAddr := flag.String("kfp-url", "", "The KFP gRPC URL (required)")
 	zapLogLevel := zap.LevelFlag("zap-log-level", zapcore.InfoLevel, "The Zap log level")
 	flag.Parse()
 
@@ -54,10 +58,37 @@ func ParseCmdArguments() (CmdArguments, error) {
 		return CmdArguments{}, fmt.Errorf("mlmd-url must be specified")
 	}
 
+	if *kfpApiAddr == "" {
+		return CmdArguments{}, fmt.Errorf("kfp-url must be specified")
+	}
+
 	return CmdArguments{
 		Port:              *port,
 		MetadataStoreAddr: *metadataStoreAddr,
+		KfpApiAddr:        *kfpApiAddr,
 		ZapLogLevel:       *zapLogLevel,
+	}, nil
+}
+
+func ConnectToMetadataStore(address string) (*run_completion.GrpcMetadataStore, error) {
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &run_completion.GrpcMetadataStore{
+		MetadataStoreServiceClient: ml_metadata.NewMetadataStoreServiceClient(conn),
+	}, nil
+}
+
+func ConnectToKfpApi(address string) (*run_completion.GrpcKfpApi, error) {
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &run_completion.GrpcKfpApi{
+		RunServiceClient: go_client.NewRunServiceClient(conn),
 	}, nil
 }
 
@@ -84,21 +115,26 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn, err := grpc.Dial(cmdArguments.MetadataStoreAddr, grpc.WithInsecure())
+	metadataStore, err := ConnectToMetadataStore(cmdArguments.MetadataStoreAddr)
 	if err != nil {
-		logger.Error(err, "failed to connect connect")
+		logger.Error(err, "failed to connect to metadata store")
+		os.Exit(1)
 	}
 
-	metadataStoreClient := ml_metadata.NewMetadataStoreServiceClient(conn)
+	kfpApi, err := ConnectToKfpApi(cmdArguments.KfpApiAddr)
+	if err != nil {
+		logger.Error(err, "failed to connect to KFP API")
+		os.Exit(1)
+	}
 
 	s := grpc.NewServer()
 	generic.RegisterEventingServer(s, &run_completion.EventingServer{
-		K8sClient: k8sClient,
-		Logger:    logger,
-		MetadataStore: &run_completion.GrpcMetadataStore{
-			MetadataStoreServiceClient: metadataStoreClient,
-		},
+		K8sClient:     k8sClient,
+		Logger:        logger,
+		MetadataStore: metadataStore,
+		KfpApi:        kfpApi,
 	})
+
 	logger.Info(fmt.Sprintf("server listening at %s", lis.Addr()))
 	if err := s.Serve(lis); err != nil {
 		logger.Error(err, "failed to serve")
