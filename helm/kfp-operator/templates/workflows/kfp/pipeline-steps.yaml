@@ -1,0 +1,73 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: pipeline-stepes
+spec:
+  templates:
+    - name: compile
+      inputs:
+        parameters:
+        - name: compiler-config
+        - name: pipeline-image
+      container:
+        command:
+          - python3
+        image: '{{inputs.parameters.compiler-image}}'
+        name: pipeline
+        volumeMounts:
+        - mountPath: /shared
+          name: shared
+        args:
+        - /shared/compile.py
+        - --output_file
+        - /tmp/pipeline.yaml
+        - --pipeline_config
+        - |
+          {{inputs.parameters.compiler-config}}
+      initContainers:
+      - args:
+        - /shared
+        image: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
+        mirrorVolumeMounts: true
+        name: compile
+      metadata:
+        {{- .Values.manager.argo.metadataDefaults | nindent 8 -}}
+      outputs:
+        artifacts:
+        - name: pipeline
+          path: /tmp/pipeline.yaml
+      volumes:
+      - name: shared
+    - name: upload
+      inputs:
+          artifacts:
+          - name: pipeline
+            path: /tmp/pipeline.yaml
+          parameters:
+          - name: pipeline-name
+        metadata:
+          {{- .Values.manager.argo.metadataDefaults | nindent 8 -}}
+      script:
+        command:
+        - ash
+        image: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+        source: |-
+          set -e -o pipefail
+          kfp-ext --endpoint '{{ .Values.manager.kfpEndpoint }}' --output json pipeline upload --pipeline-name '{{inputs.parameters.pipeline-name}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
+    - name: update
+      inputs:
+        artifacts:
+        - name: pipeline
+          path: /tmp/pipeline.yaml
+        parameters:
+        - name: pipeline-id
+        - name: pipeline-version
+      metadata:
+        {{ .Values.manager.argo.metadataDefaults }}
+      script:
+        command:
+        - ash
+        image: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+        source: |-
+          set -e -o pipefail
+          kfp-ext --endpoint '{{ .Values.manager.kfpEndpoint }}' --output json pipeline upload-version --pipeline-version '{{inputs.parameters.pipeline-version}}' --pipeline-id '{{inputs.parameters.pipeline-id}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'

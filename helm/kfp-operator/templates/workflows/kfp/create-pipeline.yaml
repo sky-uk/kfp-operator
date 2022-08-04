@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: create-pipeline
+spec:
+  entrypoint: main
+  serviceAccountName: ???
+  arguments:
+    parameters:
+      - name: ???
+        value: ???
+  templates:
+    - name: main
+      steps:
+      - - name: compile
+          templateRef:
+            name: pipeline-steps
+            template: compile
