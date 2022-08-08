@@ -85,23 +85,23 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 			))
 	}
 
-	var SucceedDeletion = func(pipeline *pipelinesv1.Pipeline) error {
-		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipeline.Status.KfpId)).
-			WillReturn(
-				`{"status": "deleted"}`,
-				map[string]string{"Content-Type": "application/json"},
-				200,
-			))
-	}
+	//var SucceedDeletion = func(pipeline *pipelinesv1.Pipeline) error {
+	//	return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipeline.Status.KfpId)).
+	//		WillReturn(
+	//			`{"status": "deleted"}`,
+	//			map[string]string{"Content-Type": "application/json"},
+	//			200,
+	//		))
+	//}
 
-	var FailDeletion = func(pipeline *pipelinesv1.Pipeline) error {
-		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipeline.Status.KfpId)).
-			WillReturn(
-				`{"status": "failed"}`,
-				map[string]string{"Content-Type": "application/json"},
-				400,
-			))
-	}
+	//var FailDeletion = func(pipeline *pipelinesv1.Pipeline) error {
+	//	return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipeline.Status.KfpId)).
+	//		WillReturn(
+	//			`{"status": "failed"}`,
+	//			map[string]string{"Content-Type": "application/json"},
+	//			400,
+	//		))
+	//}
 
 	var AssertWorkflow = func(
 		setUp func(pipeline *pipelinesv1.Pipeline),
@@ -171,49 +171,49 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 		),
 	)
 
-	DescribeTable("Update Workflow", AssertWorkflow,
-		Entry("Upload succeeds",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(SucceedUploadVersion(pipeline)).To(Succeed())
-			},
-			workflowFactory.ConstructUpdateWorkflow,
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-			},
-		),
-		Entry("Upload fails",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(FailUploadVersion(pipeline)).To(Succeed())
-			},
-			workflowFactory.ConstructUpdateWorkflow,
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-			},
-		),
-	)
+	//DescribeTable("Update Workflow", AssertWorkflow,
+	//	Entry("Upload succeeds",
+	//		func(pipeline *pipelinesv1.Pipeline) {
+	//			Expect(SucceedUploadVersion(pipeline)).To(Succeed())
+	//		},
+	//		workflowFactory.ConstructUpdateWorkflow,
+	//		func(g Gomega, workflow *argo.Workflow) {
+	//			g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+	//		},
+	//	),
+	//	Entry("Upload fails",
+	//		func(pipeline *pipelinesv1.Pipeline) {
+	//			Expect(FailUploadVersion(pipeline)).To(Succeed())
+	//		},
+	//		workflowFactory.ConstructUpdateWorkflow,
+	//		func(g Gomega, workflow *argo.Workflow) {
+	//			g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+	//		},
+	//	),
+	//)
 
-	DescribeTable("Update Workflow", AssertWorkflow,
-		Entry("Deletion succeeds",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(SucceedDeletion(pipeline)).To(Succeed())
-			},
-			func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-				return workflowFactory.ConstructDeletionWorkflow(pipeline)
-			},
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-			},
-		),
-		Entry("Deletion fails",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(FailDeletion(pipeline)).To(Succeed())
-			},
-			func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-				return workflowFactory.ConstructDeletionWorkflow(pipeline)
-			},
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-			},
-		),
-	)
+	//DescribeTable("Update Workflow", AssertWorkflow,
+	//	Entry("Deletion succeeds",
+	//		func(pipeline *pipelinesv1.Pipeline) {
+	//			Expect(SucceedDeletion(pipeline)).To(Succeed())
+	//		},
+	//		func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	//			return workflowFactory.ConstructDeletionWorkflow(pipeline)
+	//		},
+	//		func(g Gomega, workflow *argo.Workflow) {
+	//			g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+	//		},
+	//	),
+	//	Entry("Deletion fails",
+	//		func(pipeline *pipelinesv1.Pipeline) {
+	//			Expect(FailDeletion(pipeline)).To(Succeed())
+	//		},
+	//		func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	//			return workflowFactory.ConstructDeletionWorkflow(pipeline)
+	//		},
+	//		func(g Gomega, workflow *argo.Workflow) {
+	//			g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+	//		},
+	//	),
+	//)
 })

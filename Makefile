@@ -78,6 +78,7 @@ integration-test-up:
 integration-test: manifests generate ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
 	$(MAKE) docker-build-argo && \
+	kubectl apply -f config/manager/workflows/kfp
 	docker build docs-gen/includes/quickstart -t kfp-quickstart
 	go test ./... -tags=integration
 

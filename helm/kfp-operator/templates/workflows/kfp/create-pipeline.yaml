@@ -1,18 +1,63 @@
 apiVersion: argoproj.io/v1alpha1
-kind: WorkflowTemplate
+kind: ClusterWorkflowTemplate
 metadata:
-  name: create-pipeline
+  name: {{ include "kfp-operator.fullname" . }}-create-pipeline
 spec:
+  workflowMetadata:
+      labels:
+        pipelines.kubeflow.org/owner.kind: pipeline
+        pipelines.kubeflow.org/owner.name: "{{`{{workflow.parameters.pipeline-name}}`}}"
+        pipelines.kubeflow.org/operation: create
   entrypoint: main
-  serviceAccountName: ???
+  serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
   arguments:
     parameters:
-      - name: ???
-        value: ???
+      - name: compiler-config
+      - name: pipeline-image
+      - name: pipeline-name
   templates:
     - name: main
+      outputs:
+        parameters:
+        - name: pipeline-id
+          valueFrom:
+            parameter: '{{`{{steps.upload.outputs.result}}`}}'
+        - name: pipeline-version
+          valueFrom:
+            parameter: '{{`{{steps.update.outputs.result}}`}}'
       steps:
       - - name: compile
+          arguments:
+            parameters:
+            - name: compiler-config
+              value: '{{`{{workflow.parameters.compiler-config}}`}}'
+            - name: pipeline-image
+              value: '{{`{{workflow.parameters.pipeline-image}}`}}'
           templateRef:
             name: pipeline-steps
             template: compile
+            clusterScope: true
+      - - name: upload
+          arguments:
+            artifacts:
+            - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
+              name: pipeline
+            parameters:
+            - name: pipeline-name
+              value: '{{`{{workflow.parameters.pipeline-name}}`}}'
+          templateRef:
+            name: pipeline-steps
+            template: upload
+            clusterScope: true
+      - - name: update
+          arguments:
+            artifacts:
+            - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
+              name: pipeline
+            parameters:
+            - name: pipeline-version
+              value: '{{`{{workflow.parameters.pipeline-version}}`}}'
+          templateRef:
+            name: pipeline-steps
+            template: update
+            clusterScope: true
