@@ -1,9 +1,9 @@
 fullnameOverride: kfp-operator
-containerRegistry: ${CONTAINER_REGISTRY}
 manager:
   argo:
-    serviceAccount: ${OPERATOR_SA}
     kfpEndpoint: ${KFP_ENDPOINT}
+    containerDefaults:
+      imagePullPolicy: Never
   configuration:
     pipelineStorage: ${PIPELINE_STORAGE}
     defaultBeamArgs:

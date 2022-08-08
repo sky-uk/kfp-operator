@@ -3,18 +3,16 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-pipeline
 spec:
-  workflowMetadata:
-      labels:
-        pipelines.kubeflow.org/owner.kind: pipeline
-        pipelines.kubeflow.org/owner.name: "{{`{{workflow.parameters.pipeline-name}}`}}"
-        pipelines.kubeflow.org/operation: create
   entrypoint: main
+  {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
+  {{- end }}
   arguments:
     parameters:
       - name: compiler-config
       - name: pipeline-image
       - name: pipeline-name
+      - name: pipeline-version
   templates:
     - name: main
       outputs:
@@ -55,8 +53,12 @@ spec:
             - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
               name: pipeline
             parameters:
+            - name: pipeline-id
+              value: '{{`{{steps.upload.outputs.result}}`}}'
             - name: pipeline-version
               value: '{{`{{workflow.parameters.pipeline-version}}`}}'
+          continueOn:
+            failed: true
           templateRef:
             name: pipeline-steps
             template: update
