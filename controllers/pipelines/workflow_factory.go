@@ -41,6 +41,7 @@ func CommonWorkflowMeta(owner Resource, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", operation, owner.GetKind()),
 		Namespace:    owner.GetNamespace(),
+		Labels: CommonWorkflowLabels(owner, operation),
 	}
 }
 

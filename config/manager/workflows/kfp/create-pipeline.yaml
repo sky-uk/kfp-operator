@@ -47,18 +47,17 @@ spec:
           - name: pipeline
             from: "{{steps.compile.outputs.artifacts.pipeline}}"
           parameters:
+          - name: pipeline-id
+            value: "{{steps.upload.outputs.result}}"
           - name: pipeline-version
             value: "{{workflow.parameters.pipeline-version}}"
+        continueOn:
+          failed: true
   entrypoint: main
-  serviceAccountName: ${OPERATOR_SA}
+#  serviceAccountName: ${OPERATOR_SA}
   arguments:
     parameters:
     - name: compiler-config
     - name: pipeline-image
     - name: pipeline-name
     - name: pipeline-version
-  workflowMetadata:
-    labels:
-      pipelines.kubeflow.org/owner.kind: pipeline
-      pipelines.kubeflow.org/owner.name: "{{workflow.parameters.pipeline-name}}"
-      pipelines.kubeflow.org/operation: create

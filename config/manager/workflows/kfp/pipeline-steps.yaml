@@ -15,6 +15,7 @@ spec:
     container:
       name: pipeline
       image: "{{inputs.parameters.pipeline-image}}"
+      imagePullPolicy: Never
       command:
       - python3
       args:
@@ -30,7 +31,8 @@ spec:
         mountPath: /shared
     initContainers:
     - name: compile
-      image: "${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-compiler:latest"
+      image: kfp-operator-argo-kfp-compiler
+      imagePullPolicy: Never
       mirrorVolumeMounts: true
       args:
       - /shared
@@ -44,7 +46,8 @@ spec:
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '${KFP_ENDPOINT}' --output json pipeline upload --pipeline-name '{{inputs.parameters.pipeline-name}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
-      image: "${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-sdk:latest"
+      image: kfp-operator-argo-kfp-sdk
+      imagePullPolicy: Never
       command:
       - ash
     inputs:
@@ -59,7 +62,8 @@ spec:
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '${KFP_ENDPOINT}' --output json pipeline upload-version --pipeline-version '{{inputs.parameters.pipeline-version}}' --pipeline-id '{{inputs.parameters.pipeline-id}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
-      image: "${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-sdk:latest"
+      image: kfp-operator-argo-kfp-sdk
+      imagePullPolicy: Never
       command:
       - ash
     inputs:
