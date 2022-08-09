@@ -145,7 +145,7 @@ controller-gen: ## Download controller-gen locally if necessary.
 
 KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
+	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.7)
 
 ##@ Package
 
