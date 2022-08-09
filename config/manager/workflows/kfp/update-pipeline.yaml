@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: update-pipeline
+spec:
+  templates:
+  - name: main
+    outputs:
+      parameters:
+      - name: pipeline-version
+        valueFrom:
+          parameter: "{{steps.update.outputs.result}}"
+    steps:
+    - - name: compile
+        templateRef:
+          name: pipeline-steps
+          template: compile
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: compiler-config
+            value: "{{workflow.parameters.compiler-config}}"
+          - name: pipeline-image
+            value: "{{workflow.parameters.pipeline-image}}"
+    - - name: update
+        templateRef:
+          name: pipeline-steps
+          template: update
+          clusterScope: true
+        arguments:
+          artifacts:
+          - name: pipeline
+            from: "{{steps.compile.outputs.artifacts.pipeline}}"
+          parameters:
+          - name: pipeline-id
+            value: "{{workflow.parameters.pipeline-id}}"
+          - name: pipeline-version
+            value: "{{workflow.parameters.pipeline-version}}"
+  entrypoint: main
+  arguments:
+    parameters:
+    - name: compiler-config
+    - name: pipeline-image
+    - name: pipeline-id
+    - name: pipeline-version

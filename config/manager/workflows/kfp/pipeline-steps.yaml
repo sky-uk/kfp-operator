@@ -73,3 +73,16 @@ spec:
       parameters:
       - name: pipeline-id
       - name: pipeline-version
+  - name: delete
+    metadata: {}
+    script:
+      source: |-
+        set -e -o pipefail
+        kfp-ext --endpoint '${KFP_ENDPOINT}' --output json pipeline delete '{{inputs.parameters.pipeline-id}}'
+      image: kfp-operator-argo-kfp-sdk:latest
+      imagePullPolicy: Never
+      command:
+      - ash
+    inputs:
+      parameters:
+      - name: pipeline-id

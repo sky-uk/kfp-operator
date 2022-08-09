@@ -75,3 +75,17 @@ spec:
           set -e -o pipefail
           kfp-ext --endpoint '{{ .Values.manager.argo.kfpEndpoint }}' --output json pipeline upload-version --pipeline-version '{{`{{inputs.parameters.pipeline-version}}`}}' --pipeline-id '{{`{{inputs.parameters.pipeline-id}}`}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
       {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}
+    - name: delete
+      inputs:
+        parameters:
+        - name: pipeline-id
+      metadata:
+        {{ .Values.manager.argo.metadataDefaults | toYaml | nindent 8 }}
+      script:
+        command:
+        - ash
+        image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+        source: |-
+          set -e -o pipefail
+          kfp-ext --endpoint '{{ .Values.manager.argo.kfpEndpoint }}' --output json pipeline delete '{{`{{inputs.parameters.pipeline-id}}`}}'
+      {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}

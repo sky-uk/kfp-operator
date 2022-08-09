@@ -2,6 +2,8 @@ resources:
 - manager.yaml
 - workflows/kfp/pipeline-steps.yaml
 - workflows/kfp/create-pipeline.yaml
+- workflows/kfp/update-pipeline.yaml
+- workflows/kfp/delete-pipeline.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-update-pipeline
+spec:
+  entrypoint: main
+  {{ if .Values.manager.argo.serviceAccount -}}
+  serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
+  {{- end }}
+  arguments:
+    parameters:
+      - name: compiler-config
+      - name: pipeline-image
+      - name: pipeline-id
+      - name: pipeline-version
+  templates:
+    - name: main
+      outputs:
+        parameters:
+        - name: pipeline-version
+          valueFrom:
+            parameter: '{{`{{steps.update.outputs.result}}`}}'
+      steps:
+      - - name: compile
+          arguments:
+            parameters:
+            - name: compiler-config
+              value: '{{`{{workflow.parameters.compiler-config}}`}}'
+            - name: pipeline-image
+              value: '{{`{{workflow.parameters.pipeline-image}}`}}'
+          templateRef:
+            name: pipeline-steps
+            template: compile
+            clusterScope: true
+      - - name: update
+          arguments:
+            artifacts:
+            - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
+              name: pipeline
+            parameters:
+            - name: pipeline-id
+              value: '{{`{{workflow.parameters.pipeline-id}}`}}'
+            - name: pipeline-version
+              value: '{{`{{workflow.parameters.pipeline-version}}`}}'
+          templateRef:
+            name: pipeline-steps
+            template: update
+            clusterScope: true
