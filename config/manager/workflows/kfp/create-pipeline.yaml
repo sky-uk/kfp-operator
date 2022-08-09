@@ -54,7 +54,6 @@ spec:
         continueOn:
           failed: true
   entrypoint: main
-#  serviceAccountName: ${OPERATOR_SA}
   arguments:
     parameters:
     - name: compiler-config

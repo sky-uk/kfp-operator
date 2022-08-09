@@ -11,7 +11,6 @@ import (
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	"github.com/walkerus/go-wiremock"
-	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -21,14 +20,6 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 	workflowFactory := PipelineWorkflowFactory{
 		WorkflowFactory: WorkflowFactory{
 			Config: configv1.Configuration{
-				KfpEndpoint: "http://wiremock:80",
-				Argo: configv1.ArgoConfiguration{
-					KfpSdkImage:   "kfp-operator-argo-kfp-sdk",
-					CompilerImage: "kfp-operator-argo-kfp-compiler",
-					ContainerDefaults: apiv1.Container{
-						ImagePullPolicy: "Never", // Needed for minikube to use local images
-					},
-				},
 				PipelineStorage: "gs://some-bucket",
 				DefaultBeamArgs: map[string]string{
 					"project": "project",

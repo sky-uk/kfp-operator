@@ -4,6 +4,10 @@ resources:
 - workflows/kfp/create-pipeline.yaml
 - workflows/kfp/update-pipeline.yaml
 - workflows/kfp/delete-pipeline.yaml
+- workflows/kfp/experiment-steps.yaml
+- workflows/kfp/create-experiment.yaml
+- workflows/kfp/update-experiment.yaml
+- workflows/kfp/delete-experiment.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
