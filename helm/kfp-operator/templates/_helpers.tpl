@@ -38,5 +38,12 @@ control-plane: controller-manager
 {{- end }}
 
 {{/*
-Configuration
+Remove trailing '/' characters from .Values.containerRegistry.
 */}}
+{{- define "kfp-operator.trimmedContainerRegistry" -}}
+{{ if .Values.containerRegistry -}}
+{{ (trimSuffix "/" .Values.containerRegistry) }}/
+{{- else -}}
+
+{{- end }}
+{{- end }}

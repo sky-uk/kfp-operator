@@ -36,7 +36,7 @@ spec:
       initContainers:
       - args:
         - /shared
-        image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
+        image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
         mirrorVolumeMounts: true
         name: compile
         {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}
