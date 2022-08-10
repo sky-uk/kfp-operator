@@ -97,7 +97,7 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}
 
-	workflowFactory := pipelinescontrollers.WorkflowFactory{
+	workflowFactory := pipelinescontrollers.WorkflowFactoryBase{
 		Config: ctrlConfig.Workflows,
 	}
 
@@ -111,7 +111,7 @@ func main() {
 		EC: ec,
 		StateHandler: pipelinescontrollers.PipelineStateHandler{
 			WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
-				WorkflowFactory: workflowFactory,
+				WorkflowFactoryBase: workflowFactory,
 			},
 			WorkflowRepository: workflowRepository,
 		},
@@ -124,7 +124,7 @@ func main() {
 		EC: ec,
 		StateHandler: pipelinescontrollers.RunConfigurationStateHandler{
 			WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
-				WorkflowFactory: workflowFactory,
+				WorkflowFactoryBase: workflowFactory,
 			},
 			WorkflowRepository: workflowRepository,
 		},
@@ -137,7 +137,7 @@ func main() {
 		EC: ec,
 		StateHandler: pipelinescontrollers.ExperimentStateHandler{
 			WorkflowFactory: pipelinescontrollers.ExperimentWorkflowFactory{
-				WorkflowFactory: workflowFactory,
+				WorkflowFactoryBase: workflowFactory,
 			},
 			WorkflowRepository: workflowRepository,
 		},

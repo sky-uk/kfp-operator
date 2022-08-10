@@ -14,7 +14,7 @@ var ExperimentWorkflowConstants = struct {
 }
 
 type ExperimentWorkflowFactory struct {
-	WorkflowFactory
+	WorkflowFactoryBase
 }
 
 func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
@@ -24,8 +24,8 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name: ExperimentWorkflowConstants.ExperimentNameParameterName,
-						Value:  argo.AnyStringPtr(experiment.Name),
+						Name:  ExperimentWorkflowConstants.ExperimentNameParameterName,
+						Value: argo.AnyStringPtr(experiment.Name),
 					},
 				},
 			},
@@ -44,12 +44,12 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name: ExperimentWorkflowConstants.ExperimentIdParameterName,
-						Value:  argo.AnyStringPtr(experiment.Status.KfpId),
+						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
+						Value: argo.AnyStringPtr(experiment.Status.KfpId),
 					},
 					{
-						Name: ExperimentWorkflowConstants.ExperimentNameParameterName,
-						Value:  argo.AnyStringPtr(experiment.Name),
+						Name:  ExperimentWorkflowConstants.ExperimentNameParameterName,
+						Value: argo.AnyStringPtr(experiment.Name),
 					},
 				},
 			},
@@ -68,8 +68,8 @@ func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name: ExperimentWorkflowConstants.ExperimentIdParameterName,
-						Value:  argo.AnyStringPtr(experiment.Status.KfpId),
+						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
+						Value: argo.AnyStringPtr(experiment.Status.KfpId),
 					},
 				},
 			},

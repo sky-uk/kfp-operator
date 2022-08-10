@@ -28,7 +28,7 @@ var _ = Describe("CommonWorkflowMeta", func() {
 var _ = Describe("KfpExtCommandBuilder", func() {
 	When("Only a command is given", func() {
 		It("prints boilerplate and the command", func() {
-			workflowFactory := WorkflowFactory{
+			workflowFactory := WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					KfpEndpoint: "www.example.com",
 				},
@@ -43,7 +43,7 @@ var _ = Describe("KfpExtCommandBuilder", func() {
 
 	When("A command, a parameter, an optional parameter and an argument  are given", func() {
 		It("prints boilerplate, the command, the parameters and the argument", func() {
-			workflowFactory := WorkflowFactory{
+			workflowFactory := WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					KfpEndpoint: "www.example.com",
 				},
@@ -62,7 +62,7 @@ var _ = Describe("KfpExtCommandBuilder", func() {
 
 	When("An empty parameter is given", func() {
 		It("errors", func() {
-			workflowFactory := WorkflowFactory{
+			workflowFactory := WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					KfpEndpoint: "www.example.com",
 				},
@@ -78,7 +78,7 @@ var _ = Describe("KfpExtCommandBuilder", func() {
 
 	When("A an empty argument is given", func() {
 		It("errors", func() {
-			workflowFactory := WorkflowFactory{
+			workflowFactory := WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					KfpEndpoint: "www.example.com",
 				},
@@ -94,7 +94,7 @@ var _ = Describe("KfpExtCommandBuilder", func() {
 
 	When("An empty optional parameter is given", func() {
 		It("omits the parameter", func() {
-			workflowFactory := WorkflowFactory{
+			workflowFactory := WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					KfpEndpoint: "www.example.com",
 				},
@@ -111,7 +111,7 @@ var _ = Describe("KfpExtCommandBuilder", func() {
 
 	When("Single quotes are given", func() {
 		It("escapes the quotes", func() {
-			workflowFactory := WorkflowFactory{
+			workflowFactory := WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					KfpEndpoint: "www.example.com",
 				},

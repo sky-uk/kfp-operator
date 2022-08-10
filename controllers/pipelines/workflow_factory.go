@@ -27,7 +27,13 @@ var WorkflowConstants = struct {
 	EntryPointName:       "main",
 }
 
-type WorkflowFactory struct {
+type WorkflowFactory[R any] interface {
+	ConstructCreationWorkflow(resource *R) (*argo.Workflow, error)
+	ConstructUpdateWorkflow(resource *R) (*argo.Workflow, error)
+	ConstructDeletionWorkflow(resource *R) (*argo.Workflow, error)
+}
+
+type WorkflowFactoryBase struct {
 	ResourceKind string
 	Config       configv1.Configuration
 }
@@ -41,7 +47,7 @@ func CommonWorkflowMeta(owner Resource, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", operation, owner.GetKind()),
 		Namespace:    owner.GetNamespace(),
-		Labels: CommonWorkflowLabels(owner, operation),
+		Labels:       CommonWorkflowLabels(owner, operation),
 	}
 }
 
@@ -91,7 +97,7 @@ func (kec *KfpExtCommandBuilder) Build() (string, error) {
 	return strings.Join(kec.commandParts, " "), kec.error
 }
 
-func (workflows *WorkflowFactory) KfpExt(command string) *KfpExtCommandBuilder {
+func (workflows *WorkflowFactoryBase) KfpExt(command string) *KfpExtCommandBuilder {
 	return &KfpExtCommandBuilder{
 		commandParts: []string{
 			"kfp-ext",
@@ -104,7 +110,7 @@ func (workflows *WorkflowFactory) KfpExt(command string) *KfpExtCommandBuilder {
 	}
 }
 
-func (workflows *WorkflowFactory) ScriptTemplate(script string) *argo.ScriptTemplate {
+func (workflows *WorkflowFactoryBase) ScriptTemplate(script string) *argo.ScriptTemplate {
 	containerSpec := workflows.Config.Argo.ContainerDefaults.DeepCopy()
 	containerSpec.Image = workflows.Config.Argo.KfpSdkImage
 	containerSpec.Command = []string{"ash"}

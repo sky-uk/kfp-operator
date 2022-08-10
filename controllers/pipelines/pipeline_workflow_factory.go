@@ -21,7 +21,7 @@ var PipelineWorkflowConstants = struct {
 }
 
 type PipelineWorkflowFactory struct {
-	WorkflowFactory
+	WorkflowFactoryBase
 }
 
 type CompilerConfig struct {
@@ -79,37 +79,35 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 		return nil, err
 	}
 
-	workflow := &argo.Workflow{
+	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name: PipelineWorkflowConstants.CompilerConfigParameterName,
-						Value:  argo.AnyStringPtr(compilerConfigYaml),
+						Name:  PipelineWorkflowConstants.CompilerConfigParameterName,
+						Value: argo.AnyStringPtr(compilerConfigYaml),
 					},
 					{
-						Name: PipelineWorkflowConstants.PipelineImageParameterName,
-						Value:  argo.AnyStringPtr(pipeline.Spec.Image),
+						Name:  PipelineWorkflowConstants.PipelineImageParameterName,
+						Value: argo.AnyStringPtr(pipeline.Spec.Image),
 					},
 					{
-						Name: PipelineWorkflowConstants.PipelineNameParameterName,
-						Value:  argo.AnyStringPtr(pipeline.Name),
+						Name:  PipelineWorkflowConstants.PipelineNameParameterName,
+						Value: argo.AnyStringPtr(pipeline.Name),
 					},
 					{
-						Name: PipelineWorkflowConstants.PipelineVersionParameterName,
-						Value:  argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
+						Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
+						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
 					},
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-						Name:         "create-pipeline",
-						ClusterScope: true,
+				Name:         "create-pipeline",
+				ClusterScope: true,
 			},
 		},
-	}
-
-	return workflow, nil
+	}, nil
 }
 
 func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
@@ -119,26 +117,26 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 		return nil, err
 	}
 
-	workflow := &argo.Workflow{
+	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name: PipelineWorkflowConstants.CompilerConfigParameterName,
-						Value:  argo.AnyStringPtr(compilerConfigYaml),
+						Name:  PipelineWorkflowConstants.CompilerConfigParameterName,
+						Value: argo.AnyStringPtr(compilerConfigYaml),
 					},
 					{
-						Name: PipelineWorkflowConstants.PipelineIdParameterName,
-						Value:  argo.AnyStringPtr(pipeline.Status.KfpId),
+						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
+						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
 					},
 					{
-						Name: PipelineWorkflowConstants.PipelineImageParameterName,
-						Value:  argo.AnyStringPtr(pipeline.Spec.Image),
+						Name:  PipelineWorkflowConstants.PipelineImageParameterName,
+						Value: argo.AnyStringPtr(pipeline.Spec.Image),
 					},
 					{
-						Name: PipelineWorkflowConstants.PipelineVersionParameterName,
-						Value:  argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
+						Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
+						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
 					},
 				},
 			},
@@ -147,9 +145,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 				ClusterScope: true,
 			},
 		},
-	}
-
-	return workflow, nil
+	}, nil
 }
 
 func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
@@ -159,8 +155,8 @@ func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name: PipelineWorkflowConstants.PipelineIdParameterName,
-						Value:  argo.AnyStringPtr(pipeline.Status.KfpId),
+						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
+						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
 					},
 				},
 			},

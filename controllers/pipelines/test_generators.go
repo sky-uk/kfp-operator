@@ -100,6 +100,9 @@ func RandomRunConfiguration() *pipelinesv1.RunConfiguration {
 			Namespace: RandomLowercaseString(),
 		},
 		Spec: RandomRunConfigurationSpec(),
+		Status: pipelinesv1.RunConfigurationStatus{
+			ObservedPipelineVersion: RandomString(),
+		},
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 type PipelineStateHandler struct {
-	WorkflowFactory    PipelineWorkflowFactory
+	WorkflowFactory    WorkflowFactory[pipelinesv1.Pipeline]
 	WorkflowRepository WorkflowRepository
 }
 
@@ -116,18 +116,7 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 		}
 	}
 
-	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(pipeline)
-
-	if err != nil {
-		failureMessage := "error constructing deletion workflow"
-		logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
-
-		return []Command{
-			*From(pipeline.Status).
-				WithSynchronizationState(pipelinesv1.Failed).
-				WithMessage(failureMessage),
-		}
-	}
+	workflow, _ := st.WorkflowFactory.ConstructDeletionWorkflow(pipeline)
 
 	return []Command{
 		*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleting),

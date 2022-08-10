@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: create-runconfiguration
+spec:
+  entrypoint: main
+  arguments:
+    parameters:
+    - name: job-name
+    - name: pipeline-name
+    - name: pipeline-version
+    - name: experiment-name
+    - name: schedule
+  outputs:
+    parameters:
+    - name: runconfiguration-id
+      valueFrom:
+        parameter: "{{steps.create.outputs.result}}"
+  templates:
+  - name: main
+    outputs:
+      parameters:
+      - name: runconfiguration-id
+        valueFrom:
+          parameter: "{{steps.create.outputs.result}}"
+    steps:
+    - - name: create
+        templateRef:
+          name: runconfiguration-steps
+          template: create
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: runconfiguration-name
+            value: "{{workflow.parameters.runconfiguration-name}}"
+          - name: runconfiguration-name
+            value: "{{workflow.parameters.runconfiguration-name}}"

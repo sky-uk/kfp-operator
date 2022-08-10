@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: runconfiguration-steps
+spec:
+  templates:
+  - name: create
+    metadata: {}
+    script:
+      source: |-
+        set -e -o pipefail
+        kfp-ext --endpoint '${KFP_ENDPOINT}' --output json job submit --pipeline-name '{{inputs.parameters.pipeline-name}}' --job-name '{{inputs.parameters.job-name}}' --experiment-name '{{inputs.parameters.experiment-name}}' --version-name '{{inputs.parameters.pipeline-version}}' --cron-expression '{{inputs.parameters.schedule}}'  | jq -r '."Job Details"."ID"'
+      image: kfp-operator-argo-kfp-sdk:latest
+      imagePullPolicy: Never
+      command:
+      - ash
+    inputs:
+      parameters:
+      - name: job-name
+      - name: pipeline-name
+      - name: pipeline-version
+      - name: experiment-name
+      - name: schedule
+  - name: delete
+    metadata: {}
+    script:
+      source: |-
+        set -e -o pipefail
+        KFP_RESULT=$(kfp-ext --endpoint '${KFP_ENDPOINT}' --output json job delete '{{inputs.parameters.job-id}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
+      image: kfp-operator-argo-kfp-sdk:latest
+      imagePullPolicy: Never
+      command:
+      - ash
+    inputs:
+      parameters:
+      - name: job-id

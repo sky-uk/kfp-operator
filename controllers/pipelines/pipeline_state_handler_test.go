@@ -22,6 +22,13 @@ type PipelineStateTransitionTestCase struct {
 	Commands        []Command
 }
 
+type FailingPipelineWorkflowFactory struct {
+}
+
+func (st PipelineStateTransitionTestCase) WorkflowConstructionFails() PipelineStateTransitionTestCase {
+	return st
+}
+
 func (st PipelineStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) PipelineStateTransitionTestCase {
 	st.SystemStatus.AddWorkflow(*workflow)
 
@@ -105,7 +112,7 @@ var _ = Describe("Pipeline State handler", func() {
 
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
+		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				Argo: configv1.ArgoConfiguration{
 					KfpSdkImage:   "kfp-sdk",

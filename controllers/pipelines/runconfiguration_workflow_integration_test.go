@@ -2,6 +2,7 @@
 // +build integration
 
 package pipelines
+
 //
 //import (
 //	"fmt"
@@ -18,7 +19,7 @@ package pipelines
 //
 //var _ = Context("RunConfiguration Workflows", Serial, func() {
 //	workflowFactory := RunConfigurationWorkflowFactory{
-//		WorkflowFactory: WorkflowFactory{
+//		WorkflowFactoryBase: WorkflowFactoryBase{
 //			Config: configv1.Configuration{
 //				KfpEndpoint: "http://wiremock:80",
 //				Argo: configv1.ArgoConfiguration{

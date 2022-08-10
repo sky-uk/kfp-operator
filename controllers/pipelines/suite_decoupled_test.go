@@ -91,7 +91,7 @@ var _ = BeforeSuite(func() {
 func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *PipelineReconciler {
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
+		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				Argo: configv1.ArgoConfiguration{
 					KfpSdkImage:   "kfp-sdk",
@@ -119,7 +119,7 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *RunConfigurationReconciler {
 	// TODO: mock workflowFactory
 	var workflowFactory = RunConfigurationWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
+		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				DefaultExperiment: "Default",
 				Argo: configv1.ArgoConfiguration{
@@ -148,7 +148,7 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *ExperimentReconciler {
 	// TODO: mock workflowFactory
 	var workflowFactory = ExperimentWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
+		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				Argo: configv1.ArgoConfiguration{
 					KfpSdkImage:   "kfp-sdk",

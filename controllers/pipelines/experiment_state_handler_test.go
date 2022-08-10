@@ -113,7 +113,7 @@ func (st ExperimentStateTransitionTestCase) DeletionRequested() ExperimentStateT
 var _ = Describe("Experiment State handler", func() {
 	// TODO: mock workflowFactory
 	var workflowFactory = ExperimentWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
+		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				Argo: configv1.ArgoConfiguration{
 					KfpSdkImage:   "kfp-sdk",

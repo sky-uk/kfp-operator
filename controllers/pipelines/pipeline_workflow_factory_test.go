@@ -39,7 +39,7 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("Paths are appended to PipelineStorage", func() {
 		wf := PipelineWorkflowFactory{
-			WorkflowFactory: WorkflowFactory{
+			WorkflowFactoryBase: WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					PipelineStorage: "gs://bucket",
 				},
@@ -74,7 +74,7 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("BeamArgs are overridden with temp_location", func() {
 		wf := PipelineWorkflowFactory{
-			WorkflowFactory: WorkflowFactory{
+			WorkflowFactoryBase: WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					PipelineStorage: "gs://bucket",
 				},
@@ -99,7 +99,7 @@ var _ = Describe("PipelineConfig", func() {
 
 	Specify("BeamArgs default to configuration values", func() {
 		wf := PipelineWorkflowFactory{
-			WorkflowFactory: WorkflowFactory{
+			WorkflowFactoryBase: WorkflowFactoryBase{
 				Config: configv1.Configuration{
 					DefaultBeamArgs: map[string]string{
 						"ba": "default",

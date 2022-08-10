@@ -22,6 +22,10 @@ type RunConfigurationStateTransitionTestCase struct {
 	Commands         []Command
 }
 
+func (st RunConfigurationStateTransitionTestCase) WorkflowConstructionFails() RunConfigurationStateTransitionTestCase {
+	return st
+}
+
 func (st RunConfigurationStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) RunConfigurationStateTransitionTestCase {
 	st.SystemStatus.AddWorkflow(*workflow)
 	return st
@@ -37,7 +41,7 @@ func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlowWithId(phase
 			CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, phase),
 			[]argo.Parameter{
 				{
-					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Name:  RunConfigurationWorkflowConstants.JobIdParameterName,
 					Value: argo.AnyStringPtr(kfpId),
 				},
 			},
@@ -57,7 +61,7 @@ func (st RunConfigurationStateTransitionTestCase) WithSucceededUpdateWorkflowWit
 			CreateTestWorkflow(WorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
 			[]argo.Parameter{
 				{
-					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Name:  RunConfigurationWorkflowConstants.JobIdParameterName,
 					Value: argo.AnyStringPtr(kfpId),
 				},
 			},
@@ -113,7 +117,7 @@ func (st RunConfigurationStateTransitionTestCase) DeletionRequested() RunConfigu
 var _ = Describe("RunConfiguration State handler", func() {
 	// TODO: mock workflowFactory
 	var workflowFactory = RunConfigurationWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
+		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				DefaultExperiment: "Default",
 				Argo: configv1.ArgoConfiguration{
