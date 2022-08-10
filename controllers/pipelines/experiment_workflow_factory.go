@@ -37,7 +37,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -61,7 +61,7 @@ func (workflows *ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *
 	}, nil
 }
 
-func (workflows *ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{

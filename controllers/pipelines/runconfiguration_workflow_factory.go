@@ -1,7 +1,6 @@
 package pipelines
 
 import (
-	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 )
@@ -27,9 +26,9 @@ type RunConfigurationWorkflowFactory struct {
 }
 
 func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
-	if runConfiguration.Status.ObservedPipelineVersion == "" {
-		return nil, fmt.Errorf("unknown pipeline version")
-	}
+	//if runConfiguration.Status.ObservedPipelineVersion == "" {
+	//	return nil, fmt.Errorf("unknown pipeline version")
+	//}
 
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
@@ -45,7 +44,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
+func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -60,7 +59,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runCon
 	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
+func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -75,7 +74,7 @@ func (workflows *RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runC
 	}, nil
 }
 
-func (workflows *RunConfigurationWorkflowFactory) deletionParameters(runConfiguration *pipelinesv1.RunConfiguration) []argo.Parameter {
+func (workflows RunConfigurationWorkflowFactory) deletionParameters(runConfiguration *pipelinesv1.RunConfiguration) []argo.Parameter {
 	return []argo.Parameter{
 		{
 			Name:  RunConfigurationWorkflowConstants.JobIdParameterName,
@@ -84,7 +83,7 @@ func (workflows *RunConfigurationWorkflowFactory) deletionParameters(runConfigur
 	}
 }
 
-func (workflows *RunConfigurationWorkflowFactory) creationParameters(runConfiguration *pipelinesv1.RunConfiguration) []argo.Parameter {
+func (workflows RunConfigurationWorkflowFactory) creationParameters(runConfiguration *pipelinesv1.RunConfiguration) []argo.Parameter {
 	var experimentName string
 	if runConfiguration.Spec.ExperimentName == "" {
 		experimentName = workflows.Config.DefaultExperiment

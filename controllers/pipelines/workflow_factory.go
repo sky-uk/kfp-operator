@@ -10,27 +10,29 @@ import (
 )
 
 var WorkflowConstants = struct {
-	OwnerKindLabelKey    string
-	OwnerNameLabelKey    string
-	OperationLabelKey    string
-	CreateOperationLabel string
-	DeleteOperationLabel string
-	UpdateOperationLabel string
-	EntryPointName       string
+	OwnerKindLabelKey       string
+	OwnerNameLabelKey       string
+	OperationLabelKey       string
+	CreateOperationLabel    string
+	DeleteOperationLabel    string
+	UpdateOperationLabel    string
+	EntryPointName          string
+	ConstructionFailedError string
 }{
-	OwnerKindLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.kind",
-	OwnerNameLabelKey:    pipelinesv1.GroupVersion.Group + "/owner.name",
-	OperationLabelKey:    pipelinesv1.GroupVersion.Group + "/operation",
-	CreateOperationLabel: "create",
-	DeleteOperationLabel: "delete",
-	UpdateOperationLabel: "update",
-	EntryPointName:       "main",
+	OwnerKindLabelKey:       pipelinesv1.GroupVersion.Group + "/owner.kind",
+	OwnerNameLabelKey:       pipelinesv1.GroupVersion.Group + "/owner.name",
+	OperationLabelKey:       pipelinesv1.GroupVersion.Group + "/operation",
+	CreateOperationLabel:    "create",
+	DeleteOperationLabel:    "delete",
+	UpdateOperationLabel:    "update",
+	EntryPointName:          "main",
+	ConstructionFailedError: "error constructing workflow",
 }
 
-type WorkflowFactory[R any] interface {
-	ConstructCreationWorkflow(resource *R) (*argo.Workflow, error)
-	ConstructUpdateWorkflow(resource *R) (*argo.Workflow, error)
-	ConstructDeletionWorkflow(resource *R) (*argo.Workflow, error)
+type WorkflowFactory[R Resource] interface {
+	ConstructCreationWorkflow(resource R) (*argo.Workflow, error)
+	ConstructUpdateWorkflow(resource R) (*argo.Workflow, error)
+	ConstructDeletionWorkflow(resource R) (*argo.Workflow, error)
 }
 
 type WorkflowFactoryBase struct {

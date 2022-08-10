@@ -5,6 +5,7 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -16,10 +17,29 @@ import (
 )
 
 type ExperimentStateTransitionTestCase struct {
-	workflowFactory ExperimentWorkflowFactory
+	workflowFactory WorkflowFactory[*pipelinesv1.Experiment]
 	Experiment      *pipelinesv1.Experiment
 	SystemStatus    StubbedWorkflows
 	Commands        []Command
+}
+
+type FailingExperimentWorkflowFactory struct{}
+
+func (f FailingExperimentWorkflowFactory) ConstructCreationWorkflow(_ *pipelinesv1.Experiment) (*argo.Workflow, error) {
+	return nil, fmt.Errorf("an error occurred")
+}
+
+func (f FailingExperimentWorkflowFactory) ConstructUpdateWorkflow(_ *pipelinesv1.Experiment) (*argo.Workflow, error) {
+	return nil, fmt.Errorf("an error occurred")
+}
+
+func (f FailingExperimentWorkflowFactory) ConstructDeletionWorkflow(_ *pipelinesv1.Experiment) (*argo.Workflow, error) {
+	return nil, fmt.Errorf("an error occurred")
+}
+
+func (st ExperimentStateTransitionTestCase) WorkflowConstructionFails() ExperimentStateTransitionTestCase {
+	st.workflowFactory = FailingExperimentWorkflowFactory{}
+	return st
 }
 
 func (st ExperimentStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) ExperimentStateTransitionTestCase {
@@ -160,7 +180,7 @@ var _ = Describe("Experiment State handler", func() {
 	DescribeTable("State transitions", func(st ExperimentStateTransitionTestCase) {
 		var stateHandler = ExperimentStateHandler{
 			WorkflowRepository: st.SystemStatus,
-			WorkflowFactory:    workflowFactory,
+			WorkflowFactory:    st.workflowFactory,
 		}
 		commands := stateHandler.stateTransition(context.Background(), st.Experiment)
 		Expect(commands).To(Equal(st.Commands))
@@ -172,6 +192,15 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
+		),
+		Check("Empty and workflow creation fails",
+			From(UnknownState, "", "").
+				AcquireExperiment().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
 		),
 		Check("Empty with version",
 			From(UnknownState, "", v1).
@@ -189,6 +218,16 @@ var _ = Describe("Experiment State handler", func() {
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
+		),
+		Check("Empty with id and workflow creation fails",
+			From(UnknownState, kfpId, "").
+				AcquireExperiment().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
 		),
 		Check("Empty with id and version",
 			From(UnknownState, kfpId, v1).
@@ -249,6 +288,16 @@ var _ = Describe("Experiment State handler", func() {
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
+		Check("Succeeded with update and workflow creation fails",
+			From(pipelinesv1.Succeeded, kfpId, v0).
+				AcquireExperiment().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
+		),
 		Check("Succeeded with update but no KfpId",
 			From(pipelinesv1.Succeeded, "", v0).
 				AcquireExperiment().
@@ -256,6 +305,15 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
+		),
+		Check("Succeeded with update and workflow creation fails",
+			From(pipelinesv1.Succeeded, "", v0).
+				AcquireExperiment().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
 		),
 		Check("Succeeded with update but no KfpId and no version",
 			From(pipelinesv1.Succeeded, "", "").
@@ -269,7 +327,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(pipelinesv1.Failed, kfpId, v1).
 				AcquireExperiment(),
 		),
-		Check("Failed with Update",
+		Check("Failed with update",
 			From(pipelinesv1.Failed, kfpId, v0).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
@@ -278,7 +336,17 @@ var _ = Describe("Experiment State handler", func() {
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
-		Check("Failed with Update but no KfpId",
+		Check("Failed with update and workflow creation fails",
+			From(pipelinesv1.Failed, kfpId, v0).
+				AcquireExperiment().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
+		),
+		Check("Failed with update but no KfpId",
 			From(pipelinesv1.Failed, "", v0).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
@@ -286,7 +354,16 @@ var _ = Describe("Experiment State handler", func() {
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
-		Check("Failed with Update but no KfpId and no version",
+		Check("Failed with update but no KfpId and workflow creation fails",
+			From(pipelinesv1.Failed, "", v0).
+				AcquireExperiment().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
+		),
+		Check("Failed with update but no KfpId and no version",
 			From(pipelinesv1.Failed, "", "").
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
