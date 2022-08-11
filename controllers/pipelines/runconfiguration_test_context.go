@@ -81,7 +81,7 @@ func (testCtx RunConfigurationTestContext) WorkflowSucceeded(operation string) {
 			workflow,
 			[]argo.Parameter{
 				{
-					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
+					Name:  RunConfigurationWorkflowConstants.JobIdParameterName,
 					Value: argo.AnyStringPtr(RandomString()),
 				},
 			},

@@ -75,7 +75,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	})
 
 	When("Creating with a fixed pipeline version", func() {
-		It("creates a RC with an ObervedPipelineVersion that matches the fixed version", func() {
+		It("creates a RC with an ObservedPipelineVersion that matches the fixed version", func() {
 			runConfiguration := RandomRunConfiguration()
 			runConfiguration.Namespace = "default"
 			pipelineVersion := "12345-abcde"
