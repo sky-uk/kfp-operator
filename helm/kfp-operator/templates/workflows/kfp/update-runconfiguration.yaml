@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-update-runconfiguration
+spec:
+  entrypoint: main
+  {{ if .Values.manager.argo.serviceAccount -}}
+  serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
+  {{- end }}
+  arguments:
+    parameters:
+    - name: job-id
+    - name: job-name
+    - name: pipeline-name
+    - name: pipeline-version
+    - name: experiment-name
+    - name: schedule
+  templates:
+  - name: main
+    outputs:
+      parameters:
+      - name: job-id
+        valueFrom:
+          parameter: "{{`{{steps.create.outputs.result}}`}}"
+    steps:
+    - - name: delete
+        templateRef:
+          name: runconfiguration-steps
+          template: delete
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: job-id
+            value: "{{`{{workflow.parameters.job-id}}`}}"
+    - - name: create
+        templateRef:
+          name: runconfiguration-steps
+          template: create
+          clusterScope: true
+        continueOn:
+          failed: true
+        arguments:
+          parameters:
+          - name: job-name
+            value: "{{`{{workflow.parameters.job-name}}`}}"
+          - name: pipeline-name
+            value: "{{`{{workflow.parameters.pipeline-name}}`}}"
+          - name: pipeline-version
+            value: "{{`{{workflow.parameters.pipeline-version}}`}}"
+          - name: experiment-name
+            value: "{{`{{workflow.parameters.experiment-name}}`}}"
+          - name: schedule
+            value: "{{`{{workflow.parameters.schedule}}`}}"

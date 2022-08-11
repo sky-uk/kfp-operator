@@ -78,7 +78,7 @@ func RandomPipeline() *pipelinesv1.Pipeline {
 	return &pipelinesv1.Pipeline{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
-			Namespace: RandomLowercaseString(),
+			Namespace: "default",
 		},
 		Spec: RandomPipelineSpec(),
 	}
@@ -97,9 +97,12 @@ func RandomRunConfiguration() *pipelinesv1.RunConfiguration {
 	return &pipelinesv1.RunConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
-			Namespace: RandomLowercaseString(),
+			Namespace: "default",
 		},
 		Spec: RandomRunConfigurationSpec(),
+		Status: pipelinesv1.RunConfigurationStatus{
+			ObservedPipelineVersion: RandomString(),
+		},
 	}
 }
 
@@ -115,7 +118,7 @@ func RandomExperiment() *pipelinesv1.Experiment {
 	return &pipelinesv1.Experiment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
-			Namespace: RandomLowercaseString(),
+			Namespace: "default",
 		},
 		Spec: RandomExperimentSpec(),
 	}

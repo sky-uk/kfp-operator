@@ -15,7 +15,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			experiment := RandomExperiment()
-			experiment.Namespace = "default"
 
 			kfpId := "12345"
 			anotherKfpId := "67890"

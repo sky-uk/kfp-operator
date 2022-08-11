@@ -9,7 +9,7 @@ spec:
     script:
       source: |-
         set -e -o pipefail
-        kfp-ext --endpoint '${KFP_ENDPOINT}' --output json experiment create '{{`{{inputs.parameters.experiment-name}}`}}' | jq -r '."ID"'
+        kfp-ext --endpoint '{{ .Values.manager.argo.kfpEndpoint }}' --output json experiment create '{{`{{inputs.parameters.experiment-name}}`}}' | jq -r '."ID"'
       image: kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:
@@ -22,7 +22,7 @@ spec:
     script:
       source: |-
         set -e -o pipefail
-        echo y | kfp-ext --endpoint '${KFP_ENDPOINT}' --output json experiment delete '{{`{{inputs.parameters.experiment-id}}`}}'
+        echo y | kfp-ext --endpoint '{{ .Values.manager.argo.kfpEndpoint }}' --output json experiment delete '{{`{{inputs.parameters.experiment-id}}`}}'
       image: kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:

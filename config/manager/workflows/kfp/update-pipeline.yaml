@@ -3,6 +3,13 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: update-pipeline
 spec:
+  entrypoint: main
+  arguments:
+    parameters:
+    - name: compiler-config
+    - name: pipeline-image
+    - name: pipeline-id
+    - name: pipeline-version
   templates:
   - name: main
     outputs:
@@ -36,10 +43,3 @@ spec:
             value: "{{workflow.parameters.pipeline-id}}"
           - name: pipeline-version
             value: "{{workflow.parameters.pipeline-version}}"
-  entrypoint: main
-  arguments:
-    parameters:
-    - name: compiler-config
-    - name: pipeline-image
-    - name: pipeline-id
-    - name: pipeline-version

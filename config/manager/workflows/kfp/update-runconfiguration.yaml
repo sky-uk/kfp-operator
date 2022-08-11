@@ -1,11 +1,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
-  name: create-runconfiguration
+  name: update-runconfiguration
 spec:
   entrypoint: main
   arguments:
     parameters:
+    - name: job-id
     - name: job-name
     - name: pipeline-name
     - name: pipeline-version
@@ -19,11 +20,22 @@ spec:
         valueFrom:
           parameter: "{{steps.create.outputs.result}}"
     steps:
+    - - name: delete
+        templateRef:
+          name: runconfiguration-steps
+          template: delete
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: job-id
+            value: "{{workflow.parameters.job-id}}"
     - - name: create
         templateRef:
           name: runconfiguration-steps
           template: create
           clusterScope: true
+        continueOn:
+          failed: true
         arguments:
           parameters:
           - name: job-name

@@ -163,8 +163,7 @@ var _ = Describe("RunConfiguration State handler", func() {
 	}
 
 	var From = func(status pipelinesv1.SynchronizationState, id string, version string) RunConfigurationStateTransitionTestCase {
-		runConfiguration := RandomRunConfiguration()
-		runConfiguration.Spec = rcv1.Spec
+		runConfiguration := rcv1.DeepCopy()
 		runConfiguration.Status.Status = pipelinesv1.Status{
 			SynchronizationState: status,
 			Version:              version,

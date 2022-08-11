@@ -11,11 +11,6 @@ spec:
     parameters:
     - name: experiment-id
     - name: experiment-name
-  outputs:
-    parameters:
-    - name: experiment-id
-      valueFrom:
-        parameter: '{{`{{steps.create.outputs.result}}`}}'
   templates:
   - name: main
     outputs:

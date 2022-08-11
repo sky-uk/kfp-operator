@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -65,6 +66,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	if desiredVersion != nil && *desiredVersion != runConfiguration.Status.ObservedPipelineVersion {
+		fmt.Println("setting to")
+		fmt.Println(runConfiguration.Status)
 		runConfiguration.Status.ObservedPipelineVersion = *desiredVersion
 		err := r.EC.Client.Status().Update(ctx, runConfiguration)
 

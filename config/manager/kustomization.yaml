@@ -8,6 +8,10 @@ resources:
 - workflows/kfp/create-experiment.yaml
 - workflows/kfp/update-experiment.yaml
 - workflows/kfp/delete-experiment.yaml
+- workflows/kfp/runconfiguration-steps.yaml
+- workflows/kfp/create-runconfiguration.yaml
+- workflows/kfp/update-runconfiguration.yaml
+- workflows/kfp/delete-runconfiguration.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

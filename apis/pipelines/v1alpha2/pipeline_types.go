@@ -116,6 +116,14 @@ func (pid *PipelineIdentifier) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
+func (pipeline *Pipeline) TrackingIdentifier() PipelineIdentifier {
+	return PipelineIdentifier{Name: pipeline.Name}
+}
+
+func (pipeline *Pipeline) FixedIdentifier() PipelineIdentifier {
+	return PipelineIdentifier{Name: pipeline.Name, Version: pipeline.Spec.ComputeVersion()}
+}
+
 func init() {
 	SchemeBuilder.Register(&Pipeline{}, &PipelineList{})
 }
