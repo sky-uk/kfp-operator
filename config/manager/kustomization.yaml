@@ -1,17 +1,8 @@
 resources:
 - manager.yaml
-- workflows/kfp/pipeline-steps.yaml
-- workflows/kfp/create-pipeline.yaml
-- workflows/kfp/update-pipeline.yaml
-- workflows/kfp/delete-pipeline.yaml
-- workflows/kfp/experiment-steps.yaml
-- workflows/kfp/create-experiment.yaml
-- workflows/kfp/update-experiment.yaml
-- workflows/kfp/delete-experiment.yaml
-- workflows/kfp/runconfiguration-steps.yaml
-- workflows/kfp/create-runconfiguration.yaml
-- workflows/kfp/update-runconfiguration.yaml
-- workflows/kfp/delete-runconfiguration.yaml
+- workflows/kfp/pipelines.yaml
+- workflows/kfp/experiments.yaml
+- workflows/kfp/runconfigurations.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
