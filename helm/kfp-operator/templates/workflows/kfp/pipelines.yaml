@@ -66,7 +66,7 @@ spec:
         image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
         source: |-
           set -e -o pipefail
-          kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload-version --pipeline-version '{{`{{workflow.parameters.pipeline-version}}`}}' --pipeline-id '{{`{{input.parameters.pipeline-id}}`}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
+          kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload-version --pipeline-version '{{`{{workflow.parameters.pipeline-version}}`}}' --pipeline-id '{{`{{inputs.parameters.pipeline-id}}`}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
       {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}
     - name: delete
       metadata:

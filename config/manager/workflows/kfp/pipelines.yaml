@@ -54,7 +54,7 @@ spec:
     script:
       source: |-
         set -e -o pipefail
-        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline upload-version --pipeline-version '{{workflow.parameters.pipeline-version}}' --pipeline-id '{{input.parameters.pipeline-id}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
+        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline upload-version --pipeline-version '{{workflow.parameters.pipeline-version}}' --pipeline-id '{{inputs.parameters.pipeline-id}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
       image: kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:

@@ -79,7 +79,7 @@ integration-test: manifests generate ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
 	$(MAKE) docker-build-argo && \
 	docker build docs-gen/includes/quickstart -t kfp-quickstart
-	for f in config/manager/workflows/kfp/*.yaml; do sed 's/$${KFP_ENDPOINT}/http:\/\/wiremock:80/g' $$f | sed -e 's/$${CONTAINER_REGISTRY}//g' | kubectl apply -f - ; done
+	kubectl apply -f config/manager/workflows/kfp
 	go test ./... -tags=integration
 
 integration-test-down:

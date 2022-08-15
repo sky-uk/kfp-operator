@@ -72,8 +72,8 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	}
 }
 
-func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := w.newCompilerConfig(pipeline).AsYaml()
+func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
 
 	if err != nil {
 		return nil, err
@@ -100,6 +100,10 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 						Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
 						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
 					},
+					{
+						Name:  WorkflowConstants.KfpEndpointParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+					},
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
@@ -110,8 +114,8 @@ func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1
 	}, nil
 }
 
-func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := w.newCompilerConfig(pipeline).AsYaml()
+func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
 
 	if err != nil {
 		return nil, err
@@ -138,6 +142,10 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 						Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
 						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
 					},
+					{
+						Name:  WorkflowConstants.KfpEndpointParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+					},
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
@@ -148,7 +156,7 @@ func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.P
 	}, nil
 }
 
-func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -157,6 +165,10 @@ func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1
 					{
 						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
 						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
+					},
+					{
+						Name:  WorkflowConstants.KfpEndpointParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
 					},
 				},
 			},

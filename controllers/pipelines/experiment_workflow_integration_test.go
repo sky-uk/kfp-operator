@@ -20,6 +20,7 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				DefaultExperiment: "Default",
+				KfpEndpoint:       "http://wiremock:80",
 			},
 		},
 	}

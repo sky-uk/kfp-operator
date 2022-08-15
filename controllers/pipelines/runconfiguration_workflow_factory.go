@@ -26,6 +26,13 @@ type RunConfigurationWorkflowFactory struct {
 	WorkflowFactoryBase
 }
 
+func (workflows RunConfigurationWorkflowFactory) kfpEndpointParameter() argo.Parameter {
+	return argo.Parameter{
+		Name:  WorkflowConstants.KfpEndpointParameterName,
+		Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+	}
+}
+
 func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	creationParameters, err := workflows.creationParameters(runConfiguration)
 
@@ -37,7 +44,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
-				Parameters: creationParameters,
+				Parameters: append(creationParameters, workflows.kfpEndpointParameter()),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
 				Name:         "create-runconfiguration",
@@ -59,7 +66,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
-				Parameters: append(deletionParameters, creationParameters...),
+				Parameters: append(append(deletionParameters, workflows.kfpEndpointParameter()), creationParameters...),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
 				Name:         "update-runconfiguration",
@@ -74,7 +81,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runCo
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
-				Parameters: workflows.deletionParameters(runConfiguration),
+				Parameters: append(workflows.deletionParameters(runConfiguration), workflows.kfpEndpointParameter()),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
 				Name:         "delete-runconfiguration",

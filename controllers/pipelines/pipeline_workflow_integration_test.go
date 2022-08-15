@@ -24,6 +24,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 				DefaultBeamArgs: map[string]string{
 					"project": "project",
 				},
+				KfpEndpoint: "http://wiremock:80",
 			},
 		},
 	}
