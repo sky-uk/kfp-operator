@@ -9,37 +9,32 @@ spec:
     script:
       source: |-
         set -e -o pipefail
-        kfp-ext --endpoint '${KFP_ENDPOINT}' --output json experiment create '{{inputs.parameters.experiment-name}}' | jq -r '."ID"'
+        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json experiment create '{{workflow.parameters.experiment-name}}' | jq -r '."ID"'
       image: kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:
       - ash
-    inputs:
-      parameters:
-      - name: experiment-name
   - name: delete
     metadata: {}
     script:
       source: |-
         set -e -o pipefail
-        echo y | kfp-ext --endpoint '${KFP_ENDPOINT}' --output json experiment delete '{{inputs.parameters.experiment-id}}'
+        echo y | kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json experiment delete '{{workflow.parameters.experiment-id}}'
       image: kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:
       - ash
-    inputs:
-      parameters:
-      - name: experiment-id
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
   name: create-experiment
 spec:
-  entrypoint: main
   arguments:
     parameters:
     - name: experiment-name
+    - name: kfp-endpoint
+  entrypoint: main
   templates:
   - name: main
     outputs:
@@ -53,21 +48,18 @@ spec:
           name: experiment-steps
           template: create
           clusterScope: true
-        arguments:
-          parameters:
-          - name: experiment-name
-            value: "{{workflow.parameters.experiment-name}}"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
   name: update-experiment
 spec:
-  entrypoint: main
   arguments:
     parameters:
     - name: experiment-id
     - name: experiment-name
+    - name: kfp-endpoint
+  entrypoint: main
   templates:
   - name: main
     outputs:
@@ -81,10 +73,6 @@ spec:
           name: experiment-steps
           template: delete
           clusterScope: true
-        arguments:
-          parameters:
-          - name: experiment-id
-            value: "{{workflow.parameters.experiment-id}}"
     - - name: create
         continueOn:
           failed: true
@@ -92,21 +80,17 @@ spec:
           name: experiment-steps
           template: create
           clusterScope: true
-        arguments:
-          parameters:
-          - name: experiment-name
-            value: "{{workflow.parameters.experiment-name}}"
-
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
   name: delete-experiment
 spec:
-  entrypoint: main
   arguments:
     parameters:
     - name: experiment-id
+    - name: kfp-endpoint
+  entrypoint: main
   templates:
   - name: main
     steps:
@@ -115,7 +99,3 @@ spec:
           name: experiment-steps
           template: delete
           clusterScope: true
-        arguments:
-          parameters:
-          - name: experiment-id
-            value: "{{workflow.parameters.experiment-id}}"

@@ -5,16 +5,12 @@ metadata:
 spec:
   templates:
   - name: compile
-    inputs:
-      parameters:
-      - name: compiler-config
-      - name: pipeline-image
     metadata: {}
     volumes:
     - name: shared
     container:
       name: pipeline
-      image: "{{inputs.parameters.pipeline-image}}"
+      image: "{{workflow.parameters.pipeline-image}}"
       imagePullPolicy: Never
       command:
       - python3
@@ -24,8 +20,7 @@ spec:
       - /tmp/pipeline.yaml
       - --pipeline_config
       - |
-        {{inputs.parameters.compiler-config}}
-
+        {{workflow.parameters.compiler-config}}
       volumeMounts:
       - name: shared
         mountPath: /shared
@@ -45,7 +40,7 @@ spec:
     script:
       source: |-
         set -e -o pipefail
-        kfp-ext --endpoint '${KFP_ENDPOINT}' --output json pipeline upload --pipeline-name '{{inputs.parameters.pipeline-name}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
+        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline upload --pipeline-name '{{workflow.parameters.pipeline-name}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
       image: kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:
@@ -54,14 +49,12 @@ spec:
       artifacts:
       - name: pipeline
         path: /tmp/pipeline.yaml
-      parameters:
-      - name: pipeline-name
   - name: update
     metadata: {}
     script:
       source: |-
         set -e -o pipefail
-        kfp-ext --endpoint '${KFP_ENDPOINT}' --output json pipeline upload-version --pipeline-version '{{inputs.parameters.pipeline-version}}' --pipeline-id '{{inputs.parameters.pipeline-id}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
+        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline upload-version --pipeline-version '{{workflow.parameters.pipeline-version}}' --pipeline-id '{{input.parameters.pipeline-id}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
       image: kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:
@@ -72,48 +65,46 @@ spec:
         path: /tmp/pipeline.yaml
       parameters:
       - name: pipeline-id
-      - name: pipeline-version
   - name: delete
     metadata: {}
     script:
       source: |-
         set -e -o pipefail
-        kfp-ext --endpoint '${KFP_ENDPOINT}' --output json pipeline delete '{{inputs.parameters.pipeline-id}}'
+        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline delete '{{workflow.parameters.pipeline-id}}'
       image: kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:
       - ash
-    inputs:
-      parameters:
-      - name: pipeline-id
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
   name: create-pipeline
 spec:
+  arguments:
+    parameters:
+    - name: compiler-config
+    - name: pipeline-image
+    - name: pipeline-name
+    - name: pipeline-version
+    - name: kfp-endpoint
+  entrypoint: main
   templates:
   - name: main
     outputs:
       parameters:
       - name: pipeline-id
         valueFrom:
-          parameter: "{{steps.upload.outputs.result}}"
+          parameter: '{{steps.upload.outputs.result}}'
       - name: pipeline-version
         valueFrom:
-          parameter: "{{steps.update.outputs.result}}"
+          parameter: '{{steps.update.outputs.result}}'
     steps:
     - - name: compile
         templateRef:
           name: pipeline-steps
           template: compile
           clusterScope: true
-        arguments:
-          parameters:
-          - name: compiler-config
-            value: "{{workflow.parameters.compiler-config}}"
-          - name: pipeline-image
-            value: "{{workflow.parameters.pipeline-image}}"
     - - name: upload
         templateRef:
           name: pipeline-steps
@@ -121,66 +112,49 @@ spec:
           clusterScope: true
         arguments:
           artifacts:
-          - name: pipeline
-            from: "{{steps.compile.outputs.artifacts.pipeline}}"
-          parameters:
-          - name: pipeline-name
-            value: "{{workflow.parameters.pipeline-name}}"
+          - from: '{{steps.compile.outputs.artifacts.pipeline}}'
+            name: pipeline
     - - name: update
         templateRef:
           name: pipeline-steps
           template: update
           clusterScope: true
-        arguments:
-          artifacts:
-          - name: pipeline
-            from: "{{steps.compile.outputs.artifacts.pipeline}}"
-          parameters:
-          - name: pipeline-id
-            value: "{{steps.upload.outputs.result}}"
-          - name: pipeline-version
-            value: "{{workflow.parameters.pipeline-version}}"
         continueOn:
           failed: true
-  entrypoint: main
-  arguments:
-    parameters:
-    - name: compiler-config
-    - name: pipeline-image
-    - name: pipeline-name
-    - name: pipeline-version
+        arguments:
+          artifacts:
+          - from: '{{steps.compile.outputs.artifacts.pipeline}}'
+            name: pipeline
+          parameters:
+          - name: pipeline-id
+            value: '{{steps.upload.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
   name: update-pipeline
 spec:
-  entrypoint: main
   arguments:
     parameters:
     - name: compiler-config
     - name: pipeline-image
     - name: pipeline-id
     - name: pipeline-version
+    - name: kfp-endpoint
+  entrypoint: main
   templates:
   - name: main
     outputs:
       parameters:
       - name: pipeline-version
         valueFrom:
-          parameter: "{{steps.update.outputs.result}}"
+          parameter: '{{steps.update.outputs.result}}'
     steps:
     - - name: compile
         templateRef:
           name: pipeline-steps
           template: compile
           clusterScope: true
-        arguments:
-          parameters:
-          - name: compiler-config
-            value: "{{workflow.parameters.compiler-config}}"
-          - name: pipeline-image
-            value: "{{workflow.parameters.pipeline-image}}"
     - - name: update
         templateRef:
           name: pipeline-steps
@@ -188,23 +162,22 @@ spec:
           clusterScope: true
         arguments:
           artifacts:
-          - name: pipeline
-            from: "{{steps.compile.outputs.artifacts.pipeline}}"
+          - from: '{{steps.compile.outputs.artifacts.pipeline}}'
+            name: pipeline
           parameters:
           - name: pipeline-id
-            value: "{{workflow.parameters.pipeline-id}}"
-          - name: pipeline-version
-            value: "{{workflow.parameters.pipeline-version}}"
+            value: '{{workflow.parameters.pipeline-id}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
   name: delete-pipeline
 spec:
-  entrypoint: main
   arguments:
     parameters:
     - name: pipeline-id
+    - name: kfp-endpoint
+  entrypoint: main
   templates:
   - name: main
     steps:
@@ -213,7 +186,3 @@ spec:
           name: pipeline-steps
           template: delete
           clusterScope: true
-        arguments:
-          parameters:
-          - name: pipeline-id
-            value: "{{workflow.parameters.pipeline-id}}"
