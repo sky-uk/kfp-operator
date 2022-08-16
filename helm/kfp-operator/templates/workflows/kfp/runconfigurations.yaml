@@ -10,7 +10,7 @@ spec:
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json job submit --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' --job-name '{{`{{workflow.parameters.job-name}}`}}' --experiment-name '{{`{{workflow.parameters.experiment-name}}`}}' --version-name '{{`{{workflow.parameters.pipeline-version}}`}}' --cron-expression '{{`{{workflow.parameters.schedule}}`}}'  | jq -r '."Job Details"."ID"'
-      image: kfp-operator-argo-kfp-sdk:latest
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:
       - ash
@@ -20,7 +20,7 @@ spec:
       source: |-
         set -e -o pipefail
         KFP_RESULT=$(kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json job delete '{{`{{workflow.parameters.job-id}}`}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
-      image: kfp-operator-argo-kfp-sdk:latest
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:latest
       imagePullPolicy: Never
       command:
       - ash
