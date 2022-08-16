@@ -1,3 +1,7 @@
+# Kustomize overwrites namespaces for all resources except some cluster-scoped resourced that are explicitly excluded.
+# ClusterWorkflowTemplates are not a supported exclusion and Kustomize therefore wrongfully sets namespaces for them.
+# namespace: kfp-operator-system
+
 # Value of this field is prepended to the
 # names of all resources, e.g. a deployment named
 # "wordpress" becomes "alices-wordpress".
