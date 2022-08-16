@@ -93,7 +93,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			pipeline := RandomPipeline()
 
 			runConfiguration := RandomRunConfiguration()
-			runConfiguration.Spec.Pipeline = pipeline.TrackingIdentifier()
+			runConfiguration.Spec.Pipeline = pipeline.UnversionedIdentifier()
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.Spec.ComputeVersion()
 
 			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
@@ -115,7 +115,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating the referenced pipeline with a fixed version specified on the RC", func() {
 		It("does not trigger an update of the run configuration", func() {
 			pipeline := RandomPipeline()
-			fixedIdentifier := pipeline.FixedIdentifier()
+			fixedIdentifier := pipeline.VersionedIdentifier()
 
 			runConfiguration := RandomRunConfiguration()
 			runConfiguration.Spec.Pipeline = fixedIdentifier
