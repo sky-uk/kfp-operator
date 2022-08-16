@@ -28,6 +28,8 @@ manager:
   replicas: 1
   configuration: {}
   argo:
+    serviceAccount: ""
+    containerDefaults: {}
     metadataDefaults: {}
   monitoring:
     create: true

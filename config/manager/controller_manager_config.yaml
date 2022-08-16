@@ -13,4 +13,5 @@ controller:
 spec:
   defaultBeamArgs:
     project: ${DATAFLOW_PROJECT}
+  kfpEndpoint: ${KFP_ENDPOINT}
   pipelineStorage: ${PIPELINE_STORAGE}

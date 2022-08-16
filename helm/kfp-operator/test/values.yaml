@@ -1,13 +1,13 @@
 fullnameOverride: kfp-operator
 manager:
   argo:
-    kfpEndpoint: ${KFP_ENDPOINT}
     containerDefaults:
       imagePullPolicy: Never
   configuration:
     pipelineStorage: ${PIPELINE_STORAGE}
     defaultBeamArgs:
       project: ${DATAFLOW_PROJECT}
+    kfpEndpoint: ${KFP_ENDPOINT}
 
   monitoring:
     rbacSecured: true
