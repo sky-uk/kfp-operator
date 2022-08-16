@@ -10,7 +10,7 @@ spec:
     - name: shared
     container:
       name: pipeline
-      image: "{{workflow.parameters.pipeline-image}}"
+      image: '{{workflow.parameters.pipeline-image}}'
       imagePullPolicy: Never
       command:
       - python3

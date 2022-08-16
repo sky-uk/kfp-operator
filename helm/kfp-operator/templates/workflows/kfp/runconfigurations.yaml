@@ -48,7 +48,7 @@ spec:
       parameters:
       - name: job-id
         valueFrom:
-          parameter: "{{`{{steps.create.outputs.result}}`}}"
+          parameter: '{{`{{steps.create.outputs.result}}`}}'
     steps:
     - - name: create
         templateRef:
@@ -80,7 +80,7 @@ spec:
       parameters:
       - name: job-id
         valueFrom:
-          parameter: "{{`{{steps.create.outputs.result}}`}}"
+          parameter: '{{`{{steps.create.outputs.result}}`}}'
     steps:
     - - name: delete
         templateRef:

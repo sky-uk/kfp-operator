@@ -14,7 +14,7 @@ spec:
       container:
         command:
           - python3
-        image: "{{`{{workflow.parameters.pipeline-image}}`}}"
+        image: '{{`{{workflow.parameters.pipeline-image}}`}}'
         name: pipeline
         volumeMounts:
         - mountPath: /shared
