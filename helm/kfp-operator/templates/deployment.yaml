@@ -26,7 +26,7 @@ spec:
             {{ if .Values.logging.verbosity }}
             - --zap-log-level={{ .Values.logging.verbosity }}
             {{ end }}
-          image: {{ .Values.containerRegistry }}kfp-operator-controller:{{ .Chart.AppVersion }}
+          image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-controller:{{ .Chart.AppVersion }}
           securityContext:
             allowPrivilegeEscalation: false
           livenessProbe:

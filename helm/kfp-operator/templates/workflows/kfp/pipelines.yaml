@@ -46,7 +46,7 @@ spec:
     script:
       command:
       - ash
-      image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
@@ -63,7 +63,7 @@ spec:
     script:
       command:
       - ash
-      image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+      image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload-version --pipeline-version '{{`{{workflow.parameters.pipeline-version}}`}}' --pipeline-id '{{`{{inputs.parameters.pipeline-id}}`}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
@@ -74,7 +74,7 @@ spec:
     script:
       command:
       - ash
-      image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+      image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline delete '{{`{{workflow.parameters.pipeline-id}}`}}'
