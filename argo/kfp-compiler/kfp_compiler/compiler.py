@@ -99,7 +99,15 @@ def compile(pipeline_config, output_file):
     click.secho(f'{output_file} written', fg='green')
 
 def dict_to_cli_args(beam_args):
-    return [f'--{k}={v}' for k,v in beam_args.items()]
+    beam_cli_args = []
+    for k, v in beam_args.items():
+        if isinstance(v, str):
+            beam_cli_args.append(f'--{k}={v}')
+        elif isinstance(v, list):
+            for vv in v:
+                beam_cli_args.append(f'--{k}={vv}')
+
+    return beam_cli_args
         
 
 def main():
