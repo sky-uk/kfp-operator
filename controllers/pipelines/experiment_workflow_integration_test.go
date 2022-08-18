@@ -19,8 +19,9 @@ var _ = Context("Experiment Workflows", Serial, func() {
 	workflowFactory := ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
-				DefaultExperiment: "Default",
-				KfpEndpoint:       "http://wiremock:80",
+				DefaultExperiment:      "Default",
+				KfpEndpoint:            "http://wiremock:80",
+				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 			},
 		},
 	}

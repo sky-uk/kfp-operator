@@ -50,7 +50,7 @@ spec:
     steps:
     - - name: create
         templateRef:
-          name: experiment-steps
+          name: {{ include "kfp-operator.fullname" . }}-experiment-steps
           template: create
           clusterScope: true
 ---
@@ -78,14 +78,14 @@ spec:
     steps:
     - - name: delete
         templateRef:
-          name: experiment-steps
+          name: {{ include "kfp-operator.fullname" . }}-experiment-steps
           template: delete
           clusterScope: true
     - - name: create
         continueOn:
           failed: true
         templateRef:
-          name: experiment-steps
+          name: {{ include "kfp-operator.fullname" . }}-experiment-steps
           template: create
           clusterScope: true
 ---
@@ -107,6 +107,6 @@ spec:
     steps:
     - - name: delete
         templateRef:
-          name: experiment-steps
+          name: {{ include "kfp-operator.fullname" . }}-experiment-steps
           template: delete
           clusterScope: true

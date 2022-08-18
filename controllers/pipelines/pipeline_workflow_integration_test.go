@@ -24,7 +24,8 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 				DefaultBeamArgs: map[string]string{
 					"project": "project",
 				},
-				KfpEndpoint: "http://wiremock:80",
+				KfpEndpoint:            "http://wiremock:80",
+				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 			},
 		},
 	}

@@ -11,7 +11,6 @@ spec:
     container:
       name: pipeline
       image: '{{workflow.parameters.pipeline-image}}'
-      imagePullPolicy: Never
       command:
       - python3
       args:
@@ -27,7 +26,6 @@ spec:
     initContainers:
     - name: compile
       image: kfp-operator-argo-kfp-compiler:latest
-      imagePullPolicy: Never
       mirrorVolumeMounts: true
       args:
       - /shared
@@ -42,7 +40,6 @@ spec:
         set -e -o pipefail
         kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline upload --pipeline-name '{{workflow.parameters.pipeline-name}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
       image: kfp-operator-argo-kfp-sdk:latest
-      imagePullPolicy: Never
       command:
       - ash
     inputs:
@@ -56,7 +53,6 @@ spec:
         set -e -o pipefail
         kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline upload-version --pipeline-version '{{workflow.parameters.pipeline-version}}' --pipeline-id '{{inputs.parameters.pipeline-id}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
       image: kfp-operator-argo-kfp-sdk:latest
-      imagePullPolicy: Never
       command:
       - ash
     inputs:
@@ -72,7 +68,6 @@ spec:
         set -e -o pipefail
         kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline delete '{{workflow.parameters.pipeline-id}}'
       image: kfp-operator-argo-kfp-sdk:latest
-      imagePullPolicy: Never
       command:
       - ash
 ---
@@ -102,12 +97,12 @@ spec:
     steps:
     - - name: compile
         templateRef:
-          name: pipeline-steps
+          name: kfp-operator-pipeline-steps
           template: compile
           clusterScope: true
     - - name: upload
         templateRef:
-          name: pipeline-steps
+          name: kfp-operator-pipeline-steps
           template: upload
           clusterScope: true
         arguments:
@@ -116,7 +111,7 @@ spec:
             name: pipeline
     - - name: update
         templateRef:
-          name: pipeline-steps
+          name: kfp-operator-pipeline-steps
           template: update
           clusterScope: true
         continueOn:
@@ -152,12 +147,12 @@ spec:
     steps:
     - - name: compile
         templateRef:
-          name: pipeline-steps
+          name: kfp-operator-pipeline-steps
           template: compile
           clusterScope: true
     - - name: update
         templateRef:
-          name: pipeline-steps
+          name: kfp-operator-pipeline-steps
           template: update
           clusterScope: true
         arguments:
@@ -183,6 +178,6 @@ spec:
     steps:
     - - name: delete
         templateRef:
-          name: pipeline-steps
+          name: kfp-operator-pipeline-steps
           template: delete
           clusterScope: true

@@ -50,7 +50,7 @@ spec:
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
-    {{ .Values.manager.argo.containerDefaults | toYaml | nindent 6 }}
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: update
     inputs:
       artifacts:
@@ -109,7 +109,7 @@ spec:
       steps:
       - - name: compile
           templateRef:
-            name: pipeline-steps
+            name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: compile
             clusterScope: true
       - - name: upload
@@ -118,7 +118,7 @@ spec:
             - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
               name: pipeline
           templateRef:
-            name: pipeline-steps
+            name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: upload
             clusterScope: true
       - - name: update
@@ -132,7 +132,7 @@ spec:
           continueOn:
             failed: true
           templateRef:
-            name: pipeline-steps
+            name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: update
             clusterScope: true
 ---
@@ -162,7 +162,7 @@ spec:
       steps:
       - - name: compile
           templateRef:
-            name: pipeline-steps
+            name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: compile
             clusterScope: true
       - - name: update
@@ -174,14 +174,14 @@ spec:
               - name: pipeline-id
                 value: '{{`{{workflow.parameters.pipeline-id}}`}}'
           templateRef:
-            name: pipeline-steps
+            name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: update
             clusterScope: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
 metadata:
-  name: kfp-operator-delete-pipeline
+  name: {{ include "kfp-operator.fullname" . }}-delete-pipeline
 spec:
   arguments:
     parameters:
@@ -196,6 +196,6 @@ spec:
     steps:
     - - name: delete
         templateRef:
-          name: pipeline-steps
+          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: delete
           clusterScope: true

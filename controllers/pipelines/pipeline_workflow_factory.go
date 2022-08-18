@@ -107,7 +107,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "create-pipeline",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "create-pipeline",
 				ClusterScope: true,
 			},
 		},
@@ -149,7 +149,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "update-pipeline",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "update-pipeline",
 				ClusterScope: true,
 			},
 		},
@@ -173,7 +173,7 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "delete-pipeline",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-pipeline",
 				ClusterScope: true,
 			},
 		},

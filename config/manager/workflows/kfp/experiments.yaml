@@ -11,7 +11,6 @@ spec:
         set -e -o pipefail
         kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json experiment create '{{workflow.parameters.experiment-name}}' | jq -r '."ID"'
       image: kfp-operator-argo-kfp-sdk:latest
-      imagePullPolicy: Never
       command:
       - ash
   - name: delete
@@ -21,7 +20,6 @@ spec:
         set -e -o pipefail
         echo y | kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json experiment delete '{{workflow.parameters.experiment-id}}'
       image: kfp-operator-argo-kfp-sdk:latest
-      imagePullPolicy: Never
       command:
       - ash
 ---
@@ -45,7 +43,7 @@ spec:
     steps:
     - - name: create
         templateRef:
-          name: experiment-steps
+          name: kfp-operator-experiment-steps
           template: create
           clusterScope: true
 ---
@@ -70,14 +68,14 @@ spec:
     steps:
     - - name: delete
         templateRef:
-          name: experiment-steps
+          name: kfp-operator-experiment-steps
           template: delete
           clusterScope: true
     - - name: create
         continueOn:
           failed: true
         templateRef:
-          name: experiment-steps
+          name: kfp-operator-experiment-steps
           template: create
           clusterScope: true
 ---
@@ -96,6 +94,6 @@ spec:
     steps:
     - - name: delete
         templateRef:
-          name: experiment-steps
+          name: kfp-operator-experiment-steps
           template: delete
           clusterScope: true

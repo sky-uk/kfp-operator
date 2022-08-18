@@ -34,7 +34,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "create-experiment",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "create-experiment",
 				ClusterScope: true,
 			},
 		},
@@ -62,7 +62,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "update-experiment",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "update-experiment",
 				ClusterScope: true,
 			},
 		},
@@ -86,7 +86,7 @@ func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment 
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "delete-experiment",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-experiment",
 				ClusterScope: true,
 			},
 		},

@@ -47,7 +47,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 				Parameters: append(creationParameters, workflows.kfpEndpointParameter()),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "create-runconfiguration",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "create-runconfiguration",
 				ClusterScope: true,
 			},
 		},
@@ -69,7 +69,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 				Parameters: append(append(deletionParameters, workflows.kfpEndpointParameter()), creationParameters...),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "update-runconfiguration",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "update-runconfiguration",
 				ClusterScope: true,
 			},
 		},
@@ -84,7 +84,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runCo
 				Parameters: append(workflows.deletionParameters(runConfiguration), workflows.kfpEndpointParameter()),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         "delete-runconfiguration",
+				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-runconfiguration",
 				ClusterScope: true,
 			},
 		},

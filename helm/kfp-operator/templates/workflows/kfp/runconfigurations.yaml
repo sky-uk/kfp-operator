@@ -54,7 +54,7 @@ spec:
     steps:
     - - name: create
         templateRef:
-          name: runconfiguration-steps
+          name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: create
           clusterScope: true
 ---
@@ -86,12 +86,12 @@ spec:
     steps:
     - - name: delete
         templateRef:
-          name: runconfiguration-steps
+          name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: delete
           clusterScope: true
     - - name: create
         templateRef:
-          name: runconfiguration-steps
+          name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: create
           clusterScope: true
         continueOn:
@@ -115,6 +115,6 @@ spec:
     steps:
     - - name: delete
         templateRef:
-          name: runconfiguration-steps
+          name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: delete
           clusterScope: true
