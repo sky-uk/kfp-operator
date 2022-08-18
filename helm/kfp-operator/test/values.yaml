@@ -1,8 +1,7 @@
 fullnameOverride: kfp-operator
 manager:
   argo:
-    containerDefaults:
-      imagePullPolicy: Never
+    containerDefaults: {}
   configuration:
     pipelineStorage: ${PIPELINE_STORAGE}
     defaultBeamArgs:

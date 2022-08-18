@@ -47,3 +47,12 @@ Remove trailing '/' characters from .Values.containerRegistry.
 
 {{- end }}
 {{- end }}
+
+{{/*
+Only render object if not empty.
+*/}}
+{{- define "kfp-operator.notEmptyYaml" -}}
+{{- if . }}
+{{ . | toYaml }}
+{{- end }}
+{{- end }}

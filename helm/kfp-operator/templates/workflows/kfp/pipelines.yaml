@@ -4,81 +4,81 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
 spec:
   templates:
-    - name: compile
-      outputs:
+  - name: compile
+    outputs:
+      artifacts:
+      - name: pipeline
+        path: /tmp/pipeline.yaml
+    metadata:
+      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+    container:
+      command:
+        - python3
+      image: '{{`{{workflow.parameters.pipeline-image}}`}}'
+      name: pipeline
+      volumeMounts:
+      - mountPath: /shared
+        name: shared
+      args:
+      - /shared/compile.py
+      - --output_file
+      - /tmp/pipeline.yaml
+      - --pipeline_config
+      - |
+        {{`{{workflow.parameters.compiler-config}}`}}
+      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+    volumes:
+    - name: shared
+    initContainers:
+    - args:
+      - /shared
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
+      mirrorVolumeMounts: true
+      name: compile
+      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+  - name: upload
+    inputs:
         artifacts:
         - name: pipeline
           path: /tmp/pipeline.yaml
-      metadata:
-        {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 8 }}
-      container:
-        command:
-          - python3
-        image: '{{`{{workflow.parameters.pipeline-image}}`}}'
-        name: pipeline
-        volumeMounts:
-        - mountPath: /shared
-          name: shared
-        args:
-        - /shared/compile.py
-        - --output_file
-        - /tmp/pipeline.yaml
-        - --pipeline_config
-        - |
-          {{`{{workflow.parameters.compiler-config}}`}}
-        {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}
-      volumes:
-      - name: shared
-      initContainers:
-      - args:
-        - /shared
-        image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
-        mirrorVolumeMounts: true
-        name: compile
-        {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}
-    - name: upload
-      inputs:
-          artifacts:
-          - name: pipeline
-            path: /tmp/pipeline.yaml
-      metadata:
-        {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 8 }}
-      script:
-        command:
-        - ash
-        image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-        source: |-
-          set -e -o pipefail
-          kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
-      {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}
-    - name: update
-      inputs:
-        artifacts:
-        - name: pipeline
-          path: /tmp/pipeline.yaml
-        parameters:
-        - name: pipeline-id
-      metadata:
-        {{ .Values.manager.argo.metadataDefaults | toYaml | nindent 8 }}
-      script:
-        command:
-        - ash
-        image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-        source: |-
-          set -e -o pipefail
-          kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload-version --pipeline-version '{{`{{workflow.parameters.pipeline-version}}`}}' --pipeline-id '{{`{{inputs.parameters.pipeline-id}}`}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
-      {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}
-    - name: delete
-      metadata:
-        {{ .Values.manager.argo.metadataDefaults | toYaml | nindent 8 }}
-      script:
-        command:
-        - ash
-        image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-        source: |-
-          set -e -o pipefail
-          kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline delete '{{`{{workflow.parameters.pipeline-id}}`}}'
-      {{ .Values.manager.argo.containerDefaults | toYaml | nindent 8 }}
+    metadata:
+      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+    script:
+      command:
+      - ash
+      image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+      source: |-
+        set -e -o pipefail
+        kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
+    {{ .Values.manager.argo.containerDefaults | toYaml | nindent 6 }}
+  - name: update
+    inputs:
+      artifacts:
+      - name: pipeline
+        path: /tmp/pipeline.yaml
+      parameters:
+      - name: pipeline-id
+    metadata:
+      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+    script:
+      command:
+      - ash
+      image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+      source: |-
+        set -e -o pipefail
+        kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload-version --pipeline-version '{{`{{workflow.parameters.pipeline-version}}`}}' --pipeline-id '{{`{{inputs.parameters.pipeline-id}}`}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+  - name: delete
+    metadata:
+      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+    script:
+      command:
+      - ash
+      image: {{ .Values.containerRegistry }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+      source: |-
+        set -e -o pipefail
+        kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline delete '{{`{{workflow.parameters.pipeline-id}}`}}'
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
