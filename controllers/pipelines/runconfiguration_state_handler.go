@@ -227,7 +227,7 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 			return From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
 		}
 
-		idResult, _ := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.JobIdParameterName)
+		idResult, _ := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
 
 		if idResult == "" {
 			failureMessage := "could not retrieve kfpId"
@@ -306,7 +306,7 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 
 	if succeeded != nil {
 		logger.Info("run configuration creation succeeded")
-		idResult, err := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.JobIdParameterName)
+		idResult, err := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
 
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"

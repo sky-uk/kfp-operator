@@ -158,7 +158,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			workflowFactory.ConstructCreationWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.JobIdParameterName)).
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
 					To(Equal(jobKfpId))
 			},
 		),
@@ -212,7 +212,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.JobIdParameterName)).
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
 					To(Equal(newJobKfpId))
 			}),
 		Entry("Deletion succeeds and creation fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
@@ -222,7 +222,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.JobIdParameterName)).
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
 					To(Equal(""))
 			}),
 		Entry("Deletion fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
@@ -240,7 +240,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.JobIdParameterName)).
+				g.Expect(getWorkflowOutput(workflow, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)).
 					To(Equal(newJobKfpId))
 			}),
 	)

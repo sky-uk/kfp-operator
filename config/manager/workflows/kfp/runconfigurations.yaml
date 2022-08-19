@@ -9,7 +9,7 @@ spec:
     script:
       source: |-
         set -e -o pipefail
-        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json job submit --pipeline-name '{{workflow.parameters.pipeline-name}}' --job-name '{{workflow.parameters.job-name}}' --experiment-name '{{workflow.parameters.experiment-name}}' --version-name '{{workflow.parameters.pipeline-version}}' --cron-expression '{{workflow.parameters.schedule}}'  | jq -r '."Job Details"."ID"'
+        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json job submit --pipeline-name '{{workflow.parameters.pipeline-name}}' --job-name '{{workflow.parameters.runconfiguration-name}}' --experiment-name '{{workflow.parameters.experiment-name}}' --version-name '{{workflow.parameters.pipeline-version}}' --cron-expression '{{workflow.parameters.schedule}}'  | jq -r '."Job Details"."ID"'
       image: kfp-operator-argo-kfp-sdk:latest
       command:
       - ash
@@ -18,7 +18,7 @@ spec:
     script:
       source: |-
         set -e -o pipefail
-        KFP_RESULT=$(kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json job delete '{{workflow.parameters.job-id}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
+        KFP_RESULT=$(kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json job delete '{{workflow.parameters.runconfiguration-id}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
       image: kfp-operator-argo-kfp-sdk:latest
       command:
       - ash
@@ -30,7 +30,7 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: job-name
+    - name: runconfiguration-name
     - name: pipeline-name
     - name: pipeline-version
     - name: experiment-name
@@ -41,7 +41,7 @@ spec:
   - name: main
     outputs:
       parameters:
-      - name: job-id
+      - name: runconfiguration-id
         valueFrom:
           parameter: '{{steps.create.outputs.result}}'
     steps:
@@ -58,8 +58,8 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: job-id
-    - name: job-name
+    - name: runconfiguration-id
+    - name: runconfiguration-name
     - name: pipeline-name
     - name: pipeline-version
     - name: experiment-name
@@ -70,7 +70,7 @@ spec:
   - name: main
     outputs:
       parameters:
-      - name: job-id
+      - name: runconfiguration-id
         valueFrom:
           parameter: '{{steps.create.outputs.result}}'
     steps:
@@ -94,7 +94,7 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: job-id
+    - name: runconfiguration-id
     - name: kfp-endpoint
   entrypoint: main
   templates:

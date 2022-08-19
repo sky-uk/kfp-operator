@@ -7,19 +7,19 @@ import (
 )
 
 var RunConfigurationWorkflowConstants = struct {
-	JobIdParameterName           string
-	JobNameParameterName         string
-	PipelineNameParameterName    string
-	PipelineVersionParameterName string
-	ExperimentNameParameterName  string
-	ScheduleParameterName        string
+	RunConfigurationIdParameterName   string
+	RunConfigurationNameParameterName string
+	PipelineNameParameterName         string
+	PipelineVersionParameterName      string
+	ExperimentNameParameterName       string
+	ScheduleParameterName             string
 }{
-	JobIdParameterName:           "job-id",
-	JobNameParameterName:         "job-name",
-	PipelineNameParameterName:    "pipeline-name",
-	PipelineVersionParameterName: "pipeline-version",
-	ExperimentNameParameterName:  "experiment-name",
-	ScheduleParameterName:        "schedule",
+	RunConfigurationIdParameterName:   "runconfiguration-id",
+	RunConfigurationNameParameterName: "runconfiguration-name",
+	PipelineNameParameterName:         "pipeline-name",
+	PipelineVersionParameterName:      "pipeline-version",
+	ExperimentNameParameterName:       "experiment-name",
+	ScheduleParameterName:             "schedule",
 }
 
 type RunConfigurationWorkflowFactory struct {
@@ -94,7 +94,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runCo
 func (workflows RunConfigurationWorkflowFactory) deletionParameters(runConfiguration *pipelinesv1.RunConfiguration) []argo.Parameter {
 	return []argo.Parameter{
 		{
-			Name:  RunConfigurationWorkflowConstants.JobIdParameterName,
+			Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
 			Value: argo.AnyStringPtr(runConfiguration.Status.KfpId),
 		},
 	}
@@ -114,11 +114,11 @@ func (workflows RunConfigurationWorkflowFactory) creationParameters(runConfigura
 
 	return []argo.Parameter{
 		{
-			Name:  RunConfigurationWorkflowConstants.JobIdParameterName,
+			Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
 			Value: argo.AnyStringPtr(runConfiguration.Status.KfpId),
 		},
 		{
-			Name:  RunConfigurationWorkflowConstants.JobNameParameterName,
+			Name:  RunConfigurationWorkflowConstants.RunConfigurationNameParameterName,
 			Value: argo.AnyStringPtr(runConfiguration.Name),
 		},
 		{

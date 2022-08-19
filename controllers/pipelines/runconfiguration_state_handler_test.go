@@ -56,7 +56,7 @@ func (st RunConfigurationStateTransitionTestCase) WithCreateWorkFlowWithId(phase
 			CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, phase),
 			[]argo.Parameter{
 				{
-					Name:  RunConfigurationWorkflowConstants.JobIdParameterName,
+					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
 					Value: argo.AnyStringPtr(kfpId),
 				},
 			},
@@ -76,7 +76,7 @@ func (st RunConfigurationStateTransitionTestCase) WithSucceededUpdateWorkflowWit
 			CreateTestWorkflow(WorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
 			[]argo.Parameter{
 				{
-					Name:  RunConfigurationWorkflowConstants.JobIdParameterName,
+					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
 					Value: argo.AnyStringPtr(kfpId),
 				},
 			},
