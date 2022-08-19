@@ -9,7 +9,6 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/external"
-	apiv1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -93,13 +92,6 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
-				Argo: configv1.ArgoConfiguration{
-					KfpSdkImage:   "kfp-sdk",
-					CompilerImage: "compiler",
-					ContainerDefaults: apiv1.Container{
-						ImagePullPolicy: "Never",
-					},
-				},
 				KfpEndpoint: "http://www.example.com",
 			},
 		},
@@ -122,14 +114,7 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				DefaultExperiment: "Default",
-				Argo: configv1.ArgoConfiguration{
-					KfpSdkImage:   "kfp-sdk",
-					CompilerImage: "compiler",
-					ContainerDefaults: apiv1.Container{
-						ImagePullPolicy: "Never",
-					},
-				},
-				KfpEndpoint: "http://www.example.com",
+				KfpEndpoint:       "http://www.example.com",
 			},
 		},
 	}
@@ -150,13 +135,6 @@ func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository Work
 	var workflowFactory = ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
-				Argo: configv1.ArgoConfiguration{
-					KfpSdkImage:   "kfp-sdk",
-					CompilerImage: "compiler",
-					ContainerDefaults: apiv1.Container{
-						ImagePullPolicy: "Never",
-					},
-				},
 				KfpEndpoint: "http://www.example.com",
 			},
 		},

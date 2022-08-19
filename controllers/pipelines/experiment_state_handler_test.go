@@ -11,7 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
-	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -135,13 +134,6 @@ var _ = Describe("Experiment State handler", func() {
 	var workflowFactory = ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
-				Argo: configv1.ArgoConfiguration{
-					KfpSdkImage:   "kfp-sdk",
-					CompilerImage: "compiler",
-					ContainerDefaults: apiv1.Container{
-						ImagePullPolicy: "Never",
-					},
-				},
 				KfpEndpoint: "http://www.example.com",
 			},
 		},
