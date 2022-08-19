@@ -11,7 +11,7 @@ spec:
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json experiment create '{{`{{workflow.parameters.experiment-name}}`}}' | jq -r '."ID"'
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:latest
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
       command:
       - ash
@@ -22,7 +22,7 @@ spec:
       source: |-
         set -e -o pipefail
         echo y | kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json experiment delete '{{`{{workflow.parameters.experiment-id}}`}}'
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:latest
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
       command:
       - ash
