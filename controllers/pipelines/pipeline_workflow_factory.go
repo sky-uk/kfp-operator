@@ -25,13 +25,37 @@ type PipelineWorkflowFactory struct {
 }
 
 type CompilerConfig struct {
-	RootLocation    string            `yaml:"rootLocation"`
-	ServingLocation string            `yaml:"servingLocation"`
-	Name            string            `yaml:"name"`
-	Image           string            `yaml:"image"`
-	TfxComponents   string            `yaml:"tfxComponents"`
-	Env             map[string]string `yaml:"env"`
-	BeamArgs        map[string]string `yaml:"beamArgs"`
+	RootLocation    string              `yaml:"rootLocation"`
+	ServingLocation string              `yaml:"servingLocation"`
+	Name            string              `yaml:"name"`
+	Image           string              `yaml:"image"`
+	TfxComponents   string              `yaml:"tfxComponents"`
+	Env             map[string]string   `yaml:"env"`
+	BeamArgs        map[string][]string `yaml:"beamArgs"`
+}
+
+func NamedValuesToMap(namedValues []pipelinesv1.NamedValue) map[string]string {
+	m := make(map[string]string)
+
+	for _, nv := range namedValues {
+		m[nv.Name] = nv.Value
+	}
+
+	return m
+}
+
+func NamedValuesToMultiMap(namedValues []pipelinesv1.NamedValue) map[string][]string {
+	multimap := make(map[string][]string)
+
+	for _, nv := range namedValues {
+		if _, found := multimap[nv.Name]; !found {
+			multimap[nv.Name] = []string{}
+		}
+
+		multimap[nv.Name] = append(multimap[nv.Name], nv.Value)
+	}
+
+	return multimap
 }
 
 func (config CompilerConfig) AsYaml() (string, error) {
@@ -52,14 +76,8 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 
 	pipelineRoot := wf.Config.PipelineStorage + "/" + pipeline.ObjectMeta.Name
 
-	beamArgs := make(map[string]string)
-	for key, value := range wf.Config.DefaultBeamArgs {
-		beamArgs[key] = value
-	}
-	for key, value := range pipeline.Spec.BeamArgs {
-		beamArgs[key] = value
-	}
-	beamArgs["temp_location"] = pipelineRoot + tempPath
+	beamArgs := append(wf.Config.DefaultBeamArgs, pipeline.Spec.BeamArgs...)
+	beamArgs = append(beamArgs, pipelinesv1.NamedValue{Name: "temp_location", Value: pipelineRoot + tempPath})
 
 	return &CompilerConfig{
 		RootLocation:    pipelineRoot,
@@ -68,7 +86,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 		Image:           pipeline.Spec.Image,
 		TfxComponents:   pipeline.Spec.TfxComponents,
 		Env:             pipeline.Spec.Env,
-		BeamArgs:        beamArgs,
+		BeamArgs:        NamedValuesToMultiMap(beamArgs),
 	}
 }
 

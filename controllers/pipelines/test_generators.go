@@ -26,6 +26,17 @@ func RandomString() string {
 	return randstr.String(rand.Intn(20) + 1)
 }
 
+func RandomNamedValues() []pipelinesv1.NamedValue {
+	size := rand.Intn(5)
+
+	rMap := make([]pipelinesv1.NamedValue, size)
+	for i := 0; i < size; i++ {
+		rMap[i] = pipelinesv1.NamedValue{Name: RandomString(), Value: RandomString()}
+	}
+
+	return rMap
+}
+
 func RandomMap() map[string]string {
 	size := rand.Intn(5)
 
@@ -89,7 +100,7 @@ func RandomPipelineSpec() pipelinesv1.PipelineSpec {
 		Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
 		Env:           RandomMap(),
-		BeamArgs:      RandomMap(),
+		BeamArgs:      RandomNamedValues(),
 	}
 }
 

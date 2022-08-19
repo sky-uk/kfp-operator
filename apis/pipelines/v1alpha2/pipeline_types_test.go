@@ -4,7 +4,7 @@
 package v1alpha2
 
 import (
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -43,7 +43,7 @@ var _ = Context("Pipeline", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 
 			pipelineSpec.Env = map[string]string{
-				"b": "notempty",
+				"b": "NotEmpty",
 			}
 			hash3 := pipelineSpec.ComputeHash()
 
@@ -54,13 +54,13 @@ var _ = Context("Pipeline", func() {
 			pipelineSpec := PipelineSpec{}
 			hash1 := pipelineSpec.ComputeHash()
 
-			pipelineSpec.BeamArgs = map[string]string{
-				"a": "",
+			pipelineSpec.BeamArgs = []NamedValue{
+				{Name: "a", Value: ""},
 			}
 			hash2 := pipelineSpec.ComputeHash()
 
-			pipelineSpec.BeamArgs = map[string]string{
-				"b": "notempty",
+			pipelineSpec.BeamArgs = []NamedValue{
+				{Name: "b", Value: "NotEmpty"},
 			}
 			hash3 := pipelineSpec.ComputeHash()
 

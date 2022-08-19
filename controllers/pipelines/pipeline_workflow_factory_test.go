@@ -61,18 +61,18 @@ var _ = Describe("PipelineConfig", func() {
 		wf := PipelineWorkflowFactory{}
 		pipeline := &pipelinesv1.Pipeline{
 			Spec: pipelinesv1.PipelineSpec{
-				BeamArgs: map[string]string{
-					"a": "b",
+				BeamArgs: []pipelinesv1.NamedValue{
+					{Name: "a", Value: "b"},
 				},
 			},
 		}
 
 		compilerConfig := wf.newCompilerConfig(pipeline)
 
-		Expect(compilerConfig.BeamArgs["a"]).To(Equal("b"))
+		Expect(compilerConfig.BeamArgs["a"]).To(Equal([]string{"b"}))
 	})
 
-	Specify("BeamArgs are overridden with temp_location", func() {
+	Specify("BeamArgs are enriched with temp_location", func() {
 		wf := PipelineWorkflowFactory{
 			WorkflowFactoryBase: WorkflowFactoryBase{
 				Config: configv1.Configuration{
@@ -85,25 +85,20 @@ var _ = Describe("PipelineConfig", func() {
 			ObjectMeta: v1.ObjectMeta{
 				Name: "pipelineName",
 			},
-			Spec: pipelinesv1.PipelineSpec{
-				BeamArgs: map[string]string{
-					"temp_location": "will be overridden",
-				},
-			},
 		}
 
 		compilerConfig := wf.newCompilerConfig(pipeline)
 
-		Expect(compilerConfig.BeamArgs["temp_location"]).To(Equal("gs://bucket/pipelineName/tmp"))
+		Expect(compilerConfig.BeamArgs["temp_location"]).To(Equal([]string{"gs://bucket/pipelineName/tmp"}))
 	})
 
-	Specify("BeamArgs default to configuration values", func() {
+	Specify("BeamArgs are appended to default configuration values", func() {
 		wf := PipelineWorkflowFactory{
 			WorkflowFactoryBase: WorkflowFactoryBase{
 				Config: configv1.Configuration{
-					DefaultBeamArgs: map[string]string{
-						"ba": "default",
-						"bc": "default",
+					DefaultBeamArgs: []pipelinesv1.NamedValue{
+						{Name: "ba", Value: "default"},
+						{Name: "bc", Value: "default"},
 					},
 				},
 			},
@@ -111,16 +106,16 @@ var _ = Describe("PipelineConfig", func() {
 
 		pipeline := &pipelinesv1.Pipeline{
 			Spec: pipelinesv1.PipelineSpec{
-				BeamArgs: map[string]string{
-					"bc": "bd",
+				BeamArgs: []pipelinesv1.NamedValue{
+					{Name: "bc", Value: "bd"},
 				},
 			},
 		}
 
 		compilerConfig := wf.newCompilerConfig(pipeline)
 
-		Expect(compilerConfig.BeamArgs["ba"]).To(Equal("default"))
-		Expect(compilerConfig.BeamArgs["bc"]).To(Equal("bd"))
+		Expect(compilerConfig.BeamArgs["ba"]).To(Equal([]string{"default"}))
+		Expect(compilerConfig.BeamArgs["bc"]).To(Equal([]string{"default", "bd"}))
 	})
 
 	It("Creates a valid YAML", func() {
@@ -133,8 +128,8 @@ var _ = Describe("PipelineConfig", func() {
 			Env: map[string]string{
 				"ea": "eb",
 			},
-			BeamArgs: map[string]string{
-				"ba": "bb",
+			BeamArgs: map[string][]string{
+				"ba": {"bb"},
 			},
 		}
 
@@ -152,6 +147,6 @@ var _ = Describe("PipelineConfig", func() {
 		env := m["env"].(map[interface{}]interface{})
 		Expect(env["ea"]).To(Equal("eb"))
 		beamArgs := m["beamArgs"].(map[interface{}]interface{})
-		Expect(beamArgs["ba"]).To(Equal("bb"))
+		Expect(beamArgs["ba"]).To(Equal([]interface{}{"bb"}))
 	})
 })

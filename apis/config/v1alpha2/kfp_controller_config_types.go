@@ -12,7 +12,7 @@ type Configuration struct {
 
 	WorkflowTemplatePrefix string `json:"workflowTemplatePrefix,omitempty"`
 
-	DefaultBeamArgs map[string]string `json:"defaultBeamArgs,omitempty"`
+	DefaultBeamArgs []pipelinesv1.NamedValue `json:"defaultBeamArgs,omitempty"`
 
 	DefaultExperiment string `json:"defaultExperiment,omitempty"`
 

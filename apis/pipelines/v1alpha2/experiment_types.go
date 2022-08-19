@@ -2,7 +2,6 @@ package v1alpha2
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -12,7 +11,7 @@ type ExperimentSpec struct {
 }
 
 func (es ExperimentSpec) ComputeHash() []byte {
-	oh := objecthasher.New()
+	oh := NewObjectHasher()
 	oh.WriteStringField(es.Description)
 	return oh.Sum()
 }

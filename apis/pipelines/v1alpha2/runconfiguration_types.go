@@ -2,10 +2,50 @@ package v1alpha2
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
+
+//```
+//- name: foo
+//  value: bar1
+//  values:
+//  - bar2
+//===
+//- name: foo
+//  values:
+//  - bar1
+//  - bar2
+//===
+//- name: foo
+//  values:
+//  - bar2
+//  - bar1
+//```
+//
+//```
+//- name: foo1
+//  value: bar1
+//- name: foo2
+//  value: bar2
+//===
+//- name: foo2
+//  value: bar2
+//- name: foo1
+//  value: bar1
+//```
+//
+//```
+//v1
+//  foo1: bar1
+//  foo2: bar2
+//===
+//v2
+//- name: foo1
+//  value: bar1
+//- name: foo2
+//  value: bar2
+//```
 
 type RunConfigurationSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
@@ -15,12 +55,12 @@ type RunConfigurationSpec struct {
 }
 
 func (rc RunConfiguration) ComputeHash() []byte {
-	oh := objecthasher.New()
+	oh := NewObjectHasher()
 	oh.WriteStringField(rc.Spec.Pipeline.String())
 	oh.WriteStringField(rc.Spec.ExperimentName)
 	oh.WriteStringField(rc.Spec.Schedule)
-	oh.WriteMapField(rc.Spec.RuntimeParameters)
 	oh.WriteStringField(rc.Status.ObservedPipelineVersion)
+	oh.WriteMapField(rc.Spec.RuntimeParameters)
 	return oh.Sum()
 }
 

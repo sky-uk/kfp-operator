@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/docker/distribution/reference"
-	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"strings"
@@ -14,15 +13,15 @@ type PipelineSpec struct {
 	Image         string            `json:"image" yaml:"image"`
 	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
 	Env           map[string]string `json:"env,omitempty" yaml:"env"`
-	BeamArgs      map[string]string `json:"beamArgs,omitempty" yaml:"beamArgs"`
+	BeamArgs      []NamedValue      `json:"beamArgs,omitempty"`
 }
 
 func (ps PipelineSpec) ComputeHash() []byte {
-	oh := objecthasher.New()
+	oh := NewObjectHasher()
 	oh.WriteStringField(ps.Image)
 	oh.WriteStringField(ps.TfxComponents)
 	oh.WriteMapField(ps.Env)
-	oh.WriteMapField(ps.BeamArgs)
+	oh.WriteNamedValueListField(ps.BeamArgs)
 	return oh.Sum()
 }
 

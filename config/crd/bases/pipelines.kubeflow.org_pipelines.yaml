@@ -47,9 +47,14 @@ spec:
           spec:
             properties:
               beamArgs:
-                additionalProperties:
-                  type: string
-                type: object
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  type: object
+                type: array
               env:
                 additionalProperties:
                   type: string

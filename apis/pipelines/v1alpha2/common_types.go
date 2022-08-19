@@ -17,6 +17,11 @@ const (
 	Failed    SynchronizationState = "Failed"
 )
 
+type NamedValue struct {
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
 type Status struct {
 	KfpId                string               `json:"kfpId,omitempty"`
 	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`

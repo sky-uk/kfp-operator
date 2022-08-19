@@ -160,9 +160,14 @@ spec:
                     type: boolean
                 type: object
               defaultBeamArgs:
-                additionalProperties:
-                  type: string
-                type: object
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  type: object
+                type: array
               defaultExperiment:
                 type: string
               kfpEndpoint:
