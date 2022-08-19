@@ -9,7 +9,7 @@ import (
 )
 
 type ExperimentStateHandler struct {
-	WorkflowFactory    ExperimentWorkflowFactory
+	WorkflowFactory    WorkflowFactory[*pipelinesv1.Experiment]
 	WorkflowRepository WorkflowRepository
 }
 
@@ -65,11 +65,13 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(experiment)
 
 		if err != nil {
-			failureMessage := "error constructing update workflow"
+			failureMessage := WorkflowConstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 			return []Command{
-				*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).
+					WithVersion(newExperimentVersion).
+					WithMessage(failureMessage),
 			}
 		}
 
@@ -85,11 +87,13 @@ func (st *ExperimentStateHandler) onUnknown(ctx context.Context, experiment *pip
 	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(experiment)
 
 	if err != nil {
-		failureMessage := "error constructing creation workflow"
+		failureMessage := WorkflowConstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 		return []Command{
-			*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).
+				WithVersion(newExperimentVersion).
+				WithMessage(failureMessage),
 		}
 	}
 
@@ -117,7 +121,7 @@ func (st ExperimentStateHandler) onDelete(ctx context.Context, experiment *pipel
 	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(experiment)
 
 	if err != nil {
-		failureMessage := "error constructing deletion workflow"
+		failureMessage := WorkflowConstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 		return []Command{
@@ -149,11 +153,14 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(experiment)
 
 		if err != nil {
-			failureMessage := "error constructing creation workflow"
+			failureMessage := WorkflowConstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 			return []Command{
-				*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(experiment.Status).
+					WithSynchronizationState(pipelinesv1.Failed).
+					WithVersion(newExperimentVersion).
+					WithMessage(failureMessage),
 			}
 		}
 
@@ -163,11 +170,14 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(experiment)
 
 		if err != nil {
-			failureMessage := "error constructing update workflow"
+			failureMessage := WorkflowConstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 
 			return []Command{
-				*From(experiment.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(experiment.Status).
+					WithSynchronizationState(pipelinesv1.Failed).
+					WithVersion(newExperimentVersion).
+					WithMessage(failureMessage),
 			}
 		}
 

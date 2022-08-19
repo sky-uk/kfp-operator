@@ -1,44 +1,27 @@
 package pipelines
 
 import (
-	"fmt"
-	"gopkg.in/yaml.v2"
-	"path/filepath"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
-	apiv1 "k8s.io/api/core/v1"
+	"gopkg.in/yaml.v2"
 )
 
 var PipelineWorkflowConstants = struct {
 	PipelineIdParameterName      string
+	PipelineNameParameterName    string
+	PipelineImageParameterName   string
 	PipelineVersionParameterName string
-	PipelineYamlParameterName    string
-	CompileStepName              string
-	UploadStepName               string
-	DeletionStepName             string
-	UpdateStepName               string
-	PipelineYamlFilePath         string
-	PipelineIdFilePath           string
+	CompilerConfigParameterName  string
 }{
 	PipelineIdParameterName:      "pipeline-id",
+	PipelineNameParameterName:    "pipeline-name",
+	PipelineImageParameterName:   "pipeline-image",
 	PipelineVersionParameterName: "pipeline-version",
-	PipelineYamlParameterName:    "pipeline",
-	CompileStepName:              "compile",
-	UploadStepName:               "upload",
-	DeletionStepName:             "delete",
-	UpdateStepName:               "update",
-	PipelineYamlFilePath:         "/tmp/pipeline.yaml",
-	PipelineIdFilePath:           "/tmp/pipeline.txt",
+	CompilerConfigParameterName:  "compiler-config",
 }
 
-var (
-	// Needs to be passed by reference
-	trueValue = true
-)
-
 type PipelineWorkflowFactory struct {
-	WorkflowFactory
+	WorkflowFactoryBase
 }
 
 type CompilerConfig struct {
@@ -89,344 +72,110 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	}
 }
 
-func (w PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := w.newCompilerConfig(pipeline).AsYaml()
+func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
 
-	if err != nil {
-		return nil, err
-	}
-
-	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
-	uploadScriptTemplate, err := w.uploader(pipeline.ObjectMeta.Name)
-	if err != nil {
-		return nil, err
-	}
-	updateScriptTemplate, err := w.updater(pipeline.Spec.ComputeVersion())
-	if err != nil {
-		return nil, err
-	}
-
-	workflow := &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.CreateOperationLabel),
-		Spec: argo.WorkflowSpec{
-			ServiceAccountName: w.Config.Argo.ServiceAccount,
-			Entrypoint:         WorkflowConstants.EntryPointName,
-			Templates: []argo.Template{
-				{
-					Name: WorkflowConstants.EntryPointName,
-					Steps: []argo.ParallelSteps{
-						{
-							Steps: []argo.WorkflowStep{
-								{
-									Name:     PipelineWorkflowConstants.CompileStepName,
-									Template: PipelineWorkflowConstants.CompileStepName,
-								},
-							},
-						},
-						{
-							Steps: []argo.WorkflowStep{
-								{
-									Name:     PipelineWorkflowConstants.UploadStepName,
-									Template: PipelineWorkflowConstants.UploadStepName,
-									Arguments: argo.Arguments{
-										Artifacts: []argo.Artifact{
-											{
-												Name: PipelineWorkflowConstants.PipelineYamlParameterName,
-												From: fmt.Sprintf("{{steps.%s.outputs.artifacts.pipeline}}",
-													PipelineWorkflowConstants.CompileStepName),
-											},
-										},
-									},
-								},
-							},
-						},
-						{
-							Steps: []argo.WorkflowStep{
-								{
-									Name:     PipelineWorkflowConstants.UpdateStepName,
-									Template: PipelineWorkflowConstants.UpdateStepName,
-									ContinueOn: &argo.ContinueOn{
-										Failed: true,
-									},
-									Arguments: argo.Arguments{
-										Artifacts: []argo.Artifact{
-											{
-												Name: PipelineWorkflowConstants.PipelineYamlParameterName,
-												From: fmt.Sprintf("{{steps.%s.outputs.artifacts.pipeline}}",
-													PipelineWorkflowConstants.CompileStepName),
-											},
-										},
-										Parameters: []argo.Parameter{
-											{
-												Name: PipelineWorkflowConstants.PipelineIdParameterName,
-												Value: argo.AnyStringPtr(fmt.Sprintf("{{steps.%s.outputs.result}}",
-													PipelineWorkflowConstants.UploadStepName)),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					Outputs: argo.Outputs{
-						Parameters: []argo.Parameter{
-							{
-								Name: PipelineWorkflowConstants.PipelineIdParameterName,
-								ValueFrom: &argo.ValueFrom{
-									Parameter: fmt.Sprintf("{{steps.%s.outputs.result}}",
-										PipelineWorkflowConstants.UploadStepName),
-								},
-							},
-							{
-								Name: PipelineWorkflowConstants.PipelineVersionParameterName,
-								ValueFrom: &argo.ValueFrom{
-									Parameter: fmt.Sprintf("{{steps.%s.outputs.result}}",
-										PipelineWorkflowConstants.UpdateStepName),
-								},
-							},
-						},
-					},
-				},
-				compilerScriptTemplate,
-				uploadScriptTemplate,
-				updateScriptTemplate,
-			},
-		},
-	}
-
-	return workflow, nil
-}
-
-func (w PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := w.newCompilerConfig(pipeline).AsYaml()
-
-	if err != nil {
-		return nil, err
-	}
-
-	compilerScriptTemplate := w.compiler(compilerConfigYaml, pipeline.Spec.Image)
-	updateScriptTemplate, err := w.updater(pipeline.Spec.ComputeVersion())
-	if err != nil {
-		return nil, err
-	}
-
-	workflow := &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.UpdateOperationLabel),
-		Spec: argo.WorkflowSpec{
-			ServiceAccountName: w.Config.Argo.ServiceAccount,
-			Entrypoint:         WorkflowConstants.EntryPointName,
-			Templates: []argo.Template{
-				{
-					Name: WorkflowConstants.EntryPointName,
-					Steps: []argo.ParallelSteps{
-						{
-							Steps: []argo.WorkflowStep{
-								{
-									Name:     PipelineWorkflowConstants.CompileStepName,
-									Template: PipelineWorkflowConstants.CompileStepName,
-								},
-							},
-						},
-						{
-							Steps: []argo.WorkflowStep{
-								{
-									Name:     PipelineWorkflowConstants.UpdateStepName,
-									Template: PipelineWorkflowConstants.UpdateStepName,
-									Arguments: argo.Arguments{
-										Artifacts: []argo.Artifact{
-											{
-												Name: PipelineWorkflowConstants.PipelineYamlParameterName,
-												From: fmt.Sprintf("{{steps.%s.outputs.artifacts.pipeline}}",
-													PipelineWorkflowConstants.CompileStepName),
-											},
-										},
-										Parameters: []argo.Parameter{
-											{
-												Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-												Value: argo.AnyStringPtr(pipeline.Status.KfpId),
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				compilerScriptTemplate,
-				updateScriptTemplate,
-			},
-		},
-	}
-
-	return workflow, nil
-}
-
-func (w PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	deletionScriptTemplate, err := w.deleter()
 	if err != nil {
 		return nil, err
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
-			ServiceAccountName: w.Config.Argo.ServiceAccount,
-			Entrypoint:         WorkflowConstants.EntryPointName,
-			Templates: []argo.Template{
-				{
-					Name: WorkflowConstants.EntryPointName,
-					Steps: []argo.ParallelSteps{
-						{
-							Steps: []argo.WorkflowStep{
-								{
-									Name:     PipelineWorkflowConstants.DeletionStepName,
-									Template: PipelineWorkflowConstants.DeletionStepName,
-									Arguments: argo.Arguments{
-										Parameters: []argo.Parameter{
-											{
-												Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-												Value: argo.AnyStringPtr(pipeline.Status.KfpId),
-											},
-										},
-									},
-								},
-							},
-						},
+			Arguments: argo.Arguments{
+				Parameters: []argo.Parameter{
+					{
+						Name:  PipelineWorkflowConstants.CompilerConfigParameterName,
+						Value: argo.AnyStringPtr(compilerConfigYaml),
+					},
+					{
+						Name:  PipelineWorkflowConstants.PipelineImageParameterName,
+						Value: argo.AnyStringPtr(pipeline.Spec.Image),
+					},
+					{
+						Name:  PipelineWorkflowConstants.PipelineNameParameterName,
+						Value: argo.AnyStringPtr(pipeline.Name),
+					},
+					{
+						Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
+						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
+					},
+					{
+						Name:  WorkflowConstants.KfpEndpointParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
 					},
 				},
-				deletionScriptTemplate,
+			},
+			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
+				Name:         workflows.Config.WorkflowTemplatePrefix + "create-pipeline",
+				ClusterScope: true,
 			},
 		},
 	}, nil
 }
 
-func (workflows *PipelineWorkflowFactory) compiler(compilerConfigYaml string, pipelineImage string) argo.Template {
-	sharedVolumeName := "shared"
-	sharedVolumePath := "/shared"
-
-	initContainerSpec := workflows.Config.Argo.ContainerDefaults.DeepCopy()
-	initContainerSpec.Name = PipelineWorkflowConstants.CompileStepName
-	initContainerSpec.Image = workflows.Config.Argo.CompilerImage
-	initContainerSpec.Args = []string{sharedVolumePath}
-
-	pipelineContainerSpec := workflows.Config.Argo.ContainerDefaults.DeepCopy()
-	pipelineContainerSpec.Name = "pipeline"
-	pipelineContainerSpec.Image = pipelineImage
-	pipelineContainerSpec.VolumeMounts = []apiv1.VolumeMount{
-		{
-			Name:      sharedVolumeName,
-			MountPath: sharedVolumePath,
-		},
-	}
-
-	pipelineContainerSpec.Command = []string{"python3"}
-	pipelineContainerSpec.Args = []string{
-		filepath.Join(sharedVolumePath, "compile.py"),
-		"--output_file",
-		PipelineWorkflowConstants.PipelineYamlFilePath,
-		"--pipeline_config",
-		compilerConfigYaml,
-	}
-
-	return argo.Template{
-		Name:     PipelineWorkflowConstants.CompileStepName,
-		Metadata: workflows.Config.Argo.MetadataDefaults,
-		Outputs: argo.Outputs{
-			Artifacts: []argo.Artifact{
-				{
-					Name: PipelineWorkflowConstants.PipelineYamlParameterName,
-					Path: PipelineWorkflowConstants.PipelineYamlFilePath,
-				},
-			},
-		},
-		Container: pipelineContainerSpec,
-		InitContainers: []argo.UserContainer{
-			{
-				Container:          *initContainerSpec,
-				MirrorVolumeMounts: &trueValue,
-			},
-		},
-		Volumes: []apiv1.Volume{
-			{
-				Name: sharedVolumeName,
-			},
-		},
-	}
-}
-
-func (workflows *PipelineWorkflowFactory) uploader(pipelineName string) (argo.Template, error) {
-	kfpScript, err := workflows.KfpExt("pipeline upload").
-		Param("--pipeline-name", pipelineName).
-		Arg(PipelineWorkflowConstants.PipelineYamlFilePath).
-		Build()
+func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
 
 	if err != nil {
-		return argo.Template{}, err
+		return nil, err
 	}
 
-	return argo.Template{
-		Name:     PipelineWorkflowConstants.UploadStepName,
-		Metadata: workflows.Config.Argo.MetadataDefaults,
-		Inputs: argo.Inputs{
-			Artifacts: []argo.Artifact{
-				{
-					Name: PipelineWorkflowConstants.PipelineYamlParameterName,
-					Path: PipelineWorkflowConstants.PipelineYamlFilePath,
+	return &argo.Workflow{
+		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.UpdateOperationLabel),
+		Spec: argo.WorkflowSpec{
+			Arguments: argo.Arguments{
+				Parameters: []argo.Parameter{
+					{
+						Name:  PipelineWorkflowConstants.CompilerConfigParameterName,
+						Value: argo.AnyStringPtr(compilerConfigYaml),
+					},
+					{
+						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
+						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
+					},
+					{
+						Name:  PipelineWorkflowConstants.PipelineImageParameterName,
+						Value: argo.AnyStringPtr(pipeline.Spec.Image),
+					},
+					{
+						Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
+						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
+					},
+					{
+						Name:  WorkflowConstants.KfpEndpointParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+					},
 				},
 			},
+			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
+				Name:         workflows.Config.WorkflowTemplatePrefix + "update-pipeline",
+				ClusterScope: true,
+			},
 		},
-		Script: workflows.ScriptTemplate(fmt.Sprintf(`%s | jq -r '."Pipeline Details"."Pipeline ID"'`, kfpScript)),
 	}, nil
 }
 
-func (workflows *PipelineWorkflowFactory) deleter() (argo.Template, error) {
-	kfpScript, err := workflows.KfpExt("pipeline delete").Arg("{{inputs.parameters.pipeline-id}}").Build()
-
-	if err != nil {
-		return argo.Template{}, err
-	}
-
-	return argo.Template{
-		Name:     PipelineWorkflowConstants.DeletionStepName,
-		Metadata: workflows.Config.Argo.MetadataDefaults,
-		Inputs: argo.Inputs{
-			Parameters: []argo.Parameter{
-				{
-					Name: PipelineWorkflowConstants.PipelineIdParameterName,
+func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	return &argo.Workflow{
+		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
+		Spec: argo.WorkflowSpec{
+			Arguments: argo.Arguments{
+				Parameters: []argo.Parameter{
+					{
+						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
+						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
+					},
+					{
+						Name:  WorkflowConstants.KfpEndpointParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+					},
 				},
+			},
+			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
+				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-pipeline",
+				ClusterScope: true,
 			},
 		},
-		Script: workflows.ScriptTemplate(kfpScript),
-	}, nil
-}
-
-func (workflows *PipelineWorkflowFactory) updater(version string) (argo.Template, error) {
-	kfpScript, err := workflows.KfpExt("pipeline upload-version").
-		Param("--pipeline-version", version).
-		Param("--pipeline-id", "{{inputs.parameters.pipeline-id}}").
-		Arg(PipelineWorkflowConstants.PipelineYamlFilePath).
-		Build()
-
-	if err != nil {
-		return argo.Template{}, err
-	}
-
-	return argo.Template{
-		Name:     PipelineWorkflowConstants.UpdateStepName,
-		Metadata: workflows.Config.Argo.MetadataDefaults,
-		Inputs: argo.Inputs{
-			Artifacts: []argo.Artifact{
-				{
-					Name: PipelineWorkflowConstants.PipelineYamlParameterName,
-					Path: PipelineWorkflowConstants.PipelineYamlFilePath,
-				},
-			},
-			Parameters: []argo.Parameter{
-				{
-					Name: PipelineWorkflowConstants.PipelineIdParameterName,
-				},
-			},
-		},
-		Script: workflows.ScriptTemplate(fmt.Sprintf(`%s | jq -r '."Version name"'`, kfpScript)),
 	}, nil
 }

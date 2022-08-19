@@ -10,31 +10,6 @@
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>argo.compilerImage&lt;/code>&lt;/td>
-&lt;td>The KFP Operator compiler image&lt;/td>
-&lt;td>&lt;code>docker.io/kfp-operator-argo-compiler:abcdef&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>argo.containerDefaults&lt;/code>&lt;/td>
-&lt;td>Container Spec defaults to be used for Argo workflow pods created by the operator&lt;/td>
-&lt;td>&lt;code>{}&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>argo.kfpSdkImage&lt;/code>&lt;/td>
-&lt;td>The KFP Operator tools image&lt;/td>
-&lt;td>&lt;code>docker.io/kfp-operator-argo-kfp-sdk:abcdef&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>argo.metadataDefaults&lt;/code>&lt;/td>
-&lt;td>Container Metadata defaults to be used for Argo workflow pods created by the operator&lt;/td>
-&lt;td>&lt;code>{}&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>argo.serviceAccount&lt;/code>&lt;/td>
-&lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s Service account&lt;/a> used to run argo workflows&lt;/td>
-&lt;td>&lt;code>kfp-operator-sa&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>defaultBeamArgs&lt;/code>&lt;/td>
 &lt;td>Default Beam arguments on which the pipeline-defined ones will be overlaid&lt;/td>
 &lt;td>&lt;code>project: my-gcp-project&lt;/code>&lt;/td>

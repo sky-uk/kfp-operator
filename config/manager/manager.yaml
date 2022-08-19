@@ -3,13 +3,13 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-  name: system
+  name: kfp-operator-system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: controller-manager
-  namespace: system
+  namespace: kfp-operator-system
   labels:
     control-plane: controller-manager
 spec:
@@ -27,7 +27,7 @@ spec:
       containers:
       - command:
         - /manager
-        image: ${CONTAINER_REGISTRY}/kfp-operator-controller:latest
+        image: kfp-operator-controller:latest
         name: manager
         securityContext:
           allowPrivilegeEscalation: false

@@ -1,13 +1,13 @@
 fullnameOverride: kfp-operator
-containerRegistry: ${CONTAINER_REGISTRY}
 manager:
+  argo:
+    containerDefaults: {}
   configuration:
-    kfpEndpoint: ${KFP_ENDPOINT}
     pipelineStorage: ${PIPELINE_STORAGE}
     defaultBeamArgs:
       project: ${DATAFLOW_PROJECT}
-    argo:
-      serviceAccount: ${OPERATOR_SA}
+    kfpEndpoint: ${KFP_ENDPOINT}
+
   monitoring:
     rbacSecured: true
     serviceMonitor:

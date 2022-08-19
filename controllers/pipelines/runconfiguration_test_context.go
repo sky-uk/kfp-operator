@@ -111,3 +111,14 @@ func (testCtx RunConfigurationTestContext) RunConfigurationCreatedWithStatus(sta
 		})).To(Succeed())
 	})).Should(Succeed())
 }
+
+func (testCtx RunConfigurationTestContext) StableRunConfigurationCreated() {
+	testCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
+		Status: pipelinesv1.Status{
+			Version:              testCtx.RunConfiguration.ComputeVersion(),
+			KfpId:                RandomString(),
+			SynchronizationState: pipelinesv1.Succeeded,
+		},
+		ObservedPipelineVersion: testCtx.RunConfiguration.Status.ObservedPipelineVersion,
+	})
+}

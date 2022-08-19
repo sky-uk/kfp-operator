@@ -10,31 +10,6 @@
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>argo.compilerImage&lt;/code>&lt;/td>
-&lt;td>The KFP Operator compiler image&lt;/td>
-&lt;td>&lt;code>docker.io/kfp-operator-argo-compiler:abcdef&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>argo.containerDefaults&lt;/code>&lt;/td>
-&lt;td>Container Spec defaults to be used for Argo workflow pods created by the operator&lt;/td>
-&lt;td>&lt;code>{}&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>argo.kfpSdkImage&lt;/code>&lt;/td>
-&lt;td>The KFP Operator tools image&lt;/td>
-&lt;td>&lt;code>docker.io/kfp-operator-argo-kfp-sdk:abcdef&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>argo.metadataDefaults&lt;/code>&lt;/td>
-&lt;td>Container Metadata defaults to be used for Argo workflow pods created by the operator&lt;/td>
-&lt;td>&lt;code>{}&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>argo.serviceAccount&lt;/code>&lt;/td>
-&lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s Service account&lt;/a> used to run argo workflows&lt;/td>
-&lt;td>&lt;code>kfp-operator-sa&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>defaultBeamArgs&lt;/code>&lt;/td>
 &lt;td>Default Beam arguments on which the pipeline-defined ones will be overlaid&lt;/td>
 &lt;td>&lt;code>project: my-gcp-project&lt;/code>&lt;/td>
@@ -190,6 +165,18 @@ Please follow the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master
 &lt;td>Operator namespace name&lt;/td>
 &lt;/tr>
 &lt;tr>
+&lt;td>&lt;code>manager.argo.containerDefaults&lt;/code>&lt;/td>
+&lt;td>Container Spec defaults to be used for Argo workflow pods created by the operator&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.argo.metadataDefaults&lt;/code>&lt;/td>
+&lt;td>Container Metadata defaults to be used for Argo workflow pods created by the operator&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.argo.serviceAccount&lt;/code>&lt;/td>
+&lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s Service account&lt;/a> used to run Argo workflows&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>manager.metadata&lt;/code>&lt;/td>
 &lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the manager&amp;rsquo;s pods&lt;/td>
 &lt;/tr>
@@ -268,7 +255,9 @@ Please follow the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master
 &lt;/tbody>
 &lt;/table>
 &lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
-">test configuration&lt;/a>&lt;/p></description></item><item><title>Docs: RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>
+">test configuration&lt;/a>&lt;/p>
+&lt;h2 id="additional-notes">Additional Notes&lt;/h2>
+&lt;p>If you don&amp;rsquo;t have a cluster-wide installation of Argo (for example if you are using the namespaced installation provided by Kubeflow), you will need to apply additional permissions to the Argo service account to read &lt;code>ClusterWorkflowTemplate&lt;/code>s as described by &lt;code>argo-clusterworkflowtemplate-role&lt;/code> and &lt;code>argo-clusterworkflowtemplate-role-binding&lt;/code> in &lt;a href="https://github.com/argoproj/argo-workflows/blob/master/manifests/quick-start/base/cluster-workflow-template-rbac.yaml">https://github.com/argoproj/argo-workflows/blob/master/manifests/quick-start/base/cluster-workflow-template-rbac.yaml&lt;/a>, changing the namespace to match the one where Argo is installed.&lt;/p></description></item><item><title>Docs: RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>
 &lt;p>The RunConfiguration resource represents the lifecycle of Recurring Runs (aka Jobs) on Kubeflow Pipelines.
 Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha2&lt;/span>

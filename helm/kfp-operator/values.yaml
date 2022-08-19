@@ -27,6 +27,10 @@ manager:
       memory: 200Mi
   replicas: 1
   configuration: {}
+  argo:
+    serviceAccount: ""
+    containerDefaults: {}
+    metadataDefaults: {}
   monitoring:
     create: true
     rbacSecured: false

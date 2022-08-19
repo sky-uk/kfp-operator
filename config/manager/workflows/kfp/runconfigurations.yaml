@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: runconfiguration-steps
+spec:
+  templates:
+  - name: create
+    metadata: {}
+    script:
+      source: |-
+        set -e -o pipefail
+        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json job submit --pipeline-name '{{workflow.parameters.pipeline-name}}' --job-name '{{workflow.parameters.runconfiguration-name}}' --experiment-name '{{workflow.parameters.experiment-name}}' --version-name '{{workflow.parameters.pipeline-version}}' --cron-expression '{{workflow.parameters.schedule}}'  | jq -r '."Job Details"."ID"'
+      image: kfp-operator-argo-kfp-sdk:latest
+      command:
+      - ash
+  - name: delete
+    metadata: {}
+    script:
+      source: |-
+        set -e -o pipefail
+        KFP_RESULT=$(kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json job delete '{{workflow.parameters.runconfiguration-id}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
+      image: kfp-operator-argo-kfp-sdk:latest
+      command:
+      - ash
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: create-runconfiguration
+spec:
+  arguments:
+    parameters:
+    - name: runconfiguration-name
+    - name: pipeline-name
+    - name: pipeline-version
+    - name: experiment-name
+    - name: schedule
+    - name: kfp-endpoint
+  entrypoint: main
+  templates:
+  - name: main
+    outputs:
+      parameters:
+      - name: runconfiguration-id
+        valueFrom:
+          parameter: '{{steps.create.outputs.result}}'
+    steps:
+    - - name: create
+        templateRef:
+          name: kfp-operator-runconfiguration-steps
+          template: create
+          clusterScope: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: update-runconfiguration
+spec:
+  arguments:
+    parameters:
+    - name: runconfiguration-id
+    - name: runconfiguration-name
+    - name: pipeline-name
+    - name: pipeline-version
+    - name: experiment-name
+    - name: schedule
+    - name: kfp-endpoint
+  entrypoint: main
+  templates:
+  - name: main
+    outputs:
+      parameters:
+      - name: runconfiguration-id
+        valueFrom:
+          parameter: '{{steps.create.outputs.result}}'
+    steps:
+    - - name: delete
+        templateRef:
+          name: kfp-operator-runconfiguration-steps
+          template: delete
+          clusterScope: true
+    - - name: create
+        templateRef:
+          name: kfp-operator-runconfiguration-steps
+          template: create
+          clusterScope: true
+        continueOn:
+          failed: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: delete-runconfiguration
+spec:
+  arguments:
+    parameters:
+    - name: runconfiguration-id
+    - name: kfp-endpoint
+  entrypoint: main
+  templates:
+  - name: main
+    steps:
+    - - name: delete
+        templateRef:
+          name: kfp-operator-runconfiguration-steps
+          template: delete
+          clusterScope: true

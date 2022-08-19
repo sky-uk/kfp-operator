@@ -9,7 +9,7 @@ import (
 )
 
 type PipelineStateHandler struct {
-	WorkflowFactory    PipelineWorkflowFactory
+	WorkflowFactory    WorkflowFactory[*pipelinesv1.Pipeline]
 	WorkflowRepository WorkflowRepository
 }
 
@@ -65,13 +65,13 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(pipeline)
 
 		if err != nil {
-			failureMessage := "error constructing update workflow"
-			logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
+			logger.Error(err, fmt.Sprintf("%s, failing pipeline", WorkflowConstants.ConstructionFailedError))
 
 			return []Command{
 				*From(pipeline.Status).
 					WithSynchronizationState(pipelinesv1.Failed).
-					WithMessage(failureMessage),
+					WithVersion(newPipelineVersion).
+					WithMessage(WorkflowConstants.ConstructionFailedError),
 			}
 		}
 
@@ -87,14 +87,13 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(pipeline)
 
 	if err != nil {
-		failureMessage := "error constructing creation workflow"
-		logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
+		logger.Error(err, fmt.Sprintf("%s, failing pipeline", WorkflowConstants.ConstructionFailedError))
 
 		return []Command{
 			*From(pipeline.Status).
 				WithSynchronizationState(pipelinesv1.Failed).
 				WithVersion(newPipelineVersion).
-				WithMessage(failureMessage),
+				WithMessage(WorkflowConstants.ConstructionFailedError),
 		}
 	}
 
@@ -116,18 +115,7 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 		}
 	}
 
-	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(pipeline)
-
-	if err != nil {
-		failureMessage := "error constructing deletion workflow"
-		logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
-
-		return []Command{
-			*From(pipeline.Status).
-				WithSynchronizationState(pipelinesv1.Failed).
-				WithMessage(failureMessage),
-		}
-	}
+	workflow, _ := st.WorkflowFactory.ConstructDeletionWorkflow(pipeline)
 
 	return []Command{
 		*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleting),
@@ -159,12 +147,13 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 	}
 
 	if err != nil {
-		failureMessage := "error constructing workflow"
+		failureMessage := WorkflowConstants.ConstructionFailedError
 		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
 		return []Command{
 			*From(pipeline.Status).
 				WithSynchronizationState(pipelinesv1.Failed).
-				WithVersion(newPipelineVersion),
+				WithVersion(newPipelineVersion).
+				WithMessage(failureMessage),
 		}
 	}
 

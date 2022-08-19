@@ -15,7 +15,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			pipeline := RandomPipeline()
-			pipeline.Namespace = "default"
 
 			kfpId := "12345"
 			testCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)

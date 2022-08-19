@@ -11,10 +11,7 @@ controller:
     leaderElect: true
     resourceName: kfp-operator-lock
 spec:
-  argo:
-    compilerImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-compiler:latest
-    kfpSdkImage: ${CONTAINER_REGISTRY}/kfp-operator-argo-kfp-sdk:latest
-    serviceAccount: ${OPERATOR_SA}
+  workflowTemplatePrefix: kfp-operator-
   defaultBeamArgs:
     project: ${DATAFLOW_PROJECT}
   kfpEndpoint: ${KFP_ENDPOINT}

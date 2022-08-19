@@ -15,7 +15,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			runConfiguration := RandomRunConfiguration()
-			runConfiguration.Namespace = "default"
 
 			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
 
@@ -75,11 +74,10 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	})
 
 	When("Creating with a fixed pipeline version", func() {
-		It("creates a RC with an ObervedPipelineVersion that matches the fixed version", func() {
+		It("creates a RC with an ObservedPipelineVersion that matches the fixed version", func() {
 			runConfiguration := RandomRunConfiguration()
-			runConfiguration.Namespace = "default"
-			pipelineVersion := "12345-abcde"
-			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: "dummy-pipeline", Version: pipelineVersion}
+			pipelineVersion := RandomString()
+			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: RandomString(), Version: pipelineVersion}
 
 			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
 			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
@@ -93,34 +91,23 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating the referenced pipeline with no version specified on the RC", func() {
 		It("triggers an update of the run configuration", func() {
 			pipeline := RandomPipeline()
-			pipeline.Namespace = "default"
-			pipelineVersion := RandomString()
 
 			runConfiguration := RandomRunConfiguration()
-			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: pipeline.Name}
-			runConfiguration.Namespace = "default"
-
-			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
-				Status: pipelinesv1.Status{
-					Version:              runConfiguration.ComputeVersion(),
-					KfpId:                RandomString(),
-					SynchronizationState: pipelinesv1.Succeeded,
-				},
-				ObservedPipelineVersion: RandomString(),
-			})
+			runConfiguration.Spec.Pipeline = pipeline.UnversionedIdentifier()
+			runConfiguration.Status.ObservedPipelineVersion = pipeline.Spec.ComputeVersion()
 
 			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
-			pipelineTestCtx.PipelineCreatedWithStatus(
-				pipelinesv1.Status{
-					Version:              pipelineVersion,
-					KfpId:                RandomString(),
-					SynchronizationState: pipelinesv1.Succeeded,
-				})
+			pipelineTestCtx.StablePipelineCreated()
+
+			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
+			runCfgTestCtx.StableRunConfigurationCreated()
+
+			newPipelineSpec := RandomPipelineSpec()
+			pipelineTestCtx.StablePipelineUpdated(newPipelineSpec)
 
 			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
-				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(newPipelineSpec.ComputeVersion()))
 			})).Should(Succeed())
 		})
 	})
@@ -128,31 +115,20 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating the referenced pipeline with a fixed version specified on the RC", func() {
 		It("does not trigger an update of the run configuration", func() {
 			pipeline := RandomPipeline()
-			pipeline.Namespace = "default"
-			pipelineVersion := RandomString()
+			fixedIdentifier := pipeline.VersionedIdentifier()
 
 			runConfiguration := RandomRunConfiguration()
-			fixedPipelineVersion := "12345-abcde"
-			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: pipeline.Name, Version: fixedPipelineVersion}
-			runConfiguration.Namespace = "default"
-
-			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-			runCfgTestCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
-				Status: pipelinesv1.Status{
-					Version:              runConfiguration.ComputeVersion(),
-					KfpId:                RandomString(),
-					SynchronizationState: pipelinesv1.Succeeded,
-				},
-				ObservedPipelineVersion: fixedPipelineVersion,
-			})
+			runConfiguration.Spec.Pipeline = fixedIdentifier
+			runConfiguration.Status.ObservedPipelineVersion = pipeline.Spec.ComputeVersion()
 
 			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
-			pipelineTestCtx.PipelineCreatedWithStatus(
-				pipelinesv1.Status{
-					Version:              pipelineVersion,
-					KfpId:                RandomString(),
-					SynchronizationState: pipelinesv1.Succeeded,
-				})
+			pipelineTestCtx.StablePipelineCreated()
+
+			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
+			runCfgTestCtx.StableRunConfigurationCreated()
+
+			newPipelineSpec := RandomPipelineSpec()
+			pipelineTestCtx.StablePipelineUpdated(newPipelineSpec)
 
 			// To verify the absence of additional RC updates, force another update of the resource.
 			// If the update is processed but the pipeline version hasn't changed,
@@ -163,7 +139,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
-				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedPipelineVersion))
+				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
 			})).Should(Succeed())
 		})
 	})

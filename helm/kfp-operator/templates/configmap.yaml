@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "kfp-operator.name" . }}-manager-config
+  name: {{ include "kfp-operator.fullname" . }}-manager-config
   namespace: {{ .Values.namespace.name }}
 data:
   controller_manager_config.yaml: |
@@ -18,4 +18,5 @@ data:
         leaderElect: true
         resourceName: kfp-operator-lock
     spec:
-      {{- merge (.Values.manager.configuration) (include "kfp-operator.defaultConfiguration" . | fromYaml) | toYaml | nindent 6 -}}
+      workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
+      {{- .Values.manager.configuration | toYaml | nindent 6 -}}

@@ -9,7 +9,7 @@ import (
 )
 
 type RunConfigurationStateHandler struct {
-	WorkflowFactory    RunConfigurationWorkflowFactory
+	WorkflowFactory    WorkflowFactory[*pipelinesv1.RunConfiguration]
 	WorkflowRepository WorkflowRepository
 }
 
@@ -65,11 +65,14 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(runConfiguration)
 
 		if err != nil {
-			failureMessage := "error constructing update workflow"
+			failureMessage := WorkflowConstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 			return []Command{
-				*From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(runConfiguration.Status.Status).
+					WithSynchronizationState(pipelinesv1.Failed).
+					WithVersion(newRunConfigurationVersion).
+					WithMessage(failureMessage),
 			}
 		}
 
@@ -85,11 +88,14 @@ func (st *RunConfigurationStateHandler) onUnknown(ctx context.Context, runConfig
 	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(runConfiguration)
 
 	if err != nil {
-		failureMessage := "error constructing creation workflow"
+		failureMessage := WorkflowConstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 		return []Command{
-			*From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(runConfiguration.Status.Status).
+				WithSynchronizationState(pipelinesv1.Failed).
+				WithVersion(newRunConfigurationVersion).
+				WithMessage(failureMessage),
 		}
 	}
 
@@ -117,7 +123,7 @@ func (st RunConfigurationStateHandler) onDelete(ctx context.Context, runConfigur
 	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(runConfiguration)
 
 	if err != nil {
-		failureMessage := "error constructing deletion workflow"
+		failureMessage := WorkflowConstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 		return []Command{
@@ -149,11 +155,14 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(runConfiguration)
 
 		if err != nil {
-			failureMessage := "error constructing creation workflow"
+			failureMessage := WorkflowConstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 			return []Command{
-				*From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(runConfiguration.Status.Status).
+					WithSynchronizationState(pipelinesv1.Failed).
+					WithVersion(newRunConfigurationVersion).
+					WithMessage(failureMessage),
 			}
 		}
 
@@ -163,11 +172,14 @@ func (st RunConfigurationStateHandler) onSucceededOrFailed(ctx context.Context, 
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(runConfiguration)
 
 		if err != nil {
-			failureMessage := "error constructing update workflow"
+			failureMessage := WorkflowConstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 
 			return []Command{
-				*From(runConfiguration.Status.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+				*From(runConfiguration.Status.Status).
+					WithSynchronizationState(pipelinesv1.Failed).
+					WithVersion(newRunConfigurationVersion).
+					WithMessage(failureMessage),
 			}
 		}
 

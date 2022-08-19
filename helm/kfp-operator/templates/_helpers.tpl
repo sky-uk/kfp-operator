@@ -38,11 +38,21 @@ control-plane: controller-manager
 {{- end }}
 
 {{/*
-Configuration
+Remove trailing '/' characters from .Values.containerRegistry.
 */}}
+{{- define "kfp-operator.trimmedContainerRegistry" -}}
+{{ if .Values.containerRegistry -}}
+{{ (trimSuffix "/" .Values.containerRegistry) }}/
+{{- else -}}
 
-{{- define "kfp-operator.defaultConfiguration" -}}
-argo:
-  kfpSdkImage: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-  compilerImage: {{ .Values.containerRegistry }}/kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
+{{- end }}
+{{- end }}
+
+{{/*
+Only render object if not empty.
+*/}}
+{{- define "kfp-operator.notEmptyYaml" -}}
+{{- if . }}
+{{ . | toYaml }}
+{{- end }}
 {{- end }}

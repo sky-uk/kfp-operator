@@ -75,10 +75,13 @@ integration-test-up:
 	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! >> config/testing/pids
 
-integration-test: manifests generate ## Run integration tests
+integration-test: manifests generate helm-cmd yq ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
 	$(MAKE) docker-build-argo && \
 	docker build docs-gen/includes/quickstart -t kfp-quickstart
+	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
+ 		$(YQ) e 'select(.kind == "ClusterWorkflowTemplate")' - | \
+ 		kubectl apply -f -
 	go test ./... -tags=integration
 
 integration-test-down:

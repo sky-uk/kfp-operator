@@ -78,11 +78,40 @@ func (testCtx PipelineTestContext) DeletePipeline() error {
 	return testCtx.K8sClient.Delete(testCtx.ctx, pipeline)
 }
 
+func (testCtx PipelineTestContext) StablePipelineCreated() {
+	testCtx.PipelineCreatedWithStatus(pipelinesv1.Status{
+		Version:              testCtx.Pipeline.Spec.ComputeVersion(),
+		KfpId:                RandomString(),
+		SynchronizationState: pipelinesv1.Succeeded,
+	})
+}
+
 func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status pipelinesv1.Status) {
 	Expect(testCtx.K8sClient.Create(testCtx.ctx, testCtx.Pipeline)).To(Succeed())
 
 	Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
+		g.Expect(testCtx.UpdatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
+			pipeline.Status = status
+		})).To(Succeed())
+	})).Should(Succeed())
+}
+
+func (testCtx PipelineTestContext) StablePipelineUpdated(spec pipelinesv1.PipelineSpec) {
+	testCtx.PipelineUpdatedWithStatus(spec, pipelinesv1.Status{
+		Version:              spec.ComputeVersion(),
+		KfpId:                RandomString(),
+		SynchronizationState: pipelinesv1.Succeeded,
+	})
+}
+
+func (testCtx PipelineTestContext) PipelineUpdatedWithStatus(spec pipelinesv1.PipelineSpec, status pipelinesv1.Status) {
+	Expect(testCtx.UpdatePipeline(func(pipeline *pipelinesv1.Pipeline) {
+		pipeline.Spec = spec
+	})).To(Succeed())
+
+	Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
 		g.Expect(testCtx.UpdatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
 			pipeline.Status = status
 		})).To(Succeed())

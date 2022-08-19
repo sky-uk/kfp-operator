@@ -11,23 +11,17 @@ import (
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	"github.com/walkerus/go-wiremock"
-	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 var _ = Context("Experiment Workflows", Serial, func() {
 	workflowFactory := ExperimentWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
+		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
-				KfpEndpoint: "http://wiremock:80",
-				Argo: configv1.ArgoConfiguration{
-					KfpSdkImage: "kfp-operator-argo-kfp-sdk",
-					ContainerDefaults: apiv1.Container{
-						ImagePullPolicy: "Never", // Needed for minikube to use local images
-					},
-				},
-				DefaultExperiment: "Default",
+				DefaultExperiment:      "Default",
+				KfpEndpoint:            "http://wiremock:80",
+				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 			},
 		},
 	}

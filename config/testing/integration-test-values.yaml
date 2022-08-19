@@ -1,0 +1,5 @@
+fullnameOverride: kfp-operator-integration-tests
+manager:
+  argo:
+    containerDefaults:
+      imagePullPolicy: Never

@@ -5,21 +5,40 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
-	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
 
 type PipelineStateTransitionTestCase struct {
-	workflowFactory PipelineWorkflowFactory
+	workflowFactory WorkflowFactory[*pipelinesv1.Pipeline]
 	Pipeline        *pipelinesv1.Pipeline
 	SystemStatus    StubbedWorkflows
 	Commands        []Command
+}
+
+type FailingPipelineWorkflowFactory struct{}
+
+func (f FailingPipelineWorkflowFactory) ConstructCreationWorkflow(_ *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	return nil, fmt.Errorf("an error occurred")
+}
+
+func (f FailingPipelineWorkflowFactory) ConstructUpdateWorkflow(_ *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	return nil, fmt.Errorf("an error occurred")
+}
+
+func (f FailingPipelineWorkflowFactory) ConstructDeletionWorkflow(_ *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	return nil, fmt.Errorf("an error occurred")
+}
+
+func (st PipelineStateTransitionTestCase) WorkflowConstructionFails() PipelineStateTransitionTestCase {
+	st.workflowFactory = FailingPipelineWorkflowFactory{}
+	return st
 }
 
 func (st PipelineStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) PipelineStateTransitionTestCase {
@@ -105,15 +124,8 @@ var _ = Describe("Pipeline State handler", func() {
 
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
-		WorkflowFactory: WorkflowFactory{
+		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
-				Argo: configv1.ArgoConfiguration{
-					KfpSdkImage:   "kfp-sdk",
-					CompilerImage: "compiler",
-					ContainerDefaults: apiv1.Container{
-						ImagePullPolicy: "Never",
-					},
-				},
 				KfpEndpoint: "http://www.example.com",
 			},
 		},
@@ -152,7 +164,7 @@ var _ = Describe("Pipeline State handler", func() {
 	DescribeTable("State transitions", func(st PipelineStateTransitionTestCase) {
 		var stateHandler = PipelineStateHandler{
 			WorkflowRepository: st.SystemStatus,
-			WorkflowFactory:    workflowFactory,
+			WorkflowFactory:    st.workflowFactory,
 		}
 		commands := stateHandler.StateTransition(context.Background(), st.Pipeline)
 		Expect(commands).To(Equal(st.Commands))
@@ -164,6 +176,15 @@ var _ = Describe("Pipeline State handler", func() {
 					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
+		),
+		Check("Empty and workflow creation fails",
+			From(UnknownState, "", "").
+				AcquirePipeline().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
 		),
 		Check("Empty with version",
 			From(UnknownState, "", v1).
@@ -181,6 +202,16 @@ var _ = Describe("Pipeline State handler", func() {
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
+		),
+		Check("Empty with id and workflow creation fails",
+			From(UnknownState, kfpId, "").
+				AcquirePipeline().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
 		),
 		Check("Empty with id and version",
 			From(UnknownState, kfpId, v1).
@@ -251,6 +282,16 @@ var _ = Describe("Pipeline State handler", func() {
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
+		Check("Succeeded with update and workflow creation fails",
+			From(pipelinesv1.Succeeded, kfpId, v0).
+				AcquirePipeline().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
+		),
 		Check("Succeeded with update but no KfpId",
 			From(pipelinesv1.Succeeded, "", v0).
 				AcquirePipeline().
@@ -258,6 +299,15 @@ var _ = Describe("Pipeline State handler", func() {
 					WithSynchronizationState(pipelinesv1.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
+		),
+		Check("Succeeded with update but no kfpId and workflow creation fails",
+			From(pipelinesv1.Succeeded, "", v0).
+				AcquirePipeline().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
 		),
 		Check("Succeeded with update but no KfpId and no version",
 			From(pipelinesv1.Succeeded, "", "").
@@ -271,7 +321,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(pipelinesv1.Failed, kfpId, v1).
 				AcquirePipeline(),
 		),
-		Check("Failed with Update",
+		Check("Failed with update",
 			From(pipelinesv1.Failed, kfpId, v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
@@ -280,7 +330,17 @@ var _ = Describe("Pipeline State handler", func() {
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
-		Check("Failed with Update but no KfpId",
+		Check("Failed with update and workflow creation fails",
+			From(pipelinesv1.Failed, kfpId, v0).
+				AcquirePipeline().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
+		),
+		Check("Failed with update but no KfpId",
 			From(pipelinesv1.Failed, "", v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
@@ -288,7 +348,16 @@ var _ = Describe("Pipeline State handler", func() {
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
-		Check("Failed with Update but no KfpId and no version",
+		Check("Failed with update but no KfpId and workflow creation fails",
+			From(pipelinesv1.Failed, "", v0).
+				AcquirePipeline().
+				WorkflowConstructionFails().
+				IssuesCommand(*NewSetStatus().
+					WithVersion(v1).
+					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithSynchronizationState(pipelinesv1.Failed)),
+		),
+		Check("Failed with update but no KfpId and no version",
 			From(pipelinesv1.Failed, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
