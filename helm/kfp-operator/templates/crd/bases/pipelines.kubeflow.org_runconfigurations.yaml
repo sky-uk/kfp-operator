@@ -28,7 +28,7 @@ spec:
     - jsonPath: .status.version
       name: Version
       type: string
-    name: v1alpha2
+    name: v1alpha3
     schema:
       openAPIV3Schema:
         properties:
@@ -52,9 +52,14 @@ spec:
                 pattern: ^[\w-]+(?::[\w-]+)?$
                 type: string
               runtimeParameters:
-                additionalProperties:
-                  type: string
-                type: object
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  type: object
+                type: array
               schedule:
                 type: string
             type: object
@@ -65,11 +70,11 @@ spec:
               observedGeneration:
                 format: int64
                 type: integer
+              observedPipelineVersion:
+                type: string
               synchronizationState:
                 type: string
               version:
-                type: string
-              observedPipelineVersion:
                 type: string
             type: object
         type: object
