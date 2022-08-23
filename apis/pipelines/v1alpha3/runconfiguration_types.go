@@ -18,8 +18,8 @@ func (rc RunConfiguration) ComputeHash() []byte {
 	oh.WriteStringField(rc.Spec.Pipeline.String())
 	oh.WriteStringField(rc.Spec.ExperimentName)
 	oh.WriteStringField(rc.Spec.Schedule)
-	oh.WriteStringField(rc.Status.ObservedPipelineVersion)
 	oh.WriteNamedValueListField(rc.Spec.RuntimeParameters)
+	oh.WriteStringField(rc.Status.ObservedPipelineVersion)
 	return oh.Sum()
 }
 
