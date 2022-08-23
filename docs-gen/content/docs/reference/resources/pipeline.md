@@ -17,7 +17,8 @@ spec:
     image: kfp-quickstart:v1
     tfxComponents: base_pipeline.create_components
     env:
-        TRAINING_RUNS: 100
+    - name: TRAINING_RUNS
+      value: 100
 ```
 
 ## Fields

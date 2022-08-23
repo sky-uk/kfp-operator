@@ -11,7 +11,7 @@
 &lt;tbody>
 &lt;tr>
 &lt;td>&lt;code>defaultBeamArgs&lt;/code>&lt;/td>
-&lt;td>Default Beam arguments on which the pipeline-defined ones will be overlaid&lt;/td>
+&lt;td>Default Beam arguments on which the pipeline-defined ones will be added to&lt;/td>
 &lt;td>&lt;code>project: my-gcp-project&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>

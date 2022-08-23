@@ -16,7 +16,8 @@ spec:
     experimentName: penguin-experiment
     schedule: '0 0 * * * *'
     runtimeParameters:
-        TRAINING_RUNS: 100
+    - name: TRAINING_RUNS
+      value: 100
 ```
 
 ## Fields
