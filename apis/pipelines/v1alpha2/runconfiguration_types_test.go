@@ -55,15 +55,15 @@ var _ = Context("RunConfiguration", func() {
 			rcs := RunConfiguration{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.Spec.RuntimeParameters = map[string]string{
-				"a": "",
+			rcs.Spec.RuntimeParameters = []NamedValue{
+				{Name: "a", Value: ""},
 			}
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			rcs.Spec.RuntimeParameters = map[string]string{
-				"b": "notempty",
+			rcs.Spec.RuntimeParameters = []NamedValue{
+				{Name: "b", Value: "notempty"},
 			}
 			hash3 := rcs.ComputeHash()
 

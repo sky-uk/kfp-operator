@@ -85,7 +85,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 		Name:            pipeline.ObjectMeta.Name,
 		Image:           pipeline.Spec.Image,
 		TfxComponents:   pipeline.Spec.TfxComponents,
-		Env:             pipeline.Spec.Env,
+		Env:             NamedValuesToMap(pipeline.Spec.Env),
 		BeamArgs:        NamedValuesToMultiMap(beamArgs),
 	}
 }

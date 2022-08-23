@@ -6,52 +6,11 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-//```
-//- name: foo
-//  value: bar1
-//  values:
-//  - bar2
-//===
-//- name: foo
-//  values:
-//  - bar1
-//  - bar2
-//===
-//- name: foo
-//  values:
-//  - bar2
-//  - bar1
-//```
-//
-//```
-//- name: foo1
-//  value: bar1
-//- name: foo2
-//  value: bar2
-//===
-//- name: foo2
-//  value: bar2
-//- name: foo1
-//  value: bar1
-//```
-//
-//```
-//v1
-//  foo1: bar1
-//  foo2: bar2
-//===
-//v2
-//- name: foo1
-//  value: bar1
-//- name: foo2
-//  value: bar2
-//```
-
 type RunConfigurationSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	Schedule          string             `json:"schedule,omitempty"`
-	RuntimeParameters map[string]string  `json:"runtimeParameters,omitempty"`
+	RuntimeParameters []NamedValue       `json:"runtimeParameters,omitempty"`
 }
 
 func (rc RunConfiguration) ComputeHash() []byte {
@@ -60,7 +19,7 @@ func (rc RunConfiguration) ComputeHash() []byte {
 	oh.WriteStringField(rc.Spec.ExperimentName)
 	oh.WriteStringField(rc.Spec.Schedule)
 	oh.WriteStringField(rc.Status.ObservedPipelineVersion)
-	oh.WriteMapField(rc.Spec.RuntimeParameters)
+	oh.WriteNamedValueListField(rc.Spec.RuntimeParameters)
 	return oh.Sum()
 }
 

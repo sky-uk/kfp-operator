@@ -192,10 +192,8 @@ func (in *PipelineSpec) DeepCopyInto(out *PipelineSpec) {
 	*out = *in
 	if in.Env != nil {
 		in, out := &in.Env, &out.Env
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
+		*out = make([]NamedValue, len(*in))
+		copy(*out, *in)
 	}
 	if in.BeamArgs != nil {
 		in, out := &in.BeamArgs, &out.BeamArgs
@@ -279,10 +277,8 @@ func (in *RunConfigurationSpec) DeepCopyInto(out *RunConfigurationSpec) {
 	out.Pipeline = in.Pipeline
 	if in.RuntimeParameters != nil {
 		in, out := &in.RuntimeParameters, &out.RuntimeParameters
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
+		*out = make([]NamedValue, len(*in))
+		copy(*out, *in)
 	}
 }
 

@@ -37,17 +37,6 @@ func RandomNamedValues() []pipelinesv1.NamedValue {
 	return rMap
 }
 
-func RandomMap() map[string]string {
-	size := rand.Intn(5)
-
-	rMap := make(map[string]string, size)
-	for i := 1; i <= size; i++ {
-		rMap[RandomString()] = RandomString()
-	}
-
-	return rMap
-}
-
 type TestResource struct {
 	metav1.TypeMeta
 	metav1.ObjectMeta
@@ -99,7 +88,7 @@ func RandomPipelineSpec() pipelinesv1.PipelineSpec {
 	return pipelinesv1.PipelineSpec{
 		Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
-		Env:           RandomMap(),
+		Env:           RandomNamedValues(),
 		BeamArgs:      RandomNamedValues(),
 	}
 }
@@ -121,7 +110,7 @@ func RandomRunConfigurationSpec() pipelinesv1.RunConfigurationSpec {
 	return pipelinesv1.RunConfigurationSpec{
 		Pipeline:          pipelinesv1.PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		Schedule:          RandomString(),
-		RuntimeParameters: RandomMap(),
+		RuntimeParameters: RandomNamedValues(),
 	}
 }
 

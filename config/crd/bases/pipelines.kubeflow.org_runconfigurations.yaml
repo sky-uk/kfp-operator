@@ -52,9 +52,14 @@ spec:
                 pattern: ^[\w-]+(?::[\w-]+)?$
                 type: string
               runtimeParameters:
-                additionalProperties:
-                  type: string
-                type: object
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  type: object
+                type: array
               schedule:
                 type: string
             type: object

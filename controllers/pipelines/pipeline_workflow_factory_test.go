@@ -23,8 +23,8 @@ var _ = Describe("PipelineConfig", func() {
 			Spec: pipelinesv1.PipelineSpec{
 				Image:         "pipelineImage",
 				TfxComponents: "pipelineTfxComponents",
-				Env: map[string]string{
-					"ea": "b",
+				Env: []pipelinesv1.NamedValue{
+					{Name: "ea", Value: "b"},
 				},
 			},
 		}

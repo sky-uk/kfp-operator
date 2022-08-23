@@ -42,21 +42,6 @@ func (oh ObjectHasher) WriteNamedValueListField(namedValues []NamedValue) {
 	oh.h.Write(hashFieldSeparator)
 }
 
-func (oh ObjectHasher) WriteMapField(value map[string]string) {
-	keys := make([]string, 0, len(value))
-	for k := range value {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		oh.WriteStringField(k)
-		oh.WriteStringField(value[k])
-	}
-
-	oh.h.Write(hashFieldSeparator)
-}
-
 func (oh ObjectHasher) Sum() []byte {
 	return oh.h.Sum(nil)
 }
