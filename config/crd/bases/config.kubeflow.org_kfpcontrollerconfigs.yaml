@@ -16,7 +16,7 @@ spec:
     singular: kfpcontrollerconfig
   scope: Namespaced
   versions:
-  - name: v1alpha2
+  - name: v1alpha3
     schema:
       openAPIV3Schema:
         properties:

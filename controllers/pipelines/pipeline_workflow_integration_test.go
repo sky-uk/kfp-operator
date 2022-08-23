@@ -8,8 +8,8 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/walkerus/go-wiremock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -21,8 +21,8 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: configv1.Configuration{
 				PipelineStorage: "gs://some-bucket",
-				DefaultBeamArgs: map[string]string{
-					"project": "project",
+				DefaultBeamArgs: []pipelinesv1.NamedValue{
+					{Name: "project", Value: "project"},
 				},
 				KfpEndpoint:            "http://wiremock:80",
 				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
