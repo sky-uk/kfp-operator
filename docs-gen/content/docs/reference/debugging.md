@@ -30,7 +30,7 @@ spec:
 ```
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha2
+apiVersion: pipelines.kubeflow.org/v1alpha3
 kind: Pipeline
 metadata:
   name: pipeline-sample
