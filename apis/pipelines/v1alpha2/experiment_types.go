@@ -1,4 +1,4 @@
-package v1alpha3
+package v1alpha2
 
 import (
 	"fmt"
@@ -28,7 +28,6 @@ func (es ExperimentSpec) ComputeVersion() string {
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type Experiment struct {
 	metav1.TypeMeta   `json:",inline"`

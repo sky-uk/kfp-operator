@@ -1,4 +1,4 @@
-package v1alpha3
+package v1alpha2
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ type RunConfigurationSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	Schedule          string             `json:"schedule,omitempty"`
-	RuntimeParameters []NamedValue       `json:"runtimeParameters,omitempty"`
+	RuntimeParameters map[string]string  `json:"runtimeParameters,omitempty"`
 }
 
 func (rc RunConfiguration) ComputeHash() []byte {
@@ -18,7 +18,7 @@ func (rc RunConfiguration) ComputeHash() []byte {
 	oh.WriteStringField(rc.Spec.Pipeline.String())
 	oh.WriteStringField(rc.Spec.ExperimentName)
 	oh.WriteStringField(rc.Spec.Schedule)
-	oh.WriteNamedValueListField(rc.Spec.RuntimeParameters)
+	oh.WriteMapField(rc.Spec.RuntimeParameters)
 	oh.WriteStringField(rc.Status.ObservedPipelineVersion)
 	return oh.Sum()
 }
@@ -40,7 +40,6 @@ type RunConfigurationStatus struct {
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`

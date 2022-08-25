@@ -1,4 +1,4 @@
-package v1alpha3
+package v1alpha2
 
 import (
 	"encoding/json"
@@ -10,18 +10,18 @@ import (
 )
 
 type PipelineSpec struct {
-	Image         string       `json:"image" yaml:"image"`
-	TfxComponents string       `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []NamedValue `json:"env,omitempty" yaml:"env"`
-	BeamArgs      []NamedValue `json:"beamArgs,omitempty"`
+	Image         string            `json:"image" yaml:"image"`
+	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
+	Env           map[string]string `json:"env,omitempty" yaml:"env"`
+	BeamArgs      map[string]string `json:"beamArgs,omitempty" yaml:"beamArgs"`
 }
 
 func (ps PipelineSpec) ComputeHash() []byte {
 	oh := NewObjectHasher()
 	oh.WriteStringField(ps.Image)
 	oh.WriteStringField(ps.TfxComponents)
-	oh.WriteNamedValueListField(ps.Env)
-	oh.WriteNamedValueListField(ps.BeamArgs)
+	oh.WriteMapField(ps.Env)
+	oh.WriteMapField(ps.BeamArgs)
 	return oh.Sum()
 }
 
@@ -43,7 +43,6 @@ func (ps PipelineSpec) ComputeVersion() string {
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
