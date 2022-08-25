@@ -47,11 +47,15 @@ spec:
             - mountPath: /controller_manager_config.yaml
               name: manager-config
               subPath: controller_manager_config.yaml
+          ports:
+           - name: webhook-server
+             containerPort: 9443
+             protocol: TCP
         {{- if .Values.manager.monitoring.create }}
         {{ if not .Values.manager.monitoring.rbacSecured }}
-          ports:
             - containerPort: 8080
               name: http
+              ports:
         {{- else -}}
         - name: kube-rbac-proxy
           image: gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0

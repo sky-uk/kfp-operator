@@ -119,6 +119,10 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
+	if err = (&pipelinesv1.Pipeline{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
+		os.Exit(1)
+	}
 
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
 		EC: ec,
@@ -130,6 +134,10 @@ func main() {
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
+		os.Exit(1)
+	}
+	if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
 		os.Exit(1)
 	}
 
@@ -145,6 +153,11 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
 		os.Exit(1)
 	}
+	if err = (&pipelinesv1.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
+		os.Exit(1)
+	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err = workflowRepository.SetupWithManager(mgr); err != nil {

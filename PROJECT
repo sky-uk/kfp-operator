@@ -12,16 +12,19 @@ resources:
   domain: kubeflow.org
   group: pipelines
   kind: Pipeline
-  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1
-  version: v1
+  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3
+  version: v1alpha3
+  webhooks:
+    conversion: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
   domain: kubeflow.org
   group: config
   kind: KfpControllerConfig
-  path: github.com/sky-uk/kfp-operator/apis/config/v1
-  version: v1
+  path: github.com/sky-uk/kfp-operator/apis/config/v1alpha3
+  version: v1alpha3
 - api:
     crdVersion: v1
     namespaced: true
@@ -29,8 +32,11 @@ resources:
   domain: kubeflow.org
   group: pipelines
   kind: RunConfiguration
-  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1
-  version: v1
+  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3
+  version: v1alpha3
+  webhooks:
+    conversion: true
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
@@ -38,6 +44,9 @@ resources:
   domain: kubeflow.org
   group: pipelines
   kind: Experiment
-  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1
-  version: v1
+  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3
+  version: v1alpha3
+  webhooks:
+    conversion: true
+    webhookVersion: v1
 version: "3"
