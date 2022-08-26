@@ -143,10 +143,10 @@ var _ = Describe("RunConfiguration State handler", func() {
 
 	kfpId := "12345"
 	anotherKfpId := "67890"
-	rcv1 := RandomRunConfiguration()
+	rcv1 := pipelinesv1.RandomRunConfiguration()
 	v0 := pipelinesv1.RunConfiguration{}.ComputeVersion()
 	v1 := rcv1.ComputeVersion()
-	UnknownState := apis.SynchronizationState(RandomString())
+	UnknownState := apis.SynchronizationState(apis.RandomString())
 
 	var Check = func(description string, transition RunConfigurationStateTransitionTestCase) TableEntry {
 		return Entry(

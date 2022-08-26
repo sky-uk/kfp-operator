@@ -23,7 +23,7 @@ var WorkflowRepositoryConstants = struct {
 }
 
 type WorkflowRepository interface {
-	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource Resource) error
+	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource apis.Resource) error
 	GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow
 	DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error
 }
@@ -39,7 +39,7 @@ func (w *WorkflowRepositoryImpl) debugAnnotations(ctx context.Context, annotatio
 	return apis.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
 }
 
-func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource Resource) error {
+func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource apis.Resource) error {
 	if err := ctrl.SetControllerReference(resource, workflow, w.Scheme); err != nil {
 		return err
 	}

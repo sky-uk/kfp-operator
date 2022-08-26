@@ -6,6 +6,7 @@ package pipelines
 import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/sky-uk/kfp-operator/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -17,7 +18,7 @@ func (sw StubbedWorkflows) GetByLabels(_ context.Context, _ string, _ map[string
 	return sw.Workflows
 }
 
-func (sw StubbedWorkflows) CreateWorkflowForResource(_ context.Context, _ *argo.Workflow, _ Resource) error {
+func (sw StubbedWorkflows) CreateWorkflowForResource(_ context.Context, _ *argo.Workflow, _ apis.Resource) error {
 	return nil
 }
 

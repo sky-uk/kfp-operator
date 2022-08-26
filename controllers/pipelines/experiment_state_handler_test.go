@@ -142,10 +142,10 @@ var _ = Describe("Experiment State handler", func() {
 
 	kfpId := "12345"
 	anotherKfpId := "67890"
-	specv1 := RandomExperimentSpec()
+	specv1 := pipelinesv1.RandomExperimentSpec()
 	v0 := pipelinesv1.ExperimentSpec{}.ComputeVersion()
 	v1 := specv1.ComputeVersion()
-	UnknownState := apis.SynchronizationState(RandomString())
+	UnknownState := apis.SynchronizationState(apis.RandomString())
 
 	var Check = func(description string, transition ExperimentStateTransitionTestCase) TableEntry {
 		return Entry(
@@ -155,7 +155,7 @@ var _ = Describe("Experiment State handler", func() {
 	}
 
 	var From = func(status apis.SynchronizationState, id string, version string) ExperimentStateTransitionTestCase {
-		experiment := RandomExperiment()
+		experiment := pipelinesv1.RandomExperiment()
 		experiment.Spec = specv1
 		experiment.Status = apis.Status{
 			SynchronizationState: status,

@@ -27,12 +27,12 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		},
 	}
 
-	pipelineKfpId := RandomString()
-	versionKfpId := RandomString()
-	versionName := RandomString()
-	jobKfpId := RandomString()
-	newJobKfpId := RandomString()
-	experimentKfpId := RandomString()
+	pipelineKfpId := apis.RandomString()
+	versionKfpId := apis.RandomString()
+	versionName := apis.RandomString()
+	jobKfpId := apis.RandomString()
+	newJobKfpId := apis.RandomString()
+	experimentKfpId := apis.RandomString()
 
 	var StubGetExperiment = func(experimentName string, experimentKfpId string) error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
@@ -124,7 +124,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		testCtx := NewRunConfigurationTestContext(
 			&pipelinesv1.RunConfiguration{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      RandomLowercaseString(),
+					Name:      apis.RandomLowercaseString(),
 					Namespace: "argo",
 				},
 				Spec: pipelinesv1.RunConfigurationSpec{

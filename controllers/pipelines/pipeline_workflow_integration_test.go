@@ -31,7 +31,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 		},
 	}
 
-	var kfpId = RandomString()
+	var kfpId = apis.RandomString()
 
 	var SucceedUpload = func(pipeline *pipelinesv1.Pipeline) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
@@ -59,7 +59,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 			WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
 			WillReturn(
 				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "resource_references": [{"key": {"id": "%s", "type": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
-					RandomString(),
+					apis.RandomString(),
 					pipeline.Spec.ComputeVersion(),
 					pipeline.Status.KfpId,
 					pipeline.Name),
@@ -105,7 +105,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 		testCtx := NewPipelineTestContext(
 			&pipelinesv1.Pipeline{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      RandomLowercaseString(),
+					Name:      apis.RandomLowercaseString(),
 					Namespace: "argo",
 				},
 				Spec: pipelineSpec,

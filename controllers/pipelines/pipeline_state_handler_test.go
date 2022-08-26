@@ -134,10 +134,10 @@ var _ = Describe("Pipeline State handler", func() {
 
 	kfpId := "12345"
 	anotherKfpId := "67890"
-	specv1 := RandomPipelineSpec()
+	specv1 := pipelinesv1.RandomPipelineSpec()
 	v0 := pipelinesv1.PipelineSpec{}.ComputeVersion()
 	v1 := specv1.ComputeVersion()
-	UnknownState := apis.SynchronizationState(RandomString())
+	UnknownState := apis.SynchronizationState(apis.RandomString())
 
 	var Check = func(description string, transition PipelineStateTransitionTestCase) TableEntry {
 		return Entry(
@@ -147,7 +147,7 @@ var _ = Describe("Pipeline State handler", func() {
 	}
 
 	var From = func(status apis.SynchronizationState, id string, version string) PipelineStateTransitionTestCase {
-		pipeline := RandomPipeline()
+		pipeline := pipelinesv1.RandomPipeline()
 		pipeline.Spec = specv1
 		pipeline.Status = apis.Status{
 			SynchronizationState: status,

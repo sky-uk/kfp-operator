@@ -6,6 +6,7 @@ package pipelines
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.com/sky-uk/kfp-operator/apis"
 )
 
 var _ = Describe("CommonWorkflowMeta", func() {

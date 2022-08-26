@@ -5,8 +5,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
-
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Context("RunConfiguration Conversion", func() {
@@ -25,17 +23,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 		})
 
 		Specify("Copies all other fields", func() {
-			src := RunConfiguration{
-				ObjectMeta: v1.ObjectMeta{Name: "runconfiguration"},
-				Status: RunConfigurationStatus{
-					Status: apis.Status{
-						Version:              "1",
-						KfpId:                "id",
-						SynchronizationState: apis.Succeeded,
-					},
-					ObservedPipelineVersion: "1",
-				},
-			}
+			src := RandomRunConfiguration()
 
 			dst := v1alpha3.RunConfiguration{}
 			Expect(src.ConvertTo(&dst)).To(Succeed())
@@ -75,20 +63,10 @@ var _ = Context("RunConfiguration Conversion", func() {
 		})
 
 		Specify("Copies all other fields", func() {
-			src := v1alpha3.RunConfiguration{
-				ObjectMeta: v1.ObjectMeta{Name: "runconfiguration"},
-				Status: v1alpha3.RunConfigurationStatus{
-					Status: apis.Status{
-						Version:              "1",
-						KfpId:                "id",
-						SynchronizationState: apis.Succeeded,
-					},
-					ObservedPipelineVersion: "1",
-				},
-			}
+			src := v1alpha3.RandomRunConfiguration()
 
 			dst := RunConfiguration{}
-			Expect(dst.ConvertFrom(&src)).To(Succeed())
+			Expect(dst.ConvertFrom(src)).To(Succeed())
 			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
 			Expect(dst.Status.Status).To(Equal(src.Status.Status))
 			Expect(dst.Status.ObservedPipelineVersion).To(Equal(src.Status.ObservedPipelineVersion))

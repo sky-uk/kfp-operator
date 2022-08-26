@@ -34,10 +34,10 @@ func createWorkflowRepository(keepWorkflows bool) WorkflowRepositoryImpl {
 	}
 }
 
-func randomResource() Resource {
+func randomResource() apis.Resource {
 	resource := &pipelinesv1.Pipeline{}
-	resource.SetName(RandomString())
-	resource.SetUID(types.UID(RandomString()))
+	resource.SetName(apis.RandomString())
+	resource.SetUID(types.UID(apis.RandomString()))
 
 	return resource
 }
@@ -45,10 +45,10 @@ func randomResource() Resource {
 func randomWorkflow() *argo.Workflow {
 	workflow := &argo.Workflow{}
 	workflow.SetNamespace(namespace)
-	workflow.SetName(RandomLowercaseString())
+	workflow.SetName(apis.RandomLowercaseString())
 
 	randomLabels := map[string]string{
-		RandomString(): RandomString(),
+		apis.RandomString(): apis.RandomString(),
 	}
 	workflow.SetLabels(randomLabels)
 

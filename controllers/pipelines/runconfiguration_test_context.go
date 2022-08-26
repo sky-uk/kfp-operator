@@ -83,7 +83,7 @@ func (testCtx RunConfigurationTestContext) WorkflowSucceeded(operation string) {
 			[]argo.Parameter{
 				{
 					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
-					Value: argo.AnyStringPtr(RandomString()),
+					Value: argo.AnyStringPtr(apis.RandomString()),
 				},
 			},
 		)
@@ -117,7 +117,7 @@ func (testCtx RunConfigurationTestContext) StableRunConfigurationCreated() {
 	testCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
 		Status: apis.Status{
 			Version:              testCtx.RunConfiguration.ComputeVersion(),
-			KfpId:                RandomString(),
+			KfpId:                apis.RandomString(),
 			SynchronizationState: apis.Succeeded,
 		},
 		ObservedPipelineVersion: testCtx.RunConfiguration.Status.ObservedPipelineVersion,

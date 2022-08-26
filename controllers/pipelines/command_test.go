@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("eventMessage", func() {
 	DescribeTable("Prints the state and the version", func(state apis.SynchronizationState) {
-		version := RandomString()
+		version := apis.RandomString()
 		Expect(
 			eventMessage(*NewSetStatus().
 				WithSynchronizationState(state).
@@ -32,7 +32,7 @@ var _ = Describe("eventMessage", func() {
 	)
 
 	DescribeTable("Appends a message when provided", func(state apis.SynchronizationState) {
-		message := RandomString()
+		message := apis.RandomString()
 
 		Expect(
 			eventMessage(*NewSetStatus().
@@ -124,7 +124,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			ReleaseResource{},
 		}
 		resource := &pipelinesv1.Pipeline{
-			Status: RandomStatus(),
+			Status: apis.RandomStatus(),
 		}
 		resource.SetGeneration(rand.Int63())
 		resource.Status.ObservedGeneration = -1

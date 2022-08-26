@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("RunConfiguration Controller", func() {
 	empty := ""
-	version := RandomString()
+	version := apis.RandomString()
 
 	pipelineInState := func(state apis.SynchronizationState) *pipelinesv1.Pipeline {
 		return &pipelinesv1.Pipeline{

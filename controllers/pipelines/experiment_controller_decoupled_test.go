@@ -7,6 +7,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 )
@@ -14,7 +15,7 @@ import (
 var _ = Describe("Experiment controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
-			experiment := RandomExperiment()
+			experiment := pipelinesv1.RandomExperiment()
 
 			kfpId := "12345"
 			anotherKfpId := "67890"
@@ -23,7 +24,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			Expect(k8sClient.Create(ctx, testCtx.Experiment)).To(Succeed())
 
 			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
+				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(experiment.Status.ObservedGeneration).To(Equal(experiment.GetGeneration()))
 			})).Should(Succeed())
 
@@ -41,16 +42,16 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
+				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
 			Eventually(testCtx.FetchWorkflow(WorkflowConstants.CreateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.UpdateExperiment(func(pipeline *pipelinesv1.Experiment) {
-				pipeline.Spec = RandomExperimentSpec()
+				pipeline.Spec = pipelinesv1.RandomExperimentSpec()
 			})).To(Succeed())
 
 			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
+				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Updating))
 			})).Should(Succeed())
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
@@ -67,14 +68,14 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Succeeded))
+				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
 			Eventually(testCtx.FetchWorkflow(WorkflowConstants.UpdateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.DeleteExperiment()).To(Succeed())
 
 			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(pipelinesv1.Deleting))
+				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Deleting))
 			})).Should(Succeed())
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {

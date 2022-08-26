@@ -27,8 +27,8 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		},
 	}
 
-	experimentKfpId := RandomString()
-	newExperimentKfpId := RandomString()
+	experimentKfpId := apis.RandomString()
+	newExperimentKfpId := apis.RandomString()
 
 	var NoExperimentExists = func() error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
@@ -84,7 +84,7 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		testCtx := NewExperimentTestContext(
 			&pipelinesv1.Experiment{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      RandomLowercaseString(),
+					Name:      apis.RandomLowercaseString(),
 					Namespace: "argo",
 				},
 				Spec: pipelinesv1.ExperimentSpec{
