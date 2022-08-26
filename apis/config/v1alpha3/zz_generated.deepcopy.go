@@ -6,7 +6,7 @@
 package v1alpha3
 
 import (
-	pipelinesv1alpha3 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	"github.com/sky-uk/kfp-operator/apis"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -15,7 +15,7 @@ func (in *Configuration) DeepCopyInto(out *Configuration) {
 	*out = *in
 	if in.DefaultBeamArgs != nil {
 		in, out := &in.DefaultBeamArgs, &out.DefaultBeamArgs
-		*out = make([]pipelinesv1alpha3.NamedValue, len(*in))
+		*out = make([]apis.NamedValue, len(*in))
 		copy(*out, *in)
 	}
 	out.Debug = in.Debug

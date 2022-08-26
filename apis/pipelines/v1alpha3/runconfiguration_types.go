@@ -2,6 +2,8 @@ package v1alpha3
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -10,11 +12,11 @@ type RunConfigurationSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	Schedule          string             `json:"schedule,omitempty"`
-	RuntimeParameters []NamedValue       `json:"runtimeParameters,omitempty"`
+	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
 }
 
 func (rc RunConfiguration) ComputeHash() []byte {
-	oh := NewObjectHasher()
+	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(rc.Spec.Pipeline.String())
 	oh.WriteStringField(rc.Spec.ExperimentName)
 	oh.WriteStringField(rc.Spec.Schedule)
@@ -30,7 +32,7 @@ func (rc RunConfiguration) ComputeVersion() string {
 }
 
 type RunConfigurationStatus struct {
-	Status                  `json:",inline"`
+	apis.Status             `json:",inline"`
 	ObservedPipelineVersion string `json:"observedPipelineVersion,omitempty"`
 }
 
@@ -50,11 +52,11 @@ type RunConfiguration struct {
 	Status RunConfigurationStatus `json:"status,omitempty"`
 }
 
-func (rc *RunConfiguration) GetStatus() Status {
+func (rc *RunConfiguration) GetStatus() apis.Status {
 	return rc.Status.Status
 }
 
-func (rc *RunConfiguration) SetStatus(status Status) {
+func (rc *RunConfiguration) SetStatus(status apis.Status) {
 	rc.Status.Status = status
 }
 

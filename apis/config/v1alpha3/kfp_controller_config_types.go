@@ -1,7 +1,7 @@
 package v1alpha3
 
 import (
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	"github.com/sky-uk/kfp-operator/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	cfg "sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
 )
@@ -12,11 +12,11 @@ type Configuration struct {
 
 	WorkflowTemplatePrefix string `json:"workflowTemplatePrefix,omitempty"`
 
-	DefaultBeamArgs []pipelinesv1.NamedValue `json:"defaultBeamArgs,omitempty"`
+	DefaultBeamArgs []apis.NamedValue `json:"defaultBeamArgs,omitempty"`
 
 	DefaultExperiment string `json:"defaultExperiment,omitempty"`
 
-	Debug pipelinesv1.DebugOptions `json:"debug,omitempty"`
+	Debug apis.DebugOptions `json:"debug,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"github.com/sky-uk/kfp-operator/apis"
 	"net/http"
 	"time"
 
@@ -116,9 +117,9 @@ func dependentPipelineVersionIfStable(dependentPipeline *pipelinesv1.Pipeline) *
 		return &empty
 	} else {
 		switch dependentPipeline.Status.SynchronizationState {
-		case pipelinesv1.Succeeded:
+		case apis.Succeeded:
 			return &dependentPipeline.Status.Version
-		case pipelinesv1.Deleted:
+		case apis.Deleted:
 			return &empty
 		default:
 			return nil

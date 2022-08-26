@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -75,10 +75,10 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 type SetStatus struct {
 	Message string
-	Status  pipelinesv1.Status
+	Status  apis.Status
 }
 
-func From(status pipelinesv1.Status) *SetStatus {
+func From(status apis.Status) *SetStatus {
 	return &SetStatus{
 		Status: status,
 	}
@@ -88,7 +88,7 @@ func NewSetStatus() *SetStatus {
 	return &SetStatus{}
 }
 
-func (sps *SetStatus) WithSynchronizationState(state pipelinesv1.SynchronizationState) *SetStatus {
+func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState) *SetStatus {
 	sps.Status.SynchronizationState = state
 
 	return sps
@@ -122,7 +122,7 @@ func eventMessage(sps SetStatus) (message string) {
 }
 
 func eventType(sps SetStatus) string {
-	if sps.Status.SynchronizationState == pipelinesv1.Failed {
+	if sps.Status.SynchronizationState == apis.Failed {
 		return EventTypes.Warning
 	} else {
 		return EventTypes.Normal
@@ -131,9 +131,9 @@ func eventType(sps SetStatus) string {
 
 func eventReason(sps SetStatus) string {
 	switch sps.Status.SynchronizationState {
-	case pipelinesv1.Succeeded, pipelinesv1.Deleted:
+	case apis.Succeeded, apis.Deleted:
 		return EventReasons.Synced
-	case pipelinesv1.Failed:
+	case apis.Failed:
 		return EventReasons.SyncFailed
 	default:
 		return EventReasons.Syncing

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -15,30 +16,30 @@ type PipelineStateHandler struct {
 
 func (st PipelineStateHandler) stateTransition(ctx context.Context, pipeline *pipelinesv1.Pipeline) (commands []Command) {
 	switch pipeline.Status.SynchronizationState {
-	case pipelinesv1.Creating:
+	case apis.Creating:
 		commands = st.onCreating(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
 				CommonWorkflowLabels(pipeline, WorkflowConstants.CreateOperationLabel)))
-	case pipelinesv1.Succeeded, pipelinesv1.Failed:
+	case apis.Succeeded, apis.Failed:
 		if !pipeline.ObjectMeta.DeletionTimestamp.IsZero() {
 			commands = st.onDelete(ctx, pipeline)
 		} else {
 			commands = st.onSucceededOrFailed(ctx, pipeline)
 		}
-	case pipelinesv1.Updating:
+	case apis.Updating:
 		commands = st.onUpdating(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
 				CommonWorkflowLabels(pipeline, WorkflowConstants.UpdateOperationLabel)))
-	case pipelinesv1.Deleting:
+	case apis.Deleting:
 		commands = st.onDeleting(ctx, pipeline,
 			st.WorkflowRepository.GetByLabels(ctx, pipeline.GetNamespace(),
 				CommonWorkflowLabels(pipeline, WorkflowConstants.DeleteOperationLabel)))
-	case pipelinesv1.Deleted:
+	case apis.Deleted:
 	default:
 		commands = st.onUnknown(ctx, pipeline)
 	}
 
-	if pipeline.Status.SynchronizationState == pipelinesv1.Deleted {
+	if pipeline.Status.SynchronizationState == apis.Deleted {
 		commands = append([]Command{ReleaseResource{}}, commands...)
 	} else {
 		commands = append([]Command{AcquireResource{}}, commands...)
@@ -69,7 +70,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 
 			return []Command{
 				*From(pipeline.Status).
-					WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(apis.Failed).
 					WithVersion(newPipelineVersion).
 					WithMessage(WorkflowConstants.ConstructionFailedError),
 			}
@@ -77,7 +78,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 
 		return []Command{
 			*From(pipeline.Status).
-				WithSynchronizationState(pipelinesv1.Updating).
+				WithSynchronizationState(apis.Updating).
 				WithVersion(newPipelineVersion),
 			CreateWorkflow{Workflow: *workflow},
 		}
@@ -91,7 +92,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 
 		return []Command{
 			*From(pipeline.Status).
-				WithSynchronizationState(pipelinesv1.Failed).
+				WithSynchronizationState(apis.Failed).
 				WithVersion(newPipelineVersion).
 				WithMessage(WorkflowConstants.ConstructionFailedError),
 		}
@@ -99,7 +100,7 @@ func (st PipelineStateHandler) onUnknown(ctx context.Context, pipeline *pipeline
 
 	return []Command{
 		*From(pipeline.Status).
-			WithSynchronizationState(pipelinesv1.Creating).
+			WithSynchronizationState(apis.Creating).
 			WithVersion(newPipelineVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
@@ -111,14 +112,14 @@ func (st PipelineStateHandler) onDelete(ctx context.Context, pipeline *pipelines
 
 	if pipeline.Status.KfpId == "" {
 		return []Command{
-			*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleted),
+			*From(pipeline.Status).WithSynchronizationState(apis.Deleted),
 		}
 	}
 
 	workflow, _ := st.WorkflowFactory.ConstructDeletionWorkflow(pipeline)
 
 	return []Command{
-		*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleting),
+		*From(pipeline.Status).WithSynchronizationState(apis.Deleting),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -134,16 +135,16 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 
 	var workflow *argo.Workflow
 	var err error
-	var targetState pipelinesv1.SynchronizationState
+	var targetState apis.SynchronizationState
 
 	if pipeline.Status.KfpId == "" {
 		logger.Info("no kfpId exists, creating")
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(pipeline)
-		targetState = pipelinesv1.Creating
+		targetState = apis.Creating
 	} else {
 		logger.Info("kfpId exists, updating")
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(pipeline)
-		targetState = pipelinesv1.Updating
+		targetState = apis.Updating
 	}
 
 	if err != nil {
@@ -151,7 +152,7 @@ func (st PipelineStateHandler) onSucceededOrFailed(ctx context.Context, pipeline
 		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
 		return []Command{
 			*From(pipeline.Status).
-				WithSynchronizationState(pipelinesv1.Failed).
+				WithSynchronizationState(apis.Failed).
 				WithVersion(newPipelineVersion).
 				WithMessage(failureMessage),
 		}
@@ -173,7 +174,7 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
 
 		return []Command{
-			*From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage),
+			*From(pipeline.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage),
 		}
 	}
 
@@ -188,7 +189,7 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 
 	if succeeded != nil {
 		logger.Info("pipeline update succeeded")
-		setStatusCommand = From(pipeline.Status).WithSynchronizationState(pipelinesv1.Succeeded)
+		setStatusCommand = From(pipeline.Status).WithSynchronizationState(apis.Succeeded)
 	} else {
 		var failureMessage string
 		if failed != nil {
@@ -199,7 +200,7 @@ func (st PipelineStateHandler) onUpdating(ctx context.Context, pipeline *pipelin
 
 		logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
 		setStatusCommand = From(pipeline.Status).
-			WithSynchronizationState(pipelinesv1.Failed).
+			WithSynchronizationState(apis.Failed).
 			WithMessage(failureMessage)
 	}
 
@@ -225,7 +226,7 @@ func (st PipelineStateHandler) onDeleting(ctx context.Context, pipeline *pipelin
 
 	if succeeded != nil {
 		logger.Info("pipeline deletion succeeded")
-		setStatusCommand = From(pipeline.Status).WithSynchronizationState(pipelinesv1.Deleted)
+		setStatusCommand = From(pipeline.Status).WithSynchronizationState(apis.Deleted)
 	} else {
 		var failureMessage string
 
@@ -256,7 +257,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 
 		return []Command{
 			*From(pipeline.Status).
-				WithSynchronizationState(pipelinesv1.Failed).
+				WithSynchronizationState(apis.Failed).
 				WithMessage(failureMessage),
 		}
 	}
@@ -278,7 +279,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 			}
 
 			logger.Info(fmt.Sprintf("%s, failing pipeline", failureMessage))
-			return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed).WithMessage(failureMessage)
+			return From(pipeline.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
 		}
 
 		idResult, err := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineIdParameterName)
@@ -286,7 +287,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 		if err != nil {
 			failureMessage := "could not retrieve kfpId"
 			logger.Error(err, fmt.Sprintf("%s, failing pipeline", failureMessage))
-			return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Failed)
+			return From(pipeline.Status).WithSynchronizationState(apis.Failed)
 		}
 
 		versionResult, _ := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineVersionParameterName)
@@ -295,13 +296,13 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 			failureMessage := "pipeline creation succeeded but version upload failed"
 			logger.Info(failureMessage)
 			return From(pipeline.Status).
-				WithSynchronizationState(pipelinesv1.Failed).
+				WithSynchronizationState(apis.Failed).
 				WithKfpId(idResult).
 				WithMessage(failureMessage)
 		}
 
 		logger.Info("pipeline creation succeeded")
-		return From(pipeline.Status).WithSynchronizationState(pipelinesv1.Succeeded).WithKfpId(idResult)
+		return From(pipeline.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(idResult)
 	}
 
 	return []Command{

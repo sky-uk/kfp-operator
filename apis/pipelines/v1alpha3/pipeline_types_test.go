@@ -6,6 +6,7 @@ package v1alpha3
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 )
 
 var _ = Context("Pipeline", func() {
@@ -35,14 +36,14 @@ var _ = Context("Pipeline", func() {
 			pipelineSpec := PipelineSpec{}
 			hash1 := pipelineSpec.ComputeHash()
 
-			pipelineSpec.Env = []NamedValue{
+			pipelineSpec.Env = []apis.NamedValue{
 				{Name: "a", Value: ""},
 			}
 			hash2 := pipelineSpec.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			pipelineSpec.Env = []NamedValue{
+			pipelineSpec.Env = []apis.NamedValue{
 				{Name: "b", Value: "NotEmpty"},
 			}
 			hash3 := pipelineSpec.ComputeHash()
@@ -54,12 +55,12 @@ var _ = Context("Pipeline", func() {
 			pipelineSpec := PipelineSpec{}
 			hash1 := pipelineSpec.ComputeHash()
 
-			pipelineSpec.BeamArgs = []NamedValue{
+			pipelineSpec.BeamArgs = []apis.NamedValue{
 				{Name: "a", Value: ""},
 			}
 			hash2 := pipelineSpec.ComputeHash()
 
-			pipelineSpec.BeamArgs = []NamedValue{
+			pipelineSpec.BeamArgs = []apis.NamedValue{
 				{Name: "b", Value: "NotEmpty"},
 			}
 			hash3 := pipelineSpec.ComputeHash()

@@ -4,20 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/docker/distribution/reference"
+	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"strings"
 )
 
 type PipelineSpec struct {
-	Image         string       `json:"image" yaml:"image"`
-	TfxComponents string       `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []NamedValue `json:"env,omitempty" yaml:"env"`
-	BeamArgs      []NamedValue `json:"beamArgs,omitempty"`
+	Image         string            `json:"image" yaml:"image"`
+	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
+	Env           []apis.NamedValue `json:"env,omitempty" yaml:"env"`
+	BeamArgs      []apis.NamedValue `json:"beamArgs,omitempty"`
 }
 
 func (ps PipelineSpec) ComputeHash() []byte {
-	oh := NewObjectHasher()
+	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(ps.Image)
 	oh.WriteStringField(ps.TfxComponents)
 	oh.WriteNamedValueListField(ps.Env)
@@ -50,14 +52,14 @@ type Pipeline struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   PipelineSpec `json:"spec,omitempty"`
-	Status Status       `json:"status,omitempty"`
+	Status apis.Status  `json:"status,omitempty"`
 }
 
-func (p *Pipeline) GetStatus() Status {
+func (p *Pipeline) GetStatus() apis.Status {
 	return p.Status
 }
 
-func (p *Pipeline) SetStatus(status Status) {
+func (p *Pipeline) SetStatus(status apis.Status) {
 	p.Status = status
 }
 

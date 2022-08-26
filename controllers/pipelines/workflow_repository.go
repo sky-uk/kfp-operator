@@ -3,6 +3,7 @@ package pipelines
 import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/sky-uk/kfp-operator/apis"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/sky-uk/kfp-operator/controllers"
@@ -34,8 +35,8 @@ type WorkflowRepositoryImpl struct {
 }
 
 func (w *WorkflowRepositoryImpl) debugAnnotations(ctx context.Context, annotations map[string]string) map[string]string {
-	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, annotations).WithDefaults(w.Config.Debug)
-	return pipelinesv1.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
+	workflowDebugOptions := apis.DebugOptionsFromAnnotations(ctx, annotations).WithDefaults(w.Config.Debug)
+	return apis.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
 }
 
 func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource Resource) error {
@@ -103,7 +104,7 @@ func (w WorkflowRepositoryImpl) DeleteWorkflow(ctx context.Context, workflow *ar
 		return err
 	}
 
-	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
+	workflowDebugOptions := apis.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
 	if !workflowDebugOptions.KeepWorkflows {
 		logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
 		if err := w.Client.Delete(ctx, workflow); err != nil {

@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"gopkg.in/yaml.v2"
 )
@@ -34,7 +35,7 @@ type CompilerConfig struct {
 	BeamArgs        map[string][]string `yaml:"beamArgs"`
 }
 
-func NamedValuesToMap(namedValues []pipelinesv1.NamedValue) map[string]string {
+func NamedValuesToMap(namedValues []apis.NamedValue) map[string]string {
 	m := make(map[string]string)
 
 	for _, nv := range namedValues {
@@ -44,7 +45,7 @@ func NamedValuesToMap(namedValues []pipelinesv1.NamedValue) map[string]string {
 	return m
 }
 
-func NamedValuesToMultiMap(namedValues []pipelinesv1.NamedValue) map[string][]string {
+func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
 	multimap := make(map[string][]string)
 
 	for _, nv := range namedValues {
@@ -77,7 +78,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	pipelineRoot := wf.Config.PipelineStorage + "/" + pipeline.ObjectMeta.Name
 
 	beamArgs := append(wf.Config.DefaultBeamArgs, pipeline.Spec.BeamArgs...)
-	beamArgs = append(beamArgs, pipelinesv1.NamedValue{Name: "temp_location", Value: pipelineRoot + tempPath})
+	beamArgs = append(beamArgs, apis.NamedValue{Name: "temp_location", Value: pipelineRoot + tempPath})
 
 	return &CompilerConfig{
 		RootLocation:    pipelineRoot,

@@ -6,6 +6,7 @@ package pipelines
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"gopkg.in/yaml.v2"
@@ -23,7 +24,7 @@ var _ = Describe("PipelineConfig", func() {
 			Spec: pipelinesv1.PipelineSpec{
 				Image:         "pipelineImage",
 				TfxComponents: "pipelineTfxComponents",
-				Env: []pipelinesv1.NamedValue{
+				Env: []apis.NamedValue{
 					{Name: "ea", Value: "b"},
 				},
 			},
@@ -61,7 +62,7 @@ var _ = Describe("PipelineConfig", func() {
 		wf := PipelineWorkflowFactory{}
 		pipeline := &pipelinesv1.Pipeline{
 			Spec: pipelinesv1.PipelineSpec{
-				BeamArgs: []pipelinesv1.NamedValue{
+				BeamArgs: []apis.NamedValue{
 					{Name: "a", Value: "b"},
 				},
 			},
@@ -96,7 +97,7 @@ var _ = Describe("PipelineConfig", func() {
 		wf := PipelineWorkflowFactory{
 			WorkflowFactoryBase: WorkflowFactoryBase{
 				Config: configv1.Configuration{
-					DefaultBeamArgs: []pipelinesv1.NamedValue{
+					DefaultBeamArgs: []apis.NamedValue{
 						{Name: "ba", Value: "default"},
 						{Name: "bc", Value: "default"},
 					},
@@ -106,7 +107,7 @@ var _ = Describe("PipelineConfig", func() {
 
 		pipeline := &pipelinesv1.Pipeline{
 			Spec: pipelinesv1.PipelineSpec{
-				BeamArgs: []pipelinesv1.NamedValue{
+				BeamArgs: []apis.NamedValue{
 					{Name: "bc", Value: "bd"},
 				},
 			},

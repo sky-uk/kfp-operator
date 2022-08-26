@@ -2,6 +2,7 @@ package v1alpha2
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 	"sort"
@@ -10,6 +11,8 @@ import (
 func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*v1alpha3.Pipeline)
 
+	dst.ObjectMeta = src.ObjectMeta
+	dst.Status = src.Status
 	dst.Spec.Env = mapToNamedValues(src.Spec.Env)
 	dst.Spec.BeamArgs = mapToNamedValues(src.Spec.BeamArgs)
 	dst.Spec.Image = src.Spec.Image
@@ -23,6 +26,8 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 
 	var err error
 
+	dst.ObjectMeta = src.ObjectMeta
+	dst.Status = src.Status
 	dst.Spec.Env, err = namedValuesToMap(src.Spec.Env)
 	if err != nil {
 		return err
@@ -36,7 +41,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	return nil
 }
 
-func namedValuesToMap(namedValues []v1alpha3.NamedValue) (map[string]string, error) {
+func namedValuesToMap(namedValues []apis.NamedValue) (map[string]string, error) {
 	if len(namedValues) == 0 {
 		return nil, nil
 	}
@@ -54,11 +59,11 @@ func namedValuesToMap(namedValues []v1alpha3.NamedValue) (map[string]string, err
 	return values, nil
 }
 
-func mapToNamedValues(values map[string]string) []v1alpha3.NamedValue {
-	var namedValues []v1alpha3.NamedValue
+func mapToNamedValues(values map[string]string) []apis.NamedValue {
+	var namedValues []apis.NamedValue
 
 	for k, v := range values {
-		namedValues = append(namedValues, v1alpha3.NamedValue{
+		namedValues = append(namedValues, apis.NamedValue{
 			Name: k, Value: v,
 		})
 	}

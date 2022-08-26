@@ -5,8 +5,8 @@ import (
 	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 )
 
 var _ = Describe("WorkflowRepository.debugAnnotations", func() {
@@ -14,7 +14,7 @@ var _ = Describe("WorkflowRepository.debugAnnotations", func() {
 		It("uses the configured defaults", func() {
 			workflowRepository := WorkflowRepositoryImpl{
 				Config: configv1.Configuration{
-					Debug: pipelinesv1.DebugOptions{
+					Debug: apis.DebugOptions{
 						KeepWorkflows: true,
 					},
 				},
@@ -31,7 +31,7 @@ var _ = Describe("WorkflowRepository.debugAnnotations", func() {
 		It("uses the configured defaults", func() {
 			workflowRepository := WorkflowRepositoryImpl{
 				Config: configv1.Configuration{
-					Debug: pipelinesv1.DebugOptions{
+					Debug: apis.DebugOptions{
 						KeepWorkflows: true,
 					},
 				},
@@ -49,7 +49,7 @@ var _ = Describe("WorkflowRepository.debugAnnotations", func() {
 	DescribeTable("the annotation is valid", func(enabledInAnnotation bool, enabledInConfig bool, expectation string) {
 		workflowRepository := WorkflowRepositoryImpl{
 			Config: configv1.Configuration{
-				Debug: pipelinesv1.DebugOptions{
+				Debug: apis.DebugOptions{
 					KeepWorkflows: enabledInConfig,
 				},
 			},

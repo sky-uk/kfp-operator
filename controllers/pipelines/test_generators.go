@@ -5,6 +5,7 @@ package pipelines
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/apis"
 	"k8s.io/apimachinery/pkg/runtime"
 	"math/rand"
 
@@ -26,12 +27,12 @@ func RandomString() string {
 	return randstr.String(rand.Intn(20) + 1)
 }
 
-func RandomNamedValues() []pipelinesv1.NamedValue {
+func RandomNamedValues() []apis.NamedValue {
 	size := rand.Intn(5)
 
-	rMap := make([]pipelinesv1.NamedValue, size)
+	rMap := make([]apis.NamedValue, size)
 	for i := 0; i < size; i++ {
-		rMap[i] = pipelinesv1.NamedValue{Name: RandomString(), Value: RandomString()}
+		rMap[i] = apis.NamedValue{Name: RandomString(), Value: RandomString()}
 	}
 
 	return rMap
@@ -43,14 +44,14 @@ type TestResource struct {
 	NamespacedName types.NamespacedName
 
 	Kind   string
-	Status pipelinesv1.Status
+	Status apis.Status
 }
 
-func (tr *TestResource) GetStatus() pipelinesv1.Status {
+func (tr *TestResource) GetStatus() apis.Status {
 	return tr.GetStatus()
 }
 
-func (tr *TestResource) SetStatus(status pipelinesv1.Status) {
+func (tr *TestResource) SetStatus(status apis.Status) {
 	tr.Status = status
 }
 
@@ -130,22 +131,22 @@ func RandomExperimentSpec() pipelinesv1.ExperimentSpec {
 	}
 }
 
-func RandomSynchronizationState() pipelinesv1.SynchronizationState {
-	synchronizationStates := []pipelinesv1.SynchronizationState{
+func RandomSynchronizationState() apis.SynchronizationState {
+	synchronizationStates := []apis.SynchronizationState{
 		"",
-		pipelinesv1.Creating,
-		pipelinesv1.Succeeded,
-		pipelinesv1.Updating,
-		pipelinesv1.Deleting,
-		pipelinesv1.Deleted,
-		pipelinesv1.Failed,
+		apis.Creating,
+		apis.Succeeded,
+		apis.Updating,
+		apis.Deleting,
+		apis.Deleted,
+		apis.Failed,
 	}
 
 	return synchronizationStates[rand.Intn(len(synchronizationStates))]
 }
 
-func RandomStatus() pipelinesv1.Status {
-	return pipelinesv1.Status{
+func RandomStatus() apis.Status {
+	return apis.Status{
 		SynchronizationState: RandomSynchronizationState(),
 		Version:              RandomString(),
 		KfpId:                RandomString(),
