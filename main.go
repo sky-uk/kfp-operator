@@ -136,10 +136,10 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
 		os.Exit(1)
 	}
-	if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
-		os.Exit(1)
-	}
+	//if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
+	//	setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
+	//	os.Exit(1)
+	//}
 
 	if err = (&pipelinescontrollers.ExperimentReconciler{
 		EC: ec,
@@ -153,10 +153,10 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
 		os.Exit(1)
 	}
-	if err = (&pipelinesv1.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
-		os.Exit(1)
-	}
+	//if err = (&pipelinesv1.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
+	//	setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
+	//	os.Exit(1)
+	//}
 
 	//+kubebuilder:scaffold:builder
 

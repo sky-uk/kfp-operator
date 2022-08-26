@@ -5,6 +5,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
+    cert-manager.io/inject-ca-from: kfp-operator-system/kfp-operator-serving-cert
   name: pipelines.pipelines.kubeflow.org
 spec:
   group: pipelines.kubeflow.org

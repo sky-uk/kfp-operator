@@ -44,6 +44,9 @@ spec:
           resources:
             {{- .Values.manager.resources | toYaml | nindent 12 }}
           volumeMounts:
+            - name: cert
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
             - mountPath: /controller_manager_config.yaml
               name: manager-config
               subPath: controller_manager_config.yaml
@@ -70,6 +73,10 @@ spec:
         {{ end }}
         {{- end }}
       volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: webhook-server-cert
         - configMap:
             name: kfp-operator-manager-config
           name: manager-config

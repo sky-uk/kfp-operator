@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-serving-cert
+  namespace: {{ .Values.namespace.name }}
+spec:
+  dnsNames:
+  - kfp-operator-webhook-service.kfp-operator-system.svc
+  - kfp-operator-webhook-service.kfp-operator-system.svc.cluster.local
+  issuerRef:
+    name: kfp-operator-selfsigned-issuer
+    kind: Issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: kfp-operator-selfsigned-issuer
+  namespace: {{ .Values.namespace.name }}
+spec:
+  selfSigned: {}
