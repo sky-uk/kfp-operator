@@ -6,6 +6,7 @@ package pipelines
 import (
 	"context"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -79,18 +80,18 @@ func (testCtx PipelineTestContext) DeletePipeline() error {
 }
 
 func (testCtx PipelineTestContext) StablePipelineCreated() {
-	testCtx.PipelineCreatedWithStatus(pipelinesv1.Status{
+	testCtx.PipelineCreatedWithStatus(apis.Status{
 		Version:              testCtx.Pipeline.Spec.ComputeVersion(),
 		KfpId:                RandomString(),
-		SynchronizationState: pipelinesv1.Succeeded,
+		SynchronizationState: apis.Succeeded,
 	})
 }
 
-func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status pipelinesv1.Status) {
+func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status apis.Status) {
 	Expect(testCtx.K8sClient.Create(testCtx.ctx, testCtx.Pipeline)).To(Succeed())
 
 	Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
-		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
+		g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Creating))
 		g.Expect(testCtx.UpdatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
 			pipeline.Status = status
 		})).To(Succeed())
@@ -98,20 +99,20 @@ func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status pipelinesv1.
 }
 
 func (testCtx PipelineTestContext) StablePipelineUpdated(spec pipelinesv1.PipelineSpec) {
-	testCtx.PipelineUpdatedWithStatus(spec, pipelinesv1.Status{
+	testCtx.PipelineUpdatedWithStatus(spec, apis.Status{
 		Version:              spec.ComputeVersion(),
 		KfpId:                RandomString(),
-		SynchronizationState: pipelinesv1.Succeeded,
+		SynchronizationState: apis.Succeeded,
 	})
 }
 
-func (testCtx PipelineTestContext) PipelineUpdatedWithStatus(spec pipelinesv1.PipelineSpec, status pipelinesv1.Status) {
+func (testCtx PipelineTestContext) PipelineUpdatedWithStatus(spec pipelinesv1.PipelineSpec, status apis.Status) {
 	Expect(testCtx.UpdatePipeline(func(pipeline *pipelinesv1.Pipeline) {
 		pipeline.Spec = spec
 	})).To(Succeed())
 
 	Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
-		g.Expect(pipeline.Status.SynchronizationState).To(Equal(pipelinesv1.Updating))
+		g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Updating))
 		g.Expect(testCtx.UpdatePipelineStatus(func(pipeline *pipelinesv1.Pipeline) {
 			pipeline.Status = status
 		})).To(Succeed())

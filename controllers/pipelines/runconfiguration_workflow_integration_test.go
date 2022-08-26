@@ -8,6 +8,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/walkerus/go-wiremock"
@@ -131,7 +132,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					Schedule: "* * * * * *",
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
-					Status: pipelinesv1.Status{
+					Status: apis.Status{
 						KfpId: jobKfpId,
 					},
 					ObservedPipelineVersion: versionName,
