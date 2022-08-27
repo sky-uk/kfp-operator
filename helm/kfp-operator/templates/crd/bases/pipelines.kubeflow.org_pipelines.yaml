@@ -5,7 +5,7 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
-    {{- if .Values.manager.multiversion.enabled }}
+    {{- if and .Values.manager.multiversion.enabled (eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager") }}
     cert-manager.io/inject-ca-from: kfp-operator-system/kfp-operator-serving-cert
     {{- end }}
   name: pipelines.pipelines.kubeflow.org
@@ -19,6 +19,7 @@ spec:
     - mlp
     singular: pipeline
   scope: Namespaced
+  {{- if and .Values.manager.multiversion.enabled }}
   conversion:
     strategy: Webhook
     webhook:
@@ -27,8 +28,12 @@ spec:
           name: kfp-operator-webhook-service
           namespace: kfp-operator-system
           path: /convert
+        {{- if and .Values.manager.multiversion.enabled (eq .Values.manager.multiversion.webhookCertificates.provider "custom") }}
+        caBundle: {{ .Values.manager.multiversion.webhookCertificates.caBundle }}
+        {{- end }}
       conversionReviewVersions:
       - v1
+  {{- end }}
   versions:
   {{- if .Values.manager.multiversion.enabled }}
   - name: v1alpha2

@@ -80,7 +80,7 @@ spec:
         - name: cert
           secret:
             defaultMode: 420
-            secretName: {{ if eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager" }}webhook-server-cert{{ else }}{{ if .Values.manager.multiversion.webhookCertificates.secretName }}{{ end }}
+            secretName: {{ if eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager" }}webhook-server-cert{{ else }}{{ .Values.manager.multiversion.webhookCertificates.secretName }}{{ end }}
         {{- end }}
         - configMap:
             name: kfp-operator-manager-config

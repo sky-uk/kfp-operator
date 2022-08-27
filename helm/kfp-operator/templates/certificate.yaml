@@ -1,4 +1,4 @@
-{{- if .Values.manager.multiversion.enabled }}
+{{- if and .Values.manager.multiversion.enabled (eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager") }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -20,4 +20,4 @@ metadata:
   namespace: {{ .Values.namespace.name }}
 spec:
   selfSigned: {}
-{{ end }}
+{{- end }}
