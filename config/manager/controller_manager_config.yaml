@@ -12,6 +12,7 @@ controller:
     resourceName: kfp-operator-lock
 spec:
   workflowTemplatePrefix: kfp-operator-
+  multiversion: true
   defaultBeamArgs:
     project: ${DATAFLOW_PROJECT}
   kfpEndpoint: ${KFP_ENDPOINT}

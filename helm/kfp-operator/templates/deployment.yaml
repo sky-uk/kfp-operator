@@ -44,16 +44,20 @@ spec:
           resources:
             {{- .Values.manager.resources | toYaml | nindent 12 }}
           volumeMounts:
+          {{- if .Values.manager.multiversion.enabled }}
             - name: cert
               mountPath: /tmp/k8s-webhook-server/serving-certs
               readOnly: true
+           {{ end }}
             - mountPath: /controller_manager_config.yaml
               name: manager-config
               subPath: controller_manager_config.yaml
           ports:
+        {{- if .Values.manager.multiversion.enabled }}
            - name: webhook-server
              containerPort: 9443
              protocol: TCP
+        {{ end }}
         {{- if .Values.manager.monitoring.create }}
         {{ if not .Values.manager.monitoring.rbacSecured }}
            - containerPort: 8080
@@ -72,10 +76,12 @@ spec:
         {{ end }}
         {{- end }}
       volumes:
+        {{- if .Values.manager.multiversion.enabled }}
         - name: cert
           secret:
             defaultMode: 420
-            secretName: webhook-server-cert
+            secretName: {{ if eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager" }}webhook-server-cert{{ else }}{{ if .Values.manager.multiversion.webhookCertificates.secretName }}{{ end }}
+        {{- end }}
         - configMap:
             name: kfp-operator-manager-config
           name: manager-config

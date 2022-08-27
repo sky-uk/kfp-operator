@@ -172,6 +172,8 @@ spec:
                 type: string
               kfpEndpoint:
                 type: string
+              multiversion:
+                type: boolean
               pipelineStorage:
                 type: string
               workflowTemplatePrefix:

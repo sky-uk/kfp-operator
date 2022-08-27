@@ -12,11 +12,16 @@ data:
         healthProbeBindAddress: :8081
       metrics:
         bindAddress: :8080
+      {{- if .Values.manager.multiversion.enabled }}
       webhook:
         port: 9443
+      {{ end -}}
       leaderElection:
         leaderElect: true
         resourceName: kfp-operator-lock
     spec:
       workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
+      {{- if .Values.manager.multiversion.enabled }}
+      multiversion: true
+      {{- end -}}
       {{- .Values.manager.configuration | toYaml | nindent 6 -}}

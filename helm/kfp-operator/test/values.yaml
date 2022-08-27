@@ -16,5 +16,7 @@ manager:
         bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
         tlsConfig:
           insecureSkipVerify: true
+  multiversion:
+    enabled: true
 eventsourceServer:
   create: false

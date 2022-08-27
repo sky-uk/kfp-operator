@@ -5,7 +5,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
+    {{- if .Values.manager.multiversion.enabled }}
     cert-manager.io/inject-ca-from: kfp-operator-system/kfp-operator-serving-cert
+    {{- end }}
   name: pipelines.pipelines.kubeflow.org
 spec:
   group: pipelines.kubeflow.org
@@ -28,6 +30,7 @@ spec:
       conversionReviewVersions:
       - v1
   versions:
+  {{- if .Values.manager.multiversion.enabled }}
   - name: v1alpha2
     served: true
     storage: false
@@ -85,6 +88,7 @@ spec:
                 format: int64
               synchronizationState:
                 type: string
+  {{- end }}
   - additionalPrinterColumns:
     - jsonPath: .status.kfpId
       name: KfpId

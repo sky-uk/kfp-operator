@@ -37,6 +37,8 @@ manager:
     serviceMonitor:
       create: false
       endpointConfiguration: {}
+  multiversion:
+    enabled: false
 
 logging:
   verbosity: # info
