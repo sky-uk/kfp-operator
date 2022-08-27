@@ -138,6 +138,22 @@ Please follow the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master
 &lt;td>Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided)&lt;/td>
 &lt;/tr>
 &lt;tr>
+&lt;td>&lt;code>manager.multiversion.enabled&lt;/code>&lt;/td>
+&lt;td>Enable multiversion API. Should be used in production to allow version migration. Disable for simplified installation&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.multiversion.webhookCertificates.provider&lt;/code>&lt;/td>
+&lt;td>K8s conversion webhook TLS certificate provider. Choose &lt;code>cert-manager&lt;/code> for helm to deploy certificates if cert-manager is available. Choose &lt;code>custom&lt;/code> otherwise&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.multiversion.webhookCertificates.secretName&lt;/code>&lt;/td>
+&lt;td>Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with. Required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.multiversion.webhookCertificates.caBundle&lt;/code>&lt;/td>
+&lt;td>CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate. Required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>logging.verbosity&lt;/code>&lt;/td>
 &lt;td>Logging verbosity for all components. See the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
 &lt;/tr>
