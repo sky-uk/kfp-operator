@@ -1,3 +1,6 @@
+//go:build unit
+// +build unit
+
 package v1alpha2
 
 import (
