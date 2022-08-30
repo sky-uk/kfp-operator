@@ -14,6 +14,7 @@ spec:
   workflowTemplatePrefix: kfp-operator-
   multiversion: true
   defaultBeamArgs:
-    project: ${DATAFLOW_PROJECT}
+  - name: project
+    value: ${DATAFLOW_PROJECT}
   kfpEndpoint: ${KFP_ENDPOINT}
   pipelineStorage: ${PIPELINE_STORAGE}
