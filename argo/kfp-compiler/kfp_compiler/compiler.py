@@ -4,11 +4,10 @@ import sys
 import importlib
 import importlib.util
 import os
-from tfx.orchestration.kubeflow import kubeflow_dag_runner
-from tfx.orchestration import pipeline
+from tfx import v1 as tfx
+from tfx.v1.dsl import Pipeline
 from tfx.components import Pusher, Trainer
-from tfx.proto import pusher_pb2
-
+from tfx.v1.proto import PushDestination
 
 def expand_components_with_pusher(tfx_components, serving_model_directory):
     if not any(isinstance(component, Pusher) for component in tfx_components):
@@ -45,8 +44,8 @@ def expand_components_with_pusher(tfx_components, serving_model_directory):
         pusher = Pusher(
             model=model,
             model_blessing=blessing,
-            push_destination=pusher_pb2.PushDestination(
-                filesystem=pusher_pb2.PushDestination.Filesystem(
+            push_destination=PushDestination(
+                filesystem=PushDestination.Filesystem(
                     base_directory=serving_model_directory
                 )
             ),
@@ -80,16 +79,16 @@ def compile(pipeline_config, output_file):
     components = load_fn(config['tfxComponents'], config.get('env', {}))()
     expanded_components = expand_components_with_pusher(components, config['servingLocation'])
 
-    metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
+    metadata_config = tfx.orchestration.experimental.get_default_kubeflow_metadata_config()
 
-    runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
+    runner_config = tfx.orchestration.experimental.KubeflowDagRunnerConfig(
         kubeflow_metadata_config=metadata_config, tfx_image=config['image']
     )
 
-    kubeflow_dag_runner.KubeflowDagRunner(
+    tfx.orchestration.experimental.KubeflowDagRunner(
         config=runner_config, output_filename=output_file
     ).run(
-        pipeline.Pipeline(
+        Pipeline(
             pipeline_name=config['name'],
             pipeline_root=config['rootLocation'],
             components=expanded_components,
