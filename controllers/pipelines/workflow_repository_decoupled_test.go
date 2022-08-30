@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,7 +26,7 @@ func createWorkflowRepository(keepWorkflows bool) WorkflowRepositoryImpl {
 	return WorkflowRepositoryImpl{
 		Client: optInClient,
 		Scheme: scheme,
-		Config: configv1.Configuration{
+		Config: config.Configuration{
 			Debug: apis.DebugOptions{
 				KeepWorkflows: keepWorkflows,
 			},

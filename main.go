@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1alpha2 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	pipelinesv1alpha3 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	controllers "github.com/sky-uk/kfp-operator/controllers"
@@ -52,7 +52,7 @@ func init() {
 
 	utilruntime.Must(pipelinesv1alpha2.AddToScheme(scheme))
 	utilruntime.Must(pipelinesv1alpha3.AddToScheme(scheme))
-	utilruntime.Must(configv1.AddToScheme(scheme))
+	utilruntime.Must(config.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 
 	utilruntime.Must(external.InitSchemes(scheme))
@@ -72,7 +72,7 @@ func main() {
 	flag.Parse()
 
 	var err error
-	ctrlConfig := configv1.KfpControllerConfig{}
+	ctrlConfig := config.KfpControllerConfig{}
 	options := ctrl.Options{Scheme: scheme}
 
 	if configFile != "" {

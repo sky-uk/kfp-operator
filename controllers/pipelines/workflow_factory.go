@@ -4,7 +4,7 @@ import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -39,7 +39,7 @@ type WorkflowFactory[R apis.Resource] interface {
 
 type WorkflowFactoryBase struct {
 	ResourceKind string
-	Config       configv1.Configuration
+	Config       config.Configuration
 }
 
 type KfpExtCommandBuilder struct {

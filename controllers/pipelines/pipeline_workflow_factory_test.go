@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,7 +41,7 @@ var _ = Describe("PipelineConfig", func() {
 	Specify("Paths are appended to PipelineStorage", func() {
 		wf := PipelineWorkflowFactory{
 			WorkflowFactoryBase: WorkflowFactoryBase{
-				Config: configv1.Configuration{
+				Config: config.Configuration{
 					PipelineStorage: "gs://bucket",
 				},
 			},
@@ -76,7 +76,7 @@ var _ = Describe("PipelineConfig", func() {
 	Specify("BeamArgs are enriched with temp_location", func() {
 		wf := PipelineWorkflowFactory{
 			WorkflowFactoryBase: WorkflowFactoryBase{
-				Config: configv1.Configuration{
+				Config: config.Configuration{
 					PipelineStorage: "gs://bucket",
 				},
 			},
@@ -96,7 +96,7 @@ var _ = Describe("PipelineConfig", func() {
 	Specify("BeamArgs are appended to default configuration values", func() {
 		wf := PipelineWorkflowFactory{
 			WorkflowFactoryBase: WorkflowFactoryBase{
-				Config: configv1.Configuration{
+				Config: config.Configuration{
 					DefaultBeamArgs: []apis.NamedValue{
 						{Name: "ba", Value: "default"},
 						{Name: "bc", Value: "default"},
