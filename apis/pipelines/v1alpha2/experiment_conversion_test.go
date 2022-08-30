@@ -39,8 +39,8 @@ var _ = Context("Experiment Conversion", func() {
 	var _ = Describe("ComputeVersion", func() {
 		Specify("Does not change between versions", func() {
 			src := RandomExperiment()
-
 			dst := v1alpha3.Experiment{}
+			
 			Expect(src.ConvertTo(&dst)).To(Succeed())
 			Expect(src.Spec.ComputeVersion()).To(Equal(dst.Spec.ComputeVersion()))
 		})

@@ -14,32 +14,30 @@ var _ = Context("Pipeline Conversion", func() {
 	var _ = Describe("ConvertTo", func() {
 		Specify("Converts Env to a list of NamedValue", func() {
 			src := Pipeline{Spec: PipelineSpec{Env: map[string]string{"a": "b", "c": "d"}}}
-			expected := v1alpha3.Pipeline{Spec: v1alpha3.PipelineSpec{Env: []apis.NamedValue{
+			dst := v1alpha3.Pipeline{}
+
+			Expect(src.ConvertTo(&dst)).To(Succeed())
+			Expect(dst.Spec.Env).To(Equal([]apis.NamedValue{
 				{Name: "a", Value: "b"},
 				{Name: "c", Value: "d"},
-			}}}
-
-			dst := v1alpha3.Pipeline{}
-			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(dst).To(Equal(expected))
+			}))
 		})
 
 		Specify("Converts BeamArgs to a list of NamedValue", func() {
 			src := Pipeline{Spec: PipelineSpec{BeamArgs: map[string]string{"a": "b", "c": "d"}}}
-			expected := v1alpha3.Pipeline{Spec: v1alpha3.PipelineSpec{BeamArgs: []apis.NamedValue{
+			dst := v1alpha3.Pipeline{}
+
+			Expect(src.ConvertTo(&dst)).To(Succeed())
+			Expect(dst.Spec.BeamArgs).To(Equal([]apis.NamedValue{
 				{Name: "a", Value: "b"},
 				{Name: "c", Value: "d"},
-			}}}
-
-			dst := v1alpha3.Pipeline{}
-			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(dst).To(Equal(expected))
+			}))
 		})
 
 		Specify("Copies all other fields", func() {
 			src := RandomPipeline()
-
 			dst := v1alpha3.Pipeline{}
+
 			Expect(src.ConvertTo(&dst)).To(Succeed())
 			Expect(dst.Spec.Image).To(Equal(src.Spec.Image))
 			Expect(dst.Spec.TfxComponents).To(Equal(src.Spec.TfxComponents))
@@ -54,11 +52,10 @@ var _ = Context("Pipeline Conversion", func() {
 				{Name: "a", Value: "b"},
 				{Name: "c", Value: "d"},
 			}}}
-			expected := Pipeline{Spec: PipelineSpec{Env: map[string]string{"a": "b", "c": "d"}}}
 			dst := Pipeline{}
 
 			Expect(dst.ConvertFrom(&src)).To(Succeed())
-			Expect(dst).To(Equal(expected))
+			Expect(dst.Spec.Env).To(Equal(map[string]string{"a": "b", "c": "d"}))
 		})
 
 		Specify("Errors when Env contains a duplicate NamedValue", func() {
@@ -76,11 +73,10 @@ var _ = Context("Pipeline Conversion", func() {
 				{Name: "a", Value: "b"},
 				{Name: "c", Value: "d"},
 			}}}
-			expected := Pipeline{Spec: PipelineSpec{BeamArgs: map[string]string{"a": "b", "c": "d"}}}
 			dst := Pipeline{}
 
 			Expect(dst.ConvertFrom(&src)).To(Succeed())
-			Expect(dst).To(Equal(expected))
+			Expect(dst.Spec.BeamArgs).To(Equal(map[string]string{"a": "b", "c": "d"}))
 		})
 
 		Specify("Errors when BeamArgs contains a duplicate NamedValue", func() {
@@ -95,8 +91,8 @@ var _ = Context("Pipeline Conversion", func() {
 
 		Specify("Copies all other fields", func() {
 			src := v1alpha3.RandomPipeline()
-
 			dst := Pipeline{}
+
 			Expect(dst.ConvertFrom(src)).To(Succeed())
 			Expect(dst.Spec.Image).To(Equal(src.Spec.Image))
 			Expect(dst.Spec.TfxComponents).To(Equal(src.Spec.TfxComponents))
@@ -108,8 +104,8 @@ var _ = Context("Pipeline Conversion", func() {
 	var _ = Describe("ComputeVersion", func() {
 		Specify("Does not change between versions", func() {
 			src := RandomPipeline()
-
 			dst := v1alpha3.Pipeline{}
+
 			Expect(src.ConvertTo(&dst)).To(Succeed())
 			Expect(src.Spec.ComputeVersion()).To(Equal(dst.Spec.ComputeVersion()))
 		})

@@ -15,20 +15,19 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 		Specify("Converts RuntimeParameters to a list of NamedValue", func() {
 			src := RunConfiguration{Spec: RunConfigurationSpec{RuntimeParameters: map[string]string{"a": "b", "c": "d"}}}
-			expected := v1alpha3.RunConfiguration{Spec: v1alpha3.RunConfigurationSpec{RuntimeParameters: []apis.NamedValue{
+			dst := v1alpha3.RunConfiguration{}
+
+			Expect(src.ConvertTo(&dst)).To(Succeed())
+			Expect(dst.Spec.RuntimeParameters).To(Equal([]apis.NamedValue{
 				{Name: "a", Value: "b"},
 				{Name: "c", Value: "d"},
-			}}}
-
-			dst := v1alpha3.RunConfiguration{}
-			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(dst).To(Equal(expected))
+			}))
 		})
 
 		Specify("Copies all other fields", func() {
 			src := RandomRunConfiguration()
-
 			dst := v1alpha3.RunConfiguration{}
+
 			Expect(src.ConvertTo(&dst)).To(Succeed())
 			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
 			Expect(dst.Status.Status).To(Equal(src.Status.Status))
@@ -44,14 +43,10 @@ var _ = Context("RunConfiguration Conversion", func() {
 					{Name: "a", Value: "b"},
 					{Name: "c", Value: "d"},
 				}}}
-
-			expected := RunConfiguration{Spec: RunConfigurationSpec{
-				RuntimeParameters: map[string]string{"a": "b", "c": "d"},
-			}}
-
 			dst := RunConfiguration{}
+
 			Expect(dst.ConvertFrom(&src)).To(Succeed())
-			Expect(dst).To(Equal(expected))
+			Expect(dst.Spec.RuntimeParameters).To(Equal(map[string]string{"a": "b", "c": "d"}))
 		})
 
 		Specify("Errors when RuntimeParameters contains a duplicate NamedValue", func() {
@@ -60,15 +55,15 @@ var _ = Context("RunConfiguration Conversion", func() {
 					{Name: "a", Value: "b"},
 					{Name: "a", Value: "d"},
 				}}}
-
 			dst := RunConfiguration{}
+
 			Expect(dst.ConvertFrom(&src)).NotTo(Succeed())
 		})
 
 		Specify("Copies all other fields", func() {
 			src := v1alpha3.RandomRunConfiguration()
-
 			dst := RunConfiguration{}
+
 			Expect(dst.ConvertFrom(src)).To(Succeed())
 			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
 			Expect(dst.Status.Status).To(Equal(src.Status.Status))
@@ -81,8 +76,8 @@ var _ = Context("RunConfiguration Conversion", func() {
 			src := RunConfiguration{
 				Spec: RunConfigurationSpec{RuntimeParameters: map[string]string{"a": "b", "c": "d"}},
 			}
-
 			dst := v1alpha3.RunConfiguration{}
+
 			Expect(src.ConvertTo(&dst)).To(Succeed())
 			Expect(src.ComputeVersion()).To(Equal(dst.ComputeVersion()))
 		})
