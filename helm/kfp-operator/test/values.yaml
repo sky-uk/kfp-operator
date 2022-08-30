@@ -5,7 +5,8 @@ manager:
   configuration:
     pipelineStorage: ${PIPELINE_STORAGE}
     defaultBeamArgs:
-      project: ${DATAFLOW_PROJECT}
+    - name: project
+      value: ${DATAFLOW_PROJECT}
     kfpEndpoint: ${KFP_ENDPOINT}
 
   monitoring:
@@ -16,5 +17,9 @@ manager:
         bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
         tlsConfig:
           insecureSkipVerify: true
+  multiversion:
+    enabled: true
+    webhookCertificates:
+      provider: cert-manager
 eventsourceServer:
   create: false

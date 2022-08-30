@@ -9,7 +9,7 @@ The operator compiles the pipeline into a deployable artifact while providing co
 It then submits the pipeline to Kubeflow and manages versions accordingly.
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha2
+apiVersion: pipelines.kubeflow.org/v1alpha3
 kind: Pipeline
 metadata:
     name: penguin-pipeline
@@ -17,17 +17,18 @@ spec:
     image: kfp-quickstart:v1
     tfxComponents: base_pipeline.create_components
     env:
-        TRAINING_RUNS: 100
+    - name: TRAINING_RUNS
+      value: 100
 ```
 
 ## Fields
 
-| Name | Description |
-| --- | --- |
-| `spec.image` | Container image containing TFX component definitions |
-| `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components |
-| `spec.env` | Dictionary of compile-time parameters. These will be provided to the `tfxComponents` function as environment variables |
-| `spec.beamArgs` | Dictionary of Beam arguments. These will be provided as `beam_pipeline_args` when compiling the pipeline |
+| Name | Description                                                                                              |
+| --- |----------------------------------------------------------------------------------------------------------|
+| `spec.image` | Container image containing TFX component definitions                                                     |
+| `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components                                 |
+| `spec.env` | List of named objects. These will be provided to the `tfxComponents` function as environment variables   |
+| `spec.beamArgs` | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline |
 
 ## Versioning
 

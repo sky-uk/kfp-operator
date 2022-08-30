@@ -31,8 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1alpha2 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	pipelinesv1alpha3 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	controllers "github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
 
@@ -49,8 +50,9 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(pipelinesv1.AddToScheme(scheme))
-	utilruntime.Must(configv1.AddToScheme(scheme))
+	utilruntime.Must(pipelinesv1alpha2.AddToScheme(scheme))
+	utilruntime.Must(pipelinesv1alpha3.AddToScheme(scheme))
+	utilruntime.Must(config.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 
 	utilruntime.Must(external.InitSchemes(scheme))
@@ -70,7 +72,7 @@ func main() {
 	flag.Parse()
 
 	var err error
-	ctrlConfig := configv1.KfpControllerConfig{}
+	ctrlConfig := config.KfpControllerConfig{}
 	options := ctrl.Options{Scheme: scheme}
 
 	if configFile != "" {
@@ -145,6 +147,22 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
 		os.Exit(1)
 	}
+
+	if ctrlConfig.Workflows.Multiversion {
+		if err = (&pipelinesv1alpha3.Pipeline{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
+			os.Exit(1)
+		}
+		if err = (&pipelinesv1alpha3.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
+			os.Exit(1)
+		}
+		if err = (&pipelinesv1alpha3.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
+			os.Exit(1)
+		}
+	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err = workflowRepository.SetupWithManager(mgr); err != nil {

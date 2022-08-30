@@ -8,8 +8,9 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	"github.com/sky-uk/kfp-operator/apis"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/walkerus/go-wiremock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -18,7 +19,7 @@ import (
 var _ = Context("Experiment Workflows", Serial, func() {
 	workflowFactory := ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: configv1.Configuration{
+			Config: config.Configuration{
 				DefaultExperiment:      "Default",
 				KfpEndpoint:            "http://wiremock:80",
 				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
@@ -26,8 +27,8 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		},
 	}
 
-	experimentKfpId := RandomString()
-	newExperimentKfpId := RandomString()
+	experimentKfpId := apis.RandomString()
+	newExperimentKfpId := apis.RandomString()
 
 	var NoExperimentExists = func() error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
@@ -83,13 +84,13 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		testCtx := NewExperimentTestContext(
 			&pipelinesv1.Experiment{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      RandomLowercaseString(),
+					Name:      apis.RandomLowercaseString(),
 					Namespace: "argo",
 				},
 				Spec: pipelinesv1.ExperimentSpec{
 					Description: "a description",
 				},
-				Status: pipelinesv1.Status{
+				Status: apis.Status{
 					KfpId: experimentKfpId,
 				},
 			},

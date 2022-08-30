@@ -7,8 +7,9 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	"github.com/sky-uk/kfp-operator/apis"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -25,18 +26,18 @@ func createWorkflowRepository(keepWorkflows bool) WorkflowRepositoryImpl {
 	return WorkflowRepositoryImpl{
 		Client: optInClient,
 		Scheme: scheme,
-		Config: configv1.Configuration{
-			Debug: pipelinesv1.DebugOptions{
+		Config: config.Configuration{
+			Debug: apis.DebugOptions{
 				KeepWorkflows: keepWorkflows,
 			},
 		},
 	}
 }
 
-func randomResource() Resource {
+func randomResource() apis.Resource {
 	resource := &pipelinesv1.Pipeline{}
-	resource.SetName(RandomString())
-	resource.SetUID(types.UID(RandomString()))
+	resource.SetName(apis.RandomString())
+	resource.SetUID(types.UID(apis.RandomString()))
 
 	return resource
 }
@@ -44,10 +45,10 @@ func randomResource() Resource {
 func randomWorkflow() *argo.Workflow {
 	workflow := &argo.Workflow{}
 	workflow.SetNamespace(namespace)
-	workflow.SetName(RandomLowercaseString())
+	workflow.SetName(apis.RandomLowercaseString())
 
 	randomLabels := map[string]string{
-		RandomString(): RandomString(),
+		apis.RandomString(): apis.RandomString(),
 	}
 	workflow.SetLabels(randomLabels)
 

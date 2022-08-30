@@ -7,7 +7,7 @@ The Experiment resource represents the lifecycle of Experiments on Kubeflow Pipe
 and can be configured as follows:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha2
+apiVersion: pipelines.kubeflow.org/v1alpha3
 kind: Experiment
 metadata:
     name: penguin-experiment

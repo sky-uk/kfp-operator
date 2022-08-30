@@ -8,8 +8,9 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	"github.com/sky-uk/kfp-operator/apis"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/walkerus/go-wiremock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -19,10 +20,10 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 
 	workflowFactory := PipelineWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: configv1.Configuration{
+			Config: config.Configuration{
 				PipelineStorage: "gs://some-bucket",
-				DefaultBeamArgs: map[string]string{
-					"project": "project",
+				DefaultBeamArgs: []apis.NamedValue{
+					{Name: "project", Value: "project"},
 				},
 				KfpEndpoint:            "http://wiremock:80",
 				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
@@ -30,7 +31,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 		},
 	}
 
-	var kfpId = RandomString()
+	var kfpId = apis.RandomString()
 
 	var SucceedUpload = func(pipeline *pipelinesv1.Pipeline) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
@@ -58,7 +59,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 			WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
 			WillReturn(
 				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "resource_references": [{"key": {"id": "%s", "type": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
-					RandomString(),
+					apis.RandomString(),
 					pipeline.Spec.ComputeVersion(),
 					pipeline.Status.KfpId,
 					pipeline.Name),
@@ -104,11 +105,11 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 		testCtx := NewPipelineTestContext(
 			&pipelinesv1.Pipeline{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      RandomLowercaseString(),
+					Name:      apis.RandomLowercaseString(),
 					Namespace: "argo",
 				},
 				Spec: pipelineSpec,
-				Status: pipelinesv1.Status{
+				Status: apis.Status{
 					KfpId: kfpId,
 				},
 			},

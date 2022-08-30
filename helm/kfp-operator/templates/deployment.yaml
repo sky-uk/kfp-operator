@@ -44,14 +44,24 @@ spec:
           resources:
             {{- .Values.manager.resources | toYaml | nindent 12 }}
           volumeMounts:
+          {{- if .Values.manager.multiversion.enabled }}
+            - name: cert
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
+           {{ end }}
             - mountPath: /controller_manager_config.yaml
               name: manager-config
               subPath: controller_manager_config.yaml
+          ports:
+        {{- if .Values.manager.multiversion.enabled }}
+           - name: webhook-server
+             containerPort: 9443
+             protocol: TCP
+        {{ end }}
         {{- if .Values.manager.monitoring.create }}
         {{ if not .Values.manager.monitoring.rbacSecured }}
-          ports:
-            - containerPort: 8080
-              name: http
+           - containerPort: 8080
+             name: http
         {{- else -}}
         - name: kube-rbac-proxy
           image: gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
@@ -66,6 +76,12 @@ spec:
         {{ end }}
         {{- end }}
       volumes:
+        {{- if .Values.manager.multiversion.enabled }}
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: {{ if eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager" }}webhook-server-cert{{ else }}{{ .Values.manager.multiversion.webhookCertificates.secretName }}{{ end }}
+        {{- end }}
         - configMap:
             name: kfp-operator-manager-config
           name: manager-config

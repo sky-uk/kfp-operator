@@ -5,8 +5,8 @@ package pipelines
 
 import (
 	"context"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/external"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -91,7 +91,7 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: configv1.Configuration{
+			Config: config.Configuration{
 				KfpEndpoint: "http://www.example.com",
 			},
 		},
@@ -112,7 +112,7 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 	// TODO: mock workflowFactory
 	var workflowFactory = RunConfigurationWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: configv1.Configuration{
+			Config: config.Configuration{
 				DefaultExperiment: "Default",
 				KfpEndpoint:       "http://www.example.com",
 			},
@@ -134,7 +134,7 @@ func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository Work
 	// TODO: mock workflowFactory
 	var workflowFactory = ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: configv1.Configuration{
+			Config: config.Configuration{
 				KfpEndpoint: "http://www.example.com",
 			},
 		},

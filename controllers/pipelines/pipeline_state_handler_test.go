@@ -9,8 +9,9 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	"github.com/sky-uk/kfp-operator/apis"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -125,7 +126,7 @@ var _ = Describe("Pipeline State handler", func() {
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: configv1.Configuration{
+			Config: config.Configuration{
 				KfpEndpoint: "http://www.example.com",
 			},
 		},
@@ -133,10 +134,10 @@ var _ = Describe("Pipeline State handler", func() {
 
 	kfpId := "12345"
 	anotherKfpId := "67890"
-	specv1 := RandomPipelineSpec()
+	specv1 := pipelinesv1.RandomPipelineSpec()
 	v0 := pipelinesv1.PipelineSpec{}.ComputeVersion()
 	v1 := specv1.ComputeVersion()
-	UnknownState := pipelinesv1.SynchronizationState(RandomString())
+	UnknownState := apis.SynchronizationState(apis.RandomString())
 
 	var Check = func(description string, transition PipelineStateTransitionTestCase) TableEntry {
 		return Entry(
@@ -145,10 +146,10 @@ var _ = Describe("Pipeline State handler", func() {
 		)
 	}
 
-	var From = func(status pipelinesv1.SynchronizationState, id string, version string) PipelineStateTransitionTestCase {
-		pipeline := RandomPipeline()
+	var From = func(status apis.SynchronizationState, id string, version string) PipelineStateTransitionTestCase {
+		pipeline := pipelinesv1.RandomPipeline()
 		pipeline.Spec = specv1
-		pipeline.Status = pipelinesv1.Status{
+		pipeline.Status = apis.Status{
 			SynchronizationState: status,
 			Version:              version,
 			KfpId:                id,
@@ -173,7 +174,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(UnknownState, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(apis.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -184,13 +185,13 @@ var _ = Describe("Pipeline State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
-					WithSynchronizationState(pipelinesv1.Failed)),
+					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with version",
 			From(UnknownState, "", v1).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(apis.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -198,7 +199,7 @@ var _ = Describe("Pipeline State handler", func() {
 			From(UnknownState, kfpId, "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Updating).
+					WithSynchronizationState(apis.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
@@ -211,257 +212,257 @@ var _ = Describe("Pipeline State handler", func() {
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
-					WithSynchronizationState(pipelinesv1.Failed)),
+					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with id and version",
 			From(UnknownState, kfpId, v1).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Updating).
+					WithSynchronizationState(apis.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Creating succeeds with kfpId and version",
-			From(pipelinesv1.Creating, "", v1).
+			From(apis.Creating, "", v1).
 				AcquirePipeline().
 				WithSucceededCreateWorkflow(kfpId, v1).
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Succeeded).
+					WithSynchronizationState(apis.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating succeeds with different KfpId and version",
-			From(pipelinesv1.Creating, anotherKfpId, v1).
+			From(apis.Creating, anotherKfpId, v1).
 				AcquirePipeline().
 				WithSucceededCreateWorkflow(kfpId, v1).
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Succeeded).
+					WithSynchronizationState(apis.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating succeeds with KfpId but no version",
-			From(pipelinesv1.Creating, "", v1).
+			From(apis.Creating, "", v1).
 				AcquirePipeline().
 				WithSucceededCreateWorkflow(kfpId, "").
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(apis.Failed).
 					WithKfpId(kfpId).WithVersion(v1).
 					WithMessage("pipeline creation succeeded but version upload failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating fails",
-			From(pipelinesv1.Creating, "", v1).
+			From(apis.Creating, "", v1).
 				AcquirePipeline().
 				WithFailedCreateWorkflow().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(apis.Failed).
 					WithVersion(v1).
 					WithMessage("pipeline creation failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
-			From(pipelinesv1.Creating, "", "").
+			From(apis.Creating, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(apis.Failed).
 					WithMessage("creating pipeline with empty version")),
 		),
 		Check("Succeeded no update",
-			From(pipelinesv1.Succeeded, kfpId, v1).
+			From(apis.Succeeded, kfpId, v1).
 				AcquirePipeline(),
 		),
 		Check("Succeeded with update",
-			From(pipelinesv1.Succeeded, kfpId, v0).
+			From(apis.Succeeded, kfpId, v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Updating).
+					WithSynchronizationState(apis.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Succeeded with update and workflow creation fails",
-			From(pipelinesv1.Succeeded, kfpId, v0).
+			From(apis.Succeeded, kfpId, v0).
 				AcquirePipeline().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
-					WithSynchronizationState(pipelinesv1.Failed)),
+					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no KfpId",
-			From(pipelinesv1.Succeeded, "", v0).
+			From(apis.Succeeded, "", v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(apis.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Succeeded with update but no kfpId and workflow creation fails",
-			From(pipelinesv1.Succeeded, "", v0).
+			From(apis.Succeeded, "", v0).
 				AcquirePipeline().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
-					WithSynchronizationState(pipelinesv1.Failed)),
+					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no KfpId and no version",
-			From(pipelinesv1.Succeeded, "", "").
+			From(apis.Succeeded, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(apis.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed no update",
-			From(pipelinesv1.Failed, kfpId, v1).
+			From(apis.Failed, kfpId, v1).
 				AcquirePipeline(),
 		),
 		Check("Failed with update",
-			From(pipelinesv1.Failed, kfpId, v0).
+			From(apis.Failed, kfpId, v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Updating).
+					WithSynchronizationState(apis.Updating).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Failed with update and workflow creation fails",
-			From(pipelinesv1.Failed, kfpId, v0).
+			From(apis.Failed, kfpId, v0).
 				AcquirePipeline().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
-					WithSynchronizationState(pipelinesv1.Failed)),
+					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no KfpId",
-			From(pipelinesv1.Failed, "", v0).
+			From(apis.Failed, "", v0).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(apis.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed with update but no KfpId and workflow creation fails",
-			From(pipelinesv1.Failed, "", v0).
+			From(apis.Failed, "", v0).
 				AcquirePipeline().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
-					WithSynchronizationState(pipelinesv1.Failed)),
+					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no KfpId and no version",
-			From(pipelinesv1.Failed, "", "").
+			From(apis.Failed, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Creating).
+					WithSynchronizationState(apis.Creating).
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds",
-			From(pipelinesv1.Updating, kfpId, v1).
+			From(apis.Updating, kfpId, v1).
 				AcquirePipeline().
 				WithUpdateWorkflow(argo.WorkflowSucceeded).
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Succeeded).
+					WithSynchronizationState(apis.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
-			From(pipelinesv1.Updating, kfpId, v1).
+			From(apis.Updating, kfpId, v1).
 				AcquirePipeline().
 				WithUpdateWorkflow(argo.WorkflowFailed).
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(apis.Failed).
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage("pipeline update failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating without version",
-			From(pipelinesv1.Updating, kfpId, "").
+			From(apis.Updating, kfpId, "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(apis.Failed).
 					WithKfpId(kfpId).
 					WithMessage("updating pipeline with empty version or kfpId")),
 		),
 		Check("Updating without KfpId",
-			From(pipelinesv1.Updating, "", v1).
+			From(apis.Updating, "", v1).
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(apis.Failed).
 					WithVersion(v1).
 					WithMessage("updating pipeline with empty version or kfpId")),
 		),
 		Check("Updating without KfpId or version",
-			From(pipelinesv1.Updating, "", "").
+			From(apis.Updating, "", "").
 				AcquirePipeline().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Failed).
+					WithSynchronizationState(apis.Failed).
 					WithMessage("updating pipeline with empty version or kfpId")),
 		),
 		Check("Deleting from Succeeded",
-			From(pipelinesv1.Succeeded, kfpId, v1).
+			From(apis.Succeeded, kfpId, v1).
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Deleting).
+					WithSynchronizationState(apis.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Succeeded without kfpId",
-			From(pipelinesv1.Succeeded, "", v1).
+			From(apis.Succeeded, "", v1).
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Deleted).
+					WithSynchronizationState(apis.Deleted).
 					WithVersion(v1)),
 		),
 		Check("Deleting from Failed",
-			From(pipelinesv1.Failed, kfpId, v1).
+			From(apis.Failed, kfpId, v1).
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Deleting).
+					WithSynchronizationState(apis.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed without kfpId",
-			From(pipelinesv1.Failed, "", v1).
+			From(apis.Failed, "", v1).
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Deleted).
+					WithSynchronizationState(apis.Deleted).
 					WithVersion(v1)),
 		),
 		Check("Deletion succeeds",
-			From(pipelinesv1.Deleting, kfpId, v1).
+			From(apis.Deleting, kfpId, v1).
 				AcquirePipeline().
 				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowSucceeded).
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Deleted).
+					WithSynchronizationState(apis.Deleted).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
 		Check("Deletion fails",
-			From(pipelinesv1.Deleting, kfpId, v1).
+			From(apis.Deleting, kfpId, v1).
 				AcquirePipeline().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(pipelinesv1.Deleting).
+					WithSynchronizationState(apis.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1).
 					WithMessage("pipeline deletion failed")).
@@ -469,7 +470,7 @@ var _ = Describe("Pipeline State handler", func() {
 				DeletesAllWorkflows(),
 		),
 		Check("Stay in deleted",
-			From(pipelinesv1.Deleted, kfpId, v1).
+			From(apis.Deleted, kfpId, v1).
 				ReleasePipeline(),
 		),
 	)

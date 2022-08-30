@@ -9,6 +9,7 @@ from tfx.orchestration import pipeline
 from tfx.components import Pusher, Trainer
 from tfx.proto import pusher_pb2
 
+
 def expand_components_with_pusher(tfx_components, serving_model_directory):
     if not any(isinstance(component, Pusher) for component in tfx_components):
 
@@ -55,6 +56,7 @@ def expand_components_with_pusher(tfx_components, serving_model_directory):
     else:
         return tfx_components
 
+
 def load_fn(tfx_components, env={}):
     for key, value in env.items():
         os.environ[key] = value
@@ -65,6 +67,7 @@ def load_fn(tfx_components, env={}):
 
     return fn
 
+
 @click.command()
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
 @click.option('--output_file', help='Output file path', required=True)
@@ -73,7 +76,7 @@ def compile(pipeline_config, output_file):
     config = yaml.safe_load(pipeline_config)
 
     click.secho(f'Compiling with config: {config}', fg='green')
-    
+
     components = load_fn(config['tfxComponents'], config.get('env', {}))()
     expanded_components = expand_components_with_pusher(components, config['servingLocation'])
 
@@ -98,9 +101,15 @@ def compile(pipeline_config, output_file):
 
     click.secho(f'{output_file} written', fg='green')
 
+
 def dict_to_cli_args(beam_args):
-    return [f'--{k}={v}' for k,v in beam_args.items()]
-        
+    beam_cli_args = []
+    for k, v in beam_args.items():
+        for vv in v:
+            beam_cli_args.append(f'--{k}={vv}')
+
+    return beam_cli_args
+
 
 def main():
     compile()

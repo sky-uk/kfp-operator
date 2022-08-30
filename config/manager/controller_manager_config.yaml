@@ -1,4 +1,4 @@
-apiVersion: config.kubeflow.org/v1alpha2
+apiVersion: config.kubeflow.org/v1alpha3
 kind: KfpControllerConfig
 controller:
   health:
@@ -12,7 +12,9 @@ controller:
     resourceName: kfp-operator-lock
 spec:
   workflowTemplatePrefix: kfp-operator-
+  multiversion: true
   defaultBeamArgs:
-    project: ${DATAFLOW_PROJECT}
+  - name: project
+    value: ${DATAFLOW_PROJECT}
   kfpEndpoint: ${KFP_ENDPOINT}
   pipelineStorage: ${PIPELINE_STORAGE}

@@ -1,0 +1,23 @@
+{{- if and .Values.manager.multiversion.enabled (eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager") }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-serving-cert
+  namespace: {{ .Values.namespace.name }}
+spec:
+  dnsNames:
+  - {{ include "kfp-operator.fullname" . }}-webhook-service.{{ .Values.namespace.name }}.svc
+  - {{ include "kfp-operator.fullname" . }}-webhook-service.{{ .Values.namespace.name }}.svc.cluster.local
+  issuerRef:
+    name: {{ include "kfp-operator.fullname" . }}-selfsigned-issuer
+    kind: Issuer
+  secretName: webhook-server-cert
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-selfsigned-issuer
+  namespace: {{ .Values.namespace.name }}
+spec:
+  selfSigned: {}
+{{- end }}

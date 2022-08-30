@@ -1,4 +1,4 @@
-package v1alpha2
+package apis
 
 import (
 	"context"
@@ -17,6 +17,15 @@ const (
 	Failed    SynchronizationState = "Failed"
 )
 
+const Group = "pipelines.kubeflow.org"
+
+//+kubebuilder:object:generate=true
+type NamedValue struct {
+	Name  string `json:"name,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
+//+kubebuilder:object:generate=true
 type Status struct {
 	KfpId                string               `json:"kfpId,omitempty"`
 	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`
@@ -27,7 +36,7 @@ type Status struct {
 var Annotations = struct {
 	Debug string
 }{
-	Debug: GroupVersion.Group + "/debug",
+	Debug: Group + "/debug",
 }
 
 type DebugOptions struct {

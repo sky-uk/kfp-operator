@@ -8,8 +8,9 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	"github.com/sky-uk/kfp-operator/apis"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/walkerus/go-wiremock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -18,7 +19,7 @@ import (
 var _ = Context("RunConfiguration Workflows", Serial, func() {
 	workflowFactory := RunConfigurationWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: configv1.Configuration{
+			Config: config.Configuration{
 				KfpEndpoint:            "http://wiremock:80",
 				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 				DefaultExperiment:      "Default",
@@ -26,12 +27,12 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		},
 	}
 
-	pipelineKfpId := RandomString()
-	versionKfpId := RandomString()
-	versionName := RandomString()
-	jobKfpId := RandomString()
-	newJobKfpId := RandomString()
-	experimentKfpId := RandomString()
+	pipelineKfpId := apis.RandomString()
+	versionKfpId := apis.RandomString()
+	versionName := apis.RandomString()
+	jobKfpId := apis.RandomString()
+	newJobKfpId := apis.RandomString()
+	experimentKfpId := apis.RandomString()
 
 	var StubGetExperiment = func(experimentName string, experimentKfpId string) error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
@@ -123,7 +124,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		testCtx := NewRunConfigurationTestContext(
 			&pipelinesv1.RunConfiguration{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      RandomLowercaseString(),
+					Name:      apis.RandomLowercaseString(),
 					Namespace: "argo",
 				},
 				Spec: pipelinesv1.RunConfigurationSpec{
@@ -131,7 +132,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					Schedule: "* * * * * *",
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
-					Status: pipelinesv1.Status{
+					Status: apis.Status{
 						KfpId: jobKfpId,
 					},
 					ObservedPipelineVersion: versionName,

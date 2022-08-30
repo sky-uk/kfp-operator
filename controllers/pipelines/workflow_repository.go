@@ -3,8 +3,9 @@ package pipelines
 import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	configv1 "github.com/sky-uk/kfp-operator/apis/config/v1alpha2"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	"github.com/sky-uk/kfp-operator/apis"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	"github.com/sky-uk/kfp-operator/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -22,23 +23,23 @@ var WorkflowRepositoryConstants = struct {
 }
 
 type WorkflowRepository interface {
-	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource Resource) error
+	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource apis.Resource) error
 	GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow
 	DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error
 }
 
 type WorkflowRepositoryImpl struct {
 	Client controllers.OptInClient
-	Config configv1.Configuration
+	Config config.Configuration
 	Scheme *runtime.Scheme
 }
 
 func (w *WorkflowRepositoryImpl) debugAnnotations(ctx context.Context, annotations map[string]string) map[string]string {
-	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, annotations).WithDefaults(w.Config.Debug)
-	return pipelinesv1.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
+	workflowDebugOptions := apis.DebugOptionsFromAnnotations(ctx, annotations).WithDefaults(w.Config.Debug)
+	return apis.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
 }
 
-func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource Resource) error {
+func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource apis.Resource) error {
 	if err := ctrl.SetControllerReference(resource, workflow, w.Scheme); err != nil {
 		return err
 	}
@@ -103,7 +104,7 @@ func (w WorkflowRepositoryImpl) DeleteWorkflow(ctx context.Context, workflow *ar
 		return err
 	}
 
-	workflowDebugOptions := pipelinesv1.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
+	workflowDebugOptions := apis.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
 	if !workflowDebugOptions.KeepWorkflows {
 		logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
 		if err := w.Client.Delete(ctx, workflow); err != nil {

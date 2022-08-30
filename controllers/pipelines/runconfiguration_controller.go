@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"github.com/sky-uk/kfp-operator/apis"
 	"net/http"
 	"time"
 
@@ -18,7 +19,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 )
 
 const (
@@ -116,9 +117,9 @@ func dependentPipelineVersionIfStable(dependentPipeline *pipelinesv1.Pipeline) *
 		return &empty
 	} else {
 		switch dependentPipeline.Status.SynchronizationState {
-		case pipelinesv1.Succeeded:
+		case apis.Succeeded:
 			return &dependentPipeline.Status.Version
-		case pipelinesv1.Deleted:
+		case apis.Deleted:
 			return &empty
 		default:
 			return nil

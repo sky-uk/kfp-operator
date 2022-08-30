@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/docker/distribution/reference"
-	"github.com/sky-uk/kfp-operator/controllers/objecthasher"
+	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"strings"
@@ -18,7 +19,7 @@ type PipelineSpec struct {
 }
 
 func (ps PipelineSpec) ComputeHash() []byte {
-	oh := objecthasher.New()
+	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(ps.Image)
 	oh.WriteStringField(ps.TfxComponents)
 	oh.WriteMapField(ps.Env)
@@ -50,14 +51,14 @@ type Pipeline struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   PipelineSpec `json:"spec,omitempty"`
-	Status Status       `json:"status,omitempty"`
+	Status apis.Status  `json:"status,omitempty"`
 }
 
-func (p *Pipeline) GetStatus() Status {
+func (p *Pipeline) GetStatus() apis.Status {
 	return p.Status
 }
 
-func (p *Pipeline) SetStatus(status Status) {
+func (p *Pipeline) SetStatus(status apis.Status) {
 	p.Status = status
 }
 

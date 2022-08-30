@@ -7,7 +7,8 @@ import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
+	"github.com/sky-uk/kfp-operator/apis"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -82,7 +83,7 @@ func (testCtx RunConfigurationTestContext) WorkflowSucceeded(operation string) {
 			[]argo.Parameter{
 				{
 					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
-					Value: argo.AnyStringPtr(RandomString()),
+					Value: argo.AnyStringPtr(apis.RandomString()),
 				},
 			},
 		)
@@ -105,7 +106,7 @@ func (testCtx RunConfigurationTestContext) RunConfigurationCreatedWithStatus(sta
 	Expect(testCtx.K8sClient.Create(testCtx.ctx, testCtx.RunConfiguration)).To(Succeed())
 
 	Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-		g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(pipelinesv1.Creating))
+		g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Creating))
 		g.Expect(testCtx.UpdateRunConfigurationStatus(func(runConfiguration *pipelinesv1.RunConfiguration) {
 			runConfiguration.Status = status
 		})).To(Succeed())
@@ -114,10 +115,10 @@ func (testCtx RunConfigurationTestContext) RunConfigurationCreatedWithStatus(sta
 
 func (testCtx RunConfigurationTestContext) StableRunConfigurationCreated() {
 	testCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
-		Status: pipelinesv1.Status{
+		Status: apis.Status{
 			Version:              testCtx.RunConfiguration.ComputeVersion(),
-			KfpId:                RandomString(),
-			SynchronizationState: pipelinesv1.Succeeded,
+			KfpId:                apis.RandomString(),
+			SynchronizationState: apis.Succeeded,
 		},
 		ObservedPipelineVersion: testCtx.RunConfiguration.Status.ObservedPipelineVersion,
 	})

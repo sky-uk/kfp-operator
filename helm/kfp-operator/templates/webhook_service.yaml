@@ -1,0 +1,14 @@
+{{- if .Values.manager.multiversion.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-webhook-service
+  namespace: {{ .Values.namespace.name }}
+spec:
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 9443
+  selector:
+    control-plane: controller-manager
+{{- end }}
