@@ -17,7 +17,7 @@ spec:
     schedule: '0 0 * * * *'
     runtimeParameters:
     - name: TRAINING_RUNS
-      value: 100
+      value: '100'
 ```
 
 ## Fields
