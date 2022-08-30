@@ -11,7 +11,7 @@
 &lt;tbody>
 &lt;tr>
 &lt;td>&lt;code>defaultBeamArgs&lt;/code>&lt;/td>
-&lt;td>Default Beam arguments on which the pipeline-defined ones will be added to&lt;/td>
+&lt;td>Default Beam arguments to which the pipeline-defined ones will be added&lt;/td>
 &lt;td>&lt;!-- raw HTML omitted -->- name: project&lt;!-- raw HTML omitted --> value: my-gcp-project&lt;!-- raw HTML omitted -->&lt;/td>
 &lt;/tr>
 &lt;tr>
