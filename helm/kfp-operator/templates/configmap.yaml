@@ -15,7 +15,7 @@ data:
       {{- if .Values.manager.multiversion.enabled }}
       webhook:
         port: 9443
-      {{ end }}
+      {{- end }}
       leaderElection:
         leaderElect: true
         resourceName: kfp-operator-lock

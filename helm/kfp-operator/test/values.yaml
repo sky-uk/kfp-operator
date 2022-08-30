@@ -5,7 +5,8 @@ manager:
   configuration:
     pipelineStorage: ${PIPELINE_STORAGE}
     defaultBeamArgs:
-      project: ${DATAFLOW_PROJECT}
+    - name: project
+      value: ${DATAFLOW_PROJECT}
     kfpEndpoint: ${KFP_ENDPOINT}
 
   monitoring:
