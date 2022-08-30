@@ -6,7 +6,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
     {{- if and .Values.manager.multiversion.enabled (eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager") }}
-    cert-manager.io/inject-ca-from: kfp-operator-system/kfp-operator-serving-cert
+    cert-manager.io/inject-ca-from: {{ .Values.namespace.name }}/{{ include "kfp-operator.fullname" . }}-serving-cert
     {{- end }}
   name: experiments.pipelines.kubeflow.org
 spec:
@@ -25,8 +25,8 @@ spec:
     webhook:
       clientConfig:
         service:
-          name: kfp-operator-webhook-service
-          namespace: kfp-operator-system
+          name: {{ include "kfp-operator.fullname" . }}-webhook-service
+          namespace: {{ .Values.namespace.name }}
           path: /convert
         {{- if and .Values.manager.multiversion.enabled (eq .Values.manager.multiversion.webhookCertificates.provider "custom") }}
         caBundle: {{ .Values.manager.multiversion.webhookCertificates.caBundle }}
