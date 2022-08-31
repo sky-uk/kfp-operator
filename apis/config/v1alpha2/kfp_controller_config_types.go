@@ -1,4 +1,4 @@
-package v1alpha3
+package v1alpha2
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
@@ -23,7 +23,6 @@ type Configuration struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:storageversion
 
 type KfpControllerConfig struct {
 	metav1.TypeMeta   `json:",inline"`
