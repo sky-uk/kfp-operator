@@ -33,17 +33,6 @@ var _ = Context("Pipeline Conversion", func() {
 				{Name: "c", Value: "d"},
 			}))
 		})
-
-		Specify("Copies all other fields", func() {
-			src := RandomPipeline()
-			dst := v1alpha3.Pipeline{}
-
-			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(dst.Spec.Image).To(Equal(src.Spec.Image))
-			Expect(dst.Spec.TfxComponents).To(Equal(src.Spec.TfxComponents))
-			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
-			Expect(dst.Status).To(Equal(src.Status))
-		})
 	})
 
 	var _ = Describe("ConvertFrom", func() {
@@ -89,15 +78,18 @@ var _ = Context("Pipeline Conversion", func() {
 			Expect(dst.ConvertFrom(&src)).NotTo(Succeed())
 		})
 
-		Specify("Copies all other fields", func() {
-			src := v1alpha3.RandomPipeline()
+	})
+
+	var _ = Describe("Roundtrip", func() {
+		Specify("converts to and from the same object", func() {
+			src := RandomPipeline()
+			intermediate := v1alpha3.Pipeline{}
 			dst := Pipeline{}
 
-			Expect(dst.ConvertFrom(src)).To(Succeed())
-			Expect(dst.Spec.Image).To(Equal(src.Spec.Image))
-			Expect(dst.Spec.TfxComponents).To(Equal(src.Spec.TfxComponents))
-			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
-			Expect(dst.Status).To(Equal(src.Status))
+			Expect(src.ConvertTo(&intermediate)).To(Succeed())
+			Expect(dst.ConvertFrom(&intermediate)).To(Succeed())
+
+			Expect(&dst).To(Equal(src))
 		})
 	})
 

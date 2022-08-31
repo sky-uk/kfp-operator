@@ -10,29 +10,16 @@ import (
 )
 
 var _ = Context("Experiment Conversion", func() {
-	var _ = Describe("ConvertTo", func() {
-
-		Specify("Copies all fields", func() {
+	var _ = Describe("Roundtrip", func() {
+		Specify("converts to and from the same object", func() {
 			src := RandomExperiment()
-			dst := v1alpha3.Experiment{}
-
-			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
-			Expect(dst.Spec.Description).To(Equal(src.Spec.Description))
-			Expect(dst.Status).To(Equal(src.Status))
-		})
-	})
-
-	var _ = Describe("ConvertFrom", func() {
-
-		Specify("Copies all fields", func() {
-			src := v1alpha3.RandomExperiment()
+			intermediate := v1alpha3.Experiment{}
 			dst := Experiment{}
 
-			Expect(dst.ConvertFrom(src)).To(Succeed())
-			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
-			Expect(dst.Spec.Description).To(Equal(src.Spec.Description))
-			Expect(dst.Status).To(Equal(src.Status))
+			Expect(src.ConvertTo(&intermediate)).To(Succeed())
+			Expect(dst.ConvertFrom(&intermediate)).To(Succeed())
+
+			Expect(&dst).To(Equal(src))
 		})
 	})
 
