@@ -31,7 +31,7 @@
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>pipelineStorage&lt;/code>&lt;/td>
-&lt;td>The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX&lt;/a> to store pipeline artifacts and outputs&lt;/td>
+&lt;td>The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
 &lt;td>&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>

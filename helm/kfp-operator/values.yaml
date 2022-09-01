@@ -5,7 +5,7 @@
 nameOverride: ""
 fullnameOverride: ""
 
-containerRegistry: ""
+containerRegistry: "ghcr.io/kfp-operator"
 
 namespace:
   create: true
@@ -32,7 +32,7 @@ manager:
     containerDefaults: {}
     metadataDefaults: {}
   monitoring:
-    create: true
+    create: false
     rbacSecured: false
     serviceMonitor:
       create: false
@@ -44,7 +44,7 @@ logging:
   verbosity: # info
 
 eventsourceServer:
-  create: true
+  create: false
   metadata: {}
   port: 8080
   mlmdUrl:
