@@ -10,7 +10,7 @@ This guide assumes you are familiar with [Helm](https://helm.sh/).
 ## Prerequisites
 
 - KFP installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
-- Argo service account has been granted permissions to reference `ClusterWorkflowTemplate` resources ([Example](https://github.com/argoproj/argo-workflows/blob/master/manifests/quick-start/base/cluster-workflow-template-rbac.yaml)).
+- Argo service account has been granted permissions to reference `ClusterWorkflowTemplate` resources ([example](https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart/resources/argo-rbac.yaml)).
 - GCS bucket or alternative storage location to store pipeline artifacts. Referenced as `{STORAGE_LOCATION}` below.
 - (Optional) [Argo-Events](https://argoproj.github.io/argo-events/installation/) for eventing support.
 
@@ -19,19 +19,7 @@ This guide assumes you are familiar with [Helm](https://helm.sh/).
 Create basic `values.yaml` with the following content:
 
 ```yaml
-fullnameOverride: kfp-operator
-manager:
-  argo:
-    serviceAccount: pipeline-runner
-  configuration:
-    defaultExperiment: Default
-    kfpEndpoint: http://ml-pipeline.kubeflow:8888
-    pipelineStorage: {STORAGE_LOCATION}
-# Uncomment below for eventing-support
-#eventsourceServer:
-#  create: true
-#  mlmdUrl: metadata-grpc-service.kubeflow:8080
-#  kfpUrl: ml-pipeline.kubeflow:8887
+{{% readfile file="includes/quickstart/resources/values.yaml" %}}
 ```
 
 Install the latest version of the operator

@@ -140,7 +140,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>
 &lt;ul>
 &lt;li>KFP installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>. Default endpoints are used below.&lt;/li>
-&lt;li>Argo service account has been granted permissions to reference &lt;code>ClusterWorkflowTemplate&lt;/code> resources (&lt;a href="https://github.com/argoproj/argo-workflows/blob/master/manifests/quick-start/base/cluster-workflow-template-rbac.yaml">Example&lt;/a>).&lt;/li>
+&lt;li>Argo service account has been granted permissions to reference &lt;code>ClusterWorkflowTemplate&lt;/code> resources (&lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart/resources/argo-rbac.yaml">example&lt;/a>).&lt;/li>
 &lt;li>GCS bucket or alternative storage location to store pipeline artifacts. Referenced as &lt;code>{STORAGE_LOCATION}&lt;/code> below.&lt;/li>
 &lt;li>(Optional) &lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> for eventing support.&lt;/li>
 &lt;/ul>
