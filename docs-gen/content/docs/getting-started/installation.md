@@ -7,14 +7,25 @@ We recommend the installation using Helm as it allows a declarative approach to 
 
 This guide assumes you are familiar with [Helm](https://helm.sh/).
 
+## Prerequisites
+
+- KFP installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
+- Argo service account has been granted permissions to reference `ClusterWorkflowTemplate` resources ([example](https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart/resources/argo-rbac.yaml)).
+- GCS bucket or alternative storage location to store pipeline artifacts. Referenced as `{STORAGE_LOCATION}` below.
+- (Optional) [Argo-Events](https://argoproj.github.io/argo-events/installation/) for eventing support.
+
 ## Build and Install
 
-At the moment, you will have to build and publish the container images to run the operator manually.
-We are looking to publish images to a public repository in the near future.
-Please follow the [Development Guide](https://github.com/sky-uk/kfp-operator/blob/master/DEVELOPMENT.md#building-and-publishing) to publish these images.
+Create basic `values.yaml` with the following content:
 
-```bash
-helm install -f values.yaml kfp-operator <YOUR_CHART_REPOSITORY>/kfp-operator
+```yaml
+{{% readfile file="includes/quickstart/resources/values.yaml" %}}
+```
+
+Install the latest version of the operator
+
+```sh
+helm install oci://ghcr.io/kfp-operator/kfp-operator -f values.yaml
 ```
 
 ## Configuration Values
