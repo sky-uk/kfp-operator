@@ -1,0 +1,13 @@
+fullnameOverride: kfp-operator
+manager:
+  argo:
+    serviceAccount: pipeline-runner
+  configuration:
+    defaultExperiment: Default
+    kfpEndpoint: http://ml-pipeline.kubeflow:8888
+    pipelineStorage: {STORAGE_LOCATION}
+# Uncomment below for eventing-support
+#eventsourceServer:
+#  create: true
+#  mlmdUrl: metadata-grpc-service.kubeflow:8080
+#  kfpUrl: ml-pipeline.kubeflow:8887

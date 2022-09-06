@@ -10,6 +10,9 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.RuntimeParameters = mapToNamedValues(src.Spec.RuntimeParameters)
+	dst.Spec.Pipeline = v1alpha3.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
+	dst.Spec.Schedule = src.Spec.Schedule
+	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Status = v1alpha3.RunConfigurationStatus(src.Status)
 
 	return nil
@@ -25,6 +28,9 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	if err != nil {
 		return err
 	}
+	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
+	dst.Spec.Schedule = src.Spec.Schedule
+	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Status = RunConfigurationStatus(src.Status)
 
 	return nil

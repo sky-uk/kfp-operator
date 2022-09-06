@@ -212,6 +212,10 @@ docker-push-argo:
 	$(MAKE) -C argo/kfp-sdk docker-push
 	$(MAKE) -C argo/events docker-push
 
+##@ Website
+website:
+	$(MAKE) -C docs-gen
+
 package-all: docker-build docker-build-argo helm-package
 	$(MAKE) -C docs-gen
 

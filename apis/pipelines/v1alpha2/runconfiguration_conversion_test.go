@@ -23,16 +23,6 @@ var _ = Context("RunConfiguration Conversion", func() {
 				{Name: "c", Value: "d"},
 			}))
 		})
-
-		Specify("Copies all other fields", func() {
-			src := RandomRunConfiguration()
-			dst := v1alpha3.RunConfiguration{}
-
-			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
-			Expect(dst.Status.Status).To(Equal(src.Status.Status))
-			Expect(dst.Status.ObservedPipelineVersion).To(Equal(src.Status.ObservedPipelineVersion))
-		})
 	})
 
 	var _ = Describe("ConvertFrom", func() {
@@ -59,15 +49,18 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 			Expect(dst.ConvertFrom(&src)).NotTo(Succeed())
 		})
+	})
 
-		Specify("Copies all other fields", func() {
-			src := v1alpha3.RandomRunConfiguration()
+	var _ = Describe("Roundtrip", func() {
+		Specify("converts to and from the same object", func() {
+			src := RandomRunConfiguration()
+			intermediate := v1alpha3.RunConfiguration{}
 			dst := RunConfiguration{}
 
-			Expect(dst.ConvertFrom(src)).To(Succeed())
-			Expect(dst.ObjectMeta).To(Equal(src.ObjectMeta))
-			Expect(dst.Status.Status).To(Equal(src.Status.Status))
-			Expect(dst.Status.ObservedPipelineVersion).To(Equal(src.Status.ObservedPipelineVersion))
+			Expect(src.ConvertTo(&intermediate)).To(Succeed())
+			Expect(dst.ConvertFrom(&intermediate)).To(Succeed())
+
+			Expect(&dst).To(Equal(src))
 		})
 	})
 
