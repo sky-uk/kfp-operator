@@ -1,27 +1,27 @@
 package v1alpha2
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	"sort"
 )
 
-func namedValuesToMap(namedValues []apis.NamedValue) (map[string]string, error) {
+func namedValuesToMap(namedValues []apis.NamedValue) (converted map[string]string, unconverted []apis.NamedValue) {
 	if len(namedValues) == 0 {
 		return nil, nil
 	}
 
-	values := make(map[string]string, len(namedValues))
+	converted = make(map[string]string, len(namedValues))
 
 	for _, nv := range namedValues {
-		if _, exists := values[nv.Name]; exists {
-			return nil, fmt.Errorf("duplicate entry: %s", nv.Name)
+		if _, exists := converted[nv.Name]; exists {
+			unconverted = append(unconverted, nv)
+		} else {
+			converted[nv.Name] = nv.Value
 		}
-
-		values[nv.Name] = nv.Value
 	}
 
-	return values, nil
+	return
 }
 
 func mapToNamedValues(values map[string]string) []apis.NamedValue {
@@ -42,4 +42,41 @@ func mapToNamedValues(values map[string]string) []apis.NamedValue {
 	})
 
 	return namedValues
+}
+
+//+kubebuilder:object:generate=false
+type ConversionRemainder interface {
+	empty() bool
+}
+
+func setConversionAnnotations(resource apis.Resource, remainder ConversionRemainder) error {
+	if !remainder.empty() {
+		remainderJson, err := json.Marshal(remainder)
+
+		if err != nil {
+			return err
+		}
+
+		annotations := resource.GetAnnotations()
+		if annotations == nil {
+			annotations = map[string]string{}
+		}
+		annotations[ConversionAnnotations.V1alpha3ConversionRemainder] = string(remainderJson)
+
+		resource.SetAnnotations(annotations)
+	}
+
+	return nil
+}
+
+func retrieveAndUnsetConversionAnnotations(resource apis.Resource, remainder ConversionRemainder) error {
+	if remainderJson, hasRemainder := resource.GetAnnotations()[ConversionAnnotations.V1alpha3ConversionRemainder]; hasRemainder {
+		err := json.Unmarshal([]byte(remainderJson), remainder)
+		if err != nil {
+			return err
+		}
+
+		delete(resource.GetAnnotations(), ConversionAnnotations.V1alpha3ConversionRemainder)
+	}
+	return nil
 }

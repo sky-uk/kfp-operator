@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Context("RunConfiguration Conversion", func() {
@@ -39,7 +40,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 			Expect(dst.Spec.RuntimeParameters).To(Equal(map[string]string{"a": "b", "c": "d"}))
 		})
 
-		Specify("Errors when RuntimeParameters contains a duplicate NamedValue", func() {
+		Specify("Removes duplicates and adds remainder annotation when RuntimeParameters contains a duplicate NamedValue", func() {
 			src := v1alpha3.RunConfiguration{Spec: v1alpha3.RunConfigurationSpec{
 				RuntimeParameters: []apis.NamedValue{
 					{Name: "a", Value: "b"},
@@ -47,7 +48,9 @@ var _ = Context("RunConfiguration Conversion", func() {
 				}}}
 			dst := RunConfiguration{}
 
-			Expect(dst.ConvertFrom(&src)).NotTo(Succeed())
+			Expect(dst.ConvertFrom(&src)).To(Succeed())
+			Expect(dst.Spec.RuntimeParameters).To(Equal(map[string]string{"a": "b"}))
+			Expect(dst.Annotations[ConversionAnnotations.V1alpha3ConversionRemainder]).To(MatchJSON(`{"runtimeParameters": [{"name": "a", "value": "d"}]}`))
 		})
 	})
 
@@ -61,6 +64,28 @@ var _ = Context("RunConfiguration Conversion", func() {
 			Expect(dst.ConvertFrom(&intermediate)).To(Succeed())
 
 			Expect(&dst).To(Equal(src))
+		})
+
+		Specify("Duplicate entries are preserved on the roundtrip", func() {
+			src := v1alpha3.RunConfiguration{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: map[string]string{},
+				},
+				Spec: v1alpha3.RunConfigurationSpec{
+					RuntimeParameters: []apis.NamedValue{
+						{Name: "a", Value: "b"},
+						{Name: "a", Value: "d"},
+					},
+				},
+			}
+
+			intermediate := RunConfiguration{}
+			dst := v1alpha3.RunConfiguration{}
+
+			Expect(intermediate.ConvertFrom(&src)).To(Succeed())
+			Expect(intermediate.ConvertTo(&dst)).To(Succeed())
+
+			Expect(src).To(Equal(dst))
 		})
 	})
 
