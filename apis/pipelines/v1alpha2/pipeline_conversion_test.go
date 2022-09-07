@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Context("Pipeline Conversion", func() {
@@ -47,16 +48,6 @@ var _ = Context("Pipeline Conversion", func() {
 			Expect(dst.Spec.Env).To(Equal(map[string]string{"a": "b", "c": "d"}))
 		})
 
-		Specify("Errors when Env contains a duplicate NamedValue", func() {
-			src := v1alpha3.Pipeline{Spec: v1alpha3.PipelineSpec{Env: []apis.NamedValue{
-				{Name: "a", Value: "b"},
-				{Name: "a", Value: "d"},
-			}}}
-			dst := Pipeline{}
-
-			Expect(dst.ConvertFrom(&src)).NotTo(Succeed())
-		})
-
 		Specify("Converts BeamArgs to a map", func() {
 			src := v1alpha3.Pipeline{Spec: v1alpha3.PipelineSpec{BeamArgs: []apis.NamedValue{
 				{Name: "a", Value: "b"},
@@ -68,16 +59,21 @@ var _ = Context("Pipeline Conversion", func() {
 			Expect(dst.Spec.BeamArgs).To(Equal(map[string]string{"a": "b", "c": "d"}))
 		})
 
-		Specify("Errors when BeamArgs contains a duplicate NamedValue", func() {
+		Specify("Removes duplicates and adds remainder annotation when BeamArgs contains a duplicate NamedValue", func() {
 			src := v1alpha3.Pipeline{Spec: v1alpha3.PipelineSpec{BeamArgs: []apis.NamedValue{
 				{Name: "a", Value: "b"},
-				{Name: "a", Value: "d"},
+				{Name: "a", Value: "c"},
+			}, Env: []apis.NamedValue{
+				{Name: "d", Value: "e"},
+				{Name: "d", Value: "f"},
 			}}}
 			dst := Pipeline{}
 
-			Expect(dst.ConvertFrom(&src)).NotTo(Succeed())
+			Expect(dst.ConvertFrom(&src)).To(Succeed())
+			Expect(dst.Spec.BeamArgs).To(Equal(map[string]string{"a": "b"}))
+			Expect(dst.Spec.Env).To(Equal(map[string]string{"d": "e"}))
+			Expect(dst.Annotations[ConversionAnnotations.V1alpha3ConversionRemainder]).To(MatchJSON(`{"beamArgs": [{"name": "a", "value": "c"}], "env": [{"name": "d", "value": "f"}]}`))
 		})
-
 	})
 
 	var _ = Describe("Roundtrip", func() {
@@ -90,6 +86,31 @@ var _ = Context("Pipeline Conversion", func() {
 			Expect(dst.ConvertFrom(&intermediate)).To(Succeed())
 
 			Expect(&dst).To(Equal(src))
+		})
+
+		Specify("Duplicate entries are preserved on the roundtrip", func() {
+			src := v1alpha3.Pipeline{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: map[string]string{},
+				},
+				Spec: v1alpha3.PipelineSpec{
+					BeamArgs: []apis.NamedValue{
+						{Name: "a", Value: "b"},
+						{Name: "a", Value: "c"},
+					}, Env: []apis.NamedValue{
+						{Name: "d", Value: "e"},
+						{Name: "d", Value: "f"},
+					},
+				},
+			}
+
+			intermediate := Pipeline{}
+			dst := v1alpha3.Pipeline{}
+
+			Expect(intermediate.ConvertFrom(&src)).To(Succeed())
+			Expect(intermediate.ConvertTo(&dst)).To(Succeed())
+
+			Expect(src).To(Equal(dst))
 		})
 	})
 

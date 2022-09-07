@@ -25,7 +25,7 @@ func RandomString() string {
 }
 
 func RandomMap() map[string]string {
-	size := rand.Intn(5)
+	size := rand.Intn(5) + 1
 
 	rMap := make(map[string]string, size)
 	for i := 1; i <= size; i++ {
