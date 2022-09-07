@@ -43,8 +43,8 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Status = src.Status
-	dst.Spec.Env, remainder.BeamArgs = namedValuesToMap(src.Spec.Env)
-	dst.Spec.BeamArgs, remainder.Env = namedValuesToMap(src.Spec.BeamArgs)
+	dst.Spec.Env, remainder.Env = namedValuesToMap(src.Spec.Env)
+	dst.Spec.BeamArgs, remainder.BeamArgs = namedValuesToMap(src.Spec.BeamArgs)
 	dst.Spec.Image = src.Spec.Image
 	dst.Spec.TfxComponents = src.Spec.TfxComponents
 

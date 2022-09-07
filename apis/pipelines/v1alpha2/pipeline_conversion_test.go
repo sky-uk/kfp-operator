@@ -62,17 +62,17 @@ var _ = Context("Pipeline Conversion", func() {
 		Specify("Removes duplicates and adds remainder annotation when BeamArgs contains a duplicate NamedValue", func() {
 			src := v1alpha3.Pipeline{Spec: v1alpha3.PipelineSpec{BeamArgs: []apis.NamedValue{
 				{Name: "a", Value: "b"},
-				{Name: "a", Value: "d"},
+				{Name: "a", Value: "c"},
 			}, Env: []apis.NamedValue{
-				{Name: "a", Value: "b"},
-				{Name: "a", Value: "d"},
+				{Name: "d", Value: "e"},
+				{Name: "d", Value: "f"},
 			}}}
 			dst := Pipeline{}
 
 			Expect(dst.ConvertFrom(&src)).To(Succeed())
 			Expect(dst.Spec.BeamArgs).To(Equal(map[string]string{"a": "b"}))
-			Expect(dst.Spec.Env).To(Equal(map[string]string{"a": "b"}))
-			Expect(dst.Annotations[ConversionAnnotations.V1alpha3ConversionRemainder]).To(MatchJSON(`{"beamArgs": [{"name": "a", "value": "d"}], "env": [{"name": "a", "value": "d"}]}`))
+			Expect(dst.Spec.Env).To(Equal(map[string]string{"d": "e"}))
+			Expect(dst.Annotations[ConversionAnnotations.V1alpha3ConversionRemainder]).To(MatchJSON(`{"beamArgs": [{"name": "a", "value": "c"}], "env": [{"name": "d", "value": "f"}]}`))
 		})
 	})
 
@@ -96,10 +96,10 @@ var _ = Context("Pipeline Conversion", func() {
 				Spec: v1alpha3.PipelineSpec{
 					BeamArgs: []apis.NamedValue{
 						{Name: "a", Value: "b"},
-						{Name: "a", Value: "d"},
+						{Name: "a", Value: "c"},
 					}, Env: []apis.NamedValue{
-						{Name: "a", Value: "b"},
-						{Name: "a", Value: "d"},
+						{Name: "d", Value: "e"},
+						{Name: "d", Value: "f"},
 					},
 				},
 			}
