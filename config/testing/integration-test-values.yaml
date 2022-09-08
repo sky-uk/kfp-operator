@@ -1,4 +1,5 @@
 fullnameOverride: kfp-operator-integration-tests
+containerRegistry: ""
 manager:
   argo:
     containerDefaults:
