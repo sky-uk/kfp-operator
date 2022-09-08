@@ -101,6 +101,9 @@ test-argo:
 test-all: test helm-test test-argo
 	$(MAKE) -C argo/events test
 
+integration-test-all: integration-test
+	$(MAKE) -C argo/kfp-compiler integration-test
+
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
