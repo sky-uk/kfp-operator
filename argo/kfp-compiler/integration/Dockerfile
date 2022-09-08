@@ -1,0 +1,12 @@
+ARG PYTHON_VERSION
+
+FROM python:$PYTHON_VERSION
+
+ARG TFX_VERSION
+
+RUN pip install tfx==$TFX_VERSION
+
+WORKDIR /pipeline
+COPY ./*.py ./
+
+ENV PYTHONPATH="/pipeline:${PYTHONPATH}"
