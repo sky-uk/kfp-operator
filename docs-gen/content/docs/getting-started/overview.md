@@ -43,11 +43,12 @@ Currently, we support the following eventsources:
 
 - [Run Completion Eventsource](../reference/run-completion)
 
+## Compatibility
+
+- The operator currently only supports TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet.
+- The operator currently only supports KFP standalone - a full KFP installation is not supported yet.
+
 ## Architecture Overview
 
 ![Architecture](/images/architecture.png)
 
-## Limitations
-
-- The operator currently only supports TFX Pipelines - pipelines created using the KFP DSL are not supported yet.
-- The operator currently only supports KFP standalone - a full KFP installation is not supported yet.
