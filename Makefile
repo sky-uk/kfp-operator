@@ -219,8 +219,7 @@ docker-push-argo:
 website:
 	$(MAKE) -C docs-gen
 
-package-all: docker-build docker-build-argo helm-package
-	$(MAKE) -C docs-gen
+package-all: docker-build docker-build-argo helm-package website
 
 publish-all: docker-push docker-push-argo helm-publish
 

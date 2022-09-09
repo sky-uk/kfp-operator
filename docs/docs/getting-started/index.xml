@@ -44,7 +44,7 @@
 &lt;ul>
 &lt;li>&lt;a href="../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
 &lt;/ul>
-&lt;h2 id="compatability">Compatability&lt;/h2>
+&lt;h2 id="compatibility">Compatibility&lt;/h2>
 &lt;ul>
 &lt;li>The operator currently only supports TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet.&lt;/li>
 &lt;li>The operator currently only supports KFP standalone - a full KFP installation is not supported yet.&lt;/li>
