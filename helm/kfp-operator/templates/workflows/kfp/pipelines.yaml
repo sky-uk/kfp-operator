@@ -13,14 +13,13 @@ spec:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
       command:
-        - python3
+      - /shared/compile.sh
       image: '{{`{{workflow.parameters.pipeline-image}}`}}'
       name: pipeline
       volumeMounts:
       - mountPath: /shared
         name: shared
       args:
-      - /shared/compile.py
       - --output_file
       - /tmp/pipeline.yaml
       - --pipeline_config

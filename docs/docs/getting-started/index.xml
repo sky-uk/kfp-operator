@@ -44,13 +44,13 @@
 &lt;ul>
 &lt;li>&lt;a href="../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
 &lt;/ul>
-&lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/architecture.png" alt="Architecture">&lt;/p>
-&lt;h2 id="limitations">Limitations&lt;/h2>
+&lt;h2 id="compatibility">Compatibility&lt;/h2>
 &lt;ul>
-&lt;li>The operator currently only supports TFX Pipelines - pipelines created using the KFP DSL are not supported yet.&lt;/li>
+&lt;li>The operator currently only supports TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet.&lt;/li>
 &lt;li>The operator currently only supports KFP standalone - a full KFP installation is not supported yet.&lt;/li>
-&lt;/ul></description></item><item><title>Docs: Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>
+&lt;/ul>
+&lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/architecture.png" alt="Architecture">&lt;/p></description></item><item><title>Docs: Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>
 &lt;p>We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p>
 &lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>

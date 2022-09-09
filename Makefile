@@ -101,6 +101,9 @@ test-argo:
 test-all: test helm-test test-argo
 	$(MAKE) -C argo/events test
 
+integration-test-all: integration-test
+	$(MAKE) -C argo/kfp-compiler integration-test
+
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
@@ -216,8 +219,7 @@ docker-push-argo:
 website:
 	$(MAKE) -C docs-gen
 
-package-all: docker-build docker-build-argo helm-package
-	$(MAKE) -C docs-gen
+package-all: docker-build docker-build-argo helm-package website
 
 publish-all: docker-push docker-push-argo helm-publish
 
