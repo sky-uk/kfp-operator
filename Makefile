@@ -154,7 +154,7 @@ kustomize: ## Download kustomize locally if necessary.
 
 ##@ Package
 
-helm-package: helm-cmd
+helm-package: helm-cmd helm-test
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
 helm-install: helm-package values.yaml

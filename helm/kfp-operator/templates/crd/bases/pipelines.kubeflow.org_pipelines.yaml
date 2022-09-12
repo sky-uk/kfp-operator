@@ -129,6 +129,9 @@ spec:
                       type: string
                     value:
                       type: string
+                  required:
+                    - name
+                    - value
                   type: object
                 type: array
               env:
@@ -138,6 +141,9 @@ spec:
                       type: string
                     value:
                       type: string
+                  required:
+                    - name
+                    - value
                   type: object
                 type: array
               image:
