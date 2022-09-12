@@ -12,9 +12,7 @@ type Configuration struct {
 
 	WorkflowTemplatePrefix string `json:"workflowTemplatePrefix,omitempty"`
 
-	Multiversion bool `json:"multiversion,omitempty"`
-
-	DefaultBeamArgs []apis.NamedValue `json:"defaultBeamArgs,omitempty"`
+	DefaultBeamArgs map[string]string `json:"defaultBeamArgs,omitempty"`
 
 	DefaultExperiment string `json:"defaultExperiment,omitempty"`
 

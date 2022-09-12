@@ -6,7 +6,6 @@
 package v1alpha2
 
 import (
-	"github.com/sky-uk/kfp-operator/apis"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -15,8 +14,10 @@ func (in *Configuration) DeepCopyInto(out *Configuration) {
 	*out = *in
 	if in.DefaultBeamArgs != nil {
 		in, out := &in.DefaultBeamArgs, &out.DefaultBeamArgs
-		*out = make([]apis.NamedValue, len(*in))
-		copy(*out, *in)
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	out.Debug = in.Debug
 }

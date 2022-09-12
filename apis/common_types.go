@@ -21,8 +21,8 @@ const Group = "pipelines.kubeflow.org"
 
 //+kubebuilder:object:generate=true
 type NamedValue struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 //+kubebuilder:object:generate=true
