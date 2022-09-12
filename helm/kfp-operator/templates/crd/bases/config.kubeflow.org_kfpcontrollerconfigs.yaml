@@ -182,17 +182,9 @@ spec:
                     type: boolean
                 type: object
               defaultBeamArgs:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                  required:
-                    - name
-                    - value
-                  type: object
-                type: array
+                additionalProperties:
+                  type: string
+                type: object
               defaultExperiment:
                 type: string
               kfpEndpoint:
@@ -201,8 +193,6 @@ spec:
                 type: string
               workflowTemplatePrefix:
                 type: string
-              multiversion:
-                type: boolean
             type: object
         type: object
     served: true

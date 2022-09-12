@@ -183,23 +183,13 @@ spec:
                     type: boolean
                 type: object
               defaultBeamArgs:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                  required:
-                  - name
-                  - value
-                  type: object
-                type: array
+                additionalProperties:
+                  type: string
+                type: object
               defaultExperiment:
                 type: string
               kfpEndpoint:
                 type: string
-              multiversion:
-                type: boolean
               pipelineStorage:
                 type: string
               workflowTemplatePrefix:
