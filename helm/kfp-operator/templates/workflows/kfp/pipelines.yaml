@@ -23,8 +23,7 @@ spec:
       - --output_file
       - /tmp/pipeline.yaml
       - --pipeline_config
-      - |
-        {{`{{workflow.parameters.compiler-config}}`}}
+      - /tmp/compiler-config.yaml
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
@@ -35,11 +34,18 @@ spec:
       mirrorVolumeMounts: true
       name: compile
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+    inputs:
+      artifacts:
+      - name: pipeline-config
+        raw:
+          data: |
+            {{`{{workflow.parameters.compiler-config}}`}}
+        path: /tmp/compiler-config.yaml
   - name: upload
     inputs:
-        artifacts:
-        - name: pipeline
-          path: /tmp/pipeline.yaml
+      artifacts:
+      - name: pipeline
+        path: /tmp/pipeline.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     script:

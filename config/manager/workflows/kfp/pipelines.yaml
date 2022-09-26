@@ -17,8 +17,7 @@ spec:
       - --output_file
       - /tmp/pipeline.yaml
       - --pipeline_config
-      - |
-        {{workflow.parameters.compiler-config}}
+      - /tmp/compiler-config.yaml
       volumeMounts:
       - name: shared
         mountPath: /shared
@@ -28,6 +27,13 @@ spec:
       mirrorVolumeMounts: true
       args:
       - /shared
+    inputs:
+      artifacts:
+      - name: pipeline-config
+        raw:
+          data: |
+            {{workflow.parameters.compiler-config}}
+        path: /tmp/compiler-config.yaml
     outputs:
       artifacts:
       - name: pipeline
