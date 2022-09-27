@@ -17,7 +17,7 @@ spec:
       - --output_file
       - /tmp/pipeline.yaml
       - --pipeline_config
-      - /tmp/compiler-config.yaml
+      - /tmp/pipeline-config.yaml
       volumeMounts:
       - name: shared
         mountPath: /shared
@@ -32,8 +32,8 @@ spec:
       - name: pipeline-config
         raw:
           data: |
-            {{workflow.parameters.compiler-config}}
-        path: /tmp/compiler-config.yaml
+            {{workflow.parameters.pipeline-config}}
+        path: /tmp/pipeline-config.yaml
     outputs:
       artifacts:
       - name: pipeline
@@ -41,22 +41,28 @@ spec:
   - name: upload
     metadata: {}
     script:
-      source: |-
-        set -e -o pipefail
-        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline upload --pipeline-name '{{workflow.parameters.pipeline-name}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
-      image: kfp-operator-argo-kfp-sdk:latest
       command:
       - ash
+      source: /provider.sh pipeline create /tmp/pipeline-config.yaml /tmp/provider-config.yaml
+      image: kfp-operator-argo-kfp-sdk:latest
     inputs:
       artifacts:
       - name: pipeline
         path: /tmp/pipeline.yaml
+      - name: pipeline-config
+        raw:
+          data: |
+            {{workflow.parameters.pipeline-config}}
+        path: /tmp/pipeline-config.yaml
+      - name: provider-config
+        raw:
+          data: |
+            endpoint: {{workflow.parameters.kfp-endpoint}}
+        path: /tmp/provider-config.yaml
   - name: update
     metadata: {}
     script:
-      source: |-
-        set -e -o pipefail
-        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline upload-version --pipeline-version '{{workflow.parameters.pipeline-version}}' --pipeline-id '{{inputs.parameters.pipeline-id}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
+      source: /provider.sh pipeline update /tmp/pipeline-config.yaml /tmp/provider-config.yaml '{{inputs.parameters.pipeline-id}}'
       image: kfp-operator-argo-kfp-sdk:latest
       command:
       - ash
@@ -64,14 +70,34 @@ spec:
       artifacts:
       - name: pipeline
         path: /tmp/pipeline.yaml
+      - name: pipeline-config
+        path: /tmp/pipeline-config.yaml
+        raw:
+          data: |
+            {{workflow.parameters.pipeline-config}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            endpoint: {{workflow.parameters.kfp-endpoint}}
       parameters:
       - name: pipeline-id
   - name: delete
+    inputs:
+      artifacts:
+      - name: pipeline-config
+        path: /tmp/pipeline-config.yaml
+        raw:
+          data: |
+            {{workflow.parameters.pipeline-config}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            endpoint: {{workflow.parameters.kfp-endpoint}}
     metadata: {}
     script:
-      source: |-
-        set -e -o pipefail
-        kfp-ext --endpoint '{{workflow.parameters.kfp-endpoint}}' --output json pipeline delete '{{workflow.parameters.pipeline-id}}'
+      source: /provider.sh pipeline delete /tmp/pipeline-config.yaml /tmp/provider-config.yaml '{{workflow.parameters.pipeline-id}}'
       image: kfp-operator-argo-kfp-sdk:latest
       command:
       - ash
@@ -83,7 +109,7 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: compiler-config
+    - name: pipeline-config
     - name: pipeline-image
     - name: pipeline-name
     - name: pipeline-version
@@ -136,7 +162,7 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: compiler-config
+    - name: pipeline-config
     - name: pipeline-image
     - name: pipeline-id
     - name: pipeline-version

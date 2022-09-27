@@ -12,23 +12,24 @@ var PipelineWorkflowConstants = struct {
 	PipelineNameParameterName    string
 	PipelineImageParameterName   string
 	PipelineVersionParameterName string
-	CompilerConfigParameterName  string
+	PipelineConfigParameterName  string
 }{
 	PipelineIdParameterName:      "pipeline-id",
 	PipelineNameParameterName:    "pipeline-name",
 	PipelineImageParameterName:   "pipeline-image",
 	PipelineVersionParameterName: "pipeline-version",
-	CompilerConfigParameterName:  "compiler-config",
+	PipelineConfigParameterName:  "pipeline-config",
 }
 
 type PipelineWorkflowFactory struct {
 	WorkflowFactoryBase
 }
 
-type CompilerConfig struct {
+type PipelineConfig struct {
 	RootLocation    string              `yaml:"rootLocation"`
 	ServingLocation string              `yaml:"servingLocation"`
 	Name            string              `yaml:"name"`
+	Version         string              `yaml:"version"`
 	Image           string              `yaml:"image"`
 	TfxComponents   string              `yaml:"tfxComponents"`
 	Env             map[string]string   `yaml:"env"`
@@ -59,7 +60,7 @@ func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
 	return multimap
 }
 
-func (config CompilerConfig) AsYaml() (string, error) {
+func (config PipelineConfig) AsYaml() (string, error) {
 	configYaml, err := yaml.Marshal(&config)
 
 	if err != nil {
@@ -70,7 +71,7 @@ func (config CompilerConfig) AsYaml() (string, error) {
 }
 
 // TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
-func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipeline) *CompilerConfig {
+func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipeline) *PipelineConfig {
 	// TODO: should come from config
 	servingPath := "/serving"
 	tempPath := "/tmp"
@@ -80,10 +81,11 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	beamArgs := append(wf.Config.DefaultBeamArgs, pipeline.Spec.BeamArgs...)
 	beamArgs = append(beamArgs, apis.NamedValue{Name: "temp_location", Value: pipelineRoot + tempPath})
 
-	return &CompilerConfig{
+	return &PipelineConfig{
 		RootLocation:    pipelineRoot,
 		ServingLocation: pipelineRoot + servingPath,
 		Name:            pipeline.ObjectMeta.Name,
+		Version:         pipeline.Spec.ComputeVersion(),
 		Image:           pipeline.Spec.Image,
 		TfxComponents:   pipeline.Spec.TfxComponents,
 		Env:             NamedValuesToMap(pipeline.Spec.Env),
@@ -104,7 +106,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  PipelineWorkflowConstants.CompilerConfigParameterName,
+						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
 						Value: argo.AnyStringPtr(compilerConfigYaml),
 					},
 					{
@@ -146,7 +148,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  PipelineWorkflowConstants.CompilerConfigParameterName,
+						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
 						Value: argo.AnyStringPtr(compilerConfigYaml),
 					},
 					{

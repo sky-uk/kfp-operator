@@ -23,7 +23,7 @@ spec:
       - --output_file
       - /tmp/pipeline.yaml
       - --pipeline_config
-      - /tmp/compiler-config.yaml
+      - /tmp/pipeline-config.yaml
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
@@ -39,28 +39,46 @@ spec:
       - name: pipeline-config
         raw:
           data: |
-            {{`{{workflow.parameters.compiler-config}}`}}
-        path: /tmp/compiler-config.yaml
+            {{`{{workflow.parameters.pipeline-config}}`}}
+        path: /tmp/pipeline-config.yaml
   - name: upload
     inputs:
       artifacts:
       - name: pipeline
         path: /tmp/pipeline.yaml
+      - name: pipeline-config
+        path: /tmp/pipeline-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.pipeline-config}}`}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            endpoint: {{`{{workflow.parameters.kfp-endpoint}}`}}
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     script:
       command:
       - ash
       image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-      source: |-
-        set -e -o pipefail
-        kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' '/tmp/pipeline.yaml' | jq -r '."Pipeline Details"."Pipeline ID"'
+      source: /provider.sh pipeline create /tmp/pipeline-config.yaml /tmp/provider-config.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: update
     inputs:
       artifacts:
       - name: pipeline
         path: /tmp/pipeline.yaml
+      - name: pipeline-config
+        path: /tmp/pipeline-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.pipeline-config}}`}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            endpoint: {{`{{workflow.parameters.kfp-endpoint}}`}}
       parameters:
       - name: pipeline-id
     metadata:
@@ -68,21 +86,29 @@ spec:
     script:
       command:
       - ash
-      image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-      source: |-
-        set -e -o pipefail
-        kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline upload-version --pipeline-version '{{`{{workflow.parameters.pipeline-version}}`}}' --pipeline-id '{{`{{inputs.parameters.pipeline-id}}`}}' '/tmp/pipeline.yaml' | jq -r '."Version name"'
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+      source: /provider.sh pipeline update /tmp/pipeline-config.yaml /tmp/provider-config.yaml '{{`{{inputs.parameters.pipeline-id}}`}}'
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: delete
+    inputs:
+      artifacts:
+      - name: pipeline-config
+        path: /tmp/pipeline-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.pipeline-config}}`}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            endpoint: {{`{{workflow.parameters.kfp-endpoint}}`}}
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     script:
       command:
       - ash
-      image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
-      source: |-
-        set -e -o pipefail
-        kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json pipeline delete '{{`{{workflow.parameters.pipeline-id}}`}}'
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+      source: /provider.sh pipeline delete /tmp/pipeline-config.yaml /tmp/provider-config.yaml '{{`{{workflow.parameters.pipeline-id}}`}}'
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -92,7 +118,7 @@ metadata:
 spec:
   arguments:
     parameters:
-      - name: compiler-config
+      - name: pipeline-config
       - name: pipeline-image
       - name: pipeline-name
       - name: pipeline-version
@@ -148,7 +174,7 @@ metadata:
 spec:
   arguments:
     parameters:
-      - name: compiler-config
+      - name: pipeline-config
       - name: pipeline-image
       - name: pipeline-id
       - name: pipeline-version

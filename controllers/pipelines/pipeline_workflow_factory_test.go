@@ -120,7 +120,7 @@ var _ = Describe("PipelineConfig", func() {
 	})
 
 	It("Creates a valid YAML", func() {
-		config := CompilerConfig{
+		config := PipelineConfig{
 			RootLocation:    "pipelineRootLocation",
 			ServingLocation: "pipelineServingLocation",
 			Name:            "pipelineName",
