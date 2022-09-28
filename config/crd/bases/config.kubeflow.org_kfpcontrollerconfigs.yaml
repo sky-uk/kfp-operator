@@ -380,12 +380,17 @@ spec:
                 type: array
               defaultExperiment:
                 type: string
-              kfpEndpoint:
-                type: string
               multiversion:
                 type: boolean
               pipelineStorage:
                 type: string
+              provider:
+                properties:
+                  endpoint:
+                    type: string
+                  image:
+                    type: string
+                type: object
               workflowTemplatePrefix:
                 type: string
             type: object

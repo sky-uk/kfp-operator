@@ -7,8 +7,8 @@ import (
 )
 
 type Configuration struct {
-	PipelineStorage string `json:"pipelineStorage,omitempty"`
-	KfpEndpoint     string `json:"kfpEndpoint,omitempty"`
+	PipelineStorage string   `json:"pipelineStorage,omitempty"`
+	Provider        Provider `json:"provider,omitempty"`
 
 	WorkflowTemplatePrefix string `json:"workflowTemplatePrefix,omitempty"`
 
@@ -19,6 +19,11 @@ type Configuration struct {
 	DefaultExperiment string `json:"defaultExperiment,omitempty"`
 
 	Debug apis.DebugOptions `json:"debug,omitempty"`
+}
+
+type Provider struct {
+	Endpoint string `json:"endpoint,omitempty"`
+	Image    string `json:"image,omitempty"`
 }
 
 //+kubebuilder:object:root=true

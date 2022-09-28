@@ -29,7 +29,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 					},
 					{
 						Name:  WorkflowConstants.KfpEndpointParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+						Value: argo.AnyStringPtr(workflows.Config.Provider.Endpoint),
 					},
 				},
 			},
@@ -57,7 +57,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 					},
 					{
 						Name:  WorkflowConstants.KfpEndpointParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+						Value: argo.AnyStringPtr(workflows.Config.Provider.Endpoint),
 					},
 				},
 			},
@@ -81,7 +81,7 @@ func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment 
 					},
 					{
 						Name:  WorkflowConstants.KfpEndpointParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+						Value: argo.AnyStringPtr(workflows.Config.Provider.Endpoint),
 					},
 				},
 			},

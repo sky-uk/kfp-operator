@@ -10,25 +10,27 @@ import (
 )
 
 var WorkflowConstants = struct {
-	OwnerKindLabelKey        string
-	OwnerNameLabelKey        string
-	OperationLabelKey        string
-	CreateOperationLabel     string
-	DeleteOperationLabel     string
-	UpdateOperationLabel     string
-	EntryPointName           string
-	ConstructionFailedError  string
-	KfpEndpointParameterName string
+	OwnerKindLabelKey           string
+	OwnerNameLabelKey           string
+	OperationLabelKey           string
+	CreateOperationLabel        string
+	DeleteOperationLabel        string
+	UpdateOperationLabel        string
+	EntryPointName              string
+	ConstructionFailedError     string
+	ProviderConfigParameterName string
+	KfpEndpointParameterName    string
 }{
-	OwnerKindLabelKey:        pipelinesv1.GroupVersion.Group + "/owner.kind",
-	OwnerNameLabelKey:        pipelinesv1.GroupVersion.Group + "/owner.name",
-	OperationLabelKey:        pipelinesv1.GroupVersion.Group + "/operation",
-	CreateOperationLabel:     "create",
-	DeleteOperationLabel:     "delete",
-	UpdateOperationLabel:     "update",
-	EntryPointName:           "main",
-	ConstructionFailedError:  "error constructing workflow",
-	KfpEndpointParameterName: "kfp-endpoint",
+	OwnerKindLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.kind",
+	OwnerNameLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.name",
+	OperationLabelKey:           pipelinesv1.GroupVersion.Group + "/operation",
+	CreateOperationLabel:        "create",
+	DeleteOperationLabel:        "delete",
+	UpdateOperationLabel:        "update",
+	EntryPointName:              "main",
+	ConstructionFailedError:     "error constructing workflow",
+	ProviderConfigParameterName: "provider-config",
+	KfpEndpointParameterName:    "kfp-endpoint",
 }
 
 type WorkflowFactory[R apis.Resource] interface {

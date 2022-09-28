@@ -8,7 +8,7 @@ manager:
     defaultBeamArgs:
     - name: project
       value: ${DATAFLOW_PROJECT}
-    kfpEndpoint: ${KFP_ENDPOINT}
+  kfpEndpoint: ${KFP_ENDPOINT}
 
   monitoring:
     create: true

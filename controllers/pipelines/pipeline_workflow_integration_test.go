@@ -25,7 +25,10 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 				DefaultBeamArgs: []apis.NamedValue{
 					{Name: "project", Value: "project"},
 				},
-				KfpEndpoint:            "http://wiremock:80",
+				Provider: config.Provider{
+					Endpoint: "http://wiremock:80",
+					Image:    "kfp-operator-argo-kfp-sdk",
+				},
 				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 			},
 		},

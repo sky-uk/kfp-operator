@@ -95,7 +95,10 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 
 func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
-
+	if err != nil {
+		return nil, err
+	}
+	providerConfigYaml, err := yaml.Marshal(&workflows.Config.Provider)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +125,8 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
 					},
 					{
-						Name:  WorkflowConstants.KfpEndpointParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+						Name:  WorkflowConstants.ProviderConfigParameterName,
+						Value: argo.AnyStringPtr(string(providerConfigYaml)),
 					},
 				},
 			},
@@ -137,7 +140,10 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 
 func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
-
+	if err != nil {
+		return nil, err
+	}
+	providerConfigYaml, err := yaml.Marshal(&workflows.Config.Provider)
 	if err != nil {
 		return nil, err
 	}
@@ -164,8 +170,8 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
 					},
 					{
-						Name:  WorkflowConstants.KfpEndpointParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+						Name:  WorkflowConstants.ProviderConfigParameterName,
+						Value: argo.AnyStringPtr(string(providerConfigYaml)),
 					},
 				},
 			},
@@ -178,6 +184,11 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 }
 
 func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+	providerConfigYaml, err := yaml.Marshal(&workflows.Config.Provider)
+	if err != nil {
+		return nil, err
+	}
+
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -188,8 +199,8 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
 					},
 					{
-						Name:  WorkflowConstants.KfpEndpointParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+						Name:  WorkflowConstants.ProviderConfigParameterName,
+						Value: argo.AnyStringPtr(string(providerConfigYaml)),
 					},
 				},
 			},
