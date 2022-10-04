@@ -384,13 +384,8 @@ spec:
                 type: boolean
               pipelineStorage:
                 type: string
-              provider:
-                properties:
-                  endpoint:
-                    type: string
-                  image:
-                    type: string
-                type: object
+              providerConfig:
+                type: string
               workflowTemplatePrefix:
                 type: string
             type: object

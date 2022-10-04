@@ -378,7 +378,7 @@ spec:
                 type: array
               defaultExperiment:
                 type: string
-              kfpEndpoint:
+              providerConfig:
                 type: string
               pipelineStorage:
                 type: string

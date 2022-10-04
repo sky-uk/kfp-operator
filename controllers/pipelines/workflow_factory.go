@@ -40,13 +40,9 @@ type WorkflowFactory[R apis.Resource] interface {
 }
 
 type WorkflowFactoryBase struct {
-	ResourceKind string
-	Config       config.Configuration
-}
-
-type KfpExtCommandBuilder struct {
-	commandParts []string
-	error        error
+	ResourceKind   string
+	Config         config.Configuration
+	ProviderConfig string
 }
 
 func CommonWorkflowMeta(owner apis.Resource, operation string) *metav1.ObjectMeta {

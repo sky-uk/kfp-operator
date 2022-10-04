@@ -98,10 +98,6 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 	if err != nil {
 		return nil, err
 	}
-	providerConfigYaml, err := yaml.Marshal(&workflows.Config.Provider)
-	if err != nil {
-		return nil, err
-	}
 
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.CreateOperationLabel),
@@ -126,7 +122,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(string(providerConfigYaml)),
+						Value: argo.AnyStringPtr(workflows.ProviderConfig),
 					},
 				},
 			},
@@ -140,10 +136,6 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 
 func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
-	if err != nil {
-		return nil, err
-	}
-	providerConfigYaml, err := yaml.Marshal(&workflows.Config.Provider)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +163,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(string(providerConfigYaml)),
+						Value: argo.AnyStringPtr(workflows.ProviderConfig),
 					},
 				},
 			},
@@ -184,7 +176,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 }
 
 func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	providerConfigYaml, err := yaml.Marshal(&workflows.Config.Provider)
+	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +192,11 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(string(providerConfigYaml)),
+						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+					},
+					{
+						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
+						Value: argo.AnyStringPtr(compilerConfigYaml),
 					},
 				},
 			},

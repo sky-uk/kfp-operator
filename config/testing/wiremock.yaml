@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: wiremock
-          image: rodolpheche/wiremock
+          image: wiremock/wiremock
           ports:
             - containerPort: 8080
 ---

@@ -28,8 +28,8 @@ type RunConfigurationWorkflowFactory struct {
 
 func (workflows RunConfigurationWorkflowFactory) kfpEndpointParameter() argo.Parameter {
 	return argo.Parameter{
-		Name:  WorkflowConstants.KfpEndpointParameterName,
-		Value: argo.AnyStringPtr(workflows.Config.Provider.Endpoint),
+		Name:  WorkflowConstants.ProviderConfigParameterName,
+		Value: argo.AnyStringPtr(workflows.ProviderConfig),
 	}
 }
 
