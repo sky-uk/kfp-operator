@@ -95,7 +95,7 @@ test: fmt vet unit-test decoupled-test
 
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
-	$(MAKE) -C argo/kfp-provider test
+	$(MAKE) -C argo/providers -f kfp.mk test
 	$(MAKE) -C argo/events test
 
 test-all: test helm-test test-argo
@@ -213,8 +213,8 @@ docker-build-argo:
 
 docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
-	$(MAKE) -C argo/kfp-provider docker-push
-	$(MAKE) -C argo/vertex-ai-provider docker-push
+	$(MAKE) -C argo/providers -f kfp.mk docker-push
+	$(MAKE) -C argo/providers -f vai.mk docker-push
 	$(MAKE) -C argo/events docker-push
 
 ##@ Website
