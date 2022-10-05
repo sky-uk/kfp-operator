@@ -4,6 +4,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	providers "github.com/sky-uk/kfp-operator/providers/base"
 	"gopkg.in/yaml.v2"
 )
 
@@ -23,17 +24,6 @@ var PipelineWorkflowConstants = struct {
 
 type PipelineWorkflowFactory struct {
 	WorkflowFactoryBase
-}
-
-type PipelineConfig struct {
-	RootLocation    string              `yaml:"rootLocation"`
-	ServingLocation string              `yaml:"servingLocation"`
-	Name            string              `yaml:"name"`
-	Version         string              `yaml:"version"`
-	Image           string              `yaml:"image"`
-	TfxComponents   string              `yaml:"tfxComponents"`
-	Env             map[string]string   `yaml:"env"`
-	BeamArgs        map[string][]string `yaml:"beamArgs"`
 }
 
 func NamedValuesToMap(namedValues []apis.NamedValue) map[string]string {
@@ -60,18 +50,8 @@ func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
 	return multimap
 }
 
-func (config PipelineConfig) AsYaml() (string, error) {
-	configYaml, err := yaml.Marshal(&config)
-
-	if err != nil {
-		return "", err
-	}
-
-	return string(configYaml), nil
-}
-
 // TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
-func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipeline) *PipelineConfig {
+func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipeline) *providers.PipelineConfig {
 	// TODO: should come from config
 	servingPath := "/serving"
 	tempPath := "/tmp"
@@ -81,7 +61,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	beamArgs := append(wf.Config.DefaultBeamArgs, pipeline.Spec.BeamArgs...)
 	beamArgs = append(beamArgs, apis.NamedValue{Name: "temp_location", Value: pipelineRoot + tempPath})
 
-	return &PipelineConfig{
+	return &providers.PipelineConfig{
 		RootLocation:    pipelineRoot,
 		ServingLocation: pipelineRoot + servingPath,
 		Name:            pipeline.ObjectMeta.Name,
@@ -94,7 +74,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 }
 
 func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
+	compilerConfigYaml, err := yaml.Marshal(workflows.newCompilerConfig(pipeline))
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +115,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 }
 
 func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
+	compilerConfigYaml, err := yaml.Marshal(workflows.newCompilerConfig(pipeline))
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +156,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 }
 
 func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := workflows.newCompilerConfig(pipeline).AsYaml()
+	compilerConfigYaml, err := yaml.Marshal(workflows.newCompilerConfig(pipeline))
 	if err != nil {
 		return nil, err
 	}
