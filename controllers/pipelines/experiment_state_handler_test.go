@@ -134,9 +134,7 @@ var _ = Describe("Experiment State handler", func() {
 	// TODO: mock workflowFactory
 	var workflowFactory = ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				KfpEndpoint: "http://www.example.com",
-			},
+			Config: config.Configuration{},
 		},
 	}
 

@@ -136,7 +136,6 @@ var _ = Describe("RunConfiguration State handler", func() {
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: config.Configuration{
 				DefaultExperiment: "Default",
-				KfpEndpoint:       "http://www.example.com",
 			},
 		},
 	}
