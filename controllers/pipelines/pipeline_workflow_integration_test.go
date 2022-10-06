@@ -188,109 +188,111 @@ func AssertWorkflow(
 		assertion), TestTimeout).Should(Succeed())
 }
 
-func RunSuite(suite PipelineWorkflowIntegrationSuite) {
-	workflowFactory := PipelineWorkflowFactory{
-		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				PipelineStorage: "gs://some-bucket",
-				DefaultBeamArgs: []apis.NamedValue{
-					{Name: "project", Value: "project"},
+func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
+	Context(suitName, func() {
+		workflowFactory := PipelineWorkflowFactory{
+			WorkflowFactoryBase: WorkflowFactoryBase{
+				Config: config.Configuration{
+					PipelineStorage: "gs://some-bucket",
+					DefaultBeamArgs: []apis.NamedValue{
+						{Name: "project", Value: "project"},
+					},
+					WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 				},
-				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
+				ProviderConfig: suite.ProviderConfig(),
 			},
-			ProviderConfig: suite.ProviderConfig(),
-		},
-	}
+		}
 
-	DescribeTable("Creation Workflow", AssertWorkflow,
-		Entry("Creation succeeds",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(suite.SucceedUpload(pipeline)).To(Succeed())
-				Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
-			},
-			workflowFactory.ConstructCreationWorkflow,
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
-					To(Not(BeEmpty()))
-				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
-					To(Equal(pipelineSpec.ComputeVersion()))
-			},
-		),
-		Entry("Creation succeeds but the update fails",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(suite.SucceedUpload(pipeline)).To(Succeed())
-				Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
-			},
-			workflowFactory.ConstructCreationWorkflow,
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
-					To(Not(BeEmpty()))
-				g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
-					To(BeEmpty())
-			},
-		),
-		Entry("Creation fails",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(suite.FailUpload(pipeline)).To(Succeed())
-				Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
-			},
-			workflowFactory.ConstructCreationWorkflow,
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-			},
-		),
-	)
+		DescribeTable("Creation Workflow", AssertWorkflow,
+			Entry("Creation succeeds",
+				func(pipeline *pipelinesv1.Pipeline) {
+					Expect(suite.SucceedUpload(pipeline)).To(Succeed())
+					Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
+				},
+				workflowFactory.ConstructCreationWorkflow,
+				func(g Gomega, workflow *argo.Workflow) {
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
+						To(Not(BeEmpty()))
+					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
+						To(Equal(pipelineSpec.ComputeVersion()))
+				},
+			),
+			Entry("Creation succeeds but the update fails",
+				func(pipeline *pipelinesv1.Pipeline) {
+					Expect(suite.SucceedUpload(pipeline)).To(Succeed())
+					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
+				},
+				workflowFactory.ConstructCreationWorkflow,
+				func(g Gomega, workflow *argo.Workflow) {
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
+						To(Not(BeEmpty()))
+					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
+						To(BeEmpty())
+				},
+			),
+			Entry("Creation fails",
+				func(pipeline *pipelinesv1.Pipeline) {
+					Expect(suite.FailUpload(pipeline)).To(Succeed())
+					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
+				},
+				workflowFactory.ConstructCreationWorkflow,
+				func(g Gomega, workflow *argo.Workflow) {
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+				},
+			),
+		)
 
-	DescribeTable("Update Workflow", AssertWorkflow,
-		Entry("Upload succeeds",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
-			},
-			workflowFactory.ConstructUpdateWorkflow,
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-			},
-		),
-		Entry("Upload fails",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
-			},
-			workflowFactory.ConstructUpdateWorkflow,
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-			},
-		),
-	)
+		DescribeTable("Update Workflow", AssertWorkflow,
+			Entry("Upload succeeds",
+				func(pipeline *pipelinesv1.Pipeline) {
+					Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
+				},
+				workflowFactory.ConstructUpdateWorkflow,
+				func(g Gomega, workflow *argo.Workflow) {
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				},
+			),
+			Entry("Upload fails",
+				func(pipeline *pipelinesv1.Pipeline) {
+					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
+				},
+				workflowFactory.ConstructUpdateWorkflow,
+				func(g Gomega, workflow *argo.Workflow) {
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+				},
+			),
+		)
 
-	DescribeTable("Deletion Workflow", AssertWorkflow,
-		Entry("Deletion succeeds",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(suite.SucceedDeletion(pipeline)).To(Succeed())
-			},
-			func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-				return workflowFactory.ConstructDeletionWorkflow(pipeline)
-			},
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-			},
-		),
-		Entry("Deletion fails",
-			func(pipeline *pipelinesv1.Pipeline) {
-				Expect(suite.FailDeletion(pipeline)).To(Succeed())
-			},
-			func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-				return workflowFactory.ConstructDeletionWorkflow(pipeline)
-			},
-			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-			},
-		),
-	)
+		DescribeTable("Deletion Workflow", AssertWorkflow,
+			Entry("Deletion succeeds",
+				func(pipeline *pipelinesv1.Pipeline) {
+					Expect(suite.SucceedDeletion(pipeline)).To(Succeed())
+				},
+				func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+					return workflowFactory.ConstructDeletionWorkflow(pipeline)
+				},
+				func(g Gomega, workflow *argo.Workflow) {
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				},
+			),
+			Entry("Deletion fails",
+				func(pipeline *pipelinesv1.Pipeline) {
+					Expect(suite.FailDeletion(pipeline)).To(Succeed())
+				},
+				func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+					return workflowFactory.ConstructDeletionWorkflow(pipeline)
+				},
+				func(g Gomega, workflow *argo.Workflow) {
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+				},
+			),
+		)
+	})
 }
 
 var _ = Context("Pipeline Workflows", Serial, func() {
-	RunSuite(VertexAIPipelineWorkflowIntegrationSuite{})
-	RunSuite(KfpPipelineWorkflowIntegrationSuite{})
+	RunSuite(VertexAIPipelineWorkflowIntegrationSuite{}, "Vertex AI")
+	RunSuite(KfpPipelineWorkflowIntegrationSuite{}, "Kubeflow Pipelines")
 })

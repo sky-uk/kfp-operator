@@ -10,16 +10,12 @@ import (
 
 var PipelineWorkflowConstants = struct {
 	PipelineIdParameterName      string
-	PipelineNameParameterName    string
-	PipelineImageParameterName   string
 	PipelineVersionParameterName string
 	PipelineConfigParameterName  string
 }{
 	PipelineIdParameterName:      "pipeline-id",
-	PipelineNameParameterName:    "pipeline-name",
-	PipelineImageParameterName:   "pipeline-image",
-	PipelineVersionParameterName: "pipeline-version",
 	PipelineConfigParameterName:  "pipeline-config",
+	PipelineVersionParameterName: "pipeline-version",
 }
 
 type PipelineWorkflowFactory struct {
@@ -86,19 +82,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 				Parameters: []argo.Parameter{
 					{
 						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
-						Value: argo.AnyStringPtr(compilerConfigYaml),
-					},
-					{
-						Name:  PipelineWorkflowConstants.PipelineImageParameterName,
-						Value: argo.AnyStringPtr(pipeline.Spec.Image),
-					},
-					{
-						Name:  PipelineWorkflowConstants.PipelineNameParameterName,
-						Value: argo.AnyStringPtr(pipeline.Name),
-					},
-					{
-						Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
-						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
+						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
@@ -127,19 +111,11 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 				Parameters: []argo.Parameter{
 					{
 						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
-						Value: argo.AnyStringPtr(compilerConfigYaml),
+						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 					{
 						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
 						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
-					},
-					{
-						Name:  PipelineWorkflowConstants.PipelineImageParameterName,
-						Value: argo.AnyStringPtr(pipeline.Spec.Image),
-					},
-					{
-						Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
-						Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
@@ -176,7 +152,7 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 					},
 					{
 						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
-						Value: argo.AnyStringPtr(compilerConfigYaml),
+						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 				},
 			},

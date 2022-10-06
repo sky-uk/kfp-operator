@@ -5,6 +5,15 @@ metadata:
 spec:
   templates:
   - name: compile
+    inputs:
+      parameters:
+      - name: pipeline-image
+      artifacts:
+      - name: pipeline-config
+        raw:
+          data: |
+            {{`{{workflow.parameters.pipeline-config}}`}}
+        path: /tmp/pipeline-config.yaml
     outputs:
       artifacts:
       - name: pipeline
@@ -14,7 +23,7 @@ spec:
     container:
       command:
       - /shared/compile.sh
-      image: '{{`{{workflow.parameters.pipeline-image}}`}}'
+      image: "{{`{{inputs.parameters.pipeline-image}}`}}"
       name: pipeline
       volumeMounts:
       - mountPath: /shared
@@ -37,17 +46,10 @@ spec:
       mirrorVolumeMounts: true
       name: compile
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
-    inputs:
-      artifacts:
-      - name: pipeline-config
-        raw:
-          data: |
-            {{`{{workflow.parameters.pipeline-config}}`}}
-        path: /tmp/pipeline-config.yaml
   - name: upload
     inputs:
       parameters:
-      - name: image
+      - name: provider-image
       artifacts:
       - name: pipeline
         path: /tmp/pipeline.yaml
@@ -69,7 +71,7 @@ spec:
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
-      image: "{{`{{inputs.parameters.image}}`}}"
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
       command:
       - /provider
       args:
@@ -101,7 +103,7 @@ spec:
             {{`{{workflow.parameters.provider-config}}`}}
       parameters:
       - name: pipeline-id
-      - name: image
+      - name: provider-image
     outputs:
       parameters:
       - name: pipeline-version
@@ -110,7 +112,7 @@ spec:
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
-      image: "{{`{{inputs.parameters.image}}`}}"
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
       command:
       - /provider
       args:
@@ -130,7 +132,7 @@ spec:
   - name: delete
     inputs:
       parameters:
-      - name: image
+      - name: provider-image
       artifacts:
       - name: pipeline-config
         path: /tmp/pipeline-config.yaml
@@ -147,7 +149,7 @@ spec:
     container:
       command:
       - /provider
-      image: "{{`{{inputs.parameters.image}}`}}"
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
       args:
       - pipeline
       - delete
@@ -167,9 +169,6 @@ spec:
   arguments:
     parameters:
       - name: pipeline-config
-      - name: pipeline-image
-      - name: pipeline-name
-      - name: pipeline-version
       - name: provider-config
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
@@ -187,12 +186,21 @@ spec:
             parameter: '{{`{{steps.update.outputs.parameters.pipeline-version}}`}}'
             default: ""
       steps:
-      - - name: select-image
+      - - name: select-provider-image
           templateRef:
             name: {{ include "kfp-operator.fullname" . }}-common-steps
-            template: select-image
+            template: select-provider-image
+            clusterScope: true
+      - - name: select-pipeline-image
+          templateRef:
+            name: {{ include "kfp-operator.fullname" . }}-common-steps
+            template: select-pipeline-image
             clusterScope: true
       - - name: compile
+          arguments:
+            parameters:
+            - name: pipeline-image
+              value: '{{`{{steps.select-pipeline-image.outputs.result}}`}}'
           templateRef:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: compile
@@ -203,8 +211,8 @@ spec:
             - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
               name: pipeline
             parameters:
-            - name: image
-              value: '{{`{{steps.select-image.outputs.result}}`}}'
+            - name: provider-image
+              value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           templateRef:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: upload
@@ -217,8 +225,8 @@ spec:
             parameters:
             - name: pipeline-id
               value: '{{`{{steps.upload.outputs.parameters.pipeline-id}}`}}'
-            - name: image
-              value: '{{`{{steps.select-image.outputs.result}}`}}'
+            - name: provider-image
+              value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           continueOn:
             failed: true
           templateRef:
@@ -234,10 +242,8 @@ spec:
   arguments:
     parameters:
       - name: pipeline-config
-      - name: pipeline-image
-      - name: pipeline-id
-      - name: pipeline-version
       - name: provider-config
+      - name: pipeline-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -250,12 +256,21 @@ spec:
           valueFrom:
             parameter: '{{`{{steps.update.outputs.result}}`}}'
       steps:
-      - - name: select-image
+      - - name: select-provider-image
           templateRef:
             name: {{ include "kfp-operator.fullname" . }}-common-steps
-            template: select-image
+            template: select-provider-image
+            clusterScope: true
+      - - name: select-pipeline-image
+          templateRef:
+            name: {{ include "kfp-operator.fullname" . }}-common-steps
+            template: select-pipeline-image
             clusterScope: true
       - - name: compile
+          arguments:
+            parameters:
+            - name: pipeline-image
+              value: '{{`{{steps.select-pipeline-image.outputs.result}}`}}'
           templateRef:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: compile
@@ -268,8 +283,8 @@ spec:
             parameters:
             - name: pipeline-id
               value: '{{`{{workflow.parameters.pipeline-id}}`}}'
-            - name: image
-              value: '{{`{{steps.select-image.outputs.result}}`}}'
+            - name: provider-image
+              value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           templateRef:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: update
@@ -282,8 +297,8 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: pipeline-id
     - name: provider-config
+    - name: pipeline-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -291,16 +306,16 @@ spec:
   templates:
   - name: main
     steps:
-    - - name: select-image
+    - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-image
+          template: select-provider-image
           clusterScope: true
     - - name: delete
         arguments:
           parameters:
-          - name: image
-            value: '{{`{{steps.select-image.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: delete
