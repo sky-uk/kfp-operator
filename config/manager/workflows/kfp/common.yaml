@@ -4,29 +4,42 @@ metadata:
   name: common-steps
 spec:
   templates:
-    - name: select-image
-      inputs:
-        artifacts:
-          - name: provider-config
-            path: /tmp/provider-config.yaml
-            raw:
-              data: |
-                {{workflow.parameters.provider-config}}
-      script:
-        command:
-          - ash
-        image: mikefarah/yq:4.27.5
-        source: yq e '.image' /tmp/provider-config.yaml
-    - name: select-endpoint
-      inputs:
-        artifacts:
-          - name: provider-config
-            path: /tmp/provider-config.yaml
-            raw:
-              data: |
-                {{workflow.parameters.provider-config}}
-      script:
-        command:
-          - ash
-        image: mikefarah/yq:4.27.5
-        source: yq e '.endpoint' /tmp/provider-config.yaml
+  - name: select-provider-image
+    inputs:
+      artifacts:
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '.image' /tmp/provider-config.yaml
+  - name: select-endpoint
+    inputs:
+      artifacts:
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '.endpoint' /tmp/provider-config.yaml
+  - name: select-pipeline-image
+    inputs:
+      artifacts:
+      - name: pipeline-config
+        path: /tmp/pipeline-config.yaml
+        raw:
+          data: |
+            {{workflow.parameters.pipeline-config}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '.image' /tmp/pipeline-config.yaml
