@@ -22,7 +22,7 @@ var ProviderConstants = struct {
 	OutputParameter:         "out",
 }
 
-func RunProviderApp[T any](provider Provider[T]) error {
+func RunProviderApp[Config any](provider Provider[Config]) error {
 	providerConfigFlag := cli.StringFlag{
 		Name:     ProviderConstants.ProviderConfigParameter,
 		Required: true,
@@ -58,7 +58,7 @@ func RunProviderApp[T any](provider Provider[T]) error {
 					Flags: []cli.Flag{providerConfigFlag, pipelineConfigFlag, pipelineFileFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
-						providerConfig, err := loadProviderConfig[T](c)
+						providerConfig, err := loadProviderConfig[Config](c)
 						if err != nil {
 							return err
 						}
@@ -90,7 +90,7 @@ func RunProviderApp[T any](provider Provider[T]) error {
 						if err != nil {
 							return err
 						}
-						providerConfig, err := loadProviderConfig[T](c)
+						providerConfig, err := loadProviderConfig[Config](c)
 						if err != nil {
 							return err
 						}
@@ -113,7 +113,7 @@ func RunProviderApp[T any](provider Provider[T]) error {
 					Flags: []cli.Flag{providerConfigFlag, pipelineConfigFlag, pipelineIdFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
-						providerConfig, err := loadProviderConfig[T](c)
+						providerConfig, err := loadProviderConfig[Config](c)
 						if err != nil {
 							return err
 						}
