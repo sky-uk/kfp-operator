@@ -41,25 +41,8 @@ func (vaip VAIProvider) client(providerConfig VertexAiProviderConfig, ctx contex
 	return client, err
 }
 
-func (vaip VAIProvider) CreatePipeline(providerConfig VertexAiProviderConfig, pipelineConfig PipelineConfig, pipelineFile string, ctx context.Context) (string, error) {
-	client, err := vaip.client(providerConfig, ctx)
-
-	if err != nil {
-		return "", err
-	}
-
+func (vaip VAIProvider) CreatePipeline(_ VertexAiProviderConfig, _ PipelineConfig, _ string, _ context.Context) (string, error) {
 	id, err := uuid.NewUUID()
-	if err != nil {
-		return "", err
-	}
-
-	writer := client.Bucket(providerConfig.PipelineBucket).Object(fmt.Sprintf("%s/", id)).NewWriter(ctx)
-	_, err = writer.Write([]byte("abc"))
-	if err != nil {
-		return "", err
-	}
-
-	err = writer.Close()
 	if err != nil {
 		return "", err
 	}
@@ -99,7 +82,7 @@ func (vaip VAIProvider) UpdatePipeline(providerConfig VertexAiProviderConfig, pi
 	return pipelineConfig.Version, nil
 }
 
-func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, pipelineConfig PipelineConfig, id string, ctx context.Context) error {
+func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, _ PipelineConfig, id string, ctx context.Context) error {
 	client, err := vaip.client(providerConfig, ctx)
 	if err != nil {
 		log.Fatal(err)
