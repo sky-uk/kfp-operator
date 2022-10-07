@@ -17,19 +17,6 @@ spec:
       - ash
       image: mikefarah/yq:4.27.5
       source: yq e '.image' /tmp/provider-config.yaml
-  - name: select-endpoint
-    inputs:
-      artifacts:
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{workflow.parameters.provider-config}}
-    script:
-      command:
-      - ash
-      image: mikefarah/yq:4.27.5
-      source: yq e '.endpoint' /tmp/provider-config.yaml
   - name: select-pipeline-image
     inputs:
       artifacts:
@@ -43,3 +30,16 @@ spec:
       - ash
       image: mikefarah/yq:4.27.5
       source: yq e '.image' /tmp/pipeline-config.yaml
+  - name: select-endpoint
+    inputs:
+      artifacts:
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '.endpoint' /tmp/provider-config.yaml
