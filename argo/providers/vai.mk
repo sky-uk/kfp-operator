@@ -21,5 +21,5 @@ vet: ## Run go vet against code.
 
 ##@ Containers
 
-DOCKER_BUILD_EXTRA_PARAMS=-f vai.Dockerfile
+DOCKER_BUILD_EXTRA_PARAMS=-f vai/Dockerfile
 include ../../docker-targets.mk

@@ -30,5 +30,5 @@ vet: ## Run go vet against code.
 ##@ Containers
 
 WHEEL_VERSION=$(shell poetry version | cut -d ' ' -f 2)
-DOCKER_BUILD_EXTRA_PARAMS=-f kfp.Dockerfile --build-arg WHEEL_VERSION=${WHEEL_VERSION}
+DOCKER_BUILD_EXTRA_PARAMS=-f kfp/Dockerfile --build-arg WHEEL_VERSION=${WHEEL_VERSION}
 include ../../docker-targets.mk
