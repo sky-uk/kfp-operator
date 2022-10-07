@@ -88,7 +88,7 @@ func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, _ 
 		log.Fatal(err)
 	}
 
-	query := &storage.Query{Prefix: id}
+	query := &storage.Query{Prefix: fmt.Sprintf("%s/", id)}
 
 	it := client.Bucket(providerConfig.PipelineBucket).Objects(ctx, query)
 	for {
