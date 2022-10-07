@@ -46,7 +46,7 @@ spec:
       mirrorVolumeMounts: true
       name: compile
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
-  - name: upload
+  - name: create
     inputs:
       parameters:
       - name: provider-image
@@ -180,7 +180,7 @@ spec:
         parameters:
         - name: pipeline-id
           valueFrom:
-            parameter: '{{`{{steps.upload.outputs.parameters.pipeline-id}}`}}'
+            parameter: '{{`{{steps.create.outputs.parameters.pipeline-id}}`}}'
         - name: pipeline-version
           valueFrom:
             parameter: '{{`{{steps.update.outputs.parameters.pipeline-version}}`}}'
@@ -205,7 +205,7 @@ spec:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: compile
             clusterScope: true
-      - - name: upload
+      - - name: create
           arguments:
             artifacts:
             - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
@@ -215,7 +215,7 @@ spec:
               value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           templateRef:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
-            template: upload
+            template: create
             clusterScope: true
       - - name: update
           arguments:
@@ -224,7 +224,7 @@ spec:
               name: pipeline
             parameters:
             - name: pipeline-id
-              value: '{{`{{steps.upload.outputs.parameters.pipeline-id}}`}}'
+              value: '{{`{{steps.create.outputs.parameters.pipeline-id}}`}}'
             - name: provider-image
               value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           continueOn:
