@@ -20,7 +20,7 @@ data:
         leaderElect: true
         resourceName: kfp-operator-lock
     spec:
-      providerConfig: provider.yaml
+      providerConfigFile: provider.yaml
       workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
       {{- if .Values.manager.multiversion.enabled }}
       multiversion: true

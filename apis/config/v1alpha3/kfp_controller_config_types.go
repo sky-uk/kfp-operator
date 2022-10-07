@@ -9,7 +9,7 @@ import (
 type Configuration struct {
 	PipelineStorage string `json:"pipelineStorage,omitempty"`
 
-	ProviderConfig string `json:"providerConfig,omitempty"`
+	ProviderConfigFile string `json:"providerConfigFile,omitempty"`
 
 	WorkflowTemplatePrefix string `json:"workflowTemplatePrefix,omitempty"`
 

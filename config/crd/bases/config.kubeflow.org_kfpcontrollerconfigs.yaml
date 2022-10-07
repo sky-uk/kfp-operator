@@ -384,7 +384,7 @@ spec:
                 type: boolean
               pipelineStorage:
                 type: string
-              providerConfig:
+              providerConfigFile:
                 type: string
               workflowTemplatePrefix:
                 type: string

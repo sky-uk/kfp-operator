@@ -11,7 +11,7 @@ controller:
     leaderElect: true
     resourceName: kfp-operator-lock
 spec:
-  providerConfig: provider.yaml
+  providerConfigFile: provider.yaml
   workflowTemplatePrefix: kfp-operator-
   multiversion: true
   defaultBeamArgs:

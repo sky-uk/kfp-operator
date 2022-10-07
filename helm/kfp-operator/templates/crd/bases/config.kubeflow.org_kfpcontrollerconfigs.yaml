@@ -378,7 +378,7 @@ spec:
                 type: array
               defaultExperiment:
                 type: string
-              providerConfig:
+              providerConfigFile:
                 type: string
               pipelineStorage:
                 type: string

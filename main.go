@@ -86,7 +86,7 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	var mgr ctrl.Manager
 
-	providerConfig, err := os.ReadFile(ctrlConfig.Workflows.ProviderConfig)
+	providerConfig, err := os.ReadFile(ctrlConfig.Workflows.ProviderConfigFile)
 	if err != nil {
 		setupLog.Error(err, "provider config could not be read")
 		os.Exit(1)
