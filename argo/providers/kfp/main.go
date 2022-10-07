@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/yalp/jsonpath"
 	"log"
@@ -67,9 +66,7 @@ func (kfpp KfpProvider) UpdatePipeline(providerConfig KfpProviderConfig, pipelin
 
 func (kfpp KfpProvider) DeletePipeline(providerConfig KfpProviderConfig, pipelineConfig PipelineConfig, id string, _ context.Context) error {
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "delete", id)
-	out, err := cmd.Output()
-
-	fmt.Println(string(out))
+	err := cmd.Run()
 
 	if err != nil {
 		return err
