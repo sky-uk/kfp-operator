@@ -96,6 +96,7 @@ test: fmt vet unit-test decoupled-test
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers -f kfp.mk test
+	$(MAKE) -C argo/providers -f vai.mk test
 	$(MAKE) -C argo/events test
 
 test-all: test helm-test test-argo

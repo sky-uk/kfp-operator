@@ -1,5 +1,10 @@
 IMG := kfp-operator-argo-vertex-ai-provider
 
+##@ Development
+
+test:
+	@echo no tests defined
+
 ##@ Build
 
 build:
