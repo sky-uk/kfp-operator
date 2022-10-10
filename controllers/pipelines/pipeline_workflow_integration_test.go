@@ -31,7 +31,7 @@ type VertexAIPipelineWorkflowIntegrationSuite struct {
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "endpoint: http://wiremock:80\nimage: kfp-operator-argo-vertex-ai-provider\npipelineBucket: pipelineBucket"
+	return "endpoint: http://wiremock:80\nimage: kfp-operator-vai-provider\npipelineBucket: pipelineBucket"
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedUpload(_ *pipelinesv1.Pipeline) error {

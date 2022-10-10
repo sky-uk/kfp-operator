@@ -1,4 +1,4 @@
-IMG := kfp-operator-argo-vertex-ai-provider
+IMG := kfp-operator-vai-provider
 
 ##@ Development
 

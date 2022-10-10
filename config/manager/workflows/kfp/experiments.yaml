@@ -13,7 +13,7 @@ spec:
         source: |-
           set -e -o pipefail
           kfp-ext --endpoint '{{inputs.parameters.endpoint}}' --output json experiment create '{{workflow.parameters.experiment-name}}' | jq -r '."ID"'
-        image: kfp-operator-argo-kfp-sdk:latest
+        image: kfp-operator-kfp-provider:latest
         command:
           - ash
     - name: delete
@@ -25,7 +25,7 @@ spec:
         source: |-
           set -e -o pipefail
           echo y | kfp-ext --endpoint '{{inputs.parameters.endpoint}}' --output json experiment delete '{{workflow.parameters.experiment-id}}'
-        image: kfp-operator-argo-kfp-sdk:latest
+        image: kfp-operator-kfp-provider:latest
         command:
           - ash
 ---

@@ -1,2 +1,2 @@
+image: kfp-operator-kfp-provider:latest
 endpoint: ${KFP_ENDPOINT}
-image: kfp-operator-argo-kfp-sdk:latest

@@ -4,8 +4,11 @@ manager:
     serviceAccount: pipeline-runner
   configuration:
     defaultExperiment: Default
-    kfpEndpoint: http://ml-pipeline.kubeflow:8888
     pipelineStorage: {STORAGE_LOCATION}
+  provider:
+    type: kfp
+    configuration:
+      endpoint: http://ml-pipeline.kubeflow:8888
 # Uncomment below for eventing-support
 #eventsourceServer:
 #  create: true

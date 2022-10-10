@@ -1,7 +1,5 @@
 FROM golang:1.18 as builder
 
-ARG PROVIDER
-
 WORKDIR /workspace
 
 COPY go.mod go.mod

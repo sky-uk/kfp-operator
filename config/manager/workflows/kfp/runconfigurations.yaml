@@ -13,7 +13,7 @@ spec:
       source: |-
         set -e -o pipefail
         kfp-ext --endpoint '{{inputs.parameters.endpoint}}' --output json job submit --pipeline-name '{{workflow.parameters.pipeline-name}}' --job-name '{{workflow.parameters.runconfiguration-name}}' --experiment-name '{{workflow.parameters.experiment-name}}' --version-name '{{workflow.parameters.pipeline-version}}' --cron-expression '{{workflow.parameters.schedule}}'  | jq -r '."Job Details"."ID"'
-      image: kfp-operator-argo-kfp-sdk:latest
+      image: kfp-operator-kfp-provider:latest
       command:
       - ash
   - name: delete
@@ -25,7 +25,7 @@ spec:
       source: |-
         set -e -o pipefail
         KFP_RESULT=$(kfp-ext --endpoint '{{inputs.parameters.endpoint}}' --output json job delete '{{workflow.parameters.runconfiguration-id}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
-      image: kfp-operator-argo-kfp-sdk:latest
+      image: kfp-operator-kfp-provider:latest
       command:
       - ash
 ---

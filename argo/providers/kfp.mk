@@ -1,4 +1,4 @@
-IMG := kfp-operator-argo-kfp-sdk
+IMG := kfp-operator-kfp-provider
 
 all: build
 
