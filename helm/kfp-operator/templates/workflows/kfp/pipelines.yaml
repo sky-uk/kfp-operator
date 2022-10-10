@@ -36,9 +36,6 @@ spec:
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
-    - name: provider
-      configMap:
-        name: sherlock-config
     initContainers:
     - args:
       - /shared

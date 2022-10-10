@@ -34,9 +34,6 @@ spec:
           - /tmp/pipeline-config.yaml
       volumes:
         - name: shared
-        - name: provider
-          configMap:
-            name: sherlock-config
       initContainers:
         - args:
             - /shared
