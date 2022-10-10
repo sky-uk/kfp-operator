@@ -44,7 +44,7 @@ func mapToNamedValues(values map[string]string) []apis.NamedValue {
 	return namedValues
 }
 
-//+kubebuilder:object:generate=false
+// +kubebuilder:object:generate=false
 type ConversionRemainder interface {
 	empty() bool
 }

@@ -77,6 +77,7 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
+						fmt.Printf("Pipeline %s created\n", id)
 						return nil
 					},
 				},
@@ -105,6 +106,7 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
+						fmt.Printf("Pipeline %s updated\n", id)
 						return nil
 					},
 				},
