@@ -24,8 +24,8 @@ func main() {
 	}
 }
 
-func (kfpp KfpProvider) CreatePipeline(providerConfig KfpProviderConfig, pipelineConfig PipelineConfig, pipelineFileName string, _ context.Context) (string, error) {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "upload", "--pipeline-name", pipelineConfig.Name, pipelineFileName)
+func (kfpp KfpProvider) CreatePipeline(providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string, _ context.Context) (string, error) {
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "upload", "--pipeline-name", pipelineDefinition.Name, pipelineFileName)
 	result, err := cmd.Output()
 
 	if err != nil {
@@ -46,8 +46,8 @@ func (kfpp KfpProvider) CreatePipeline(providerConfig KfpProviderConfig, pipelin
 	return id.(string), nil
 }
 
-func (kfpp KfpProvider) UpdatePipeline(providerConfig KfpProviderConfig, pipelineConfig PipelineConfig, id string, pipelineFile string, _ context.Context) (string, error) {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "upload-version", "--pipeline-version", pipelineConfig.Version, "--pipeline-id", id, pipelineFile)
+func (kfpp KfpProvider) UpdatePipeline(providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string, _ context.Context) (string, error) {
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "upload-version", "--pipeline-version", pipelineDefinition.Version, "--pipeline-id", id, pipelineFile)
 	result, err := cmd.Output()
 
 	if err != nil {
@@ -64,7 +64,7 @@ func (kfpp KfpProvider) UpdatePipeline(providerConfig KfpProviderConfig, pipelin
 	return version.(string), nil
 }
 
-func (kfpp KfpProvider) DeletePipeline(providerConfig KfpProviderConfig, pipelineConfig PipelineConfig, id string, _ context.Context) error {
+func (kfpp KfpProvider) DeletePipeline(providerConfig KfpProviderConfig, _ PipelineDefinition, id string, _ context.Context) error {
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "delete", id)
 	err := cmd.Run()
 

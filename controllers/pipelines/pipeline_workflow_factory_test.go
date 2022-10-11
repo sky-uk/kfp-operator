@@ -14,7 +14,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = Describe("PipelineConfig", func() {
+var _ = Describe("PipelineDefinition", func() {
 
 	Specify("Some fields are copied from Pipeline resource", func() {
 		wf := PipelineWorkflowFactory{}
@@ -121,7 +121,7 @@ var _ = Describe("PipelineConfig", func() {
 	})
 
 	It("Creates a valid YAML", func() {
-		config := providers.PipelineConfig{
+		config := providers.PipelineDefinition{
 			RootLocation:    "pipelineRootLocation",
 			ServingLocation: "pipelineServingLocation",
 			Name:            "pipelineName",

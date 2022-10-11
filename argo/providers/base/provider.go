@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-type PipelineConfig struct {
+type PipelineDefinition struct {
 	RootLocation    string              `yaml:"rootLocation"`
 	ServingLocation string              `yaml:"servingLocation"`
 	Name            string              `yaml:"name"`
@@ -16,7 +16,7 @@ type PipelineConfig struct {
 }
 
 type Provider[Config any] interface {
-	CreatePipeline(providerConfig Config, pipelineConfig PipelineConfig, pipelineFile string, ctx context.Context) (string, error)
-	UpdatePipeline(providerConfig Config, pipelineConfig PipelineConfig, id string, pipelineFile string, ctx context.Context) (string, error)
-	DeletePipeline(providerConfig Config, pipelineConfig PipelineConfig, id string, ctx context.Context) error
+	CreatePipeline(providerConfig Config, pipelineDefinition PipelineDefinition, pipelineFile string, ctx context.Context) (string, error)
+	UpdatePipeline(providerConfig Config, pipelineDefinition PipelineDefinition, id string, pipelineFile string, ctx context.Context) (string, error)
+	DeletePipeline(providerConfig Config, pipelineDefinition PipelineDefinition, id string, ctx context.Context) error
 }

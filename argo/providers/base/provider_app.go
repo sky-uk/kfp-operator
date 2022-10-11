@@ -9,17 +9,17 @@ import (
 )
 
 var ProviderConstants = struct {
-	PipelineConfigParameter string
-	ProviderConfigParameter string
-	PipelineIdParameter     string
-	PipelineFileParameter   string
-	OutputParameter         string
+	PipelineDefinitionParameter string
+	ProviderConfigParameter     string
+	PipelineIdParameter         string
+	PipelineFileParameter       string
+	OutputParameter             string
 }{
-	PipelineConfigParameter: "pipeline-config",
-	ProviderConfigParameter: "provider-config",
-	PipelineIdParameter:     "pipeline-id",
-	PipelineFileParameter:   "pipeline-file",
-	OutputParameter:         "out",
+	PipelineDefinitionParameter: "pipeline-definition",
+	ProviderConfigParameter:     "provider-config",
+	PipelineIdParameter:         "pipeline-id",
+	PipelineFileParameter:       "pipeline-file",
+	OutputParameter:             "out",
 }
 
 func RunProviderApp[Config any](provider Provider[Config]) error {
@@ -28,8 +28,8 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 		Required: true,
 	}
 
-	pipelineConfigFlag := cli.StringFlag{
-		Name:     ProviderConstants.PipelineConfigParameter,
+	pipelineDefinitionFlag := cli.StringFlag{
+		Name:     ProviderConstants.PipelineDefinitionParameter,
 		Required: true,
 	}
 	pipelineIdFlag := cli.StringFlag{
@@ -55,19 +55,19 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 			Subcommands: []cli.Command{
 				{
 					Name:  "create",
-					Flags: []cli.Flag{providerConfigFlag, pipelineConfigFlag, pipelineFileFlag, outFlag},
+					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineFileFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
 						providerConfig, err := loadProviderConfig[Config](c)
 						if err != nil {
 							return err
 						}
-						pipelineConfig, err := loadPipelineConfig(c)
+						pipelineDefinition, err := loadPipelineDefinition(c)
 						if err != nil {
 							return err
 						}
 
-						id, err := provider.CreatePipeline(providerConfig, pipelineConfig, pipelineFile, context.Background())
+						id, err := provider.CreatePipeline(providerConfig, pipelineDefinition, pipelineFile, context.Background())
 						if err != nil {
 							return err
 						}
@@ -83,11 +83,11 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 				},
 				{
 					Name:  "update",
-					Flags: []cli.Flag{providerConfigFlag, pipelineConfigFlag, pipelineFileFlag, pipelineIdFlag, outFlag},
+					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineFileFlag, pipelineIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
 						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
-						pipelineConfig, err := loadPipelineConfig(c)
+						pipelineDefinition, err := loadPipelineDefinition(c)
 						if err != nil {
 							return err
 						}
@@ -96,7 +96,7 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						version, err := provider.UpdatePipeline(providerConfig, pipelineConfig, id, pipelineFile, context.Background())
+						version, err := provider.UpdatePipeline(providerConfig, pipelineDefinition, id, pipelineFile, context.Background())
 						if err != nil {
 							return err
 						}
@@ -112,19 +112,19 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{providerConfigFlag, pipelineConfigFlag, pipelineIdFlag},
+					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineIdFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
 						providerConfig, err := loadProviderConfig[Config](c)
 						if err != nil {
 							return err
 						}
-						pipelineConfig, err := loadPipelineConfig(c)
+						pipelineDefinition, err := loadPipelineDefinition(c)
 						if err != nil {
 							return err
 						}
 
-						err = provider.DeletePipeline(providerConfig, pipelineConfig, id, context.Background())
+						err = provider.DeletePipeline(providerConfig, pipelineDefinition, id, context.Background())
 						if err != nil {
 							return err
 						}
@@ -159,18 +159,18 @@ func loadYamlFromFile(fileName string, obj interface{}) error {
 	return nil
 }
 
-func loadPipelineConfig(c *cli.Context) (PipelineConfig, error) {
-	pipelineConfig := PipelineConfig{}
+func loadPipelineDefinition(c *cli.Context) (PipelineDefinition, error) {
+	pipelineDefinition := PipelineDefinition{}
 
-	pipelineConfigFile := c.String(ProviderConstants.PipelineConfigParameter)
+	pipelineDefinitionFile := c.String(ProviderConstants.PipelineDefinitionParameter)
 
-	err := loadYamlFromFile(pipelineConfigFile, &pipelineConfig)
+	err := loadYamlFromFile(pipelineDefinitionFile, &pipelineDefinition)
 
 	if err != nil {
-		return pipelineConfig, err
+		return pipelineDefinition, err
 	}
 
-	return pipelineConfig, nil
+	return pipelineDefinition, nil
 }
 
 func loadProviderConfig[Config any](c *cli.Context) (Config, error) {

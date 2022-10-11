@@ -9,13 +9,13 @@ import (
 )
 
 var PipelineWorkflowConstants = struct {
-	PipelineIdParameterName      string
-	PipelineVersionParameterName string
-	PipelineConfigParameterName  string
+	PipelineIdParameterName         string
+	PipelineVersionParameterName    string
+	PipelineDefinitionParameterName string
 }{
-	PipelineIdParameterName:      "pipeline-id",
-	PipelineConfigParameterName:  "pipeline-config",
-	PipelineVersionParameterName: "pipeline-version",
+	PipelineIdParameterName:         "pipeline-id",
+	PipelineDefinitionParameterName: "pipeline-definition",
+	PipelineVersionParameterName:    "pipeline-version",
 }
 
 type PipelineWorkflowFactory struct {
@@ -47,7 +47,7 @@ func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
 }
 
 // TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
-func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipeline) *providers.PipelineConfig {
+func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipeline) *providers.PipelineDefinition {
 	// TODO: should come from config
 	servingPath := "/serving"
 	tempPath := "/tmp"
@@ -57,7 +57,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 	beamArgs := append(wf.Config.DefaultBeamArgs, pipeline.Spec.BeamArgs...)
 	beamArgs = append(beamArgs, apis.NamedValue{Name: "temp_location", Value: pipelineRoot + tempPath})
 
-	return &providers.PipelineConfig{
+	return &providers.PipelineDefinition{
 		RootLocation:    pipelineRoot,
 		ServingLocation: pipelineRoot + servingPath,
 		Name:            pipeline.ObjectMeta.Name,
@@ -81,7 +81,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
+						Name:  PipelineWorkflowConstants.PipelineDefinitionParameterName,
 						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 					{
@@ -110,7 +110,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
+						Name:  PipelineWorkflowConstants.PipelineDefinitionParameterName,
 						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 					{
@@ -151,7 +151,7 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 						Value: argo.AnyStringPtr(workflows.ProviderConfig),
 					},
 					{
-						Name:  PipelineWorkflowConstants.PipelineConfigParameterName,
+						Name:  PipelineWorkflowConstants.PipelineDefinitionParameterName,
 						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 				},

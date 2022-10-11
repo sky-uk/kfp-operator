@@ -9,11 +9,11 @@ spec:
         parameters:
           - name: pipeline-image
         artifacts:
-          - name: pipeline-config
+          - name: pipeline-definition
             raw:
               data: |
-                {{workflow.parameters.pipeline-config}}
-            path: /tmp/pipeline-config.yaml
+                {{workflow.parameters.pipeline-definition}}
+            path: /tmp/pipeline-definition.yaml
       outputs:
         artifacts:
           - name: pipeline
@@ -31,7 +31,7 @@ spec:
           - --output_file
           - /tmp/pipeline.yaml
           - --pipeline_config
-          - /tmp/pipeline-config.yaml
+          - /tmp/pipeline-definition.yaml
       volumes:
         - name: shared
       initContainers:
@@ -47,11 +47,11 @@ spec:
         artifacts:
           - name: pipeline
             path: /tmp/pipeline.yaml
-          - name: pipeline-config
-            path: /tmp/pipeline-config.yaml
+          - name: pipeline-definition
+            path: /tmp/pipeline-definition.yaml
             raw:
               data: |
-                {{workflow.parameters.pipeline-config}}
+                {{workflow.parameters.pipeline-definition}}
           - name: provider-config
             path: /tmp/provider-config.yaml
             raw:
@@ -70,8 +70,8 @@ spec:
         args:
           - pipeline
           - create
-          - --pipeline-config
-          - /tmp/pipeline-config.yaml
+          - --pipeline-definition
+          - /tmp/pipeline-definition.yaml
           - --provider-config
           - /tmp/provider-config.yaml
           - --pipeline-file
@@ -83,11 +83,11 @@ spec:
         artifacts:
           - name: pipeline
             path: /tmp/pipeline.yaml
-          - name: pipeline-config
-            path: /tmp/pipeline-config.yaml
+          - name: pipeline-definition
+            path: /tmp/pipeline-definition.yaml
             raw:
               data: |
-                {{workflow.parameters.pipeline-config}}
+                {{workflow.parameters.pipeline-definition}}
           - name: provider-config
             path: /tmp/provider-config.yaml
             raw:
@@ -109,8 +109,8 @@ spec:
         args:
           - pipeline
           - update
-          - --pipeline-config
-          - /tmp/pipeline-config.yaml
+          - --pipeline-definition
+          - /tmp/pipeline-definition.yaml
           - --provider-config
           - /tmp/provider-config.yaml
           - --pipeline-id
@@ -124,11 +124,11 @@ spec:
         parameters:
           - name: provider-image
         artifacts:
-          - name: pipeline-config
-            path: /tmp/pipeline-config.yaml
+          - name: pipeline-definition
+            path: /tmp/pipeline-definition.yaml
             raw:
               data: |
-                {{workflow.parameters.pipeline-config}}
+                {{workflow.parameters.pipeline-definition}}
           - name: provider-config
             path: /tmp/provider-config.yaml
             raw:
@@ -142,8 +142,8 @@ spec:
         args:
           - pipeline
           - delete
-          - --pipeline-config
-          - /tmp/pipeline-config.yaml
+          - --pipeline-definition
+          - /tmp/pipeline-definition.yaml
           - --provider-config
           - /tmp/provider-config.yaml
           - --pipeline-id
@@ -156,7 +156,7 @@ metadata:
 spec:
   arguments:
     parameters:
-      - name: pipeline-config
+      - name: pipeline-definition
       - name: provider-config
   entrypoint: main
   templates:
@@ -226,7 +226,7 @@ metadata:
 spec:
   arguments:
     parameters:
-      - name: pipeline-config
+      - name: pipeline-definition
       - name: provider-config
       - name: pipeline-id
   entrypoint: main

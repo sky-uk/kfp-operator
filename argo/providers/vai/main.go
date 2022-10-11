@@ -41,7 +41,7 @@ func (vaip VAIProvider) client(providerConfig VertexAiProviderConfig, ctx contex
 	return client, err
 }
 
-func (vaip VAIProvider) CreatePipeline(_ VertexAiProviderConfig, _ PipelineConfig, _ string, _ context.Context) (string, error) {
+func (vaip VAIProvider) CreatePipeline(_ VertexAiProviderConfig, _ PipelineDefinition, _ string, _ context.Context) (string, error) {
 	id, err := uuid.NewUUID()
 	if err != nil {
 		return "", err
@@ -50,7 +50,7 @@ func (vaip VAIProvider) CreatePipeline(_ VertexAiProviderConfig, _ PipelineConfi
 	return id.String(), nil
 }
 
-func (vaip VAIProvider) UpdatePipeline(providerConfig VertexAiProviderConfig, pipelineConfig PipelineConfig, id string, pipelineFile string, ctx context.Context) (string, error) {
+func (vaip VAIProvider) UpdatePipeline(providerConfig VertexAiProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string, ctx context.Context) (string, error) {
 	client, err := vaip.client(providerConfig, ctx)
 	if err != nil {
 		log.Fatal(err)
@@ -61,7 +61,7 @@ func (vaip VAIProvider) UpdatePipeline(providerConfig VertexAiProviderConfig, pi
 		return "", err
 	}
 
-	writer := client.Bucket(providerConfig.PipelineBucket).Object(fmt.Sprintf("%s/%s", id, pipelineConfig.Version)).NewWriter(ctx)
+	writer := client.Bucket(providerConfig.PipelineBucket).Object(fmt.Sprintf("%s/%s", id, pipelineDefinition.Version)).NewWriter(ctx)
 	_, err = io.Copy(writer, reader)
 	if err != nil {
 		return "", err
@@ -77,12 +77,12 @@ func (vaip VAIProvider) UpdatePipeline(providerConfig VertexAiProviderConfig, pi
 		return "", err
 	}
 
-	fmt.Printf("Version %s created for pipeline %s\n", pipelineConfig.Version, id)
+	fmt.Printf("Version %s created for pipeline %s\n", pipelineDefinition.Version, id)
 
-	return pipelineConfig.Version, nil
+	return pipelineDefinition.Version, nil
 }
 
-func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, _ PipelineConfig, id string, ctx context.Context) error {
+func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, _ PipelineDefinition, id string, ctx context.Context) error {
 	client, err := vaip.client(providerConfig, ctx)
 	if err != nil {
 		log.Fatal(err)
