@@ -176,6 +176,14 @@
 &lt;td>CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
 &lt;/tr>
 &lt;tr>
+&lt;td>&lt;code>manager.provider.type&lt;/code>&lt;/td>
+&lt;td>Provider type (&lt;code>kfp&lt;/code> for Kubeflow Pipelines or &lt;code>vai&lt;/code> for Vertex AI Pipelines)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.provider.configuration&lt;/code>&lt;/td>
+&lt;td>Configuration block for the specific provider (see &lt;a href="../../reference/configuration#provider-configuration">Provider Configuration&lt;/a>), automatically mounted as a file&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>logging.verbosity&lt;/code>&lt;/td>
 &lt;td>Logging verbosity for all components - see the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
 &lt;/tr>
