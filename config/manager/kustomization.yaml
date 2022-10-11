@@ -1,9 +1,9 @@
 resources:
 - manager.yaml
-- workflows/kfp/common.yaml
-- workflows/kfp/pipelines.yaml
-- workflows/kfp/experiments.yaml
-- workflows/kfp/runconfigurations.yaml
+- workflows/common.yaml
+- workflows/pipelines.yaml
+- workflows/experiments.yaml
+- workflows/runconfigurations.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
