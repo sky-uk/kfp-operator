@@ -9,17 +9,21 @@ import (
 )
 
 var ProviderConstants = struct {
-	PipelineDefinitionParameter string
-	ProviderConfigParameter     string
-	PipelineIdParameter         string
-	PipelineFileParameter       string
-	OutputParameter             string
+	PipelineDefinitionParameter   string
+	ExperimentDefinitionParameter string
+	ProviderConfigParameter       string
+	PipelineIdParameter           string
+	ExperimentIdParameter         string
+	PipelineFileParameter         string
+	OutputParameter               string
 }{
-	PipelineDefinitionParameter: "pipeline-definition",
-	ProviderConfigParameter:     "provider-config",
-	PipelineIdParameter:         "pipeline-id",
-	PipelineFileParameter:       "pipeline-file",
-	OutputParameter:             "out",
+	PipelineDefinitionParameter:   "pipeline-definition",
+	ExperimentDefinitionParameter: "experiment-definition",
+	ProviderConfigParameter:       "provider-config",
+	PipelineIdParameter:           "pipeline-id",
+	ExperimentIdParameter:         "experiment-id",
+	PipelineFileParameter:         "pipeline-file",
+	OutputParameter:               "out",
 }
 
 func RunProviderApp[Config any](provider Provider[Config]) error {
@@ -44,6 +48,15 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 
 	outFlag := cli.StringFlag{
 		Name:     ProviderConstants.OutputParameter,
+		Required: true,
+	}
+
+	experimentDefinitionFlag := cli.StringFlag{
+		Name:     ProviderConstants.ExperimentDefinitionParameter,
+		Required: true,
+	}
+	experimentIdFlag := cli.StringFlag{
+		Name:     ProviderConstants.ExperimentIdParameter,
 		Required: true,
 	}
 
@@ -114,22 +127,69 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 					Name:  "delete",
 					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineIdFlag},
 					Action: func(c *cli.Context) error {
-						id := c.String(ProviderConstants.PipelineIdParameter)
+						id := c.String(ProviderConstants.ExperimentIdParameter)
 						providerConfig, err := loadProviderConfig[Config](c)
 						if err != nil {
 							return err
 						}
-						pipelineDefinition, err := loadPipelineDefinition(c)
-						if err != nil {
-							return err
-						}
 
-						err = provider.DeletePipeline(providerConfig, pipelineDefinition, id, context.Background())
+						err = provider.DeletePipeline(providerConfig, id, context.Background())
 						if err != nil {
 							return err
 						}
 
 						fmt.Printf("Pipeline %s deleted\n", id)
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name: "experiment",
+			Subcommands: []cli.Command{
+				{
+					Name:  "create",
+					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, outFlag},
+					Action: func(c *cli.Context) error {
+						providerConfig, err := loadProviderConfig[Config](c)
+						if err != nil {
+							return err
+						}
+						experimentDefinition, err := loadExperimentDefinition(c)
+						if err != nil {
+							return err
+						}
+
+						id, err := provider.CreateExperiment(providerConfig, experimentDefinition, context.Background())
+						if err != nil {
+							return err
+						}
+
+						err = writeOutput(c, id)
+						if err != nil {
+							return err
+						}
+
+						fmt.Printf("Experiment %s created\n", id)
+						return nil
+					},
+				},
+				{
+					Name:  "delete",
+					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag},
+					Action: func(c *cli.Context) error {
+						id := c.String(ProviderConstants.ExperimentIdParameter)
+						providerConfig, err := loadProviderConfig[Config](c)
+						if err != nil {
+							return err
+						}
+
+						err = provider.DeleteExperiment(providerConfig, id, context.Background())
+						if err != nil {
+							return err
+						}
+
+						fmt.Printf("Experiment %s deleted\n", id)
 						return nil
 					},
 				},
@@ -171,6 +231,20 @@ func loadPipelineDefinition(c *cli.Context) (PipelineDefinition, error) {
 	}
 
 	return pipelineDefinition, nil
+}
+
+func loadExperimentDefinition(c *cli.Context) (ExperimentDefinition, error) {
+	experimentDefinition := ExperimentDefinition{}
+
+	experimentDefinitionFile := c.String(ProviderConstants.ExperimentDefinitionParameter)
+
+	err := loadYamlFromFile(experimentDefinitionFile, &experimentDefinition)
+
+	if err != nil {
+		return experimentDefinition, err
+	}
+
+	return experimentDefinition, nil
 }
 
 func loadProviderConfig[Config any](c *cli.Context) (Config, error) {

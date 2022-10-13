@@ -47,7 +47,7 @@ func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
 }
 
 // TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
-func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipeline) *providers.PipelineDefinition {
+func (wf *PipelineWorkflowFactory) newPipelineDefinition(pipeline *pipelinesv1.Pipeline) *providers.PipelineDefinition {
 	// TODO: should come from config
 	servingPath := "/serving"
 	tempPath := "/tmp"
@@ -70,7 +70,7 @@ func (wf *PipelineWorkflowFactory) newCompilerConfig(pipeline *pipelinesv1.Pipel
 }
 
 func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := yaml.Marshal(workflows.newCompilerConfig(pipeline))
+	compilerConfigYaml, err := yaml.Marshal(workflows.newPipelineDefinition(pipeline))
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 }
 
 func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := yaml.Marshal(workflows.newCompilerConfig(pipeline))
+	compilerConfigYaml, err := yaml.Marshal(workflows.newPipelineDefinition(pipeline))
 	if err != nil {
 		return nil, err
 	}
@@ -132,11 +132,6 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 }
 
 func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := yaml.Marshal(workflows.newCompilerConfig(pipeline))
-	if err != nil {
-		return nil, err
-	}
-
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -149,10 +144,6 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(workflows.ProviderConfig),
-					},
-					{
-						Name:  PipelineWorkflowConstants.PipelineDefinitionParameterName,
-						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 				},
 			},

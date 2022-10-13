@@ -7,31 +7,65 @@ spec:
   - name: create
     inputs:
       parameters:
-      - name: endpoint
+      - name: provider-image
+      artifacts:
+      - name: experiment-definition
+        path: /tmp/experiment-definition.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.experiment-definition}}`}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
+    outputs:
+      parameters:
+      - name: experiment-id
+        valueFrom:
+          path: /tmp/id.txt
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    script:
-      source: |-
-        set -e -o pipefail
-        kfp-ext --endpoint '{{`{{inputs.parameters.endpoint}}`}}' --output json experiment create '{{`{{workflow.parameters.experiment-name}}`}}' | jq -r '."ID"'
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-kfp-provider:{{ .Chart.AppVersion }}
-      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+    container:
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
       command:
-      - ash
+      - /provider
+      args:
+      - experiment
+      - create
+      - --experiment-definition
+      - /tmp/experiment-definition.yaml
+      - --provider-config
+      - /tmp/provider-config.yaml
+      - --out
+      - /tmp/id.txt
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: delete
     inputs:
       parameters:
-      - name: endpoint
+      - name: provider-image
+      artifacts:
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    script:
-      source: |-
-        set -e -o pipefail
-        echo y | kfp-ext --endpoint '{{`{{inputs.parameters.endpoint}}`}}' --output json experiment delete '{{`{{workflow.parameters.experiment-id}}`}}'
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-kfp-provider:{{ .Chart.AppVersion }}
-      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+    container:
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
       command:
-      - ash
+      - /provider
+      args:
+      - experiment
+      - delete
+      - --experiment-definition
+      - /tmp/experiment-definition.yaml
+      - --provider-config
+      - /tmp/provider-config.yaml
+      - --experiment-id
+      - '{{`{{workflow.parameters.experiment-id}}`}}'
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -40,7 +74,7 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: experiment-name
+    - name: experiment-definition
     - name: provider-config
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
@@ -52,18 +86,18 @@ spec:
       parameters:
       - name: experiment-id
         valueFrom:
-          parameter: '{{`{{steps.create.outputs.result}}`}}'
+          parameter: '{{`{{steps.create.outputs.parameters.experiment-id}}`}}'
     steps:
-    - - name: select-endpoint
+    - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-endpoint
+          template: select-provider-image
           clusterScope: true
     - - name: create
         arguments:
           parameters:
-          - name: endpoint
-            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-experiment-steps
           template: create
@@ -76,9 +110,9 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: experiment-id
-    - name: experiment-name
-    - name: provider-config
+      - name: experiment-definition
+      - name: provider-config
+      - name: experiment-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -89,18 +123,19 @@ spec:
       parameters:
       - name: experiment-id
         valueFrom:
-          parameter: '{{`{{steps.create.outputs.result}}`}}'
+          parameter: '{{`{{steps.create.outputs.parameters.experiment-id}}`}}'
+          default: ""
     steps:
-    - - name: select-endpoint
+    - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-endpoint
+          template: select-provider-image
           clusterScope: true
     - - name: delete
         arguments:
           parameters:
-          - name: endpoint
-            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-experiment-steps
           template: delete
@@ -108,8 +143,8 @@ spec:
     - - name: create
         arguments:
           parameters:
-          - name: endpoint
-            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         continueOn:
           failed: true
         templateRef:
@@ -124,8 +159,8 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: experiment-id
     - name: provider-config
+    - name: experiment-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -133,16 +168,16 @@ spec:
   templates:
   - name: main
     steps:
-    - - name: select-endpoint
+    - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-endpoint
+          template: select-provider-image
           clusterScope: true
     - - name: delete
         arguments:
           parameters:
-          - name: endpoint
-            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-experiment-steps
           template: delete

@@ -3,29 +3,44 @@ package pipelines
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	providers "github.com/sky-uk/kfp-operator/providers/base"
+	"gopkg.in/yaml.v2"
 )
 
 var ExperimentWorkflowConstants = struct {
-	ExperimentIdParameterName   string
-	ExperimentNameParameterName string
+	ExperimentDefinitionParameterName string
+	ExperimentIdParameterName         string
 }{
-	ExperimentIdParameterName:   "experiment-id",
-	ExperimentNameParameterName: "experiment-name",
+	ExperimentDefinitionParameterName: "experiment-definition",
+	ExperimentIdParameterName:         "experiment-id",
 }
 
 type ExperimentWorkflowFactory struct {
 	WorkflowFactoryBase
 }
 
+func (wf *ExperimentWorkflowFactory) newExperimentDefinition(experiment *pipelinesv1.Experiment) *providers.ExperimentDefinition {
+	return &providers.ExperimentDefinition{
+		Name:        experiment.ObjectMeta.Name,
+		Version:     experiment.Spec.ComputeVersion(),
+		Description: experiment.Spec.Description,
+	}
+}
+
 func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+	compilerConfigYaml, err := yaml.Marshal(workflows.newExperimentDefinition(experiment))
+	if err != nil {
+		return nil, err
+	}
+
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  ExperimentWorkflowConstants.ExperimentNameParameterName,
-						Value: argo.AnyStringPtr(experiment.Name),
+						Name:  ExperimentWorkflowConstants.ExperimentDefinitionParameterName,
+						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
@@ -42,18 +57,23 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 }
 
 func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+	compilerConfigYaml, err := yaml.Marshal(workflows.newExperimentDefinition(experiment))
+	if err != nil {
+		return nil, err
+	}
+
 	return &argo.Workflow{
 		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-						Value: argo.AnyStringPtr(experiment.Status.KfpId),
+						Name:  ExperimentWorkflowConstants.ExperimentDefinitionParameterName,
+						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
 					},
 					{
-						Name:  ExperimentWorkflowConstants.ExperimentNameParameterName,
-						Value: argo.AnyStringPtr(experiment.Name),
+						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
+						Value: argo.AnyStringPtr(experiment.Status.KfpId),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,

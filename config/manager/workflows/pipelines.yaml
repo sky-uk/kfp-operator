@@ -124,11 +124,6 @@ spec:
         parameters:
           - name: provider-image
         artifacts:
-          - name: pipeline-definition
-            path: /tmp/pipeline-definition.yaml
-            raw:
-              data: |
-                {{workflow.parameters.pipeline-definition}}
           - name: provider-config
             path: /tmp/provider-config.yaml
             raw:

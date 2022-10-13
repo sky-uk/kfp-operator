@@ -3,6 +3,7 @@ package main
 import (
 	"cloud.google.com/go/storage"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	. "github.com/sky-uk/kfp-operator/providers/base"
@@ -27,6 +28,14 @@ type VertexAiProviderConfig struct {
 }
 
 type VAIProvider struct {
+}
+
+func (vaip VAIProvider) CreateExperiment(_ VertexAiProviderConfig, _ ExperimentDefinition, _ context.Context) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (vaip VAIProvider) DeleteExperiment(_ VertexAiProviderConfig, _ string, _ context.Context) error {
+	return errors.New("not implemented")
 }
 
 func (vaip VAIProvider) client(providerConfig VertexAiProviderConfig, ctx context.Context) (*storage.Client, error) {
@@ -82,7 +91,7 @@ func (vaip VAIProvider) UpdatePipeline(providerConfig VertexAiProviderConfig, pi
 	return pipelineDefinition.Version, nil
 }
 
-func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, _ PipelineDefinition, id string, ctx context.Context) error {
+func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, id string, ctx context.Context) error {
 	client, err := vaip.client(providerConfig, ctx)
 	if err != nil {
 		log.Fatal(err)
