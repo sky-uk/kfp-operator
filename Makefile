@@ -66,7 +66,7 @@ integration-test-up:
 	minikube start -p kfp-operator-tests
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
-	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/${ARGO_VERSION}/manifests/quick-start-postgres.yaml
+	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
 	# Set up mocks
 	kubectl apply -n argo -f config/testing/wiremock.yaml
