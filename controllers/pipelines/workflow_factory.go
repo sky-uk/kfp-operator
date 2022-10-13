@@ -10,25 +10,25 @@ import (
 )
 
 var WorkflowConstants = struct {
-	OwnerKindLabelKey        string
-	OwnerNameLabelKey        string
-	OperationLabelKey        string
-	CreateOperationLabel     string
-	DeleteOperationLabel     string
-	UpdateOperationLabel     string
-	EntryPointName           string
-	ConstructionFailedError  string
-	KfpEndpointParameterName string
+	OwnerKindLabelKey           string
+	OwnerNameLabelKey           string
+	OperationLabelKey           string
+	CreateOperationLabel        string
+	DeleteOperationLabel        string
+	UpdateOperationLabel        string
+	EntryPointName              string
+	ConstructionFailedError     string
+	ProviderConfigParameterName string
 }{
-	OwnerKindLabelKey:        pipelinesv1.GroupVersion.Group + "/owner.kind",
-	OwnerNameLabelKey:        pipelinesv1.GroupVersion.Group + "/owner.name",
-	OperationLabelKey:        pipelinesv1.GroupVersion.Group + "/operation",
-	CreateOperationLabel:     "create",
-	DeleteOperationLabel:     "delete",
-	UpdateOperationLabel:     "update",
-	EntryPointName:           "main",
-	ConstructionFailedError:  "error constructing workflow",
-	KfpEndpointParameterName: "kfp-endpoint",
+	OwnerKindLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.kind",
+	OwnerNameLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.name",
+	OperationLabelKey:           pipelinesv1.GroupVersion.Group + "/operation",
+	CreateOperationLabel:        "create",
+	DeleteOperationLabel:        "delete",
+	UpdateOperationLabel:        "update",
+	EntryPointName:              "main",
+	ConstructionFailedError:     "error constructing workflow",
+	ProviderConfigParameterName: "provider-config",
 }
 
 type WorkflowFactory[R apis.Resource] interface {
@@ -38,13 +38,9 @@ type WorkflowFactory[R apis.Resource] interface {
 }
 
 type WorkflowFactoryBase struct {
-	ResourceKind string
-	Config       config.Configuration
-}
-
-type KfpExtCommandBuilder struct {
-	commandParts []string
-	error        error
+	ResourceKind   string
+	Config         config.Configuration
+	ProviderConfig string
 }
 
 func CommonWorkflowMeta(owner apis.Resource, operation string) *metav1.ObjectMeta {

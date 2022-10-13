@@ -68,8 +68,11 @@
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>: &lt;span style="color:#ae81ff">pipeline-runner&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">defaultExperiment&lt;/span>: &lt;span style="color:#ae81ff">Default&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kfpEndpoint&lt;/span>: &lt;span style="color:#ae81ff">http://ml-pipeline.kubeflow:8888&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipelineStorage&lt;/span>: {&lt;span style="color:#ae81ff">STORAGE_LOCATION}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">endpoint&lt;/span>: &lt;span style="color:#ae81ff">http://ml-pipeline.kubeflow:8888&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Uncomment below for eventing-support&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#eventsourceServer:&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># create: true&lt;/span>
@@ -171,6 +174,14 @@
 &lt;tr>
 &lt;td>&lt;code>manager.multiversion.webhookCertificates.caBundle&lt;/code>&lt;/td>
 &lt;td>CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.provider.type&lt;/code>&lt;/td>
+&lt;td>Provider type (&lt;code>kfp&lt;/code> for Kubeflow Pipelines or &lt;code>vai&lt;/code> for Vertex AI Pipelines)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.provider.configuration&lt;/code>&lt;/td>
+&lt;td>Configuration block for the specific provider (see &lt;a href="../../reference/configuration#provider-configuration">Provider Configuration&lt;/a>), automatically mounted as a file&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>logging.verbosity&lt;/code>&lt;/td>

@@ -12,11 +12,10 @@ output_file_path = dirpath+'/pipeline.yaml'
 
 def test_cli():
     sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "..", "docs-gen", "includes", "quickstart", "penguin_pipeline"))
-    with open(config_file_path, 'r') as f:        
-        result = runner.invoke(compiler.compile, ['--pipeline_config', f.read(), '--output_file', output_file_path])
+    result = runner.invoke(compiler.compile, ['--pipeline_config', config_file_path, '--output_file', output_file_path])
 
-        assert result.exit_code == 0
-        assert os.stat(output_file_path).st_size != 0
+    assert result.exit_code == 0
+    assert os.stat(output_file_path).st_size != 0
 
 
 def test_failure():

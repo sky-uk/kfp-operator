@@ -380,11 +380,11 @@ spec:
                 type: array
               defaultExperiment:
                 type: string
-              kfpEndpoint:
-                type: string
               multiversion:
                 type: boolean
               pipelineStorage:
+                type: string
+              providerConfigFile:
                 type: string
               workflowTemplatePrefix:
                 type: string

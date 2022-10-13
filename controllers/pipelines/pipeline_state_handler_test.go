@@ -126,9 +126,7 @@ var _ = Describe("Pipeline State handler", func() {
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				KfpEndpoint: "http://www.example.com",
-			},
+			Config: config.Configuration{},
 		},
 	}
 

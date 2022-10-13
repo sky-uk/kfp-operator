@@ -1,0 +1,2 @@
+image: kfp-operator-kfp-provider:latest
+endpoint: ${KFP_ENDPOINT}

@@ -1,6 +1,6 @@
 // Package v2 contains API Schema definitions for the config v2 API group
-//+kubebuilder:object:generate=true
-//+groupName=config.kubeflow.org
+// +kubebuilder:object:generate=true
+// +groupName=config.kubeflow.org
 package v1alpha3
 
 import (

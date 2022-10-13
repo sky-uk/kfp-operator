@@ -5,24 +5,30 @@ metadata:
 spec:
   templates:
   - name: create
+    inputs:
+      parameters:
+      - name: endpoint
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     script:
       source: |-
         set -e -o pipefail
-        kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json job submit --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' --job-name '{{`{{workflow.parameters.runconfiguration-name}}`}}' --experiment-name '{{`{{workflow.parameters.experiment-name}}`}}' --version-name '{{`{{workflow.parameters.pipeline-version}}`}}' --cron-expression '{{`{{workflow.parameters.schedule}}`}}'  | jq -r '."Job Details"."ID"'
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+        kfp-ext --endpoint '{{`{{inputs.parameters.endpoint}}`}}' --output json job submit --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' --job-name '{{`{{workflow.parameters.runconfiguration-name}}`}}' --experiment-name '{{`{{workflow.parameters.experiment-name}}`}}' --version-name '{{`{{workflow.parameters.pipeline-version}}`}}' --cron-expression '{{`{{workflow.parameters.schedule}}`}}'  | jq -r '."Job Details"."ID"'
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-kfp-provider:{{ .Chart.AppVersion }}
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
       command:
       - ash
   - name: delete
+    inputs:
+      parameters:
+      - name: endpoint
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     script:
       source: |-
         set -e -o pipefail
-        KFP_RESULT=$(kfp-ext --endpoint '{{`{{workflow.parameters.kfp-endpoint}}`}}' --output json job delete '{{`{{workflow.parameters.runconfiguration-id}}`}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-sdk:{{ .Chart.AppVersion }}
+        KFP_RESULT=$(kfp-ext --endpoint '{{`{{inputs.parameters.endpoint}}`}}' --output json job delete '{{`{{workflow.parameters.runconfiguration-id}}`}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-kfp-provider:{{ .Chart.AppVersion }}
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
       command:
       - ash
@@ -39,7 +45,7 @@ spec:
     - name: pipeline-version
     - name: experiment-name
     - name: schedule
-    - name: kfp-endpoint
+    - name: provider-config
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -52,7 +58,16 @@ spec:
         valueFrom:
           parameter: '{{`{{steps.create.outputs.result}}`}}'
     steps:
+    - - name: select-endpoint
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-endpoint
+          clusterScope: true
     - - name: create
+        arguments:
+          parameters:
+          - name: endpoint
+            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: create
@@ -71,7 +86,7 @@ spec:
     - name: pipeline-version
     - name: experiment-name
     - name: schedule
-    - name: kfp-endpoint
+    - name: provider-config
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -84,12 +99,25 @@ spec:
         valueFrom:
           parameter: '{{`{{steps.create.outputs.result}}`}}'
     steps:
+    - - name: select-endpoint
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-endpoint
+          clusterScope: true
     - - name: delete
+        arguments:
+          parameters:
+          - name: endpoint
+            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: delete
           clusterScope: true
     - - name: create
+        arguments:
+          parameters:
+          - name: endpoint
+            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: create
@@ -105,7 +133,7 @@ spec:
   arguments:
     parameters:
     - name: runconfiguration-id
-    - name: kfp-endpoint
+    - name: provider-config
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -113,7 +141,16 @@ spec:
   templates:
   - name: main
     steps:
+    - - name: select-endpoint
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-endpoint
+          clusterScope: true
     - - name: delete
+        arguments:
+          parameters:
+          - name: endpoint
+            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: delete

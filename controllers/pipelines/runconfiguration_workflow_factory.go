@@ -26,10 +26,10 @@ type RunConfigurationWorkflowFactory struct {
 	WorkflowFactoryBase
 }
 
-func (workflows RunConfigurationWorkflowFactory) kfpEndpointParameter() argo.Parameter {
+func (workflows RunConfigurationWorkflowFactory) providerConfigParameter() argo.Parameter {
 	return argo.Parameter{
-		Name:  WorkflowConstants.KfpEndpointParameterName,
-		Value: argo.AnyStringPtr(workflows.Config.KfpEndpoint),
+		Name:  WorkflowConstants.ProviderConfigParameterName,
+		Value: argo.AnyStringPtr(workflows.ProviderConfig),
 	}
 }
 
@@ -44,7 +44,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
-				Parameters: append(creationParameters, workflows.kfpEndpointParameter()),
+				Parameters: append(creationParameters, workflows.providerConfigParameter()),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
 				Name:         workflows.Config.WorkflowTemplatePrefix + "create-runconfiguration",
@@ -66,7 +66,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
-				Parameters: append(append(deletionParameters, workflows.kfpEndpointParameter()), creationParameters...),
+				Parameters: append(append(deletionParameters, workflows.providerConfigParameter()), creationParameters...),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
 				Name:         workflows.Config.WorkflowTemplatePrefix + "update-runconfiguration",
@@ -81,7 +81,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runCo
 		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
-				Parameters: append(workflows.deletionParameters(runConfiguration), workflows.kfpEndpointParameter()),
+				Parameters: append(workflows.deletionParameters(runConfiguration), workflows.providerConfigParameter()),
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
 				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-runconfiguration",

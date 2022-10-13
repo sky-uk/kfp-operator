@@ -9,11 +9,12 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	providers "github.com/sky-uk/kfp-operator/providers/base"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var _ = Describe("PipelineConfig", func() {
+var _ = Describe("PipelineDefinition", func() {
 
 	Specify("Some fields are copied from Pipeline resource", func() {
 		wf := PipelineWorkflowFactory{}
@@ -120,7 +121,7 @@ var _ = Describe("PipelineConfig", func() {
 	})
 
 	It("Creates a valid YAML", func() {
-		config := CompilerConfig{
+		config := providers.PipelineDefinition{
 			RootLocation:    "pipelineRootLocation",
 			ServingLocation: "pipelineServingLocation",
 			Name:            "pipelineName",
@@ -134,11 +135,11 @@ var _ = Describe("PipelineConfig", func() {
 			},
 		}
 
-		configYaml, err := config.AsYaml()
+		configYaml, err := yaml.Marshal(config)
 		Expect(err).NotTo(HaveOccurred())
 
 		m := make(map[interface{}]interface{})
-		yaml.Unmarshal([]byte(configYaml), m)
+		yaml.Unmarshal(configYaml, m)
 
 		Expect(m["rootLocation"]).To(Equal("pipelineRootLocation"))
 		Expect(m["servingLocation"]).To(Equal("pipelineServingLocation"))

@@ -61,11 +61,12 @@ decoupled-test: manifests generate ## Run decoupled acceptance tests
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
 	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -coverprofile cover.out
 
+ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
 integration-test-up:
 	minikube start -p kfp-operator-tests
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
-	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/${ARGO_VERSION}/manifests/quick-start-postgres.yaml
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
 	# Set up mocks
 	kubectl apply -n argo -f config/testing/wiremock.yaml
@@ -82,7 +83,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
  		$(YQ) e 'select(.kind == "ClusterWorkflowTemplate")' - | \
  		kubectl apply -f -
-	go test ./... -tags=integration
+	go test ./... -tags=integration --timeout 20m
 
 integration-test-down:
 	(cat config/testing/pids | xargs kill) || true
@@ -95,7 +96,8 @@ test: fmt vet unit-test decoupled-test
 
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
-	$(MAKE) -C argo/kfp-sdk test
+	$(MAKE) -C argo/providers -f kfp.mk test
+	$(MAKE) -C argo/providers -f vai.mk test
 	$(MAKE) -C argo/events test
 
 test-all: test helm-test test-argo
@@ -207,12 +209,14 @@ include docker-targets.mk
 
 docker-build-argo:
 	$(MAKE) -C argo/kfp-compiler docker-build
-	$(MAKE) -C argo/kfp-sdk docker-build
+	$(MAKE) -C argo/providers -f kfp.mk docker-build
+	$(MAKE) -C argo/providers -f vai.mk docker-build
 	$(MAKE) -C argo/events docker-build
 
 docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
-	$(MAKE) -C argo/kfp-sdk docker-push
+	$(MAKE) -C argo/providers -f kfp.mk docker-push
+	$(MAKE) -C argo/providers -f vai.mk docker-push
 	$(MAKE) -C argo/events docker-push
 
 ##@ Website

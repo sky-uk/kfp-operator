@@ -1,0 +1,136 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: experiment-steps
+spec:
+  templates:
+    - name: create
+      inputs:
+        parameters:
+          - name: endpoint
+      metadata: {}
+      script:
+        source: |-
+          set -e -o pipefail
+          kfp-ext --endpoint '{{inputs.parameters.endpoint}}' --output json experiment create '{{workflow.parameters.experiment-name}}' | jq -r '."ID"'
+        image: kfp-operator-kfp-provider:latest
+        command:
+          - ash
+    - name: delete
+      inputs:
+        parameters:
+          - name: endpoint
+      metadata: {}
+      script:
+        source: |-
+          set -e -o pipefail
+          echo y | kfp-ext --endpoint '{{inputs.parameters.endpoint}}' --output json experiment delete '{{workflow.parameters.experiment-id}}'
+        image: kfp-operator-kfp-provider:latest
+        command:
+          - ash
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: create-experiment
+spec:
+  arguments:
+    parameters:
+      - name: experiment-name
+      - name: provider-config
+  entrypoint: main
+  templates:
+    - name: main
+      outputs:
+        parameters:
+          - name: experiment-id
+            valueFrom:
+              parameter: '{{steps.create.outputs.result}}'
+      steps:
+        - - name: select-endpoint
+            templateRef:
+              name: kfp-operator-common-steps
+              template: select-endpoint
+              clusterScope: true
+        - - name: create
+            arguments:
+              parameters:
+                - name: endpoint
+                  value: '{{steps.select-endpoint.outputs.result}}'
+            templateRef:
+              name: kfp-operator-experiment-steps
+              template: create
+              clusterScope: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: update-experiment
+spec:
+  arguments:
+    parameters:
+      - name: experiment-id
+      - name: experiment-name
+      - name: provider-config
+  entrypoint: main
+  templates:
+    - name: main
+      outputs:
+        parameters:
+          - name: experiment-id
+            valueFrom:
+              parameter: '{{steps.create.outputs.result}}'
+      steps:
+        - - name: select-endpoint
+            templateRef:
+              name: kfp-operator-common-steps
+              template: select-endpoint
+              clusterScope: true
+        - - name: delete
+            arguments:
+              parameters:
+                - name: endpoint
+                  value: '{{steps.select-endpoint.outputs.result}}'
+            templateRef:
+              name: kfp-operator-experiment-steps
+              template: delete
+              clusterScope: true
+        - - name: create
+            arguments:
+              parameters:
+                - name: endpoint
+                  value: '{{steps.select-endpoint.outputs.result}}'
+            continueOn:
+              failed: true
+            templateRef:
+              name: kfp-operator-experiment-steps
+              template: create
+              clusterScope: true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: delete-experiment
+spec:
+  arguments:
+    parameters:
+      - name: experiment-id
+      - name: provider-config
+  entrypoint: main
+  templates:
+    - name: main
+      steps:
+        - - name: select-endpoint
+            templateRef:
+              name: kfp-operator-common-steps
+              template: select-endpoint
+              clusterScope: true
+        - - name: delete
+            arguments:
+              parameters:
+                - name: endpoint
+                  value: '{{steps.select-endpoint.outputs.result}}'
+            templateRef:
+              name: kfp-operator-experiment-steps
+              template: delete
+              clusterScope: true

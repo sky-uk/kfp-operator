@@ -8,8 +8,6 @@ manager:
     defaultBeamArgs:
     - name: project
       value: ${DATAFLOW_PROJECT}
-    kfpEndpoint: ${KFP_ENDPOINT}
-
   monitoring:
     create: true
     rbacSecured: true
@@ -23,5 +21,9 @@ manager:
     enabled: true
     webhookCertificates:
       provider: cert-manager
+  provider:
+    configuration:
+      endpoint: ${KFP_ENDPOINT}
+
 eventsourceServer:
   create: false

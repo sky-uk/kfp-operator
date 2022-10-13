@@ -89,9 +89,7 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				KfpEndpoint: "http://www.example.com",
-			},
+			Config: config.Configuration{},
 		},
 	}
 
@@ -112,7 +110,6 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: config.Configuration{
 				DefaultExperiment: "Default",
-				KfpEndpoint:       "http://www.example.com",
 			},
 		},
 	}
@@ -132,9 +129,7 @@ func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository Work
 	// TODO: mock workflowFactory
 	var workflowFactory = ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				KfpEndpoint: "http://www.example.com",
-			},
+			Config: config.Configuration{},
 		},
 	}
 

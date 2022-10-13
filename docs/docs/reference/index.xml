@@ -22,21 +22,80 @@
 &lt;tr>
 &lt;td>&lt;code>debug&lt;/code>&lt;/td>
 &lt;td>Default debugging options&lt;/td>
-&lt;td>See &lt;a href="./debugging.md">Debugging&lt;/a>&lt;/td>
+&lt;td>See &lt;a href="../debugging">Debugging&lt;/a>&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>kfpEndpoint&lt;/code>&lt;/td>
-&lt;td>The KFP endpoint available to the operator&lt;/td>
-&lt;td>&lt;code>kubeflow-ui.kubeflow-pipelines:8080&lt;/code>&lt;/td>
+&lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
+&lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
+&lt;td>&lt;code>true&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>pipelineStorage&lt;/code>&lt;/td>
 &lt;td>The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
 &lt;td>&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>providerConfigFile&lt;/code>&lt;/td>
+&lt;td>File in the controller container containing the provider-specific configuration (see below)&lt;/td>
+&lt;td>&lt;code>provider.yaml&lt;/code>&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
-&lt;p>An example can be found in the &lt;a href="../config/manager/controller_manager_config.yaml">local run configuration&lt;/a>.&lt;/p></description></item><item><title>Docs: Resources</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</guid><description>
+&lt;p>An example can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
+&lt;h2 id="provider-configuration">Provider Configuration&lt;/h2>
+&lt;p>The provider configuration is specific to the implementation. The operator supports the following out of the box.&lt;/p>
+&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/provider.yaml">here&lt;/a>.&lt;/p>
+&lt;h3 id="common">Common&lt;/h3>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;th>Example&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>image&lt;/code>&lt;/td>
+&lt;td>Container image of the provider&lt;/td>
+&lt;td>&lt;code>kfp-operator-kfp-provider:0.0.2&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h3 id="kubeflow-pipelines">Kubeflow Pipelines&lt;/h3>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;th>Example&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>endpoint&lt;/code>&lt;/td>
+&lt;td>The KFP endpoint available to the operator&lt;/td>
+&lt;td>&lt;code>kubeflow-ui.kubeflow-pipelines:8080&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h3 id="vertex-ai-pipelines">Vertex AI Pipelines&lt;/h3>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;th>Example&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>pipelineBucket&lt;/code>&lt;/td>
+&lt;td>GCS bucket where to store the compiled pipeline&lt;/td>
+&lt;td>&lt;code>kfp-operator-pipelines&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table></description></item><item><title>Docs: Resources</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</guid><description>
 &lt;p>The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources.&lt;/p>
 &lt;p>All resources managed by the operator have the following common status fields:&lt;/p>
 &lt;table>

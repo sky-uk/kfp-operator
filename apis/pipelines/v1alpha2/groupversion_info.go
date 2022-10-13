@@ -1,6 +1,6 @@
 // Package v1 contains API Schema definitions for the pipelines.kubeflow.org v1 API group
-//+kubebuilder:object:generate=true
-//+groupName=pipelines.kubeflow.org
+// +kubebuilder:object:generate=true
+// +groupName=pipelines.kubeflow.org
 package v1alpha2
 
 import (

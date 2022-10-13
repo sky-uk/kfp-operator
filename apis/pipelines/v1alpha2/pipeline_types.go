@@ -81,8 +81,8 @@ type PipelineList struct {
 	Items           []Pipeline `json:"items"`
 }
 
-//+kubebuilder:validation:Type=string
-//+kubebuilder:validation:Pattern:=`^[\w-]+(?::[\w-]+)?$`
+// +kubebuilder:validation:Type=string
+// +kubebuilder:validation:Pattern:=`^[\w-]+(?::[\w-]+)?$`
 type PipelineIdentifier struct {
 	Name    string `json:"-"`
 	Version string `json:"-"`

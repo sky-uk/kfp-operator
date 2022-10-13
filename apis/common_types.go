@@ -19,13 +19,13 @@ const (
 
 const Group = "pipelines.kubeflow.org"
 
-//+kubebuilder:object:generate=true
+// +kubebuilder:object:generate=true
 type NamedValue struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 
-//+kubebuilder:object:generate=true
+// +kubebuilder:object:generate=true
 type Status struct {
 	KfpId                string               `json:"kfpId,omitempty"`
 	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`

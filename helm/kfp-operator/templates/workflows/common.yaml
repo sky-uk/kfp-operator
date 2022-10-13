@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ClusterWorkflowTemplate
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-common-steps
+spec:
+  templates:
+  - name: select-provider-image
+    inputs:
+      artifacts:
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '.image' /tmp/provider-config.yaml
+  - name: select-pipeline-image
+    inputs:
+      artifacts:
+      - name: pipeline-definition
+        path: /tmp/pipeline-definition.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.pipeline-definition}}`}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '.image' /tmp/pipeline-definition.yaml
+  # Legacy-support for RunConfigurations and Experiments until migrated
+  - name: select-endpoint
+    inputs:
+      artifacts:
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '.endpoint' /tmp/provider-config.yaml
