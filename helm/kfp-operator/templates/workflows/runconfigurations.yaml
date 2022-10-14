@@ -21,9 +21,9 @@ spec:
             {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
-      - name: runconfiguration-id
-        valueFrom:
-          path: /tmp/id.txt
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -38,33 +38,7 @@ spec:
       - --provider-config
       - /tmp/provider-config.yaml
       - --out
-      - /tmp/id.txt
-    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
-  - name: delete
-    inputs:
-      parameters:
-      - name: provider-image
-      artifacts:
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
-    metadata:
-      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    container:
-      image: "{{`{{inputs.parameters.provider-image}}`}}"
-      command:
-      - /provider
-      args:
-      - runconfiguration
-      - delete
-      - --runconfiguration-definition
-      - /tmp/runconfiguration-definition.yaml
-      - --provider-config
-      - /tmp/provider-config.yaml
-      - --runconfiguration-id
-      - '{{`{{workflow.parameters.runconfiguration-id}}`}}'
+      - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: update
     inputs:
@@ -83,9 +57,9 @@ spec:
             {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
-      - name: runconfiguration-id
-        valueFrom:
-          path: /tmp/id.txt
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -102,7 +76,40 @@ spec:
       - --runconfiguration-id
       - '{{`{{workflow.parameters.runconfiguration-id}}`}}'
       - --out
-      - /tmp/id.txt
+      - /tmp/provider-output.yaml
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+  - name: delete
+    inputs:
+      parameters:
+        - name: provider-image
+      artifacts:
+        - name: provider-config
+          path: /tmp/provider-config.yaml
+          raw:
+            data: |
+              {{`{{workflow.parameters.provider-config}}`}}
+    outputs:
+      parameters:
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
+    metadata:
+      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+    container:
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
+      command:
+        - /provider
+      args:
+        - runconfiguration
+        - delete
+        - --runconfiguration-definition
+        - /tmp/runconfiguration-definition.yaml
+        - --provider-config
+        - /tmp/provider-config.yaml
+        - --runconfiguration-id
+        - '{{`{{workflow.parameters.runconfiguration-id}}`}}'
+        - --out
+        - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -122,16 +129,16 @@ spec:
   - name: main
     outputs:
       parameters:
-      - name: runconfiguration-id
-        valueFrom:
-          parameter: '{{`{{steps.create.outputs.parameters.runconfiguration-id}}`}}'
+        - name: provider-output
+          valueFrom:
+            parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: create
+    - - name: provider
         arguments:
           parameters:
           - name: provider-image
@@ -159,16 +166,16 @@ spec:
   - name: main
     outputs:
       parameters:
-      - name: runconfiguration-id
-        valueFrom:
-          parameter: '{{`{{steps.update.outputs.parameters.runconfiguration-id}}`}}'
+        - name: provider-output
+          valueFrom:
+            parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: update
+    - - name: provider
         arguments:
           parameters:
           - name: provider-image
@@ -193,13 +200,18 @@ spec:
   {{- end }}
   templates:
   - name: main
+    outputs:
+      parameters:
+        - name: provider-output
+          valueFrom:
+            parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: delete
+    - - name: provider
         arguments:
           parameters:
           - name: provider-image

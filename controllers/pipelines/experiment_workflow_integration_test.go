@@ -115,8 +115,10 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			workflowFactory.ConstructCreationWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, ExperimentWorkflowConstants.ExperimentIdParameterName)).
-					To(Equal(experimentKfpId))
+				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output.Id).To(Equal(experimentKfpId))
+				g.Expect(output.ProviderError).To(BeEmpty())
 			},
 		),
 		Entry("Creation fails",
@@ -125,7 +127,11 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			},
 			workflowFactory.ConstructCreationWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output.Id).To(BeEmpty())
+				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			},
 		),
 	)
@@ -138,6 +144,10 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			workflowFactory.ConstructDeletionWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output.Id).To(BeEmpty())
+				g.Expect(output.ProviderError).To(BeEmpty())
 			},
 		),
 		Entry("Deletion fails",
@@ -146,7 +156,11 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			},
 			workflowFactory.ConstructDeletionWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output.Id).To(Equal(experimentKfpId))
+				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			},
 		),
 	)
@@ -160,8 +174,10 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, ExperimentWorkflowConstants.ExperimentIdParameterName)).
-					To(Equal(newExperimentKfpId))
+				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output.Id).To(Equal(newExperimentKfpId))
+				g.Expect(output.ProviderError).To(BeEmpty())
 			}),
 		Entry("Deletion succeeds and creation fails", func(experiment *pipelinesv1.Experiment) {
 			Expect(SucceedDeletion(experimentKfpId)).To(Succeed())
@@ -170,15 +186,20 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				g.Expect(getWorkflowOutput(workflow, ExperimentWorkflowConstants.ExperimentIdParameterName)).
-					To(Equal(""))
+				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output.Id).To(BeEmpty())
+				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			}),
 		Entry("Deletion fails", func(experiment *pipelinesv1.Experiment) {
 			Expect(FailDeletion(experimentKfpId)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
-				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output.Id).To(Equal(experimentKfpId))
+				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			}),
 	)
 })

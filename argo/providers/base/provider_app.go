@@ -40,6 +40,7 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 		Name:     ProviderConstants.PipelineDefinitionParameter,
 		Required: true,
 	}
+
 	pipelineIdFlag := cli.StringFlag{
 		Name:     ProviderConstants.PipelineIdParameter,
 		Required: true,
@@ -50,8 +51,13 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 		Required: true,
 	}
 
-	outFlag := cli.StringFlag{
-		Name:     ProviderConstants.OutputParameter,
+	runConfigurationDefinitionFlag := cli.StringFlag{
+		Name:     ProviderConstants.RunConfigurationDefinitionParameter,
+		Required: true,
+	}
+
+	runConfigurationIdFlag := cli.StringFlag{
+		Name:     ProviderConstants.RunConfigurationIdParameter,
 		Required: true,
 	}
 
@@ -59,17 +65,14 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 		Name:     ProviderConstants.ExperimentDefinitionParameter,
 		Required: true,
 	}
+
 	experimentIdFlag := cli.StringFlag{
 		Name:     ProviderConstants.ExperimentIdParameter,
 		Required: true,
 	}
 
-	runConfigurationDefinitionFlag := cli.StringFlag{
-		Name:     ProviderConstants.RunConfigurationDefinitionParameter,
-		Required: true,
-	}
-	runConfigurationIdFlag := cli.StringFlag{
-		Name:     ProviderConstants.RunConfigurationIdParameter,
+	outFlag := cli.StringFlag{
+		Name:     ProviderConstants.OutputParameter,
 		Required: true,
 	}
 
@@ -94,17 +97,10 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						id, err := provider.CreatePipeline(providerConfig, pipelineDefinition, pipelineFile, context.Background())
-						if err != nil {
-							return err
-						}
 
-						err = writeOutput(c, id)
-						if err != nil {
-							return err
-						}
+						printResult("pipeline", "create", "", id, err)
 
-						fmt.Printf("Pipeline %s created\n", id)
-						return nil
+						return writeOutput(c, id, err)
 					},
 				},
 				{
@@ -122,23 +118,16 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						version, err := provider.UpdatePipeline(providerConfig, pipelineDefinition, id, pipelineFile, context.Background())
-						if err != nil {
-							return err
-						}
+						updatedId, err := provider.UpdatePipeline(providerConfig, pipelineDefinition, id, pipelineFile, context.Background())
 
-						err = writeOutput(c, version)
-						if err != nil {
-							return err
-						}
+						printResult("pipeline", "update", id, updatedId, err)
 
-						fmt.Printf("Pipeline %s updated\n", id)
-						return nil
+						return writeOutput(c, updatedId, err)
 					},
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineIdFlag},
+					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
 						providerConfig, err := loadProviderConfig[Config](c)
@@ -147,12 +136,14 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						err = provider.DeletePipeline(providerConfig, id, context.Background())
+						updatedId := ""
 						if err != nil {
-							return err
+							updatedId = id
 						}
 
-						fmt.Printf("Pipeline %s deleted\n", id)
-						return nil
+						printResult("pipeline", "delete", id, updatedId, err)
+
+						return writeOutput(c, updatedId, err)
 					},
 				},
 			},
@@ -174,17 +165,10 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						id, err := provider.CreateRunConfiguration(providerConfig, runConfigurationDefinition, context.Background())
-						if err != nil {
-							return err
-						}
 
-						err = writeOutput(c, id)
-						if err != nil {
-							return err
-						}
+						printResult("runconfiguration", "create", "", id, err)
 
-						fmt.Printf("RunConfiguration %s created\n", id)
-						return nil
+						return writeOutput(c, id, err)
 					},
 				},
 				{
@@ -202,22 +186,15 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						updatedId, err := provider.UpdateRunConfiguration(providerConfig, runConfigurationDefinition, id, context.Background())
-						if err != nil {
-							return err
-						}
 
-						err = writeOutput(c, updatedId)
-						if err != nil {
-							return err
-						}
+						printResult("runconfiguration", "update", id, updatedId, err)
 
-						fmt.Printf("RunConfiguration %s recreated as %s\n", id, updatedId)
-						return nil
+						return writeOutput(c, updatedId, err)
 					},
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag},
+					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunConfigurationIdParameter)
 						providerConfig, err := loadProviderConfig[Config](c)
@@ -226,12 +203,14 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						err = provider.DeleteRunConfiguration(providerConfig, id, context.Background())
+						updatedId := ""
 						if err != nil {
-							return err
+							updatedId = id
 						}
 
-						fmt.Printf("RunConfiguration %s deleted\n", id)
-						return nil
+						printResult("runconfiguration", "delete", id, updatedId, err)
+
+						return writeOutput(c, updatedId, err)
 					},
 				},
 			},
@@ -253,17 +232,10 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						id, err := provider.CreateExperiment(providerConfig, experimentDefinition, context.Background())
-						if err != nil {
-							return err
-						}
 
-						err = writeOutput(c, id)
-						if err != nil {
-							return err
-						}
+						printResult("experiment", "create", "", id, err)
 
-						fmt.Printf("Experiment %s created\n", id)
-						return nil
+						return writeOutput(c, id, err)
 					},
 				},
 				{
@@ -281,22 +253,15 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						updatedId, err := provider.UpdateExperiment(providerConfig, experimentDefinition, id, context.Background())
-						if err != nil {
-							return err
-						}
 
-						err = writeOutput(c, updatedId)
-						if err != nil {
-							return err
-						}
+						printResult("experiment", "update", id, updatedId, err)
 
-						fmt.Printf("Experiment %s recreated as %s\n", id, updatedId)
-						return nil
+						return writeOutput(c, updatedId, err)
 					},
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag},
+					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.ExperimentIdParameter)
 						providerConfig, err := loadProviderConfig[Config](c)
@@ -305,12 +270,14 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						err = provider.DeleteExperiment(providerConfig, id, context.Background())
+						updatedId := ""
 						if err != nil {
-							return err
+							updatedId = id
 						}
 
-						fmt.Printf("Experiment %s deleted\n", id)
-						return nil
+						printResult("experiment", "delete", id, updatedId, err)
+
+						return writeOutput(c, updatedId, err)
 					},
 				},
 			},
@@ -320,8 +287,32 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 	return app.Run(os.Args)
 }
 
-func writeOutput(c *cli.Context, text string) error {
-	return os.WriteFile(c.String(ProviderConstants.OutputParameter), []byte(text), 0644)
+func printResult(resourceType string, operation string, id string, updatedId string, err error) {
+	//TODO: use logging
+	if err == nil {
+		fmt.Printf("%s %s succeeded. Id: %s -> %s\n", resourceType, operation, id, updatedId)
+	} else {
+		fmt.Printf("%s %s failed. Id: %s -> %s. Error: %e\n", resourceType, operation, id, updatedId, err)
+	}
+}
+
+func writeOutput(c *cli.Context, id string, err error) error {
+	errMessage := ""
+	if err != nil {
+		errMessage = err.Error()
+	}
+
+	output := Output{
+		Id:            id,
+		ProviderError: errMessage,
+	}
+
+	outputYaml, err := yaml.Marshal(&output)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(c.String(ProviderConstants.OutputParameter), outputYaml, 0644)
 }
 
 func loadYamlFromFile(fileName string, obj interface{}) error {

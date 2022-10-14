@@ -15,9 +15,7 @@ import (
 )
 
 func main() {
-	err := RunProviderApp[VertexAiProviderConfig](VAIProvider{})
-
-	if err != nil {
+	if err := RunProviderApp[VertexAiProviderConfig](VAIProvider{}); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -42,51 +40,51 @@ func (vaip VAIProvider) client(providerConfig VertexAiProviderConfig, ctx contex
 	return client, err
 }
 
-func (vaip VAIProvider) CreatePipeline(_ VertexAiProviderConfig, _ PipelineDefinition, _ string, _ context.Context) (string, error) {
+func (vaip VAIProvider) CreatePipeline(providerConfig VertexAiProviderConfig, pipelineDefinition PipelineDefinition, pipelineFile string, ctx context.Context) (string, error) {
 	id, err := uuid.NewUUID()
 	if err != nil {
 		return "", err
 	}
 
-	return id.String(), nil
+	return vaip.UpdatePipeline(providerConfig, pipelineDefinition, id.String(), pipelineFile, ctx)
 }
 
 func (vaip VAIProvider) UpdatePipeline(providerConfig VertexAiProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string, ctx context.Context) (string, error) {
 	client, err := vaip.client(providerConfig, ctx)
 	if err != nil {
-		log.Fatal(err)
+		return id, err
 	}
 
 	reader, err := os.Open(pipelineFile)
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	writer := client.Bucket(providerConfig.PipelineBucket).Object(fmt.Sprintf("%s/%s", id, pipelineDefinition.Version)).NewWriter(ctx)
 	_, err = io.Copy(writer, reader)
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	err = reader.Close()
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	fmt.Printf("Version %s created for pipeline %s\n", pipelineDefinition.Version, id)
 
-	return pipelineDefinition.Version, nil
+	return id, nil
 }
 
 func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, id string, ctx context.Context) error {
 	client, err := vaip.client(providerConfig, ctx)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	query := &storage.Query{Prefix: fmt.Sprintf("%s/", id)}

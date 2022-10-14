@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/yalp/jsonpath"
 	"io"
@@ -27,10 +26,9 @@ func main() {
 	}
 }
 
-func (kfpp KfpProvider) CreatePipeline(providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string, _ context.Context) (string, error) {
+func (kfpp KfpProvider) CreatePipeline(providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string, ctx context.Context) (string, error) {
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "upload", "--pipeline-name", pipelineDefinition.Name, pipelineFileName)
 	output, err := cmd.Output()
-
 	if err != nil {
 		return "", err
 	}
@@ -45,24 +43,13 @@ func (kfpp KfpProvider) CreatePipeline(providerConfig KfpProviderConfig, pipelin
 		return "", err
 	}
 
-	return id.(string), nil
+	return kfpp.UpdatePipeline(providerConfig, pipelineDefinition, id.(string), pipelineFileName, ctx)
 }
 
 func (kfpp KfpProvider) UpdatePipeline(providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string, _ context.Context) (string, error) {
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "upload-version", "--pipeline-version", pipelineDefinition.Version, "--pipeline-id", id, pipelineFile)
-	output, err := cmd.Output()
 
-	if err != nil {
-		return "", err
-	}
-
-	var jsonOutput interface{}
-	if err = json.Unmarshal(output, &jsonOutput); err != nil {
-		return "", err
-	}
-
-	version, err := jsonpath.Read(jsonOutput, `$["Version name"]`)
-	return version.(string), nil
+	return id, cmd.Run()
 }
 
 func (kfpp KfpProvider) DeletePipeline(providerConfig KfpProviderConfig, id string, _ context.Context) error {
@@ -72,7 +59,6 @@ func (kfpp KfpProvider) DeletePipeline(providerConfig KfpProviderConfig, id stri
 }
 
 func (kfpp KfpProvider) CreateRunConfiguration(providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition, _ context.Context) (string, error) {
-	fmt.Println(runConfigurationDefinition)
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "job", "submit",
 		"--pipeline-name", runConfigurationDefinition.PipelineName,
 		"--job-name", runConfigurationDefinition.Name,
@@ -81,7 +67,6 @@ func (kfpp KfpProvider) CreateRunConfiguration(providerConfig KfpProviderConfig,
 		"--cron-expression", runConfigurationDefinition.Schedule)
 
 	output, err := cmd.Output()
-
 	if err != nil {
 		return "", err
 	}
@@ -104,16 +89,10 @@ func (kfpp KfpProvider) UpdateRunConfiguration(providerConfig KfpProviderConfig,
 		return id, err
 	}
 
-	updatedId, err := kfpp.CreateRunConfiguration(providerConfig, runConfigurationDefinition, ctx)
-	if err != nil {
-		return "", nil
-	}
-
-	return updatedId, nil
+	return kfpp.CreateRunConfiguration(providerConfig, runConfigurationDefinition, ctx)
 }
 
 func (kfpp KfpProvider) DeleteRunConfiguration(providerConfig KfpProviderConfig, id string, _ context.Context) error {
-
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "job", "delete", id)
 
 	stderr, err := cmd.StderrPipe()
@@ -163,7 +142,6 @@ func (kfpp KfpProvider) DeleteRunConfiguration(providerConfig KfpProviderConfig,
 func (kfpp KfpProvider) CreateExperiment(providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition, _ context.Context) (string, error) {
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "experiment", "create", experimentDefinition.Name)
 	output, err := cmd.Output()
-
 	if err != nil {
 		return "", err
 	}
@@ -186,12 +164,7 @@ func (kfpp KfpProvider) UpdateExperiment(providerConfig KfpProviderConfig, exper
 		return id, err
 	}
 
-	updatedId, err := kfpp.CreateExperiment(providerConfig, experimentDefinition, ctx)
-	if err != nil {
-		return "", nil
-	}
-
-	return updatedId, nil
+	return kfpp.CreateExperiment(providerConfig, experimentDefinition, ctx)
 }
 
 func (kfpp KfpProvider) DeleteExperiment(providerConfig KfpProviderConfig, id string, _ context.Context) error {

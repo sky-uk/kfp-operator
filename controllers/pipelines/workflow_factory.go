@@ -19,6 +19,7 @@ var WorkflowConstants = struct {
 	EntryPointName              string
 	ConstructionFailedError     string
 	ProviderConfigParameterName string
+	ProviderOutputParameterName string
 }{
 	OwnerKindLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.kind",
 	OwnerNameLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.name",
@@ -29,6 +30,7 @@ var WorkflowConstants = struct {
 	EntryPointName:              "main",
 	ConstructionFailedError:     "error constructing workflow",
 	ProviderConfigParameterName: "provider-config",
+	ProviderOutputParameterName: "provider-output",
 }
 
 type WorkflowFactory[R apis.Resource] interface {

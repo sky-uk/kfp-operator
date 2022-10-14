@@ -3,6 +3,8 @@ package pipelines
 import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/sky-uk/kfp-operator/providers/base"
+	"gopkg.in/yaml.v2"
 )
 
 var mapParams = func(params []argo.Parameter) map[string]string {
@@ -14,13 +16,19 @@ var mapParams = func(params []argo.Parameter) map[string]string {
 	return m
 }
 
-func getWorkflowOutput(workflow *argo.Workflow, key string) (string, error) {
+func getWorkflowOutput(workflow *argo.Workflow, key string) (base.Output, error) {
+	output := base.Output{}
+
 	entrypointNode, exists := workflow.Status.Nodes[workflow.Name]
-	if exists && entrypointNode.Outputs != nil {
-		return string(mapParams(entrypointNode.Outputs.Parameters)[key]), nil
+	if !exists || entrypointNode.Outputs == nil {
+		return output, fmt.Errorf("workflow does not have %s node", workflow.Name)
 	}
 
-	return "", fmt.Errorf("workflow does not have %s node", workflow.Name)
+	yamlOutput := []byte(mapParams(entrypointNode.Outputs.Parameters)[key])
+
+	err := yaml.Unmarshal(yamlOutput, &output)
+
+	return output, err
 }
 
 func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *argo.Workflow {
@@ -35,6 +43,18 @@ func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *a
 	workflow.Status.Nodes = nodes
 
 	return workflow
+}
+
+func setProviderOutput(workflow *argo.Workflow, output base.Output) *argo.Workflow {
+	return setWorkflowOutputs(
+		workflow,
+		[]argo.Parameter{
+			{
+				Name:  WorkflowConstants.ProviderOutputParameterName,
+				Value: argo.AnyStringPtr("id: " + output.Id + "\nproviderError: " + output.ProviderError),
+			},
+		},
+	)
 }
 
 func latestWorkflow(workflow1 *argo.Workflow, workflow2 *argo.Workflow) *argo.Workflow {

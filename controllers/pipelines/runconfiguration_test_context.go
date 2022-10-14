@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	"github.com/sky-uk/kfp-operator/providers/base"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -78,14 +79,9 @@ func (testCtx RunConfigurationTestContext) EmittedEventsToMatch(matcher func(Gom
 func (testCtx RunConfigurationTestContext) WorkflowSucceeded(operation string) {
 	Eventually(testCtx.WorkflowToBeUpdated(operation, func(workflow *argo.Workflow) {
 		workflow.Status.Phase = argo.WorkflowSucceeded
-		setWorkflowOutputs(
+		setProviderOutput(
 			workflow,
-			[]argo.Parameter{
-				{
-					Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
-					Value: argo.AnyStringPtr(apis.RandomString()),
-				},
-			},
+			base.Output{Id: apis.RandomString(), ProviderError: ""},
 		)
 	})).Should(Succeed())
 }

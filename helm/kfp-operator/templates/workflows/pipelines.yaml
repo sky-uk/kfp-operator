@@ -62,9 +62,9 @@ spec:
             {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
-      - name: pipeline-id
-        valueFrom:
-          path: /tmp/id.txt
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -81,7 +81,7 @@ spec:
       - --pipeline-file
       - /tmp/pipeline.yaml
       - --out
-      - /tmp/id.txt
+      - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: update
     inputs:
@@ -103,9 +103,9 @@ spec:
       - name: provider-image
     outputs:
       parameters:
-      - name: pipeline-version
-        valueFrom:
-          path: /tmp/version.txt
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -124,7 +124,7 @@ spec:
       - --pipeline-file
       - /tmp/pipeline.yaml
       - --out
-      - /tmp/version.txt
+      - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: delete
     inputs:
@@ -136,6 +136,11 @@ spec:
         raw:
           data: |
             {{`{{workflow.parameters.provider-config}}`}}
+    outputs:
+      parameters:
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -151,6 +156,8 @@ spec:
       - /tmp/provider-config.yaml
       - --pipeline-id
       - '{{`{{workflow.parameters.pipeline-id}}`}}'
+      - --out
+      - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -170,13 +177,9 @@ spec:
     - name: main
       outputs:
         parameters:
-        - name: pipeline-id
-          valueFrom:
-            parameter: '{{`{{steps.create.outputs.parameters.pipeline-id}}`}}'
-        - name: pipeline-version
-          valueFrom:
-            parameter: '{{`{{steps.update.outputs.parameters.pipeline-version}}`}}'
-            default: ""
+          - name: provider-output
+            valueFrom:
+              parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
       steps:
       - - name: select-provider-image
           templateRef:
@@ -197,7 +200,7 @@ spec:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: compile
             clusterScope: true
-      - - name: create
+      - - name: provider
           arguments:
             artifacts:
             - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
@@ -208,22 +211,6 @@ spec:
           templateRef:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: create
-            clusterScope: true
-      - - name: update
-          arguments:
-            artifacts:
-            - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
-              name: pipeline
-            parameters:
-            - name: pipeline-id
-              value: '{{`{{steps.create.outputs.parameters.pipeline-id}}`}}'
-            - name: provider-image
-              value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-          continueOn:
-            failed: true
-          templateRef:
-            name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
-            template: update
             clusterScope: true
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -244,9 +231,9 @@ spec:
     - name: main
       outputs:
         parameters:
-        - name: pipeline-version
-          valueFrom:
-            parameter: '{{`{{steps.update.outputs.result}}`}}'
+          - name: provider-output
+            valueFrom:
+              parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
       steps:
       - - name: select-provider-image
           templateRef:
@@ -267,7 +254,7 @@ spec:
             name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
             template: compile
             clusterScope: true
-      - - name: update
+      - - name: provider
           arguments:
             artifacts:
             - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
@@ -297,13 +284,18 @@ spec:
   {{- end }}
   templates:
   - name: main
+    outputs:
+      parameters:
+          - name: provider-output
+            valueFrom:
+              parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: delete
+    - - name: provider
         arguments:
           parameters:
           - name: provider-image

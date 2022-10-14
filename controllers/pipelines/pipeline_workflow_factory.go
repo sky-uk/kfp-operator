@@ -10,12 +10,10 @@ import (
 
 var PipelineWorkflowConstants = struct {
 	PipelineIdParameterName         string
-	PipelineVersionParameterName    string
 	PipelineDefinitionParameterName string
 }{
 	PipelineIdParameterName:         "pipeline-id",
 	PipelineDefinitionParameterName: "pipeline-definition",
-	PipelineVersionParameterName:    "pipeline-version",
 }
 
 type PipelineWorkflowFactory struct {

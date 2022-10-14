@@ -12,6 +12,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	"github.com/sky-uk/kfp-operator/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -53,14 +54,9 @@ func (st ExperimentStateTransitionTestCase) WithCreateWorkFlow(phase argo.Workfl
 
 func (st ExperimentStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.WorkflowPhase, kfpId string) ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutputs(
+		setProviderOutput(
 			CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, phase),
-			[]argo.Parameter{
-				{
-					Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-					Value: argo.AnyStringPtr(kfpId),
-				},
-			},
+			base.Output{Id: kfpId},
 		),
 	)
 }
@@ -73,14 +69,9 @@ func (st ExperimentStateTransitionTestCase) WithFailedUpdateWorkflow() Experimen
 
 func (st ExperimentStateTransitionTestCase) WithSucceededUpdateWorkflowWithId(kfpId string) ExperimentStateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutputs(
+		setProviderOutput(
 			CreateTestWorkflow(WorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
-			[]argo.Parameter{
-				{
-					Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-					Value: argo.AnyStringPtr(kfpId),
-				},
-			},
+			base.Output{Id: kfpId},
 		),
 	)
 }

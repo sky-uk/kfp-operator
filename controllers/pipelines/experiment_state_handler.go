@@ -226,16 +226,16 @@ func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pip
 			return From(experiment.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
 		}
 
-		idResult, _ := getWorkflowOutput(succeeded, ExperimentWorkflowConstants.ExperimentIdParameterName)
+		result, _ := getWorkflowOutput(succeeded, WorkflowConstants.ProviderOutputParameterName)
 
-		if idResult == "" {
+		if result.Id == "" {
 			failureMessage := "could not retrieve kfpId"
 			logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
 			return From(experiment.Status).WithSynchronizationState(apis.Failed).WithKfpId("").WithMessage(failureMessage)
 		}
 
 		logger.Info("experiment update succeeded")
-		return From(experiment.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(idResult)
+		return From(experiment.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(result.Id)
 	}
 
 	return []Command{
@@ -305,14 +305,14 @@ func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pip
 
 	if succeeded != nil {
 		logger.Info("experiment creation succeeded")
-		idResult, err := getWorkflowOutput(succeeded, ExperimentWorkflowConstants.ExperimentIdParameterName)
+		result, err := getWorkflowOutput(succeeded, WorkflowConstants.ProviderOutputParameterName)
 
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
 			setStatusCommand = From(experiment.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
 		} else {
-			setStatusCommand = From(experiment.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(idResult)
+			setStatusCommand = From(experiment.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(result.Id)
 		}
 	} else {
 		var failureMessage string

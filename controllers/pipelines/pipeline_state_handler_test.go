@@ -12,6 +12,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	"github.com/sky-uk/kfp-operator/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -52,20 +53,11 @@ func (st PipelineStateTransitionTestCase) WithFailedCreateWorkflow() PipelineSta
 	return st.WithWorkFlow(CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, argo.WorkflowFailed))
 }
 
-func (st PipelineStateTransitionTestCase) WithSucceededCreateWorkflow(kfpId string, version string) PipelineStateTransitionTestCase {
+func (st PipelineStateTransitionTestCase) WithSucceededCreateWorkflow(kfpId string, providerError string) PipelineStateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutputs(
+		setProviderOutput(
 			CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
-			[]argo.Parameter{
-				{
-					Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-					Value: argo.AnyStringPtr(kfpId),
-				},
-				{
-					Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
-					Value: argo.AnyStringPtr(version),
-				},
-			},
+			base.Output{Id: kfpId, ProviderError: providerError},
 		),
 	)
 }
@@ -224,7 +216,7 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Creating succeeds with kfpId and version",
 			From(apis.Creating, "", v1).
 				AcquirePipeline().
-				WithSucceededCreateWorkflow(kfpId, v1).
+				WithSucceededCreateWorkflow(kfpId, "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Succeeded).
 					WithKfpId(kfpId).
@@ -234,21 +226,21 @@ var _ = Describe("Pipeline State handler", func() {
 		Check("Creating succeeds with different KfpId and version",
 			From(apis.Creating, anotherKfpId, v1).
 				AcquirePipeline().
-				WithSucceededCreateWorkflow(kfpId, v1).
+				WithSucceededCreateWorkflow(kfpId, "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
-		Check("Creating succeeds with KfpId but no version",
+		Check("Creating succeeds with KfpId and error",
 			From(apis.Creating, "", v1).
 				AcquirePipeline().
-				WithSucceededCreateWorkflow(kfpId, "").
+				WithSucceededCreateWorkflow(kfpId, "some error").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
 					WithKfpId(kfpId).WithVersion(v1).
-					WithMessage("pipeline creation succeeded but version upload failed")).
+					WithMessage("pipeline creation succeeded but error returned")).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating fails",

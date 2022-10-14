@@ -228,16 +228,16 @@ func (st RunConfigurationStateHandler) onUpdating(ctx context.Context, runConfig
 			return From(runConfiguration.Status.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
 		}
 
-		idResult, _ := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
+		result, _ := getWorkflowOutput(succeeded, WorkflowConstants.ProviderOutputParameterName)
 
-		if idResult == "" {
+		if result.Id == "" {
 			failureMessage := "could not retrieve kfpId"
 			logger.Info(fmt.Sprintf("%s, failing run configuration", failureMessage))
 			return From(runConfiguration.Status.Status).WithSynchronizationState(apis.Failed).WithKfpId("").WithMessage(failureMessage)
 		}
 
 		logger.Info("run configuration update succeeded")
-		return From(runConfiguration.Status.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(idResult)
+		return From(runConfiguration.Status.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(result.Id)
 	}
 
 	return []Command{
@@ -307,14 +307,14 @@ func (st RunConfigurationStateHandler) onCreating(ctx context.Context, runConfig
 
 	if succeeded != nil {
 		logger.Info("run configuration creation succeeded")
-		idResult, err := getWorkflowOutput(succeeded, RunConfigurationWorkflowConstants.RunConfigurationIdParameterName)
+		result, err := getWorkflowOutput(succeeded, WorkflowConstants.ProviderOutputParameterName)
 
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing run configuration", failureMessage))
 			setStatusCommand = From(runConfiguration.Status.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
 		} else {
-			setStatusCommand = From(runConfiguration.Status.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(idResult)
+			setStatusCommand = From(runConfiguration.Status.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(result.Id)
 		}
 	} else {
 		var failureMessage string

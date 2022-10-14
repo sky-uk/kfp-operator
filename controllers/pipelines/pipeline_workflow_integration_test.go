@@ -212,10 +212,10 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 				workflowFactory.ConstructCreationWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
-						To(Not(BeEmpty()))
-					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
-						To(Equal(pipelineSpec.ComputeVersion()))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).NotTo(BeEmpty())
+					g.Expect(output.ProviderError).To(BeEmpty())
 				},
 			),
 			Entry("Creation succeeds but the update fails",
@@ -226,10 +226,10 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 				workflowFactory.ConstructCreationWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
-						To(Not(BeEmpty()))
-					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
-						To(BeEmpty())
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).NotTo(BeEmpty())
+					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
 			Entry("Creation fails",
@@ -239,28 +239,40 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 				},
 				workflowFactory.ConstructCreationWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).To(BeEmpty())
+					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
 		)
 
 		DescribeTable("Update Workflow", AssertWorkflow,
-			Entry("Upload succeeds",
+			Entry("Update succeeds",
 				func(pipeline *pipelinesv1.Pipeline) {
 					Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
 				},
 				workflowFactory.ConstructUpdateWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).NotTo(BeEmpty())
+					g.Expect(output.ProviderError).To(BeEmpty())
 				},
 			),
-			Entry("Upload fails",
+			Entry("Update fails",
 				func(pipeline *pipelinesv1.Pipeline) {
 					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
 				},
 				workflowFactory.ConstructUpdateWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).To(Equal(kfpId))
+					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
 		)
@@ -275,6 +287,10 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 				},
 				func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).To(BeEmpty())
+					g.Expect(output.ProviderError).To(BeEmpty())
 				},
 			),
 			Entry("Deletion fails",
@@ -285,7 +301,11 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 					return workflowFactory.ConstructDeletionWorkflow(pipeline)
 				},
 				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).To(Equal(kfpId))
+					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
 		)

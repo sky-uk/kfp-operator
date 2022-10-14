@@ -282,7 +282,7 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 			return From(pipeline.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
 		}
 
-		idResult, err := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineIdParameterName)
+		result, err := getWorkflowOutput(succeeded, WorkflowConstants.ProviderOutputParameterName)
 
 		if err != nil {
 			failureMessage := "could not retrieve kfpId"
@@ -290,19 +290,17 @@ func (st PipelineStateHandler) onCreating(ctx context.Context, pipeline *pipelin
 			return From(pipeline.Status).WithSynchronizationState(apis.Failed)
 		}
 
-		versionResult, _ := getWorkflowOutput(succeeded, PipelineWorkflowConstants.PipelineVersionParameterName)
-
-		if versionResult == "" {
-			failureMessage := "pipeline creation succeeded but version upload failed"
+		if result.ProviderError != "" {
+			failureMessage := "pipeline creation succeeded but error returned"
 			logger.Info(failureMessage)
 			return From(pipeline.Status).
 				WithSynchronizationState(apis.Failed).
-				WithKfpId(idResult).
+				WithKfpId(result.Id).
 				WithMessage(failureMessage)
 		}
 
 		logger.Info("pipeline creation succeeded")
-		return From(pipeline.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(idResult)
+		return From(pipeline.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(result.Id)
 	}
 
 	return []Command{

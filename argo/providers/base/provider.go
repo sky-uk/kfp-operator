@@ -30,6 +30,11 @@ type RunConfigurationDefinition struct {
 	Schedule        string `yaml:"schedule"`
 }
 
+type Output struct {
+	Id            string `yaml:"id"`
+	ProviderError string `yaml:"providerError"`
+}
+
 type Provider[Config any] interface {
 	CreatePipeline(providerConfig Config, pipelineDefinition PipelineDefinition, pipelineFile string, ctx context.Context) (string, error)
 	UpdatePipeline(providerConfig Config, pipelineDefinition PipelineDefinition, id string, pipelineFile string, ctx context.Context) (string, error)

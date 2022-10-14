@@ -21,9 +21,9 @@ spec:
             {{workflow.parameters.provider-config}}
     outputs:
       parameters:
-      - name: experiment-id
-        valueFrom:
-          path: /tmp/id.txt
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -37,7 +37,7 @@ spec:
       - --provider-config
       - /tmp/provider-config.yaml
       - --out
-      - /tmp/id.txt
+      - /tmp/provider-output.yaml
   - name: update
     inputs:
       parameters:
@@ -55,9 +55,9 @@ spec:
             {{workflow.parameters.provider-config}}
     outputs:
       parameters:
-      - name: experiment-id
-        valueFrom:
-          path: /tmp/id.txt
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -73,7 +73,7 @@ spec:
       - --experiment-id
       - '{{workflow.parameters.experiment-id}}'
       - --out
-      - /tmp/id.txt
+      - /tmp/provider-output.yaml
   - name: delete
     inputs:
       parameters:
@@ -84,6 +84,11 @@ spec:
         raw:
           data: |
             {{workflow.parameters.provider-config}}
+    outputs:
+      parameters:
+        - name: provider-output
+          valueFrom:
+            path: /tmp/provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -98,6 +103,8 @@ spec:
       - /tmp/provider-config.yaml
       - --experiment-id
       - '{{workflow.parameters.experiment-id}}'
+      - --out
+      - /tmp/provider-output.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -113,16 +120,16 @@ spec:
   - name: main
     outputs:
       parameters:
-      - name: experiment-id
-        valueFrom:
-          parameter: '{{steps.create.outputs.parameters.experiment-id}}'
+          - name: provider-output
+            valueFrom:
+              parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: create
+    - - name: provider
         arguments:
           parameters:
           - name: provider-image
@@ -147,16 +154,16 @@ spec:
   - name: main
     outputs:
       parameters:
-      - name: experiment-id
-        valueFrom:
-          parameter: '{{steps.update.outputs.parameters.experiment-id}}'
+          - name: provider-output
+            valueFrom:
+              parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: update
+    - - name: provider
         arguments:
           parameters:
           - name: provider-image
@@ -178,13 +185,18 @@ spec:
   entrypoint: main
   templates:
   - name: main
+    outputs:
+      parameters:
+        - name: provider-output
+          valueFrom:
+            parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: delete
+    - - name: provider
         arguments:
           parameters:
           - name: provider-image

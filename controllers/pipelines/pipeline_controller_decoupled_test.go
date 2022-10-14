@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	"github.com/sky-uk/kfp-operator/providers/base"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -29,19 +30,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutputs(
-					workflow,
-					[]argo.Parameter{
-						{
-							Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-							Value: argo.AnyStringPtr(kfpId),
-						},
-						{
-							Name:  PipelineWorkflowConstants.PipelineVersionParameterName,
-							Value: argo.AnyStringPtr(pipeline.Spec.ComputeVersion()),
-						},
-					},
-				)
+				setProviderOutput(workflow, base.Output{Id: kfpId})
 			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
