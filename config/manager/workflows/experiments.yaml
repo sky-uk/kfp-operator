@@ -5,7 +5,6 @@ metadata:
 spec:
   templates:
   - name: create
-    metadata: {}
     inputs:
       parameters:
       - name: provider-image
@@ -25,6 +24,7 @@ spec:
       - name: experiment-id
         valueFrom:
           path: /tmp/id.txt
+    metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
       command:
@@ -38,8 +38,43 @@ spec:
       - /tmp/provider-config.yaml
       - --out
       - /tmp/id.txt
-  - name: delete
+  - name: update
+    inputs:
+      parameters:
+      - name: provider-image
+      artifacts:
+      - name: experiment-definition
+        path: /tmp/experiment-definition.yaml
+        raw:
+          data: |
+            {{workflow.parameters.experiment-definition}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
+    outputs:
+      parameters:
+      - name: experiment-id
+        valueFrom:
+          path: /tmp/id.txt
     metadata: {}
+    container:
+      image: "{{inputs.parameters.provider-image}}"
+      command:
+      - /provider
+      args:
+      - experiment
+      - update
+      - --experiment-definition
+      - /tmp/experiment-definition.yaml
+      - --provider-config
+      - /tmp/provider-config.yaml
+      - --experiment-id
+      - '{{workflow.parameters.experiment-id}}'
+      - --out
+      - /tmp/id.txt
+  - name: delete
     inputs:
       parameters:
       - name: provider-image
@@ -49,6 +84,7 @@ spec:
         raw:
           data: |
             {{workflow.parameters.provider-config}}
+    metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
       command:
@@ -113,33 +149,21 @@ spec:
       parameters:
       - name: experiment-id
         valueFrom:
-          parameter: '{{steps.create.outputs.parameters.experiment-id}}'
-          default: ""
+          parameter: '{{steps.update.outputs.parameters.experiment-id}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: delete
+    - - name: update
         arguments:
           parameters:
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
         templateRef:
           name: kfp-operator-experiment-steps
-          template: delete
-          clusterScope: true
-    - - name: create
-        arguments:
-          parameters:
-          - name: provider-image
-            value: '{{steps.select-provider-image.outputs.result}}'
-        continueOn:
-          failed: true
-        templateRef:
-          name: kfp-operator-experiment-steps
-          template: create
+          template: update
           clusterScope: true
 ---
 apiVersion: argoproj.io/v1alpha1

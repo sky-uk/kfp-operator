@@ -46,6 +46,7 @@ func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
 	return multimap
 }
 
+// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
 func (wf *PipelineWorkflowFactory) pipelineDefinition(pipeline *pipelinesv1.Pipeline) providers.PipelineDefinition {
 	// TODO: should come from config
 	servingPath := "/serving"
@@ -68,7 +69,6 @@ func (wf *PipelineWorkflowFactory) pipelineDefinition(pipeline *pipelinesv1.Pipe
 	}
 }
 
-// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
 func (wf *PipelineWorkflowFactory) pipelineDefinitionYaml(pipeline *pipelinesv1.Pipeline) (string, error) {
 	pipelineDefinition := wf.pipelineDefinition(pipeline)
 

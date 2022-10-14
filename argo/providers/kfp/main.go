@@ -99,6 +99,19 @@ func (kfpp KfpProvider) CreateRunConfiguration(providerConfig KfpProviderConfig,
 	return id.(string), nil
 }
 
+func (kfpp KfpProvider) UpdateRunConfiguration(providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition, id string, ctx context.Context) (string, error) {
+	if err := kfpp.DeleteRunConfiguration(providerConfig, id, ctx); err != nil {
+		return id, err
+	}
+
+	updatedId, err := kfpp.CreateRunConfiguration(providerConfig, runConfigurationDefinition, ctx)
+	if err != nil {
+		return "", nil
+	}
+
+	return updatedId, nil
+}
+
 func (kfpp KfpProvider) DeleteRunConfiguration(providerConfig KfpProviderConfig, id string, _ context.Context) error {
 
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "job", "delete", id)
@@ -166,6 +179,19 @@ func (kfpp KfpProvider) CreateExperiment(providerConfig KfpProviderConfig, exper
 	}
 
 	return id.(string), nil
+}
+
+func (kfpp KfpProvider) UpdateExperiment(providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition, id string, ctx context.Context) (string, error) {
+	if err := kfpp.DeleteExperiment(providerConfig, id, ctx); err != nil {
+		return id, err
+	}
+
+	updatedId, err := kfpp.CreateExperiment(providerConfig, experimentDefinition, ctx)
+	if err != nil {
+		return "", nil
+	}
+
+	return updatedId, nil
 }
 
 func (kfpp KfpProvider) DeleteExperiment(providerConfig KfpProviderConfig, id string, _ context.Context) error {

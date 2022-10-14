@@ -66,6 +66,44 @@ spec:
       - --runconfiguration-id
       - '{{`{{workflow.parameters.runconfiguration-id}}`}}'
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+  - name: update
+    inputs:
+      parameters:
+      - name: provider-image
+      artifacts:
+      - name: runconfiguration-definition
+        path: /tmp/runconfiguration-definition.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.runconfiguration-definition}}`}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
+    outputs:
+      parameters:
+      - name: runconfiguration-id
+        valueFrom:
+          path: /tmp/id.txt
+    metadata:
+      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+    container:
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
+      command:
+      - /provider
+      args:
+      - runconfiguration
+      - update
+      - --runconfiguration-definition
+      - /tmp/runconfiguration-definition.yaml
+      - --provider-config
+      - /tmp/provider-config.yaml
+      - --runconfiguration-id
+      - '{{`{{workflow.parameters.runconfiguration-id}}`}}'
+      - --out
+      - /tmp/id.txt
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -123,33 +161,21 @@ spec:
       parameters:
       - name: runconfiguration-id
         valueFrom:
-          parameter: '{{`{{steps.create.outputs.parameters.runconfiguration-id}}`}}'
-          default: ""
+          parameter: '{{`{{steps.update.outputs.parameters.runconfiguration-id}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: delete
+    - - name: update
         arguments:
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
-          template: delete
-          clusterScope: true
-    - - name: create
-        arguments:
-          parameters:
-          - name: provider-image
-            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-        continueOn:
-          failed: true
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
-          template: create
+          template: update
           clusterScope: true
 ---
 apiVersion: argoproj.io/v1alpha1

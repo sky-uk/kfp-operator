@@ -36,8 +36,10 @@ type Provider[Config any] interface {
 	DeletePipeline(providerConfig Config, id string, ctx context.Context) error
 
 	CreateRunConfiguration(providerConfig Config, runConfigurationDefinition RunConfigurationDefinition, ctx context.Context) (string, error)
+	UpdateRunConfiguration(providerConfig Config, runConfigurationDefinition RunConfigurationDefinition, id string, ctx context.Context) (string, error)
 	DeleteRunConfiguration(providerConfig Config, id string, ctx context.Context) error
 
 	CreateExperiment(providerConfig Config, experimentDefinition ExperimentDefinition, ctx context.Context) (string, error)
+	UpdateExperiment(providerConfig Config, experimentDefinition ExperimentDefinition, id string, ctx context.Context) (string, error)
 	DeleteExperiment(providerConfig Config, id string, ctx context.Context) error
 }

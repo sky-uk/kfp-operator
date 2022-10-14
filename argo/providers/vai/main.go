@@ -114,11 +114,19 @@ func (vaip VAIProvider) CreateRunConfiguration(_ VertexAiProviderConfig, _ RunCo
 	return "", errors.New("not implemented")
 }
 
+func (vaip VAIProvider) UpdateRunConfiguration(_ VertexAiProviderConfig, _ RunConfigurationDefinition, _ string, _ context.Context) (string, error) {
+	return "", errors.New("not implemented")
+}
+
 func (vaip VAIProvider) DeleteRunConfiguration(_ VertexAiProviderConfig, _ string, _ context.Context) error {
 	return errors.New("not implemented")
 }
 
 func (vaip VAIProvider) CreateExperiment(_ VertexAiProviderConfig, _ ExperimentDefinition, _ context.Context) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (vaip VAIProvider) UpdateExperiment(_ VertexAiProviderConfig, _ ExperimentDefinition, _ string, _ context.Context) (string, error) {
 	return "", errors.New("not implemented")
 }
 

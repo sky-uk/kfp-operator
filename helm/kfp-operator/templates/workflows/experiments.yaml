@@ -40,6 +40,44 @@ spec:
       - --out
       - /tmp/id.txt
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+  - name: update
+    inputs:
+      parameters:
+      - name: provider-image
+      artifacts:
+      - name: experiment-definition
+        path: /tmp/experiment-definition.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.experiment-definition}}`}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
+    outputs:
+      parameters:
+      - name: experiment-id
+        valueFrom:
+          path: /tmp/id.txt
+    metadata:
+      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+    container:
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
+      command:
+      - /provider
+      args:
+      - experiment
+      - update
+      - --experiment-definition
+      - /tmp/experiment-definition.yaml
+      - --provider-config
+      - /tmp/provider-config.yaml
+      - --experiment-id
+      - '{{`{{workflow.parameters.experiment-id}}`}}'
+      - --out
+      - /tmp/id.txt
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: delete
     inputs:
       parameters:
@@ -123,33 +161,21 @@ spec:
       parameters:
       - name: experiment-id
         valueFrom:
-          parameter: '{{`{{steps.create.outputs.parameters.experiment-id}}`}}'
-          default: ""
+          parameter: '{{`{{steps.update.outputs.parameters.experiment-id}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-image
           clusterScope: true
-    - - name: delete
+    - - name: update
         arguments:
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-experiment-steps
-          template: delete
-          clusterScope: true
-    - - name: create
-        arguments:
-          parameters:
-          - name: provider-image
-            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-        continueOn:
-          failed: true
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-experiment-steps
-          template: create
+          template: update
           clusterScope: true
 ---
 apiVersion: argoproj.io/v1alpha1

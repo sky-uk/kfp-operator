@@ -158,57 +158,6 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 			},
 		},
 		{
-			Name: "experiment",
-			Subcommands: []cli.Command{
-				{
-					Name:  "create",
-					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, outFlag},
-					Action: func(c *cli.Context) error {
-						providerConfig, err := loadProviderConfig[Config](c)
-						if err != nil {
-							return err
-						}
-						experimentDefinition, err := loadExperimentDefinition(c)
-						if err != nil {
-							return err
-						}
-
-						id, err := provider.CreateExperiment(providerConfig, experimentDefinition, context.Background())
-						if err != nil {
-							return err
-						}
-
-						err = writeOutput(c, id)
-						if err != nil {
-							return err
-						}
-
-						fmt.Printf("Experiment %s created\n", id)
-						return nil
-					},
-				},
-				{
-					Name:  "delete",
-					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag},
-					Action: func(c *cli.Context) error {
-						id := c.String(ProviderConstants.ExperimentIdParameter)
-						providerConfig, err := loadProviderConfig[Config](c)
-						if err != nil {
-							return err
-						}
-
-						err = provider.DeleteExperiment(providerConfig, id, context.Background())
-						if err != nil {
-							return err
-						}
-
-						fmt.Printf("Experiment %s deleted\n", id)
-						return nil
-					},
-				},
-			},
-		},
-		{
 			Name: "runconfiguration",
 			Subcommands: []cli.Command{
 				{
@@ -239,6 +188,34 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 					},
 				},
 				{
+					Name:  "update",
+					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
+					Action: func(c *cli.Context) error {
+						id := c.String(ProviderConstants.RunConfigurationIdParameter)
+						providerConfig, err := loadProviderConfig[Config](c)
+						if err != nil {
+							return err
+						}
+						runConfigurationDefinition, err := loadRunConfigurationDefinition(c)
+						if err != nil {
+							return err
+						}
+
+						updatedId, err := provider.UpdateRunConfiguration(providerConfig, runConfigurationDefinition, id, context.Background())
+						if err != nil {
+							return err
+						}
+
+						err = writeOutput(c, updatedId)
+						if err != nil {
+							return err
+						}
+
+						fmt.Printf("RunConfiguration %s recreated as %s\n", id, updatedId)
+						return nil
+					},
+				},
+				{
 					Name:  "delete",
 					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag},
 					Action: func(c *cli.Context) error {
@@ -254,6 +231,85 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 						}
 
 						fmt.Printf("RunConfiguration %s deleted\n", id)
+						return nil
+					},
+				},
+			},
+		},
+		{
+			Name: "experiment",
+			Subcommands: []cli.Command{
+				{
+					Name:  "create",
+					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, outFlag},
+					Action: func(c *cli.Context) error {
+						providerConfig, err := loadProviderConfig[Config](c)
+						if err != nil {
+							return err
+						}
+						experimentDefinition, err := loadExperimentDefinition(c)
+						if err != nil {
+							return err
+						}
+
+						id, err := provider.CreateExperiment(providerConfig, experimentDefinition, context.Background())
+						if err != nil {
+							return err
+						}
+
+						err = writeOutput(c, id)
+						if err != nil {
+							return err
+						}
+
+						fmt.Printf("Experiment %s created\n", id)
+						return nil
+					},
+				},
+				{
+					Name:  "update",
+					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag, outFlag},
+					Action: func(c *cli.Context) error {
+						id := c.String(ProviderConstants.ExperimentIdParameter)
+						providerConfig, err := loadProviderConfig[Config](c)
+						if err != nil {
+							return err
+						}
+						experimentDefinition, err := loadExperimentDefinition(c)
+						if err != nil {
+							return err
+						}
+
+						updatedId, err := provider.UpdateExperiment(providerConfig, experimentDefinition, id, context.Background())
+						if err != nil {
+							return err
+						}
+
+						err = writeOutput(c, updatedId)
+						if err != nil {
+							return err
+						}
+
+						fmt.Printf("Experiment %s recreated as %s\n", id, updatedId)
+						return nil
+					},
+				},
+				{
+					Name:  "delete",
+					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag},
+					Action: func(c *cli.Context) error {
+						id := c.String(ProviderConstants.ExperimentIdParameter)
+						providerConfig, err := loadProviderConfig[Config](c)
+						if err != nil {
+							return err
+						}
+
+						err = provider.DeleteExperiment(providerConfig, id, context.Background())
+						if err != nil {
+							return err
+						}
+
+						fmt.Printf("Experiment %s deleted\n", id)
 						return nil
 					},
 				},
