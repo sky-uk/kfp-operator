@@ -19,16 +19,23 @@ type ExperimentWorkflowFactory struct {
 	WorkflowFactoryBase
 }
 
-func (wf *ExperimentWorkflowFactory) newExperimentDefinition(experiment *pipelinesv1.Experiment) *providers.ExperimentDefinition {
-	return &providers.ExperimentDefinition{
+func (wf *ExperimentWorkflowFactory) experimentDefinitionYaml(experiment *pipelinesv1.Experiment) (string, error) {
+	experimentDefinition := providers.ExperimentDefinition{
 		Name:        experiment.ObjectMeta.Name,
 		Version:     experiment.Spec.ComputeVersion(),
 		Description: experiment.Spec.Description,
 	}
+
+	marshalled, err := yaml.Marshal(&experimentDefinition)
+	if err != nil {
+		return "", err
+	}
+
+	return string(marshalled), nil
 }
 
 func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	compilerConfigYaml, err := yaml.Marshal(workflows.newExperimentDefinition(experiment))
+	experimentDefinition, err := workflows.experimentDefinitionYaml(experiment)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +47,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 				Parameters: []argo.Parameter{
 					{
 						Name:  ExperimentWorkflowConstants.ExperimentDefinitionParameterName,
-						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
+						Value: argo.AnyStringPtr(experimentDefinition),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
@@ -57,7 +64,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 }
 
 func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
-	compilerConfigYaml, err := yaml.Marshal(workflows.newExperimentDefinition(experiment))
+	experimentDefinition, err := workflows.experimentDefinitionYaml(experiment)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +76,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 				Parameters: []argo.Parameter{
 					{
 						Name:  ExperimentWorkflowConstants.ExperimentDefinitionParameterName,
-						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
+						Value: argo.AnyStringPtr(experimentDefinition),
 					},
 					{
 						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,

@@ -23,7 +23,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 				DefaultExperiment:      "Default",
 			},
-			ProviderConfig: "endpoint: http://wiremock:80\nimage: kfp-operator-argo-kfp-provider",
+			ProviderConfig: "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider",
 		},
 	}
 

@@ -7,31 +7,65 @@ spec:
   - name: create
     inputs:
       parameters:
-      - name: endpoint
+      - name: provider-image
+      artifacts:
+      - name: runconfiguration-definition
+        path: /tmp/runconfiguration-definition.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.runconfiguration-definition}}`}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
+    outputs:
+      parameters:
+      - name: runconfiguration-id
+        valueFrom:
+          path: /tmp/id.txt
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    script:
-      source: |-
-        set -e -o pipefail
-        kfp-ext --endpoint '{{`{{inputs.parameters.endpoint}}`}}' --output json job submit --pipeline-name '{{`{{workflow.parameters.pipeline-name}}`}}' --job-name '{{`{{workflow.parameters.runconfiguration-name}}`}}' --experiment-name '{{`{{workflow.parameters.experiment-name}}`}}' --version-name '{{`{{workflow.parameters.pipeline-version}}`}}' --cron-expression '{{`{{workflow.parameters.schedule}}`}}'  | jq -r '."Job Details"."ID"'
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-kfp-provider:{{ .Chart.AppVersion }}
-      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+    container:
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
       command:
-      - ash
+      - /provider
+      args:
+      - runconfiguration
+      - create
+      - --runconfiguration-definition
+      - /tmp/runconfiguration-definition.yaml
+      - --provider-config
+      - /tmp/provider-config.yaml
+      - --out
+      - /tmp/id.txt
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: delete
     inputs:
       parameters:
-      - name: endpoint
+      - name: provider-image
+      artifacts:
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    script:
-      source: |-
-        set -e -o pipefail
-        KFP_RESULT=$(kfp-ext --endpoint '{{`{{inputs.parameters.endpoint}}`}}' --output json job delete '{{`{{workflow.parameters.runconfiguration-id}}`}}' 2>&1) || echo $KFP_RESULT | grep -o 'HTTP response body: {.*}' | cut -d ':' -f 2- | jq -e 'select(.code==5)'
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-kfp-provider:{{ .Chart.AppVersion }}
-      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+    container:
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
       command:
-      - ash
+      - /provider
+      args:
+      - runconfiguration
+      - delete
+      - --runconfiguration-definition
+      - /tmp/runconfiguration-definition.yaml
+      - --provider-config
+      - /tmp/provider-config.yaml
+      - --runconfiguration-id
+      - '{{`{{workflow.parameters.runconfiguration-id}}`}}'
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -40,11 +74,7 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: runconfiguration-name
-    - name: pipeline-name
-    - name: pipeline-version
-    - name: experiment-name
-    - name: schedule
+    - name: runconfiguration-definition
     - name: provider-config
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
@@ -56,18 +86,18 @@ spec:
       parameters:
       - name: runconfiguration-id
         valueFrom:
-          parameter: '{{`{{steps.create.outputs.result}}`}}'
+          parameter: '{{`{{steps.create.outputs.parameters.runconfiguration-id}}`}}'
     steps:
-    - - name: select-endpoint
+    - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-endpoint
+          template: select-provider-image
           clusterScope: true
     - - name: create
         arguments:
           parameters:
-          - name: endpoint
-            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: create
@@ -80,13 +110,9 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: runconfiguration-id
-    - name: runconfiguration-name
-    - name: pipeline-name
-    - name: pipeline-version
-    - name: experiment-name
-    - name: schedule
-    - name: provider-config
+      - name: runconfiguration-definition
+      - name: provider-config
+      - name: runconfiguration-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -97,18 +123,19 @@ spec:
       parameters:
       - name: runconfiguration-id
         valueFrom:
-          parameter: '{{`{{steps.create.outputs.result}}`}}'
+          parameter: '{{`{{steps.create.outputs.parameters.runconfiguration-id}}`}}'
+          default: ""
     steps:
-    - - name: select-endpoint
+    - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-endpoint
+          template: select-provider-image
           clusterScope: true
     - - name: delete
         arguments:
           parameters:
-          - name: endpoint
-            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: delete
@@ -116,14 +143,14 @@ spec:
     - - name: create
         arguments:
           parameters:
-          - name: endpoint
-            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+        continueOn:
+          failed: true
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: create
           clusterScope: true
-        continueOn:
-          failed: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -132,8 +159,8 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: runconfiguration-id
     - name: provider-config
+    - name: runconfiguration-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -141,16 +168,16 @@ spec:
   templates:
   - name: main
     steps:
-    - - name: select-endpoint
+    - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-endpoint
+          template: select-provider-image
           clusterScope: true
     - - name: delete
         arguments:
           parameters:
-          - name: endpoint
-            value: '{{`{{steps.select-endpoint.outputs.result}}`}}'
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
           template: delete

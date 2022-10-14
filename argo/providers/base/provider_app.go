@@ -9,21 +9,25 @@ import (
 )
 
 var ProviderConstants = struct {
-	PipelineDefinitionParameter   string
-	ExperimentDefinitionParameter string
-	ProviderConfigParameter       string
-	PipelineIdParameter           string
-	ExperimentIdParameter         string
-	PipelineFileParameter         string
-	OutputParameter               string
+	PipelineDefinitionParameter         string
+	ExperimentDefinitionParameter       string
+	RunConfigurationDefinitionParameter string
+	ProviderConfigParameter             string
+	PipelineIdParameter                 string
+	ExperimentIdParameter               string
+	RunConfigurationIdParameter         string
+	PipelineFileParameter               string
+	OutputParameter                     string
 }{
-	PipelineDefinitionParameter:   "pipeline-definition",
-	ExperimentDefinitionParameter: "experiment-definition",
-	ProviderConfigParameter:       "provider-config",
-	PipelineIdParameter:           "pipeline-id",
-	ExperimentIdParameter:         "experiment-id",
-	PipelineFileParameter:         "pipeline-file",
-	OutputParameter:               "out",
+	PipelineDefinitionParameter:         "pipeline-definition",
+	ExperimentDefinitionParameter:       "experiment-definition",
+	RunConfigurationDefinitionParameter: "runconfiguration-definition",
+	ProviderConfigParameter:             "provider-config",
+	PipelineIdParameter:                 "pipeline-id",
+	ExperimentIdParameter:               "experiment-id",
+	RunConfigurationIdParameter:         "runconfiguration-id",
+	PipelineFileParameter:               "pipeline-file",
+	OutputParameter:                     "out",
 }
 
 func RunProviderApp[Config any](provider Provider[Config]) error {
@@ -57,6 +61,15 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 	}
 	experimentIdFlag := cli.StringFlag{
 		Name:     ProviderConstants.ExperimentIdParameter,
+		Required: true,
+	}
+
+	runConfigurationDefinitionFlag := cli.StringFlag{
+		Name:     ProviderConstants.RunConfigurationDefinitionParameter,
+		Required: true,
+	}
+	runConfigurationIdFlag := cli.StringFlag{
+		Name:     ProviderConstants.RunConfigurationIdParameter,
 		Required: true,
 	}
 
@@ -195,6 +208,57 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 				},
 			},
 		},
+		{
+			Name: "runconfiguration",
+			Subcommands: []cli.Command{
+				{
+					Name:  "create",
+					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, outFlag},
+					Action: func(c *cli.Context) error {
+						providerConfig, err := loadProviderConfig[Config](c)
+						if err != nil {
+							return err
+						}
+						runConfigurationDefinition, err := loadRunConfigurationDefinition(c)
+						if err != nil {
+							return err
+						}
+
+						id, err := provider.CreateRunConfiguration(providerConfig, runConfigurationDefinition, context.Background())
+						if err != nil {
+							return err
+						}
+
+						err = writeOutput(c, id)
+						if err != nil {
+							return err
+						}
+
+						fmt.Printf("RunConfiguration %s created\n", id)
+						return nil
+					},
+				},
+				{
+					Name:  "delete",
+					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag},
+					Action: func(c *cli.Context) error {
+						id := c.String(ProviderConstants.RunConfigurationIdParameter)
+						providerConfig, err := loadProviderConfig[Config](c)
+						if err != nil {
+							return err
+						}
+
+						err = provider.DeleteRunConfiguration(providerConfig, id, context.Background())
+						if err != nil {
+							return err
+						}
+
+						fmt.Printf("RunConfiguration %s deleted\n", id)
+						return nil
+					},
+				},
+			},
+		},
 	}
 
 	return app.Run(os.Args)
@@ -231,6 +295,20 @@ func loadPipelineDefinition(c *cli.Context) (PipelineDefinition, error) {
 	}
 
 	return pipelineDefinition, nil
+}
+
+func loadRunConfigurationDefinition(c *cli.Context) (RunConfigurationDefinition, error) {
+	runConfigurationDefinition := RunConfigurationDefinition{}
+
+	runConfigurationDefinitionFile := c.String(ProviderConstants.RunConfigurationDefinitionParameter)
+
+	err := loadYamlFromFile(runConfigurationDefinitionFile, &runConfigurationDefinition)
+
+	if err != nil {
+		return runConfigurationDefinition, err
+	}
+
+	return runConfigurationDefinition, nil
 }
 
 func loadExperimentDefinition(c *cli.Context) (ExperimentDefinition, error) {

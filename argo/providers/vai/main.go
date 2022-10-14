@@ -30,14 +30,6 @@ type VertexAiProviderConfig struct {
 type VAIProvider struct {
 }
 
-func (vaip VAIProvider) CreateExperiment(_ VertexAiProviderConfig, _ ExperimentDefinition, _ context.Context) (string, error) {
-	return "", errors.New("not implemented")
-}
-
-func (vaip VAIProvider) DeleteExperiment(_ VertexAiProviderConfig, _ string, _ context.Context) error {
-	return errors.New("not implemented")
-}
-
 func (vaip VAIProvider) client(providerConfig VertexAiProviderConfig, ctx context.Context) (*storage.Client, error) {
 	var client *storage.Client
 	var err error
@@ -116,4 +108,20 @@ func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, id
 	}
 
 	return nil
+}
+
+func (vaip VAIProvider) CreateRunConfiguration(_ VertexAiProviderConfig, _ RunConfigurationDefinition, _ context.Context) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (vaip VAIProvider) DeleteRunConfiguration(_ VertexAiProviderConfig, _ string, _ context.Context) error {
+	return errors.New("not implemented")
+}
+
+func (vaip VAIProvider) CreateExperiment(_ VertexAiProviderConfig, _ ExperimentDefinition, _ context.Context) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (vaip VAIProvider) DeleteExperiment(_ VertexAiProviderConfig, _ string, _ context.Context) error {
+	return errors.New("not implemented")
 }

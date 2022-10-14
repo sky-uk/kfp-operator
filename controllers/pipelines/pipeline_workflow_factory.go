@@ -46,8 +46,7 @@ func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
 	return multimap
 }
 
-// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
-func (wf *PipelineWorkflowFactory) newPipelineDefinition(pipeline *pipelinesv1.Pipeline) *providers.PipelineDefinition {
+func (wf *PipelineWorkflowFactory) pipelineDefinition(pipeline *pipelinesv1.Pipeline) providers.PipelineDefinition {
 	// TODO: should come from config
 	servingPath := "/serving"
 	tempPath := "/tmp"
@@ -57,7 +56,7 @@ func (wf *PipelineWorkflowFactory) newPipelineDefinition(pipeline *pipelinesv1.P
 	beamArgs := append(wf.Config.DefaultBeamArgs, pipeline.Spec.BeamArgs...)
 	beamArgs = append(beamArgs, apis.NamedValue{Name: "temp_location", Value: pipelineRoot + tempPath})
 
-	return &providers.PipelineDefinition{
+	return providers.PipelineDefinition{
 		RootLocation:    pipelineRoot,
 		ServingLocation: pipelineRoot + servingPath,
 		Name:            pipeline.ObjectMeta.Name,
@@ -69,8 +68,20 @@ func (wf *PipelineWorkflowFactory) newPipelineDefinition(pipeline *pipelinesv1.P
 	}
 }
 
+// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
+func (wf *PipelineWorkflowFactory) pipelineDefinitionYaml(pipeline *pipelinesv1.Pipeline) (string, error) {
+	pipelineDefinition := wf.pipelineDefinition(pipeline)
+
+	marshalled, err := yaml.Marshal(&pipelineDefinition)
+	if err != nil {
+		return "", err
+	}
+
+	return string(marshalled), nil
+}
+
 func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := yaml.Marshal(workflows.newPipelineDefinition(pipeline))
+	pipelineDefinition, err := workflows.pipelineDefinitionYaml(pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +93,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 				Parameters: []argo.Parameter{
 					{
 						Name:  PipelineWorkflowConstants.PipelineDefinitionParameterName,
-						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
+						Value: argo.AnyStringPtr(pipelineDefinition),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
@@ -99,7 +110,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 }
 
 func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-	compilerConfigYaml, err := yaml.Marshal(workflows.newPipelineDefinition(pipeline))
+	pipelineDefinition, err := workflows.pipelineDefinitionYaml(pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +122,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 				Parameters: []argo.Parameter{
 					{
 						Name:  PipelineWorkflowConstants.PipelineDefinitionParameterName,
-						Value: argo.AnyStringPtr(string(compilerConfigYaml)),
+						Value: argo.AnyStringPtr(pipelineDefinition),
 					},
 					{
 						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
