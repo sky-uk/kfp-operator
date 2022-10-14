@@ -67,13 +67,8 @@ func (kfpp KfpProvider) UpdatePipeline(providerConfig KfpProviderConfig, pipelin
 
 func (kfpp KfpProvider) DeletePipeline(providerConfig KfpProviderConfig, id string, _ context.Context) error {
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "delete", id)
-	err := cmd.Run()
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return cmd.Run()
 }
 
 func (kfpp KfpProvider) CreateRunConfiguration(providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition, _ context.Context) (string, error) {

@@ -140,7 +140,7 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 					Name:  "delete",
 					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineIdFlag},
 					Action: func(c *cli.Context) error {
-						id := c.String(ProviderConstants.ExperimentIdParameter)
+						id := c.String(ProviderConstants.PipelineIdParameter)
 						providerConfig, err := loadProviderConfig[Config](c)
 						if err != nil {
 							return err

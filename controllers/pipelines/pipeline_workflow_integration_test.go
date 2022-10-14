@@ -156,7 +156,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersion(pipeline *p
 }
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "endpoint: http://wiremock:80\nimage: kfp-operator-argo-kfp-provider"
+	return "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider"
 }
 
 var kfpId = apis.RandomString()
