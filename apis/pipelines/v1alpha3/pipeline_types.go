@@ -18,18 +18,18 @@ type PipelineSpec struct {
 	BeamArgs      []apis.NamedValue `json:"beamArgs,omitempty"`
 }
 
-func (ps PipelineSpec) ComputeHash() []byte {
+func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(ps.Image)
-	oh.WriteStringField(ps.TfxComponents)
-	oh.WriteNamedValueListField(ps.Env)
-	oh.WriteNamedValueListField(ps.BeamArgs)
+	oh.WriteStringField(ps.Spec.Image)
+	oh.WriteStringField(ps.Spec.TfxComponents)
+	oh.WriteNamedValueListField(ps.Spec.Env)
+	oh.WriteNamedValueListField(ps.Spec.BeamArgs)
 	return oh.Sum()
 }
 
-func (ps PipelineSpec) ComputeVersion() string {
+func (ps Pipeline) ComputeVersion() string {
 	hash := ps.ComputeHash()[0:3]
-	ref, err := ParseNormalizedNamed(ps.Image)
+	ref, err := ParseNormalizedNamed(ps.Spec.Image)
 
 	if err == nil {
 		if namedTagged, ok := TagNameOnly(ref).(NamedTagged); ok {
@@ -123,7 +123,7 @@ func (pipeline *Pipeline) UnversionedIdentifier() PipelineIdentifier {
 }
 
 func (pipeline *Pipeline) VersionedIdentifier() PipelineIdentifier {
-	return PipelineIdentifier{Name: pipeline.Name, Version: pipeline.Spec.ComputeVersion()}
+	return PipelineIdentifier{Name: pipeline.Name, Version: pipeline.ComputeVersion()}
 }
 
 func init() {

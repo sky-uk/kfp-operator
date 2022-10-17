@@ -120,7 +120,7 @@ var _ = Context("Pipeline Conversion", func() {
 			dst := v1alpha3.Pipeline{}
 
 			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(src.Spec.ComputeVersion()).To(Equal(dst.Spec.ComputeVersion()))
+			Expect(src.ComputeVersion()).To(Equal(dst.ComputeVersion()))
 		})
 	})
 })

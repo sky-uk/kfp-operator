@@ -29,7 +29,7 @@ const (
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
 	EC           K8sExecutionContext
-	StateHandler RunConfigurationStateHandler
+	StateHandler StateHandler[*pipelinesv1.RunConfiguration]
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations,verbs=get;list;watch;create;update;patch;delete

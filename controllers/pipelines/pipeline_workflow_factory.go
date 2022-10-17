@@ -59,7 +59,7 @@ func (wf *PipelineWorkflowFactory) pipelineDefinition(pipeline *pipelinesv1.Pipe
 		RootLocation:    pipelineRoot,
 		ServingLocation: pipelineRoot + servingPath,
 		Name:            pipeline.ObjectMeta.Name,
-		Version:         pipeline.Spec.ComputeVersion(),
+		Version:         pipeline.ComputeVersion(),
 		Image:           pipeline.Spec.Image,
 		TfxComponents:   pipeline.Spec.TfxComponents,
 		Env:             NamedValuesToMap(pipeline.Spec.Env),

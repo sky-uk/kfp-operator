@@ -12,6 +12,7 @@ type Resource interface {
 	GetStatus() Status
 	SetStatus(Status)
 	GetNamespacedName() types.NamespacedName
+	ComputeVersion() string
 	// GetKind is a workaround to address https://github.com/sky-uk/kfp-operator/issues/137
 	GetKind() string
 }

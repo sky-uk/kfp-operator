@@ -113,12 +113,12 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUpload(pipeline *pipeline
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) SucceedUploadVersion(pipeline *pipelinesv1.Pipeline) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
-		WithQueryParam("name", wiremock.EqualTo(pipeline.Spec.ComputeVersion())).
+		WithQueryParam("name", wiremock.EqualTo(pipeline.ComputeVersion())).
 		WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
 		WillReturn(
 			fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "resource_references": [{"key": {"id": "%s", "type": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
 				apis.RandomString(),
-				pipeline.Spec.ComputeVersion(),
+				pipeline.ComputeVersion(),
 				pipeline.Status.KfpId,
 				pipeline.Name),
 			map[string]string{"Content-Type": "application/json"},
@@ -146,7 +146,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailDeletion(pipeline *pipeli
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersion(pipeline *pipelinesv1.Pipeline) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
-		WithQueryParam("name", wiremock.EqualTo(pipeline.Spec.ComputeVersion())).
+		WithQueryParam("name", wiremock.EqualTo(pipeline.ComputeVersion())).
 		WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
 		WillReturn(
 			`{"status": "failed"`,

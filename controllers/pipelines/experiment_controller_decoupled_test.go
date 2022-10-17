@@ -65,6 +65,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
+				setProviderOutput(workflow, base.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(testCtx.ExperimentExists).Should(Not(Succeed()))

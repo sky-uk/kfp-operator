@@ -22,7 +22,7 @@ type ExperimentWorkflowFactory struct {
 func (wf *ExperimentWorkflowFactory) experimentDefinitionYaml(experiment *pipelinesv1.Experiment) (string, error) {
 	experimentDefinition := providers.ExperimentDefinition{
 		Name:        experiment.ObjectMeta.Name,
-		Version:     experiment.Spec.ComputeVersion(),
+		Version:     experiment.ComputeVersion(),
 		Description: experiment.Spec.Description,
 	}
 

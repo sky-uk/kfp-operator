@@ -48,6 +48,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
+				setProviderOutput(workflow, base.Output{Id: kfpId})
 			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -63,6 +64,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
+				setProviderOutput(workflow, base.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineExists).Should(Not(Succeed()))
