@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -193,91 +194,94 @@ func (st ExperimentStateHandler) onSucceededOrFailed(ctx context.Context, experi
 	}
 }
 
-func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pipelinesv1.Experiment, updateWorkflows []argo.Workflow) []Command {
-	logger := log.FromContext(ctx)
-
-	if experiment.Status.Version == "" || experiment.Status.KfpId == "" {
-		failureMessage := "updating experiment with empty version or kfpId"
-		logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
-
-		return []Command{
-			*From(experiment.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage),
-		}
-	}
-
-	inProgress, succeeded, failed := latestWorkflowByPhase(updateWorkflows)
-
-	if inProgress != nil {
-		logger.V(2).Info("experiment update in progress")
-		return []Command{}
-	}
-
-	statusAfterUpdating := func() *SetStatus {
-		if succeeded == nil {
-			var failureMessage string
-
-			if failed != nil {
-				failureMessage = "experiment update failed"
-			} else {
-				failureMessage = "experiment creation progress unknown"
-			}
-
-			logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
-			return From(experiment.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
-		}
-
-		result, _ := getWorkflowOutput(succeeded, WorkflowConstants.ProviderOutputParameterName)
-
-		if result.Id == "" {
-			failureMessage := "could not retrieve kfpId"
-			logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
-			return From(experiment.Status).WithSynchronizationState(apis.Failed).WithKfpId("").WithMessage(failureMessage)
-		}
-
-		logger.Info("experiment update succeeded")
-		return From(experiment.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(result.Id)
-	}
-
-	return []Command{
-		*statusAfterUpdating(),
-		DeleteWorkflows{
-			Workflows: updateWorkflows,
-		},
-	}
+type IdVerifier struct {
+	SuccessState apis.SynchronizationState
+	FailureState apis.SynchronizationState
+	VerifyId     func(string) error
 }
 
-func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pipelinesv1.Experiment, deletionWorkflows []argo.Workflow) []Command {
+var succeedForEmptyId = IdVerifier{
+	SuccessState: apis.Succeeded,
+	FailureState: apis.Failed,
+	VerifyId: func(id string) error {
+		if id == "" {
+			return errors.New("id was empty")
+		}
+
+		return nil
+	},
+}
+
+var deletedForNonEmptyId = IdVerifier{
+	SuccessState: apis.Deleted,
+	FailureState: apis.Deleting,
+	VerifyId: func(id string) error {
+		if id != "" {
+			return errors.New("id should be empty")
+		}
+
+		return nil
+	},
+}
+
+func (st ExperimentStateHandler) setStateIfProviderFinished(ctx context.Context, status apis.Status, workflows []argo.Workflow, states IdVerifier) []Command {
 	logger := log.FromContext(ctx)
 
-	inProgress, succeeded, failed := latestWorkflowByPhase(deletionWorkflows)
+	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
+
+		result, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+
+		if err != nil {
+			failureMessage := "could not retrieve workflow output"
+			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
+		}
+
+		if result.ProviderError != "" {
+			logger.Error(err, fmt.Sprintf("%s, failing experiment", result.ProviderError))
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithKfpId(result.Id)
+		}
+
+		err = states.VerifyId(result.Id)
+
+		if err != nil {
+			failureMessage := err.Error()
+			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
+		}
+
+		return From(status).WithSynchronizationState(states.SuccessState).WithKfpId(result.Id)
+	}
+
+	inProgress, succeeded, failed := latestWorkflowByPhase(workflows)
 
 	if inProgress != nil {
-		logger.V(2).Info("experiment deletion in progress")
+		logger.V(2).Info("operation in progress")
 		return []Command{}
 	}
 
 	var setStatusCommand *SetStatus
 
 	if succeeded != nil {
-		logger.Info("experiment deletion succeeded")
-		setStatusCommand = From(experiment.Status).WithSynchronizationState(apis.Deleted)
+		logger.Info("operation succeeded")
+		setStatusCommand = statusFromProviderOutput(succeeded)
 	} else {
 		var failureMessage string
 
 		if failed != nil {
-			failureMessage = "experiment deletion failed"
+			failureMessage = "operation failed"
 		} else {
-			failureMessage = "experiment deletion progress unknown"
+			failureMessage = "operation progress unknown"
 		}
 
-		logger.Info(failureMessage)
-		setStatusCommand = From(experiment.Status).WithMessage(failureMessage)
+		logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
+		setStatusCommand = From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
 	}
 
 	return []Command{
 		*setStatusCommand,
 		DeleteWorkflows{
-			Workflows: deletionWorkflows,
+			Workflows: workflows,
 		},
 	}
 }
@@ -294,43 +298,24 @@ func (st ExperimentStateHandler) onCreating(ctx context.Context, experiment *pip
 		}
 	}
 
-	inProgress, succeeded, failed := latestWorkflowByPhase(creationWorkflows)
+	return st.setStateIfProviderFinished(ctx, experiment.Status, creationWorkflows, succeedForEmptyId)
+}
 
-	if inProgress != nil {
-		logger.V(2).Info("experiment creation in progress")
-		return []Command{}
-	}
+func (st ExperimentStateHandler) onUpdating(ctx context.Context, experiment *pipelinesv1.Experiment, updateWorkflows []argo.Workflow) []Command {
+	logger := log.FromContext(ctx)
 
-	var setStatusCommand *SetStatus
-
-	if succeeded != nil {
-		logger.Info("experiment creation succeeded")
-		result, err := getWorkflowOutput(succeeded, WorkflowConstants.ProviderOutputParameterName)
-
-		if err != nil {
-			failureMessage := "could not retrieve workflow output"
-			logger.Error(err, fmt.Sprintf("%s, failing experiment", failureMessage))
-			setStatusCommand = From(experiment.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
-		} else {
-			setStatusCommand = From(experiment.Status).WithSynchronizationState(apis.Succeeded).WithKfpId(result.Id)
-		}
-	} else {
-		var failureMessage string
-
-		if failed != nil {
-			failureMessage = "experiment creation failed"
-		} else {
-			failureMessage = "experiment creation progress unknown"
-		}
-
+	if experiment.Status.Version == "" || experiment.Status.KfpId == "" {
+		failureMessage := "updating experiment with empty version or kfpId"
 		logger.Info(fmt.Sprintf("%s, failing experiment", failureMessage))
-		setStatusCommand = From(experiment.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage)
+
+		return []Command{
+			*From(experiment.Status).WithSynchronizationState(apis.Failed).WithMessage(failureMessage),
+		}
 	}
 
-	return []Command{
-		*setStatusCommand,
-		DeleteWorkflows{
-			Workflows: creationWorkflows,
-		},
-	}
+	return st.setStateIfProviderFinished(ctx, experiment.Status, updateWorkflows, succeedForEmptyId)
+}
+
+func (st ExperimentStateHandler) onDeleting(ctx context.Context, experiment *pipelinesv1.Experiment, deletionWorkflows []argo.Workflow) []Command {
+	return st.setStateIfProviderFinished(ctx, experiment.Status, deletionWorkflows, deletedForNonEmptyId)
 }
