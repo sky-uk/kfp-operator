@@ -21,6 +21,7 @@ type PipelineWorkflowIntegrationSuite interface {
 	FailUpload(*pipelinesv1.Pipeline) error
 	SucceedUploadVersion(*pipelinesv1.Pipeline) error
 	FailUploadVersion(*pipelinesv1.Pipeline) error
+	FailUploadVersionInCreation(*pipelinesv1.Pipeline) error
 	SucceedDeletion(*pipelinesv1.Pipeline) error
 	FailDeletion(*pipelinesv1.Pipeline) error
 
@@ -42,12 +43,8 @@ func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedUpload(_ *pipelin
 			200))
 }
 
-func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) FailUpload(_ *pipelinesv1.Pipeline) error {
-	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/upload/storage/v1/b/pipelineBucket/o")).
-		WithQueryParam("name", wiremock.Matching(".+/")).
-		WillReturn("",
-			map[string]string{},
-			404))
+func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) FailUpload(pipeline *pipelinesv1.Pipeline) error {
+	return vaipwis.FailUploadVersion(pipeline)
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedUploadVersion(_ *pipelinesv1.Pipeline) error {
@@ -66,7 +63,14 @@ func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) FailUploadVersion(_ *pip
 			404))
 }
 
-func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedDeletion(pipeline *pipelinesv1.Pipeline) error {
+func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) FailUploadVersionInCreation(_ *pipelinesv1.Pipeline) error {
+	// This will be refactored in https://github.com/sky-uk/kfp-operator/issues/178
+	// Provider-specific tests will be covered as unit tests
+	Skip("not relevant for Vertex AI")
+	return nil
+}
+
+func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedDeletion(_ *pipelinesv1.Pipeline) error {
 	err := wiremockClient.StubFor(wiremock.Get(wiremock.URLPathMatching("/b/pipelineBucket/o")).
 		WillReturn("{}",
 			map[string]string{"Content-Type": "application/json"},
@@ -155,6 +159,10 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersion(pipeline *p
 		))
 }
 
+func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersionInCreation(pipeline *pipelinesv1.Pipeline) error {
+	return kfppwis.FailUploadVersion(pipeline)
+}
+
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderConfig() string {
 	return "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider"
 }
@@ -221,7 +229,7 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 			Entry("Creation succeeds but the update fails",
 				func(pipeline *pipelinesv1.Pipeline) {
 					Expect(suite.SucceedUpload(pipeline)).To(Succeed())
-					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
+					Expect(suite.FailUploadVersionInCreation(pipeline)).To(Succeed())
 				},
 				workflowFactory.ConstructCreationWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
@@ -235,7 +243,6 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 			Entry("Creation fails",
 				func(pipeline *pipelinesv1.Pipeline) {
 					Expect(suite.FailUpload(pipeline)).To(Succeed())
-					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
 				},
 				workflowFactory.ConstructCreationWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {

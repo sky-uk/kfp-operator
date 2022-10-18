@@ -43,7 +43,11 @@ func (vaip VAIProvider) CreatePipeline(ctx context.Context, providerConfig Verte
 		return "", err
 	}
 
-	return vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, id.String(), pipelineFile)
+	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, id.String(), pipelineFile); err != nil {
+		return "", err
+	}
+
+	return id.String(), nil
 }
 
 func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VertexAiProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
