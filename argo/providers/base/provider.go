@@ -36,15 +36,15 @@ type Output struct {
 }
 
 type Provider[Config any] interface {
-	CreatePipeline(providerConfig Config, pipelineDefinition PipelineDefinition, pipelineFile string, ctx context.Context) (string, error)
-	UpdatePipeline(providerConfig Config, pipelineDefinition PipelineDefinition, id string, pipelineFile string, ctx context.Context) (string, error)
-	DeletePipeline(providerConfig Config, id string, ctx context.Context) error
+	CreatePipeline(ctx context.Context, providerConfig Config, pipelineDefinition PipelineDefinition, pipelineFile string) (string, error)
+	UpdatePipeline(ctx context.Context, providerConfig Config, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error)
+	DeletePipeline(ctx context.Context, providerConfig Config, id string) error
 
-	CreateRunConfiguration(providerConfig Config, runConfigurationDefinition RunConfigurationDefinition, ctx context.Context) (string, error)
-	UpdateRunConfiguration(providerConfig Config, runConfigurationDefinition RunConfigurationDefinition, id string, ctx context.Context) (string, error)
-	DeleteRunConfiguration(providerConfig Config, id string, ctx context.Context) error
+	CreateRunConfiguration(ctx context.Context, providerConfig Config, runConfigurationDefinition RunConfigurationDefinition) (string, error)
+	UpdateRunConfiguration(ctx context.Context, providerConfig Config, runConfigurationDefinition RunConfigurationDefinition, id string) (string, error)
+	DeleteRunConfiguration(ctx context.Context, providerConfig Config, id string) error
 
-	CreateExperiment(providerConfig Config, experimentDefinition ExperimentDefinition, ctx context.Context) (string, error)
-	UpdateExperiment(providerConfig Config, experimentDefinition ExperimentDefinition, id string, ctx context.Context) (string, error)
-	DeleteExperiment(providerConfig Config, id string, ctx context.Context) error
+	CreateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition) (string, error)
+	UpdateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition, id string) (string, error)
+	DeleteExperiment(ctx context.Context, providerConfig Config, id string) error
 }

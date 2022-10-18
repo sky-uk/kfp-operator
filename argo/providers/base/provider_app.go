@@ -2,9 +2,13 @@ package base
 
 import (
 	"context"
-	"fmt"
+	"github.com/go-logr/logr"
+	"github.com/go-logr/zapr"
 	"github.com/urfave/cli"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v2"
+	"log"
 	"os"
 )
 
@@ -30,7 +34,7 @@ var ProviderConstants = struct {
 	OutputParameter:                     "out",
 }
 
-func RunProviderApp[Config any](provider Provider[Config]) error {
+func RunProviderApp[Config any](provider Provider[Config]) {
 	providerConfigFlag := cli.StringFlag{
 		Name:     ProviderConstants.ProviderConfigParameter,
 		Required: true,
@@ -76,6 +80,12 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 		Required: true,
 	}
 
+	logger, err := newLogger(zapcore.InfoLevel)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx := logr.NewContext(context.Background(), logger)
 	app := cli.NewApp()
 
 	app.Commands = []cli.Command{
@@ -96,9 +106,9 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						id, err := provider.CreatePipeline(providerConfig, pipelineDefinition, pipelineFile, context.Background())
+						id, err := provider.CreatePipeline(ctx, providerConfig, pipelineDefinition, pipelineFile)
 
-						printResult("pipeline", "create", "", id, err)
+						logResult(ctx, "pipeline", "create", "", id, err)
 
 						return writeOutput(c, id, err)
 					},
@@ -118,9 +128,9 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						updatedId, err := provider.UpdatePipeline(providerConfig, pipelineDefinition, id, pipelineFile, context.Background())
+						updatedId, err := provider.UpdatePipeline(ctx, providerConfig, pipelineDefinition, id, pipelineFile)
 
-						printResult("pipeline", "update", id, updatedId, err)
+						logResult(ctx, "pipeline", "update", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -135,13 +145,13 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						err = provider.DeletePipeline(providerConfig, id, context.Background())
+						err = provider.DeletePipeline(ctx, providerConfig, id)
 						updatedId := ""
 						if err != nil {
 							updatedId = id
 						}
 
-						printResult("pipeline", "delete", id, updatedId, err)
+						logResult(ctx, "pipeline", "delete", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -164,9 +174,9 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						id, err := provider.CreateRunConfiguration(providerConfig, runConfigurationDefinition, context.Background())
+						id, err := provider.CreateRunConfiguration(ctx, providerConfig, runConfigurationDefinition)
 
-						printResult("runconfiguration", "create", "", id, err)
+						logResult(ctx, "runconfiguration", "create", "", id, err)
 
 						return writeOutput(c, id, err)
 					},
@@ -185,9 +195,9 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						updatedId, err := provider.UpdateRunConfiguration(providerConfig, runConfigurationDefinition, id, context.Background())
+						updatedId, err := provider.UpdateRunConfiguration(ctx, providerConfig, runConfigurationDefinition, id)
 
-						printResult("runconfiguration", "update", id, updatedId, err)
+						logResult(ctx, "runconfiguration", "update", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -202,13 +212,13 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						err = provider.DeleteRunConfiguration(providerConfig, id, context.Background())
+						err = provider.DeleteRunConfiguration(ctx, providerConfig, id)
 						updatedId := ""
 						if err != nil {
 							updatedId = id
 						}
 
-						printResult("runconfiguration", "delete", id, updatedId, err)
+						logResult(ctx, "runconfiguration", "delete", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -231,9 +241,9 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						id, err := provider.CreateExperiment(providerConfig, experimentDefinition, context.Background())
+						id, err := provider.CreateExperiment(ctx, providerConfig, experimentDefinition)
 
-						printResult("experiment", "create", "", id, err)
+						logResult(ctx, "experiment", "create", "", id, err)
 
 						return writeOutput(c, id, err)
 					},
@@ -252,9 +262,9 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						updatedId, err := provider.UpdateExperiment(providerConfig, experimentDefinition, id, context.Background())
+						updatedId, err := provider.UpdateExperiment(ctx, providerConfig, experimentDefinition, id)
 
-						printResult("experiment", "update", id, updatedId, err)
+						logResult(ctx, "experiment", "update", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -269,13 +279,13 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 							return err
 						}
 
-						err = provider.DeleteExperiment(providerConfig, id, context.Background())
+						err = provider.DeleteExperiment(ctx, providerConfig, id)
 						updatedId := ""
 						if err != nil {
 							updatedId = id
 						}
 
-						printResult("experiment", "delete", id, updatedId, err)
+						logResult(ctx, "experiment", "delete", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -284,16 +294,43 @@ func RunProviderApp[Config any](provider Provider[Config]) error {
 		},
 	}
 
-	return app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		logger.Error(err, "failed to run provider app")
+		os.Exit(1)
+	}
 }
 
-func printResult(resourceType string, operation string, id string, updatedId string, err error) {
-	//TODO: use logging
-	if err == nil {
-		fmt.Printf("%s %s succeeded. Id: %s -> %s\n", resourceType, operation, id, updatedId)
-	} else {
-		fmt.Printf("%s %s failed. Id: %s -> %s. Error: %e\n", resourceType, operation, id, updatedId, err)
+func LoggerFromContext(ctx context.Context) logr.Logger {
+	logger, err := logr.FromContext(ctx)
+	if err != nil {
+		return logr.Discard()
 	}
+
+	return logger
+}
+
+func newLogger(logLevel zapcore.Level) (logr.Logger, error) {
+	config := zap.NewProductionConfig()
+	config.Level.SetLevel(logLevel)
+	zapLogger, err := config.Build()
+	if err != nil {
+		return logr.Discard(), err
+	}
+
+	return zapr.NewLogger(zapLogger.Named("main")), nil
+}
+
+func logResult(ctx context.Context, resourceType string, operation string, id string, updatedId string, err error) {
+	logger := LoggerFromContext(ctx)
+
+	var msg string
+	if err == nil {
+		msg = "operation succeeded"
+	} else {
+		msg = "operation failed"
+	}
+
+	logger.Info(msg, "operation", operation, "resource type", resourceType, "id", id, "updated id", updatedId)
 }
 
 func writeOutput(c *cli.Context, id string, err error) error {
