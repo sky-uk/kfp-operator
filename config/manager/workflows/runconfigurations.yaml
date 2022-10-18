@@ -21,9 +21,9 @@ spec:
             {{workflow.parameters.provider-config}}
     outputs:
       parameters:
-        - name: provider-output
-          valueFrom:
-            path: /tmp/provider-output.yaml
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -41,39 +41,39 @@ spec:
   - name: update
     inputs:
       parameters:
-        - name: provider-image
+      - name: provider-image
       artifacts:
-        - name: runconfiguration-definition
-          path: /tmp/runconfiguration-definition.yaml
-          raw:
-            data: |
-              {{workflow.parameters.runconfiguration-definition}}
-        - name: provider-config
-          path: /tmp/provider-config.yaml
-          raw:
-            data: |
-              {{workflow.parameters.provider-config}}
+      - name: runconfiguration-definition
+        path: /tmp/runconfiguration-definition.yaml
+        raw:
+          data: |
+            {{workflow.parameters.runconfiguration-definition}}
+      - name: provider-config
+        path: /tmp/provider-config.yaml
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
     outputs:
       parameters:
-        - name: provider-output
-          valueFrom:
-            path: /tmp/provider-output.yaml
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
       command:
-        - /provider
+      - /provider
       args:
-        - runconfiguration
-        - update
-        - --runconfiguration-definition
-        - /tmp/runconfiguration-definition.yaml
-        - --provider-config
-        - /tmp/provider-config.yaml
-        - --runconfiguration-id
-        - '{{workflow.parameters.runconfiguration-id}}'
-        - --out
-        - /tmp/provider-output.yaml
+      - runconfiguration
+      - update
+      - --runconfiguration-definition
+      - /tmp/runconfiguration-definition.yaml
+      - --provider-config
+      - /tmp/provider-config.yaml
+      - --runconfiguration-id
+      - '{{workflow.parameters.runconfiguration-id}}'
+      - --out
+      - /tmp/provider-output.yaml
   - name: delete
     inputs:
       parameters:
@@ -86,9 +86,9 @@ spec:
             {{workflow.parameters.provider-config}}
     outputs:
       parameters:
-        - name: provider-output
-          valueFrom:
-            path: /tmp/provider-output.yaml
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -120,9 +120,9 @@ spec:
   - name: main
     outputs:
       parameters:
-          - name: provider-output
-            valueFrom:
-              parameter: '{{steps.provider.outputs.parameters.provider-output}}'
+      - name: provider-output
+        valueFrom:
+          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -146,17 +146,17 @@ metadata:
 spec:
   arguments:
     parameters:
-      - name: runconfiguration-definition
-      - name: provider-config
-      - name: runconfiguration-id
+    - name: runconfiguration-definition
+    - name: provider-config
+    - name: runconfiguration-id
   entrypoint: main
   templates:
   - name: main
     outputs:
       parameters:
-          - name: provider-output
-            valueFrom:
-              parameter: '{{steps.provider.outputs.parameters.provider-output}}'
+      - name: provider-output
+        valueFrom:
+          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -187,9 +187,9 @@ spec:
   - name: main
     outputs:
       parameters:
-          - name: provider-output
-            valueFrom:
-              parameter: '{{steps.provider.outputs.parameters.provider-output}}'
+      - name: provider-output
+        valueFrom:
+          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:

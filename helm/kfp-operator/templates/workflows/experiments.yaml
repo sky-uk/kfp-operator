@@ -21,9 +21,9 @@ spec:
             {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
-        - name: provider-output
-          valueFrom:
-            path: /tmp/provider-output.yaml
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -57,9 +57,9 @@ spec:
             {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
-        - name: provider-output
-          valueFrom:
-            path: /tmp/provider-output.yaml
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -90,9 +90,9 @@ spec:
             {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
-        - name: provider-output
-          valueFrom:
-            path: /tmp/provider-output.yaml
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -129,9 +129,9 @@ spec:
   - name: main
     outputs:
       parameters:
-          - name: provider-output
-            valueFrom:
-              parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
+      - name: provider-output
+        valueFrom:
+          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -155,9 +155,9 @@ metadata:
 spec:
   arguments:
     parameters:
-      - name: experiment-definition
-      - name: provider-config
-      - name: experiment-id
+    - name: experiment-definition
+    - name: provider-config
+    - name: experiment-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -166,9 +166,9 @@ spec:
   - name: main
     outputs:
       parameters:
-          - name: provider-output
-            valueFrom:
-              parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
+      - name: provider-output
+        valueFrom:
+          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -202,9 +202,9 @@ spec:
   - name: main
     outputs:
       parameters:
-        - name: provider-output
-          valueFrom:
-            parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
+      - name: provider-output
+        valueFrom:
+          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
