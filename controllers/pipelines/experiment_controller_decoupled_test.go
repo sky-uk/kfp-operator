@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	providers "github.com/sky-uk/kfp-operator/providers/base"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -30,15 +31,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutputs(
-					workflow,
-					[]argo.Parameter{
-						{
-							Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-							Value: argo.AnyStringPtr(kfpId),
-						},
-					},
-				)
+				setProviderOutput(workflow, providers.Output{Id: kfpId})
 			})).Should(Succeed())
 
 			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
@@ -56,15 +49,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setWorkflowOutputs(
-					workflow,
-					[]argo.Parameter{
-						{
-							Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-							Value: argo.AnyStringPtr(anotherKfpId),
-						},
-					},
-				)
+				setProviderOutput(workflow, providers.Output{Id: anotherKfpId})
 			})).Should(Succeed())
 
 			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
@@ -80,6 +65,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
+				setProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(testCtx.ExperimentExists).Should(Not(Succeed()))

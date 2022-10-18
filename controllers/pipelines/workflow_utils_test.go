@@ -24,7 +24,7 @@ var _ = Describe("Utils", func() {
 								Parameters: []argo.Parameter{
 									{
 										Name:  "aKey",
-										Value: argo.AnyStringPtr("aValue"),
+										Value: argo.AnyStringPtr("id: aValue"),
 									},
 								},
 							},
@@ -34,7 +34,7 @@ var _ = Describe("Utils", func() {
 			}
 			result, error := getWorkflowOutput(&workflow, "aKey")
 			Expect(error).NotTo(HaveOccurred())
-			Expect(result).To(Equal("aValue"))
+			Expect(result.Id).To(Equal("aValue"))
 		})
 	})
 

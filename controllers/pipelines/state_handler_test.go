@@ -10,166 +10,172 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	providers "github.com/sky-uk/kfp-operator/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
 
-type ExperimentStateTransitionTestCase struct {
-	workflowFactory WorkflowFactory[*pipelinesv1.Experiment]
-	Experiment      *pipelinesv1.Experiment
+type StateTransitionTestCase struct {
+	workflowFactory WorkflowFactory[*apis.TestResource]
+	Experiment      *apis.TestResource
 	SystemStatus    StubbedWorkflows
 	Commands        []Command
 }
 
-type FailingExperimentWorkflowFactory struct{}
+type SucceedingWorkflowFactory struct{}
 
-func (f FailingExperimentWorkflowFactory) ConstructCreationWorkflow(_ *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (f SucceedingWorkflowFactory) ConstructCreationWorkflow(_ *apis.TestResource) (*argo.Workflow, error) {
+	return &argo.Workflow{}, nil
+}
+
+func (f SucceedingWorkflowFactory) ConstructUpdateWorkflow(_ *apis.TestResource) (*argo.Workflow, error) {
+	return &argo.Workflow{}, nil
+}
+
+func (f SucceedingWorkflowFactory) ConstructDeletionWorkflow(_ *apis.TestResource) (*argo.Workflow, error) {
+	return &argo.Workflow{}, nil
+}
+
+type FailingWorkflowFactory struct{}
+
+func (f FailingWorkflowFactory) ConstructCreationWorkflow(_ *apis.TestResource) (*argo.Workflow, error) {
 	return nil, fmt.Errorf("an error occurred")
 }
 
-func (f FailingExperimentWorkflowFactory) ConstructUpdateWorkflow(_ *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (f FailingWorkflowFactory) ConstructUpdateWorkflow(_ *apis.TestResource) (*argo.Workflow, error) {
 	return nil, fmt.Errorf("an error occurred")
 }
 
-func (f FailingExperimentWorkflowFactory) ConstructDeletionWorkflow(_ *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (f FailingWorkflowFactory) ConstructDeletionWorkflow(_ *apis.TestResource) (*argo.Workflow, error) {
 	return nil, fmt.Errorf("an error occurred")
 }
 
-func (st ExperimentStateTransitionTestCase) WorkflowConstructionFails() ExperimentStateTransitionTestCase {
-	st.workflowFactory = FailingExperimentWorkflowFactory{}
+func (st StateTransitionTestCase) WorkflowConstructionFails() StateTransitionTestCase {
+	st.workflowFactory = FailingWorkflowFactory{}
 	return st
 }
 
-func (st ExperimentStateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) StateTransitionTestCase {
 	st.SystemStatus.AddWorkflow(*workflow)
 	return st
 }
 
-func (st ExperimentStateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) StateTransitionTestCase {
 	return st.WithWorkFlow(CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, phase))
 }
 
-func (st ExperimentStateTransitionTestCase) WithCreateWorkFlowWithId(phase argo.WorkflowPhase, kfpId string) ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(kfpId string, providerError string) StateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutputs(
-			CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, phase),
-			[]argo.Parameter{
-				{
-					Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-					Value: argo.AnyStringPtr(kfpId),
-				},
-			},
+		setProviderOutput(
+			CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
+			providers.Output{Id: kfpId, ProviderError: providerError},
 		),
 	)
 }
 
-func (st ExperimentStateTransitionTestCase) WithFailedUpdateWorkflow() ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) WithFailedUpdateWorkflow() StateTransitionTestCase {
 	return st.WithWorkFlow(
 		CreateTestWorkflow(WorkflowConstants.UpdateOperationLabel, argo.WorkflowFailed),
 	)
 }
 
-func (st ExperimentStateTransitionTestCase) WithSucceededUpdateWorkflowWithId(kfpId string) ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(kfpId string, providerError string) StateTransitionTestCase {
 	return st.WithWorkFlow(
-		setWorkflowOutputs(
+		setProviderOutput(
 			CreateTestWorkflow(WorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
-			[]argo.Parameter{
-				{
-					Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-					Value: argo.AnyStringPtr(kfpId),
-				},
-			},
+			providers.Output{Id: kfpId, ProviderError: providerError},
 		),
 	)
 }
 
-func (st ExperimentStateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) StateTransitionTestCase {
 	return st.WithWorkFlow(
 		CreateTestWorkflow(WorkflowConstants.DeleteOperationLabel, phase),
 	)
 }
 
-func (st ExperimentStateTransitionTestCase) IssuesCreationWorkflow() ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(kfpId string, providerError string) StateTransitionTestCase {
+	return st.WithWorkFlow(
+		setProviderOutput(
+			CreateTestWorkflow(WorkflowConstants.DeleteOperationLabel, argo.WorkflowSucceeded),
+			providers.Output{Id: kfpId, ProviderError: providerError},
+		),
+	)
+}
+
+func (st StateTransitionTestCase) IssuesCreationWorkflow() StateTransitionTestCase {
 	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
-func (st ExperimentStateTransitionTestCase) IssuesUpdateWorkflow() ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) IssuesUpdateWorkflow() StateTransitionTestCase {
 	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
-func (st ExperimentStateTransitionTestCase) IssuesDeletionWorkflow() ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) IssuesDeletionWorkflow() StateTransitionTestCase {
 	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
-func (st ExperimentStateTransitionTestCase) DeletesAllWorkflows() ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) DeletesAllWorkflows() StateTransitionTestCase {
 	return st.IssuesCommand(DeleteWorkflows{
 		Workflows: st.SystemStatus.Workflows,
 	})
 }
 
-func (st ExperimentStateTransitionTestCase) AcquireExperiment() ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) AcquireExperiment() StateTransitionTestCase {
 	return st.IssuesCommand(AcquireResource{})
 }
 
-func (st ExperimentStateTransitionTestCase) ReleaseExperiment() ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) ReleaseExperiment() StateTransitionTestCase {
 	return st.IssuesCommand(ReleaseResource{})
 }
 
-func (st ExperimentStateTransitionTestCase) IssuesCommand(command Command) ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) IssuesCommand(command Command) StateTransitionTestCase {
 	st.Commands = append(st.Commands, command)
 	return st
 }
 
-func (st ExperimentStateTransitionTestCase) DeletionRequested() ExperimentStateTransitionTestCase {
+func (st StateTransitionTestCase) DeletionRequested() StateTransitionTestCase {
 	st.Experiment.DeletionTimestamp = &metav1.Time{time.UnixMilli(1)}
 	return st
 }
 
 var _ = Describe("Experiment State handler", func() {
-	// TODO: mock workflowFactory
-	var workflowFactory = ExperimentWorkflowFactory{
-		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{},
-		},
-	}
-
 	kfpId := "12345"
 	anotherKfpId := "67890"
-	specv1 := pipelinesv1.RandomExperimentSpec()
-	v0 := pipelinesv1.ExperimentSpec{}.ComputeVersion()
-	v1 := specv1.ComputeVersion()
+	providerError := "a provider error has occurred"
+	irrelevant := "irrelevant"
+	v1 := apis.RandomShortHash()
+	v2 := apis.RandomShortHash()
 	UnknownState := apis.SynchronizationState(apis.RandomString())
 
-	var Check = func(description string, transition ExperimentStateTransitionTestCase) TableEntry {
+	var Check = func(description string, transition StateTransitionTestCase) TableEntry {
 		return Entry(
 			description,
 			transition,
 		)
 	}
 
-	var From = func(status apis.SynchronizationState, id string, version string) ExperimentStateTransitionTestCase {
-		experiment := pipelinesv1.RandomExperiment()
-		experiment.Spec = specv1
-		experiment.Status = apis.Status{
+	var From = func(status apis.SynchronizationState, id string, versionInState string, computedVersion string) StateTransitionTestCase {
+		resource := apis.RandomResource()
+		resource.SetStatus(apis.Status{
 			SynchronizationState: status,
-			Version:              version,
+			Version:              versionInState,
 			KfpId:                id,
-		}
+		})
+		resource.SetComputedVersion(computedVersion)
 
-		return ExperimentStateTransitionTestCase{
-			workflowFactory: workflowFactory,
-			Experiment:      experiment,
+		return StateTransitionTestCase{
+			workflowFactory: SucceedingWorkflowFactory{}, // TODO: mock workflowFactory
+			Experiment:      resource,
 			Commands:        []Command{},
 		}
 	}
 
-	DescribeTable("State transitions", func(st ExperimentStateTransitionTestCase) {
-		var stateHandler = ExperimentStateHandler{
+	DescribeTable("State transitions", func(st StateTransitionTestCase) {
+		var stateHandler = StateHandler[*apis.TestResource]{
 			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    st.workflowFactory,
 		}
@@ -177,7 +183,7 @@ var _ = Describe("Experiment State handler", func() {
 		Expect(commands).To(Equal(st.Commands))
 	},
 		Check("Empty",
-			From(UnknownState, "", "").
+			From(UnknownState, "", "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -185,7 +191,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty and workflow creation fails",
-			From(UnknownState, "", "").
+			From(UnknownState, "", "", v1).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
@@ -194,7 +200,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with version",
-			From(UnknownState, "", v1).
+			From(UnknownState, "", v1, v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -202,7 +208,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty with id",
-			From(UnknownState, kfpId, "").
+			From(UnknownState, kfpId, "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Updating).
@@ -211,7 +217,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesUpdateWorkflow(),
 		),
 		Check("Empty with id and workflow creation fails",
-			From(UnknownState, kfpId, "").
+			From(UnknownState, kfpId, "", v1).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
@@ -221,93 +227,105 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with id and version",
-			From(UnknownState, kfpId, v1).
+			From(UnknownState, kfpId, v1, v2).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Updating).
 					WithKfpId(kfpId).
-					WithVersion(v1)).
+					WithVersion(v2)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Creating succeeds",
-			From(apis.Creating, "", v1).
+			From(apis.Creating, "", v1, irrelevant).
 				AcquireExperiment().
-				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
+				WithSucceededCreateWorkFlow(kfpId, "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Succeeded).
 					WithKfpId(kfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
-		Check("Creating succeeds with existing KfpId",
-			From(apis.Creating, anotherKfpId, v1).
+		Check("Creating succeeds without kfpId or provider error",
+			From(apis.Creating, kfpId, v1, irrelevant).
 				AcquireExperiment().
-				WithCreateWorkFlowWithId(argo.WorkflowSucceeded, kfpId).
+				WithSucceededCreateWorkFlow("", "").
 				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(apis.Succeeded).
+					WithSynchronizationState(apis.Failed).
 					WithKfpId(kfpId).
-					WithVersion(v1)).
+					WithVersion(v1).
+					WithMessage("id was empty")).
+				DeletesAllWorkflows(),
+		),
+		Check("Creating succeeds with provider error",
+			From(apis.Creating, anotherKfpId, v1, irrelevant).
+				AcquireExperiment().
+				WithSucceededCreateWorkFlow(kfpId, providerError).
+				IssuesCommand(*NewSetStatus().
+					WithSynchronizationState(apis.Failed).
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage(providerError)).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating fails",
-			From(apis.Creating, "", v1).
+			From(apis.Creating, "", v1, irrelevant).
 				AcquireExperiment().
 				WithCreateWorkFlow(argo.WorkflowFailed).
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
 					WithVersion(v1).
-					WithMessage("experiment creation failed")).
+					WithMessage("operation failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Creating without version",
-			From(apis.Creating, "", "").
+			From(apis.Creating, "", "", irrelevant).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
-					WithMessage("creating experiment with empty version")),
+					WithMessage("creating resource with empty version")),
 		),
 		Check("Succeeded no update",
-			From(apis.Succeeded, kfpId, v1).
+			From(apis.Succeeded, kfpId, v1, v1).
 				AcquireExperiment(),
 		),
 		Check("Succeeded with update",
-			From(apis.Succeeded, kfpId, v0).
+			From(apis.Succeeded, kfpId, v1, v2).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Updating).
 					WithKfpId(kfpId).
-					WithVersion(v1)).
+					WithVersion(v2)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Succeeded with update and workflow creation fails",
-			From(apis.Succeeded, kfpId, v0).
+			From(apis.Succeeded, kfpId, v1, v2).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithKfpId(kfpId).
-					WithVersion(v1).
+					WithVersion(v2).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no KfpId",
-			From(apis.Succeeded, "", v0).
+			From(apis.Succeeded, "", v1, v2).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
-					WithVersion(v1)).
+					WithVersion(v2)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Succeeded with update and workflow creation fails",
-			From(apis.Succeeded, "", v0).
+			From(apis.Succeeded, "", v1, v2).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
-					WithVersion(v1).
+					WithVersion(v2).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no KfpId and no version",
-			From(apis.Succeeded, "", "").
+			From(apis.Succeeded, "", "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -315,47 +333,47 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed no update",
-			From(apis.Failed, kfpId, v1).
+			From(apis.Failed, kfpId, v1, v1).
 				AcquireExperiment(),
 		),
 		Check("Failed with update",
-			From(apis.Failed, kfpId, v0).
+			From(apis.Failed, kfpId, v1, v2).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Updating).
 					WithKfpId(kfpId).
-					WithVersion(v1)).
+					WithVersion(v2)).
 				IssuesUpdateWorkflow(),
 		),
 		Check("Failed with update and workflow creation fails",
-			From(apis.Failed, kfpId, v0).
+			From(apis.Failed, kfpId, v1, v2).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithKfpId(kfpId).
-					WithVersion(v1).
+					WithVersion(v2).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no KfpId",
-			From(apis.Failed, "", v0).
+			From(apis.Failed, "", v1, v2).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
-					WithVersion(v1)).
+					WithVersion(v2)).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed with update but no KfpId and workflow creation fails",
-			From(apis.Failed, "", v0).
+			From(apis.Failed, "", v1, v2).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
-					WithVersion(v1).
+					WithVersion(v2).
 					WithMessage(WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no KfpId and no version",
-			From(apis.Failed, "", "").
+			From(apis.Failed, "", "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -363,61 +381,73 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds with kfpId",
-			From(apis.Updating, anotherKfpId, v1).
+			From(apis.Updating, kfpId, v1, irrelevant).
 				AcquireExperiment().
-				WithSucceededUpdateWorkflowWithId(kfpId).
+				WithSucceededUpdateWorkflow(anotherKfpId, "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Succeeded).
-					WithKfpId(kfpId).
+					WithKfpId(anotherKfpId).
 					WithVersion(v1)).
 				DeletesAllWorkflows(),
 		),
-		Check("Updating succeeds without kfpId",
-			From(apis.Updating, anotherKfpId, v1).
+		Check("Updating succeeds without kfpId or provider error",
+			From(apis.Updating, kfpId, v1, irrelevant).
 				AcquireExperiment().
-				WithSucceededUpdateWorkflowWithId("").
+				WithSucceededUpdateWorkflow("", "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
+					WithKfpId(kfpId).
 					WithVersion(v1).
-					WithMessage("could not retrieve kfpId")).
+					WithMessage("id was empty")).
+				DeletesAllWorkflows(),
+		),
+		Check("Updating succeeds with provider error",
+			From(apis.Updating, kfpId, v1, irrelevant).
+				AcquireExperiment().
+				WithSucceededUpdateWorkflow(anotherKfpId, providerError).
+				IssuesCommand(*NewSetStatus().
+					WithSynchronizationState(apis.Failed).
+					WithKfpId(anotherKfpId).
+					WithVersion(v1).
+					WithMessage(providerError)).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating fails",
-			From(apis.Updating, kfpId, v1).
+			From(apis.Updating, kfpId, v1, irrelevant).
 				AcquireExperiment().
 				WithFailedUpdateWorkflow().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
 					WithKfpId(kfpId).
 					WithVersion(v1).
-					WithMessage("experiment update failed")).
+					WithMessage("operation failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Updating without version",
-			From(apis.Updating, kfpId, "").
+			From(apis.Updating, kfpId, "", irrelevant).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
 					WithKfpId(kfpId).
-					WithMessage("updating experiment with empty version or kfpId")),
+					WithMessage("updating resource with empty version or kfpId")),
 		),
 		Check("Updating without KfpId",
-			From(apis.Updating, "", v1).
+			From(apis.Updating, "", v1, irrelevant).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
 					WithVersion(v1).
-					WithMessage("updating experiment with empty version or kfpId")),
+					WithMessage("updating resource with empty version or kfpId")),
 		),
 		Check("Updating without KfpId or version",
-			From(apis.Updating, "", "").
+			From(apis.Updating, "", "", irrelevant).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
-					WithMessage("updating experiment with empty version or kfpId")),
+					WithMessage("updating resource with empty version or kfpId")),
 		),
 		Check("Deleting from Succeeded",
-			From(apis.Succeeded, kfpId, v1).
+			From(apis.Succeeded, kfpId, v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
@@ -427,7 +457,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Succeeded without kfpId",
-			From(apis.Succeeded, "", v1).
+			From(apis.Succeeded, "", v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
@@ -435,7 +465,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithVersion(v1)),
 		),
 		Check("Deleting from Failed",
-			From(apis.Failed, kfpId, v1).
+			From(apis.Failed, kfpId, v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
@@ -445,38 +475,62 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed without kfpId",
-			From(apis.Failed, "", v1).
+			From(apis.Failed, "", v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Deleted).
 					WithVersion(v1)),
 		),
-		Check("Deletion succeeds",
-			From(apis.Deleting, kfpId, v1).
+		Check("Deletion succeeds with kfpId",
+			From(apis.Deleting, kfpId, v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
-				WithDeletionWorkflow(argo.WorkflowSucceeded).
-				IssuesCommand(*NewSetStatus().
-					WithSynchronizationState(apis.Deleted).
-					WithKfpId(kfpId).
-					WithVersion(v1)).
-				DeletesAllWorkflows(),
-		),
-		Check("Deletion fails",
-			From(apis.Deleting, kfpId, v1).
-				AcquireExperiment().
-				DeletionRequested().
+				WithSucceededDeletionWorkflow(anotherKfpId, "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Deleting).
 					WithKfpId(kfpId).
 					WithVersion(v1).
-					WithMessage("experiment deletion failed")).
+					WithMessage("id should be empty")).
+				DeletesAllWorkflows(),
+		),
+		Check("Deletion succeeds",
+			From(apis.Deleting, kfpId, v1, irrelevant).
+				AcquireExperiment().
+				DeletionRequested().
+				WithSucceededDeletionWorkflow("", "").
+				IssuesCommand(*NewSetStatus().
+					WithSynchronizationState(apis.Deleted).
+					WithKfpId("").
+					WithVersion(v1)).
+				DeletesAllWorkflows(),
+		),
+		Check("Deletion succeeds with provider error",
+			From(apis.Deleting, kfpId, v1, irrelevant).
+				AcquireExperiment().
+				DeletionRequested().
+				WithSucceededDeletionWorkflow(kfpId, providerError).
+				IssuesCommand(*NewSetStatus().
+					WithSynchronizationState(apis.Deleting).
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage(providerError)).
+				DeletesAllWorkflows(),
+		),
+		Check("Deletion fails",
+			From(apis.Deleting, kfpId, v1, irrelevant).
+				AcquireExperiment().
+				DeletionRequested().
 				WithDeletionWorkflow(argo.WorkflowFailed).
+				IssuesCommand(*NewSetStatus().
+					WithSynchronizationState(apis.Deleting).
+					WithKfpId(kfpId).
+					WithVersion(v1).
+					WithMessage("operation failed")).
 				DeletesAllWorkflows(),
 		),
 		Check("Stay in deleted",
-			From(apis.Deleted, kfpId, v1).
+			From(apis.Deleted, kfpId, v1, irrelevant).
 				ReleaseExperiment(),
 		))
 })

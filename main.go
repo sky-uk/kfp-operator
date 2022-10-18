@@ -118,7 +118,7 @@ func main() {
 
 	if err = (&pipelinescontrollers.PipelineReconciler{
 		EC: ec,
-		StateHandler: pipelinescontrollers.PipelineStateHandler{
+		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1alpha3.Pipeline]{
 			WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
 				WorkflowFactoryBase: workflowFactory,
 			},
@@ -131,7 +131,7 @@ func main() {
 
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
 		EC: ec,
-		StateHandler: pipelinescontrollers.RunConfigurationStateHandler{
+		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1alpha3.RunConfiguration]{
 			WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
 				WorkflowFactoryBase: workflowFactory,
 			},
@@ -144,7 +144,7 @@ func main() {
 
 	if err = (&pipelinescontrollers.ExperimentReconciler{
 		EC: ec,
-		StateHandler: pipelinescontrollers.ExperimentStateHandler{
+		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1alpha3.Experiment]{
 			WorkflowFactory: pipelinescontrollers.ExperimentWorkflowFactory{
 				WorkflowFactoryBase: workflowFactory,
 			},

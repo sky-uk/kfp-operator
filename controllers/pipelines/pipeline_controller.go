@@ -19,7 +19,7 @@ var (
 
 type PipelineReconciler struct {
 	EC           K8sExecutionContext
-	StateHandler PipelineStateHandler
+	StateHandler StateHandler[*pipelinesv1.Pipeline]
 }
 
 //+kubebuilder:rbac:groups=argoproj.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete

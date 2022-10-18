@@ -21,6 +21,7 @@ type PipelineWorkflowIntegrationSuite interface {
 	FailUpload(*pipelinesv1.Pipeline) error
 	SucceedUploadVersion(*pipelinesv1.Pipeline) error
 	FailUploadVersion(*pipelinesv1.Pipeline) error
+	FailUploadVersionInCreation(*pipelinesv1.Pipeline) error
 	SucceedDeletion(*pipelinesv1.Pipeline) error
 	FailDeletion(*pipelinesv1.Pipeline) error
 
@@ -42,12 +43,8 @@ func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedUpload(_ *pipelin
 			200))
 }
 
-func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) FailUpload(_ *pipelinesv1.Pipeline) error {
-	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/upload/storage/v1/b/pipelineBucket/o")).
-		WithQueryParam("name", wiremock.Matching(".+/")).
-		WillReturn("",
-			map[string]string{},
-			404))
+func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) FailUpload(pipeline *pipelinesv1.Pipeline) error {
+	return vaipwis.FailUploadVersion(pipeline)
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedUploadVersion(_ *pipelinesv1.Pipeline) error {
@@ -66,7 +63,14 @@ func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) FailUploadVersion(_ *pip
 			404))
 }
 
-func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedDeletion(pipeline *pipelinesv1.Pipeline) error {
+func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) FailUploadVersionInCreation(_ *pipelinesv1.Pipeline) error {
+	// This will be refactored in https://github.com/sky-uk/kfp-operator/issues/178
+	// Provider-specific tests will be covered as unit tests
+	Skip("not relevant for Vertex AI")
+	return nil
+}
+
+func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedDeletion(_ *pipelinesv1.Pipeline) error {
 	err := wiremockClient.StubFor(wiremock.Get(wiremock.URLPathMatching("/b/pipelineBucket/o")).
 		WillReturn("{}",
 			map[string]string{"Content-Type": "application/json"},
@@ -113,12 +117,12 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUpload(pipeline *pipeline
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) SucceedUploadVersion(pipeline *pipelinesv1.Pipeline) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
-		WithQueryParam("name", wiremock.EqualTo(pipeline.Spec.ComputeVersion())).
+		WithQueryParam("name", wiremock.EqualTo(pipeline.ComputeVersion())).
 		WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
 		WillReturn(
 			fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "resource_references": [{"key": {"id": "%s", "type": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
 				apis.RandomString(),
-				pipeline.Spec.ComputeVersion(),
+				pipeline.ComputeVersion(),
 				pipeline.Status.KfpId,
 				pipeline.Name),
 			map[string]string{"Content-Type": "application/json"},
@@ -146,7 +150,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailDeletion(pipeline *pipeli
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersion(pipeline *pipelinesv1.Pipeline) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
-		WithQueryParam("name", wiremock.EqualTo(pipeline.Spec.ComputeVersion())).
+		WithQueryParam("name", wiremock.EqualTo(pipeline.ComputeVersion())).
 		WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
 		WillReturn(
 			`{"status": "failed"`,
@@ -155,8 +159,12 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersion(pipeline *p
 		))
 }
 
+func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersionInCreation(pipeline *pipelinesv1.Pipeline) error {
+	return kfppwis.FailUploadVersion(pipeline)
+}
+
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "endpoint: http://wiremock:80\nimage: kfp-operator-argo-kfp-provider"
+	return "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider"
 }
 
 var kfpId = apis.RandomString()
@@ -212,55 +220,66 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 				workflowFactory.ConstructCreationWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
-						To(Not(BeEmpty()))
-					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
-						To(Equal(pipelineSpec.ComputeVersion()))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).NotTo(BeEmpty())
+					g.Expect(output.ProviderError).To(BeEmpty())
 				},
 			),
 			Entry("Creation succeeds but the update fails",
 				func(pipeline *pipelinesv1.Pipeline) {
 					Expect(suite.SucceedUpload(pipeline)).To(Succeed())
-					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
+					Expect(suite.FailUploadVersionInCreation(pipeline)).To(Succeed())
 				},
 				workflowFactory.ConstructCreationWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineIdParameterName)).
-						To(Not(BeEmpty()))
-					g.Expect(getWorkflowOutput(workflow, PipelineWorkflowConstants.PipelineVersionParameterName)).
-						To(BeEmpty())
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).NotTo(BeEmpty())
+					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
 			Entry("Creation fails",
 				func(pipeline *pipelinesv1.Pipeline) {
 					Expect(suite.FailUpload(pipeline)).To(Succeed())
-					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
 				},
 				workflowFactory.ConstructCreationWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).To(BeEmpty())
+					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
 		)
 
 		DescribeTable("Update Workflow", AssertWorkflow,
-			Entry("Upload succeeds",
+			Entry("Update succeeds",
 				func(pipeline *pipelinesv1.Pipeline) {
 					Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
 				},
 				workflowFactory.ConstructUpdateWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).NotTo(BeEmpty())
+					g.Expect(output.ProviderError).To(BeEmpty())
 				},
 			),
-			Entry("Upload fails",
+			Entry("Update fails",
 				func(pipeline *pipelinesv1.Pipeline) {
 					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
 				},
 				workflowFactory.ConstructUpdateWorkflow,
 				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).To(Equal(kfpId))
+					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
 		)
@@ -275,6 +294,10 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 				},
 				func(g Gomega, workflow *argo.Workflow) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).To(BeEmpty())
+					g.Expect(output.ProviderError).To(BeEmpty())
 				},
 			),
 			Entry("Deletion fails",
@@ -285,7 +308,11 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 					return workflowFactory.ConstructDeletionWorkflow(pipeline)
 				},
 				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+					g.Expect(err).NotTo(HaveOccurred())
+					g.Expect(output.Id).To(Equal(kfpId))
+					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
 		)

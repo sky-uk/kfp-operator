@@ -11,10 +11,10 @@ import (
 var _ = Context("Experiment", func() {
 	var _ = Describe("ComputeHash", func() {
 		Specify("Description should change the hash", func() {
-			rcs := ExperimentSpec{}
+			rcs := Experiment{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.Description = "notempty"
+			rcs.Spec.Description = "notempty"
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
@@ -23,7 +23,7 @@ var _ = Context("Experiment", func() {
 
 	var _ = Describe("ComputeVersion", func() {
 		Specify("Should have the spec hash only", func() {
-			Expect(ExperimentSpec{}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
+			Expect(Experiment{}.ComputeVersion()).To(MatchRegexp("^[a-z0-9]{6}$"))
 		})
 	})
 })

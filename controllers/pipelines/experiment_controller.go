@@ -14,7 +14,7 @@ import (
 // ExperimentReconciler reconciles a Experiment object
 type ExperimentReconciler struct {
 	EC           K8sExecutionContext
-	StateHandler ExperimentStateHandler
+	StateHandler StateHandler[*pipelinesv1.Experiment]
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=experiments,verbs=get;list;watch;create;update;patch;delete

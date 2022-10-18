@@ -12,13 +12,13 @@ type ExperimentSpec struct {
 	Description string `json:"description,omitempty"`
 }
 
-func (es ExperimentSpec) ComputeHash() []byte {
+func (es Experiment) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(es.Description)
+	oh.WriteStringField(es.Spec.Description)
 	return oh.Sum()
 }
 
-func (es ExperimentSpec) ComputeVersion() string {
+func (es Experiment) ComputeVersion() string {
 	hash := es.ComputeHash()[0:3]
 
 	return fmt.Sprintf("%x", hash)

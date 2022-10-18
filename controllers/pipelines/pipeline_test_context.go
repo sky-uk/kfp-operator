@@ -81,7 +81,7 @@ func (testCtx PipelineTestContext) DeletePipeline() error {
 
 func (testCtx PipelineTestContext) StablePipelineCreated() {
 	testCtx.PipelineCreatedWithStatus(apis.Status{
-		Version:              testCtx.Pipeline.Spec.ComputeVersion(),
+		Version:              testCtx.Pipeline.ComputeVersion(),
 		KfpId:                apis.RandomString(),
 		SynchronizationState: apis.Succeeded,
 	})
@@ -98,9 +98,9 @@ func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status apis.Status)
 	})).Should(Succeed())
 }
 
-func (testCtx PipelineTestContext) StablePipelineUpdated(spec pipelinesv1.PipelineSpec) {
-	testCtx.PipelineUpdatedWithStatus(spec, apis.Status{
-		Version:              spec.ComputeVersion(),
+func (testCtx PipelineTestContext) StablePipelineUpdated(pipeline pipelinesv1.Pipeline) {
+	testCtx.PipelineUpdatedWithStatus(pipeline.Spec, apis.Status{
+		Version:              pipeline.ComputeVersion(),
 		KfpId:                apis.RandomString(),
 		SynchronizationState: apis.Succeeded,
 	})

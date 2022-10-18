@@ -3,22 +3,18 @@ package main
 import (
 	"cloud.google.com/go/storage"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	. "github.com/sky-uk/kfp-operator/providers/base"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"io"
-	"log"
 	"os"
 )
 
 func main() {
-	err := RunProviderApp[VertexAiProviderConfig](VAIProvider{})
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	RunProviderApp[VertexAiProviderConfig](VAIProvider{})
 }
 
 type VertexAiProviderConfig struct {
@@ -29,7 +25,7 @@ type VertexAiProviderConfig struct {
 type VAIProvider struct {
 }
 
-func (vaip VAIProvider) client(providerConfig VertexAiProviderConfig, ctx context.Context) (*storage.Client, error) {
+func (vaip VAIProvider) client(ctx context.Context, providerConfig VertexAiProviderConfig) (*storage.Client, error) {
 	var client *storage.Client
 	var err error
 	if providerConfig.Endpoint != "" {
@@ -41,51 +37,53 @@ func (vaip VAIProvider) client(providerConfig VertexAiProviderConfig, ctx contex
 	return client, err
 }
 
-func (vaip VAIProvider) CreatePipeline(_ VertexAiProviderConfig, _ PipelineDefinition, _ string, _ context.Context) (string, error) {
+func (vaip VAIProvider) CreatePipeline(ctx context.Context, providerConfig VertexAiProviderConfig, pipelineDefinition PipelineDefinition, pipelineFile string) (string, error) {
 	id, err := uuid.NewUUID()
 	if err != nil {
+		return "", err
+	}
+
+	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, id.String(), pipelineFile); err != nil {
 		return "", err
 	}
 
 	return id.String(), nil
 }
 
-func (vaip VAIProvider) UpdatePipeline(providerConfig VertexAiProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string, ctx context.Context) (string, error) {
-	client, err := vaip.client(providerConfig, ctx)
+func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VertexAiProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
+	client, err := vaip.client(ctx, providerConfig)
 	if err != nil {
-		log.Fatal(err)
+		return id, err
 	}
 
 	reader, err := os.Open(pipelineFile)
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	writer := client.Bucket(providerConfig.PipelineBucket).Object(fmt.Sprintf("%s/%s", id, pipelineDefinition.Version)).NewWriter(ctx)
 	_, err = io.Copy(writer, reader)
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	err = reader.Close()
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
-	fmt.Printf("Version %s created for pipeline %s\n", pipelineDefinition.Version, id)
-
-	return pipelineDefinition.Version, nil
+	return id, nil
 }
 
-func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, _ PipelineDefinition, id string, ctx context.Context) error {
-	client, err := vaip.client(providerConfig, ctx)
+func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VertexAiProviderConfig, id string) error {
+	client, err := vaip.client(ctx, providerConfig)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	query := &storage.Query{Prefix: fmt.Sprintf("%s/", id)}
@@ -107,4 +105,28 @@ func (vaip VAIProvider) DeletePipeline(providerConfig VertexAiProviderConfig, _ 
 	}
 
 	return nil
+}
+
+func (vaip VAIProvider) CreateRunConfiguration(_ context.Context, _ VertexAiProviderConfig, _ RunConfigurationDefinition) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (vaip VAIProvider) UpdateRunConfiguration(_ context.Context, _ VertexAiProviderConfig, _ RunConfigurationDefinition, _ string) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (vaip VAIProvider) DeleteRunConfiguration(_ context.Context, _ VertexAiProviderConfig, _ string) error {
+	return errors.New("not implemented")
+}
+
+func (vaip VAIProvider) CreateExperiment(_ context.Context, _ VertexAiProviderConfig, _ ExperimentDefinition) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (vaip VAIProvider) UpdateExperiment(_ context.Context, _ VertexAiProviderConfig, _ ExperimentDefinition, _ string) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (vaip VAIProvider) DeleteExperiment(_ context.Context, _ VertexAiProviderConfig, _ string) error {
+	return errors.New("not implemented")
 }

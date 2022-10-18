@@ -93,7 +93,7 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 		},
 	}
 
-	var stateHandler = PipelineStateHandler{
+	var stateHandler = StateHandler[*pipelinesv1.Pipeline]{
 		WorkflowRepository: workflowRepository,
 		WorkflowFactory:    workflowFactory,
 	}
@@ -114,7 +114,7 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 		},
 	}
 
-	var stateHandler = RunConfigurationStateHandler{
+	var stateHandler = StateHandler[*pipelinesv1.RunConfiguration]{
 		WorkflowRepository: workflowRepository,
 		WorkflowFactory:    workflowFactory,
 	}
@@ -133,7 +133,7 @@ func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository Work
 		},
 	}
 
-	var stateHandler = ExperimentStateHandler{
+	var stateHandler = StateHandler[*pipelinesv1.Experiment]{
 		WorkflowRepository: workflowRepository,
 		WorkflowFactory:    workflowFactory,
 	}

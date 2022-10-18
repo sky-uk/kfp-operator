@@ -51,12 +51,13 @@ type TestResource struct {
 	metav1.ObjectMeta
 	NamespacedName types.NamespacedName
 
-	Kind   string
-	Status Status
+	Kind            string
+	Status          Status
+	ComputedVersion string
 }
 
 func (tr *TestResource) GetStatus() Status {
-	return tr.GetStatus()
+	return tr.Status
 }
 
 func (tr *TestResource) SetStatus(status Status) {
@@ -71,15 +72,24 @@ func (tr *TestResource) GetNamespacedName() types.NamespacedName {
 	return tr.NamespacedName
 }
 
+func (tr *TestResource) ComputeVersion() string {
+	return tr.ComputedVersion
+}
+
+func (tr *TestResource) SetComputedVersion(version string) {
+	tr.ComputedVersion = version
+}
+
 func (tr *TestResource) GetKind() string {
 	return tr.Kind
 }
 
-func RandomResource() Resource {
+func RandomResource() *TestResource {
 	return &TestResource{
-		Status:         RandomStatus(),
-		NamespacedName: RandomNamespacedName(),
-		Kind:           RandomString(),
+		Status:          RandomStatus(),
+		NamespacedName:  RandomNamespacedName(),
+		Kind:            RandomString(),
+		ComputedVersion: RandomShortHash(),
 	}
 }
 

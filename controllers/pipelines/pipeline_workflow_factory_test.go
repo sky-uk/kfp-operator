@@ -31,7 +31,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipeline)
+		compilerConfig := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.Name).To(Equal("pipelineName"))
 		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
@@ -53,7 +53,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipeline)
+		compilerConfig := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.RootLocation).To(Equal("gs://bucket/pipelineName"))
 		Expect(compilerConfig.ServingLocation).To(Equal("gs://bucket/pipelineName/serving"))
@@ -69,7 +69,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipeline)
+		compilerConfig := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.BeamArgs["a"]).To(Equal([]string{"b"}))
 	})
@@ -89,7 +89,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipeline)
+		compilerConfig := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.BeamArgs["temp_location"]).To(Equal([]string{"gs://bucket/pipelineName/tmp"}))
 	})
@@ -114,7 +114,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.newCompilerConfig(pipeline)
+		compilerConfig := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.BeamArgs["ba"]).To(Equal([]string{"default"}))
 		Expect(compilerConfig.BeamArgs["bc"]).To(Equal([]string{"default", "bd"}))
