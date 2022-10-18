@@ -3,7 +3,7 @@ package pipelines
 import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"github.com/sky-uk/kfp-operator/providers/base"
+	providers "github.com/sky-uk/kfp-operator/providers/base"
 	"gopkg.in/yaml.v2"
 )
 
@@ -16,8 +16,8 @@ var mapParams = func(params []argo.Parameter) map[string]string {
 	return m
 }
 
-func getWorkflowOutput(workflow *argo.Workflow, key string) (base.Output, error) {
-	output := base.Output{}
+func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, error) {
+	output := providers.Output{}
 
 	entrypointNode, exists := workflow.Status.Nodes[workflow.Name]
 	if !exists || entrypointNode.Outputs == nil {
@@ -45,7 +45,7 @@ func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *a
 	return workflow
 }
 
-func setProviderOutput(workflow *argo.Workflow, output base.Output) *argo.Workflow {
+func setProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.Workflow {
 	return setWorkflowOutputs(
 		workflow,
 		[]argo.Parameter{

@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/providers/base"
+	providers "github.com/sky-uk/kfp-operator/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 )
@@ -68,7 +68,7 @@ func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(kfpId string, prov
 	return st.WithWorkFlow(
 		setProviderOutput(
 			CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
-			base.Output{Id: kfpId, ProviderError: providerError},
+			providers.Output{Id: kfpId, ProviderError: providerError},
 		),
 	)
 }
@@ -83,7 +83,7 @@ func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(kfpId string, prov
 	return st.WithWorkFlow(
 		setProviderOutput(
 			CreateTestWorkflow(WorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
-			base.Output{Id: kfpId, ProviderError: providerError},
+			providers.Output{Id: kfpId, ProviderError: providerError},
 		),
 	)
 }
@@ -98,7 +98,7 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(kfpId string, pr
 	return st.WithWorkFlow(
 		setProviderOutput(
 			CreateTestWorkflow(WorkflowConstants.DeleteOperationLabel, argo.WorkflowSucceeded),
-			base.Output{Id: kfpId, ProviderError: providerError},
+			providers.Output{Id: kfpId, ProviderError: providerError},
 		),
 	)
 }
