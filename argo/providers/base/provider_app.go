@@ -97,11 +97,11 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineFileFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
-						pipelineDefinition, err := loadPipelineDefinition(c)
+						pipelineDefinition, err := loadFromParameter[PipelineDefinition](c, ProviderConstants.PipelineDefinitionParameter)
 						if err != nil {
 							return err
 						}
@@ -119,11 +119,11 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
 						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
-						pipelineDefinition, err := loadPipelineDefinition(c)
+						pipelineDefinition, err := loadFromParameter[PipelineDefinition](c, ProviderConstants.PipelineDefinitionParameter)
 						if err != nil {
 							return err
 						}
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
@@ -140,7 +140,7 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
@@ -165,11 +165,11 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Name:  "create",
 					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
-						runConfigurationDefinition, err := loadRunConfigurationDefinition(c)
+						runConfigurationDefinition, err := loadFromParameter[RunConfigurationDefinition](c, ProviderConstants.RunConfigurationDefinitionParameter)
 						if err != nil {
 							return err
 						}
@@ -186,11 +186,11 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunConfigurationIdParameter)
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
-						runConfigurationDefinition, err := loadRunConfigurationDefinition(c)
+						runConfigurationDefinition, err := loadFromParameter[RunConfigurationDefinition](c, ProviderConstants.RunConfigurationDefinitionParameter)
 						if err != nil {
 							return err
 						}
@@ -207,7 +207,7 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunConfigurationIdParameter)
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
@@ -232,11 +232,11 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Name:  "create",
 					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
-						experimentDefinition, err := loadExperimentDefinition(c)
+						experimentDefinition, err := loadFromParameter[ExperimentDefinition](c, ProviderConstants.ExperimentDefinitionParameter)
 						if err != nil {
 							return err
 						}
@@ -253,11 +253,11 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.ExperimentIdParameter)
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
-						experimentDefinition, err := loadExperimentDefinition(c)
+						experimentDefinition, err := loadFromParameter[ExperimentDefinition](c, ProviderConstants.ExperimentDefinitionParameter)
 						if err != nil {
 							return err
 						}
@@ -274,7 +274,7 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.ExperimentIdParameter)
-						providerConfig, err := loadProviderConfig[Config](c)
+						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
 						if err != nil {
 							return err
 						}
@@ -352,73 +352,14 @@ func writeOutput(c *cli.Context, id string, err error) error {
 	return os.WriteFile(c.String(ProviderConstants.OutputParameter), outputYaml, 0644)
 }
 
-func loadYamlFromFile(fileName string, obj interface{}) error {
+func loadFromParameter[T any](c *cli.Context, parameterName string) (T, error) {
+	t := new(T)
+
+	fileName := c.String(parameterName)
 	content, err := os.ReadFile(fileName)
-
-	if err != nil {
-		return err
+	if err == nil {
+		err = yaml.Unmarshal(content, t)
 	}
 
-	err = yaml.Unmarshal(content, obj)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func loadPipelineDefinition(c *cli.Context) (PipelineDefinition, error) {
-	pipelineDefinition := PipelineDefinition{}
-
-	pipelineDefinitionFile := c.String(ProviderConstants.PipelineDefinitionParameter)
-
-	err := loadYamlFromFile(pipelineDefinitionFile, &pipelineDefinition)
-
-	if err != nil {
-		return pipelineDefinition, err
-	}
-
-	return pipelineDefinition, nil
-}
-
-func loadRunConfigurationDefinition(c *cli.Context) (RunConfigurationDefinition, error) {
-	runConfigurationDefinition := RunConfigurationDefinition{}
-
-	runConfigurationDefinitionFile := c.String(ProviderConstants.RunConfigurationDefinitionParameter)
-
-	err := loadYamlFromFile(runConfigurationDefinitionFile, &runConfigurationDefinition)
-
-	if err != nil {
-		return runConfigurationDefinition, err
-	}
-
-	return runConfigurationDefinition, nil
-}
-
-func loadExperimentDefinition(c *cli.Context) (ExperimentDefinition, error) {
-	experimentDefinition := ExperimentDefinition{}
-
-	experimentDefinitionFile := c.String(ProviderConstants.ExperimentDefinitionParameter)
-
-	err := loadYamlFromFile(experimentDefinitionFile, &experimentDefinition)
-
-	if err != nil {
-		return experimentDefinition, err
-	}
-
-	return experimentDefinition, nil
-}
-
-func loadProviderConfig[Config any](c *cli.Context) (Config, error) {
-
-	providerConfig := new(Config)
-
-	providerConfigFile := c.String(ProviderConstants.ProviderConfigParameter)
-	err := loadYamlFromFile(providerConfigFile, providerConfig)
-
-	if err != nil {
-		return *providerConfig, err
-	}
-
-	return *providerConfig, nil
+	return *t, err
 }
