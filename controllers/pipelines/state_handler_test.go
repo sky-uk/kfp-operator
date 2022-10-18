@@ -147,8 +147,8 @@ var _ = Describe("Experiment State handler", func() {
 	anotherKfpId := "67890"
 	providerError := "a provider error has occurred"
 	irrelevant := "irrelevant"
-	v2 := apis.RandomShortHash()
 	v1 := apis.RandomShortHash()
+	v2 := apis.RandomShortHash()
 	UnknownState := apis.SynchronizationState(apis.RandomString())
 
 	var Check = func(description string, transition StateTransitionTestCase) TableEntry {

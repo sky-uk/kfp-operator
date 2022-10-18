@@ -3,8 +3,8 @@ package pipelines
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
-providers "github.com/sky-uk/kfp-operator/providers/base"
-"gopkg.in/yaml.v2"
+	providers "github.com/sky-uk/kfp-operator/providers/base"
+	"gopkg.in/yaml.v2"
 )
 
 var ExperimentWorkflowConstants = struct {
