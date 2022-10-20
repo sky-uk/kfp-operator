@@ -28,6 +28,7 @@ data:
       {{- .Values.manager.configuration | toYaml | nindent 6 }}
   provider.yaml: |
     image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-{{ .Values.manager.provider.type }}-provider:{{ .Chart.AppVersion }}
+    executionMode: {{ if eq .Values.manager.provider.type "kfp" }}v1{{ else }}v2{{ end }}
     {{- if not (empty .Values.manager.provider.configuration) -}}
     {{- .Values.manager.provider.configuration | toYaml | nindent 4 }}
     {{- end }}

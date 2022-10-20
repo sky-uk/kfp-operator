@@ -1,2 +1,3 @@
 image: kfp-operator-kfp-provider:latest
+executionMode: v1
 endpoint: ${KFP_ENDPOINT}

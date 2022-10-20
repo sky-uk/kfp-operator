@@ -8,6 +8,7 @@ spec:
     inputs:
       parameters:
       - name: pipeline-image
+      - name: execution-mode
       artifacts:
       - name: pipeline-definition
         raw:
@@ -33,6 +34,8 @@ spec:
       - /tmp/pipeline.yaml
       - --pipeline_config
       - /tmp/pipeline-definition.yaml
+      - --execution_mode
+      - "{{`{{inputs.parameters.execution-mode}}`}}"
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
@@ -184,23 +187,42 @@ spec:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-provider-image
+          template: select-provider-parameter
           clusterScope: true
+        arguments:
+          parameters:
+          - name: parameter
+            value: image
+    - - name: select-execution-mode
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: parameter
+            value: executionMode
     - - name: select-pipeline-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-pipeline-image
           clusterScope: true
     - - name: compile
-        arguments:
-          parameters:
-          - name: pipeline-image
-            value: '{{`{{steps.select-pipeline-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: compile
           clusterScope: true
+        arguments:
+          parameters:
+          - name: pipeline-image
+            value: '{{`{{steps.select-pipeline-image.outputs.result}}`}}'
+          - name: execution-mode
+            value: '{{`{{steps.select-execution-mode.outputs.result}}`}}'
     - - name: provider
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+          template: create
+          clusterScope: true
         arguments:
           artifacts:
           - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
@@ -208,10 +230,6 @@ spec:
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
-          template: create
-          clusterScope: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -238,23 +256,42 @@ spec:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-provider-image
+          template: select-provider-parameter
           clusterScope: true
+        arguments:
+          parameters:
+          - name: parameter
+            value: image
+    - - name: select-execution-mode
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: parameter
+            value: executionMode
     - - name: select-pipeline-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-pipeline-image
           clusterScope: true
     - - name: compile
-        arguments:
-          parameters:
-          - name: pipeline-image
-            value: '{{`{{steps.select-pipeline-image.outputs.result}}`}}'
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: compile
           clusterScope: true
+        arguments:
+          parameters:
+          - name: pipeline-image
+            value: '{{`{{steps.select-pipeline-image.outputs.result}}`}}'
+          - name: execution-mode
+            value: '{{`{{steps.select-execution-mode.outputs.result}}`}}'
     - - name: provider
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+          template: update
+          clusterScope: true
         arguments:
           artifacts:
           - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
@@ -264,10 +301,6 @@ spec:
             value: '{{`{{workflow.parameters.pipeline-id}}`}}'
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
-          template: update
-          clusterScope: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -293,14 +326,18 @@ spec:
     - - name: select-provider-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-provider-image
+          template: select-provider-parameter
           clusterScope: true
-    - - name: provider
         arguments:
           parameters:
-          - name: provider-image
-            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+          - name: parameter
+            value: image
+    - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: delete
           clusterScope: true
+        arguments:
+          parameters:
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'

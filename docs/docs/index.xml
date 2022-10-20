@@ -60,6 +60,11 @@
 &lt;td>Container image of the provider&lt;/td>
 &lt;td>&lt;code>kfp-operator-kfp-provider:0.0.2&lt;/code>&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>executionMode&lt;/code>&lt;/td>
+&lt;td>KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
+&lt;td>&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;h3 id="kubeflow-pipelines">Kubeflow Pipelines&lt;/h3>

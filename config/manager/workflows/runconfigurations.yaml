@@ -127,17 +127,21 @@ spec:
     - - name: select-provider-image
         templateRef:
           name: kfp-operator-common-steps
-          template: select-provider-image
+          template: select-provider-parameter
           clusterScope: true
-    - - name: provider
         arguments:
           parameters:
-          - name: provider-image
-            value: '{{steps.select-provider-image.outputs.result}}'
+          - name: parameter
+            value: image
+    - - name: provider
         templateRef:
           name: kfp-operator-runconfiguration-steps
           template: create
           clusterScope: true
+        arguments:
+          parameters:
+          - name: provider-image
+            value: '{{steps.select-provider-image.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -161,17 +165,21 @@ spec:
     - - name: select-provider-image
         templateRef:
           name: kfp-operator-common-steps
-          template: select-provider-image
+          template: select-provider-parameter
           clusterScope: true
-    - - name: provider
         arguments:
           parameters:
-          - name: provider-image
-            value: '{{steps.select-provider-image.outputs.result}}'
+          - name: parameter
+            value: image
+    - - name: provider
         templateRef:
           name: kfp-operator-runconfiguration-steps
           template: update
           clusterScope: true
+        arguments:
+          parameters:
+          - name: provider-image
+            value: '{{steps.select-provider-image.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ClusterWorkflowTemplate
@@ -194,14 +202,18 @@ spec:
     - - name: select-provider-image
         templateRef:
           name: kfp-operator-common-steps
-          template: select-provider-image
+          template: select-provider-parameter
           clusterScope: true
-    - - name: provider
         arguments:
           parameters:
-          - name: provider-image
-            value: '{{steps.select-provider-image.outputs.result}}'
+          - name: parameter
+            value: image
+    - - name: provider
         templateRef:
           name: kfp-operator-runconfiguration-steps
           template: delete
           clusterScope: true
+        arguments:
+          parameters:
+          - name: provider-image
+            value: '{{steps.select-provider-image.outputs.result}}'

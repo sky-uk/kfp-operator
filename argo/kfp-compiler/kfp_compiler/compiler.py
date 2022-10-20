@@ -4,7 +4,7 @@ import sys
 import importlib
 import importlib.util
 import os
-from tfx.orchestration.kubeflow import kubeflow_dag_runner
+from tfx.v1.orchestration import experimental as kubeflow_dag_runner
 from tfx.orchestration import pipeline
 from tfx.components import Pusher, Trainer
 from tfx.proto import pusher_pb2
@@ -71,7 +71,8 @@ def load_fn(tfx_components, env={}):
 @click.command()
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
 @click.option('--output_file', help='Output file path', required=True)
-def compile(pipeline_config, output_file):
+@click.option('--execution_mode', type=click.Choice(['v1', 'v2']), help='KFP Execution mode', required=True)
+def compile(pipeline_config, output_file, execution_mode):
     """Compiles TFX components into a Kubeflow Pipelines pipeline definition"""
     with open(pipeline_config, "r") as stream:
         config = yaml.safe_load(stream)
@@ -81,15 +82,9 @@ def compile(pipeline_config, output_file):
         components = load_fn(config['tfxComponents'], config.get('env', {}))()
         expanded_components = expand_components_with_pusher(components, config['servingLocation'])
 
-        metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
+        compile_fn = compile_v1 if execution_mode == 'v1' else compile_v2
 
-        runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
-            kubeflow_metadata_config=metadata_config, tfx_image=config['image']
-        )
-
-        kubeflow_dag_runner.KubeflowDagRunner(
-            config=runner_config, output_filename=output_file
-        ).run(
+        compile_fn(config, output_file).run(
             pipeline.Pipeline(
                 pipeline_name=config['name'],
                 pipeline_root=config['rootLocation'],
@@ -101,6 +96,32 @@ def compile(pipeline_config, output_file):
         )
 
         click.secho(f'{output_file} written', fg='green')
+
+
+def compile_v1(config: str, output_filename: str):
+    metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
+
+    runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
+        kubeflow_metadata_config=metadata_config,
+        tfx_image=config['image']
+    )
+
+    return kubeflow_dag_runner.KubeflowDagRunner(
+        config=runner_config,
+        output_filename=output_filename
+    )
+
+
+def compile_v2(config: str, output_filename: str):
+    runner_config = kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
+        display_name=config['name'],
+        default_image=config['image']
+    )
+
+    return kubeflow_dag_runner.KubeflowV2DagRunner(
+        config=runner_config,
+        output_filename=output_filename
+    )
 
 
 def dict_to_cli_args(beam_args):
