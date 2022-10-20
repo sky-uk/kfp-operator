@@ -29,7 +29,7 @@ def test_cli_v1():
 
 def test_cli_v2():
     with TemporaryDirectory() as tmp_dir:
-        output_file_path = os.path.join(tmp_dir, 'pipeline.json')
+        output_file_path = os.path.join(tmp_dir, 'pipeline.yaml')
 
         result = runner.invoke(compiler.compile, ['--pipeline_config', config_file_path, '--output_file', output_file_path, "--execution_mode", "v2"])
 
@@ -37,7 +37,7 @@ def test_cli_v2():
         assert os.stat(output_file_path).st_size != 0
 
         f = open(output_file_path, "r")
-        pipeline = json.loads(f.read())
+        pipeline = yaml.load(f.read())
         assert pipeline['pipelineSpec']['schemaVersion'] == '2.0.0'
 
 

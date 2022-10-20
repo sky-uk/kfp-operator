@@ -4,8 +4,10 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-common-steps
 spec:
   templates:
-  - name: select-provider-image
+  - name: select-provider-parameter
     inputs:
+      parameters:
+      - name: parameter
       artifacts:
       - name: provider-config
         path: /tmp/provider-config.yaml
@@ -16,7 +18,7 @@ spec:
       command:
       - ash
       image: mikefarah/yq:4.27.5
-      source: yq e '.image' /tmp/provider-config.yaml
+      source: yq e '.{{`{{inputs.parameters.parameter}}`}}' /tmp/provider-config.yaml
   - name: select-pipeline-image
     inputs:
       artifacts:
@@ -30,17 +32,3 @@ spec:
       - ash
       image: mikefarah/yq:4.27.5
       source: yq e '.image' /tmp/pipeline-definition.yaml
-  # Legacy-support for RunConfigurations and Experiments until migrated
-  - name: select-endpoint
-    inputs:
-      artifacts:
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
-    script:
-      command:
-      - ash
-      image: mikefarah/yq:4.27.5
-      source: yq e '.endpoint' /tmp/provider-config.yaml

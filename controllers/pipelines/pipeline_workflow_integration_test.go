@@ -32,7 +32,7 @@ type VertexAIPipelineWorkflowIntegrationSuite struct {
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "endpoint: http://wiremock:80\nimage: kfp-operator-vai-provider\npipelineBucket: pipelineBucket"
+	return "endpoint: http://wiremock:80\nimage: kfp-operator-vai-provider\npipelineBucket: pipelineBucket\nexecutionMode: v2"
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedUpload(_ *pipelinesv1.Pipeline) error {
@@ -164,7 +164,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersionInCreation(p
 }
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider"
+	return "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
 }
 
 var kfpId = apis.RandomString()

@@ -102,17 +102,20 @@ def compile_v1(config: str, output_filename: str):
     metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
 
     runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
-        kubeflow_metadata_config=metadata_config, tfx_image=config['image']
+        kubeflow_metadata_config=metadata_config,
+        tfx_image=config['image']
     )
 
     return kubeflow_dag_runner.KubeflowDagRunner(
-        config=runner_config, output_filename=output_filename
+        config=runner_config,
+        output_filename=output_filename
     )
 
 
 def compile_v2(config: str, output_filename: str):
     runner_config = kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
-        display_name=config['name'], default_image=config['image']
+        display_name=config['name'],
+        default_image=config['image']
     )
 
     return kubeflow_dag_runner.KubeflowV2DagRunner(
