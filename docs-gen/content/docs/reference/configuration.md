@@ -24,9 +24,10 @@ An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/maste
 
 ### Common
 
-| Parameter name | Description                     | Example                           |
-|----------------|---------------------------------|-----------------------------------|
-| `image`        | Container image of the provider | `kfp-operator-kfp-provider:0.0.2` |
+| Parameter name  | Description                                                                                                                          | Example                                  |
+|-----------------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
+| `image`         | Container image of the provider                                                                                                      | `kfp-operator-kfp-provider:0.0.2`        |
+| `executionMode` | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode) | `v1` (currently KFP) or `v2` (Vertex AI) |
 
 ### Kubeflow Pipelines
 
