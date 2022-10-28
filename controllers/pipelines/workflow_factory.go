@@ -3,9 +3,8 @@ package pipelines
 import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -33,7 +32,7 @@ var WorkflowConstants = struct {
 	ProviderOutputParameterName: "provider-output",
 }
 
-type WorkflowFactory[R apis.Resource] interface {
+type WorkflowFactory[R pipelinesv1.Resource] interface {
 	ConstructCreationWorkflow(resource R) (*argo.Workflow, error)
 	ConstructUpdateWorkflow(resource R) (*argo.Workflow, error)
 	ConstructDeletionWorkflow(resource R) (*argo.Workflow, error)
@@ -45,7 +44,7 @@ type WorkflowFactoryBase struct {
 	ProviderConfig string
 }
 
-func CommonWorkflowMeta(owner apis.Resource, operation string) *metav1.ObjectMeta {
+func CommonWorkflowMeta(owner pipelinesv1.Resource, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", operation, owner.GetKind()),
 		Namespace:    owner.GetNamespace(),
@@ -53,7 +52,7 @@ func CommonWorkflowMeta(owner apis.Resource, operation string) *metav1.ObjectMet
 	}
 }
 
-func CommonWorkflowLabels(owner apis.Resource, operation string) map[string]string {
+func CommonWorkflowLabels(owner pipelinesv1.Resource, operation string) map[string]string {
 	return map[string]string{
 		WorkflowConstants.OperationLabelKey: operation,
 		WorkflowConstants.OwnerKindLabelKey: owner.GetKind(),

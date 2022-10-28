@@ -36,62 +36,65 @@ spec:
   {{- end }}
   versions:
   {{- if .Values.manager.multiversion.enabled }}
-  - name: v1alpha2
-    served: true
-    storage: false
-    subresources:
-      status: {}
-    additionalPrinterColumns:
-    - name: KfpId
+  - additionalPrinterColumns:
+    - jsonPath: .status.kfpId
+      name: KfpId
       type: string
-      jsonPath: .status.kfpId
-    - name: SynchronizationState
+    - jsonPath: .status.synchronizationState
+      name: SynchronizationState
       type: string
-      jsonPath: .status.synchronizationState
-    - name: Version
+    - jsonPath: .status.version
+      name: Version
       type: string
-      jsonPath: .status.version
+    name: v1alpha2
     schema:
       openAPIV3Schema:
-        type: object
         properties:
           apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
             type: string
-            description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources"
           kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
-            description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds"
           metadata:
             type: object
           spec:
-            type: object
             properties:
               experimentName:
                 type: string
               pipeline:
-                type: string
                 pattern: ^[\w-]+(?::[\w-]+)?$
+                type: string
               runtimeParameters:
-                type: object
                 additionalProperties:
                   type: string
+                type: object
               schedule:
                 type: string
-          status:
             type: object
+          status:
             properties:
-              version:
-                type: string
               kfpId:
                 type: string
               observedGeneration:
-                type: integer
                 format: int64
+                type: integer
               observedPipelineVersion:
                 type: string
               synchronizationState:
                 type: string
-  {{- end }}
+              version:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: false
+    subresources:
+      status: {}
   - additionalPrinterColumns:
     - jsonPath: .status.kfpId
       name: KfpId
@@ -133,8 +136,8 @@ spec:
                     value:
                       type: string
                   required:
-                    - name
-                    - value
+                  - name
+                  - value
                   type: object
                 type: array
               schedule:
@@ -148,6 +151,74 @@ spec:
                 format: int64
                 type: integer
               observedPipelineVersion:
+                type: string
+              synchronizationState:
+                type: string
+              version:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: false
+    subresources:
+      status: {}
+  {{- end }}
+  - additionalPrinterColumns:
+    - jsonPath: .status.providerId
+      name: ProviderId
+      type: string
+    - jsonPath: .status.synchronizationState
+      name: SynchronizationState
+      type: string
+    - jsonPath: .status.version
+      name: Version
+      type: string
+    name: v1alpha4
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              experimentName:
+                type: string
+              pipeline:
+                pattern: ^[\w-]+(?::[\w-]+)?$
+                type: string
+              runtimeParameters:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
+              schedule:
+                type: string
+            type: object
+          status:
+            properties:
+              observedGeneration:
+                format: int64
+                type: integer
+              observedPipelineVersion:
+                type: string
+              providerId:
                 type: string
               synchronizationState:
                 type: string

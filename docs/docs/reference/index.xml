@@ -112,7 +112,7 @@
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>kfpId&lt;/code>&lt;/td>
+&lt;td>&lt;code>providerId&lt;/code>&lt;/td>
 &lt;td>The resource identifier inside Kubeflow Pipelines&lt;/td>
 &lt;/tr>
 &lt;tr>

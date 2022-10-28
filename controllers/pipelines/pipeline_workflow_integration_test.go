@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/walkerus/go-wiremock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -99,7 +99,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) SucceedUpload(pipeline *pipel
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload")).
 		WithQueryParam("name", wiremock.EqualTo(pipeline.Name)).
 		WillReturn(
-			fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "default_version": {"id": "%s"}}`, pipeline.Status.KfpId, pipeline.Name, pipeline.Name),
+			fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "default_version": {"id": "%s"}}`, pipeline.Status.ProviderId, pipeline.Name, pipeline.Name),
 			map[string]string{"Content-Type": "application/json"},
 			200,
 		))
@@ -118,12 +118,12 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUpload(pipeline *pipeline
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) SucceedUploadVersion(pipeline *pipelinesv1.Pipeline) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
 		WithQueryParam("name", wiremock.EqualTo(pipeline.ComputeVersion())).
-		WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
+		WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.ProviderId)).
 		WillReturn(
 			fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s", "resource_references": [{"key": {"id": "%s", "type": "PIPELINE"}, "name": "%s", "relationship": "OWNER"}]}`,
 				apis.RandomString(),
 				pipeline.ComputeVersion(),
-				pipeline.Status.KfpId,
+				pipeline.Status.ProviderId,
 				pipeline.Name),
 			map[string]string{"Content-Type": "application/json"},
 			200,
@@ -131,7 +131,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) SucceedUploadVersion(pipeline
 }
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) SucceedDeletion(pipeline *pipelinesv1.Pipeline) error {
-	return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipeline.Status.KfpId)).
+	return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipeline.Status.ProviderId)).
 		WillReturn(
 			`{"status": "deleted"}`,
 			map[string]string{"Content-Type": "application/json"},
@@ -140,7 +140,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) SucceedDeletion(pipeline *pip
 }
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailDeletion(pipeline *pipelinesv1.Pipeline) error {
-	return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipeline.Status.KfpId)).
+	return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/"+pipeline.Status.ProviderId)).
 		WillReturn(
 			`{"status": "failed"}`,
 			map[string]string{"Content-Type": "application/json"},
@@ -151,7 +151,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailDeletion(pipeline *pipeli
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersion(pipeline *pipelinesv1.Pipeline) error {
 	return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/pipelines/upload_version")).
 		WithQueryParam("name", wiremock.EqualTo(pipeline.ComputeVersion())).
-		WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.KfpId)).
+		WithQueryParam("pipelineid", wiremock.EqualTo(pipeline.Status.ProviderId)).
 		WillReturn(
 			`{"status": "failed"`,
 			map[string]string{"Content-Type": "application/json"},
@@ -167,7 +167,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderConfig() string {
 	return "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
 }
 
-var kfpId = apis.RandomString()
+var providerId = apis.RandomString()
 
 func AssertWorkflow(
 	setUp func(pipeline *pipelinesv1.Pipeline),
@@ -181,8 +181,8 @@ func AssertWorkflow(
 				Namespace: "argo",
 			},
 			Spec: pipelineSpec,
-			Status: apis.Status{
-				KfpId: kfpId,
+			Status: pipelinesv1.Status{
+				ProviderId: providerId,
 			},
 		},
 		k8sClient, ctx)
@@ -278,7 +278,7 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).To(Equal(kfpId))
+					g.Expect(output.Id).To(Equal(providerId))
 					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),
@@ -311,7 +311,7 @@ func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
 					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).To(Equal(kfpId))
+					g.Expect(output.Id).To(Equal(providerId))
 					g.Expect(output.ProviderError).NotTo(BeEmpty())
 				},
 			),

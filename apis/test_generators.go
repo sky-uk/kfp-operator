@@ -4,11 +4,9 @@
 package apis
 
 import (
-	"k8s.io/apimachinery/pkg/runtime"
 	"math/rand"
 
 	"github.com/thanhpk/randstr"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -46,53 +44,6 @@ func RandomNamedValues() []NamedValue {
 	return rMap
 }
 
-type TestResource struct {
-	metav1.TypeMeta
-	metav1.ObjectMeta
-	NamespacedName types.NamespacedName
-
-	Kind            string
-	Status          Status
-	ComputedVersion string
-}
-
-func (tr *TestResource) GetStatus() Status {
-	return tr.Status
-}
-
-func (tr *TestResource) SetStatus(status Status) {
-	tr.Status = status
-}
-
-func (tr *TestResource) DeepCopyObject() runtime.Object {
-	return tr
-}
-
-func (tr *TestResource) GetNamespacedName() types.NamespacedName {
-	return tr.NamespacedName
-}
-
-func (tr *TestResource) ComputeVersion() string {
-	return tr.ComputedVersion
-}
-
-func (tr *TestResource) SetComputedVersion(version string) {
-	tr.ComputedVersion = version
-}
-
-func (tr *TestResource) GetKind() string {
-	return tr.Kind
-}
-
-func RandomResource() *TestResource {
-	return &TestResource{
-		Status:          RandomStatus(),
-		NamespacedName:  RandomNamespacedName(),
-		Kind:            RandomString(),
-		ComputedVersion: RandomShortHash(),
-	}
-}
-
 func RandomSynchronizationState() SynchronizationState {
 	synchronizationStates := []SynchronizationState{
 		"",
@@ -105,15 +56,6 @@ func RandomSynchronizationState() SynchronizationState {
 	}
 
 	return synchronizationStates[rand.Intn(len(synchronizationStates))]
-}
-
-func RandomStatus() Status {
-	return Status{
-		SynchronizationState: RandomSynchronizationState(),
-		Version:              RandomString(),
-		KfpId:                RandomString(),
-		ObservedGeneration:   rand.Int63(),
-	}
 }
 
 func RandomNamespacedName() types.NamespacedName {

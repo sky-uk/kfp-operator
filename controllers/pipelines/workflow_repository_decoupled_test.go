@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -34,7 +34,7 @@ func createWorkflowRepository(keepWorkflows bool) WorkflowRepositoryImpl {
 	}
 }
 
-func randomResource() apis.Resource {
+func randomResource() pipelinesv1.Resource {
 	resource := &pipelinesv1.Pipeline{}
 	resource.SetName(apis.RandomString())
 	resource.SetUID(types.UID(apis.RandomString()))

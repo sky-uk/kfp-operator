@@ -5,6 +5,7 @@ import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -35,10 +36,10 @@ type K8sExecutionContext struct {
 }
 
 type Command interface {
-	execute(context.Context, K8sExecutionContext, apis.Resource) error
+	execute(context.Context, K8sExecutionContext, pipelinesv1.Resource) error
 }
 
-func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource apis.Resource) []Command {
+func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelinesv1.Resource) []Command {
 	currentGeneration := resource.GetGeneration()
 	if currentGeneration == resource.GetStatus().ObservedGeneration {
 		return commands
@@ -75,10 +76,10 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 type SetStatus struct {
 	Message string
-	Status  apis.Status
+	Status  pipelinesv1.Status
 }
 
-func From(status apis.Status) *SetStatus {
+func From(status pipelinesv1.Status) *SetStatus {
 	return &SetStatus{
 		Status: status,
 	}
@@ -100,8 +101,8 @@ func (sps *SetStatus) WithVersion(version string) *SetStatus {
 	return sps
 }
 
-func (sps *SetStatus) WithKfpId(kfpId string) *SetStatus {
-	sps.Status.KfpId = kfpId
+func (sps *SetStatus) WithProviderId(providerId string) *SetStatus {
+	sps.Status.ProviderId = providerId
 
 	return sps
 }
@@ -140,7 +141,7 @@ func eventReason(sps SetStatus) string {
 	}
 }
 
-func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource apis.Resource) error {
+func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, resource.GetStatus(), LogKeys.NewStatus, sps.Status)
 
@@ -159,7 +160,7 @@ type CreateWorkflow struct {
 	Workflow argo.Workflow
 }
 
-func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, resource apis.Resource) error {
+func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("creating child workflow", LogKeys.Workflow, cw.Workflow)
 
@@ -174,7 +175,7 @@ type DeleteWorkflows struct {
 	Workflows []argo.Workflow
 }
 
-func (dw DeleteWorkflows) execute(ctx context.Context, ec K8sExecutionContext, _ apis.Resource) error {
+func (dw DeleteWorkflows) execute(ctx context.Context, ec K8sExecutionContext, _ pipelinesv1.Resource) error {
 	for i := range dw.Workflows {
 		workflow := &dw.Workflows[i]
 		if err := ec.WorkflowRepository.DeleteWorkflow(ctx, workflow); err != nil {
@@ -188,7 +189,7 @@ func (dw DeleteWorkflows) execute(ctx context.Context, ec K8sExecutionContext, _
 type AcquireResource struct {
 }
 
-func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, resource apis.Resource) error {
+func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
 	if !containsString(resource.GetFinalizers(), finalizerName) {
@@ -204,7 +205,7 @@ func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, r
 type ReleaseResource struct {
 }
 
-func (rp ReleaseResource) execute(ctx context.Context, ec K8sExecutionContext, resource apis.Resource) error {
+func (rp ReleaseResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
 	if containsString(resource.GetFinalizers(), finalizerName) {

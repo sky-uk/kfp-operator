@@ -1,4 +1,4 @@
-package apis
+package v1alpha4
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -6,6 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+// +kubebuilder:object:generate=false
 type Resource interface {
 	metav1.Object
 	runtime.Object

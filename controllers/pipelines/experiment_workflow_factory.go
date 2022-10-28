@@ -2,7 +2,7 @@ package pipelines
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	providers "github.com/sky-uk/kfp-operator/providers/base"
 	"gopkg.in/yaml.v2"
 )
@@ -80,7 +80,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 					},
 					{
 						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-						Value: argo.AnyStringPtr(experiment.Status.KfpId),
+						Value: argo.AnyStringPtr(experiment.Status.ProviderId),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
@@ -104,7 +104,7 @@ func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment 
 				Parameters: []argo.Parameter{
 					{
 						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-						Value: argo.AnyStringPtr(experiment.Status.KfpId),
+						Value: argo.AnyStringPtr(experiment.Status.ProviderId),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,

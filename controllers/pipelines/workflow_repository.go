@@ -5,7 +5,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -23,7 +23,7 @@ var WorkflowRepositoryConstants = struct {
 }
 
 type WorkflowRepository interface {
-	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource apis.Resource) error
+	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelinesv1.Resource) error
 	GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow
 	DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error
 }
@@ -39,7 +39,7 @@ func (w *WorkflowRepositoryImpl) debugAnnotations(ctx context.Context, annotatio
 	return apis.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
 }
 
-func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource apis.Resource) error {
+func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelinesv1.Resource) error {
 	if err := ctrl.SetControllerReference(resource, workflow, w.Scheme); err != nil {
 		return err
 	}

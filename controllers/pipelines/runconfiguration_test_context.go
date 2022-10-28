@@ -8,7 +8,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	providers "github.com/sky-uk/kfp-operator/providers/base"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -111,9 +111,9 @@ func (testCtx RunConfigurationTestContext) RunConfigurationCreatedWithStatus(sta
 
 func (testCtx RunConfigurationTestContext) StableRunConfigurationCreated() {
 	testCtx.RunConfigurationCreatedWithStatus(pipelinesv1.RunConfigurationStatus{
-		Status: apis.Status{
+		Status: pipelinesv1.Status{
 			Version:              testCtx.RunConfiguration.ComputeVersion(),
-			KfpId:                apis.RandomString(),
+			ProviderId:           apis.RandomString(),
 			SynchronizationState: apis.Succeeded,
 		},
 		ObservedPipelineVersion: testCtx.RunConfiguration.Status.ObservedPipelineVersion,

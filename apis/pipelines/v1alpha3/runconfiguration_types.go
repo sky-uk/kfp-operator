@@ -2,7 +2,7 @@ package v1alpha3
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/apis"
+	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -12,7 +12,7 @@ type RunConfigurationSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	Schedule          string             `json:"schedule,omitempty"`
-	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
+	RuntimeParameters []NamedValue       `json:"runtimeParameters,omitempty"`
 }
 
 func (rc RunConfiguration) ComputeHash() []byte {
@@ -32,7 +32,7 @@ func (rc RunConfiguration) ComputeVersion() string {
 }
 
 type RunConfigurationStatus struct {
-	apis.Status             `json:",inline"`
+	Status                  `json:",inline"`
 	ObservedPipelineVersion string `json:"observedPipelineVersion,omitempty"`
 }
 
@@ -42,7 +42,6 @@ type RunConfigurationStatus struct {
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -52,11 +51,11 @@ type RunConfiguration struct {
 	Status RunConfigurationStatus `json:"status,omitempty"`
 }
 
-func (rc *RunConfiguration) GetStatus() apis.Status {
+func (rc *RunConfiguration) GetStatus() Status {
 	return rc.Status.Status
 }
 
-func (rc *RunConfiguration) SetStatus(status apis.Status) {
+func (rc *RunConfiguration) SetStatus(status Status) {
 	rc.Status.Status = status
 }
 

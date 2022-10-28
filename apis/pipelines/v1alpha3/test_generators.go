@@ -6,7 +6,6 @@ package v1alpha3
 import (
 	"fmt"
 	. "github.com/sky-uk/kfp-operator/apis"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

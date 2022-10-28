@@ -2,7 +2,6 @@ package v1alpha2
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -36,14 +35,14 @@ type Experiment struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   ExperimentSpec `json:"spec,omitempty"`
-	Status apis.Status    `json:"status,omitempty"`
+	Status Status         `json:"status,omitempty"`
 }
 
-func (e *Experiment) GetStatus() apis.Status {
+func (e *Experiment) GetStatus() Status {
 	return e.Status
 }
 
-func (e *Experiment) SetStatus(status apis.Status) {
+func (e *Experiment) SetStatus(status Status) {
 	e.Status = status
 }
 

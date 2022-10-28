@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/walkerus/go-wiremock"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -27,8 +27,8 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		},
 	}
 
-	experimentKfpId := apis.RandomString()
-	newExperimentKfpId := apis.RandomString()
+	experimentProviderId := apis.RandomString()
+	newExperimentProviderId := apis.RandomString()
 
 	var NoExperimentExists = func() error {
 		return wiremockClient.StubFor(wiremock.Get(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
@@ -39,11 +39,11 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			))
 	}
 
-	var SucceedCreation = func(experiment *pipelinesv1.Experiment, experimentKfpId string) error {
+	var SucceedCreation = func(experiment *pipelinesv1.Experiment, experimentProviderId string) error {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/experiments")).
 			WillReturn(
 				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}`,
-					experimentKfpId, experiment.Name),
+					experimentProviderId, experiment.Name),
 				map[string]string{"Content-Type": "application/json"},
 				200,
 			))
@@ -58,8 +58,8 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			))
 	}
 
-	var SucceedDeletion = func(experimentKfpId string) error {
-		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/experiments/"+experimentKfpId)).
+	var SucceedDeletion = func(experimentProviderId string) error {
+		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/experiments/"+experimentProviderId)).
 			WillReturn(
 				`{"status": "deleted"}`,
 				map[string]string{"Content-Type": "application/json"},
@@ -67,8 +67,8 @@ var _ = Context("Experiment Workflows", Serial, func() {
 			))
 	}
 
-	var FailDeletion = func(experimentKfpId string) error {
-		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/experiments/"+experimentKfpId)).
+	var FailDeletion = func(experimentProviderId string) error {
+		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/experiments/"+experimentProviderId)).
 			WillReturn(
 				`{"status": "failed"}`,
 				map[string]string{"Content-Type": "application/json"},
@@ -90,8 +90,8 @@ var _ = Context("Experiment Workflows", Serial, func() {
 				Spec: pipelinesv1.ExperimentSpec{
 					Description: "a description",
 				},
-				Status: apis.Status{
-					KfpId: experimentKfpId,
+				Status: pipelinesv1.Status{
+					ProviderId: experimentProviderId,
 				},
 			},
 			k8sClient, ctx)
@@ -110,14 +110,14 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		Entry("Creation succeeds",
 			func(experiment *pipelinesv1.Experiment) {
 				Expect(NoExperimentExists()).To(Succeed())
-				Expect(SucceedCreation(experiment, experimentKfpId)).To(Succeed())
+				Expect(SucceedCreation(experiment, experimentProviderId)).To(Succeed())
 			},
 			workflowFactory.ConstructCreationWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(experimentKfpId))
+				g.Expect(output.Id).To(Equal(experimentProviderId))
 				g.Expect(output.ProviderError).To(BeEmpty())
 			},
 		),
@@ -139,7 +139,7 @@ var _ = Context("Experiment Workflows", Serial, func() {
 	DescribeTable("Deletion Workflow", AssertWorkflow,
 		Entry("Deletion succeeds",
 			func(experiment *pipelinesv1.Experiment) {
-				Expect(SucceedDeletion(experimentKfpId)).To(Succeed())
+				Expect(SucceedDeletion(experimentProviderId)).To(Succeed())
 			},
 			workflowFactory.ConstructDeletionWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
@@ -152,14 +152,14 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		),
 		Entry("Deletion fails",
 			func(experiment *pipelinesv1.Experiment) {
-				Expect(FailDeletion(experimentKfpId)).To(Succeed())
+				Expect(FailDeletion(experimentProviderId)).To(Succeed())
 			},
 			workflowFactory.ConstructDeletionWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(experimentKfpId))
+				g.Expect(output.Id).To(Equal(experimentProviderId))
 				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			},
 		),
@@ -167,20 +167,20 @@ var _ = Context("Experiment Workflows", Serial, func() {
 
 	DescribeTable("Update Workflow", AssertWorkflow,
 		Entry("Deletion and creation succeed", func(experiment *pipelinesv1.Experiment) {
-			Expect(SucceedDeletion(experimentKfpId)).To(Succeed())
+			Expect(SucceedDeletion(experimentProviderId)).To(Succeed())
 			Expect(NoExperimentExists()).To(Succeed())
-			Expect(SucceedCreation(experiment, newExperimentKfpId)).To(Succeed())
+			Expect(SucceedCreation(experiment, newExperimentProviderId)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(newExperimentKfpId))
+				g.Expect(output.Id).To(Equal(newExperimentProviderId))
 				g.Expect(output.ProviderError).To(BeEmpty())
 			}),
 		Entry("Deletion succeeds and creation fails", func(experiment *pipelinesv1.Experiment) {
-			Expect(SucceedDeletion(experimentKfpId)).To(Succeed())
+			Expect(SucceedDeletion(experimentProviderId)).To(Succeed())
 			Expect(FailCreation()).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
@@ -192,13 +192,13 @@ var _ = Context("Experiment Workflows", Serial, func() {
 				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			}),
 		Entry("Deletion fails", func(experiment *pipelinesv1.Experiment) {
-			Expect(FailDeletion(experimentKfpId)).To(Succeed())
+			Expect(FailDeletion(experimentProviderId)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(experimentKfpId))
+				g.Expect(output.Id).To(Equal(experimentProviderId))
 				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			}),
 	)

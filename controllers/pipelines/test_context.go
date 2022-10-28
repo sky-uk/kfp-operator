@@ -9,7 +9,7 @@ import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	//+kubebuilder:scaffold:imports
@@ -23,7 +23,7 @@ var (
 type TestContext struct {
 	K8sClient client.Client
 	ctx       context.Context
-	Resource  apis.Resource
+	Resource  pipelinesv1.Resource
 }
 
 func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(Gomega, map[string]string)) func(Gomega) {

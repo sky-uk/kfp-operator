@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/docker/distribution/reference"
-	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -51,14 +50,14 @@ type Pipeline struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   PipelineSpec `json:"spec,omitempty"`
-	Status apis.Status  `json:"status,omitempty"`
+	Status Status       `json:"status,omitempty"`
 }
 
-func (p *Pipeline) GetStatus() apis.Status {
+func (p *Pipeline) GetStatus() Status {
 	return p.Status
 }
 
-func (p *Pipeline) SetStatus(status apis.Status) {
+func (p *Pipeline) SetStatus(status Status) {
 	p.Status = status
 }
 

@@ -3,6 +3,7 @@ package v1alpha2
 import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"sort"
 )
 
@@ -49,7 +50,7 @@ type ConversionRemainder interface {
 	empty() bool
 }
 
-func setConversionAnnotations(resource apis.Resource, remainder ConversionRemainder) error {
+func setConversionAnnotations(resource Resource, remainder ConversionRemainder) error {
 	if !remainder.empty() {
 		remainderJson, err := json.Marshal(remainder)
 
@@ -69,7 +70,7 @@ func setConversionAnnotations(resource apis.Resource, remainder ConversionRemain
 	return nil
 }
 
-func retrieveAndUnsetConversionAnnotations(resource apis.Resource, remainder ConversionRemainder) error {
+func retrieveAndUnsetConversionAnnotations(resource hub.Resource, remainder ConversionRemainder) error {
 	if remainderJson, hasRemainder := resource.GetAnnotations()[ConversionAnnotations.V1alpha3ConversionRemainder]; hasRemainder {
 		err := json.Unmarshal([]byte(remainderJson), remainder)
 		if err != nil {

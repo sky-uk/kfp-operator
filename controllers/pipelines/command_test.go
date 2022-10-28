@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"math/rand"
 )
 
@@ -92,12 +92,12 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		commands := []Command{
 			AcquireResource{},
 			SetStatus{
-				Status: apis.Status{SynchronizationState: apis.Succeeded},
+				Status: pipelinesv1.Status{SynchronizationState: apis.Succeeded},
 			},
 			ReleaseResource{},
 		}
 		resource := &pipelinesv1.Pipeline{
-			Status: apis.Status{
+			Status: pipelinesv1.Status{
 				ObservedGeneration: -1,
 			},
 		}
@@ -109,7 +109,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			[]Command{
 				AcquireResource{},
 				SetStatus{
-					Status: apis.Status{
+					Status: pipelinesv1.Status{
 						SynchronizationState: apis.Succeeded,
 						ObservedGeneration:   resource.Generation,
 					},
@@ -124,7 +124,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			ReleaseResource{},
 		}
 		resource := &pipelinesv1.Pipeline{
-			Status: apis.RandomStatus(),
+			Status: pipelinesv1.RandomStatus(),
 		}
 		resource.SetGeneration(rand.Int63())
 		resource.Status.ObservedGeneration = -1
@@ -151,7 +151,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		}
 		generation := rand.Int63()
 		resource := &pipelinesv1.Pipeline{
-			Status: apis.Status{
+			Status: pipelinesv1.Status{
 				ObservedGeneration: generation,
 			},
 		}

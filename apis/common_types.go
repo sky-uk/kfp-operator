@@ -25,14 +25,6 @@ type NamedValue struct {
 	Value string `json:"value"`
 }
 
-// +kubebuilder:object:generate=true
-type Status struct {
-	KfpId                string               `json:"kfpId,omitempty"`
-	SynchronizationState SynchronizationState `json:"synchronizationState,omitempty"`
-	Version              string               `json:"version,omitempty"`
-	ObservedGeneration   int64                `json:"observedGeneration,omitempty"`
-}
-
 var Annotations = struct {
 	Debug string
 }{
