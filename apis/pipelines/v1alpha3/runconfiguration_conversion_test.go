@@ -7,14 +7,14 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 )
 
 var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("Roundtrip", func() {
 		Specify("converts to and from the same object", func() {
 			src := RandomRunConfiguration()
-			intermediate := v1alpha4.RunConfiguration{}
+			intermediate := hub.RunConfiguration{}
 			dst := RunConfiguration{}
 
 			Expect(src.ConvertTo(&intermediate)).To(Succeed())
@@ -29,7 +29,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 			src := RunConfiguration{
 				Status: RunConfigurationStatus{Status: Status{KfpId: apis.RandomString()}},
 			}
-			dst := v1alpha4.RunConfiguration{}
+			dst := hub.RunConfiguration{}
 
 			Expect(src.ConvertTo(&dst)).To(Succeed())
 			Expect(src.ComputeVersion()).To(Equal(dst.ComputeVersion()))
