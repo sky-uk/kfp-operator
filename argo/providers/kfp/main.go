@@ -56,12 +56,17 @@ func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpPr
 }
 
 func (kfpp KfpProvider) CreateRunConfiguration(_ context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
+	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
+	if err != nil {
+		return "", err
+	}
+
 	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "job", "submit",
 		"--pipeline-name", runConfigurationDefinition.PipelineName,
 		"--job-name", runConfigurationDefinition.Name,
 		"--experiment-name", runConfigurationDefinition.ExperimentName,
 		"--version-name", runConfigurationDefinition.PipelineVersion,
-		"--cron-expression", runConfigurationDefinition.Schedule)
+		"--cron-expression", schedule.PrintGo())
 
 	output, err := cmd.Output()
 	if err != nil {
