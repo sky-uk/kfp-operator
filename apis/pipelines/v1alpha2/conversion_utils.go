@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sort"
 )
 
@@ -50,7 +51,7 @@ type ConversionRemainder interface {
 	empty() bool
 }
 
-func setConversionAnnotations(resource Resource, remainder ConversionRemainder) error {
+func setConversionAnnotations(resource v1.Object, remainder ConversionRemainder) error {
 	if !remainder.empty() {
 		remainderJson, err := json.Marshal(remainder)
 
