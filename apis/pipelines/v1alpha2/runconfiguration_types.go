@@ -2,7 +2,6 @@ package v1alpha2
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -32,7 +31,7 @@ func (rc RunConfiguration) ComputeVersion() string {
 }
 
 type RunConfigurationStatus struct {
-	apis.Status             `json:",inline"`
+	Status                  `json:",inline"`
 	ObservedPipelineVersion string `json:"observedPipelineVersion,omitempty"`
 }
 
@@ -51,11 +50,11 @@ type RunConfiguration struct {
 	Status RunConfigurationStatus `json:"status,omitempty"`
 }
 
-func (rc *RunConfiguration) GetStatus() apis.Status {
+func (rc *RunConfiguration) GetStatus() Status {
 	return rc.Status.Status
 }
 
-func (rc *RunConfiguration) SetStatus(status apis.Status) {
+func (rc *RunConfiguration) SetStatus(status Status) {
 	rc.Status.Status = status
 }
 

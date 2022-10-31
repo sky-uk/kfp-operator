@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	providers "github.com/sky-uk/kfp-operator/providers/base"
 	v1 "k8s.io/api/core/v1"
 )
@@ -18,7 +18,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 		It("transitions through all stages", func() {
 			pipeline := pipelinesv1.RandomPipeline()
 
-			kfpId := "12345"
+			providerId := "12345"
 			testCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
 
 			Expect(k8sClient.Create(ctx, testCtx.Pipeline)).To(Succeed())
@@ -30,7 +30,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: kfpId})
+				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -48,7 +48,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: kfpId})
+				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {

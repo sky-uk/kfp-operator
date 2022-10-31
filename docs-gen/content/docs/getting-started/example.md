@@ -58,7 +58,7 @@ The pipeline now gets uploaded to Kubeflow in several steps. After a few seconds
 ```bash
 kubectl get pipeline
 
-NAME               SYNCHRONIZATIONSTATE   KFPID
+NAME               SYNCHRONIZATIONSTATE   PROVIDERID
 penguin-pipeline   Succeeded              53905abe-0337-48de-875d-67b9285f3cf7
 ```
 

@@ -422,7 +422,7 @@ The training code remains unchanged:&lt;/p>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The pipeline now gets uploaded to Kubeflow in several steps. After a few seconds to minutes, the following command should result in a success:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl get pipeline
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NAME SYNCHRONIZATIONSTATE KFPID
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NAME SYNCHRONIZATIONSTATE PROVIDERID
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>penguin-pipeline Succeeded 53905abe-0337-48de-875d-67b9285f3cf7
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now visit you Kubeflow Pipelines UI. You should be able to see the newly created pipeline named &lt;code>penguin-pipeline&lt;/code>. Note that you will see two versions: &amp;lsquo;penguin-pipeline&amp;rsquo; and &amp;lsquo;v1&amp;rsquo;. This is due to an &lt;a href="https://github.com/kubeflow/pipelines/issues/5881">open issue on Kubeflow&lt;/a> where you can&amp;rsquo;t specify a version when creating a pipeline.&lt;/p>
 &lt;h2 id="3-create-an-experiment-resource">3. Create an Experiment resource&lt;/h2>

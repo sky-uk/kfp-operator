@@ -6,7 +6,7 @@ package pipelines
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
+	. "github.com/sky-uk/kfp-operator/apis"
 )
 
 var _ = Context("ObjectHasher", func() {
@@ -27,19 +27,19 @@ var _ = Context("ObjectHasher", func() {
 	var _ = Describe("WriteNamedValueListField", func() {
 		Specify("Adjacent NamedValue list fields should be considered separate", func() {
 			oh1 := NewObjectHasher()
-			oh1.WriteNamedValueListField([]apis.NamedValue{
+			oh1.WriteNamedValueListField([]NamedValue{
 				{Name: "a", Value: "1"},
 				{Name: "b", Value: "2"},
 			})
-			oh1.WriteNamedValueListField([]apis.NamedValue{
+			oh1.WriteNamedValueListField([]NamedValue{
 				{Name: "c", Value: "3"},
 			})
 
 			oh2 := NewObjectHasher()
-			oh2.WriteNamedValueListField([]apis.NamedValue{
+			oh2.WriteNamedValueListField([]NamedValue{
 				{Name: "a", Value: "1"},
 			})
-			oh2.WriteNamedValueListField([]apis.NamedValue{
+			oh2.WriteNamedValueListField([]NamedValue{
 				{Name: "b", Value: "2"},
 				{Name: "c", Value: "3"},
 			})
@@ -49,12 +49,12 @@ var _ = Context("ObjectHasher", func() {
 
 		Specify("NamedValue list key and values should be considered separate", func() {
 			oh1 := NewObjectHasher()
-			oh1.WriteNamedValueListField([]apis.NamedValue{
+			oh1.WriteNamedValueListField([]NamedValue{
 				{Name: "ab", Value: "c"},
 			})
 
 			oh2 := NewObjectHasher()
-			oh2.WriteNamedValueListField([]apis.NamedValue{
+			oh2.WriteNamedValueListField([]NamedValue{
 				{Name: "a", Value: "bc"},
 			})
 
@@ -63,13 +63,13 @@ var _ = Context("ObjectHasher", func() {
 
 		Specify("NamedValue list fields should be considered separate", func() {
 			oh1 := NewObjectHasher()
-			oh1.WriteNamedValueListField([]apis.NamedValue{
+			oh1.WriteNamedValueListField([]NamedValue{
 				{Name: "a", Value: "bc"},
 				{Name: "d", Value: "e"},
 			})
 
 			oh2 := NewObjectHasher()
-			oh2.WriteNamedValueListField([]apis.NamedValue{
+			oh2.WriteNamedValueListField([]NamedValue{
 				{Name: "a", Value: "b"},
 				{Name: "cd", Value: "e"},
 			})
@@ -79,13 +79,13 @@ var _ = Context("ObjectHasher", func() {
 
 		Specify("NamedValue list field hash should be consistent if the order of entries is changed", func() {
 			oh1 := NewObjectHasher()
-			oh1.WriteNamedValueListField([]apis.NamedValue{
+			oh1.WriteNamedValueListField([]NamedValue{
 				{Name: "a", Value: "1"},
 				{Name: "b", Value: "2"},
 			})
 
 			oh2 := NewObjectHasher()
-			oh2.WriteNamedValueListField([]apis.NamedValue{
+			oh2.WriteNamedValueListField([]NamedValue{
 				{Name: "b", Value: "2"},
 				{Name: "a", Value: "1"},
 			})
@@ -95,13 +95,13 @@ var _ = Context("ObjectHasher", func() {
 
 		Specify("NamedValue list field hash should be consistent if the order of multi-entries is changed", func() {
 			oh1 := NewObjectHasher()
-			oh1.WriteNamedValueListField([]apis.NamedValue{
+			oh1.WriteNamedValueListField([]NamedValue{
 				{Name: "a", Value: "1"},
 				{Name: "a", Value: "2"},
 			})
 
 			oh2 := NewObjectHasher()
-			oh2.WriteNamedValueListField([]apis.NamedValue{
+			oh2.WriteNamedValueListField([]NamedValue{
 				{Name: "a", Value: "2"},
 				{Name: "a", Value: "1"},
 			})

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/docker/distribution/reference"
-	"github.com/sky-uk/kfp-operator/apis"
+	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -12,10 +12,10 @@ import (
 )
 
 type PipelineSpec struct {
-	Image         string            `json:"image" yaml:"image"`
-	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []apis.NamedValue `json:"env,omitempty" yaml:"env"`
-	BeamArgs      []apis.NamedValue `json:"beamArgs,omitempty"`
+	Image         string       `json:"image" yaml:"image"`
+	TfxComponents string       `json:"tfxComponents" yaml:"tfxComponents"`
+	Env           []NamedValue `json:"env,omitempty" yaml:"env"`
+	BeamArgs      []NamedValue `json:"beamArgs,omitempty"`
 }
 
 func (ps Pipeline) ComputeHash() []byte {
@@ -45,21 +45,20 @@ func (ps Pipeline) ComputeVersion() string {
 //+kubebuilder:printcolumn:name="KfpId",type="string",JSONPath=".status.kfpId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   PipelineSpec `json:"spec,omitempty"`
-	Status apis.Status  `json:"status,omitempty"`
+	Status Status       `json:"status,omitempty"`
 }
 
-func (p *Pipeline) GetStatus() apis.Status {
+func (p *Pipeline) GetStatus() Status {
 	return p.Status
 }
 
-func (p *Pipeline) SetStatus(status apis.Status) {
+func (p *Pipeline) SetStatus(status Status) {
 	p.Status = status
 }
 

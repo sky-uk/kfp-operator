@@ -2,7 +2,7 @@ package pipelines
 
 import (
 	"crypto/sha1"
-	"github.com/sky-uk/kfp-operator/apis"
+	. "github.com/sky-uk/kfp-operator/apis"
 	"hash"
 	"sort"
 )
@@ -39,7 +39,7 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 	oh.h.Write(hashFieldSeparator)
 }
 
-func (oh ObjectHasher) WriteNamedValueListField(namedValues []apis.NamedValue) {
+func (oh ObjectHasher) WriteNamedValueListField(namedValues []NamedValue) {
 
 	sort.Slice(namedValues, func(i, j int) bool {
 		if namedValues[i].Name != namedValues[j].Name {

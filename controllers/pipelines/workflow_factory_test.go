@@ -7,11 +7,12 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/apis"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 )
 
 var _ = Describe("CommonWorkflowMeta", func() {
 	It("creates metadata", func() {
-		owner := RandomResource()
+		owner := pipelinesv1.RandomResource()
 		operation := RandomString()
 
 		meta := CommonWorkflowMeta(owner, operation)

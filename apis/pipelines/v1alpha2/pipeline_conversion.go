@@ -2,7 +2,7 @@ package v1alpha2
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
@@ -16,10 +16,13 @@ func (pcr PipelineConversionRemainder) empty() bool {
 }
 
 func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
-	dst := dstRaw.(*v1alpha3.Pipeline)
+	dst := dstRaw.(*hub.Pipeline)
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Status = src.Status
+	dst.Status.SynchronizationState = src.Status.SynchronizationState
+	dst.Status.ProviderId = src.Status.KfpId
+	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
+	dst.Status.Version = src.Status.Version
 	dst.Spec.Env = mapToNamedValues(src.Spec.Env)
 	dst.Spec.BeamArgs = mapToNamedValues(src.Spec.BeamArgs)
 	dst.Spec.Image = src.Spec.Image
@@ -37,12 +40,15 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 }
 
 func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
-	src := srcRaw.(*v1alpha3.Pipeline)
+	src := srcRaw.(*hub.Pipeline)
 
 	remainder := PipelineConversionRemainder{}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Status = src.Status
+	dst.Status.SynchronizationState = src.Status.SynchronizationState
+	dst.Status.KfpId = src.Status.ProviderId
+	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
+	dst.Status.Version = src.Status.Version
 	dst.Spec.Env, remainder.Env = namedValuesToMap(src.Spec.Env)
 	dst.Spec.BeamArgs, remainder.BeamArgs = namedValuesToMap(src.Spec.BeamArgs)
 	dst.Spec.Image = src.Spec.Image

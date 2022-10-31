@@ -6,10 +6,11 @@ import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-type StateHandler[R apis.Resource] struct {
+type StateHandler[R pipelinesv1.Resource] struct {
 	WorkflowFactory    WorkflowFactory[R]
 	WorkflowRepository WorkflowRepository
 }
@@ -61,8 +62,8 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, resource R) []Command 
 
 	newExperimentVersion := resource.ComputeVersion()
 
-	if resource.GetStatus().KfpId != "" {
-		logger.Info("empty state but KfpId already exists, updating resource")
+	if resource.GetStatus().ProviderId != "" {
+		logger.Info("empty state but ProviderId already exists, updating resource")
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(resource)
 
 		if err != nil {
@@ -100,7 +101,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, resource R) []Command 
 
 	return []Command{
 		SetStatus{
-			Status: apis.Status{
+			Status: pipelinesv1.Status{
 				Version:              newExperimentVersion,
 				SynchronizationState: apis.Creating,
 			},
@@ -113,7 +114,7 @@ func (st StateHandler[R]) onDelete(ctx context.Context, resource R) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
-	if resource.GetStatus().KfpId == "" {
+	if resource.GetStatus().ProviderId == "" {
 		return []Command{
 			*From(resource.GetStatus()).WithSynchronizationState(apis.Deleted),
 		}
@@ -149,8 +150,8 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, resource R) [
 	var err error
 	var targetState apis.SynchronizationState
 
-	if resource.GetStatus().KfpId == "" {
-		logger.Info("no kfpId exists, creating")
+	if resource.GetStatus().ProviderId == "" {
+		logger.Info("no providerId exists, creating")
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(resource)
 
 		if err != nil {
@@ -167,7 +168,7 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, resource R) [
 
 		targetState = apis.Creating
 	} else {
-		logger.Info("kfpId exists, updating")
+		logger.Info("providerId exists, updating")
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(resource)
 
 		if err != nil {
@@ -223,7 +224,7 @@ var deletedForNonEmptyId = IdVerifier{
 	},
 }
 
-func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status apis.Status, workflows []argo.Workflow, states IdVerifier) []Command {
+func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status pipelinesv1.Status, workflows []argo.Workflow, states IdVerifier) []Command {
 	logger := log.FromContext(ctx)
 
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
@@ -238,7 +239,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 
 		if result.ProviderError != "" {
 			logger.Error(err, fmt.Sprintf("%s, failing resource", result.ProviderError))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithKfpId(result.Id)
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithProviderId(result.Id)
 		}
 
 		err = states.VerifyId(result.Id)
@@ -249,7 +250,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
 		}
 
-		return From(status).WithSynchronizationState(states.SuccessState).WithKfpId(result.Id)
+		return From(status).WithSynchronizationState(states.SuccessState).WithProviderId(result.Id)
 	}
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(workflows)
@@ -303,8 +304,8 @@ func (st StateHandler[R]) onCreating(ctx context.Context, resource R, creationWo
 func (st StateHandler[R]) onUpdating(ctx context.Context, resource R, updateWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
-	if resource.GetStatus().Version == "" || resource.GetStatus().KfpId == "" {
-		failureMessage := "updating resource with empty version or kfpId"
+	if resource.GetStatus().Version == "" || resource.GetStatus().ProviderId == "" {
+		failureMessage := "updating resource with empty version or providerId"
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{

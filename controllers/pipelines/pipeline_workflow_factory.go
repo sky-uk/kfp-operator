@@ -3,7 +3,7 @@ package pipelines
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	providers "github.com/sky-uk/kfp-operator/providers/base"
 	"gopkg.in/yaml.v2"
 )
@@ -124,7 +124,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 					},
 					{
 						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
+						Value: argo.AnyStringPtr(pipeline.Status.ProviderId),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
@@ -148,7 +148,7 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 				Parameters: []argo.Parameter{
 					{
 						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-						Value: argo.AnyStringPtr(pipeline.Status.KfpId),
+						Value: argo.AnyStringPtr(pipeline.Status.ProviderId),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,

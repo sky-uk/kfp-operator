@@ -10,7 +10,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -80,14 +80,14 @@ func (testCtx PipelineTestContext) DeletePipeline() error {
 }
 
 func (testCtx PipelineTestContext) StablePipelineCreated() {
-	testCtx.PipelineCreatedWithStatus(apis.Status{
+	testCtx.PipelineCreatedWithStatus(pipelinesv1.Status{
 		Version:              testCtx.Pipeline.ComputeVersion(),
-		KfpId:                apis.RandomString(),
+		ProviderId:           apis.RandomString(),
 		SynchronizationState: apis.Succeeded,
 	})
 }
 
-func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status apis.Status) {
+func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status pipelinesv1.Status) {
 	Expect(testCtx.K8sClient.Create(testCtx.ctx, testCtx.Pipeline)).To(Succeed())
 
 	Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -99,14 +99,14 @@ func (testCtx PipelineTestContext) PipelineCreatedWithStatus(status apis.Status)
 }
 
 func (testCtx PipelineTestContext) StablePipelineUpdated(pipeline pipelinesv1.Pipeline) {
-	testCtx.PipelineUpdatedWithStatus(pipeline.Spec, apis.Status{
+	testCtx.PipelineUpdatedWithStatus(pipeline.Spec, pipelinesv1.Status{
 		Version:              pipeline.ComputeVersion(),
-		KfpId:                apis.RandomString(),
+		ProviderId:           apis.RandomString(),
 		SynchronizationState: apis.Succeeded,
 	})
 }
 
-func (testCtx PipelineTestContext) PipelineUpdatedWithStatus(spec pipelinesv1.PipelineSpec, status apis.Status) {
+func (testCtx PipelineTestContext) PipelineUpdatedWithStatus(spec pipelinesv1.PipelineSpec, status pipelinesv1.Status) {
 	Expect(testCtx.UpdatePipeline(func(pipeline *pipelinesv1.Pipeline) {
 		pipeline.Spec = spec
 	})).To(Succeed())

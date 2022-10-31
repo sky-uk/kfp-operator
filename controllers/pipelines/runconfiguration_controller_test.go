@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 )
 
 var _ = Describe("RunConfiguration Controller", func() {
@@ -16,7 +16,7 @@ var _ = Describe("RunConfiguration Controller", func() {
 
 	pipelineInState := func(state apis.SynchronizationState) *pipelinesv1.Pipeline {
 		return &pipelinesv1.Pipeline{
-			Status: apis.Status{
+			Status: pipelinesv1.Status{
 				SynchronizationState: state,
 				Version:              version,
 			},
