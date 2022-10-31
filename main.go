@@ -34,7 +34,7 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1alpha2 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	pipelinesv1alpha3 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
-	pipelinesv1alpha4 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	controllers "github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
 
@@ -53,7 +53,7 @@ func init() {
 
 	utilruntime.Must(pipelinesv1alpha2.AddToScheme(scheme))
 	utilruntime.Must(pipelinesv1alpha3.AddToScheme(scheme))
-	utilruntime.Must(pipelinesv1alpha4.AddToScheme(scheme))
+	utilruntime.Must(pipelinesv1.AddToScheme(scheme))
 	utilruntime.Must(config.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 
@@ -120,7 +120,7 @@ func main() {
 
 	if err = (&pipelinescontrollers.PipelineReconciler{
 		EC: ec,
-		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1alpha4.Pipeline]{
+		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Pipeline]{
 			WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
 				WorkflowFactoryBase: workflowFactory,
 			},
@@ -133,7 +133,7 @@ func main() {
 
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
 		EC: ec,
-		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1alpha4.RunConfiguration]{
+		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.RunConfiguration]{
 			WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
 				WorkflowFactoryBase: workflowFactory,
 			},
@@ -146,7 +146,7 @@ func main() {
 
 	if err = (&pipelinescontrollers.ExperimentReconciler{
 		EC: ec,
-		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1alpha4.Experiment]{
+		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Experiment]{
 			WorkflowFactory: pipelinescontrollers.ExperimentWorkflowFactory{
 				WorkflowFactoryBase: workflowFactory,
 			},
@@ -158,15 +158,15 @@ func main() {
 	}
 
 	if ctrlConfig.Workflows.Multiversion {
-		if err = (&pipelinesv1alpha3.Pipeline{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&pipelinesv1.Pipeline{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
 			os.Exit(1)
 		}
-		if err = (&pipelinesv1alpha3.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
 			os.Exit(1)
 		}
-		if err = (&pipelinesv1alpha3.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&pipelinesv1.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
 			os.Exit(1)
 		}
