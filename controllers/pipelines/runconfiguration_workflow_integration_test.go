@@ -30,8 +30,8 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 	pipelineProviderId := apis.RandomString()
 	versionProviderId := apis.RandomString()
 	versionName := apis.RandomString()
-	jobProviderId := apis.RandomString()
-	newJobProviderId := apis.RandomString()
+	runConfigurationProviderId := apis.RandomString()
+	newRunConfigurationProviderId := apis.RandomString()
 	experimentProviderId := apis.RandomString()
 
 	var StubGetExperiment = func(experimentName string, experimentProviderId string) error {
@@ -71,7 +71,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			))
 	}
 
-	var SucceedCreation = func(runconfiguration *pipelinesv1.RunConfiguration, jobProviderId string) error {
+	var SucceedCreation = func(runconfiguration *pipelinesv1.RunConfiguration, runConfigurationProviderId string) error {
 		if err := StubGetExperiment(workflowFactory.Config.DefaultExperiment, experimentProviderId); err != nil {
 			return err
 		}
@@ -83,7 +83,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		return wiremockClient.StubFor(wiremock.Post(wiremock.URLPathEqualTo("/apis/v1beta1/jobs")).
 			WillReturn(
 				fmt.Sprintf(`{"id": "%s", "created_at": "2021-09-10T15:46:08Z", "name": "%s"}`,
-					jobProviderId, runconfiguration.Name),
+					runConfigurationProviderId, runconfiguration.Name),
 				map[string]string{"Content-Type": "application/json"},
 				200,
 			))
@@ -98,8 +98,8 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			))
 	}
 
-	var SucceedDeletion = func(jobProviderId string) error {
-		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/jobs/"+jobProviderId)).
+	var SucceedDeletion = func(runConfigurationProviderId string) error {
+		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/jobs/"+runConfigurationProviderId)).
 			WillReturn(
 				`{"status": "deleted"}`,
 				map[string]string{"Content-Type": "application/json"},
@@ -107,8 +107,8 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			))
 	}
 
-	var FailDeletionWithCode = func(jobProviderId string, code int64) error {
-		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/jobs/"+jobProviderId)).
+	var FailDeletionWithCode = func(runConfigurationProviderId string, code int64) error {
+		return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/jobs/"+runConfigurationProviderId)).
 			WillReturn(
 				fmt.Sprintf(`HTTP response body: {"status": "failed", "code": %d}`, code),
 				map[string]string{"Content-Type": "application/json"},
@@ -133,7 +133,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
 					Status: pipelinesv1.Status{
-						ProviderId: jobProviderId,
+						ProviderId: runConfigurationProviderId,
 					},
 					ObservedPipelineVersion: versionName,
 				},
@@ -154,14 +154,14 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		Entry("Creation succeeds",
 			func(runconfiguration *pipelinesv1.RunConfiguration) {
 				Expect(StubGetPipelineVersions(pipelineProviderId)).To(Succeed())
-				Expect(SucceedCreation(runconfiguration, jobProviderId)).To(Succeed())
+				Expect(SucceedCreation(runconfiguration, runConfigurationProviderId)).To(Succeed())
 			},
 			workflowFactory.ConstructCreationWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(jobProviderId))
+				g.Expect(output.Id).To(Equal(runConfigurationProviderId))
 				g.Expect(output.ProviderError).To(BeEmpty())
 			},
 		),
@@ -184,7 +184,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 	DescribeTable("Deletion Workflow", AssertWorkflow,
 		Entry("Deletion succeeds",
 			func(runconfiguration *pipelinesv1.RunConfiguration) {
-				Expect(SucceedDeletion(jobProviderId)).To(Succeed())
+				Expect(SucceedDeletion(runConfigurationProviderId)).To(Succeed())
 			},
 			workflowFactory.ConstructDeletionWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
@@ -198,20 +198,20 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		),
 		Entry("Deletion fails",
 			func(runconfiguration *pipelinesv1.RunConfiguration) {
-				Expect(FailDeletionWithCode(jobProviderId, 7)).To(Succeed())
+				Expect(FailDeletionWithCode(runConfigurationProviderId, 7)).To(Succeed())
 			},
 			workflowFactory.ConstructDeletionWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(jobProviderId))
+				g.Expect(output.Id).To(Equal(runConfigurationProviderId))
 				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			},
 		),
 		Entry("Deletion fails with not found",
 			func(runconfiguration *pipelinesv1.RunConfiguration) {
-				Expect(FailDeletionWithCode(jobProviderId, 5)).To(Succeed())
+				Expect(FailDeletionWithCode(runConfigurationProviderId, 5)).To(Succeed())
 			},
 			workflowFactory.ConstructDeletionWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
@@ -226,20 +226,20 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 
 	DescribeTable("Update Workflow", AssertWorkflow,
 		Entry("Deletion and creation succeed", func(runconfiguration *pipelinesv1.RunConfiguration) {
-			Expect(SucceedDeletion(jobProviderId)).To(Succeed())
+			Expect(SucceedDeletion(runConfigurationProviderId)).To(Succeed())
 			Expect(StubGetPipelineVersions(pipelineProviderId)).To(Succeed())
-			Expect(SucceedCreation(runconfiguration, newJobProviderId)).To(Succeed())
+			Expect(SucceedCreation(runconfiguration, newRunConfigurationProviderId)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(newJobProviderId))
+				g.Expect(output.Id).To(Equal(newRunConfigurationProviderId))
 				g.Expect(output.ProviderError).To(BeEmpty())
 			}),
 		Entry("Deletion succeeds and creation fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
-			Expect(SucceedDeletion(jobProviderId)).To(Succeed())
+			Expect(SucceedDeletion(runConfigurationProviderId)).To(Succeed())
 			Expect(FailCreation()).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
@@ -251,27 +251,27 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			}),
 		Entry("Deletion fails", func(runconfiguration *pipelinesv1.RunConfiguration) {
-			Expect(FailDeletionWithCode(jobProviderId, 55)).To(Succeed())
+			Expect(FailDeletionWithCode(runConfigurationProviderId, 55)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(jobProviderId))
+				g.Expect(output.Id).To(Equal(runConfigurationProviderId))
 				g.Expect(output.ProviderError).NotTo(BeEmpty())
 			}),
 		Entry("Deletion fails with not found and creation succeeds", func(runconfiguration *pipelinesv1.RunConfiguration) {
 			Expect(StubGetPipelineVersions(pipelineProviderId)).To(Succeed())
-			Expect(FailDeletionWithCode(jobProviderId, 5)).To(Succeed())
-			Expect(SucceedCreation(runconfiguration, newJobProviderId)).To(Succeed())
+			Expect(FailDeletionWithCode(runConfigurationProviderId, 5)).To(Succeed())
+			Expect(SucceedCreation(runconfiguration, newRunConfigurationProviderId)).To(Succeed())
 		},
 			workflowFactory.ConstructUpdateWorkflow,
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 				output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.Id).To(Equal(newJobProviderId))
+				g.Expect(output.Id).To(Equal(newRunConfigurationProviderId))
 				g.Expect(output.ProviderError).To(BeEmpty())
 			}),
 	)
