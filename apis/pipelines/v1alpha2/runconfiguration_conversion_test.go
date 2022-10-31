@@ -56,14 +56,19 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 	var _ = Describe("Roundtrip", func() {
 		Specify("converts to and from the same object", func() {
-			src := RandomRunConfiguration()
-			intermediate := hub.RunConfiguration{}
-			dst := RunConfiguration{}
+			src := hub.RandomRunConfiguration()
 
-			Expect(src.ConvertTo(&intermediate)).To(Succeed())
-			Expect(dst.ConvertFrom(&intermediate)).To(Succeed())
+			intermediate := &RunConfiguration{}
+			dst := &hub.RunConfiguration{}
 
-			Expect(&dst).To(Equal(src))
+			Expect(intermediate.ConvertFrom(src)).To(Succeed())
+			Expect(intermediate.ConvertTo(dst)).To(Succeed())
+
+			Expect(src.Spec.RuntimeParameters).To(ConsistOf(dst.Spec.RuntimeParameters))
+			src.Spec.RuntimeParameters = nil
+			dst.Spec.RuntimeParameters = nil
+
+			Expect(dst).To(Equal(src))
 		})
 
 		Specify("Duplicate entries are preserved on the roundtrip", func() {
@@ -91,12 +96,10 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 	var _ = Describe("ComputeVersion", func() {
 		Specify("Does not change between versions", func() {
-			src := RunConfiguration{
-				Spec: RunConfigurationSpec{RuntimeParameters: map[string]string{"a": "b", "c": "d"}},
-			}
-			dst := hub.RunConfiguration{}
+			src := hub.RandomRunConfiguration()
+			dst := RunConfiguration{}
 
-			Expect(src.ConvertTo(&dst)).To(Succeed())
+			Expect(dst.ConvertFrom(src)).To(Succeed())
 			Expect(src.ComputeVersion()).To(Equal(dst.ComputeVersion()))
 		})
 	})
