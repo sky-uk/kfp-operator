@@ -19,9 +19,11 @@ import (
 type PipelineWorkflowIntegrationSuite interface {
 	SucceedUpload(*pipelinesv1.Pipeline) error
 	FailUpload(*pipelinesv1.Pipeline) error
+
 	SucceedUploadVersion(*pipelinesv1.Pipeline) error
 	FailUploadVersion(*pipelinesv1.Pipeline) error
 	FailUploadVersionInCreation(*pipelinesv1.Pipeline) error
+
 	SucceedDeletion(*pipelinesv1.Pipeline) error
 	FailDeletion(*pipelinesv1.Pipeline) error
 
@@ -169,157 +171,158 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderConfig() string {
 
 var providerId = apis.RandomString()
 
-func AssertWorkflow(
-	setUp func(pipeline *pipelinesv1.Pipeline),
-	constructWorkflow func(*pipelinesv1.Pipeline) (*argo.Workflow, error),
-	assertion func(Gomega, *argo.Workflow)) {
-
-	testCtx := NewPipelineTestContext(
-		&pipelinesv1.Pipeline{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      apis.RandomLowercaseString(),
-				Namespace: "argo",
-			},
-			Spec: pipelineSpec,
-			Status: pipelinesv1.Status{
-				ProviderId: providerId,
-			},
-		},
-		k8sClient, ctx)
-
-	setUp(testCtx.Pipeline)
-	workflow, err := constructWorkflow(testCtx.Pipeline)
-	Expect(err).NotTo(HaveOccurred())
-	Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
-
-	Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
-		assertion), TestTimeout).Should(Succeed())
-}
-
-func RunSuite(suite PipelineWorkflowIntegrationSuite, suitName string) {
-	Context(suitName, func() {
-		workflowFactory := PipelineWorkflowFactory{
-			WorkflowFactoryBase: WorkflowFactoryBase{
-				Config: config.Configuration{
-					PipelineStorage: "gs://some-bucket",
-					DefaultBeamArgs: []apis.NamedValue{
-						{Name: "project", Value: "project"},
-					},
-					WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
-				},
-				ProviderConfig: suite.ProviderConfig(),
-			},
-		}
-
-		DescribeTable("Creation Workflow", AssertWorkflow,
-			Entry("Creation succeeds",
-				func(pipeline *pipelinesv1.Pipeline) {
-					Expect(suite.SucceedUpload(pipeline)).To(Succeed())
-					Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
-				},
-				workflowFactory.ConstructCreationWorkflow,
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).NotTo(BeEmpty())
-					g.Expect(output.ProviderError).To(BeEmpty())
-				},
-			),
-			Entry("Creation succeeds but the update fails",
-				func(pipeline *pipelinesv1.Pipeline) {
-					Expect(suite.SucceedUpload(pipeline)).To(Succeed())
-					Expect(suite.FailUploadVersionInCreation(pipeline)).To(Succeed())
-				},
-				workflowFactory.ConstructCreationWorkflow,
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).NotTo(BeEmpty())
-					g.Expect(output.ProviderError).NotTo(BeEmpty())
-				},
-			),
-			Entry("Creation fails",
-				func(pipeline *pipelinesv1.Pipeline) {
-					Expect(suite.FailUpload(pipeline)).To(Succeed())
-				},
-				workflowFactory.ConstructCreationWorkflow,
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).To(BeEmpty())
-					g.Expect(output.ProviderError).NotTo(BeEmpty())
-				},
-			),
-		)
-
-		DescribeTable("Update Workflow", AssertWorkflow,
-			Entry("Update succeeds",
-				func(pipeline *pipelinesv1.Pipeline) {
-					Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
-				},
-				workflowFactory.ConstructUpdateWorkflow,
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).NotTo(BeEmpty())
-					g.Expect(output.ProviderError).To(BeEmpty())
-				},
-			),
-			Entry("Update fails",
-				func(pipeline *pipelinesv1.Pipeline) {
-					Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
-				},
-				workflowFactory.ConstructUpdateWorkflow,
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).To(Equal(providerId))
-					g.Expect(output.ProviderError).NotTo(BeEmpty())
-				},
-			),
-		)
-
-		DescribeTable("Deletion Workflow", AssertWorkflow,
-			Entry("Deletion succeeds",
-				func(pipeline *pipelinesv1.Pipeline) {
-					Expect(suite.SucceedDeletion(pipeline)).To(Succeed())
-				},
-				func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-					return workflowFactory.ConstructDeletionWorkflow(pipeline)
-				},
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).To(BeEmpty())
-					g.Expect(output.ProviderError).To(BeEmpty())
-				},
-			),
-			Entry("Deletion fails",
-				func(pipeline *pipelinesv1.Pipeline) {
-					Expect(suite.FailDeletion(pipeline)).To(Succeed())
-				},
-				func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
-					return workflowFactory.ConstructDeletionWorkflow(pipeline)
-				},
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-					output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
-					g.Expect(err).NotTo(HaveOccurred())
-					g.Expect(output.Id).To(Equal(providerId))
-					g.Expect(output.ProviderError).NotTo(BeEmpty())
-				},
-			),
-		)
-	})
-}
-
 var _ = Context("Pipeline Workflows", Serial, func() {
+
+	var AssertWorkflow = func(
+		setUp func(pipeline *pipelinesv1.Pipeline),
+		constructWorkflow func(*pipelinesv1.Pipeline) (*argo.Workflow, error),
+		assertion func(Gomega, *argo.Workflow)) {
+
+		testCtx := NewPipelineTestContext(
+			&pipelinesv1.Pipeline{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      apis.RandomLowercaseString(),
+					Namespace: "argo",
+				},
+				Spec: pipelineSpec,
+				Status: pipelinesv1.Status{
+					ProviderId: providerId,
+				},
+			},
+			k8sClient, ctx)
+
+		setUp(testCtx.Pipeline)
+		workflow, err := constructWorkflow(testCtx.Pipeline)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
+
+		Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
+			assertion), TestTimeout).Should(Succeed())
+	}
+
+	var RunSuite = func(suite PipelineWorkflowIntegrationSuite, suitName string) {
+		Context(suitName, func() {
+			workflowFactory := PipelineWorkflowFactory{
+				WorkflowFactoryBase: WorkflowFactoryBase{
+					Config: config.Configuration{
+						PipelineStorage: "gs://some-bucket",
+						DefaultBeamArgs: []apis.NamedValue{
+							{Name: "project", Value: "project"},
+						},
+						WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
+					},
+					ProviderConfig: suite.ProviderConfig(),
+				},
+			}
+
+			DescribeTable("Creation Workflow", AssertWorkflow,
+				Entry("Creation succeeds",
+					func(pipeline *pipelinesv1.Pipeline) {
+						Expect(suite.SucceedUpload(pipeline)).To(Succeed())
+						Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
+					},
+					workflowFactory.ConstructCreationWorkflow,
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+						output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+						g.Expect(err).NotTo(HaveOccurred())
+						g.Expect(output.Id).NotTo(BeEmpty())
+						g.Expect(output.ProviderError).To(BeEmpty())
+					},
+				),
+				Entry("Creation succeeds but the update fails",
+					func(pipeline *pipelinesv1.Pipeline) {
+						Expect(suite.SucceedUpload(pipeline)).To(Succeed())
+						Expect(suite.FailUploadVersionInCreation(pipeline)).To(Succeed())
+					},
+					workflowFactory.ConstructCreationWorkflow,
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+						output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+						g.Expect(err).NotTo(HaveOccurred())
+						g.Expect(output.Id).NotTo(BeEmpty())
+						g.Expect(output.ProviderError).NotTo(BeEmpty())
+					},
+				),
+				Entry("Creation fails",
+					func(pipeline *pipelinesv1.Pipeline) {
+						Expect(suite.FailUpload(pipeline)).To(Succeed())
+					},
+					workflowFactory.ConstructCreationWorkflow,
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+						output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+						g.Expect(err).NotTo(HaveOccurred())
+						g.Expect(output.Id).To(BeEmpty())
+						g.Expect(output.ProviderError).NotTo(BeEmpty())
+					},
+				),
+			)
+
+			DescribeTable("Update Workflow", AssertWorkflow,
+				Entry("Update succeeds",
+					func(pipeline *pipelinesv1.Pipeline) {
+						Expect(suite.SucceedUploadVersion(pipeline)).To(Succeed())
+					},
+					workflowFactory.ConstructUpdateWorkflow,
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+						output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+						g.Expect(err).NotTo(HaveOccurred())
+						g.Expect(output.Id).NotTo(BeEmpty())
+						g.Expect(output.ProviderError).To(BeEmpty())
+					},
+				),
+				Entry("Update fails",
+					func(pipeline *pipelinesv1.Pipeline) {
+						Expect(suite.FailUploadVersion(pipeline)).To(Succeed())
+					},
+					workflowFactory.ConstructUpdateWorkflow,
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+						output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+						g.Expect(err).NotTo(HaveOccurred())
+						g.Expect(output.Id).To(Equal(providerId))
+						g.Expect(output.ProviderError).NotTo(BeEmpty())
+					},
+				),
+			)
+
+			DescribeTable("Deletion Workflow", AssertWorkflow,
+				Entry("Deletion succeeds",
+					func(pipeline *pipelinesv1.Pipeline) {
+						Expect(suite.SucceedDeletion(pipeline)).To(Succeed())
+					},
+					func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+						return workflowFactory.ConstructDeletionWorkflow(pipeline)
+					},
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+						output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+						g.Expect(err).NotTo(HaveOccurred())
+						g.Expect(output.Id).To(BeEmpty())
+						g.Expect(output.ProviderError).To(BeEmpty())
+					},
+				),
+				Entry("Deletion fails",
+					func(pipeline *pipelinesv1.Pipeline) {
+						Expect(suite.FailDeletion(pipeline)).To(Succeed())
+					},
+					func(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
+						return workflowFactory.ConstructDeletionWorkflow(pipeline)
+					},
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+						output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+						g.Expect(err).NotTo(HaveOccurred())
+						g.Expect(output.Id).To(Equal(providerId))
+						g.Expect(output.ProviderError).NotTo(BeEmpty())
+					},
+				),
+			)
+		})
+	}
+
 	RunSuite(VertexAIPipelineWorkflowIntegrationSuite{}, "Vertex AI")
 	RunSuite(KfpPipelineWorkflowIntegrationSuite{}, "Kubeflow Pipelines")
 })
