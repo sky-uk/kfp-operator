@@ -20,7 +20,8 @@ type KfpProvider struct {
 }
 
 func main() {
-	RunProviderApp[KfpProviderConfig](KfpProvider{})
+	app := ProviderApp[KfpProviderConfig]{}
+	app.Run(KfpProvider{})
 }
 
 func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string) (string, error) {
