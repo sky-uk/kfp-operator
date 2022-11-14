@@ -48,6 +48,10 @@ Remove trailing '/' characters from .Values.containerRegistry.
 {{- end }}
 {{- end }}
 
+{{- define "kfp-operator.providerImage" -}}
+{{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-{{ .Values.manager.provider.type }}-provider:{{ .Chart.AppVersion }}
+{{- end }}
+
 {{/*
 Only render object if not empty.
 */}}
