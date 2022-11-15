@@ -68,6 +68,8 @@
 &lt;/tbody>
 &lt;/table>
 &lt;h3 id="kubeflow-pipelines">Kubeflow Pipelines&lt;/h3>
+&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>. Default endpoints are used below.
+Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> can be installed for eventing support.&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -85,6 +87,43 @@
 &lt;/tbody>
 &lt;/table>
 &lt;h3 id="vertex-ai-pipelines">Vertex AI Pipelines&lt;/h3>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/vai-provider.png" alt="Vertex AI Provider">&lt;/p>
+&lt;p>The following GCP APIs need to be enabled:&lt;/p>
+&lt;ul>
+&lt;li>Vertex AI&lt;/li>
+&lt;li>Pub/Sub&lt;/li>
+&lt;li>Cloud Storage&lt;/li>
+&lt;li>Cloud Scheduler&lt;/li>
+&lt;/ul>
+&lt;p>Pub/Sub topics and subscriptions need to be created for:&lt;/p>
+&lt;ul>
+&lt;li>Run Intents &lt;code>provider.configuration.runIntentsTopic&lt;/code>, &lt;code>provider.configuration.enqueuerRunIntentsSubscription&lt;/code>)&lt;/li>
+&lt;li>Runs &lt;code>provider.configuration.runsTopic&lt;/code>, &lt;code>provider.configuration.submitterRunsSubscription&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;p>GCS pipeline storage bucket &lt;code>provider.configuration.pipelineBucket&lt;/code> needs to be created&lt;/p>
+&lt;p>The following workload-identity-enabled service accounts need to be created with the respective permissions:&lt;/p>
+&lt;ul>
+&lt;li>Argo Workflow Runner &lt;code>manager.argo.serviceAccount&lt;/code>
+&lt;ul>
+&lt;li>&lt;code>cloudscheduler.jobs.create&lt;/code>&lt;/li>
+&lt;li>&lt;code>projects.topics.publish&lt;/code> to the configured Run Intents topic&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Vertex AI Worker &lt;code>manager.provider.serviceAccount&lt;/code>
+&lt;ul>
+&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured Run Intents and Runs subscriptions&lt;/li>
+&lt;li>&lt;code>projects.topics.publish&lt;/code> to the configured Runs topic&lt;/li>
+&lt;li>&lt;code>aiplatform.pipelineJobs.create&lt;/code>&lt;/li>
+&lt;li>&lt;code>iam.serviceAccounts.actAs&lt;/code> Vertex AI Job Runner&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Vertex AI Job Runner &lt;code>manager.provider.configuration.vaiJobServiceAccount&lt;/code>
+&lt;ul>
+&lt;li>all permissions needed by pipeline jobs&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;p>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> must be installed into the operator&amp;rsquo;s Kubernetes cluster.&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -98,6 +137,41 @@
 &lt;td>&lt;code>pipelineBucket&lt;/code>&lt;/td>
 &lt;td>GCS bucket where to store the compiled pipeline&lt;/td>
 &lt;td>&lt;code>kfp-operator-pipelines&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>vaiProject&lt;/code>&lt;/td>
+&lt;td>Vertex AI GCP project name&lt;/td>
+&lt;td>&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>vaiLocation&lt;/code>&lt;/td>
+&lt;td>Vertex AI GCP project location&lt;/td>
+&lt;td>&lt;code>europe-west2&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>vaiJobServiceAccount&lt;/code>&lt;/td>
+&lt;td>Vertex AI GCP service account to run pipeline jobs&lt;/td>
+&lt;td>&lt;code>kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>runIntentsTopic&lt;/code>&lt;/td>
+&lt;td>Pub/Sub topic name to publish run intents&lt;/td>
+&lt;td>&lt;code>kfp-operator-run-intents&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>enqueuerRunIntentsSubscription&lt;/code>&lt;/td>
+&lt;td>Subscription on the run intents topic&lt;/td>
+&lt;td>&lt;code>kfp-operator-runs-enqueuer&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>runsTopic&lt;/code>&lt;/td>
+&lt;td>Pub/Sub topic name to publish runs&lt;/td>
+&lt;td>&lt;code>kfp-operator-runs&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>submitterRunsSubscription&lt;/code>&lt;/td>
+&lt;td>Subscription on the runs topic&lt;/td>
+&lt;td>&lt;code>kfp-operator-runs-submitter&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Resources</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</guid><description>
@@ -185,7 +259,7 @@ This means that resources can increase debugging, but never decrease it.&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Run Completion EventSource</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
 &lt;p>The Run Completion Eventsource allows reacting to finished pipeline runs.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run_completion.png" alt="Model Serving">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.png" alt="Model Serving">&lt;/p>
 &lt;p>The specification of the eventsource follows those of other &lt;a href="https://argoproj.github.io/argo-events/eventsources/generic/">generic Argo-Events eventsources&lt;/a>:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventSource&lt;/span>

@@ -9,10 +9,8 @@ This guide assumes you are familiar with [Helm](https://helm.sh/).
 
 ## Prerequisites
 
-- KFP installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
-- Argo service account has been granted permissions to reference `ClusterWorkflowTemplate` resources ([example](https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart/resources/argo-rbac.yaml)).
-- GCS bucket or alternative storage location to store pipeline artifacts. Referenced as `{STORAGE_LOCATION}` below.
-- (Optional) [Argo-Events](https://argoproj.github.io/argo-events/installation/) for eventing support.
+- The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the [respective configuration section](../../reference/configuration/#provider-configuration) before proceeding.
+- Argo installed cluster-wide.
 
 ## Build and Install
 

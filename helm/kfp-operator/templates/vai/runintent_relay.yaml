@@ -16,7 +16,7 @@ spec:
     run-intents:
       jsonBody: true
       projectID: {{ .Values.manager.provider.configuration.vaiProject }}
-      subscriptionID: {{ .Values.manager.provider.configuration.runIntentsSubscription }}
+      subscriptionID: {{ .Values.manager.provider.configuration.enqueuerRunIntentsSubscription }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor

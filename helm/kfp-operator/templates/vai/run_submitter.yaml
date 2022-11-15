@@ -16,7 +16,7 @@ spec:
     runs:
       jsonBody: true
       projectID: {{ .Values.manager.provider.configuration.vaiProject }}
-      subscriptionID: {{ .Values.manager.provider.configuration.runsSubscription }}
+      subscriptionID: {{ .Values.manager.provider.configuration.submitterRunsSubscription }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor

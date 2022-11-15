@@ -5,7 +5,7 @@ weight: 4
 
 The Run Completion Eventsource allows reacting to finished pipeline runs.
 
-![Model Serving](/images/run_completion.png)
+![Model Serving](/images/run-completion.png)
 
 The specification of the eventsource follows those of other [generic Argo-Events eventsources](https://argoproj.github.io/argo-events/eventsources/generic/):
 

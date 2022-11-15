@@ -31,12 +31,50 @@ An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/maste
 
 ### Kubeflow Pipelines
 
+KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
+Optionally, [Argo-Events](https://argoproj.github.io/argo-events/installation/) can be installed for eventing support.
+
 | Parameter name | Description                                | Example                               |
 |----------------|--------------------------------------------|---------------------------------------|
 | `endpoint`     | The KFP endpoint available to the operator | `kubeflow-ui.kubeflow-pipelines:8080` |
 
 ### Vertex AI Pipelines
 
-| Parameter name   | Description                                     | Example                  |
-|------------------|-------------------------------------------------|--------------------------|
-| `pipelineBucket` | GCS bucket where to store the compiled pipeline | `kfp-operator-pipelines` |
+![Vertex AI Provider](/images/vai-provider.png)
+
+The following GCP APIs need to be enabled:
+- Vertex AI
+- Pub/Sub
+- Cloud Storage
+- Cloud Scheduler
+
+Pub/Sub topics and subscriptions need to be created for:
+- Run Intents `provider.configuration.runIntentsTopic`, `provider.configuration.enqueuerRunIntentsSubscription`)
+- Runs `provider.configuration.runsTopic`, `provider.configuration.submitterRunsSubscription`
+
+GCS pipeline storage bucket `provider.configuration.pipelineBucket` needs to be created
+
+The following workload-identity-enabled service accounts need to be created with the respective permissions:
+- Argo Workflow Runner `manager.argo.serviceAccount`
+  - `cloudscheduler.jobs.create`
+  - `projects.topics.publish` to the configured Run Intents topic
+- Vertex AI Worker `manager.provider.serviceAccount`
+  - `projects.subscriptions.pull` from the configured Run Intents and Runs subscriptions
+  - `projects.topics.publish` to the configured Runs topic
+  - `aiplatform.pipelineJobs.create`
+  - `iam.serviceAccounts.actAs` Vertex AI Job Runner
+- Vertex AI Job Runner `manager.provider.configuration.vaiJobServiceAccount`
+  - all permissions needed by pipeline jobs
+
+[Argo-Events](https://argoproj.github.io/argo-events/installation/) must be installed into the operator's Kubernetes cluster.
+
+| Parameter name                   | Description                                        | Example                                                           |
+|----------------------------------|----------------------------------------------------|-------------------------------------------------------------------|
+| `pipelineBucket`                 | GCS bucket where to store the compiled pipeline    | `kfp-operator-pipelines`                                          |
+| `vaiProject`                     | Vertex AI GCP project name                         | `kfp-operator-vertex-ai`                                          |
+| `vaiLocation`                    | Vertex AI GCP project location                     | `europe-west2`                                                    |
+| `vaiJobServiceAccount`           | Vertex AI GCP service account to run pipeline jobs | `kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com` |
+| `runIntentsTopic`                | Pub/Sub topic name to publish run intents          | `kfp-operator-run-intents`                                        |
+| `enqueuerRunIntentsSubscription` | Subscription on the run intents topic              | `kfp-operator-runs-enqueuer`                                      |
+| `runsTopic`                      | Pub/Sub topic name to publish runs                 | `kfp-operator-runs`                                               |
+| `submitterRunsSubscription`      | Subscription on the runs topic                     | `kfp-operator-runs-submitter`                                     |
