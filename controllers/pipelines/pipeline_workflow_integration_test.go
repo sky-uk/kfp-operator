@@ -34,7 +34,7 @@ type VertexAIPipelineWorkflowIntegrationSuite struct {
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "endpoint: http://wiremock:80\nimage: kfp-operator-vai-provider\npipelineBucket: pipelineBucket\nexecutionMode: v2"
+	return "gcsEndpoint: http://wiremock:80\nimage: kfp-operator-vai-provider\npipelineBucket: pipelineBucket\nexecutionMode: v2"
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedUpload(_ *pipelinesv1.Pipeline) error {

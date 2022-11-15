@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestPipelineControllersUnitSuite(t *testing.T) {
+func TestProvidersUnitSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Provider base")
 }

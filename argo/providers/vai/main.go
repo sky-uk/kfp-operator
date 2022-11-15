@@ -25,16 +25,6 @@ import (
 	"strings"
 )
 
-var labels = struct {
-	RunConfiguration string
-	PipelineName     string
-	PipelineVersion  string
-}{
-	RunConfiguration: "run-configuration",
-	PipelineName:     "pipeline-name",
-	PipelineVersion:  "pipeline-version",
-}
-
 func main() {
 	app := NewProviderApp[VAIProviderConfig]()
 	provider := VAIProvider{}
@@ -78,6 +68,30 @@ func main() {
 	})
 }
 
+var labels = struct {
+	RunConfiguration string
+	PipelineName     string
+	PipelineVersion  string
+}{
+	RunConfiguration: "run-configuration",
+	PipelineName:     "pipeline-name",
+	PipelineVersion:  "pipeline-version",
+}
+
+type VAIRun struct {
+	RunId             string            `json:"runId"`
+	Labels            map[string]string `json:"labels,omitempty"`
+	PipelineUri       string            `json:"pipelineUri"`
+	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
+}
+
+type RunIntent struct {
+	RunConfigurationName string            `json:"runConfigurationName,omitempty"`
+	PipelineName         string            `json:"pipelineName"`
+	PipelineVersion      string            `json:"pipelineVersion"`
+	RuntimeParameters    map[string]string `json:"runtimeParameters,omitempty"`
+}
+
 type VAIProviderConfig struct {
 	VaiProject           string `yaml:"vaiProject"`
 	VaiLocation          string `yaml:"vaiLocation"`
@@ -86,9 +100,6 @@ type VAIProviderConfig struct {
 	PipelineBucket       string `yaml:"pipelineBucket"`
 	RunIntentsTopic      string `yaml:"runIntentsTopic"`
 	RunsTopic            string `yaml:"runsTopic"`
-}
-
-type VAIProvider struct {
 }
 
 func (vaipc VAIProviderConfig) vaiEndpoint() string {
@@ -121,6 +132,9 @@ func (vaipc VAIProviderConfig) gcsUri(bucket string, pathSegments ...string) str
 
 func (vaipc VAIProviderConfig) pipelineUri(pipelineName string, pipelineVersion string) string {
 	return vaipc.gcsUri(vaipc.PipelineBucket, vaipc.pipelineStorageObject(pipelineName, pipelineVersion))
+}
+
+type VAIProvider struct {
 }
 
 func (vaip VAIProvider) gcsClient(ctx context.Context, providerConfig VAIProviderConfig) (*storage.Client, error) {
@@ -200,22 +214,7 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
-type VAIRun struct {
-	RunId             string            `json:"runId"`
-	Labels            map[string]string `json:"labels,omitempty"`
-	PipelineUri       string            `json:"pipelineUri"`
-	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
-}
-
-type RunIntent struct {
-	RunConfigurationName string            `json:"runConfigurationName,omitempty"`
-	PipelineName         string            `json:"pipelineName"`
-	PipelineVersion      string            `json:"pipelineVersion"`
-	RuntimeParameters    map[string]string `json:"runtimeParameters,omitempty"`
-}
-
 func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (*schedulerpb.Job, error) {
-	fmt.Println(runConfigurationDefinition.Schedule)
 	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
 	if err != nil {
 		return nil, err

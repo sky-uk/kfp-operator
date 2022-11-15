@@ -20,7 +20,7 @@ type KfpProvider struct {
 }
 
 func main() {
-	app := ProviderApp[KfpProviderConfig]{}
+	app := NewProviderApp[KfpProviderConfig]()
 	app.Run(KfpProvider{})
 }
 
