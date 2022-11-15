@@ -30,12 +30,12 @@ spec:
       command:
       - /provider
       args:
+      - --provider-config
+      - /tmp/provider-config.yaml
       - runconfiguration
       - create
       - --runconfiguration-definition
       - /tmp/runconfiguration-definition.yaml
-      - --provider-config
-      - /tmp/provider-config.yaml
       - --out
       - /tmp/provider-output.yaml
   - name: update
@@ -64,12 +64,12 @@ spec:
       command:
       - /provider
       args:
+      - --provider-config
+      - /tmp/provider-config.yaml
       - runconfiguration
       - update
       - --runconfiguration-definition
       - /tmp/runconfiguration-definition.yaml
-      - --provider-config
-      - /tmp/provider-config.yaml
       - --runconfiguration-id
       - '{{workflow.parameters.runconfiguration-id}}'
       - --out
@@ -95,12 +95,12 @@ spec:
       command:
       - /provider
       args:
+      - --provider-config
+      - /tmp/provider-config.yaml
       - runconfiguration
       - delete
       - --runconfiguration-definition
       - /tmp/runconfiguration-definition.yaml
-      - --provider-config
-      - /tmp/provider-config.yaml
       - --runconfiguration-id
       - '{{workflow.parameters.runconfiguration-id}}'
       - --out

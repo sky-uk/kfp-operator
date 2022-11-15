@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-run-enqueuer
+  name: {{ include "kfp-operator.fullname" . }}-run-submitter
   namespace: {{ .Values.namespace.name }}
   labels:
     {{- include "kfp-operator.labels" . | nindent 4 }}
@@ -13,15 +13,15 @@ spec:
       {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
     serviceAccountName: {{ .Values.manager.provider.serviceAccount.name }}
   pubSub:
-    run-intents:
+    runs:
       jsonBody: true
       projectID: {{ .Values.manager.provider.configuration.vaiProject }}
-      subscriptionID: {{ .Values.manager.provider.configuration.runIntentsSubscription }}
+      subscriptionID: {{ .Values.manager.provider.configuration.runsSubscription }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-run-enqueuer
+  name: {{ include "kfp-operator.fullname" . }}-run-submitter
   namespace: {{ .Values.namespace.name }}
 spec:
   template:
@@ -30,12 +30,12 @@ spec:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
       {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
   dependencies:
-    - name: run-intents
-      eventSourceName: {{ include "kfp-operator.fullname" . }}-run-enqueuer
-      eventName: run-intents
+    - name: runs
+      eventSourceName: {{ include "kfp-operator.fullname" . }}-run-submitter
+      eventName: runs
   triggers:
   - template:
-      name: enqueue-run
+      name: submit-run
       k8s:
         operation: create
         source:
@@ -43,18 +43,18 @@ spec:
             apiVersion: argoproj.io/v1alpha1
             kind: Workflow
             metadata:
-              generateName: {{ include "kfp-operator.fullname" . }}-enqueue-run-
+              generateName: {{ include "kfp-operator.fullname" . }}-submit-run-
             spec:
               ttlStrategy:
                 secondsAfterCompletion: 300
               serviceAccountName: {{ .Values.manager.provider.serviceAccount.name }}
-              entrypoint: enqueue
+              entrypoint: submit
               arguments:
                 parameters:
-                - name: run-intent
+                - name: run
                   value: "set from parameters block below"
               templates:
-              - name: enqueue
+              - name: submit
                 metadata:
                   {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
                   {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 18 }}
@@ -65,11 +65,11 @@ spec:
                     raw:
                       data: |
                         {{- .Values.manager.provider.configuration | toYaml | nindent 24 }}
-                  - name: run-intent
-                    path: /tmp/run-intent.json
+                  - name: run
+                    path: /tmp/run.json
                     raw:
                       data: |
-                        {{`{{workflow.parameters.run-intent}}`}}
+                        {{`{{workflow.parameters.run}}`}}
                 container:
                   image: {{ include "kfp-operator.providerImage" . }}
                   command:
@@ -79,12 +79,12 @@ spec:
                   - /tmp/provider-config.yaml
                   - custom
                   - vai-run
-                  - enqueue
-                  - --run-intent
-                  - /tmp/run-intent.json
+                  - submit
+                  - --run
+                  - /tmp/run.json
         parameters:
           - src:
-              dependencyName: run-intents
+              dependencyName: runs
               dataKey: body
             dest: spec.arguments.parameters.0.value
 {{- end -}}

@@ -79,12 +79,13 @@ func main() {
 }
 
 type VAIProviderConfig struct {
-	VaiProject      string `yaml:"vaiProject"`
-	VaiLocation     string `yaml:"vaiLocation"`
-	GcsEndpoint     string `yaml:"gcsEndpoint"`
-	PipelineBucket  string `yaml:"pipelineBucket"`
-	RunIntentsTopic string `yaml:"runIntentsTopic"`
-	RunsTopic       string `yaml:"runsTopic"`
+	VaiProject           string `yaml:"vaiProject"`
+	VaiLocation          string `yaml:"vaiLocation"`
+	VaiJobServiceAccount string `yaml:"vaiJobServiceAccount"`
+	GcsEndpoint          string `yaml:"gcsEndpoint"`
+	PipelineBucket       string `yaml:"pipelineBucket"`
+	RunIntentsTopic      string `yaml:"runIntentsTopic"`
+	RunsTopic            string `yaml:"runsTopic"`
 }
 
 type VAIProvider struct {
@@ -393,12 +394,10 @@ func (vaip VAIProvider) specFromTemplateUri(ctx context.Context, providerConfig 
 		job.Labels[k] = v.(string)
 	}
 
-	runtimeConfig := raw["runtimeConfig"].(map[string]interface{})
-	if job.RuntimeConfig.ParameterValues == nil {
-		job.RuntimeConfig.ParameterValues = map[string]*structpb.Value{}
-	}
-	for k, v := range runtimeConfig {
-		job.RuntimeConfig.ParameterValues[k] = structpb.NewStringValue(v.(string))
+	gcsOutputDirectory := raw["runtimeConfig"].(map[string]interface{})["gcsOutputDirectory"].(string)
+
+	job.RuntimeConfig = &aiplatformpb.PipelineJob_RuntimeConfig{
+		GcsOutputDirectory: gcsOutputDirectory,
 	}
 
 	return nil
@@ -412,8 +411,9 @@ func (vaip VAIProvider) submitRun(ctx context.Context, providerConfig VAIProvide
 	defer pipelineClient.Close()
 
 	pipelineJob := &aiplatformpb.PipelineJob{
-		Labels:      vaiRun.Labels,
-		TemplateUri: vaiRun.PipelineUri,
+		Labels:         vaiRun.Labels,
+		TemplateUri:    vaiRun.PipelineUri,
+		ServiceAccount: providerConfig.VaiJobServiceAccount,
 	}
 
 	err = vaip.specFromTemplateUri(ctx, providerConfig, pipelineJob)

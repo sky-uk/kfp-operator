@@ -31,12 +31,12 @@ spec:
       command:
       - /provider
       args:
+      - --provider-config
+      - /tmp/provider-config.yaml
       - experiment
       - create
       - --experiment-definition
       - /tmp/experiment-definition.yaml
-      - --provider-config
-      - /tmp/provider-config.yaml
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -67,12 +67,12 @@ spec:
       command:
       - /provider
       args:
+      - --provider-config
+      - /tmp/provider-config.yaml
       - experiment
       - update
       - --experiment-definition
       - /tmp/experiment-definition.yaml
-      - --provider-config
-      - /tmp/provider-config.yaml
       - --experiment-id
       - '{{`{{workflow.parameters.experiment-id}}`}}'
       - --out
@@ -100,12 +100,12 @@ spec:
       command:
       - /provider
       args:
+      - --provider-config
+      - /tmp/provider-config.yaml
       - experiment
       - delete
       - --experiment-definition
       - /tmp/experiment-definition.yaml
-      - --provider-config
-      - /tmp/provider-config.yaml
       - --experiment-id
       - '{{`{{workflow.parameters.experiment-id}}`}}'
       - --out
