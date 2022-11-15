@@ -2,6 +2,7 @@ package base
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"github.com/urfave/cli"
@@ -34,7 +35,27 @@ var ProviderConstants = struct {
 	OutputParameter:                     "out",
 }
 
-func RunProviderApp[Config any](provider Provider[Config]) {
+type ProviderApp[Config any] struct {
+	Context context.Context
+}
+
+func NewProviderApp[Config any]() ProviderApp[Config] {
+	logger, err := newLogger(zapcore.InfoLevel)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx := logr.NewContext(context.Background(), logger)
+	return ProviderApp[Config]{
+		Context: ctx,
+	}
+}
+
+func (_ ProviderApp[Config]) LoadProviderConfig(c *cli.Context) (Config, error) {
+	return LoadYamlFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
+}
+
+func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customCommands ...cli.Command) {
 	providerConfigFlag := cli.StringFlag{
 		Name:     ProviderConstants.ProviderConfigParameter,
 		Required: true,
@@ -80,78 +101,73 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 		Required: true,
 	}
 
-	logger, err := newLogger(zapcore.InfoLevel)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ctx := logr.NewContext(context.Background(), logger)
 	app := cli.NewApp()
 
+	app.Flags = []cli.Flag{providerConfigFlag}
 	app.Commands = []cli.Command{
 		{
 			Name: "pipeline",
 			Subcommands: []cli.Command{
 				{
 					Name:  "create",
-					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineFileFlag, outFlag},
+					Flags: []cli.Flag{pipelineDefinitionFlag, pipelineFileFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
-						pipelineDefinition, err := loadFromParameter[PipelineDefinition](c, ProviderConstants.PipelineDefinitionParameter)
+						pipelineDefinition, err := LoadYamlFromFile[PipelineDefinition](c.String(ProviderConstants.PipelineDefinitionParameter))
 						if err != nil {
 							return err
 						}
 
-						id, err := provider.CreatePipeline(ctx, providerConfig, pipelineDefinition, pipelineFile)
+						id, err := provider.CreatePipeline(providerApp.Context, providerConfig, pipelineDefinition, pipelineFile)
 
-						logResult(ctx, "pipeline", "create", "", id, err)
+						logResult(providerApp.Context, "pipeline", "create", "", id, err)
 
 						return writeOutput(c, id, err)
 					},
 				},
 				{
 					Name:  "update",
-					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineFileFlag, pipelineIdFlag, outFlag},
+					Flags: []cli.Flag{pipelineDefinitionFlag, pipelineFileFlag, pipelineIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
 						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
-						pipelineDefinition, err := loadFromParameter[PipelineDefinition](c, ProviderConstants.PipelineDefinitionParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						pipelineDefinition, err := LoadYamlFromFile[PipelineDefinition](c.String(ProviderConstants.PipelineDefinitionParameter))
 						if err != nil {
 							return err
 						}
 
-						updatedId, err := provider.UpdatePipeline(ctx, providerConfig, pipelineDefinition, id, pipelineFile)
+						updatedId, err := provider.UpdatePipeline(providerApp.Context, providerConfig, pipelineDefinition, id, pipelineFile)
 
-						logResult(ctx, "pipeline", "update", id, updatedId, err)
+						logResult(providerApp.Context, "pipeline", "update", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{providerConfigFlag, pipelineDefinitionFlag, pipelineIdFlag, outFlag},
+					Flags: []cli.Flag{pipelineDefinitionFlag, pipelineIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
 
-						err = provider.DeletePipeline(ctx, providerConfig, id)
+						err = provider.DeletePipeline(providerApp.Context, providerConfig, id)
 						updatedId := ""
 						if err != nil {
 							updatedId = id
 						}
 
-						logResult(ctx, "pipeline", "delete", id, updatedId, err)
+						logResult(providerApp.Context, "pipeline", "delete", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -163,62 +179,61 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 			Subcommands: []cli.Command{
 				{
 					Name:  "create",
-					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, outFlag},
+					Flags: []cli.Flag{runConfigurationDefinitionFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
-						runConfigurationDefinition, err := loadFromParameter[RunConfigurationDefinition](c, ProviderConstants.RunConfigurationDefinitionParameter)
+						runConfigurationDefinition, err := LoadYamlFromFile[RunConfigurationDefinition](c.String(ProviderConstants.RunConfigurationDefinitionParameter))
 						if err != nil {
 							return err
 						}
+						id, err := provider.CreateRunConfiguration(providerApp.Context, providerConfig, runConfigurationDefinition)
 
-						id, err := provider.CreateRunConfiguration(ctx, providerConfig, runConfigurationDefinition)
-
-						logResult(ctx, "runconfiguration", "create", "", id, err)
+						logResult(providerApp.Context, "runconfiguration", "create", "", id, err)
 
 						return writeOutput(c, id, err)
 					},
 				},
 				{
 					Name:  "update",
-					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
+					Flags: []cli.Flag{runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunConfigurationIdParameter)
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
-						runConfigurationDefinition, err := loadFromParameter[RunConfigurationDefinition](c, ProviderConstants.RunConfigurationDefinitionParameter)
+						runConfigurationDefinition, err := LoadYamlFromFile[RunConfigurationDefinition](c.String(ProviderConstants.RunConfigurationDefinitionParameter))
 						if err != nil {
 							return err
 						}
 
-						updatedId, err := provider.UpdateRunConfiguration(ctx, providerConfig, runConfigurationDefinition, id)
+						updatedId, err := provider.UpdateRunConfiguration(providerApp.Context, providerConfig, runConfigurationDefinition, id)
 
-						logResult(ctx, "runconfiguration", "update", id, updatedId, err)
+						logResult(providerApp.Context, "runconfiguration", "update", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{providerConfigFlag, runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
+					Flags: []cli.Flag{runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunConfigurationIdParameter)
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
 
-						err = provider.DeleteRunConfiguration(ctx, providerConfig, id)
+						err = provider.DeleteRunConfiguration(providerApp.Context, providerConfig, id)
 						updatedId := ""
 						if err != nil {
 							updatedId = id
 						}
 
-						logResult(ctx, "runconfiguration", "delete", id, updatedId, err)
+						logResult(providerApp.Context, "runconfiguration", "delete", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -230,62 +245,62 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 			Subcommands: []cli.Command{
 				{
 					Name:  "create",
-					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, outFlag},
+					Flags: []cli.Flag{experimentDefinitionFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
-						experimentDefinition, err := loadFromParameter[ExperimentDefinition](c, ProviderConstants.ExperimentDefinitionParameter)
+						experimentDefinition, err := LoadYamlFromFile[ExperimentDefinition](c.String(ProviderConstants.ExperimentDefinitionParameter))
 						if err != nil {
 							return err
 						}
 
-						id, err := provider.CreateExperiment(ctx, providerConfig, experimentDefinition)
+						id, err := provider.CreateExperiment(providerApp.Context, providerConfig, experimentDefinition)
 
-						logResult(ctx, "experiment", "create", "", id, err)
+						logResult(providerApp.Context, "experiment", "create", "", id, err)
 
 						return writeOutput(c, id, err)
 					},
 				},
 				{
 					Name:  "update",
-					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag, outFlag},
+					Flags: []cli.Flag{experimentDefinitionFlag, experimentIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.ExperimentIdParameter)
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
-						experimentDefinition, err := loadFromParameter[ExperimentDefinition](c, ProviderConstants.ExperimentDefinitionParameter)
+						experimentDefinition, err := LoadYamlFromFile[ExperimentDefinition](c.String(ProviderConstants.ExperimentDefinitionParameter))
 						if err != nil {
 							return err
 						}
 
-						updatedId, err := provider.UpdateExperiment(ctx, providerConfig, experimentDefinition, id)
+						updatedId, err := provider.UpdateExperiment(providerApp.Context, providerConfig, experimentDefinition, id)
 
-						logResult(ctx, "experiment", "update", id, updatedId, err)
+						logResult(providerApp.Context, "experiment", "update", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{providerConfigFlag, experimentDefinitionFlag, experimentIdFlag, outFlag},
+					Flags: []cli.Flag{experimentDefinitionFlag, experimentIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.ExperimentIdParameter)
-						providerConfig, err := loadFromParameter[Config](c, ProviderConstants.ProviderConfigParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
 
-						err = provider.DeleteExperiment(ctx, providerConfig, id)
+						err = provider.DeleteExperiment(providerApp.Context, providerConfig, id)
 						updatedId := ""
 						if err != nil {
 							updatedId = id
 						}
 
-						logResult(ctx, "experiment", "delete", id, updatedId, err)
+						logResult(providerApp.Context, "experiment", "delete", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
@@ -294,8 +309,15 @@ func RunProviderApp[Config any](provider Provider[Config]) {
 		},
 	}
 
+	if len(customCommands) > 0 {
+		app.Commands = append(app.Commands, cli.Command{
+			Name:        "custom",
+			Subcommands: customCommands,
+		})
+	}
+
 	if err := app.Run(os.Args); err != nil {
-		logger.Error(err, "failed to run provider app")
+		LoggerFromContext(providerApp.Context).Error(err, "failed to run provider app")
 		os.Exit(1)
 	}
 }
@@ -352,13 +374,23 @@ func writeOutput(c *cli.Context, id string, err error) error {
 	return os.WriteFile(c.String(ProviderConstants.OutputParameter), outputYaml, 0644)
 }
 
-func loadFromParameter[T any](c *cli.Context, parameterName string) (T, error) {
+func LoadYamlFromFile[T any](fileName string) (T, error) {
 	t := new(T)
 
-	fileName := c.String(parameterName)
-	content, err := os.ReadFile(fileName)
+	contents, err := os.ReadFile(fileName)
 	if err == nil {
-		err = yaml.Unmarshal(content, t)
+		err = yaml.Unmarshal(contents, t)
+	}
+
+	return *t, err
+}
+
+func LoadJsonFromFile[T any](fileName string) (T, error) {
+	t := new(T)
+
+	contents, err := os.ReadFile(fileName)
+	if err == nil {
+		err = json.Unmarshal(contents, t)
 	}
 
 	return *t, err

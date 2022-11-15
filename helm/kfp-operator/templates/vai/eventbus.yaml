@@ -1,0 +1,23 @@
+{{- if eq .Values.manager.provider.type "vai" -}}
+apiVersion: argoproj.io/v1alpha1
+kind: EventBus
+metadata:
+  name: default
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "kfp-operator.labels" . | nindent 4 }}
+spec:
+  nats:
+    native:
+      containerTemplate:
+        resources:
+          requests:
+            cpu: 100m
+      metadata:
+        {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
+        {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
+      metricsContainerTemplate:
+        resources:
+          requests:
+            cpu: 100m
+{{- end -}}
