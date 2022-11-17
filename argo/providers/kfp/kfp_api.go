@@ -1,4 +1,4 @@
-package run_completion
+package main
 
 import (
 	"context"

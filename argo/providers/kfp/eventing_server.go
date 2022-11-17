@@ -1,4 +1,4 @@
-package run_completion
+package main
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
+	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -18,7 +19,6 @@ import (
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/cache"
-	"pipelines.kubeflow.org/events/eventsources/generic"
 	"strconv"
 	"strings"
 )
@@ -43,7 +43,7 @@ type EventSourceConfig struct {
 	KfpNamespace string `yaml:"kfpNamespace"`
 }
 
-type EventingServer struct {
+type KfpEventingServer struct {
 	generic.UnimplementedEventingServer
 	K8sClient     dynamic.Interface
 	MetadataStore MetadataStore
@@ -104,7 +104,7 @@ func getPipelineName(workflow *unstructured.Unstructured) (name string) {
 	return
 }
 
-func (es *EventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
+func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
 	eventsourceConfig := EventSourceConfig{}
 
 	if err := yaml.Unmarshal(source.Config, &eventsourceConfig); err != nil {
@@ -189,7 +189,7 @@ func (es *EventingServer) StartEventSource(source *generic.EventSource, stream g
 	return nil
 }
 
-func (es *EventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*RunCompletionEvent, error) {
+func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*RunCompletionEvent, error) {
 	status, hasFinished := runCompletionStatus(workflow)
 
 	if !hasFinished {

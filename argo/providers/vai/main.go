@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	. "github.com/sky-uk/kfp-operator/providers/base"
+	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"github.com/urfave/cli"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
@@ -432,4 +433,9 @@ func (vaip VAIProvider) submitRun(ctx context.Context, providerConfig VAIProvide
 	}
 
 	return nil
+}
+
+func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIProviderConfig) (generic.EventingServer, error) {
+	//TODO implement me
+	panic("implement me")
 }

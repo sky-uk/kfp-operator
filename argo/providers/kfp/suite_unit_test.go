@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package run_completion
+package main
 
 import (
 	"testing"

@@ -8,7 +8,7 @@ test:
 ##@ Build
 
 build:
-	go build -o bin/provider ./vai/main.go
+	go build -o bin/provider ./vai
 
 ##@ Containers
 

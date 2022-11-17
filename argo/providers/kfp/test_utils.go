@@ -1,7 +1,7 @@
 //go:build unit || decoupled
 // +build unit decoupled
 
-package run_completion
+package main
 
 import "k8s.io/apimachinery/pkg/util/rand"
 

@@ -3,17 +3,32 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"github.com/kubeflow/pipelines/backend/api/go_client"
+	"github.com/sky-uk/kfp-operator/providers/base"
 	. "github.com/sky-uk/kfp-operator/providers/base"
+	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
 	"github.com/yalp/jsonpath"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
+	"k8s.io/client-go/dynamic"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 )
 
 const KfpResourceNotFoundCode = 5
 
 type KfpProviderConfig struct {
-	Endpoint string `yaml:"endpoint,omitempty"`
+	Endpoint          string `yaml:"endpoint,omitempty"`
+	MetadataStoreAddr string `yaml:"metadataStoreAddr"`
+	KfpApiAddr        string `yaml:"kfpApiAddr"`
 }
 
 type KfpProvider struct {
@@ -182,4 +197,68 @@ func (kfpp KfpProvider) DeleteExperiment(_ context.Context, providerConfig KfpPr
 	}
 
 	return cmd.Run()
+}
+
+func createK8sClient() (dynamic.Interface, error) {
+	var k8sConfig *rest.Config
+	var err error
+
+	kubeconfigPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
+	if _, err := os.Stat(kubeconfigPath); err == nil {
+		k8sConfig, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	} else {
+		k8sConfig, err = clientcmd.BuildConfigFromFlags("", "")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return dynamic.NewForConfig(k8sConfig)
+}
+
+func ConnectToMetadataStore(address string) (*GrpcMetadataStore, error) {
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &GrpcMetadataStore{
+		MetadataStoreServiceClient: ml_metadata.NewMetadataStoreServiceClient(conn),
+	}, nil
+}
+
+func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
+	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &GrpcKfpApi{
+		RunServiceClient: go_client.NewRunServiceClient(conn),
+	}, nil
+}
+
+func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpProviderConfig) (generic.EventingServer, error) {
+	k8sClient, err := createK8sClient()
+	if err != nil {
+		return nil, err
+	}
+
+	metadataStore, err := ConnectToMetadataStore(providerConfig.MetadataStoreAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	kfpApi, err := ConnectToKfpApi(providerConfig.KfpApiAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &KfpEventingServer{
+		K8sClient:     k8sClient,
+		Logger:        base.LoggerFromContext(ctx),
+		MetadataStore: metadataStore,
+		KfpApi:        kfpApi,
+	}, nil
 }

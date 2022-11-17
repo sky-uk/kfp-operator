@@ -1,7 +1,7 @@
 //go:build decoupled || unit
 // +build decoupled unit
 
-package run_completion
+package main
 
 import "context"
 

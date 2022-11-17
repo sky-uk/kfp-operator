@@ -1,9 +1,9 @@
-package run_completion
+package main
 
 import (
 	"context"
 	"fmt"
-	"pipelines.kubeflow.org/events/ml_metadata"
+	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
 )
 
 const (

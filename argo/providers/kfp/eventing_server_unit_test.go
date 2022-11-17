@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package run_completion
+package main
 
 import (
 	"context"
@@ -183,7 +183,7 @@ var _ = Context("Eventing Server", func() {
 		It("Doesn't emit an event when the workflow has not finished", func() {
 			workflow := &unstructured.Unstructured{}
 
-			eventingServer := EventingServer{
+			eventingServer := KfpEventingServer{
 				Logger: logr.Discard(),
 			}
 
@@ -196,7 +196,7 @@ var _ = Context("Eventing Server", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 
-			eventingServer := EventingServer{
+			eventingServer := KfpEventingServer{
 				Logger: logr.Discard(),
 			}
 
@@ -212,7 +212,7 @@ var _ = Context("Eventing Server", func() {
 
 			mockMetadataStore := MockMetadataStore{}
 
-			eventingServer := EventingServer{
+			eventingServer := KfpEventingServer{
 				Logger:        logr.Discard(),
 				MetadataStore: &mockMetadataStore,
 			}
@@ -235,7 +235,7 @@ var _ = Context("Eventing Server", func() {
 		mockMetadataStore := MockMetadataStore{}
 		mockKfpApi := MockKfpApi{}
 
-		eventingServer := EventingServer{
+		eventingServer := KfpEventingServer{
 			Logger:        logr.Discard(),
 			MetadataStore: &mockMetadataStore,
 			KfpApi:        &mockKfpApi,

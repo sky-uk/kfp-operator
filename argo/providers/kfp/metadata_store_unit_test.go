@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package run_completion
+package main
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"pipelines.kubeflow.org/events/ml_metadata"
+	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
 )
 
 var _ = Context("gRPC Metadata Store", func() {

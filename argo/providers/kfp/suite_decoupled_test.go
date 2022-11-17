@@ -1,7 +1,7 @@
 //go:build decoupled
 // +build decoupled
 
-package run_completion
+package main
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,7 +21,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"net"
 	"path/filepath"
-	"pipelines.kubeflow.org/events/eventsources/generic"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"testing"
 	"time"
@@ -151,7 +151,7 @@ func furtherEvents(ctx context.Context, stream generic.Eventing_StartEventSource
 var _ = BeforeSuite(func() {
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
-			filepath.Join("..", "..", "..", "..", "", "config", "crd", "external"),
+			filepath.Join("..", "..", "..", "", "config", "crd", "external"),
 		},
 		ErrorIfCRDPathMissing: true,
 	}
@@ -170,7 +170,7 @@ var _ = BeforeSuite(func() {
 	mockKfpApi = MockKfpApi{}
 	server = grpc.NewServer()
 
-	generic.RegisterEventingServer(server, &EventingServer{
+	generic.RegisterEventingServer(server, &KfpEventingServer{
 		K8sClient:     k8sClient,
 		Logger:        logr.Discard(),
 		MetadataStore: &mockMetadataStore,
