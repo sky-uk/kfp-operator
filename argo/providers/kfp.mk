@@ -21,10 +21,8 @@ generate: protoc_gen_go mockgen ## Generate service definitions from protobuf
 		ml_metadata/proto/metadata_store_service.proto \
 		ml_metadata/proto/metadata_store.proto
 
-
-
 	$(MOCKGEN) -destination kfp/ml_metadata/metadata_store_service_grpc_mock.go -package=ml_metadata -source=kfp/ml_metadata/metadata_store_service_grpc.pb.go
-	$(MOCKGEN) -destination kfp/run_service_grpc_mock.go -package=main github.com/kubeflow/pipelines/backend/api/go_client RunServiceClient
+	$(MOCKGEN) -destination kfp/run_service_grpc_mock.go -package=kfp github.com/kubeflow/pipelines/backend/api/go_client RunServiceClient
 
 ##@ Development
 
@@ -50,7 +48,7 @@ build-sdk:
 	poetry build
 
 build-go: generate
-	go build -o bin/provider ./kfp
+	go build -o bin/provider ./kfp/cmd
 
 build: build-sdk build-go
 

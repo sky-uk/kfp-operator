@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package kfp
+package vai
 
 import (
 	"testing"
@@ -12,5 +12,5 @@ import (
 
 func TestUnitSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "KFP Provider Unit Suite")
+	RunSpecs(t, "VAI Provider Unit Suite")
 }

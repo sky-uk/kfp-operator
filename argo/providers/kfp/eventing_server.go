@@ -1,4 +1,4 @@
-package main
+package kfp
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
+	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,10 +37,9 @@ const (
 	workflowPhaseLabel           = "workflows.argoproj.io/phase"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
 	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
-	runCompletionEventName       = "run-completion"
 )
 
-type EventSourceConfig struct {
+type KfpEventsourceConfig struct {
 	KfpNamespace string `yaml:"kfpNamespace"`
 }
 
@@ -49,25 +49,6 @@ type KfpEventingServer struct {
 	MetadataStore MetadataStore
 	KfpApi        KfpApi
 	Logger        logr.Logger
-}
-
-type ServingModelArtifact struct {
-	Name     string `json:"name"`
-	Location string `json:"location"`
-}
-
-type RunCompletionStatus string
-
-const (
-	Succeeded RunCompletionStatus = "succeeded"
-	Failed    RunCompletionStatus = "failed"
-)
-
-type RunCompletionEvent struct {
-	Status                RunCompletionStatus    `json:"status"`
-	PipelineName          string                 `json:"pipelineName"`
-	RunConfigurationName  string                 `json:"runConfigurationName,omitempty"`
-	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }
 
 type PipelineSpec struct {
@@ -105,7 +86,7 @@ func getPipelineName(workflow *unstructured.Unstructured) (name string) {
 }
 
 func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
-	eventsourceConfig := EventSourceConfig{}
+	eventsourceConfig := KfpEventsourceConfig{}
 
 	if err := yaml.Unmarshal(source.Config, &eventsourceConfig); err != nil {
 		es.Logger.Error(err, "failed to parse event source configuration")
@@ -167,7 +148,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		es.Logger.V(1).Info("sending run completion event", "event", runCompletionEvent)
 		if err = stream.Send(&generic.Event{
-			Name:    runCompletionEventName,
+			Name:    RunCompletionEventName,
 			Payload: jsonPayload,
 		}); err != nil {
 			es.Logger.Error(err, "failed to send event")

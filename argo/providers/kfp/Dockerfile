@@ -10,7 +10,7 @@ RUN go mod download
 COPY base/ base/
 COPY kfp/ kfp/
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o provider kfp/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o provider ./kfp/cmd
 
 FROM python:3.10.5-alpine3.16
 

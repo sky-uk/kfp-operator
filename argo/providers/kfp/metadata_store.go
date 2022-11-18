@@ -1,8 +1,9 @@
-package main
+package kfp
 
 import (
 	"context"
 	"fmt"
+	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
 )
 

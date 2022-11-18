@@ -7,6 +7,7 @@ import (
 	"github.com/sky-uk/kfp-operator/providers/base"
 	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	. "github.com/sky-uk/kfp-operator/providers/kfp"
 	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
 	"github.com/yalp/jsonpath"
 	"google.golang.org/grpc"

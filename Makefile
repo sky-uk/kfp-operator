@@ -97,10 +97,8 @@ test: fmt vet unit-test decoupled-test
 test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test
-	$(MAKE) -C argo/events test
 
 test-all: test helm-test test-argo
-	$(MAKE) -C argo/events test
 
 integration-test-all: integration-test
 	$(MAKE) -C argo/kfp-compiler integration-test
@@ -209,12 +207,10 @@ include docker-targets.mk
 docker-build-argo:
 	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/providers docker-build
-	$(MAKE) -C argo/events docker-build
 
 docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/providers docker-push
-	$(MAKE) -C argo/events docker-push
 
 ##@ Website
 website:

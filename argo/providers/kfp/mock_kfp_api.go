@@ -1,9 +1,12 @@
 //go:build decoupled || unit
 // +build decoupled unit
 
-package main
+package kfp
 
-import "context"
+import (
+	"context"
+	. "github.com/sky-uk/kfp-operator/providers/base"
+)
 
 type MockKfpApi struct {
 	runConfiguration string
@@ -20,7 +23,7 @@ func (mka *MockKfpApi) reset() {
 }
 
 func (mka *MockKfpApi) returnRunConfigurationForRun() string {
-	mka.runConfiguration = randomString()
+	mka.runConfiguration = RandomString()
 	mka.err = nil
 
 	return mka.runConfiguration

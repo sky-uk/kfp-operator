@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package main
+package kfp
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.com/sky-uk/kfp-operator/providers/base"
 )
 
 var _ = Context("KFP API", func() {
@@ -24,7 +25,7 @@ var _ = Context("KFP API", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		mockRunServiceClient = NewMockRunServiceClient(mockCtrl)
 		kfpApi = GrpcKfpApi{RunServiceClient: mockRunServiceClient}
-		runId = randomString()
+		runId = RandomString()
 	})
 
 	AfterEach(func() {
@@ -50,11 +51,11 @@ var _ = Context("KFP API", func() {
 						Id: runId,
 						ResourceReferences: []*go_client.ResourceReference{
 							&go_client.ResourceReference{
-								Name:         randomString(),
+								Name:         RandomString(),
 								Relationship: go_client.Relationship_UNKNOWN_RELATIONSHIP,
 								Key: &go_client.ResourceKey{
 									Type: go_client.ResourceType_JOB,
-									Id:   randomString(),
+									Id:   RandomString(),
 								},
 							},
 						},
@@ -78,11 +79,11 @@ var _ = Context("KFP API", func() {
 						Id: runId,
 						ResourceReferences: []*go_client.ResourceReference{
 							&go_client.ResourceReference{
-								Name:         randomString(),
+								Name:         RandomString(),
 								Relationship: go_client.Relationship_CREATOR,
 								Key: &go_client.ResourceKey{
 									Type: go_client.ResourceType_PIPELINE,
-									Id:   randomString(),
+									Id:   RandomString(),
 								},
 							},
 						},
@@ -101,7 +102,7 @@ var _ = Context("KFP API", func() {
 
 		When("GetRun returns run with JOB as CREATOR", func() {
 			It("Returns RunConfiguration name", func() {
-				mockRunConfig := randomString()
+				mockRunConfig := RandomString()
 				mockRunDetail := go_client.RunDetail{
 					Run: &go_client.Run{
 						Id: runId,
@@ -111,7 +112,7 @@ var _ = Context("KFP API", func() {
 								Relationship: go_client.Relationship_CREATOR,
 								Key: &go_client.ResourceKey{
 									Type: go_client.ResourceType_JOB,
-									Id:   randomString(),
+									Id:   RandomString(),
 								},
 							},
 						},

@@ -1,7 +1,7 @@
 //go:build decoupled
 // +build decoupled
 
-package main
+package kfp
 
 import (
 	"context"
@@ -44,7 +44,7 @@ func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
 }
 
 func startClient(ctx context.Context) (generic.Eventing_StartEventSourceClient, error) {
-	eventSourceConfig, err := yaml.Marshal(&EventSourceConfig{
+	eventSourceConfig, err := yaml.Marshal(&KfpEventsourceConfig{
 		KfpNamespace: defaultNamespace,
 	})
 	if err != nil {
