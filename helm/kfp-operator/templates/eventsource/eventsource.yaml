@@ -1,0 +1,19 @@
+{{- if .Values.eventsourceServer.create -}}
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-completion
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "kfp-operator.eventsourceServer.metadata.labels" . | nindent 4 }}
+spec:
+  template:
+    metadata:
+      {{- $defaultMetadata := dict "labels" ((include "kfp-operator.eventsourceServer.labels" .) | fromYaml) -}}
+      {{- (merge .Values.eventsourceServer.metadata $defaultMetadata) | toYaml | nindent 6 }}
+  generic:
+    run-completion:
+      insecure: true
+      url: "kfp-operator-run-completion-eventsource-server.{{ .Values.namespace.name }}.svc:8080"
+      config: ""
+{{- end -}}

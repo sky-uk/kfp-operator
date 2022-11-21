@@ -1,4 +1,4 @@
-{{ if .Values.eventsourceServer.create }}
+{{- if .Values.eventsourceServer.create -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -46,4 +46,4 @@ spec:
         name: provider-config
       serviceAccountName: {{ .Values.eventsourceServer.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
-{{ end }}
+{{- end -}}

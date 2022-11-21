@@ -1,0 +1,20 @@
+{{- if .Values.eventsourceServer.create -}}
+apiVersion: argoproj.io/v1alpha1
+kind: EventBus
+metadata:
+  name: default
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "kfp-operator.eventsourceServer.metadata.labels" . | nindent 4 }}
+spec:
+  nats:
+    native:
+      containerTemplate:
+        resources:
+          requests:
+            cpu: 100m
+      metricsContainerTemplate:
+        resources:
+          requests:
+            cpu: 100m
+{{- end -}}
