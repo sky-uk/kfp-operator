@@ -110,6 +110,29 @@ var _ = Context("VaiEventingServer", func() {
 			})
 		})
 
+		When("The job has an output with an artifact that has no pushed property", func() {
+			It("Produces no servingModelArtifacts", func() {
+				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+							{
+								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+									"a-model": {
+										Artifacts: []*aiplatformpb.Artifact{
+											{
+												Uri:         "gs://some/where",
+												SchemaTitle: "a.Type",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				})).To(BeEmpty())
+			})
+		})
+
 		When("The job has an output with several artifacts", func() {
 			It("Produces several servingModelArtifacts", func() {
 				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
