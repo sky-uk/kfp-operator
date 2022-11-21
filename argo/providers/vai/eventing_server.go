@@ -55,7 +55,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		event, err := es.runCompletionEventForRun(stream.Context(), run.RunId)
 		if err != nil || event == nil {
-			es.Logger.Error(err, "failed to fetch pipeline job")
+			es.Logger.Error(err, "couldn't fetch pipeline job ot job has not finished yet")
 			m.Nack()
 			return
 		}
