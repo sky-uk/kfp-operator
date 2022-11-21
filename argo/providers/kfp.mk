@@ -1,4 +1,4 @@
-include ../../go-get.mk
+include ../../common.mk
 include get-proto.mk
 IMG := kfp-operator-kfp-provider
 
@@ -26,11 +26,8 @@ generate: protoc_gen_go mockgen ## Generate service definitions from protobuf
 
 ##@ Development
 
-ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 decoupled-test: ## Run decoupled acceptance tests
-	mkdir -p ${ENVTEST_ASSETS_DIR}
-	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -tags=decoupled -coverprofile cover.out
+	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
 
 unit-test:
 	go test ./... -tags=unit

@@ -1,4 +1,4 @@
-include ../../go-get.mk
+include ../../common.mk
 
 IMG := kfp-operator-vai-provider
 
