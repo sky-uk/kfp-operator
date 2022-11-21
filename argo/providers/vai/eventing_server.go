@@ -25,6 +25,7 @@ type PipelineJobClient interface {
 
 type VaiEventingServer struct {
 	generic.UnimplementedEventingServer
+	ProviderConfig    VAIProviderConfig
 	Logger            logr.Logger
 	RunsSubscription  *pubsub.Subscription
 	PipelineJobClient PipelineJobClient
@@ -88,7 +89,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 
 func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId string) (*RunCompletionEvent, error) {
 	job, err := es.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
-		Name: runId,
+		Name: es.ProviderConfig.pipelineJobName(runId),
 	})
 	if err != nil {
 		return nil, err

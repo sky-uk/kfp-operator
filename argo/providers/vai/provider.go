@@ -68,6 +68,10 @@ func (vaipc VAIProviderConfig) parent() string {
 	return fmt.Sprintf(`projects/%s/locations/%s`, vaipc.VaiProject, vaipc.VaiLocation)
 }
 
+func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
+	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
+}
+
 func (vaipc VAIProviderConfig) jobName(name string) string {
 	return fmt.Sprintf("%s/jobs/%s", vaipc.parent(), name)
 }
@@ -405,6 +409,7 @@ func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIPr
 	}
 
 	return &VaiEventingServer{
+		ProviderConfig:    providerConfig,
 		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,
 		Logger:            LoggerFromContext(ctx),
