@@ -1,4 +1,4 @@
-{{- if .Values.eventsourceServer.create -}}
+{{ if .Values.eventsourceServer.create }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,4 +14,4 @@ spec:
       port: {{ .Values.eventsourceServer.port }}
       protocol: TCP
       targetPort: grpc
-{{- end -}}
+{{ end }}
