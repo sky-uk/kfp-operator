@@ -11,6 +11,6 @@ define get-proto
 	}
 endef
 
-protoc_gen_go: ## Download protoc-gen-go locally if necessary.
+protoc-gen-go: ## Download protoc-gen-go locally if necessary.
 	$(call go-install,$(PROJECT_DIR)/bin/protoc-gen-go,google.golang.org/protobuf/cmd/protoc-gen-go@v1.26)
 	$(call go-install,$(PROJECT_DIR)/bin/protoc-gen-go-grpc,google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1)

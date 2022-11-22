@@ -27,7 +27,7 @@ var ProviderConstants = struct {
 	RunConfigurationIdParameter         string
 	PipelineFileParameter               string
 	OutputParameter                     string
-	EventsourceServerPort               string
+	EventsourceServerPortParameter      string
 }{
 	PipelineDefinitionParameter:         "pipeline-definition",
 	ExperimentDefinitionParameter:       "experiment-definition",
@@ -38,7 +38,7 @@ var ProviderConstants = struct {
 	RunConfigurationIdParameter:         "runconfiguration-id",
 	PipelineFileParameter:               "pipeline-file",
 	OutputParameter:                     "out",
-	EventsourceServerPort:               "port",
+	EventsourceServerPortParameter:      "port",
 }
 
 type ProviderApp[Config any] struct {
@@ -316,14 +316,14 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 		{
 			Name: "eventsource-server",
 			Flags: []cli.Flag{cli.StringFlag{
-				Name:     ProviderConstants.EventsourceServerPort,
+				Name:     ProviderConstants.EventsourceServerPortParameter,
 				Required: true,
 			}},
 			Action: func(c *cli.Context) error {
 				logger := LoggerFromContext(providerApp.Context)
 				providerConfig, err := providerApp.LoadProviderConfig(c)
 
-				lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", c.Int(ProviderConstants.EventsourceServerPort)))
+				lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", c.Int(ProviderConstants.EventsourceServerPortParameter)))
 				if err != nil {
 					logger.Error(err, "failed to listen")
 					os.Exit(1)
