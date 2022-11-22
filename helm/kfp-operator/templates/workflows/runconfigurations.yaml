@@ -117,6 +117,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-runconfiguration
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: runconfiguration-definition
@@ -157,6 +159,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-runconfiguration
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: runconfiguration-definition
@@ -198,6 +202,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-delete-runconfiguration
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-config

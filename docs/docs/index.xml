@@ -353,6 +353,10 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;td>Container Metadata defaults to be used for Argo workflow pods created by the operator&lt;/td>
 &lt;/tr>
 &lt;tr>
+&lt;td>&lt;code>manager.argo.ttlStrategy&lt;/code>&lt;/td>
+&lt;td>&lt;a href="https://argoproj.github.io/argo-workflows/fields/#ttlstrategy">TTL Strategy&lt;/a> used for all Argo Workflows&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>manager.argo.serviceAccount&lt;/code>&lt;/td>
 &lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s Service account&lt;/a> used to run Argo workflows&lt;/td>
 &lt;/tr>

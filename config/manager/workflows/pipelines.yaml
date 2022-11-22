@@ -159,6 +159,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: create-pipeline
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: pipeline-definition
@@ -224,6 +228,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: update-pipeline
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: pipeline-definition
@@ -292,6 +300,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: delete-pipeline
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: provider-config
