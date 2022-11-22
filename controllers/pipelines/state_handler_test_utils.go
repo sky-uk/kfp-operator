@@ -22,7 +22,7 @@ func (sw StubbedWorkflows) CreateWorkflowForResource(_ context.Context, _ *argo.
 	return nil
 }
 
-func (sw StubbedWorkflows) DeleteWorkflow(_ context.Context, _ *argo.Workflow) error {
+func (sw StubbedWorkflows) MarkWorkflowAsProcessed(_ context.Context, _ *argo.Workflow) error {
 	return nil
 }
 

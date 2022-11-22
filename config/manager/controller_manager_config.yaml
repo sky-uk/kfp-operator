@@ -1,4 +1,4 @@
-apiVersion: config.kubeflow.org/v1alpha3
+apiVersion: config.kubeflow.org/v1alpha4
 kind: KfpControllerConfig
 controller:
   health:

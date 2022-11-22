@@ -280,7 +280,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 
 	return []Command{
 		*setStatusCommand,
-		DeleteWorkflows{
+		MarkWorkflowsAsProcessed{
 			Workflows: workflows,
 		},
 	}

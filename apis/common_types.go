@@ -1,11 +1,5 @@
 package apis
 
-import (
-	"context"
-	"encoding/json"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-)
-
 type SynchronizationState string
 
 const (
@@ -23,46 +17,4 @@ const Group = "pipelines.kubeflow.org"
 type NamedValue struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
-}
-
-var Annotations = struct {
-	Debug string
-}{
-	Debug: Group + "/debug",
-}
-
-type DebugOptions struct {
-	KeepWorkflows bool `json:"keepWorkflows,omitempty"`
-}
-
-func (options DebugOptions) WithDefaults(defaults DebugOptions) DebugOptions {
-	return DebugOptions{
-		KeepWorkflows: options.KeepWorkflows || defaults.KeepWorkflows,
-	}
-}
-
-func DebugOptionsFromAnnotations(ctx context.Context, annotations map[string]string) DebugOptions {
-	logger := log.FromContext(ctx)
-	debugOptions := DebugOptions{}
-
-	if debugAnnotation, ok := annotations[Annotations.Debug]; ok {
-		if err := json.Unmarshal([]byte(debugAnnotation), &debugOptions); err != nil {
-			logger.Error(err, "error unmarshalling pipeline annotations")
-		}
-	}
-
-	return debugOptions
-}
-
-func AnnotationsFromDebugOptions(ctx context.Context, debugOptions DebugOptions) map[string]string {
-	logger := log.FromContext(ctx)
-
-	if debugAnnotation, err := json.Marshal(debugOptions); err != nil {
-		logger.Error(err, "error marshalling debug options into json")
-		return map[string]string{}
-	} else {
-		return map[string]string{
-			Annotations.Debug: string(debugAnnotation),
-		}
-	}
 }

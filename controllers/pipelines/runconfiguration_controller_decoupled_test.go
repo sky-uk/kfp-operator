@@ -32,7 +32,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
-			Eventually(testCtx.FetchWorkflow(WorkflowConstants.CreateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec = pipelinesv1.RandomRunConfigurationSpec()
@@ -47,7 +46,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
-			Eventually(testCtx.FetchWorkflow(WorkflowConstants.UpdateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.DeleteRunConfiguration()).To(Succeed())
 
@@ -61,7 +59,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(testCtx.RunConfigurationExists).Should(Not(Succeed()))
-			Eventually(testCtx.FetchWorkflow(WorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
 
 			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(
