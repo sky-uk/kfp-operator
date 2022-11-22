@@ -80,19 +80,19 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>endpoint&lt;/code>&lt;/td>
-&lt;td>The KFP endpoint available to the operator&lt;/td>
-&lt;td>&lt;code>kubeflow-ui.kubeflow-pipelines:8080&lt;/code>&lt;/td>
+&lt;td>&lt;code>restKfpApiUrl&lt;/code>&lt;/td>
+&lt;td>The KFP REST URL available to the operator&lt;/td>
+&lt;td>&lt;code>http://ml-pipeline.kubeflow:8888&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>metadataStoreAddr&lt;/code>&lt;/td>
-&lt;td>The MLMD gRPC URL for the eventsource server&lt;/td>
-&lt;td>&lt;code>metadata-grpc-service.kubeflow-pipelines:8080&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>kfpApiAddr&lt;/code>&lt;/td>
-&lt;td>The KFP gRPC URL for the eventsource server&lt;/td>
+&lt;td>&lt;code>grpcKfpApiAddress&lt;/code>&lt;/td>
+&lt;td>The KFP gRPC address for the eventsource server&lt;/td>
 &lt;td>&lt;code>ml-pipeline.kubeflow-pipelines:8887&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>grpcMetadataStoreAddress&lt;/code>&lt;/td>
+&lt;td>The MLMD gRPC address for the eventsource server&lt;/td>
+&lt;td>&lt;code>metadata-grpc-service.kubeflow-pipelines:8080&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>

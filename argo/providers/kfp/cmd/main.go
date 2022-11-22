@@ -27,9 +27,9 @@ import (
 const KfpResourceNotFoundCode = 5
 
 type KfpProviderConfig struct {
-	Endpoint          string `yaml:"endpoint,omitempty"`
-	MetadataStoreAddr string `yaml:"metadataStoreAddr,omitempty"`
-	KfpApiAddr        string `yaml:"kfpApiAddr,omitempty"`
+	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
+	GrpcMetadataStoreAddress string `yaml:"grpcMetadataStoreAddress,omitempty"`
+	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
 }
 
 type KfpProvider struct {
@@ -41,7 +41,7 @@ func main() {
 }
 
 func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string) (string, error) {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "upload", "--pipeline-name", pipelineDefinition.Name, pipelineFileName)
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "pipeline", "upload", "--pipeline-name", pipelineDefinition.Name, pipelineFileName)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
@@ -61,13 +61,13 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 }
 
 func (kfpp KfpProvider) UpdatePipeline(_ context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "upload-version", "--pipeline-version", pipelineDefinition.Version, "--pipeline-id", id, pipelineFile)
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "pipeline", "upload-version", "--pipeline-version", pipelineDefinition.Version, "--pipeline-id", id, pipelineFile)
 
 	return id, cmd.Run()
 }
 
 func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "pipeline", "delete", id)
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "pipeline", "delete", id)
 
 	return cmd.Run()
 }
@@ -78,7 +78,7 @@ func (kfpp KfpProvider) CreateRunConfiguration(_ context.Context, providerConfig
 		return "", err
 	}
 
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "job", "submit",
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "job", "submit",
 		"--pipeline-name", runConfigurationDefinition.PipelineName,
 		"--job-name", runConfigurationDefinition.Name,
 		"--experiment-name", runConfigurationDefinition.ExperimentName,
@@ -112,7 +112,7 @@ func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConf
 }
 
 func (kfpp KfpProvider) DeleteRunConfiguration(_ context.Context, providerConfig KfpProviderConfig, id string) error {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "job", "delete", id)
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "job", "delete", id)
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
@@ -159,7 +159,7 @@ func (kfpp KfpProvider) DeleteRunConfiguration(_ context.Context, providerConfig
 }
 
 func (kfpp KfpProvider) CreateExperiment(_ context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition) (string, error) {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "experiment", "create", experimentDefinition.Name)
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "experiment", "create", experimentDefinition.Name)
 	output, err := cmd.Output()
 	if err != nil {
 		return "", err
@@ -187,7 +187,7 @@ func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig Kfp
 }
 
 func (kfpp KfpProvider) DeleteExperiment(_ context.Context, providerConfig KfpProviderConfig, id string) error {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.Endpoint, "--output", "json", "experiment", "delete", id)
+	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "experiment", "delete", id)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return err
@@ -246,12 +246,12 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpPr
 		return nil, err
 	}
 
-	metadataStore, err := ConnectToMetadataStore(providerConfig.MetadataStoreAddr)
+	metadataStore, err := ConnectToMetadataStore(providerConfig.GrpcMetadataStoreAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	kfpApi, err := ConnectToKfpApi(providerConfig.KfpApiAddr)
+	kfpApi, err := ConnectToKfpApi(providerConfig.GrpcKfpApiAddress)
 	if err != nil {
 		return nil, err
 	}

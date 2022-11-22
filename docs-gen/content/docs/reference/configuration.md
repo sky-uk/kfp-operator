@@ -34,11 +34,11 @@ An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/maste
 KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
 Optionally, [Argo-Events](https://argoproj.github.io/argo-events/installation/) can be installed for eventing support.
 
-| Parameter name      | Description                                  | Example                                         |
-|---------------------|----------------------------------------------|-------------------------------------------------|
-| `endpoint`          | The KFP endpoint available to the operator   | `kubeflow-ui.kubeflow-pipelines:8080`           |
-| `metadataStoreAddr` | The MLMD gRPC URL for the eventsource server | `metadata-grpc-service.kubeflow-pipelines:8080` |
-| `kfpApiAddr`        | The KFP gRPC URL for the eventsource server  | `ml-pipeline.kubeflow-pipelines:8887`           |
+| Parameter name             | Description                                      | Example                                         |
+|----------------------------|--------------------------------------------------|-------------------------------------------------|
+| `restKfpApiUrl`            | The KFP REST URL available to the operator       | `http://ml-pipeline.kubeflow:8888`              |
+| `grpcKfpApiAddress`        | The KFP gRPC address for the eventsource server  | `ml-pipeline.kubeflow-pipelines:8887`           |
+| `grpcMetadataStoreAddress` | The MLMD gRPC address for the eventsource server | `metadata-grpc-service.kubeflow-pipelines:8080` |
 
 ### Vertex AI Pipelines
 
