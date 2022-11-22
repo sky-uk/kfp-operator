@@ -84,6 +84,16 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;td>The KFP endpoint available to the operator&lt;/td>
 &lt;td>&lt;code>kubeflow-ui.kubeflow-pipelines:8080&lt;/code>&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>metadataStoreAddr&lt;/code>&lt;/td>
+&lt;td>The MLMD gRPC URL for the eventsource server&lt;/td>
+&lt;td>&lt;code>metadata-grpc-service.kubeflow-pipelines:8080&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>kfpApiAddr&lt;/code>&lt;/td>
+&lt;td>The KFP gRPC URL for the eventsource server&lt;/td>
+&lt;td>&lt;code>ml-pipeline.kubeflow-pipelines:8887&lt;/code>&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;h3 id="vertex-ai-pipelines">Vertex AI Pipelines&lt;/h3>
@@ -122,8 +132,14 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;li>all permissions needed by pipeline jobs&lt;/li>
 &lt;/ul>
 &lt;/li>
+&lt;li>Vertex AI Eventsource Server &lt;code>eventsource.serviceaccount.name&lt;/code>
+&lt;ul>
+&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured Runs subscriptions&lt;/li>
+&lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;/li>
 &lt;/ul>
-&lt;p>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> must be installed into the operator&amp;rsquo;s Kubernetes cluster.&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> must be installed into the operator&amp;rsquo;s Kubernetes cluster and any namespace that is going to use the eventsource server.&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -170,8 +186,13 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>submitterRunsSubscription&lt;/code>&lt;/td>
-&lt;td>Subscription on the runs topic&lt;/td>
+&lt;td>Subscription on the runs topic for the pipeline job submitter&lt;/td>
 &lt;td>&lt;code>kfp-operator-runs-submitter&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceRunsSubscription&lt;/code>&lt;/td>
+&lt;td>Subscription to runs topic for the eventsource server&lt;/td>
+&lt;td>&lt;code>kfp-operator-runs-eventsource&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Resources</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</guid><description>
@@ -272,7 +293,10 @@ This means that resources can increase debugging, but never decrease it.&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">url&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">config&lt;/span>: |-&lt;span style="color:#e6db74">
 &lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &lt;/span> &lt;span style="color:#f92672">kfpNamespace&lt;/span>: &lt;span style="color:#ae81ff">kubeflow-pipelines&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The configuration currently has a single field &lt;code>kfpNamespace&lt;/code> which defines what namespace to watch pipeline workflows in.&lt;/p>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#VAI: config: &amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The configuration will depend on the chosen provider:
+The configuration for KFP has a single field &lt;code>kfpNamespace&lt;/code> which defines what namespace to watch pipeline workflows in.
+The configuration for Vertex AI is the empty string.&lt;/p>
 &lt;p>The events have the following format:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-json" data-lang="json">&lt;span style="display:flex;">&lt;span>{
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;status&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;succeeded|failed&amp;#34;&lt;/span>,

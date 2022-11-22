@@ -28,8 +28,8 @@ const KfpResourceNotFoundCode = 5
 
 type KfpProviderConfig struct {
 	Endpoint          string `yaml:"endpoint,omitempty"`
-	MetadataStoreAddr string `yaml:"metadataStoreAddr"`
-	KfpApiAddr        string `yaml:"kfpApiAddr"`
+	MetadataStoreAddr string `yaml:"metadataStoreAddr,omitempty"`
+	KfpApiAddr        string `yaml:"kfpApiAddr,omitempty"`
 }
 
 type KfpProvider struct {

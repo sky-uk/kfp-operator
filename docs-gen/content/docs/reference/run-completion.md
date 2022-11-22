@@ -21,9 +21,12 @@ spec:
       url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080"
       config: |-
         kfpNamespace: kubeflow-pipelines
+#VAI: config: ""
 ```
 
-The configuration currently has a single field `kfpNamespace` which defines what namespace to watch pipeline workflows in.
+The configuration will depend on the chosen provider:
+The configuration for KFP has a single field `kfpNamespace` which defines what namespace to watch pipeline workflows in.
+The configuration for Vertex AI is the empty string.
 
 The events have the following format:
 

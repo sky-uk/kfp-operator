@@ -34,9 +34,11 @@ An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/maste
 KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
 Optionally, [Argo-Events](https://argoproj.github.io/argo-events/installation/) can be installed for eventing support.
 
-| Parameter name | Description                                | Example                               |
-|----------------|--------------------------------------------|---------------------------------------|
-| `endpoint`     | The KFP endpoint available to the operator | `kubeflow-ui.kubeflow-pipelines:8080` |
+| Parameter name      | Description                                  | Example                                         |
+|---------------------|----------------------------------------------|-------------------------------------------------|
+| `endpoint`          | The KFP endpoint available to the operator   | `kubeflow-ui.kubeflow-pipelines:8080`           |
+| `metadataStoreAddr` | The MLMD gRPC URL for the eventsource server | `metadata-grpc-service.kubeflow-pipelines:8080` |
+| `kfpApiAddr`        | The KFP gRPC URL for the eventsource server  | `ml-pipeline.kubeflow-pipelines:8887`           |
 
 ### Vertex AI Pipelines
 
@@ -65,16 +67,20 @@ The following workload-identity-enabled service accounts need to be created with
   - `iam.serviceAccounts.actAs` Vertex AI Job Runner
 - Vertex AI Job Runner `manager.provider.configuration.vaiJobServiceAccount`
   - all permissions needed by pipeline jobs
+- Vertex AI Eventsource Server `eventsource.serviceaccount.name`
+  - `projects.subscriptions.pull` from the configured Runs subscriptions
+  - `aiplatform.pipelineJobs.get`
 
-[Argo-Events](https://argoproj.github.io/argo-events/installation/) must be installed into the operator's Kubernetes cluster.
+[Argo-Events](https://argoproj.github.io/argo-events/installation/) must be installed into the operator's Kubernetes cluster and any namespace that is going to use the eventsource server.
 
-| Parameter name                   | Description                                        | Example                                                           |
-|----------------------------------|----------------------------------------------------|-------------------------------------------------------------------|
-| `pipelineBucket`                 | GCS bucket where to store the compiled pipeline    | `kfp-operator-pipelines`                                          |
-| `vaiProject`                     | Vertex AI GCP project name                         | `kfp-operator-vertex-ai`                                          |
-| `vaiLocation`                    | Vertex AI GCP project location                     | `europe-west2`                                                    |
-| `vaiJobServiceAccount`           | Vertex AI GCP service account to run pipeline jobs | `kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com` |
-| `runIntentsTopic`                | Pub/Sub topic name to publish run intents          | `kfp-operator-run-intents`                                        |
-| `enqueuerRunIntentsSubscription` | Subscription on the run intents topic              | `kfp-operator-runs-enqueuer`                                      |
-| `runsTopic`                      | Pub/Sub topic name to publish runs                 | `kfp-operator-runs`                                               |
-| `submitterRunsSubscription`      | Subscription on the runs topic                     | `kfp-operator-runs-submitter`                                     |
+| Parameter name                   | Description                                                   | Example                                                           |
+|----------------------------------|---------------------------------------------------------------|-------------------------------------------------------------------|
+| `pipelineBucket`                 | GCS bucket where to store the compiled pipeline               | `kfp-operator-pipelines`                                          |
+| `vaiProject`                     | Vertex AI GCP project name                                    | `kfp-operator-vertex-ai`                                          |
+| `vaiLocation`                    | Vertex AI GCP project location                                | `europe-west2`                                                    |
+| `vaiJobServiceAccount`           | Vertex AI GCP service account to run pipeline jobs            | `kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com` |
+| `runIntentsTopic`                | Pub/Sub topic name to publish run intents                     | `kfp-operator-run-intents`                                        |
+| `enqueuerRunIntentsSubscription` | Subscription on the run intents topic                         | `kfp-operator-runs-enqueuer`                                      |
+| `runsTopic`                      | Pub/Sub topic name to publish runs                            | `kfp-operator-runs`                                               |
+| `submitterRunsSubscription`      | Subscription on the runs topic for the pipeline job submitter | `kfp-operator-runs-submitter`                                     |
+| `eventsourceRunsSubscription`    | Subscription to runs topic for the eventsource server         | `kfp-operator-runs-eventsource`                                   |
