@@ -3,13 +3,17 @@ package base
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
+	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 	"log"
+	"net"
 	"os"
 )
 
@@ -23,6 +27,7 @@ var ProviderConstants = struct {
 	RunConfigurationIdParameter         string
 	PipelineFileParameter               string
 	OutputParameter                     string
+	EventsourceServerPortParameter      string
 }{
 	PipelineDefinitionParameter:         "pipeline-definition",
 	ExperimentDefinitionParameter:       "experiment-definition",
@@ -33,6 +38,7 @@ var ProviderConstants = struct {
 	RunConfigurationIdParameter:         "runconfiguration-id",
 	PipelineFileParameter:               "pipeline-file",
 	OutputParameter:                     "out",
+	EventsourceServerPortParameter:      "port",
 }
 
 type ProviderApp[Config any] struct {
@@ -305,6 +311,41 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 						return writeOutput(c, updatedId, err)
 					},
 				},
+			},
+		},
+		{
+			Name: "eventsource-server",
+			Flags: []cli.Flag{cli.StringFlag{
+				Name:     ProviderConstants.EventsourceServerPortParameter,
+				Required: true,
+			}},
+			Action: func(c *cli.Context) error {
+				logger := LoggerFromContext(providerApp.Context)
+				providerConfig, err := providerApp.LoadProviderConfig(c)
+
+				lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", c.Int(ProviderConstants.EventsourceServerPortParameter)))
+				if err != nil {
+					logger.Error(err, "failed to listen")
+					os.Exit(1)
+				}
+
+				s := grpc.NewServer()
+
+				eventingServer, err := provider.EventingServer(providerApp.Context, providerConfig)
+				if err != nil {
+					logger.Error(err, "failed to create eventing server")
+					os.Exit(1)
+				}
+
+				generic.RegisterEventingServer(s, eventingServer)
+
+				logger.Info(fmt.Sprintf("server listening at %s", lis.Addr()))
+				if err := s.Serve(lis); err != nil {
+					logger.Error(err, "failed to serve")
+					os.Exit(1)
+				}
+
+				return nil
 			},
 		},
 	}

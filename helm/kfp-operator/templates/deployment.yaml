@@ -86,7 +86,7 @@ spec:
             secretName: {{ if eq .Values.manager.multiversion.webhookCertificates.provider "cert-manager" }}webhook-server-cert{{ else }}{{ .Values.manager.multiversion.webhookCertificates.secretName }}{{ end }}
         {{- end }}
         - configMap:
-            name: kfp-operator-manager-config
+            name: {{ include "kfp-operator.fullname" . }}-manager-config
           name: manager-config
       serviceAccountName: {{ .Values.manager.serviceAccount.name }}
       terminationGracePeriodSeconds: 10

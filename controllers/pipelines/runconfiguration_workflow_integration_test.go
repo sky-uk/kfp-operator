@@ -127,7 +127,7 @@ func (_ KfpRunConfigurationWorkflowIntegrationSuite) failDeletionWithCode(code i
 }
 
 func (_ KfpRunConfigurationWorkflowIntegrationSuite) ProviderConfig() string {
-	return "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
+	return "restKfpApiUrl: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
 }
 
 func (kfprcwis KfpRunConfigurationWorkflowIntegrationSuite) stubGetPipeline(pipelineName string) error {

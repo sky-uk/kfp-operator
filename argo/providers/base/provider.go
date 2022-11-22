@@ -2,6 +2,7 @@ package base
 
 import (
 	"context"
+	"github.com/sky-uk/kfp-operator/providers/base/generic"
 )
 
 type PipelineDefinition struct {
@@ -47,4 +48,6 @@ type Provider[Config any] interface {
 	CreateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition) (string, error)
 	UpdateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition, id string) (string, error)
 	DeleteExperiment(ctx context.Context, providerConfig Config, id string) error
+
+	EventingServer(ctx context.Context, providerConfig Config) (generic.EventingServer, error)
 }

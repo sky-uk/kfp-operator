@@ -1,7 +1,7 @@
 //go:build decoupled
 // +build decoupled
 
-package run_completion
+package kfp
 
 import (
 	"context"
@@ -12,6 +12,8 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.com/sky-uk/kfp-operator/providers/base"
+	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,7 +22,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"net"
 	"path/filepath"
-	"pipelines.kubeflow.org/events/eventsources/generic"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"testing"
 	"time"
@@ -44,7 +45,7 @@ func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
 }
 
 func startClient(ctx context.Context) (generic.Eventing_StartEventSourceClient, error) {
-	eventSourceConfig, err := yaml.Marshal(&EventSourceConfig{
+	eventSourceConfig, err := yaml.Marshal(&KfpEventSourceConfig{
 		KfpNamespace: defaultNamespace,
 	})
 	if err != nil {
@@ -151,7 +152,7 @@ func furtherEvents(ctx context.Context, stream generic.Eventing_StartEventSource
 var _ = BeforeSuite(func() {
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
-			filepath.Join("..", "..", "..", "..", "", "config", "crd", "external"),
+			filepath.Join("..", "..", "..", "", "config", "crd", "external"),
 		},
 		ErrorIfCRDPathMissing: true,
 	}
@@ -170,7 +171,7 @@ var _ = BeforeSuite(func() {
 	mockKfpApi = MockKfpApi{}
 	server = grpc.NewServer()
 
-	generic.RegisterEventingServer(server, &EventingServer{
+	generic.RegisterEventingServer(server, &KfpEventingServer{
 		K8sClient:     k8sClient,
 		Logger:        logr.Discard(),
 		MetadataStore: &mockMetadataStore,
@@ -204,7 +205,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		It("Triggers an event with serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
-				pipelineName := randomString()
+				pipelineName := RandomString()
 				servingModelArtifacts := mockMetadataStore.returnArtifactForPipeline()
 				runConfiguration := mockKfpApi.returnRunConfigurationForRun()
 
@@ -216,7 +217,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runCompletionEventName))
+				Expect(event.Name).To(Equal(RunCompletionEventName))
 
 				expectedEvent := RunCompletionEvent{
 					Status:                Succeeded,
@@ -243,7 +244,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		It("Triggers an event without a serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
-				pipelineName := randomString()
+				pipelineName := RandomString()
 
 				Expect(err).NotTo(HaveOccurred())
 
@@ -253,7 +254,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runCompletionEventName))
+				Expect(event.Name).To(Equal(RunCompletionEventName))
 
 				expectedEvent := RunCompletionEvent{
 					Status:       Succeeded,
@@ -278,7 +279,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		It("Triggers an event", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
-				pipelineName := randomString()
+				pipelineName := RandomString()
 
 				Expect(err).NotTo(HaveOccurred())
 
@@ -288,7 +289,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runCompletionEventName))
+				Expect(event.Name).To(Equal(RunCompletionEventName))
 
 				expectedEvent := RunCompletionEvent{
 					Status:       Failed,
@@ -312,7 +313,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run finishes before the stream is started", func() {
 		It("Catches up and triggers an event", func() {
 			WithTestContext(func(ctx context.Context) {
-				pipelineName := randomString()
+				pipelineName := RandomString()
 
 				_, err := createAndTriggerPhaseUpdate(ctx, pipelineName, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
@@ -323,7 +324,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runCompletionEventName))
+				Expect(event.Name).To(Equal(RunCompletionEventName))
 
 				expectedEvent := RunCompletionEvent{
 					Status:       Succeeded,
@@ -343,7 +344,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				stream, err := startClient(ctx)
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = createAndTriggerPhaseUpdate(ctx, randomString(), argo.WorkflowPending, argo.WorkflowRunning)
+				_, err = createAndTriggerPhaseUpdate(ctx, RandomString(), argo.WorkflowPending, argo.WorkflowRunning)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(furtherEvents(ctx, stream)).NotTo(HaveOccurred())
@@ -354,7 +355,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run succeeds but the artifact store is unavailable", func() {
 		It("Retries", func() {
 			WithTestContext(func(ctx context.Context) {
-				pipelineName := randomString()
+				pipelineName := RandomString()
 
 				mockMetadataStore.error(errors.New("error calling metadata store"))
 
@@ -375,7 +376,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runCompletionEventName))
+				Expect(event.Name).To(Equal(RunCompletionEventName))
 
 				expectedEvent := RunCompletionEvent{
 					Status:                Succeeded,
@@ -393,7 +394,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run succeeds but the KFP API is unavailable", func() {
 		It("Retries", func() {
 			WithTestContext(func(ctx context.Context) {
-				pipelineName := randomString()
+				pipelineName := RandomString()
 
 				mockKfpApi.error(errors.New("error calling KFP API"))
 
@@ -414,7 +415,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(runCompletionEventName))
+				Expect(event.Name).To(Equal(RunCompletionEventName))
 
 				expectedEvent := RunCompletionEvent{
 					Status:               Succeeded,

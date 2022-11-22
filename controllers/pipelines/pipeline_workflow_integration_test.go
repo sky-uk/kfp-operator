@@ -166,7 +166,7 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersionInCreation(p
 }
 
 func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "endpoint: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
+	return "restKfpApiUrl: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
 }
 
 var providerId = apis.RandomString()

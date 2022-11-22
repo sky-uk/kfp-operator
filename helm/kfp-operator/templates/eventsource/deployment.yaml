@@ -21,23 +21,29 @@ spec:
       containers:
         - name: run-completion-eventsource-server
           command:
-            - /run_completion_eventsource_server
+          - /provider
           args:
-            - --port=50051
-            - --mlmd-url={{ .Values.eventsourceServer.mlmdUrl }}
-            - --kfp-url={{ .Values.eventsourceServer.kfpUrl }}
-            {{ if .Values.logging.verbosity }}
-            - --zap-log-level={{ .Values.logging.verbosity }}
-            {{ end }}
-          image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-events-run-completion-eventsource-server:{{ .Chart.AppVersion }}
+          - --provider-config
+          - /provider-config.yaml
+          - eventsource-server
+          - --port=50051
+          image: {{ include "kfp-operator.providerImage" . }}
           securityContext:
             allowPrivilegeEscalation: false
           resources:
             {{- .Values.eventsourceServer.resources | toYaml | nindent 12 }}
           ports:
-            - name: grpc
-              containerPort: 50051
-              protocol: TCP
+          - name: grpc
+            containerPort: 50051
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /provider-config.yaml
+            name: provider-config
+            subPath: provider.yaml
+      volumes:
+      - configMap:
+          name: {{ include "kfp-operator.fullname" . }}-manager-config
+        name: provider-config
       serviceAccountName: {{ .Values.eventsourceServer.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
 {{ end }}

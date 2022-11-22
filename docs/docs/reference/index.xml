@@ -80,9 +80,19 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>endpoint&lt;/code>&lt;/td>
-&lt;td>The KFP endpoint available to the operator&lt;/td>
-&lt;td>&lt;code>kubeflow-ui.kubeflow-pipelines:8080&lt;/code>&lt;/td>
+&lt;td>&lt;code>restKfpApiUrl&lt;/code>&lt;/td>
+&lt;td>The KFP REST URL available to the operator&lt;/td>
+&lt;td>&lt;code>http://ml-pipeline.kubeflow:8888&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>grpcKfpApiAddress&lt;/code>&lt;/td>
+&lt;td>The KFP gRPC address for the eventsource server&lt;/td>
+&lt;td>&lt;code>ml-pipeline.kubeflow-pipelines:8887&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>grpcMetadataStoreAddress&lt;/code>&lt;/td>
+&lt;td>The MLMD gRPC address for the eventsource server&lt;/td>
+&lt;td>&lt;code>metadata-grpc-service.kubeflow-pipelines:8080&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
@@ -122,8 +132,14 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;li>all permissions needed by pipeline jobs&lt;/li>
 &lt;/ul>
 &lt;/li>
+&lt;li>Vertex AI Eventsource Server &lt;code>eventsource.serviceaccount.name&lt;/code>
+&lt;ul>
+&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured Runs subscriptions&lt;/li>
+&lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;/li>
 &lt;/ul>
-&lt;p>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> must be installed into the operator&amp;rsquo;s Kubernetes cluster.&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> must be installed into the operator&amp;rsquo;s Kubernetes cluster and any namespace that is going to use the eventsource server.&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -170,8 +186,13 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>submitterRunsSubscription&lt;/code>&lt;/td>
-&lt;td>Subscription on the runs topic&lt;/td>
+&lt;td>Subscription on the runs topic for the pipeline job submitter&lt;/td>
 &lt;td>&lt;code>kfp-operator-runs-submitter&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceRunsSubscription&lt;/code>&lt;/td>
+&lt;td>Subscription to runs topic for the eventsource server&lt;/td>
+&lt;td>&lt;code>kfp-operator-runs-eventsource&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Resources</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</guid><description>
@@ -260,7 +281,12 @@ This means that resources can increase debugging, but never decrease it.&lt;/p>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Run Completion EventSource</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
 &lt;p>The Run Completion Eventsource allows reacting to finished pipeline runs.&lt;/p>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.png" alt="Model Serving">&lt;/p>
-&lt;p>The specification of the eventsource follows those of other &lt;a href="https://argoproj.github.io/argo-events/eventsources/generic/">generic Argo-Events eventsources&lt;/a>:&lt;/p>
+&lt;p>The specification of the eventsource follows those of other &lt;a href="https://argoproj.github.io/argo-events/eventsources/generic/">generic Argo-Events eventsources&lt;/a>.
+The configuration will depend on the chosen provider:&lt;/p>
+&lt;ul>
+&lt;li>The configuration for KFP has a single field &lt;code>kfpNamespace&lt;/code> which defines what namespace to watch pipeline workflows in.&lt;/li>
+&lt;li>The configuration for Vertex AI is the empty string.&lt;/li>
+&lt;/ul>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventSource&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
@@ -270,10 +296,12 @@ This means that resources can increase debugging, but never decrease it.&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run-completion&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">insecure&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">url&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#KFP&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">config&lt;/span>: |-&lt;span style="color:#e6db74">
 &lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &lt;/span> &lt;span style="color:#f92672">kfpNamespace&lt;/span>: &lt;span style="color:#ae81ff">kubeflow-pipelines&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The configuration currently has a single field &lt;code>kfpNamespace&lt;/code> which defines what namespace to watch pipeline workflows in.&lt;/p>
-&lt;p>The events have the following format:&lt;/p>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#VAI&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># config: &amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The events have the following format:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-json" data-lang="json">&lt;span style="display:flex;">&lt;span>{
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;status&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;succeeded|failed&amp;#34;&lt;/span>,
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;pipelineName&amp;#34;&lt;/span>:&lt;span style="color:#e6db74">&amp;#34;{{ PIPELINE_NAME }}&amp;#34;&lt;/span>,

@@ -23,7 +23,7 @@ manager:
       provider: cert-manager
   provider:
     configuration:
-      endpoint: ${KFP_ENDPOINT}
+      restKfpApiUrl: ${KFP_ENDPOINT}
 
 eventsourceServer:
   create: false

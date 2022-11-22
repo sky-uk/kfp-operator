@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package run_completion
+package kfp
 
 import (
 	"testing"
@@ -12,5 +12,5 @@ import (
 
 func TestUnitSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Run completion Unit Suite")
+	RunSpecs(t, "KFP Provider Unit Suite")
 }

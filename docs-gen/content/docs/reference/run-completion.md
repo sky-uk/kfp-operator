@@ -7,7 +7,10 @@ The Run Completion Eventsource allows reacting to finished pipeline runs.
 
 ![Model Serving](/images/run-completion.png)
 
-The specification of the eventsource follows those of other [generic Argo-Events eventsources](https://argoproj.github.io/argo-events/eventsources/generic/):
+The specification of the eventsource follows those of other [generic Argo-Events eventsources](https://argoproj.github.io/argo-events/eventsources/generic/).
+The configuration will depend on the chosen provider:
+- The configuration for KFP has a single field `kfpNamespace` which defines what namespace to watch pipeline workflows in.
+- The configuration for Vertex AI is the empty string.
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -19,11 +22,12 @@ spec:
     run-completion:
       insecure: true
       url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080"
+#KFP
       config: |-
         kfpNamespace: kubeflow-pipelines
+#VAI
+#      config: ""
 ```
-
-The configuration currently has a single field `kfpNamespace` which defines what namespace to watch pipeline workflows in.
 
 The events have the following format:
 

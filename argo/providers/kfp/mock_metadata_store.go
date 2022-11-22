@@ -1,9 +1,12 @@
 //go:build decoupled || unit
 // +build decoupled unit
 
-package run_completion
+package kfp
 
-import "context"
+import (
+	"context"
+	. "github.com/sky-uk/kfp-operator/providers/base"
+)
 
 type MockMetadataStore struct {
 	results []ServingModelArtifact
@@ -22,8 +25,8 @@ func (mms *MockMetadataStore) reset() {
 func (mms *MockMetadataStore) returnArtifactForPipeline() []ServingModelArtifact {
 	mms.results = []ServingModelArtifact{
 		{
-			randomString(),
-			randomString(),
+			RandomString(),
+			RandomString(),
 		},
 	}
 	mms.err = nil

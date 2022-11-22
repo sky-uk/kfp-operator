@@ -50,8 +50,6 @@ eventsourceServer:
   create: false
   metadata: {}
   port: 8080
-  mlmdUrl:
-  kfpUrl:
   rbac:
     create: true
   serviceAccount:

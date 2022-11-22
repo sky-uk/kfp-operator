@@ -1,4 +1,4 @@
-package main
+package vai
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/urfave/cli"
+	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
@@ -24,49 +24,6 @@ import (
 	"regexp"
 	"strings"
 )
-
-func main() {
-	app := NewProviderApp[VAIProviderConfig]()
-	provider := VAIProvider{}
-	app.Run(provider, cli.Command{
-		Name: "vai-run",
-		Subcommands: []cli.Command{
-			{
-				Name: "enqueue",
-				Flags: []cli.Flag{cli.StringFlag{
-					Name:     "run-intent",
-					Required: true,
-				}},
-				Action: func(c *cli.Context) error {
-					providerConfig, err := app.LoadProviderConfig(c)
-					if err != nil {
-						return err
-					}
-					runIntent, err := LoadJsonFromFile[RunIntent](c.String("run-intent"))
-					if err != nil {
-						return err
-					}
-					return provider.enqueueRun(app.Context, providerConfig, runIntent)
-				},
-			},
-			{
-				Name: "submit",
-				Flags: []cli.Flag{cli.StringFlag{
-					Name:     "run",
-					Required: true,
-				}},
-				Action: func(c *cli.Context) error {
-					providerConfig, err := app.LoadProviderConfig(c)
-					vaiRun, err := LoadJsonFromFile[VAIRun](c.String("run"))
-					if err != nil {
-						return err
-					}
-					return provider.submitRun(app.Context, providerConfig, vaiRun)
-				},
-			},
-		},
-	})
-}
 
 var labels = struct {
 	RunConfiguration string
@@ -93,13 +50,14 @@ type RunIntent struct {
 }
 
 type VAIProviderConfig struct {
-	VaiProject           string `yaml:"vaiProject"`
-	VaiLocation          string `yaml:"vaiLocation"`
-	VaiJobServiceAccount string `yaml:"vaiJobServiceAccount"`
-	GcsEndpoint          string `yaml:"gcsEndpoint"`
-	PipelineBucket       string `yaml:"pipelineBucket"`
-	RunIntentsTopic      string `yaml:"runIntentsTopic"`
-	RunsTopic            string `yaml:"runsTopic"`
+	VaiProject                  string `yaml:"vaiProject"`
+	VaiLocation                 string `yaml:"vaiLocation"`
+	VaiJobServiceAccount        string `yaml:"vaiJobServiceAccount"`
+	GcsEndpoint                 string `yaml:"gcsEndpoint"`
+	PipelineBucket              string `yaml:"pipelineBucket"`
+	RunIntentsTopic             string `yaml:"runIntentsTopic"`
+	RunsTopic                   string `yaml:"runsTopic"`
+	EventsourceRunsSubscription string `yaml:"eventsourceRunsSubscription"`
 }
 
 func (vaipc VAIProviderConfig) vaiEndpoint() string {
@@ -110,7 +68,11 @@ func (vaipc VAIProviderConfig) parent() string {
 	return fmt.Sprintf(`projects/%s/locations/%s`, vaipc.VaiProject, vaipc.VaiLocation)
 }
 
-func (vaipc VAIProviderConfig) jobName(name string) string {
+func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
+	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
+}
+
+func (vaipc VAIProviderConfig) schedulerJobName(name string) string {
 	return fmt.Sprintf("%s/jobs/%s", vaipc.parent(), name)
 }
 
@@ -233,7 +195,7 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 	}
 
 	return &schedulerpb.Job{
-		Name:     providerConfig.jobName(fmt.Sprintf("rc-%s", runConfigurationDefinition.Name)),
+		Name:     providerConfig.schedulerJobName(fmt.Sprintf("rc-%s", runConfigurationDefinition.Name)),
 		Schedule: schedule.PrintStandard(),
 		Target: &schedulerpb.Job_PubsubTarget{
 			PubsubTarget: &schedulerpb.PubsubTarget{
@@ -320,7 +282,7 @@ func (vaip VAIProvider) DeleteExperiment(_ context.Context, _ VAIProviderConfig,
 	return errors.New("not implemented")
 }
 
-func (vaip VAIProvider) enqueueRun(ctx context.Context, providerConfig VAIProviderConfig, runIntent RunIntent) error {
+func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProviderConfig, runIntent RunIntent) error {
 	pubsubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
 	if err != nil {
 		return err
@@ -402,7 +364,7 @@ func (vaip VAIProvider) specFromTemplateUri(ctx context.Context, providerConfig 
 	return nil
 }
 
-func (vaip VAIProvider) submitRun(ctx context.Context, providerConfig VAIProviderConfig, vaiRun VAIRun) error {
+func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProviderConfig, vaiRun VAIRun) error {
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
 		return err
@@ -432,4 +394,24 @@ func (vaip VAIProvider) submitRun(ctx context.Context, providerConfig VAIProvide
 	}
 
 	return nil
+}
+
+func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIProviderConfig) (generic.EventingServer, error) {
+	pubSubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
+	if err != nil {
+		return nil, err
+	}
+	runsSubscription := pubSubClient.Subscription(providerConfig.EventsourceRunsSubscription)
+
+	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &VaiEventingServer{
+		ProviderConfig:    providerConfig,
+		RunsSubscription:  runsSubscription,
+		PipelineJobClient: pipelineJobClient,
+		Logger:            LoggerFromContext(ctx),
+	}, nil
 }
