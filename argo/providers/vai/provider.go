@@ -72,7 +72,7 @@ func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
 	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
 }
 
-func (vaipc VAIProviderConfig) jobName(name string) string {
+func (vaipc VAIProviderConfig) schedulerJobName(name string) string {
 	return fmt.Sprintf("%s/jobs/%s", vaipc.parent(), name)
 }
 
@@ -195,7 +195,7 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 	}
 
 	return &schedulerpb.Job{
-		Name:     providerConfig.jobName(fmt.Sprintf("rc-%s", runConfigurationDefinition.Name)),
+		Name:     providerConfig.schedulerJobName(fmt.Sprintf("rc-%s", runConfigurationDefinition.Name)),
 		Schedule: schedule.PrintStandard(),
 		Target: &schedulerpb.Job_PubsubTarget{
 			PubsubTarget: &schedulerpb.PubsubTarget{
