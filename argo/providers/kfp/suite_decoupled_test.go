@@ -45,7 +45,7 @@ func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
 }
 
 func startClient(ctx context.Context) (generic.Eventing_StartEventSourceClient, error) {
-	eventSourceConfig, err := yaml.Marshal(&KfpEventsourceConfig{
+	eventSourceConfig, err := yaml.Marshal(&KfpEventSourceConfig{
 		KfpNamespace: defaultNamespace,
 	})
 	if err != nil {

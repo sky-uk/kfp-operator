@@ -39,7 +39,7 @@ const (
 	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
 )
 
-type KfpEventsourceConfig struct {
+type KfpEventSourceConfig struct {
 	KfpNamespace string `yaml:"kfpNamespace"`
 }
 
@@ -86,7 +86,7 @@ func getPipelineName(workflow *unstructured.Unstructured) (name string) {
 }
 
 func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
-	eventsourceConfig := KfpEventsourceConfig{}
+	eventsourceConfig := KfpEventSourceConfig{}
 
 	if err := yaml.Unmarshal(source.Config, &eventsourceConfig); err != nil {
 		es.Logger.Error(err, "failed to parse event source configuration")
