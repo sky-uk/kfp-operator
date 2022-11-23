@@ -4,8 +4,13 @@ import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
@@ -13,8 +18,7 @@ import (
 
 // ExperimentReconciler reconciles a Experiment object
 type ExperimentReconciler struct {
-	EC           K8sExecutionContext
-	StateHandler StateHandler[*pipelinesv1.Experiment]
+	BaseReconciler[*pipelinesv1.Experiment]
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=experiments,verbs=get;list;watch;create;update;patch;delete
@@ -50,9 +54,16 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	return ctrl.Result{}, nil
 }
 
+func (r *ExperimentReconciler) reconciliationRequestsWorkflow(workflow client.Object) []reconcile.Request {
+	return r.BaseReconciler.reconciliationRequestsWorkflow(workflow, &pipelinesv1.Experiment{})
+}
+
 func (r *ExperimentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pipelinesv1.Experiment{}).
-		Owns(&argo.Workflow{}).
+		Watches(&source.Kind{Type: &argo.Workflow{}},
+			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsWorkflow),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
 		Complete(r)
 }

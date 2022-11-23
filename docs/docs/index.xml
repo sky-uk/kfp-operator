@@ -34,6 +34,11 @@
 &lt;td>File in the controller container containing the provider-specific configuration (see below)&lt;/td>
 &lt;td>&lt;code>provider.yaml&lt;/code>&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
+&lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
+&lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;p>An example can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
@@ -294,7 +299,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>
 &lt;ul>
 &lt;li>The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the &lt;a href="../../reference/configuration/#provider-configuration">respective configuration section&lt;/a> before proceeding.&lt;/li>
-&lt;li>Argo installed cluster-wide.&lt;/li>
+&lt;li>Argo installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
 &lt;/ul>
 &lt;h2 id="build-and-install">Build and Install&lt;/h2>
 &lt;p>Create basic &lt;code>values.yaml&lt;/code> with the following content:&lt;/p>

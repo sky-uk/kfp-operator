@@ -19,7 +19,7 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, resource R) (com
 	switch resource.GetStatus().SynchronizationState {
 	case apis.Creating:
 		commands = st.onCreating(ctx, resource,
-			st.WorkflowRepository.GetByLabels(ctx, resource.GetNamespace(),
+			st.WorkflowRepository.GetByLabels(ctx,
 				CommonWorkflowLabels(resource, WorkflowConstants.CreateOperationLabel)))
 	case apis.Succeeded, apis.Failed:
 		if !resource.GetDeletionTimestamp().IsZero() {
@@ -29,11 +29,11 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, resource R) (com
 		}
 	case apis.Updating:
 		commands = st.onUpdating(ctx, resource,
-			st.WorkflowRepository.GetByLabels(ctx, resource.GetNamespace(),
+			st.WorkflowRepository.GetByLabels(ctx,
 				CommonWorkflowLabels(resource, WorkflowConstants.UpdateOperationLabel)))
 	case apis.Deleting:
 		commands = st.onDeleting(ctx, resource,
-			st.WorkflowRepository.GetByLabels(ctx, resource.GetNamespace(),
+			st.WorkflowRepository.GetByLabels(ctx,
 				CommonWorkflowLabels(resource, WorkflowConstants.DeleteOperationLabel)))
 	case apis.Deleted:
 	default:

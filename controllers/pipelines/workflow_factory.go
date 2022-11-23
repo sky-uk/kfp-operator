@@ -11,6 +11,7 @@ import (
 var WorkflowConstants = struct {
 	OwnerKindLabelKey           string
 	OwnerNameLabelKey           string
+	OwnerNamespaceLabelKey      string
 	OperationLabelKey           string
 	CreateOperationLabel        string
 	DeleteOperationLabel        string
@@ -22,6 +23,7 @@ var WorkflowConstants = struct {
 }{
 	OwnerKindLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.kind",
 	OwnerNameLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.name",
+	OwnerNamespaceLabelKey:      pipelinesv1.GroupVersion.Group + "/owner.namespace",
 	OperationLabelKey:           pipelinesv1.GroupVersion.Group + "/operation",
 	CreateOperationLabel:        "create",
 	DeleteOperationLabel:        "delete",
@@ -44,18 +46,19 @@ type WorkflowFactoryBase struct {
 	ProviderConfig string
 }
 
-func CommonWorkflowMeta(owner pipelinesv1.Resource, operation string) *metav1.ObjectMeta {
+func (w WorkflowFactoryBase) CommonWorkflowMeta(owner pipelinesv1.Resource, operation string) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", operation, owner.GetKind()),
-		Namespace:    owner.GetNamespace(),
+		Namespace:    w.Config.WorkflowNamespace,
 		Labels:       CommonWorkflowLabels(owner, operation),
 	}
 }
 
 func CommonWorkflowLabels(owner pipelinesv1.Resource, operation string) map[string]string {
 	return map[string]string{
-		WorkflowConstants.OperationLabelKey: operation,
-		WorkflowConstants.OwnerKindLabelKey: owner.GetKind(),
-		WorkflowConstants.OwnerNameLabelKey: owner.GetName(),
+		WorkflowConstants.OperationLabelKey:      operation,
+		WorkflowConstants.OwnerKindLabelKey:      owner.GetKind(),
+		WorkflowConstants.OwnerNameLabelKey:      owner.GetName(),
+		WorkflowConstants.OwnerNamespaceLabelKey: owner.GetNamespace(),
 	}
 }

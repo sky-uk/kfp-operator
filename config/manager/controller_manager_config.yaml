@@ -11,10 +11,11 @@ controller:
     leaderElect: true
     resourceName: kfp-operator-lock
 spec:
-  providerConfigFile: provider.yaml
-  workflowTemplatePrefix: kfp-operator-
-  multiversion: true
   defaultBeamArgs:
   - name: project
     value: ${DATAFLOW_PROJECT}
+  multiversion: true
   pipelineStorage: ${PIPELINE_STORAGE}
+  providerConfigFile: provider.yaml
+  workflowNamespace: kfp-operator-system
+  workflowTemplatePrefix: kfp-operator-

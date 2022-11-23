@@ -576,6 +576,8 @@ spec:
                 type: string
               providerConfigFile:
                 type: string
+              workflowNamespace:
+                type: string
               workflowTemplatePrefix:
                 type: string
             type: object

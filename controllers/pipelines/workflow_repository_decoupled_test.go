@@ -50,19 +50,6 @@ func randomWorkflow() *argo.Workflow {
 }
 
 var _ = Context("WorkflowRepository K8s integration", Serial, func() {
-	_ = Describe("Creating Workflows", func() {
-		It("Sets ownership", func() {
-			workflowRepository := createWorkflowRepository()
-
-			owner := randomResource()
-			workflow := randomWorkflow()
-
-			Expect(workflowRepository.CreateWorkflowForResource(ctx, workflow, owner)).To(Succeed())
-			retrievedWorkflows := workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())
-			Expect(retrievedWorkflows[0].GetOwnerReferences()[0].UID).To(Equal(owner.GetUID()))
-		})
-	})
-
 	_ = Describe("GetByLabels", func() {
 		It("Returns only non-processed workflows on retrieval", func() {
 			workflowRepository := createWorkflowRepository()
@@ -71,9 +58,9 @@ var _ = Context("WorkflowRepository K8s integration", Serial, func() {
 			workflow := randomWorkflow()
 
 			Expect(workflowRepository.CreateWorkflowForResource(ctx, workflow, owner)).To(Succeed())
-			Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(Not(BeEmpty()))
+			Expect(workflowRepository.GetByLabels(ctx, workflow.GetLabels())).To(Not(BeEmpty()))
 			Expect(workflowRepository.MarkWorkflowAsProcessed(ctx, workflow)).To(Succeed())
-			Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(BeEmpty())
+			Expect(workflowRepository.GetByLabels(ctx, workflow.GetLabels())).To(BeEmpty())
 		})
 	})
 })
