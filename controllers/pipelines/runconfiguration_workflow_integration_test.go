@@ -218,6 +218,7 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 					Config: config.Configuration{
 						WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 						DefaultExperiment:      defaultExperiment,
+						WorkflowNamespace:      "argo",
 					},
 					ProviderConfig: suite.ProviderConfig(),
 				},

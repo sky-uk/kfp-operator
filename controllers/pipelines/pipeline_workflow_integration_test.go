@@ -210,6 +210,7 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 							{Name: "project", Value: "project"},
 						},
 						WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
+						WorkflowNamespace:      "argo",
 					},
 					ProviderConfig: suite.ProviderConfig(),
 				},
