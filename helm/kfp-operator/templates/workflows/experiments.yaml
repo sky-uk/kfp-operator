@@ -117,6 +117,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-experiment
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: experiment-definition
@@ -157,6 +159,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-experiment
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: experiment-definition
@@ -198,6 +202,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-delete-experiment
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-config

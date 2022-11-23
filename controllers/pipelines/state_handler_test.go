@@ -119,8 +119,8 @@ func (st StateTransitionTestCase) IssuesDeletionWorkflow() StateTransitionTestCa
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
-func (st StateTransitionTestCase) DeletesAllWorkflows() StateTransitionTestCase {
-	return st.IssuesCommand(DeleteWorkflows{
+func (st StateTransitionTestCase) MarksAllWorkflowsAsProcessed() StateTransitionTestCase {
+	return st.IssuesCommand(MarkWorkflowsAsProcessed{
 		Workflows: st.SystemStatus.Workflows,
 	})
 }
@@ -244,7 +244,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Succeeded).
 					WithProviderId(providerId).
 					WithVersion(v1)).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating succeeds without providerId or provider error",
 			From(apis.Creating, providerId, v1, irrelevant).
@@ -255,7 +255,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithProviderId(providerId).
 					WithVersion(v1).
 					WithMessage("id was empty")).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating succeeds with provider error",
 			From(apis.Creating, anotherProviderId, v1, irrelevant).
@@ -266,7 +266,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithProviderId(providerId).
 					WithVersion(v1).
 					WithMessage(providerError)).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating fails",
 			From(apis.Creating, "", v1, irrelevant).
@@ -276,7 +276,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Failed).
 					WithVersion(v1).
 					WithMessage("operation failed")).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating without version",
 			From(apis.Creating, "", "", irrelevant).
@@ -389,7 +389,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Succeeded).
 					WithProviderId(anotherProviderId).
 					WithVersion(v1)).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Updating succeeds without providerId or provider error",
 			From(apis.Updating, providerId, v1, irrelevant).
@@ -400,7 +400,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithProviderId(providerId).
 					WithVersion(v1).
 					WithMessage("id was empty")).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Updating succeeds with provider error",
 			From(apis.Updating, providerId, v1, irrelevant).
@@ -411,7 +411,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithProviderId(anotherProviderId).
 					WithVersion(v1).
 					WithMessage(providerError)).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Updating fails",
 			From(apis.Updating, providerId, v1, irrelevant).
@@ -422,7 +422,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithProviderId(providerId).
 					WithVersion(v1).
 					WithMessage("operation failed")).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Updating without version",
 			From(apis.Updating, providerId, "", irrelevant).
@@ -493,7 +493,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithProviderId(providerId).
 					WithVersion(v1).
 					WithMessage("id should be empty")).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Deletion succeeds",
 			From(apis.Deleting, providerId, v1, irrelevant).
@@ -504,7 +504,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Deleted).
 					WithProviderId("").
 					WithVersion(v1)).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Deletion succeeds with provider error",
 			From(apis.Deleting, providerId, v1, irrelevant).
@@ -516,7 +516,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithProviderId(providerId).
 					WithVersion(v1).
 					WithMessage(providerError)).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Deletion fails",
 			From(apis.Deleting, providerId, v1, irrelevant).
@@ -528,7 +528,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithProviderId(providerId).
 					WithVersion(v1).
 					WithMessage("operation failed")).
-				DeletesAllWorkflows(),
+				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Stay in deleted",
 			From(apis.Deleted, providerId, v1, irrelevant).

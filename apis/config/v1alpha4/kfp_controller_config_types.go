@@ -1,4 +1,4 @@
-package v1alpha3
+package v1alpha4
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
@@ -18,12 +18,11 @@ type Configuration struct {
 	DefaultBeamArgs []apis.NamedValue `json:"defaultBeamArgs,omitempty"`
 
 	DefaultExperiment string `json:"defaultExperiment,omitempty"`
-
-	Debug apis.DebugOptions `json:"debug,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:storageversion
 
 type KfpControllerConfig struct {
 	metav1.TypeMeta   `json:",inline"`

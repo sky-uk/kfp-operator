@@ -171,14 +171,14 @@ func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, re
 	return nil
 }
 
-type DeleteWorkflows struct {
+type MarkWorkflowsAsProcessed struct {
 	Workflows []argo.Workflow
 }
 
-func (dw DeleteWorkflows) execute(ctx context.Context, ec K8sExecutionContext, _ pipelinesv1.Resource) error {
+func (dw MarkWorkflowsAsProcessed) execute(ctx context.Context, ec K8sExecutionContext, _ pipelinesv1.Resource) error {
 	for i := range dw.Workflows {
 		workflow := &dw.Workflows[i]
-		if err := ec.WorkflowRepository.DeleteWorkflow(ctx, workflow); err != nil {
+		if err := ec.WorkflowRepository.MarkWorkflowAsProcessed(ctx, workflow); err != nil {
 			return err
 		}
 	}

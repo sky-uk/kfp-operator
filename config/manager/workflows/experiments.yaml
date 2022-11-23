@@ -111,6 +111,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: create-experiment
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: experiment-definition
@@ -148,6 +152,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: update-experiment
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: experiment-definition
@@ -186,6 +194,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: delete-experiment
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: provider-config

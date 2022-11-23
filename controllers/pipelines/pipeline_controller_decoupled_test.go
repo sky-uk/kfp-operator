@@ -36,7 +36,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
-			Eventually(testCtx.FetchWorkflow(WorkflowConstants.CreateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.UpdatePipeline(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
@@ -54,7 +53,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
-			Eventually(testCtx.FetchWorkflow(WorkflowConstants.UpdateOperationLabel)).Should(Not(Succeed()))
 
 			Expect(testCtx.DeletePipeline()).To(Succeed())
 
@@ -68,7 +66,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(testCtx.PipelineExists).Should(Not(Succeed()))
-			Eventually(testCtx.FetchWorkflow(WorkflowConstants.DeleteOperationLabel)).Should(Not(Succeed()))
 
 			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(

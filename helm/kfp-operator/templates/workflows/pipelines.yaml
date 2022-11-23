@@ -168,6 +168,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-pipeline
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: pipeline-definition
@@ -236,6 +238,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-pipeline
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: pipeline-definition
@@ -307,6 +311,8 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-delete-pipeline
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-config

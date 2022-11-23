@@ -31,6 +31,10 @@ manager:
     serviceAccount: ""
     containerDefaults: {}
     metadataDefaults: {}
+    ttlStrategy:
+      secondsAfterCompletion: 600
+      secondsAfterSuccess: 600
+      secondsAfterFailure: 3600
   monitoring:
     create: false
     rbacSecured: false

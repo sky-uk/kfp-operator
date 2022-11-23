@@ -20,11 +20,6 @@
 &lt;td>&lt;code>Default&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>debug&lt;/code>&lt;/td>
-&lt;td>Default debugging options&lt;/td>
-&lt;td>See &lt;a href="../debugging">Debugging&lt;/a>&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
 &lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
 &lt;td>&lt;code>true&lt;/code>&lt;/td>
@@ -353,6 +348,10 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;td>Container Metadata defaults to be used for Argo workflow pods created by the operator&lt;/td>
 &lt;/tr>
 &lt;tr>
+&lt;td>&lt;code>manager.argo.ttlStrategy&lt;/code>&lt;/td>
+&lt;td>&lt;a href="https://argoproj.github.io/argo-workflows/fields/#ttlstrategy">TTL Strategy&lt;/a> used for all Argo Workflows&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>manager.argo.serviceAccount&lt;/code>&lt;/td>
 &lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s Service account&lt;/a> used to run Argo workflows&lt;/td>
 &lt;/tr>
@@ -502,48 +501,6 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>
-&lt;h2 id="debugging-configuration">Debugging Configuration&lt;/h2>
-&lt;p>Debugging options can be set:&lt;/p>
-&lt;ul>
-&lt;li>in the &lt;code>debug&lt;/code> section of operator&amp;rsquo;s configuration&lt;/li>
-&lt;li>serialised as JSON in the &lt;code>pipelines.kubeflow.org/debug&lt;/code> annotation of the managed resources&lt;/li>
-&lt;/ul>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Option&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;th>Example&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>keepWorkflows&lt;/code>&lt;/td>
-&lt;td>Don&amp;rsquo;t delete workflows after state transitions. This flag is useful for debugging workflows that the operator has created.&lt;/td>
-&lt;td>&lt;code>true&lt;/code>,&lt;code>false&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;p>Options set in the operator&amp;rsquo;s configuration act as the lower bound to those defined in the resources.
-This means that resources can increase debugging, but never decrease it.&lt;/p>
-&lt;p>Example:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">config.kubeflow.org/v1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">KfpControllerConfig&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">operatorconfig-sample&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">debug&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">a&lt;/span>: &lt;span style="color:#66d9ef">false&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">b&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha3&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">pipeline-sample&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">annotations&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipelines.kubeflow.org/debug&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;{ &amp;#34;a&amp;#34;: true, &amp;#34;b&amp;#34;: false }&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#ae81ff">...&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The above configuration would result in both options &lt;code>a&lt;/code> and &lt;code>b&lt;/code> being active.&lt;/p>
 &lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
 &lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
 &lt;p>Example:&lt;/p>

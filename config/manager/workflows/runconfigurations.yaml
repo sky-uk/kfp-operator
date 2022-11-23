@@ -111,6 +111,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: create-runconfiguration
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: runconfiguration-definition
@@ -148,6 +152,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: update-runconfiguration
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: runconfiguration-definition
@@ -186,6 +194,10 @@ kind: ClusterWorkflowTemplate
 metadata:
   name: delete-runconfiguration
 spec:
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterSuccess: 600
+    secondsAfterFailure: 3600
   arguments:
     parameters:
     - name: provider-config

@@ -3,8 +3,7 @@ package pipelines
 import (
 	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +24,7 @@ var WorkflowRepositoryConstants = struct {
 type WorkflowRepository interface {
 	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelinesv1.Resource) error
 	GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow
-	DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error
+	MarkWorkflowAsProcessed(ctx context.Context, workflow *argo.Workflow) error
 }
 
 type WorkflowRepositoryImpl struct {
@@ -34,17 +33,11 @@ type WorkflowRepositoryImpl struct {
 	Scheme *runtime.Scheme
 }
 
-func (w *WorkflowRepositoryImpl) debugAnnotations(ctx context.Context, annotations map[string]string) map[string]string {
-	workflowDebugOptions := apis.DebugOptionsFromAnnotations(ctx, annotations).WithDefaults(w.Config.Debug)
-	return apis.AnnotationsFromDebugOptions(ctx, workflowDebugOptions)
-}
-
 func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelinesv1.Resource) error {
 	if err := ctrl.SetControllerReference(resource, workflow, w.Scheme); err != nil {
 		return err
 	}
 
-	workflow.SetAnnotations(w.debugAnnotations(ctx, resource.GetAnnotations()))
 	return w.Client.Create(ctx, workflow)
 }
 
@@ -97,27 +90,7 @@ func (w WorkflowRepositoryImpl) SetupWithManager(mgr ctrl.Manager) error {
 	})
 }
 
-func (w WorkflowRepositoryImpl) DeleteWorkflow(ctx context.Context, workflow *argo.Workflow) error {
-	logger := log.FromContext(ctx)
-
-	if err := w.markAsProcessed(ctx, workflow); err != nil {
-		return err
-	}
-
-	workflowDebugOptions := apis.DebugOptionsFromAnnotations(ctx, workflow.ObjectMeta.Annotations)
-	if !workflowDebugOptions.KeepWorkflows {
-		logger.V(1).Info("deleting child workflow", LogKeys.Workflow, workflow)
-		if err := w.Client.Delete(ctx, workflow); err != nil {
-			return err
-		}
-	} else {
-		logger.V(2).Info("keeping child workflow", LogKeys.Workflow, workflow)
-	}
-
-	return nil
-}
-
-func (w WorkflowRepositoryImpl) markAsProcessed(ctx context.Context, workflow *argo.Workflow) error {
+func (w WorkflowRepositoryImpl) MarkWorkflowAsProcessed(ctx context.Context, workflow *argo.Workflow) error {
 	logger := log.FromContext(ctx)
 
 	logger.V(1).Info("marking child workflow as processed", LogKeys.Workflow, workflow)

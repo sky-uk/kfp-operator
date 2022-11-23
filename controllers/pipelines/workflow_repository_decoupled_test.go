@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,7 +16,7 @@ import (
 
 const namespace = "default"
 
-func createWorkflowRepository(keepWorkflows bool) WorkflowRepositoryImpl {
+func createWorkflowRepository() WorkflowRepositoryImpl {
 	optInClient := controllers.NewOptInClient(k8sManager)
 
 	scheme := runtime.NewScheme()
@@ -26,11 +25,6 @@ func createWorkflowRepository(keepWorkflows bool) WorkflowRepositoryImpl {
 	return WorkflowRepositoryImpl{
 		Client: optInClient,
 		Scheme: scheme,
-		Config: config.Configuration{
-			Debug: apis.DebugOptions{
-				KeepWorkflows: keepWorkflows,
-			},
-		},
 	}
 }
 
@@ -58,7 +52,7 @@ func randomWorkflow() *argo.Workflow {
 var _ = Context("WorkflowRepository K8s integration", Serial, func() {
 	_ = Describe("Creating Workflows", func() {
 		It("Sets ownership", func() {
-			workflowRepository := createWorkflowRepository(false)
+			workflowRepository := createWorkflowRepository()
 
 			owner := randomResource()
 			workflow := randomWorkflow()
@@ -69,18 +63,17 @@ var _ = Context("WorkflowRepository K8s integration", Serial, func() {
 		})
 	})
 
-	DescribeTable("Returns only non-processed workflows on retrieval", func(keepWorkflows bool) {
-		workflowRepository := createWorkflowRepository(keepWorkflows)
+	_ = Describe("GetByLabels", func() {
+		It("Returns only non-processed workflows on retrieval", func() {
+			workflowRepository := createWorkflowRepository()
 
-		owner := randomResource()
-		workflow := randomWorkflow()
+			owner := randomResource()
+			workflow := randomWorkflow()
 
-		Expect(workflowRepository.CreateWorkflowForResource(ctx, workflow, owner)).To(Succeed())
-		Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(Not(BeEmpty()))
-		Expect(workflowRepository.DeleteWorkflow(ctx, workflow)).To(Succeed())
-		Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(BeEmpty())
-	},
-		Entry("keepWorkflows is disabled", false),
-		Entry("keepWorkflows is enabled", true),
-	)
+			Expect(workflowRepository.CreateWorkflowForResource(ctx, workflow, owner)).To(Succeed())
+			Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(Not(BeEmpty()))
+			Expect(workflowRepository.MarkWorkflowAsProcessed(ctx, workflow)).To(Succeed())
+			Expect(workflowRepository.GetByLabels(ctx, namespace, workflow.GetLabels())).To(BeEmpty())
+		})
+	})
 })
