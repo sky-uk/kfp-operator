@@ -1,7 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: pipeline-steps
+  namespace: kfp-operator-system
 spec:
   templates:
     - name: compile
@@ -155,9 +156,10 @@ spec:
         - /tmp/provider-output.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: create-pipeline
+  namespace: kfp-operator-system
 spec:
   ttlStrategy:
     secondsAfterCompletion: 600
@@ -180,7 +182,6 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -189,7 +190,6 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -198,12 +198,10 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-pipeline-image
-          clusterScope: true
     - - name: compile
         templateRef:
           name: kfp-operator-pipeline-steps
           template: compile
-          clusterScope: true
         arguments:
           parameters:
           - name: pipeline-image
@@ -214,7 +212,6 @@ spec:
         templateRef:
           name: kfp-operator-pipeline-steps
           template: create
-          clusterScope: true
         arguments:
           artifacts:
           - from: '{{steps.compile.outputs.artifacts.pipeline}}'
@@ -224,9 +221,10 @@ spec:
             value: '{{steps.select-provider-image.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: update-pipeline
+  namespace: kfp-operator-system
 spec:
   ttlStrategy:
     secondsAfterCompletion: 600
@@ -250,7 +248,6 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -259,7 +256,6 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -268,12 +264,10 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-pipeline-image
-          clusterScope: true
     - - name: compile
         templateRef:
           name: kfp-operator-pipeline-steps
           template: compile
-          clusterScope: true
         arguments:
           parameters:
           - name: pipeline-image
@@ -284,7 +278,6 @@ spec:
         templateRef:
           name: kfp-operator-pipeline-steps
           template: update
-          clusterScope: true
         arguments:
           artifacts:
           - from: '{{steps.compile.outputs.artifacts.pipeline}}'
@@ -296,9 +289,10 @@ spec:
             value: '{{steps.select-provider-image.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: delete-pipeline
+  namespace: kfp-operator-system
 spec:
   ttlStrategy:
     secondsAfterCompletion: 600
@@ -321,7 +315,6 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -330,7 +323,6 @@ spec:
         templateRef:
           name: kfp-operator-pipeline-steps
           template: delete
-          clusterScope: true
         arguments:
           parameters:
           - name: provider-image

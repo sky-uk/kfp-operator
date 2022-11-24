@@ -66,7 +66,3 @@ Valid configuration options to override the [Default `values.yaml`]({{< ghblob "
 | `eventsourceServer.resources`                             | Eventsource server resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources)                                                                   |
 
 Examples for these values can be found in the [test configuration]({{< ghblob "/helm/kfp-operator/test/values.yaml" >}})
-
-## Additional Notes
-
-If you don't have a cluster-wide installation of Argo (for example if you are using the namespaced installation provided by Kubeflow), you will need to apply additional permissions to the Argo service account to read `ClusterWorkflowTemplate`s as described by `argo-clusterworkflowtemplate-role` and `argo-clusterworkflowtemplate-role-binding` in https://github.com/argoproj/argo-workflows/blob/master/manifests/quick-start/base/cluster-workflow-template-rbac.yaml, changing the namespace to match the one where Argo is installed.  

@@ -1,7 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: experiment-steps
+  namespace: kfp-operator-system
 spec:
   templates:
   - name: create
@@ -107,9 +108,10 @@ spec:
       - /tmp/provider-output.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: create-experiment
+  namespace: kfp-operator-system
 spec:
   ttlStrategy:
     secondsAfterCompletion: 600
@@ -132,7 +134,6 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -141,16 +142,16 @@ spec:
         templateRef:
           name: kfp-operator-experiment-steps
           template: create
-          clusterScope: true
         arguments:
           parameters:
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: update-experiment
+  namespace: kfp-operator-system
 spec:
   ttlStrategy:
     secondsAfterCompletion: 600
@@ -174,7 +175,6 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -183,16 +183,16 @@ spec:
         templateRef:
           name: kfp-operator-experiment-steps
           template: update
-          clusterScope: true
         arguments:
           parameters:
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: delete-experiment
+  namespace: kfp-operator-system
 spec:
   ttlStrategy:
     secondsAfterCompletion: 600
@@ -215,7 +215,6 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -224,7 +223,6 @@ spec:
         templateRef:
           name: kfp-operator-experiment-steps
           template: delete
-          clusterScope: true
         arguments:
           parameters:
           - name: provider-image

@@ -80,8 +80,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "create-runconfiguration",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "create-runconfiguration",
 			},
 		},
 	}, nil
@@ -117,8 +116,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "update-runconfiguration",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "update-runconfiguration",
 			},
 		},
 	}, nil
@@ -141,8 +139,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runCo
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-runconfiguration",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "delete-runconfiguration",
 			},
 		},
 	}, nil

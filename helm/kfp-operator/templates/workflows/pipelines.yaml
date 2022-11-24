@@ -1,7 +1,8 @@
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+  namespace: {{ include "kfp-operator.workflow.namespace" . }}
 spec:
   templates:
   - name: compile
@@ -164,9 +165,10 @@ spec:
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-pipeline
+  namespace: {{ include "kfp-operator.workflow.namespace" . }}
 spec:
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
@@ -190,7 +192,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -199,7 +200,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -208,12 +208,10 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-pipeline-image
-          clusterScope: true
     - - name: compile
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: compile
-          clusterScope: true
         arguments:
           parameters:
           - name: pipeline-image
@@ -224,7 +222,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: create
-          clusterScope: true
         arguments:
           artifacts:
           - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
@@ -234,9 +231,10 @@ spec:
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-pipeline
+  namespace: {{ include "kfp-operator.workflow.namespace" . }}
 spec:
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
@@ -261,7 +259,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -270,7 +267,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -279,12 +275,10 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-pipeline-image
-          clusterScope: true
     - - name: compile
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: compile
-          clusterScope: true
         arguments:
           parameters:
           - name: pipeline-image
@@ -295,7 +289,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: update
-          clusterScope: true
         arguments:
           artifacts:
           - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
@@ -307,9 +300,10 @@ spec:
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
-kind: ClusterWorkflowTemplate
+kind: WorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-delete-pipeline
+  namespace: {{ include "kfp-operator.workflow.namespace" . }}
 spec:
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
@@ -333,7 +327,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
-          clusterScope: true
         arguments:
           parameters:
           - name: parameter
@@ -342,7 +335,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
           template: delete
-          clusterScope: true
         arguments:
           parameters:
           - name: provider-image
