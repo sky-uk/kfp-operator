@@ -18,7 +18,7 @@ var WorkflowConstants = struct {
 	UpdateOperationLabel        string
 	EntryPointName              string
 	ConstructionFailedError     string
-	ProviderConfigParameterName string
+	ProviderNameParameterName   string
 	ProviderOutputParameterName string
 }{
 	OwnerKindLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.kind",
@@ -30,7 +30,7 @@ var WorkflowConstants = struct {
 	UpdateOperationLabel:        "update",
 	EntryPointName:              "main",
 	ConstructionFailedError:     "error constructing workflow",
-	ProviderConfigParameterName: "provider-config",
+	ProviderNameParameterName:   "provider-name",
 	ProviderOutputParameterName: "provider-output",
 }
 
@@ -41,9 +41,8 @@ type WorkflowFactory[R pipelinesv1.Resource] interface {
 }
 
 type WorkflowFactoryBase struct {
-	ResourceKind   string
-	Config         config.Configuration
-	ProviderConfig string
+	ResourceKind string
+	Config       config.Configuration
 }
 
 func (w WorkflowFactoryBase) CommonWorkflowMeta(owner pipelinesv1.Resource, operation string) *metav1.ObjectMeta {

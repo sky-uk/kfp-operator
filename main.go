@@ -88,12 +88,6 @@ func main() {
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	var mgr ctrl.Manager
 
-	providerConfig, err := os.ReadFile(ctrlConfig.Workflows.ProviderConfigFile)
-	if err != nil {
-		setupLog.Error(err, "provider config could not be read")
-		os.Exit(1)
-	}
-
 	mgr, err = ctrl.NewManager(ctrl.GetConfigOrDie(), options)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -108,8 +102,7 @@ func main() {
 	}
 
 	workflowFactory := pipelinescontrollers.WorkflowFactoryBase{
-		Config:         ctrlConfig.Workflows,
-		ProviderConfig: string(providerConfig),
+		Config: ctrlConfig.Workflows,
 	}
 
 	ec := pipelinescontrollers.K8sExecutionContext{

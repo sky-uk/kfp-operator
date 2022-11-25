@@ -4,6 +4,10 @@ metadata:
   name: pipeline-steps
   namespace: kfp-operator-system
 spec:
+  volumes:
+    - name: providers-config
+      configMap:
+        name: kfp-operator-providers
   templates:
     - name: compile
       inputs:
@@ -15,25 +19,25 @@ spec:
           raw:
             data: |
               {{workflow.parameters.pipeline-definition}}
-          path: /tmp/pipeline-definition.yaml
+          path: /pipeline-definition.yaml
       outputs:
         artifacts:
         - name: pipeline
-          path: /tmp/pipeline.yaml
+          path: /pipeline.yaml
       metadata: {}
       container:
-        command:
-        - /shared/compile.sh
-        image: '{{inputs.parameters.pipeline-image}}'
         name: pipeline
+        image: '{{inputs.parameters.pipeline-image}}'
         volumeMounts:
         - mountPath: /shared
           name: shared
+        command:
+        - /shared/compile.sh
         args:
         - --output_file
-        - /tmp/pipeline.yaml
+        - /pipeline.yaml
         - --pipeline_config
-        - /tmp/pipeline-definition.yaml
+        - /pipeline-definition.yaml
         - --execution_mode
         - "{{inputs.parameters.execution-mode}}"
       volumes:
@@ -50,53 +54,46 @@ spec:
         - name: provider-image
         artifacts:
         - name: pipeline
-          path: /tmp/pipeline.yaml
+          path: /pipeline.yaml
         - name: pipeline-definition
-          path: /tmp/pipeline-definition.yaml
+          path: /pipeline-definition.yaml
           raw:
             data: |
               {{workflow.parameters.pipeline-definition}}
-        - name: provider-config
-          path: /tmp/provider-config.yaml
-          raw:
-            data: |
-              {{workflow.parameters.provider-config}}
       outputs:
         parameters:
         - name: provider-output
           valueFrom:
-            path: /tmp/provider-output.yaml
+            path: /provider-output.yaml
       metadata: {}
       container:
         image: "{{inputs.parameters.provider-image}}"
+        volumeMounts:
+        - name: providers-config
+          mountPath: /providers-config
         command:
         - /provider
         args:
         - --provider-config
-        - /tmp/provider-config.yaml
+        - /providers-config/{{workflow.parameters.provider-name}}
         - pipeline
         - create
         - --pipeline-definition
-        - /tmp/pipeline-definition.yaml
+        - /pipeline-definition.yaml
         - --pipeline-file
-        - /tmp/pipeline.yaml
+        - /pipeline.yaml
         - --out
-        - /tmp/provider-output.yaml
+        - /provider-output.yaml
     - name: update
       inputs:
         artifacts:
         - name: pipeline
-          path: /tmp/pipeline.yaml
+          path: /pipeline.yaml
         - name: pipeline-definition
-          path: /tmp/pipeline-definition.yaml
+          path: /pipeline-definition.yaml
           raw:
             data: |
               {{workflow.parameters.pipeline-definition}}
-        - name: provider-config
-          path: /tmp/provider-config.yaml
-          raw:
-            data: |
-              {{workflow.parameters.provider-config}}
         parameters:
         - name: pipeline-id
         - name: provider-image
@@ -104,56 +101,56 @@ spec:
         parameters:
         - name: provider-output
           valueFrom:
-            path: /tmp/provider-output.yaml
+            path: /provider-output.yaml
       metadata: {}
       container:
         image: "{{inputs.parameters.provider-image}}"
+        volumeMounts:
+        - name: providers-config
+          mountPath: /providers-config
         command:
         - /provider
         args:
         - --provider-config
-        - /tmp/provider-config.yaml
+        - /providers-config/{{workflow.parameters.provider-name}}
         - pipeline
         - update
         - --pipeline-definition
-        - /tmp/pipeline-definition.yaml
+        - /pipeline-definition.yaml
         - --pipeline-id
         - '{{inputs.parameters.pipeline-id}}'
         - --pipeline-file
-        - /tmp/pipeline.yaml
+        - /pipeline.yaml
         - --out
-        - /tmp/provider-output.yaml
+        - /provider-output.yaml
     - name: delete
       inputs:
         parameters:
         - name: provider-image
-        artifacts:
-        - name: provider-config
-          path: /tmp/provider-config.yaml
-          raw:
-            data: |
-              {{workflow.parameters.provider-config}}
       outputs:
         parameters:
         - name: provider-output
           valueFrom:
-            path: /tmp/provider-output.yaml
+            path: /provider-output.yaml
       metadata: {}
       container:
-        command:
-        - /provider
         image: "{{inputs.parameters.provider-image}}"
+        volumeMounts:
+        - name: providers-config
+          mountPath: /providers-config
+        command:
+          - /provider
         args:
         - --provider-config
-        - /tmp/provider-config.yaml
+        - /providers-config/{{workflow.parameters.provider-name}}
         - pipeline
         - delete
         - --pipeline-definition
-        - /tmp/pipeline-definition.yaml
+        - /pipeline-definition.yaml
         - --pipeline-id
         - '{{workflow.parameters.pipeline-id}}'
         - --out
-        - /tmp/provider-output.yaml
+        - /provider-output.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -167,8 +164,8 @@ spec:
     secondsAfterFailure: 3600
   arguments:
     parameters:
+    - name: provider-name
     - name: pipeline-definition
-    - name: provider-config
   entrypoint: main
   templates:
   - name: main
@@ -232,9 +229,9 @@ spec:
     secondsAfterFailure: 3600
   arguments:
     parameters:
-    - name: pipeline-definition
-    - name: provider-config
+    - name: provider-name
     - name: pipeline-id
+    - name: pipeline-definition
   entrypoint: main
   templates:
   - name: main
@@ -300,7 +297,7 @@ spec:
     secondsAfterFailure: 3600
   arguments:
     parameters:
-    - name: provider-config
+    - name: provider-name
     - name: pipeline-id
   entrypoint: main
   templates:

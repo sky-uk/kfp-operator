@@ -6,3 +6,15 @@ manager:
   argo:
     containerDefaults:
       imagePullPolicy: Never
+providers:
+  kfp:
+    type: kfp
+    configuration:
+      restKfpApiUrl: http://wiremock:80
+      executionMode: v1
+  vai:
+    type: vai
+    configuration:
+      gcsEndpoint: http://wiremock:80
+      pipelineBucket: pipelineBucket
+      executionMode: v2

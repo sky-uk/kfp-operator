@@ -1,11 +1,17 @@
-{{- if eq .Values.manager.provider.type "vai" -}}
+{{ $found := false }}
+{{- range $providerName, $providerBlock := .Values.providers -}}
+  {{- if eq $providerBlock.type "vai" -}}
+    {{ $found = true }}
+  {{- end -}}
+{{- end -}}
+{{- if $found -}}
 apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:
   name: default
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "kfp-operator.labels" . | nindent 4 }}
+    {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:
   nats:
     native:
@@ -14,7 +20,7 @@ spec:
           requests:
             cpu: 100m
       metadata:
-        {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
+        {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
         {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
       metricsContainerTemplate:
         resources:

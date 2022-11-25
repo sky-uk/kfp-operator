@@ -16,6 +16,5 @@ spec:
     value: ${DATAFLOW_PROJECT}
   multiversion: true
   pipelineStorage: ${PIPELINE_STORAGE}
-  providerConfigFile: provider.yaml
   workflowNamespace: kfp-operator-system
   workflowTemplatePrefix: kfp-operator-

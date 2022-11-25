@@ -11,7 +11,7 @@ spec:
       - name: parameter
       artifacts:
       - name: provider-config
-        path: /tmp/provider-config.yaml
+        path: /provider-config.yaml
         raw:
           data: |
             {{workflow.parameters.provider-config}}
@@ -19,12 +19,12 @@ spec:
       command:
       - ash
       image: mikefarah/yq:4.27.5
-      source: yq e '.{{inputs.parameters.parameter}}' /tmp/provider-config.yaml
+      source: yq e '.{{inputs.parameters.parameter}}' /provider-config.yaml
   - name: select-pipeline-image
     inputs:
       artifacts:
       - name: pipeline-definition
-        path: /tmp/pipeline-definition.yaml
+        path: /pipeline-definition.yaml
         raw:
           data: |
             {{workflow.parameters.pipeline-definition}}
@@ -32,4 +32,4 @@ spec:
       command:
       - ash
       image: mikefarah/yq:4.27.5
-      source: yq e '.image' /tmp/pipeline-definition.yaml
+      source: yq e '.image' /pipeline-definition.yaml

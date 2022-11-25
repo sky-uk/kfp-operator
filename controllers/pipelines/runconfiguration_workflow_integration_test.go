@@ -29,7 +29,7 @@ type RunConfigurationWorkflowIntegrationSuite interface {
 	FailDeletion(runConfiguration *pipelinesv1.RunConfiguration) error
 	FailDeletionNotFound(runConfiguration *pipelinesv1.RunConfiguration) error
 
-	ProviderConfig() string
+	ProviderName() string
 }
 
 type KfpRunConfigurationWorkflowIntegrationSuite struct {
@@ -126,8 +126,8 @@ func (_ KfpRunConfigurationWorkflowIntegrationSuite) failDeletionWithCode(code i
 		))
 }
 
-func (_ KfpRunConfigurationWorkflowIntegrationSuite) ProviderConfig() string {
-	return "restKfpApiUrl: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
+func (_ KfpRunConfigurationWorkflowIntegrationSuite) ProviderName() string {
+	return "kfp"
 }
 
 func (kfprcwis KfpRunConfigurationWorkflowIntegrationSuite) stubGetPipeline(pipelineName string) error {
@@ -216,11 +216,11 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			workflowFactory := RunConfigurationWorkflowFactory{
 				WorkflowFactoryBase: WorkflowFactoryBase{
 					Config: config.Configuration{
+						DefaultProviderName:    suite.ProviderName(),
 						WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 						DefaultExperiment:      defaultExperiment,
 						WorkflowNamespace:      "argo",
 					},
-					ProviderConfig: suite.ProviderConfig(),
 				},
 			}
 

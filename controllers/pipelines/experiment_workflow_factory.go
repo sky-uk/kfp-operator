@@ -50,8 +50,8 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 						Value: argo.AnyStringPtr(experimentDefinition),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},
@@ -82,8 +82,8 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 						Value: argo.AnyStringPtr(experiment.Status.ProviderId),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},
@@ -105,8 +105,8 @@ func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment 
 						Value: argo.AnyStringPtr(experiment.Status.ProviderId),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},

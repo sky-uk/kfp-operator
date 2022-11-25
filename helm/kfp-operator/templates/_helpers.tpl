@@ -49,7 +49,7 @@ Remove trailing '/' characters from .Values.containerRegistry.
 {{- end }}
 
 {{- define "kfp-operator.providerImage" -}}
-{{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-{{ .Values.manager.provider.type }}-provider:{{ .Chart.AppVersion }}
+{{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-{{ .Provider.type }}-provider:{{ .Chart.AppVersion }}
 {{- end }}
 
 {{/*
@@ -68,7 +68,6 @@ Populate configuration with fallbacks and overrides.
 workflowNamespace: {{ .Values.namespace.name }}
 {{- end }}
 {{- define "configurationOverrides" -}}
-providerConfigFile: provider.yaml
 workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
 {{- if .Values.manager.multiversion.enabled }}
 multiversion: true

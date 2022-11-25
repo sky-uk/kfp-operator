@@ -94,8 +94,8 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 						Value: argo.AnyStringPtr(pipelineDefinition),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},
@@ -126,8 +126,8 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 						Value: argo.AnyStringPtr(pipeline.Status.ProviderId),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},
@@ -149,8 +149,8 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 						Value: argo.AnyStringPtr(pipeline.Status.ProviderId),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},

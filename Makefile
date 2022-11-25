@@ -72,7 +72,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 	$(MAKE) docker-build-argo && \
 	docker build docs-gen/includes/quickstart -t kfp-quickstart
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
- 		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
+ 		$(YQ) e 'select(.metadata.namespace == "argo")' - | \
  		kubectl apply -f -
 	go test ./... -tags=integration --timeout 20m
 

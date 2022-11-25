@@ -1,37 +1,39 @@
-{{- if eq .Values.manager.provider.type "vai" -}}
+{{- range $providerName, $providerBlock := .Values.providers -}}
+{{- if eq $providerBlock.type "vai" -}}
+---
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-run-submitter
-  namespace: {{ .Values.namespace.name }}
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-submitter
+  namespace: {{ $.Values.namespace.name }}
   labels:
-    {{- include "kfp-operator.labels" . | nindent 4 }}
+    {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:
   template:
     metadata:
-      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
-      {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
-    serviceAccountName: {{ .Values.manager.provider.serviceAccount.name }}
+      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+      {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
+    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
   pubSub:
     runs:
       jsonBody: true
-      projectID: {{ .Values.manager.provider.configuration.vaiProject }}
-      subscriptionID: {{ .Values.manager.provider.configuration.submitterRunsSubscription }}
+      projectID: {{ $providerBlock.configuration.vaiProject }}
+      subscriptionID: {{ $providerBlock.configuration.submitterRunsSubscription }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-run-submitter
-  namespace: {{ .Values.namespace.name }}
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-submitter
+  namespace: {{ $.Values.namespace.name }}
 spec:
   template:
-    serviceAccountName: {{ .Values.manager.provider.serviceAccount.name }}
+    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
     metadata:
-      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
-      {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
+      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+      {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
   dependencies:
     - name: runs
-      eventSourceName: {{ include "kfp-operator.fullname" . }}-run-submitter
+      eventSourceName: {{ include "kfp-operator.fullname" $ }}-run-submitter
       eventName: runs
   triggers:
   - template:
@@ -43,11 +45,15 @@ spec:
             apiVersion: argoproj.io/v1alpha1
             kind: Workflow
             metadata:
-              generateName: {{ include "kfp-operator.fullname" . }}-submit-run-
+              generateName: {{ include "kfp-operator.fullname" $ }}-submit-run-
             spec:
+              volumes:
+              - name: providers-config
+                configMap:
+                  name: {{ include "kfp-operator.fullname" $ }}-providers
               ttlStrategy:
                 secondsAfterCompletion: 300
-              serviceAccountName: {{ .Values.manager.provider.serviceAccount.name }}
+              serviceAccountName: {{ $providerBlock.serviceAccount.name }}
               entrypoint: submit
               arguments:
                 parameters:
@@ -56,35 +62,34 @@ spec:
               templates:
               - name: submit
                 metadata:
-                  {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
-                  {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 18 }}
+                  {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+                  {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 18 }}
                 inputs:
                   artifacts:
-                  - name: provider-config
-                    path: /tmp/provider-config.yaml
-                    raw:
-                      data: |
-                        {{- .Values.manager.provider.configuration | toYaml | nindent 24 }}
                   - name: run
-                    path: /tmp/run.json
+                    path: /run.json
                     raw:
                       data: |
                         {{`{{workflow.parameters.run}}`}}
                 container:
-                  image: {{ include "kfp-operator.providerImage" . }}
+                  image: {{ include "kfp-operator.providerImage" (merge (dict "Provider" $providerBlock) $ ) }}
+                  volumeMounts:
+                  - name: providers-config
+                    mountPath: /providers-config
                   command:
                   - /provider
                   args:
                   - --provider-config
-                  - /tmp/provider-config.yaml
+                  - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
                   - custom
                   - vai-run
                   - submit
                   - --run
-                  - /tmp/run.json
+                  - /run.json
         parameters:
           - src:
               dependencyName: runs
               dataKey: body
             dest: spec.arguments.parameters.0.value
+{{ end }}
 {{- end -}}

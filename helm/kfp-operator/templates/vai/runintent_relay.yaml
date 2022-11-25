@@ -1,37 +1,39 @@
-{{- if eq .Values.manager.provider.type "vai" -}}
+{{- range $providerName, $providerBlock := .Values.providers -}}
+{{- if eq $providerBlock.type "vai" -}}
+---
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-run-enqueuer
-  namespace: {{ .Values.namespace.name }}
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
+  namespace: {{ $.Values.namespace.name }}
   labels:
-    {{- include "kfp-operator.labels" . | nindent 4 }}
+    {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:
   template:
     metadata:
-      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
-      {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
-    serviceAccountName: {{ .Values.manager.provider.serviceAccount.name }}
+      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+      {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
+    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
   pubSub:
     run-intents:
       jsonBody: true
-      projectID: {{ .Values.manager.provider.configuration.vaiProject }}
-      subscriptionID: {{ .Values.manager.provider.configuration.enqueuerRunIntentsSubscription }}
+      projectID: {{ $providerBlock.configuration.vaiProject }}
+      subscriptionID: {{ $providerBlock.configuration.enqueuerRunIntentsSubscription }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-run-enqueuer
-  namespace: {{ .Values.namespace.name }}
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
+  namespace: {{ $.Values.namespace.name }}
 spec:
   template:
-    serviceAccountName: {{ .Values.manager.provider.serviceAccount.name }}
+    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
     metadata:
-      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
-      {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
+      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+      {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
   dependencies:
     - name: run-intents
-      eventSourceName: {{ include "kfp-operator.fullname" . }}-run-enqueuer
+      eventSourceName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
       eventName: run-intents
   triggers:
   - template:
@@ -43,11 +45,11 @@ spec:
             apiVersion: argoproj.io/v1alpha1
             kind: Workflow
             metadata:
-              generateName: {{ include "kfp-operator.fullname" . }}-enqueue-run-
+              generateName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-enqueue-run-
             spec:
               ttlStrategy:
                 secondsAfterCompletion: 300
-              serviceAccountName: {{ .Values.manager.provider.serviceAccount.name }}
+              serviceAccountName: {{ $providerBlock.serviceAccount.name }}
               entrypoint: enqueue
               arguments:
                 parameters:
@@ -56,35 +58,36 @@ spec:
               templates:
               - name: enqueue
                 metadata:
-                  {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
-                  {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 18 }}
+                  {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+                  {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 18 }}
                 inputs:
                   artifacts:
                   - name: provider-config
-                    path: /tmp/provider-config.yaml
+                    path: /provider-config.yaml
                     raw:
                       data: |
-                        {{- .Values.manager.provider.configuration | toYaml | nindent 24 }}
+                        {{- $providerBlock.configuration | toYaml | nindent 24 }}
                   - name: run-intent
-                    path: /tmp/run-intent.json
+                    path: /run-intent.json
                     raw:
                       data: |
                         {{`{{workflow.parameters.run-intent}}`}}
                 container:
-                  image: {{ include "kfp-operator.providerImage" . }}
+                  image: {{ include "kfp-operator.providerImage" (merge (dict "Provider" $providerBlock) $ ) }}
                   command:
                   - /provider
                   args:
                   - --provider-config
-                  - /tmp/provider-config.yaml
+                  - /provider-config.yaml
                   - custom
                   - vai-run
                   - enqueue
                   - --run-intent
-                  - /tmp/run-intent.json
+                  - /run-intent.json
         parameters:
           - src:
               dependencyName: run-intents
               dataKey: body
             dest: spec.arguments.parameters.0.value
+{{ end }}
 {{- end -}}

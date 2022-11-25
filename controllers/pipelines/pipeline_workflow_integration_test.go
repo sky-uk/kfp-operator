@@ -27,14 +27,14 @@ type PipelineWorkflowIntegrationSuite interface {
 	SucceedDeletion(*pipelinesv1.Pipeline) error
 	FailDeletion(*pipelinesv1.Pipeline) error
 
-	ProviderConfig() string
+	ProviderName() string
 }
 
 type VertexAIPipelineWorkflowIntegrationSuite struct {
 }
 
-func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "gcsEndpoint: http://wiremock:80\nimage: kfp-operator-vai-provider\npipelineBucket: pipelineBucket\nexecutionMode: v2"
+func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) ProviderName() string {
+	return "vai"
 }
 
 func (vaipwis VertexAIPipelineWorkflowIntegrationSuite) SucceedUpload(_ *pipelinesv1.Pipeline) error {
@@ -165,8 +165,8 @@ func (kfppwis KfpPipelineWorkflowIntegrationSuite) FailUploadVersionInCreation(p
 	return kfppwis.FailUploadVersion(pipeline)
 }
 
-func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderConfig() string {
-	return "restKfpApiUrl: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
+func (kfppwis KfpPipelineWorkflowIntegrationSuite) ProviderName() string {
+	return "kfp"
 }
 
 var providerId = apis.RandomString()
@@ -205,14 +205,14 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 			workflowFactory := PipelineWorkflowFactory{
 				WorkflowFactoryBase: WorkflowFactoryBase{
 					Config: config.Configuration{
-						PipelineStorage: "gs://some-bucket",
+						DefaultProviderName: suite.ProviderName(),
+						PipelineStorage:     "gs://some-bucket",
 						DefaultBeamArgs: []apis.NamedValue{
 							{Name: "project", Value: "project"},
 						},
 						WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 						WorkflowNamespace:      "argo",
 					},
-					ProviderConfig: suite.ProviderConfig(),
 				},
 			}
 

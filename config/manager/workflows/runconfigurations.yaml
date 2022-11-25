@@ -4,6 +4,10 @@ metadata:
   name: runconfiguration-steps
   namespace: kfp-operator-system
 spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
   templates:
   - name: create
     inputs:
@@ -11,101 +15,94 @@ spec:
       - name: provider-image
       artifacts:
       - name: runconfiguration-definition
-        path: /tmp/runconfiguration-definition.yaml
+        path: /runconfiguration-definition.yaml
         raw:
           data: |
             {{workflow.parameters.runconfiguration-definition}}
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{workflow.parameters.provider-config}}
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /tmp/provider-output.yaml
+          path: /provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /tmp/provider-config.yaml
+      - /providers-config/{{workflow.parameters.provider-name}}
       - runconfiguration
       - create
       - --runconfiguration-definition
-      - /tmp/runconfiguration-definition.yaml
+      - /runconfiguration-definition.yaml
       - --out
-      - /tmp/provider-output.yaml
+      - /provider-output.yaml
   - name: update
     inputs:
       parameters:
       - name: provider-image
       artifacts:
       - name: runconfiguration-definition
-        path: /tmp/runconfiguration-definition.yaml
+        path: /runconfiguration-definition.yaml
         raw:
           data: |
             {{workflow.parameters.runconfiguration-definition}}
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{workflow.parameters.provider-config}}
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /tmp/provider-output.yaml
+          path: /provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /tmp/provider-config.yaml
+      - /providers-config/{{workflow.parameters.provider-name}}
       - runconfiguration
       - update
       - --runconfiguration-definition
-      - /tmp/runconfiguration-definition.yaml
+      - /runconfiguration-definition.yaml
       - --runconfiguration-id
       - '{{workflow.parameters.runconfiguration-id}}'
       - --out
-      - /tmp/provider-output.yaml
+      - /provider-output.yaml
   - name: delete
     inputs:
       parameters:
       - name: provider-image
-      artifacts:
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{workflow.parameters.provider-config}}
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /tmp/provider-output.yaml
+          path: /provider-output.yaml
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /tmp/provider-config.yaml
+      - /providers-config/{{workflow.parameters.provider-name}}
       - runconfiguration
       - delete
       - --runconfiguration-definition
-      - /tmp/runconfiguration-definition.yaml
+      - /runconfiguration-definition.yaml
       - --runconfiguration-id
       - '{{workflow.parameters.runconfiguration-id}}'
       - --out
-      - /tmp/provider-output.yaml
+      - /provider-output.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -119,8 +116,8 @@ spec:
     secondsAfterFailure: 3600
   arguments:
     parameters:
+    - name: provider-name
     - name: runconfiguration-definition
-    - name: provider-config
   entrypoint: main
   templates:
   - name: main
@@ -159,9 +156,9 @@ spec:
     secondsAfterFailure: 3600
   arguments:
     parameters:
-    - name: runconfiguration-definition
-    - name: provider-config
+    - name: provider-name
     - name: runconfiguration-id
+    - name: runconfiguration-definition
   entrypoint: main
   templates:
   - name: main
@@ -200,7 +197,7 @@ spec:
     secondsAfterFailure: 3600
   arguments:
     parameters:
-    - name: provider-config
+    - name: provider-name
     - name: runconfiguration-id
   entrypoint: main
   templates:

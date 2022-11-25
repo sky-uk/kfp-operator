@@ -43,9 +43,8 @@ manager:
       endpointConfiguration: {}
   multiversion:
     enabled: false
-  provider:
-    type: kfp
-    configuration: {}
+
+providers: {}
 
 logging:
   verbosity: # info

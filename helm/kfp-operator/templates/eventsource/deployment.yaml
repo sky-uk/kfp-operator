@@ -1,9 +1,11 @@
 {{ if .Values.eventsourceServer.create }}
+{{- range $providerName, $providerBlock := .Values.providers -}}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-run-completion-eventsource-server
-  namespace: {{ .Values.namespace.name }}
+  name: {{ include "kfp-operator.fullname" . }}-{{ $providerName }}-run-completion-eventsource-server
+  namespace: {{ $.Values.namespace.name }}
   labels:
     {{- include "kfp-operator.eventsourceServer.labels" . | nindent 4 }}
 spec:
@@ -14,7 +16,7 @@ spec:
   template:
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.eventsourceServer.labels" .) | fromYaml) -}}
-      {{- (merge .Values.eventsourceServer.metadata $defaultMetadata) | toYaml | nindent 6 }}
+      {{- (merge $.Values.eventsourceServer.metadata $defaultMetadata) | toYaml | nindent 6 }}
     spec:
       securityContext:
         runAsNonRoot: true
@@ -27,23 +29,20 @@ spec:
           - /provider-config.yaml
           - eventsource-server
           - --port=50051
-          image: {{ include "kfp-operator.providerImage" . }}
+          image: {{ include "kfp-operator.providerImage" (merge (dict "Provider" $providerBlock) $ ) }}
           securityContext:
             allowPrivilegeEscalation: false
           resources:
-            {{- .Values.eventsourceServer.resources | toYaml | nindent 12 }}
+            {{- $.Values.eventsourceServer.resources | toYaml | nindent 12 }}
           ports:
           - name: grpc
             containerPort: 50051
             protocol: TCP
-          volumeMounts:
-          - mountPath: /provider-config.yaml
-            name: provider-config
-            subPath: provider.yaml
       volumes:
       - configMap:
-          name: {{ include "kfp-operator.fullname" . }}-manager-config
+          name: {{ include "kfp-operator.fullname" $ }}-manager-config
         name: provider-config
-      serviceAccountName: {{ .Values.eventsourceServer.serviceAccount.name }}
+      serviceAccountName: {{ $.Values.eventsourceServer.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
 {{ end }}
+{{- end -}}

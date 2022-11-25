@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: providers
+  namespace: kfp-operator-system
+data:
+  kfp: |
+    image: kfp-operator-kfp-provider:latest
+    executionMode: v1
+    restKfpApiUrl: ${KFP_ENDPOINT}

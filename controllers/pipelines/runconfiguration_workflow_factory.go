@@ -20,13 +20,6 @@ type RunConfigurationWorkflowFactory struct {
 	WorkflowFactoryBase
 }
 
-func (workflows RunConfigurationWorkflowFactory) providerConfigParameter() argo.Parameter {
-	return argo.Parameter{
-		Name:  WorkflowConstants.ProviderConfigParameterName,
-		Value: argo.AnyStringPtr(workflows.ProviderConfig),
-	}
-}
-
 func (wf *RunConfigurationWorkflowFactory) runConfigurationDefinitionYaml(runConfiguration *pipelinesv1.RunConfiguration) (string, error) {
 	var experimentName string
 
@@ -74,8 +67,8 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 						Value: argo.AnyStringPtr(runConfigurationDefinition),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},
@@ -110,8 +103,8 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 						Value: argo.AnyStringPtr(runConfiguration.Status.ProviderId),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},
@@ -133,8 +126,8 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runCo
 						Value: argo.AnyStringPtr(runConfiguration.Status.ProviderId),
 					},
 					{
-						Name:  WorkflowConstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(workflows.ProviderConfig),
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(workflows.Config.DefaultProviderName),
 					},
 				},
 			},
