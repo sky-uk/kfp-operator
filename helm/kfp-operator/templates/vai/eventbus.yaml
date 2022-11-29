@@ -1,10 +1,4 @@
-{{ $found := false }}
-{{- range $providerName, $providerBlock := .Values.providers -}}
-  {{- if eq $providerBlock.type "vai" -}}
-    {{ $found = true }}
-  {{- end -}}
-{{- end -}}
-{{- if $found -}}
+{{- if (include "kfp-operator.providerTypeExists" (merge (dict "ProviderType" "vai") . )) -}}
 apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:

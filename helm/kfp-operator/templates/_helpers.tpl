@@ -81,3 +81,9 @@ multiversion: true
 {{- define "kfp-operator.argoNamespace" -}}
 {{- (include "kfp-operator.configuration" . | fromYaml).workflowNamespace -}}
 {{- end -}}
+
+{{- define "kfp-operator.providerTypeExists" -}}
+{{- range $providerName, $providerBlock := .Values.providers -}}
+  {{- if eq $providerBlock.type .ProviderType -}}{{ $providerName }}{{- end -}}
+{{- end -}}
+{{- end -}}

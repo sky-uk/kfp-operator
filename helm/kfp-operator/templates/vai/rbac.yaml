@@ -12,7 +12,7 @@ roleRef:
   name: {{ include "kfp-operator.fullname" $ }}-vai-provider
 subjects:
   - kind: ServiceAccount
-    name: {{ $providerBlock.serviceAccount.name }}
+    name: {{ $providerBlock.serviceAccount }}
     namespace: {{ $.Values.namespace.name }}
 ---
     {{ $found = true }}

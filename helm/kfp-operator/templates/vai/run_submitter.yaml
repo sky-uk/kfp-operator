@@ -13,7 +13,7 @@ spec:
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
       {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
-    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
+    serviceAccountName: {{ $providerBlock.serviceAccount }}
   pubSub:
     runs:
       jsonBody: true
@@ -27,7 +27,7 @@ metadata:
   namespace: {{ $.Values.namespace.name }}
 spec:
   template:
-    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
+    serviceAccountName: {{ $providerBlock.serviceAccount }}
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
       {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
@@ -53,7 +53,7 @@ spec:
                   name: {{ include "kfp-operator.fullname" $ }}-providers
               ttlStrategy:
                 secondsAfterCompletion: 300
-              serviceAccountName: {{ $providerBlock.serviceAccount.name }}
+              serviceAccountName: {{ $providerBlock.serviceAccount }}
               entrypoint: submit
               arguments:
                 parameters:

@@ -13,7 +13,7 @@ spec:
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
       {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
-    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
+    serviceAccountName: {{ $providerBlock.serviceAccount }}
   pubSub:
     run-intents:
       jsonBody: true
@@ -27,7 +27,7 @@ metadata:
   namespace: {{ $.Values.namespace.name }}
 spec:
   template:
-    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
+    serviceAccountName: {{ $providerBlock.serviceAccount }}
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
       {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
@@ -49,7 +49,7 @@ spec:
             spec:
               ttlStrategy:
                 secondsAfterCompletion: 300
-              serviceAccountName: {{ $providerBlock.serviceAccount.name }}
+              serviceAccountName: {{ $providerBlock.serviceAccount }}
               entrypoint: enqueue
               arguments:
                 parameters:
