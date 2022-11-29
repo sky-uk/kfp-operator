@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
-  namespace: {{ include "kfp-operator.workflow.namespace" . }}
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   templates:
   - name: create
@@ -117,7 +117,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-runconfiguration
-  namespace: {{ include "kfp-operator.workflow.namespace" . }}
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
@@ -158,7 +158,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-runconfiguration
-  namespace: {{ include "kfp-operator.workflow.namespace" . }}
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
@@ -200,7 +200,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-delete-runconfiguration
-  namespace: {{ include "kfp-operator.workflow.namespace" . }}
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}

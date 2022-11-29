@@ -79,7 +79,6 @@ multiversion: true
 {{ merge (include "configurationOverrides" . | fromYaml) .Values.manager.configuration (include "fallbackConfiguration" . | fromYaml) | toYaml }}
 {{- end }}
 
-{{- define "kfp-operator.workflow.namespace" -}}
-{{- $config := (include "kfp-operator.configuration" . | fromYaml) -}}
-{{- $config.workflowNamespace -}}
+{{- define "kfp-operator.argoNamespace" -}}
+{{- (include "kfp-operator.configuration" . | fromYaml).workflowNamespace -}}
 {{- end -}}
