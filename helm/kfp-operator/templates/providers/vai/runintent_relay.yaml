@@ -5,15 +5,15 @@ apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
   name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
-  namespace: {{ $.Values.namespace.name }}
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
   labels:
     {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:
   template:
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-      {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
-    serviceAccountName: {{ $providerBlock.serviceAccount }}
+      {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 6 }}
+    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
   pubSub:
     run-intents:
       jsonBody: true
@@ -24,13 +24,13 @@ apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
   name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
-  namespace: {{ $.Values.namespace.name }}
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
 spec:
   template:
-    serviceAccountName: {{ $providerBlock.serviceAccount }}
+    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-      {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
+      {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 6 }}
   dependencies:
     - name: run-intents
       eventSourceName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
@@ -49,7 +49,7 @@ spec:
             spec:
               ttlStrategy:
                 secondsAfterCompletion: 300
-              serviceAccountName: {{ $providerBlock.serviceAccount }}
+              serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
               entrypoint: enqueue
               arguments:
                 parameters:
@@ -59,7 +59,7 @@ spec:
               - name: enqueue
                 metadata:
                   {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-                  {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 18 }}
+                  {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 18 }}
                 inputs:
                   artifacts:
                   - name: provider-config

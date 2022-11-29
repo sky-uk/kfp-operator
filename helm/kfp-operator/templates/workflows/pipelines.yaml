@@ -4,10 +4,6 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
-  volumes:
-  - name: providers-config
-    configMap:
-      name: {{ include "kfp-operator.fullname" . }}-providers
   templates:
   - name: compile
     inputs:
@@ -55,6 +51,7 @@ spec:
     inputs:
       parameters:
       - name: provider-image
+      - name: provider-sa
       artifacts:
       - name: pipeline
         path: /pipeline.yaml
@@ -67,7 +64,8 @@ spec:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /provider-output.yaml
+          path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -87,7 +85,7 @@ spec:
       - --pipeline-file
       - /pipeline.yaml
       - --out
-      - /provider-output.yaml
+      - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: update
     inputs:
@@ -102,11 +100,13 @@ spec:
       parameters:
       - name: pipeline-id
       - name: provider-image
+      - name: provider-sa
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /provider-output.yaml
+          path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -128,17 +128,19 @@ spec:
       - --pipeline-file
       - /pipeline.yaml
       - --out
-      - /provider-output.yaml
+      - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: delete
     inputs:
       parameters:
       - name: provider-image
+      - name: provider-sa
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /provider-output.yaml
+          path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -158,7 +160,7 @@ spec:
       - --pipeline-id
       - '{{`{{workflow.parameters.pipeline-id}}`}}'
       - --out
-      - /provider-output.yaml
+      - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -167,6 +169,10 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-pipeline
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: {{ include "kfp-operator.fullname" . }}-providers
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
@@ -193,6 +199,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: select-execution-mode
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
@@ -226,6 +240,8 @@ spec:
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+          - name: provider-sa
+            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -233,6 +249,10 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-pipeline
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: {{ include "kfp-operator.fullname" . }}-providers
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
@@ -260,6 +280,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: select-execution-mode
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
@@ -295,6 +323,8 @@ spec:
             value: '{{`{{workflow.parameters.pipeline-id}}`}}'
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+          - name: provider-sa
+            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -302,6 +332,10 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-delete-pipeline
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: {{ include "kfp-operator.fullname" . }}-providers
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
@@ -328,6 +362,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
@@ -336,3 +378,5 @@ spec:
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+          - name: provider-sa
+            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'

@@ -1,22 +1,22 @@
 {{ if .Values.eventsourceServer.create }}
 {{- range $providerName, $providerBlock := .Values.providers -}}
+{{- $labels := include "kfp-operator.eventsourceServer.labels" (merge (dict "ProviderName" $providerName) $ ) }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-{{ $providerName }}-run-completion-eventsource-server
-  namespace: {{ $.Values.namespace.name }}
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-completion-eventsource-server
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
   labels:
-    {{- include "kfp-operator.eventsourceServer.labels" . | nindent 4 }}
+    {{- $labels | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      {{- include "kfp-operator.eventsourceServer.labels" . | nindent 6 }}
+      {{- $labels | nindent 6 }}
   replicas: 1
   template:
     metadata:
-      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.eventsourceServer.labels" .) | fromYaml) -}}
-      {{- (merge $.Values.eventsourceServer.metadata $defaultMetadata) | toYaml | nindent 6 }}
+      {{- (deepCopy $.Values.eventsourceServer.metadata | merge (dict "labels" ($labels | fromYaml))) | toYaml | nindent 6 }}
     spec:
       securityContext:
         runAsNonRoot: true
@@ -38,11 +38,15 @@ spec:
           - name: grpc
             containerPort: 50051
             protocol: TCP
+          volumeMounts:
+          - mountPath: /provider-config.yaml
+            name: provider-configs
+            subPath: {{ $providerName }}
       volumes:
-      - configMap:
-          name: {{ include "kfp-operator.fullname" $ }}-manager-config
-        name: provider-config
-      serviceAccountName: {{ $.Values.eventsourceServer.serviceAccount.name }}
+      - name: provider-configs
+        configMap:
+          name: {{ include "kfp-operator.fullname" $ }}-providers
+      serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
       terminationGracePeriodSeconds: 10
 {{ end }}
 {{- end -}}

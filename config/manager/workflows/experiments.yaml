@@ -4,15 +4,12 @@ metadata:
   name: experiment-steps
   namespace: kfp-operator-system
 spec:
-  volumes:
-  - name: providers-config
-    configMap:
-      name: kfp-operator-providers
   templates:
   - name: create
     inputs:
       parameters:
       - name: provider-image
+      - name: provider-sa
       artifacts:
       - name: experiment-definition
         path: /experiment-definition.yaml
@@ -23,7 +20,8 @@ spec:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /provider-output.yaml
+          path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -40,11 +38,12 @@ spec:
       - --experiment-definition
       - /experiment-definition.yaml
       - --out
-      - /provider-output.yaml
+      - /tmp/provider-output.yaml
   - name: update
     inputs:
       parameters:
       - name: provider-image
+      - name: provider-sa
       artifacts:
       - name: experiment-definition
         path: /experiment-definition.yaml
@@ -55,7 +54,8 @@ spec:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /provider-output.yaml
+          path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -74,16 +74,18 @@ spec:
       - --experiment-id
       - '{{workflow.parameters.experiment-id}}'
       - --out
-      - /provider-output.yaml
+      - /tmp/provider-output.yaml
   - name: delete
     inputs:
       parameters:
       - name: provider-image
+      - name: provider-sa
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /provider-output.yaml
+          path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -102,7 +104,7 @@ spec:
       - --experiment-id
       - '{{workflow.parameters.experiment-id}}'
       - --out
-      - /provider-output.yaml
+      - /tmp/provider-output.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -110,6 +112,11 @@ metadata:
   name: create-experiment
   namespace: kfp-operator-system
 spec:
+  serviceAccountName: kfp-operator-workflow-runner
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 600
     secondsAfterSuccess: 600
@@ -135,6 +142,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: provider
         templateRef:
           name: kfp-operator-experiment-steps
@@ -143,6 +158,8 @@ spec:
           parameters:
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
+          - name: provider-sa
+            value: '{{steps.select-provider-sa.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -150,6 +167,11 @@ metadata:
   name: update-experiment
   namespace: kfp-operator-system
 spec:
+  serviceAccountName: kfp-operator-workflow-runner
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 600
     secondsAfterSuccess: 600
@@ -176,6 +198,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: provider
         templateRef:
           name: kfp-operator-experiment-steps
@@ -184,6 +214,8 @@ spec:
           parameters:
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
+          - name: provider-sa
+            value: '{{steps.select-provider-sa.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -191,6 +223,11 @@ metadata:
   name: delete-experiment
   namespace: kfp-operator-system
 spec:
+  serviceAccountName: kfp-operator-workflow-runner
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 600
     secondsAfterSuccess: 600
@@ -216,6 +253,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: provider
         templateRef:
           name: kfp-operator-experiment-steps
@@ -224,3 +269,5 @@ spec:
           parameters:
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
+          - name: provider-sa
+            value: '{{steps.select-provider-sa.outputs.result}}'

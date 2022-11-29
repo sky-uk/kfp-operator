@@ -205,8 +205,8 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 			workflowFactory := PipelineWorkflowFactory{
 				WorkflowFactoryBase: WorkflowFactoryBase{
 					Config: config.Configuration{
-						DefaultProviderName: suite.ProviderName(),
-						PipelineStorage:     "gs://some-bucket",
+						DefaultProvider: suite.ProviderName(),
+						PipelineStorage: "gs://some-bucket",
 						DefaultBeamArgs: []apis.NamedValue{
 							{Name: "project", Value: "project"},
 						},

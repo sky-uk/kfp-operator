@@ -21,7 +21,7 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: config.Configuration{
 				DefaultExperiment:      "Default",
-				DefaultProviderName:    "kfp",
+				DefaultProvider:        "kfp",
 				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 				WorkflowNamespace:      "argo",
 			},

@@ -1,17 +1,20 @@
 {{ if .Values.eventsourceServer.create }}
+{{- range $providerName, $providerBlock := .Values.providers }}
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-run-completion-eventsource-server
-  namespace: {{ .Values.namespace.name }}
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-completion-eventsource-server
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
   labels:
-    {{- include "kfp-operator.eventsourceServer.labels" . | nindent 4 }}
+    {{- include "kfp-operator.eventsourceServer.labels" (merge (dict "ProviderName" $providerName) $ ) | nindent 4 }}
 spec:
   selector:
-    {{- include "kfp-operator.eventsourceServer.labels" . | nindent 4 }}
+    {{- include "kfp-operator.eventsourceServer.labels" (merge (dict "ProviderName" $providerName) $ ) | nindent 4 }}
   ports:
     - name: grpc
-      port: {{ .Values.eventsourceServer.port }}
+      port: {{ $.Values.eventsourceServer.port }}
       protocol: TCP
       targetPort: grpc
+{{ end }}
 {{ end }}

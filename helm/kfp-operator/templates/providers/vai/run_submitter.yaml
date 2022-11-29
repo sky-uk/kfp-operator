@@ -5,15 +5,15 @@ apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
   name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-submitter
-  namespace: {{ $.Values.namespace.name }}
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
   labels:
     {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:
   template:
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-      {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
-    serviceAccountName: {{ $providerBlock.serviceAccount }}
+      {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 6 }}
+    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
   pubSub:
     runs:
       jsonBody: true
@@ -24,13 +24,13 @@ apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
   name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-submitter
-  namespace: {{ $.Values.namespace.name }}
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
 spec:
   template:
-    serviceAccountName: {{ $providerBlock.serviceAccount }}
+    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
     metadata:
       {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-      {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
+      {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 6 }}
   dependencies:
     - name: runs
       eventSourceName: {{ include "kfp-operator.fullname" $ }}-run-submitter
@@ -53,7 +53,7 @@ spec:
                   name: {{ include "kfp-operator.fullname" $ }}-providers
               ttlStrategy:
                 secondsAfterCompletion: 300
-              serviceAccountName: {{ $providerBlock.serviceAccount }}
+              serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
               entrypoint: submit
               arguments:
                 parameters:
@@ -63,7 +63,7 @@ spec:
               - name: submit
                 metadata:
                   {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-                  {{- (merge $.Values.manager.metadata $defaultMetadata) | toYaml | nindent 18 }}
+                  {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 18 }}
                 inputs:
                   artifacts:
                   - name: run

@@ -1,10 +1,11 @@
 resources:
 - manager.yaml
-- workflows/common.yaml
-- workflows/pipelines.yaml
-- workflows/experiments.yaml
-- workflows/runconfigurations.yaml
 - providers.yaml
+- workflows/common.yaml
+- workflows/experiments.yaml
+- workflows/pipelines.yaml
+- workflows/rbac.yaml
+- workflows/runconfigurations.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

@@ -3,7 +3,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:
   name: default
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
   labels:
     {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:

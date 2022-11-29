@@ -569,7 +569,7 @@ spec:
                 type: array
               defaultExperiment:
                 type: string
-              defaultProviderName:
+              defaultProvider:
                 type: string
               multiversion:
                 type: boolean
