@@ -3,8 +3,13 @@ package pipelines
 import (
 	"context"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -18,8 +23,7 @@ var (
 )
 
 type PipelineReconciler struct {
-	EC           K8sExecutionContext
-	StateHandler StateHandler[*pipelinesv1.Pipeline]
+	BaseReconciler[*pipelinesv1.Pipeline]
 }
 
 //+kubebuilder:rbac:groups=argoproj.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete
@@ -56,9 +60,16 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{}, nil
 }
 
+func (r *PipelineReconciler) reconciliationRequestsWorkflow(workflow client.Object) []reconcile.Request {
+	return r.BaseReconciler.reconciliationRequestsWorkflow(workflow, &pipelinesv1.Pipeline{})
+}
+
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pipelinesv1.Pipeline{}).
-		Owns(&argo.Workflow{}).
+		Watches(&source.Kind{Type: &argo.Workflow{}},
+			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsWorkflow),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
 		Complete(r)
 }

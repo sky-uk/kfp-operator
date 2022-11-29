@@ -60,3 +60,25 @@ Only render object if not empty.
 {{ . | toYaml }}
 {{- end }}
 {{- end }}
+
+{{/*
+Populate configuration with fallbacks and overrides.
+*/}}
+{{- define "fallbackConfiguration" -}}
+workflowNamespace: {{ .Values.namespace.name }}
+{{- end }}
+{{- define "configurationOverrides" -}}
+providerConfigFile: provider.yaml
+workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
+{{- if .Values.manager.multiversion.enabled }}
+multiversion: true
+{{- end -}}
+{{- end }}
+
+{{- define "kfp-operator.configuration" -}}
+{{ merge (include "configurationOverrides" . | fromYaml) .Values.manager.configuration (include "fallbackConfiguration" . | fromYaml) | toYaml }}
+{{- end }}
+
+{{- define "kfp-operator.argoNamespace" -}}
+{{- (include "kfp-operator.configuration" . | fromYaml).workflowNamespace -}}
+{{- end -}}

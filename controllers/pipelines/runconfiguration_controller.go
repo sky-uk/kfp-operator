@@ -28,8 +28,7 @@ const (
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
-	EC           K8sExecutionContext
-	StateHandler StateHandler[*pipelinesv1.RunConfiguration]
+	BaseReconciler[*pipelinesv1.RunConfiguration]
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations,verbs=get;list;watch;create;update;patch;delete
@@ -150,6 +149,10 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 	return requests
 }
 
+func (r *RunConfigurationReconciler) reconciliationRequestsWorkflow(workflow client.Object) []reconcile.Request {
+	return r.BaseReconciler.reconciliationRequestsWorkflow(workflow, &pipelinesv1.RunConfiguration{})
+}
+
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &pipelinesv1.RunConfiguration{}, pipelineRefField, func(rawObj client.Object) []string {
 		runConfiguration := rawObj.(*pipelinesv1.RunConfiguration)
@@ -160,10 +163,13 @@ func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pipelinesv1.RunConfiguration{}).
-		Owns(&argo.Workflow{}).
 		Watches(
 			&source.Kind{Type: &pipelinesv1.Pipeline{}},
 			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsForPipeline),
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		).
+		Watches(&source.Kind{Type: &argo.Workflow{}},
+			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsWorkflow),
 			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 		).
 		Complete(r)

@@ -89,18 +89,20 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{},
+			Config: config.Configuration{
+				WorkflowNamespace: "default",
+			},
 		},
 	}
 
-	var stateHandler = StateHandler[*pipelinesv1.Pipeline]{
-		WorkflowRepository: workflowRepository,
-		WorkflowFactory:    workflowFactory,
-	}
-
 	return &PipelineReconciler{
-		EC:           ec,
-		StateHandler: stateHandler,
+		BaseReconciler: BaseReconciler[*pipelinesv1.Pipeline]{
+			EC: ec,
+			StateHandler: StateHandler[*pipelinesv1.Pipeline]{
+				WorkflowRepository: workflowRepository,
+				WorkflowFactory:    workflowFactory,
+			},
+		},
 	}
 }
 
@@ -110,18 +112,19 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 		WorkflowFactoryBase: WorkflowFactoryBase{
 			Config: config.Configuration{
 				DefaultExperiment: "Default",
+				WorkflowNamespace: "default",
 			},
 		},
 	}
 
-	var stateHandler = StateHandler[*pipelinesv1.RunConfiguration]{
-		WorkflowRepository: workflowRepository,
-		WorkflowFactory:    workflowFactory,
-	}
-
 	return &RunConfigurationReconciler{
-		EC:           ec,
-		StateHandler: stateHandler,
+		BaseReconciler: BaseReconciler[*pipelinesv1.RunConfiguration]{
+			EC: ec,
+			StateHandler: StateHandler[*pipelinesv1.RunConfiguration]{
+				WorkflowRepository: workflowRepository,
+				WorkflowFactory:    workflowFactory,
+			},
+		},
 	}
 }
 
@@ -129,18 +132,20 @@ func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository Work
 	// TODO: mock workflowFactory
 	var workflowFactory = ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{},
+			Config: config.Configuration{
+				WorkflowNamespace: "default",
+			},
 		},
 	}
 
-	var stateHandler = StateHandler[*pipelinesv1.Experiment]{
-		WorkflowRepository: workflowRepository,
-		WorkflowFactory:    workflowFactory,
-	}
-
 	return &ExperimentReconciler{
-		EC:           ec,
-		StateHandler: stateHandler,
+		BaseReconciler: BaseReconciler[*pipelinesv1.Experiment]{
+			EC: ec,
+			StateHandler: StateHandler[*pipelinesv1.Experiment]{
+				WorkflowRepository: workflowRepository,
+				WorkflowFactory:    workflowFactory,
+			},
+		},
 	}
 }
 

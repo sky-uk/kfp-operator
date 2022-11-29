@@ -1,6 +1,8 @@
 fullnameOverride: kfp-operator-integration-tests
 containerRegistry: ""
 manager:
+  configuration:
+    workflowNamespace: argo
   argo:
     containerDefaults:
       imagePullPolicy: Never

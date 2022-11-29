@@ -65,7 +65,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(runConfiguration, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -80,8 +80,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "create-runconfiguration",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "create-runconfiguration",
 			},
 		},
 	}, nil
@@ -98,7 +97,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(runConfiguration, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -117,8 +116,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "update-runconfiguration",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "update-runconfiguration",
 			},
 		},
 	}, nil
@@ -126,7 +124,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 
 func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -141,8 +139,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runCo
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-runconfiguration",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "delete-runconfiguration",
 			},
 		},
 	}, nil

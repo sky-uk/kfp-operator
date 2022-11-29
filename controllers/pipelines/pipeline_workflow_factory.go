@@ -85,7 +85,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(pipeline, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -100,8 +100,7 @@ func (workflows PipelineWorkflowFactory) ConstructCreationWorkflow(pipeline *pip
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "create-pipeline",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "create-pipeline",
 			},
 		},
 	}, nil
@@ -114,7 +113,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(pipeline, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -133,8 +132,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "update-pipeline",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "update-pipeline",
 			},
 		},
 	}, nil
@@ -142,7 +140,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(pipeline *pipel
 
 func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pipelinesv1.Pipeline) (*argo.Workflow, error) {
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(pipeline, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -157,8 +155,7 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(pipeline *pip
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-pipeline",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "delete-pipeline",
 			},
 		},
 	}, nil

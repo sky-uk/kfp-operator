@@ -56,7 +56,7 @@
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>
 &lt;ul>
 &lt;li>The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the &lt;a href="../../reference/configuration/#provider-configuration">respective configuration section&lt;/a> before proceeding.&lt;/li>
-&lt;li>Argo installed cluster-wide.&lt;/li>
+&lt;li>Argo installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
 &lt;/ul>
 &lt;h2 id="build-and-install">Build and Install&lt;/h2>
 &lt;p>Create basic &lt;code>values.yaml&lt;/code> with the following content:&lt;/p>
@@ -220,9 +220,7 @@
 &lt;/tbody>
 &lt;/table>
 &lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
-">test configuration&lt;/a>&lt;/p>
-&lt;h2 id="additional-notes">Additional Notes&lt;/h2>
-&lt;p>If you don&amp;rsquo;t have a cluster-wide installation of Argo (for example if you are using the namespaced installation provided by Kubeflow), you will need to apply additional permissions to the Argo service account to read &lt;code>ClusterWorkflowTemplate&lt;/code>s as described by &lt;code>argo-clusterworkflowtemplate-role&lt;/code> and &lt;code>argo-clusterworkflowtemplate-role-binding&lt;/code> in &lt;a href="https://github.com/argoproj/argo-workflows/blob/master/manifests/quick-start/base/cluster-workflow-template-rbac.yaml">https://github.com/argoproj/argo-workflows/blob/master/manifests/quick-start/base/cluster-workflow-template-rbac.yaml&lt;/a>, changing the namespace to match the one where Argo is installed.&lt;/p></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
+">test configuration&lt;/a>&lt;/p></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
 &lt;p>This tutorial walks you through the creation of a simple TFX pipeline and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p>
 &lt;p>All code samples can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart">GitHub&lt;/a>.&lt;/p>
 &lt;p>We assume that you are already familiar with TFX and Kubeflow and that you have access to a running instance of Kubeflow Pipelines.&lt;/p>

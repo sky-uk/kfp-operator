@@ -119,12 +119,14 @@ func main() {
 	}
 
 	if err = (&pipelinescontrollers.PipelineReconciler{
-		EC: ec,
-		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Pipeline]{
-			WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
-				WorkflowFactoryBase: workflowFactory,
+		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Pipeline]{
+			EC: ec,
+			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Pipeline]{
+				WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
+					WorkflowFactoryBase: workflowFactory,
+				},
+				WorkflowRepository: workflowRepository,
 			},
-			WorkflowRepository: workflowRepository,
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
@@ -132,12 +134,14 @@ func main() {
 	}
 
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
-		EC: ec,
-		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.RunConfiguration]{
-			WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
-				WorkflowFactoryBase: workflowFactory,
+		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.RunConfiguration]{
+			EC: ec,
+			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.RunConfiguration]{
+				WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
+					WorkflowFactoryBase: workflowFactory,
+				},
+				WorkflowRepository: workflowRepository,
 			},
-			WorkflowRepository: workflowRepository,
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
@@ -145,12 +149,14 @@ func main() {
 	}
 
 	if err = (&pipelinescontrollers.ExperimentReconciler{
-		EC: ec,
-		StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Experiment]{
-			WorkflowFactory: pipelinescontrollers.ExperimentWorkflowFactory{
-				WorkflowFactoryBase: workflowFactory,
+		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Experiment]{
+			EC: ec,
+			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Experiment]{
+				WorkflowFactory: pipelinescontrollers.ExperimentWorkflowFactory{
+					WorkflowFactoryBase: workflowFactory,
+				},
+				WorkflowRepository: workflowRepository,
 			},
-			WorkflowRepository: workflowRepository,
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")

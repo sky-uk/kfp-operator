@@ -20,12 +20,7 @@ data:
         leaderElect: true
         resourceName: kfp-operator-lock
     spec:
-      providerConfigFile: provider.yaml
-      workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
-      {{- if .Values.manager.multiversion.enabled }}
-      multiversion: true
-      {{- end -}}
-      {{- .Values.manager.configuration | toYaml | nindent 6 }}
+      {{- include "kfp-operator.configuration" . | nindent 6 }}
   provider.yaml: |
     image: {{ include "kfp-operator.providerImage" . }}
     executionMode: {{ if eq .Values.manager.provider.type "kfp" }}v1{{ else }}v2{{ end }}

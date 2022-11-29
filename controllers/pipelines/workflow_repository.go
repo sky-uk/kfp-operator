@@ -23,7 +23,7 @@ var WorkflowRepositoryConstants = struct {
 
 type WorkflowRepository interface {
 	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelinesv1.Resource) error
-	GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow
+	GetByLabels(ctx context.Context, matchingLabels map[string]string) []argo.Workflow
 	MarkWorkflowAsProcessed(ctx context.Context, workflow *argo.Workflow) error
 }
 
@@ -34,14 +34,10 @@ type WorkflowRepositoryImpl struct {
 }
 
 func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelinesv1.Resource) error {
-	if err := ctrl.SetControllerReference(resource, workflow, w.Scheme); err != nil {
-		return err
-	}
-
 	return w.Client.Create(ctx, workflow)
 }
 
-func (w WorkflowRepositoryImpl) GetByLabels(ctx context.Context, namespace string, matchingLabels map[string]string) []argo.Workflow {
+func (w WorkflowRepositoryImpl) GetByLabels(ctx context.Context, matchingLabels map[string]string) []argo.Workflow {
 	logger := log.FromContext(ctx)
 	var workflows argo.WorkflowList
 
@@ -61,7 +57,7 @@ func (w WorkflowRepositoryImpl) GetByLabels(ctx context.Context, namespace strin
 		sel = sel.Add(*req)
 	}
 
-	if err := w.Client.NonCached.List(ctx, &workflows, client.InNamespace(namespace), client.MatchingLabelsSelector{Selector: sel}); err != nil {
+	if err := w.Client.NonCached.List(ctx, &workflows, client.InNamespace(w.Config.WorkflowNamespace), client.MatchingLabelsSelector{Selector: sel}); err != nil {
 		logger.V(3).Error(err, "no matching workflows")
 	} else {
 		logger.V(3).Info("matching workflows", "workflows", workflows.Items)

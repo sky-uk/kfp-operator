@@ -41,7 +41,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(experiment, WorkflowConstants.CreateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -56,8 +56,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "create-experiment",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "create-experiment",
 			},
 		},
 	}, nil
@@ -70,7 +69,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(experiment, WorkflowConstants.UpdateOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -89,8 +88,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "update-experiment",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "update-experiment",
 			},
 		},
 	}, nil
@@ -98,7 +96,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 
 func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	return &argo.Workflow{
-		ObjectMeta: *CommonWorkflowMeta(experiment, WorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(experiment, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -113,8 +111,7 @@ func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment 
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name:         workflows.Config.WorkflowTemplatePrefix + "delete-experiment",
-				ClusterScope: true,
+				Name: workflows.Config.WorkflowTemplatePrefix + "delete-experiment",
 			},
 		},
 	}, nil
