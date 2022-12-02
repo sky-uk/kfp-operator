@@ -151,6 +151,7 @@ spec:
                 format: int64
                 type: integer
               providerId:
+                pattern: ^[\w-]+(?::[\w-]+)?$
                 type: string
               synchronizationState:
                 type: string

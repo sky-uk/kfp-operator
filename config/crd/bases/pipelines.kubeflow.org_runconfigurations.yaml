@@ -200,6 +200,7 @@ spec:
               observedPipelineVersion:
                 type: string
               providerId:
+                pattern: ^[\w-]+(?::[\w-]+)?$
                 type: string
               synchronizationState:
                 type: string

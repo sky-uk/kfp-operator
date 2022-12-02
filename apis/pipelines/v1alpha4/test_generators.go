@@ -18,7 +18,8 @@ func RandomPipeline() *Pipeline {
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec: RandomPipelineSpec(),
+		Spec:   RandomPipelineSpec(),
+		Status: RandomStatus(),
 	}
 }
 
@@ -40,6 +41,7 @@ func RandomRunConfiguration() *RunConfiguration {
 		Spec: RandomRunConfigurationSpec(),
 		Status: RunConfigurationStatus{
 			ObservedPipelineVersion: RandomString(),
+			Status:                  RandomStatus(),
 		},
 	}
 }
@@ -58,7 +60,8 @@ func RandomExperiment() *Experiment {
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec: RandomExperimentSpec(),
+		Spec:   RandomExperimentSpec(),
+		Status: RandomStatus(),
 	}
 }
 
@@ -72,8 +75,11 @@ func RandomStatus() Status {
 	return Status{
 		SynchronizationState: RandomSynchronizationState(),
 		Version:              RandomString(),
-		ProviderId:           RandomString(),
-		ObservedGeneration:   rand.Int63(),
+		ProviderId: ProviderId{
+			Provider: RandomString(),
+			Id:       RandomString(),
+		},
+		ObservedGeneration: rand.Int63(),
 	}
 }
 

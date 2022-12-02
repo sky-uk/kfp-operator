@@ -143,9 +143,17 @@ func (st StateTransitionTestCase) DeletionRequested() StateTransitionTestCase {
 	return st
 }
 
-var _ = Describe("Experiment State handler", func() {
-	providerId := "12345"
-	anotherProviderId := "67890"
+var _ = Describe("State handler", func() {
+	providerId := pipelinesv1.ProviderId{
+		Provider: "",
+		Id:       "foo", //"12345",
+	}
+	anotherProviderId := pipelinesv1.ProviderId{
+		Provider: "",
+		Id:       "67890",
+	}
+	emptyProviderId := pipelinesv1.ProviderId{}
+
 	providerError := "a provider error has occurred"
 	irrelevant := "irrelevant"
 	v1 := apis.RandomShortHash()
@@ -159,7 +167,7 @@ var _ = Describe("Experiment State handler", func() {
 		)
 	}
 
-	var From = func(status apis.SynchronizationState, id string, versionInState string, computedVersion string) StateTransitionTestCase {
+	var From = func(status apis.SynchronizationState, id pipelinesv1.ProviderId, versionInState string, computedVersion string) StateTransitionTestCase {
 		resource := pipelinesv1.RandomResource()
 		resource.SetStatus(pipelinesv1.Status{
 			SynchronizationState: status,
@@ -184,7 +192,7 @@ var _ = Describe("Experiment State handler", func() {
 		Expect(commands).To(Equal(st.Commands))
 	},
 		Check("Empty",
-			From(UnknownState, "", "", v1).
+			From(UnknownState, emptyProviderId, "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -192,7 +200,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty and workflow creation fails",
-			From(UnknownState, "", "", v1).
+			From(UnknownState, emptyProviderId, "", v1).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
@@ -201,7 +209,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with version",
-			From(UnknownState, "", v1, v1).
+			From(UnknownState, emptyProviderId, v1, v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -237,9 +245,9 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesUpdateWorkflow(),
 		),
 		Check("Creating succeeds",
-			From(apis.Creating, "", v1, irrelevant).
+			From(apis.Creating, emptyProviderId, v1, irrelevant).
 				AcquireExperiment().
-				WithSucceededCreateWorkFlow(providerId, "").
+				WithSucceededCreateWorkFlow(providerId.Id, "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Succeeded).
 					WithProviderId(providerId).
@@ -260,7 +268,7 @@ var _ = Describe("Experiment State handler", func() {
 		Check("Creating succeeds with provider error",
 			From(apis.Creating, anotherProviderId, v1, irrelevant).
 				AcquireExperiment().
-				WithSucceededCreateWorkFlow(providerId, providerError).
+				WithSucceededCreateWorkFlow(providerId.Id, providerError).
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
 					WithProviderId(providerId).
@@ -269,7 +277,7 @@ var _ = Describe("Experiment State handler", func() {
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating fails",
-			From(apis.Creating, "", v1, irrelevant).
+			From(apis.Creating, emptyProviderId, v1, irrelevant).
 				AcquireExperiment().
 				WithCreateWorkFlow(argo.WorkflowFailed).
 				IssuesCommand(*NewSetStatus().
@@ -279,7 +287,7 @@ var _ = Describe("Experiment State handler", func() {
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating without version",
-			From(apis.Creating, "", "", irrelevant).
+			From(apis.Creating, emptyProviderId, "", irrelevant).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
@@ -309,7 +317,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no ProviderId",
-			From(apis.Succeeded, "", v1, v2).
+			From(apis.Succeeded, emptyProviderId, v1, v2).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -317,7 +325,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesCreationWorkflow(),
 		),
 		Check("Succeeded with update and workflow creation fails",
-			From(apis.Succeeded, "", v1, v2).
+			From(apis.Succeeded, emptyProviderId, v1, v2).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
@@ -326,7 +334,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no ProviderId and no version",
-			From(apis.Succeeded, "", "", v1).
+			From(apis.Succeeded, emptyProviderId, "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -357,7 +365,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no ProviderId",
-			From(apis.Failed, "", v1, v2).
+			From(apis.Failed, emptyProviderId, v1, v2).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -365,7 +373,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed with update but no ProviderId and workflow creation fails",
-			From(apis.Failed, "", v1, v2).
+			From(apis.Failed, emptyProviderId, v1, v2).
 				AcquireExperiment().
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
@@ -374,7 +382,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no ProviderId and no version",
-			From(apis.Failed, "", "", v1).
+			From(apis.Failed, emptyProviderId, "", v1).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Creating).
@@ -384,7 +392,7 @@ var _ = Describe("Experiment State handler", func() {
 		Check("Updating succeeds with providerId",
 			From(apis.Updating, providerId, v1, irrelevant).
 				AcquireExperiment().
-				WithSucceededUpdateWorkflow(anotherProviderId, "").
+				WithSucceededUpdateWorkflow(anotherProviderId.Id, "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Succeeded).
 					WithProviderId(anotherProviderId).
@@ -405,7 +413,7 @@ var _ = Describe("Experiment State handler", func() {
 		Check("Updating succeeds with provider error",
 			From(apis.Updating, providerId, v1, irrelevant).
 				AcquireExperiment().
-				WithSucceededUpdateWorkflow(anotherProviderId, providerError).
+				WithSucceededUpdateWorkflow(anotherProviderId.Id, providerError).
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
 					WithProviderId(anotherProviderId).
@@ -433,7 +441,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithMessage("updating resource with empty version or providerId")),
 		),
 		Check("Updating without ProviderId",
-			From(apis.Updating, "", v1, irrelevant).
+			From(apis.Updating, emptyProviderId, v1, irrelevant).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
@@ -441,7 +449,7 @@ var _ = Describe("Experiment State handler", func() {
 					WithMessage("updating resource with empty version or providerId")),
 		),
 		Check("Updating without ProviderId or version",
-			From(apis.Updating, "", "", irrelevant).
+			From(apis.Updating, emptyProviderId, "", irrelevant).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Failed).
@@ -458,7 +466,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Succeeded without providerId",
-			From(apis.Succeeded, "", v1, irrelevant).
+			From(apis.Succeeded, emptyProviderId, v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
@@ -476,7 +484,7 @@ var _ = Describe("Experiment State handler", func() {
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed without providerId",
-			From(apis.Failed, "", v1, irrelevant).
+			From(apis.Failed, emptyProviderId, v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
@@ -487,7 +495,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(apis.Deleting, providerId, v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
-				WithSucceededDeletionWorkflow(anotherProviderId, "").
+				WithSucceededDeletionWorkflow(anotherProviderId.Id, "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Deleting).
 					WithProviderId(providerId).
@@ -502,7 +510,7 @@ var _ = Describe("Experiment State handler", func() {
 				WithSucceededDeletionWorkflow("", "").
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Deleted).
-					WithProviderId("").
+					WithProviderId(emptyProviderId).
 					WithVersion(v1)).
 				MarksAllWorkflowsAsProcessed(),
 		),
@@ -510,7 +518,7 @@ var _ = Describe("Experiment State handler", func() {
 			From(apis.Deleting, providerId, v1, irrelevant).
 				AcquireExperiment().
 				DeletionRequested().
-				WithSucceededDeletionWorkflow(providerId, providerError).
+				WithSucceededDeletionWorkflow(providerId.Id, providerError).
 				IssuesCommand(*NewSetStatus().
 					WithSynchronizationState(apis.Deleting).
 					WithProviderId(providerId).

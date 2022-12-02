@@ -4,6 +4,7 @@
 package v1alpha3
 
 import (
+	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
@@ -19,7 +20,7 @@ var _ = Context("Pipeline Conversion", func() {
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
-			Expect(dst).To(Equal(src))
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})
 

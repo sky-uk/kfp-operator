@@ -4,6 +4,7 @@
 package v1alpha2
 
 import (
+	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -72,7 +73,6 @@ var _ = Context("Pipeline Conversion", func() {
 			Expect(dst.ConvertFrom(&src)).To(Succeed())
 			Expect(dst.Spec.BeamArgs).To(Equal(map[string]string{"a": "b"}))
 			Expect(dst.Spec.Env).To(Equal(map[string]string{"d": "e"}))
-			Expect(dst.Annotations[ConversionAnnotations.V1alpha3ConversionRemainder]).To(MatchJSON(`{"beamArgs": [{"name": "a", "value": "c"}], "env": [{"name": "d", "value": "f"}]}`))
 		})
 	})
 
@@ -93,7 +93,7 @@ var _ = Context("Pipeline Conversion", func() {
 			src.Spec.Env = nil
 			dst.Spec.Env = nil
 
-			Expect(dst).To(Equal(src))
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 
 		Specify("Duplicate entries are preserved on the roundtrip", func() {
