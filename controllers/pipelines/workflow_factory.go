@@ -35,9 +35,9 @@ var WorkflowConstants = struct {
 }
 
 type WorkflowFactory[R pipelinesv1.Resource] interface {
-	ConstructCreationWorkflow(resource R) (*argo.Workflow, error)
-	ConstructUpdateWorkflow(resource R) (*argo.Workflow, error)
-	ConstructDeletionWorkflow(resource R) (*argo.Workflow, error)
+	ConstructCreationWorkflow(provider string, resource R) (*argo.Workflow, error)
+	ConstructUpdateWorkflow(provider string, resource R) (*argo.Workflow, error)
+	ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error)
 }
 
 type WorkflowFactoryBase struct {

@@ -75,7 +75,7 @@ func RandomStatus() Status {
 	return Status{
 		SynchronizationState: RandomSynchronizationState(),
 		Version:              RandomString(),
-		ProviderId: ProviderId{
+		ProviderId: ProviderAndId{
 			Provider: RandomString(),
 			Id:       RandomString(),
 		},

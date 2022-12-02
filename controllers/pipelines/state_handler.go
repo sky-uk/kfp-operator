@@ -6,11 +6,13 @@ import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type StateHandler[R pipelinesv1.Resource] struct {
+	Config             config.Configuration
 	WorkflowFactory    WorkflowFactory[R]
 	WorkflowRepository WorkflowRepository
 }
@@ -64,7 +66,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, resource R) []Command 
 
 	if resource.GetStatus().ProviderId.Id != "" {
 		logger.Info("empty state but ProviderId already exists, updating resource")
-		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(resource)
+		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow("XXX", resource)
 
 		if err != nil {
 			failureMessage := WorkflowConstants.ConstructionFailedError
@@ -86,7 +88,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, resource R) []Command 
 	}
 
 	logger.Info("empty state, creating resource")
-	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(resource)
+	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow("XXX", resource)
 
 	if err != nil {
 		failureMessage := WorkflowConstants.ConstructionFailedError
@@ -120,7 +122,7 @@ func (st StateHandler[R]) onDelete(ctx context.Context, resource R) []Command {
 		}
 	}
 
-	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(resource)
+	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow("XXX", resource)
 
 	if err != nil {
 		failureMessage := WorkflowConstants.ConstructionFailedError
@@ -152,7 +154,7 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, resource R) [
 
 	if resource.GetStatus().ProviderId.Id == "" {
 		logger.Info("no providerId exists, creating")
-		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(resource)
+		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow("XXX", resource)
 
 		if err != nil {
 			failureMessage := WorkflowConstants.ConstructionFailedError
@@ -169,7 +171,7 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, resource R) [
 		targetState = apis.Creating
 	} else {
 		logger.Info("providerId exists, updating")
-		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(resource)
+		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow("XXX", resource)
 
 		if err != nil {
 			failureMessage := WorkflowConstants.ConstructionFailedError
@@ -230,6 +232,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
 
 		result, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
+		provider := getWorkflowParameter(workflow, WorkflowConstants.ProviderNameParameterName)
 
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
@@ -237,9 +240,11 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
 		}
 
+		providerAndId := pipelinesv1.ProviderAndId{Provider: provider, Id: result.Id}
+
 		if result.ProviderError != "" {
 			logger.Error(err, fmt.Sprintf("%s, failing resource", result.ProviderError))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithProviderId(pipelinesv1.ProviderId{Id: result.Id})
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithProviderId(providerAndId)
 		}
 
 		err = states.VerifyId(result.Id)
@@ -250,7 +255,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
 		}
 
-		return From(status).WithSynchronizationState(states.SuccessState).WithProviderId(pipelinesv1.ProviderId{Id: result.Id})
+		return From(status).WithSynchronizationState(states.SuccessState).WithProviderId(providerAndId)
 	}
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(workflows)

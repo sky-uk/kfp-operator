@@ -34,7 +34,7 @@ func (wf *ExperimentWorkflowFactory) experimentDefinitionYaml(experiment *pipeli
 	return string(marshalled), nil
 }
 
-func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(provider string, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	experimentDefinition, err := workflows.experimentDefinitionYaml(experiment)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.DefaultProvider),
+						Value: argo.AnyStringPtr(provider),
 					},
 				},
 			},
@@ -62,7 +62,7 @@ func (workflows ExperimentWorkflowFactory) ConstructCreationWorkflow(experiment 
 	}, nil
 }
 
-func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(provider string, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	experimentDefinition, err := workflows.experimentDefinitionYaml(experiment)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.DefaultProvider),
+						Value: argo.AnyStringPtr(provider),
 					},
 				},
 			},
@@ -94,7 +94,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(experiment *p
 	}, nil
 }
 
-func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
+func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(provider string, experiment *pipelinesv1.Experiment) (*argo.Workflow, error) {
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(experiment, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -106,7 +106,7 @@ func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(experiment 
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.DefaultProvider),
+						Value: argo.AnyStringPtr(provider),
 					},
 				},
 			},

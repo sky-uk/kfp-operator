@@ -17,7 +17,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
-	dst.Status.ProviderId = hub.ProviderId{
+	dst.Status.ProviderId = hub.ProviderAndId{
 		Provider: v1alpha4remainder.Provider,
 		Id:       src.Status.KfpId,
 	}

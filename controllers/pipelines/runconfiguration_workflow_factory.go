@@ -51,7 +51,7 @@ func (wf *RunConfigurationWorkflowFactory) runConfigurationDefinitionYaml(runCon
 	return string(marshalled), nil
 }
 
-func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
+func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(provider string, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	runConfigurationDefinition, err := workflows.runConfigurationDefinitionYaml(runConfiguration)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.DefaultProvider),
+						Value: argo.AnyStringPtr(provider),
 					},
 				},
 			},
@@ -79,7 +79,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructCreationWorkflow(runCo
 	}, nil
 }
 
-func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
+func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(provider string, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	runConfigurationDefinition, err := workflows.runConfigurationDefinitionYaml(runConfiguration)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.DefaultProvider),
+						Value: argo.AnyStringPtr(provider),
 					},
 				},
 			},
@@ -115,7 +115,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(runConf
 	}, nil
 }
 
-func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
+func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(provider string, runConfiguration *pipelinesv1.RunConfiguration) (*argo.Workflow, error) {
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(runConfiguration, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -127,7 +127,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(runCo
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(workflows.Config.DefaultProvider),
+						Value: argo.AnyStringPtr(provider),
 					},
 				},
 			},

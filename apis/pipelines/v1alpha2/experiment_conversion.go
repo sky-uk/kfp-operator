@@ -16,7 +16,7 @@ func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Description = src.Spec.Description
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
-	dst.Status.ProviderId = hub.ProviderId{
+	dst.Status.ProviderId = hub.ProviderAndId{
 		Provider: v1alpha4remainder.Provider,
 		Id:       src.Status.KfpId,
 	}

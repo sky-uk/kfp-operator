@@ -8,12 +8,12 @@ import (
 
 // +kubebuilder:validation:Type=string
 // +kubebuilder:validation:Pattern:=`^[\w-]+(?::[\w-]+)?$`
-type ProviderId struct {
+type ProviderAndId struct {
 	Provider string `json:"-"`
 	Id       string `json:"-"`
 }
 
-func (pid *ProviderId) String() string {
+func (pid *ProviderAndId) String() string {
 	if pid.Provider == "" || pid.Id == "" {
 		return pid.Id
 	}
@@ -21,7 +21,7 @@ func (pid *ProviderId) String() string {
 	return strings.Join([]string{pid.Provider, pid.Id}, ":")
 }
 
-func (pid *ProviderId) fromString(raw string) {
+func (pid *ProviderAndId) fromString(raw string) {
 	providerAndId := strings.Split(raw, ":")
 
 	if len(providerAndId) == 2 {
@@ -32,11 +32,11 @@ func (pid *ProviderId) fromString(raw string) {
 	}
 }
 
-func (pid *ProviderId) MarshalJSON() ([]byte, error) {
+func (pid *ProviderAndId) MarshalJSON() ([]byte, error) {
 	return json.Marshal(pid.String())
 }
 
-func (pid *ProviderId) UnmarshalJSON(bytes []byte) error {
+func (pid *ProviderAndId) UnmarshalJSON(bytes []byte) error {
 	var pidStr string
 	err := json.Unmarshal(bytes, &pidStr)
 	if err != nil {
@@ -50,7 +50,7 @@ func (pid *ProviderId) UnmarshalJSON(bytes []byte) error {
 
 // +kubebuilder:object:generate=true
 type Status struct {
-	ProviderId           ProviderId                `json:"providerId,omitempty"`
+	ProviderId           ProviderAndId             `json:"providerId,omitempty"`
 	SynchronizationState apis.SynchronizationState `json:"synchronizationState,omitempty"`
 	Version              string                    `json:"version,omitempty"`
 	ObservedGeneration   int64                     `json:"observedGeneration,omitempty"`

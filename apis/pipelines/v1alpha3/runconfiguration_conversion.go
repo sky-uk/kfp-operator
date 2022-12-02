@@ -20,7 +20,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Status = hub.RunConfigurationStatus{
 		Status: hub.Status{
-			ProviderId: hub.ProviderId{
+			ProviderId: hub.ProviderAndId{
 				Provider: v1alpha4remainder.Provider,
 				Id:       src.Status.KfpId,
 			},
