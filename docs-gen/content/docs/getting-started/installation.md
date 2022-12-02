@@ -10,7 +10,7 @@ This guide assumes you are familiar with [Helm](https://helm.sh/).
 ## Prerequisites
 
 - The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the [respective configuration section](../../reference/configuration/#provider-configuration) before proceeding.
-- Argo installed cluster-wide or into the namespace where the operator's workflows run (see [configuration](../../reference/configuration)).
+- Argo installed cluster-wide or into the namespace where the operator's workflows run (see [configuration](../../reference/configuration)). Note that Argo 3.4 is not supported yet.
 
 ## Build and Install
 

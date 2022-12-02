@@ -5,34 +5,32 @@ weight: 1
 
 The Kubeflow Pipelines operator can be configured with the following parameters:
 
-| Parameter name       | Description                                                                                                                                                                                                                        | Example                                                |
-|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| `defaultBeamArgs`    | Default Beam arguments to which the pipeline-defined ones will be added                                                                                                                                                            | <pre>- name: project<br/>  value: my-gcp-project</pre> |
-| `defaultExperiment`  | Default Experiment name to be used for creating pipeline runs                                                                                                                                                                      | `Default`                                              |
-| `multiversion`       | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                                               | `true`                                                 |
-| `pipelineStorage`    | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline | `gcs://kubeflow-pipelines-bucket`                      |
-| `providerConfigFile` | File in the controller container containing the provider-specific configuration (see below)                                                                                                                                        | `provider.yaml`                                        |
-| `workflowNamespace`  | Namespace where operator Argo workflows should be running - defaults to the operator's namespace                                                                                                                                   | `kfp-operator-workflows`                               |
+| Parameter name      | Description                                                                                                                                                                                                                        | Example                                                |
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| `defaultBeamArgs`   | Default Beam arguments to which the pipeline-defined ones will be added                                                                                                                                                            | <pre>- name: project<br/>  value: my-gcp-project</pre> |
+| `defaultExperiment` | Default Experiment name to be used for creating pipeline runs                                                                                                                                                                      | `Default`                                              |
+| `defaultProvider`   | Default provider name to be used (see below)                                                                                                                                                                                       | `vertex-ai-europe`                                     |
+| `multiversion`      | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                                               | `true`                                                 |
+| `pipelineStorage`   | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline | `gcs://kubeflow-pipelines-bucket`                      |
+| `workflowNamespace` | Namespace where operator Argo workflows should be running - defaults to the operator's namespace                                                                                                                                   | `kfp-operator-workflows`                               |
 
-An example can be found in the [here](https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml).
+An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml).
 
-## Provider Configuration
+## Provider Configurations
 
-The provider configuration is specific to the implementation. The operator supports the following out of the box.
-
-An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/master/config/manager/provider.yaml).
+The provider configurations are specific to the implementation. The operator supports the following out of the box.
 
 ### Common
 
-| Parameter name  | Description                                                                                                                          | Example                                  |
-|-----------------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
-| `image`         | Container image of the provider                                                                                                      | `kfp-operator-kfp-provider:0.0.2`        |
-| `executionMode` | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode) | `v1` (currently KFP) or `v2` (Vertex AI) |
+| Parameter name              | Description                                                                                                                          | Example                                  |
+|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
+| `image`<sup>*</sup>         | Container image of the provider                                                                                                      | `kfp-operator-kfp-provider:0.0.2`        |
+| `executionMode`<sup>*</sup> | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode) | `v1` (currently KFP) or `v2` (Vertex AI) |
+| `serviceAccount`            | Service Account name to be used for all provider-specific operations (see respective provider)                                       | `kfp-operator-vertex-ai`                 |
+
+<sup>*</sup> field automatically populated by Helm based on provider type
 
 ### Kubeflow Pipelines
-
-KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
-Optionally, [Argo-Events](https://argoproj.github.io/argo-events/installation/) can be installed for eventing support.
 
 | Parameter name             | Description                                      | Example                                         |
 |----------------------------|--------------------------------------------------|-------------------------------------------------|
@@ -40,38 +38,12 @@ Optionally, [Argo-Events](https://argoproj.github.io/argo-events/installation/) 
 | `grpcKfpApiAddress`        | The KFP gRPC address for the eventsource server  | `ml-pipeline.kubeflow-pipelines:8887`           |
 | `grpcMetadataStoreAddress` | The MLMD gRPC address for the eventsource server | `metadata-grpc-service.kubeflow-pipelines:8080` |
 
+KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
+Optionally, [Argo-Events](https://argoproj.github.io/argo-events/installation/) can be installed for eventing support.
+
 ### Vertex AI Pipelines
 
 ![Vertex AI Provider](/images/vai-provider.png)
-
-The following GCP APIs need to be enabled:
-- Vertex AI
-- Pub/Sub
-- Cloud Storage
-- Cloud Scheduler
-
-Pub/Sub topics and subscriptions need to be created for:
-- Run Intents `provider.configuration.runIntentsTopic`, `provider.configuration.enqueuerRunIntentsSubscription`)
-- Runs `provider.configuration.runsTopic`, `provider.configuration.submitterRunsSubscription`
-
-GCS pipeline storage bucket `provider.configuration.pipelineBucket` needs to be created
-
-The following workload-identity-enabled service accounts need to be created with the respective permissions:
-- Argo Workflow Runner `manager.argo.serviceAccount`
-  - `cloudscheduler.jobs.create`
-  - `projects.topics.publish` to the configured Run Intents topic
-- Vertex AI Worker `manager.provider.serviceAccount`
-  - `projects.subscriptions.pull` from the configured Run Intents and Runs subscriptions
-  - `projects.topics.publish` to the configured Runs topic
-  - `aiplatform.pipelineJobs.create`
-  - `iam.serviceAccounts.actAs` Vertex AI Job Runner
-- Vertex AI Job Runner `manager.provider.configuration.vaiJobServiceAccount`
-  - all permissions needed by pipeline jobs
-- Vertex AI Eventsource Server `eventsource.serviceaccount.name`
-  - `projects.subscriptions.pull` from the configured Runs subscriptions
-  - `aiplatform.pipelineJobs.get`
-
-[Argo-Events](https://argoproj.github.io/argo-events/installation/) must be installed into the operator's Kubernetes cluster and any namespace that is going to use the eventsource server.
 
 | Parameter name                   | Description                                                   | Example                                                           |
 |----------------------------------|---------------------------------------------------------------|-------------------------------------------------------------------|
@@ -84,3 +56,36 @@ The following workload-identity-enabled service accounts need to be created with
 | `runsTopic`                      | Pub/Sub topic name to publish runs                            | `kfp-operator-runs`                                               |
 | `submitterRunsSubscription`      | Subscription on the runs topic for the pipeline job submitter | `kfp-operator-runs-submitter`                                     |
 | `eventsourceRunsSubscription`    | Subscription to runs topic for the eventsource server         | `kfp-operator-runs-eventsource`                                   |
+
+[Argo-Events](https://argoproj.github.io/argo-events/installation/) must be installed into the operator's Kubernetes cluster and any namespace that is going to use the eventsource server.
+
+#### GCP Project Setup
+
+The following GCP APIs need to be enabled in the configured `vaiProject`:
+- Vertex AI
+- Pub/Sub
+- Cloud Storage
+- Cloud Scheduler
+
+Pub/Sub topics and subscriptions need to be created for:
+- Run Intents
+  - Topic: `runIntentsTopic`
+  - Subscriptions: `enqueuerRunIntentsSubscription`
+- Runs
+  - Topic: `runsTopic`
+  - Subscriptions:`submitterRunsSubscription`, `eventsourceRunsSubscription`
+
+GCS pipeline storage bucket `provider.configuration.pipelineBucket` needs to be created
+
+The configured `serviceAccount` needs to have [workload identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity) enabled and be granted the following permissions:
+  - `storage.objects.create` on the configured `pipelineBucket`
+  - `storage.objects.get` on the configured `pipelineBucket`
+  - `storage.objects.delete` on the configured `pipelineBucket`
+  - `cloudscheduler.jobs.create`
+  - `cloudscheduler.jobs.update`
+  - `cloudscheduler.jobs.delete`
+  - `projects.topics.publish` to the configured `runs` and `runIntentsTopic` topic
+  - `projects.subscriptions.pull` from the configured `enqueuerRunIntentsSubscription`, `submitterRunsSubscription` and `eventsourceRunsSubscription` subscriptions
+  - `aiplatform.pipelineJobs.create`
+  - `aiplatform.pipelineJobs.get`
+  - `iam.serviceAccounts.actAs` the configured `vaiJobServiceAccount` Vertex AI Job Runner
