@@ -3,6 +3,7 @@ package pipelines
 import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,10 +22,10 @@ var WorkflowConstants = struct {
 	ProviderNameParameterName   string
 	ProviderOutputParameterName string
 }{
-	OwnerKindLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.kind",
-	OwnerNameLabelKey:           pipelinesv1.GroupVersion.Group + "/owner.name",
-	OwnerNamespaceLabelKey:      pipelinesv1.GroupVersion.Group + "/owner.namespace",
-	OperationLabelKey:           pipelinesv1.GroupVersion.Group + "/operation",
+	OwnerKindLabelKey:           apis.Group + "/owner.kind",
+	OwnerNameLabelKey:           apis.Group + "/owner.name",
+	OwnerNamespaceLabelKey:      apis.Group + "/owner.namespace",
+	OperationLabelKey:           apis.Group + "/operation",
 	CreateOperationLabel:        "create",
 	DeleteOperationLabel:        "delete",
 	UpdateOperationLabel:        "update",

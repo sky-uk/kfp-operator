@@ -7,7 +7,6 @@ import (
 )
 
 // +kubebuilder:validation:Type=string
-// +kubebuilder:validation:Pattern:=`^[\w-]+(?::[\w-]+)?$`
 type ProviderAndId struct {
 	Provider string `json:"-"`
 	Id       string `json:"-"`

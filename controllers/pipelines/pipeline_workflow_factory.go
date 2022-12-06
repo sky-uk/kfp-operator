@@ -123,7 +123,7 @@ func (workflows PipelineWorkflowFactory) ConstructUpdateWorkflow(provider string
 					},
 					{
 						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-						Value: argo.AnyStringPtr(pipeline.Status.ProviderId),
+						Value: argo.AnyStringPtr(pipeline.Status.ProviderId.Id),
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
@@ -146,7 +146,7 @@ func (workflows PipelineWorkflowFactory) ConstructDeletionWorkflow(provider stri
 				Parameters: []argo.Parameter{
 					{
 						Name:  PipelineWorkflowConstants.PipelineIdParameterName,
-						Value: argo.AnyStringPtr(pipeline.Status.ProviderId),
+						Value: argo.AnyStringPtr(pipeline.Status.ProviderId.Id),
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,

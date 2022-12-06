@@ -79,7 +79,7 @@ func (workflows ExperimentWorkflowFactory) ConstructUpdateWorkflow(provider stri
 					},
 					{
 						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-						Value: argo.AnyStringPtr(experiment.Status.ProviderId),
+						Value: argo.AnyStringPtr(experiment.Status.ProviderId.Id),
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
@@ -102,7 +102,7 @@ func (workflows ExperimentWorkflowFactory) ConstructDeletionWorkflow(provider st
 				Parameters: []argo.Parameter{
 					{
 						Name:  ExperimentWorkflowConstants.ExperimentIdParameterName,
-						Value: argo.AnyStringPtr(experiment.Status.ProviderId),
+						Value: argo.AnyStringPtr(experiment.Status.ProviderId.Id),
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,

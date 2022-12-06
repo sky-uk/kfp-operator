@@ -16,59 +16,57 @@ import (
 var _ = Describe("Experiment controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
-			experiment := pipelinesv1.RandomExperiment()
-
 			providerId := "12345"
 			anotherProviderId := "67890"
-			testCtx := NewExperimentTestContext(experiment, k8sClient, ctx)
+			experimentHelper := Create(pipelinesv1.RandomExperiment())
 
-			Expect(k8sClient.Create(ctx, testCtx.Experiment)).To(Succeed())
-
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(experiment.Status.ObservedGeneration).To(Equal(experiment.GetGeneration()))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(experimentHelper.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(experiment.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateExperiment(func(pipeline *pipelinesv1.Experiment) {
+			Expect(experimentHelper.Update(func(pipeline *pipelinesv1.Experiment) {
 				pipeline.Spec = pipelinesv1.RandomExperimentSpec()
 			})).To(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Updating))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(experimentHelper.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: anotherProviderId})
 			})).Should(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(experiment.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
-			Expect(testCtx.DeleteExperiment()).To(Succeed())
+			Expect(experimentHelper.Delete()).To(Succeed())
 
-			Eventually(testCtx.ExperimentToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Deleting))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(experimentHelper.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
-			Eventually(testCtx.ExperimentExists).Should(Not(Succeed()))
+			Eventually(experimentHelper.Exists).Should(Not(Succeed()))
 
-			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
+			Eventually(experimentHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(
 					HaveReason(EventReasons.Syncing),
 					HaveReason(EventReasons.Synced),

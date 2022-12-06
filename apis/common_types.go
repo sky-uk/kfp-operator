@@ -18,3 +18,9 @@ type NamedValue struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
+
+var ResourceAnnotations = struct {
+	Provider string
+}{
+	Provider: Group + "/provider",
+}

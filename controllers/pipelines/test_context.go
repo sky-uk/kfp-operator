@@ -20,13 +20,11 @@ var (
 	ctx       context.Context
 )
 
-type TestContext struct {
-	K8sClient client.Client
-	ctx       context.Context
-	Resource  pipelinesv1.Resource
+type WorkflowTestHelper[R pipelinesv1.Resource] struct {
+	Resource R
 }
 
-func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(Gomega, map[string]string)) func(Gomega) {
+func (testCtx WorkflowTestHelper[R]) WorkflowInputToMatch(operation string, matcher func(Gomega, map[string]string)) func(Gomega) {
 
 	var mapParams = func(params []argo.Parameter) map[string]string {
 		m := make(map[string]string, len(params))
@@ -47,17 +45,17 @@ func (testCtx TestContext) WorkflowInputToMatch(operation string, matcher func(G
 	}
 }
 
-func (testCtx TestContext) WorkflowByNameToMatch(namespacedName types.NamespacedName, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+func (testCtx WorkflowTestHelper[R]) WorkflowByNameToMatch(namespacedName types.NamespacedName, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
 
 	return func(g Gomega) {
 		workflow := &argo.Workflow{}
-		Expect(testCtx.K8sClient.Get(testCtx.ctx, namespacedName, workflow)).To(Succeed())
+		Expect(k8sClient.Get(ctx, namespacedName, workflow)).To(Succeed())
 
 		matcher(g, workflow)
 	}
 }
 
-func (testCtx TestContext) WorkflowByOperationToMatch(operation string, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+func (testCtx WorkflowTestHelper[R]) WorkflowByOperationToMatch(operation string, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
 
 	return func(g Gomega) {
 		workflow, err := testCtx.fetchWorkflow(operation)
@@ -68,7 +66,7 @@ func (testCtx TestContext) WorkflowByOperationToMatch(operation string, matcher 
 	}
 }
 
-func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*argo.Workflow)) error {
+func (testCtx WorkflowTestHelper[R]) UpdateWorkflow(operation string, updateFunc func(*argo.Workflow)) error {
 	workflow, err := testCtx.fetchWorkflow(operation)
 
 	if err != nil {
@@ -76,26 +74,26 @@ func (testCtx TestContext) UpdateWorkflow(operation string, updateFunc func(*arg
 	}
 
 	updateFunc(workflow)
-	return testCtx.K8sClient.Update(testCtx.ctx, workflow)
+	return k8sClient.Update(ctx, workflow)
 }
 
-func (testCtx TestContext) WorkflowToBeUpdated(operation string, updateFunc func(*argo.Workflow)) func(g Gomega) {
+func (testCtx WorkflowTestHelper[R]) WorkflowToBeUpdated(operation string, updateFunc func(*argo.Workflow)) func(g Gomega) {
 	return func(g Gomega) {
 		g.Expect(testCtx.UpdateWorkflow(operation, updateFunc)).To(Succeed())
 	}
 }
 
-func (testCtx TestContext) FetchWorkflow(operation string) func() error {
+func (testCtx WorkflowTestHelper[R]) FetchWorkflow(operation string) func() error {
 	return func() error {
 		_, err := testCtx.fetchWorkflow(operation)
 		return err
 	}
 }
 
-func (testCtx TestContext) fetchWorkflow(operation string) (*argo.Workflow, error) {
+func (testCtx WorkflowTestHelper[R]) fetchWorkflow(operation string) (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := testCtx.K8sClient.List(testCtx.ctx, workflowList, client.MatchingLabels(CommonWorkflowLabels(testCtx.Resource, operation))); err != nil {
+	if err := k8sClient.List(ctx, workflowList, client.MatchingLabels(CommonWorkflowLabels(testCtx.Resource, operation))); err != nil {
 		return nil, err
 	}
 

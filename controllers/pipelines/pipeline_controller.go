@@ -45,7 +45,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	logger.V(3).Info("found pipeline", "resource", pipeline)
 
-	commands := r.StateHandler.StateTransition(ctx, pipeline)
+	desiredProvider := r.desiredProvider(pipeline)
+
+	commands := r.StateHandler.StateTransition(ctx, desiredProvider, pipeline)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, pipeline); err != nil {

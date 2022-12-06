@@ -79,11 +79,11 @@ var _ = Context("Experiment Workflows", Serial, func() {
 
 	var AssertWorkflow = func(
 		setUp func(experiment *pipelinesv1.Experiment),
-		constructWorkflow func(*pipelinesv1.Experiment) (*argo.Workflow, error),
+		constructWorkflow func(string, *pipelinesv1.Experiment) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
-		testCtx := NewExperimentTestContext(
-			&pipelinesv1.Experiment{
+		testCtx := WorkflowTestHelper[*pipelinesv1.Experiment]{
+			Resource: &pipelinesv1.Experiment{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      apis.RandomLowercaseString(),
 					Namespace: "argo",
@@ -92,13 +92,16 @@ var _ = Context("Experiment Workflows", Serial, func() {
 					Description: "a description",
 				},
 				Status: pipelinesv1.Status{
-					ProviderId: experimentProviderId,
+					ProviderId: pipelinesv1.ProviderAndId{
+						Id:       experimentProviderId,
+						Provider: "kfp",
+					},
 				},
 			},
-			k8sClient, ctx)
+		}
 
-		setUp(testCtx.Experiment)
-		workflow, err := constructWorkflow(testCtx.Experiment)
+		setUp(testCtx.Resource)
+		workflow, err := constructWorkflow("kfp", testCtx.Resource)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())

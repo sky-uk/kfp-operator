@@ -100,7 +100,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructUpdateWorkflow(provide
 					},
 					{
 						Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
-						Value: argo.AnyStringPtr(runConfiguration.Status.ProviderId),
+						Value: argo.AnyStringPtr(runConfiguration.Status.ProviderId.Id),
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
@@ -123,7 +123,7 @@ func (workflows RunConfigurationWorkflowFactory) ConstructDeletionWorkflow(provi
 				Parameters: []argo.Parameter{
 					{
 						Name:  RunConfigurationWorkflowConstants.RunConfigurationIdParameterName,
-						Value: argo.AnyStringPtr(runConfiguration.Status.ProviderId),
+						Value: argo.AnyStringPtr(runConfiguration.Status.ProviderId.Id),
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,

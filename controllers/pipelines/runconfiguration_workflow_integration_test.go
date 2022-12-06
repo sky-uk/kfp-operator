@@ -170,8 +170,8 @@ func (_ KfpRunConfigurationWorkflowIntegrationSuite) stubGetExperiment(experimen
 var pipelineProviderId = apis.RandomString()
 var versionProviderId = apis.RandomString()
 var versionName = apis.RandomString()
-var runConfigurationProviderId = apis.RandomString()    // TODO runConfigurationProviderIdBefore
-var newRunConfigurationProviderId = apis.RandomString() // TODO runConfigurationProviderIdAfter
+var runConfigurationProviderId = apis.RandomString()
+var newRunConfigurationProviderId = apis.RandomString()
 var experimentProviderId = apis.RandomString()
 var defaultExperiment = apis.RandomString()
 
@@ -179,10 +179,10 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 
 	var AssertWorkflow = func(
 		setUp func(runConfiguration *pipelinesv1.RunConfiguration),
-		constructWorkflow func(*pipelinesv1.RunConfiguration) (*argo.Workflow, error),
+		constructWorkflow func(string, *pipelinesv1.RunConfiguration) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
-		testCtx := NewRunConfigurationTestContext(
+		testCtx := WorkflowTestHelper[*pipelinesv1.RunConfiguration]{
 			&pipelinesv1.RunConfiguration{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      apis.RandomLowercaseString(),
@@ -194,15 +194,18 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
 					Status: pipelinesv1.Status{
-						ProviderId: runConfigurationProviderId,
+						ProviderId: pipelinesv1.ProviderAndId{
+							Id:       runConfigurationProviderId,
+							Provider: "kfp",
+						},
 					},
 					ObservedPipelineVersion: versionName,
 				},
 			},
-			k8sClient, ctx)
+		}
 
-		setUp(testCtx.RunConfiguration)
-		workflow, err := constructWorkflow(testCtx.RunConfiguration)
+		setUp(testCtx.Resource)
+		workflow, err := constructWorkflow("kfp", testCtx.Resource)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())

@@ -5,6 +5,7 @@ package pipelines
 
 import (
 	"context"
+	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/controllers"
@@ -29,6 +30,7 @@ func TestPipelineControllersDecoupledSuite(t *testing.T) {
 var (
 	testEnv    *envtest.Environment
 	k8sManager manager.Manager
+	testConfig config.Configuration
 )
 
 var _ = BeforeSuite(func() {
@@ -75,6 +77,12 @@ var _ = BeforeSuite(func() {
 
 	ctx = context.Background()
 
+	testConfig = config.Configuration{
+		DefaultExperiment: "Default",
+		WorkflowNamespace: "default",
+		DefaultProvider:   apis.RandomString(),
+	}
+
 	Expect((NewTestPipelineReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((NewTestRunConfigurationReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((NewTestExperimentReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
@@ -89,15 +97,14 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 	// TODO: mock workflowFactory
 	var workflowFactory = PipelineWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				WorkflowNamespace: "default",
-			},
+			Config: testConfig,
 		},
 	}
 
 	return &PipelineReconciler{
 		BaseReconciler: BaseReconciler[*pipelinesv1.Pipeline]{
-			EC: ec,
+			Config: testConfig,
+			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.Pipeline]{
 				WorkflowRepository: workflowRepository,
 				WorkflowFactory:    workflowFactory,
@@ -110,16 +117,14 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 	// TODO: mock workflowFactory
 	var workflowFactory = RunConfigurationWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				DefaultExperiment: "Default",
-				WorkflowNamespace: "default",
-			},
+			Config: testConfig,
 		},
 	}
 
 	return &RunConfigurationReconciler{
 		BaseReconciler: BaseReconciler[*pipelinesv1.RunConfiguration]{
-			EC: ec,
+			Config: testConfig,
+			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.RunConfiguration]{
 				WorkflowRepository: workflowRepository,
 				WorkflowFactory:    workflowFactory,
@@ -132,15 +137,14 @@ func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository Work
 	// TODO: mock workflowFactory
 	var workflowFactory = ExperimentWorkflowFactory{
 		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				WorkflowNamespace: "default",
-			},
+			Config: testConfig,
 		},
 	}
 
 	return &ExperimentReconciler{
 		BaseReconciler: BaseReconciler[*pipelinesv1.Experiment]{
-			EC: ec,
+			Config: testConfig,
+			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.Experiment]{
 				WorkflowRepository: workflowRepository,
 				WorkflowFactory:    workflowFactory,

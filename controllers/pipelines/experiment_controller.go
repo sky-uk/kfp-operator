@@ -39,7 +39,9 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	logger.V(3).Info("found experiment", "resource", experiment)
 
-	commands := r.StateHandler.StateTransition(ctx, experiment)
+	desiredProvider := r.desiredProvider(experiment)
+
+	commands := r.StateHandler.StateTransition(ctx, desiredProvider, experiment)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, experiment); err != nil {
