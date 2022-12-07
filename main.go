@@ -113,7 +113,8 @@ func main() {
 
 	if err = (&pipelinescontrollers.PipelineReconciler{
 		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Pipeline]{
-			EC: ec,
+			Config: ctrlConfig.Workflows,
+			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Pipeline]{
 				WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
 					WorkflowFactoryBase: workflowFactory,
