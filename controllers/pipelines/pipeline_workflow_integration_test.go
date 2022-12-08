@@ -322,6 +322,6 @@ var _ = Context("Pipeline Workflows", Serial, func() {
 		})
 	}
 
-	//RunSuite(VertexAIPipelineWorkflowIntegrationSuite{}, "Vertex AI")
+	RunSuite(VertexAIPipelineWorkflowIntegrationSuite{}, "Vertex AI")
 	RunSuite(KfpPipelineWorkflowIntegrationSuite{}, "Kubeflow Pipelines")
 })

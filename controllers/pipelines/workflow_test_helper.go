@@ -4,7 +4,6 @@
 package pipelines
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -13,11 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	//+kubebuilder:scaffold:imports
-)
-
-var (
-	k8sClient client.Client
-	ctx       context.Context
 )
 
 type WorkflowTestHelper[R pipelinesv1.Resource] struct {

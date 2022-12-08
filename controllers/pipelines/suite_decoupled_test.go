@@ -30,7 +30,6 @@ func TestPipelineControllersDecoupledSuite(t *testing.T) {
 var (
 	testEnv    *envtest.Environment
 	k8sManager manager.Manager
-	testConfig config.Configuration
 )
 
 var _ = BeforeSuite(func() {
