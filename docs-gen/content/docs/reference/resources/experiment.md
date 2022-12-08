@@ -3,11 +3,11 @@ title: "Experiment"
 weight: 3
 ---
 
-The Experiment resource represents the lifecycle of Experiments on Kubeflow Pipelines,
+The Experiment resource represents the lifecycle of Experiments,
 and can be configured as follows:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha3
+apiVersion: pipelines.kubeflow.org/v1alpha4
 kind: Experiment
 metadata:
     name: penguin-experiment

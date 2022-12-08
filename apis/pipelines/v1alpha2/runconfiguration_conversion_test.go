@@ -4,6 +4,7 @@
 package v1alpha2
 
 import (
+	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -50,7 +51,6 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 			Expect(dst.ConvertFrom(&src)).To(Succeed())
 			Expect(dst.Spec.RuntimeParameters).To(Equal(map[string]string{"a": "b"}))
-			Expect(dst.Annotations[ConversionAnnotations.V1alpha3ConversionRemainder]).To(MatchJSON(`{"runtimeParameters": [{"name": "a", "value": "d"}]}`))
 		})
 	})
 
@@ -68,7 +68,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 			src.Spec.RuntimeParameters = nil
 			dst.Spec.RuntimeParameters = nil
 
-			Expect(dst).To(Equal(src))
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 
 		Specify("Duplicate entries are preserved on the roundtrip", func() {

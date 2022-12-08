@@ -1,8 +1,10 @@
 resources:
 - manager.yaml
+- providers.yaml
 - workflows/common.yaml
-- workflows/pipelines.yaml
 - workflows/experiments.yaml
+- workflows/pipelines.yaml
+- workflows/rbac.yaml
 - workflows/runconfigurations.yaml
 
 generatorOptions:
@@ -13,4 +15,3 @@ configMapGenerator:
   namespace: kfp-operator-system
   files:
   - controller_manager_config.yaml
-  - provider.yaml

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/docker/distribution/reference"
-	. "github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -12,10 +12,10 @@ import (
 )
 
 type PipelineSpec struct {
-	Image         string       `json:"image" yaml:"image"`
-	TfxComponents string       `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []NamedValue `json:"env,omitempty" yaml:"env"`
-	BeamArgs      []NamedValue `json:"beamArgs,omitempty"`
+	Image         string            `json:"image" yaml:"image"`
+	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
+	Env           []apis.NamedValue `json:"env,omitempty" yaml:"env"`
+	BeamArgs      []apis.NamedValue `json:"beamArgs,omitempty"`
 }
 
 func (ps Pipeline) ComputeHash() []byte {

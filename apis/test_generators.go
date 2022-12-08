@@ -22,17 +22,6 @@ func RandomString() string {
 	return randstr.String(rand.Intn(20) + 1)
 }
 
-func RandomMap() map[string]string {
-	size := rand.Intn(5) + 1
-
-	rMap := make(map[string]string, size)
-	for i := 1; i <= size; i++ {
-		rMap[RandomString()] = RandomString()
-	}
-
-	return rMap
-}
-
 func RandomNamedValues() []NamedValue {
 	size := rand.Intn(5)
 

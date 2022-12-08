@@ -20,6 +20,11 @@
 &lt;td>&lt;code>Default&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
+&lt;td>&lt;code>defaultProvider&lt;/code>&lt;/td>
+&lt;td>Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>)&lt;/td>
+&lt;td>&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
 &lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
 &lt;td>&lt;code>true&lt;/code>&lt;/td>
@@ -30,21 +35,15 @@
 &lt;td>&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>providerConfigFile&lt;/code>&lt;/td>
-&lt;td>File in the controller container containing the provider-specific configuration (see below)&lt;/td>
-&lt;td>&lt;code>provider.yaml&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
 &lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
 &lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
-&lt;p>An example can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
-&lt;h2 id="provider-configuration">Provider Configuration&lt;/h2>
-&lt;p>The provider configuration is specific to the implementation. The operator supports the following out of the box.&lt;/p>
-&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/provider.yaml">here&lt;/a>.&lt;/p>
+&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
+&lt;h2 id="provider-configurations">Provider Configurations&lt;/h2>
+&lt;p>The provider configurations are specific to the implementation. The operator supports the following out of the box.&lt;/p>
 &lt;h3 id="common">Common&lt;/h3>
 &lt;table>
 &lt;thead>
@@ -56,20 +55,24 @@
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>image&lt;/code>&lt;/td>
+&lt;td>&lt;code>image&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/td>
 &lt;td>Container image of the provider&lt;/td>
 &lt;td>&lt;code>kfp-operator-kfp-provider:0.0.2&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>executionMode&lt;/code>&lt;/td>
+&lt;td>&lt;code>executionMode&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/td>
 &lt;td>KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
 &lt;td>&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>serviceAccount&lt;/code>&lt;/td>
+&lt;td>Service Account name to be used for all provider-specific operations (see respective provider)&lt;/td>
+&lt;td>&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
+&lt;p>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> field automatically populated by Helm based on provider type&lt;/p>
 &lt;h3 id="kubeflow-pipelines">Kubeflow Pipelines&lt;/h3>
-&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>. Default endpoints are used below.
-Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> can be installed for eventing support.&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -96,50 +99,10 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
+&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>. Default endpoints are used below.
+Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> can be installed for eventing support.&lt;/p>
 &lt;h3 id="vertex-ai-pipelines">Vertex AI Pipelines&lt;/h3>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/vai-provider.png" alt="Vertex AI Provider">&lt;/p>
-&lt;p>The following GCP APIs need to be enabled:&lt;/p>
-&lt;ul>
-&lt;li>Vertex AI&lt;/li>
-&lt;li>Pub/Sub&lt;/li>
-&lt;li>Cloud Storage&lt;/li>
-&lt;li>Cloud Scheduler&lt;/li>
-&lt;/ul>
-&lt;p>Pub/Sub topics and subscriptions need to be created for:&lt;/p>
-&lt;ul>
-&lt;li>Run Intents &lt;code>provider.configuration.runIntentsTopic&lt;/code>, &lt;code>provider.configuration.enqueuerRunIntentsSubscription&lt;/code>)&lt;/li>
-&lt;li>Runs &lt;code>provider.configuration.runsTopic&lt;/code>, &lt;code>provider.configuration.submitterRunsSubscription&lt;/code>&lt;/li>
-&lt;/ul>
-&lt;p>GCS pipeline storage bucket &lt;code>provider.configuration.pipelineBucket&lt;/code> needs to be created&lt;/p>
-&lt;p>The following workload-identity-enabled service accounts need to be created with the respective permissions:&lt;/p>
-&lt;ul>
-&lt;li>Argo Workflow Runner &lt;code>manager.argo.serviceAccount&lt;/code>
-&lt;ul>
-&lt;li>&lt;code>cloudscheduler.jobs.create&lt;/code>&lt;/li>
-&lt;li>&lt;code>projects.topics.publish&lt;/code> to the configured Run Intents topic&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>Vertex AI Worker &lt;code>manager.provider.serviceAccount&lt;/code>
-&lt;ul>
-&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured Run Intents and Runs subscriptions&lt;/li>
-&lt;li>&lt;code>projects.topics.publish&lt;/code> to the configured Runs topic&lt;/li>
-&lt;li>&lt;code>aiplatform.pipelineJobs.create&lt;/code>&lt;/li>
-&lt;li>&lt;code>iam.serviceAccounts.actAs&lt;/code> Vertex AI Job Runner&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>Vertex AI Job Runner &lt;code>manager.provider.configuration.vaiJobServiceAccount&lt;/code>
-&lt;ul>
-&lt;li>all permissions needed by pipeline jobs&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>Vertex AI Eventsource Server &lt;code>eventsource.serviceaccount.name&lt;/code>
-&lt;ul>
-&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured Runs subscriptions&lt;/li>
-&lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;p>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> must be installed into the operator&amp;rsquo;s Kubernetes cluster and any namespace that is going to use the eventsource server.&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -195,7 +158,46 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;td>&lt;code>kfp-operator-runs-eventsource&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
-&lt;/table></description></item><item><title>Docs: Resources</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</guid><description>
+&lt;/table>
+&lt;p>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> must be installed into the operator&amp;rsquo;s Kubernetes cluster and any namespace that is going to use the eventsource server.&lt;/p>
+&lt;h4 id="gcp-project-setup">GCP Project Setup&lt;/h4>
+&lt;p>The following GCP APIs need to be enabled in the configured &lt;code>vaiProject&lt;/code>:&lt;/p>
+&lt;ul>
+&lt;li>Vertex AI&lt;/li>
+&lt;li>Pub/Sub&lt;/li>
+&lt;li>Cloud Storage&lt;/li>
+&lt;li>Cloud Scheduler&lt;/li>
+&lt;/ul>
+&lt;p>Pub/Sub topics and subscriptions need to be created for:&lt;/p>
+&lt;ul>
+&lt;li>Run Intents
+&lt;ul>
+&lt;li>Topic: &lt;code>runIntentsTopic&lt;/code>&lt;/li>
+&lt;li>Subscriptions: &lt;code>enqueuerRunIntentsSubscription&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Runs
+&lt;ul>
+&lt;li>Topic: &lt;code>runsTopic&lt;/code>&lt;/li>
+&lt;li>Subscriptions:&lt;code>submitterRunsSubscription&lt;/code>, &lt;code>eventsourceRunsSubscription&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;p>GCS pipeline storage bucket &lt;code>provider.configuration.pipelineBucket&lt;/code> needs to be created&lt;/p>
+&lt;p>The configured &lt;code>serviceAccount&lt;/code> needs to have &lt;a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">workload identity&lt;/a> enabled and be granted the following permissions:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>storage.objects.create&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
+&lt;li>&lt;code>storage.objects.get&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
+&lt;li>&lt;code>storage.objects.delete&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
+&lt;li>&lt;code>cloudscheduler.jobs.create&lt;/code>&lt;/li>
+&lt;li>&lt;code>cloudscheduler.jobs.update&lt;/code>&lt;/li>
+&lt;li>&lt;code>cloudscheduler.jobs.delete&lt;/code>&lt;/li>
+&lt;li>&lt;code>projects.topics.publish&lt;/code> to the configured &lt;code>runs&lt;/code> and &lt;code>runIntentsTopic&lt;/code> topic&lt;/li>
+&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured &lt;code>enqueuerRunIntentsSubscription&lt;/code>, &lt;code>submitterRunsSubscription&lt;/code> and &lt;code>eventsourceRunsSubscription&lt;/code> subscriptions&lt;/li>
+&lt;li>&lt;code>aiplatform.pipelineJobs.create&lt;/code>&lt;/li>
+&lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;/li>
+&lt;li>&lt;code>iam.serviceAccounts.actAs&lt;/code> the configured &lt;code>vaiJobServiceAccount&lt;/code> Vertex AI Job Runner&lt;/li>
+&lt;/ul></description></item><item><title>Docs: Resources</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</guid><description>
 &lt;p>The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources.&lt;/p>
 &lt;p>All resources managed by the operator have the following common status fields:&lt;/p>
 &lt;table>
@@ -208,7 +210,7 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;tbody>
 &lt;tr>
 &lt;td>&lt;code>providerId&lt;/code>&lt;/td>
-&lt;td>The resource identifier inside Kubeflow Pipelines&lt;/td>
+&lt;td>The resource identifier inside the targeted provider&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>version&lt;/code>&lt;/td>
@@ -216,27 +218,14 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>synchronizationState&lt;/code>&lt;/td>
-&lt;td>The current synchronization state with Kubeflow Pipelines&lt;/td>
+&lt;td>The current synchronization state with the targeted provider&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>observedGeneration&lt;/code>&lt;/td>
 &lt;td>The last processed &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">generation&lt;/a> of the resource&lt;/td>
 &lt;/tr>
 &lt;/tbody>
-&lt;/table></description></item><item><title>Docs: Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>
-&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
-&lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
-&lt;p>Example:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>$ kubectl describe pipeline pipeline-sample
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>...
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Events:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Type Reason Age From Message
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ---- ------ ---- ---- -------
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 5m54s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Warning SyncFailed 101s kfp-operator Failed &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>: pipeline update failed
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Run Completion EventSource</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
+&lt;/table></description></item><item><title>Docs: Run Completion EventSource</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
 &lt;p>The Run Completion Eventsource allows reacting to finished pipeline runs.&lt;/p>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.png" alt="Model Serving">&lt;/p>
 &lt;p>The specification of the eventsource follows those of other &lt;a href="https://argoproj.github.io/argo-events/eventsources/generic/">generic Argo-Events eventsources&lt;/a>.
@@ -308,4 +297,21 @@ You can define a default event bus, which does not require further configuration
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">nats&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">native&lt;/span>: {}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Using Multiple Providers</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</guid><description>
+&lt;p>The KFP operator supports multiple provider backends. In most cases, the configured &lt;code>DefaultProvider&lt;/code> will be sufficient.
+For migration scenarios or advanced use-cases, users can overwrite the default using the &lt;code>pipelines.kubeflow.org/provider&lt;/code> annotation on any resource specifying the name of the provider.&lt;/p>
+&lt;p>Changing the provider of a resource that was previously managed by another provider will result in the resource erroring.
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Docs: Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>
+&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
+&lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
+&lt;p>Example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>$ kubectl describe pipeline pipeline-sample
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Events:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Type Reason Age From Message
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ---- ------ ---- ---- -------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 5m54s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Warning SyncFailed 101s kfp-operator Failed &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>: pipeline update failed
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>

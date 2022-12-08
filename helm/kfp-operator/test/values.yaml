@@ -21,9 +21,7 @@ manager:
     enabled: true
     webhookCertificates:
       provider: cert-manager
-  provider:
-    configuration:
-      restKfpApiUrl: ${KFP_ENDPOINT}
+providers: {}
 
 eventsourceServer:
   create: false

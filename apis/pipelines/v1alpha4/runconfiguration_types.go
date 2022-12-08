@@ -2,7 +2,7 @@ package v1alpha4
 
 import (
 	"fmt"
-	. "github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -12,7 +12,7 @@ type RunConfigurationSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	Schedule          string             `json:"schedule,omitempty"`
-	RuntimeParameters []NamedValue       `json:"runtimeParameters,omitempty"`
+	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
 }
 
 func (rc RunConfiguration) ComputeHash() []byte {

@@ -14,9 +14,6 @@ spec:
         - name: manager-config
           mountPath: /controller_manager_config.yaml
           subPath: controller_manager_config.yaml
-        - name: manager-config
-          mountPath: /provider.yaml
-          subPath: provider.yaml
       volumes:
       - name: manager-config
         configMap:

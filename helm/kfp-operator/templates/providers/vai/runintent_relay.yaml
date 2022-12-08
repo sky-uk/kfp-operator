@@ -1,0 +1,93 @@
+{{- range $providerName, $providerBlock := .Values.providers -}}
+{{- if eq $providerBlock.type "vai" -}}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+  labels:
+    {{- include "kfp-operator.labels" $ | nindent 4 }}
+spec:
+  template:
+    metadata:
+      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+      {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 6 }}
+    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+  pubSub:
+    run-intents:
+      jsonBody: true
+      projectID: {{ $providerBlock.configuration.vaiProject }}
+      subscriptionID: {{ $providerBlock.configuration.enqueuerRunIntentsSubscription }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+spec:
+  template:
+    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+    metadata:
+      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+      {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 6 }}
+  dependencies:
+    - name: run-intents
+      eventSourceName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
+      eventName: run-intents
+  triggers:
+  - template:
+      name: enqueue-run
+      k8s:
+        operation: create
+        source:
+          resource:
+            apiVersion: argoproj.io/v1alpha1
+            kind: Workflow
+            metadata:
+              generateName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-enqueue-run-
+            spec:
+              ttlStrategy:
+                secondsAfterCompletion: 300
+              serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+              entrypoint: enqueue
+              arguments:
+                parameters:
+                - name: run-intent
+                  value: "set from parameters block below"
+              templates:
+              - name: enqueue
+                metadata:
+                  {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
+                  {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 18 }}
+                inputs:
+                  artifacts:
+                  - name: provider-config
+                    path: /provider-config.yaml
+                    raw:
+                      data: |
+                        {{- $providerBlock.configuration | toYaml | nindent 24 }}
+                  - name: run-intent
+                    path: /run-intent.json
+                    raw:
+                      data: |
+                        {{`{{workflow.parameters.run-intent}}`}}
+                container:
+                  image: {{ include "kfp-operator.providerImage" (merge (dict "Provider" $providerBlock) $ ) }}
+                  command:
+                  - /provider
+                  args:
+                  - --provider-config
+                  - /provider-config.yaml
+                  - custom
+                  - vai-run
+                  - enqueue
+                  - --run-intent
+                  - /run-intent.json
+        parameters:
+          - src:
+              dependencyName: run-intents
+              dataKey: body
+            dest: spec.arguments.parameters.0.value
+{{ end }}
+{{- end -}}

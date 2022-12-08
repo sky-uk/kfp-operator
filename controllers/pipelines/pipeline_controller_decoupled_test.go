@@ -16,58 +16,56 @@ import (
 var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
-			pipeline := pipelinesv1.RandomPipeline()
-
 			providerId := "12345"
-			testCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
+			pipelineHelper := Create(pipelinesv1.RandomPipeline())
 
-			Expect(k8sClient.Create(ctx, testCtx.Pipeline)).To(Succeed())
-
-			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(pipeline.Status.ObservedGeneration).To(Equal(pipeline.GetGeneration()))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(pipelineHelper.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(pipeline.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdatePipeline(func(pipeline *pipelinesv1.Pipeline) {
+			Expect(pipelineHelper.Update(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
 			})).To(Succeed())
 
-			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Updating))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(pipelineHelper.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(pipeline.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
-			Expect(testCtx.DeletePipeline()).To(Succeed())
+			Expect(pipelineHelper.Delete()).To(Succeed())
 
-			Eventually(testCtx.PipelineToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
+			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Deleting))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(pipelineHelper.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
-			Eventually(testCtx.PipelineExists).Should(Not(Succeed()))
+			Eventually(pipelineHelper.Exists).Should(Not(Succeed()))
 
-			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
+			Eventually(pipelineHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(
 					HaveReason(EventReasons.Syncing),
 					HaveReason(EventReasons.Synced),

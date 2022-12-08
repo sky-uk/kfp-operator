@@ -1,5 +1,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Getting Started</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/</link><description>Recent content in Getting Started on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/getting-started/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>
-&lt;p>The Kubeflow Pipelines Operator provides a declarative API for managing and running machine learning pipelines on Kubeflow with Resource Definitions.&lt;/p>
+&lt;p>The Kubeflow Pipelines Operator provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
+A provider is a runtime environment for managing and executing ML pipelines and related resources.&lt;/p>
+&lt;h2 id="compatibility">Compatibility&lt;/h2>
+&lt;p>The operator currently supports&lt;/p>
+&lt;ul>
+&lt;li>TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet&lt;/li>
+&lt;li>KFP standalone (a full KFP installation is not supported yet) and Vertex AI&lt;/li>
+&lt;/ul>
 &lt;h2 id="tfx-pipelines-and-components">TFX Pipelines and Components&lt;/h2>
 &lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.&lt;/p>
 &lt;p>For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart/penguin_pipeline/pipeline.py">penguin pipeline&lt;/a> for an example.&lt;/p>
@@ -10,7 +17,7 @@
 &lt;p>&lt;strong>Deployment:&lt;/strong> Creating a pipeline representation in the target environment.&lt;/p>
 &lt;p>&lt;strong>Running:&lt;/strong> Instantiating the pipeline, applying runtime parameters and running all pipeline steps involved to completion.&lt;/p>
 &lt;p>&lt;em>Note:&lt;/em> Local runners usually skip compilation and deployment and run the pipeline straight away.&lt;/p>
-&lt;p>TFX allows the parameterisation of Pipelines in most lifecycle stages:&lt;/p>
+&lt;p>TFX allows the parameterization of Pipelines in most lifecycle stages:&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -44,11 +51,6 @@
 &lt;ul>
 &lt;li>&lt;a href="../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
 &lt;/ul>
-&lt;h2 id="compatibility">Compatibility&lt;/h2>
-&lt;ul>
-&lt;li>The operator currently only supports TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet.&lt;/li>
-&lt;li>The operator currently only supports KFP standalone - a full KFP installation is not supported yet.&lt;/li>
-&lt;/ul>
 &lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/architecture.png" alt="Architecture">&lt;/p></description></item><item><title>Docs: Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>
 &lt;p>We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p>
@@ -56,7 +58,7 @@
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>
 &lt;ul>
 &lt;li>The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the &lt;a href="../../reference/configuration/#provider-configuration">respective configuration section&lt;/a> before proceeding.&lt;/li>
-&lt;li>Argo installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
+&lt;li>Argo installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href="../../reference/configuration">configuration&lt;/a>). Note that Argo 3.4 is not supported yet.&lt;/li>
 &lt;/ul>
 &lt;h2 id="build-and-install">Build and Install&lt;/h2>
 &lt;p>Create basic &lt;code>values.yaml&lt;/code> with the following content:&lt;/p>
@@ -217,11 +219,46 @@
 &lt;td>&lt;code>eventsourceServer.resources&lt;/code>&lt;/td>
 &lt;td>Eventsource server resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>providers&lt;/code>&lt;/td>
+&lt;td>Dictionary of providers (see below)&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
-">test configuration&lt;/a>&lt;/p></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
-&lt;p>This tutorial walks you through the creation of a simple TFX pipeline and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p>
+">test configuration&lt;/a>&lt;/p>
+&lt;h3 id="providers">Providers&lt;/h3>
+&lt;p>The &lt;code>providers&lt;/code> block contains a dictionary of provider names to provider configurations:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>type&lt;/code>&lt;/td>
+&lt;td>Provider type (&lt;code>kfp&lt;/code> or &lt;code>vai&lt;/code>)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>configuration&lt;/code>&lt;/td>
+&lt;td>See &lt;a href="../../reference/configuration/#provider-configurations">Provider Configuration&lt;/a> for all available providers and their respective configuration options&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">providers&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kfp&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#ae81ff">...&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">vai&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">vai&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#ae81ff">...&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
+&lt;p>This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p>
 &lt;p>All code samples can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart">GitHub&lt;/a>.&lt;/p>
 &lt;p>We assume that you are already familiar with TFX and Kubeflow and that you have access to a running instance of Kubeflow Pipelines.&lt;/p>
 &lt;h2 id="1-build-the-pipeline">1. Build the Pipeline&lt;/h2>
@@ -412,23 +449,24 @@ The training code remains unchanged:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker push kfp-quickstart:v1
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="2-create-a-pipeline-resource">2. Create a Pipeline Resource&lt;/h2>
 &lt;p>Now that we have a pipeline image, we can create a &lt;code>pipeline.yaml&lt;/code> resource to manage the lifecycle of this pipeline on Kubeflow:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha3&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-quickstart:v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">tfxComponents&lt;/span>: &lt;span style="color:#ae81ff">pipeline.create_components&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/pipeline.yaml
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The pipeline now gets uploaded to Kubeflow in several steps. After a few seconds to minutes, the following command should result in a success:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl get pipeline
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>NAME SYNCHRONIZATIONSTATE PROVIDERID
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>penguin-pipeline Succeeded 53905abe-0337-48de-875d-67b9285f3cf7
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now visit you Kubeflow Pipelines UI. You should be able to see the newly created pipeline named &lt;code>penguin-pipeline&lt;/code>. Note that you will see two versions: &amp;lsquo;penguin-pipeline&amp;rsquo; and &amp;lsquo;v1&amp;rsquo;. This is due to an &lt;a href="https://github.com/kubeflow/pipelines/issues/5881">open issue on Kubeflow&lt;/a> where you can&amp;rsquo;t specify a version when creating a pipeline.&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now visit your Kubeflow Pipelines UI. You should be able to see the newly created pipeline named &lt;code>penguin-pipeline&lt;/code>. Note that you will see two versions: &amp;lsquo;penguin-pipeline&amp;rsquo; and &amp;lsquo;v1&amp;rsquo;. This is due to an &lt;a href="https://github.com/kubeflow/pipelines/issues/5881">open issue on Kubeflow&lt;/a> where you can&amp;rsquo;t specify a version when creating a pipeline.&lt;/p>
 &lt;h2 id="3-create-an-experiment-resource">3. Create an Experiment resource&lt;/h2>
 &lt;p>Note: this step is optional. You can continue with the next step if you want to use the &lt;code>Default&lt;/code> experiment instead.&lt;/p>
 &lt;p>Create &lt;code>experiment.yaml&lt;/code>:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha3&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Experiment&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
@@ -439,7 +477,7 @@ The training code remains unchanged:&lt;/p>
 &lt;p>We can now define a recurring run declaratively using the &lt;code>RunConfiguration&lt;/code> resource.&lt;/p>
 &lt;p>Note: remove &lt;code>experimentName&lt;/code> if you want to use the &lt;code>Default&lt;/code> experiment instead of &lt;code>penguin-experiment&lt;/code>&lt;/p>
 &lt;p>Create &lt;code>runconfiguration.yaml&lt;/code>:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha3&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-recurring-run&lt;/span>

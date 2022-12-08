@@ -3,7 +3,14 @@ title: "Overview"
 weight: 1
 ---
 
-The Kubeflow Pipelines Operator provides a declarative API for managing and running machine learning pipelines on Kubeflow with Resource Definitions.
+The Kubeflow Pipelines Operator provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
+A provider is a runtime environment for managing and executing ML pipelines and related resources.
+
+## Compatibility
+
+The operator currently supports
+- TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet
+- KFP standalone (a full KFP installation is not supported yet) and Vertex AI
 
 ## TFX Pipelines and Components
 
@@ -25,13 +32,13 @@ TFX Pipelines go through certain lifecycle phases that are unique to this techno
 
 *Note:* Local runners usually skip compilation and deployment and run the pipeline straight away.
 
-TFX allows the parameterisation of Pipelines in most lifecycle stages:
+TFX allows the parameterization of Pipelines in most lifecycle stages:
 
-| Parameter type | Description | Example |
-| --- | --- | --- |
-| Named Constants | Code constants | ANN layer size |
-| Compile-time parameter | Parameters that are unlikely to change between pipeline runs supplied as environment variabels to the pipeline function | Bigquery dataset |
-| Runtime parameter | Parameters exposed as TFX [RuntimeParameter](https://www.tensorflow.org/tfx/api_docs/python/tfx/v1/dsl/experimental/RuntimeParameter?hl=en) which can be overridden at runtime allow simplified experimentation without having to recompile the pipeline | Number of training runs |
+| Parameter type         | Description                                                                                                                                                                                                                                              | Example                 |
+|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| Named Constants        | Code constants                                                                                                                                                                                                                                           | ANN layer size          |
+| Compile-time parameter | Parameters that are unlikely to change between pipeline runs supplied as environment variabels to the pipeline function                                                                                                                                  | Bigquery dataset        |
+| Runtime parameter      | Parameters exposed as TFX [RuntimeParameter](https://www.tensorflow.org/tfx/api_docs/python/tfx/v1/dsl/experimental/RuntimeParameter?hl=en) which can be overridden at runtime allow simplified experimentation without having to recompile the pipeline | Number of training runs |
 
 The pipeline operator supports the application of compile time and runtime parameters through its custom resources. We strongly encourage the usage of both of these parameter types to speed up development and experimentation lifecycles. Note that Runtime parameters can initialised to default values from both constants and compile-time parameters
 
@@ -42,11 +49,6 @@ The Kubeflow Pipelines operator can optionally be installed with [Argo-Events](h
 Currently, we support the following eventsources:
 
 - [Run Completion Eventsource](../reference/run-completion)
-
-## Compatibility
-
-- The operator currently only supports TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet.
-- The operator currently only supports KFP standalone - a full KFP installation is not supported yet.
 
 ## Architecture Overview
 

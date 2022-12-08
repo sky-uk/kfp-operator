@@ -50,6 +50,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
+	desiredProvider := r.desiredProvider(runConfiguration)
+
 	var desiredVersion *string
 	pipelineVersion := runConfiguration.Spec.Pipeline.Version
 
@@ -76,7 +78,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, nil
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, runConfiguration)
+	commands := r.StateHandler.StateTransition(ctx, desiredProvider, runConfiguration)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, runConfiguration); err != nil {

@@ -29,7 +29,7 @@ type RunConfigurationWorkflowIntegrationSuite interface {
 	FailDeletion(runConfiguration *pipelinesv1.RunConfiguration) error
 	FailDeletionNotFound(runConfiguration *pipelinesv1.RunConfiguration) error
 
-	ProviderConfig() string
+	ProviderName() string
 }
 
 type KfpRunConfigurationWorkflowIntegrationSuite struct {
@@ -126,8 +126,8 @@ func (_ KfpRunConfigurationWorkflowIntegrationSuite) failDeletionWithCode(code i
 		))
 }
 
-func (_ KfpRunConfigurationWorkflowIntegrationSuite) ProviderConfig() string {
-	return "restKfpApiUrl: http://wiremock:80\nimage: kfp-operator-kfp-provider\nexecutionMode: v1"
+func (_ KfpRunConfigurationWorkflowIntegrationSuite) ProviderName() string {
+	return "kfp"
 }
 
 func (kfprcwis KfpRunConfigurationWorkflowIntegrationSuite) stubGetPipeline(pipelineName string) error {
@@ -170,8 +170,8 @@ func (_ KfpRunConfigurationWorkflowIntegrationSuite) stubGetExperiment(experimen
 var pipelineProviderId = apis.RandomString()
 var versionProviderId = apis.RandomString()
 var versionName = apis.RandomString()
-var runConfigurationProviderId = apis.RandomString()    // TODO runConfigurationProviderIdBefore
-var newRunConfigurationProviderId = apis.RandomString() // TODO runConfigurationProviderIdAfter
+var runConfigurationProviderId = apis.RandomString()
+var newRunConfigurationProviderId = apis.RandomString()
 var experimentProviderId = apis.RandomString()
 var defaultExperiment = apis.RandomString()
 
@@ -179,10 +179,10 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 
 	var AssertWorkflow = func(
 		setUp func(runConfiguration *pipelinesv1.RunConfiguration),
-		constructWorkflow func(*pipelinesv1.RunConfiguration) (*argo.Workflow, error),
+		constructWorkflow func(string, *pipelinesv1.RunConfiguration) (*argo.Workflow, error),
 		assertion func(Gomega, *argo.Workflow)) {
 
-		testCtx := NewRunConfigurationTestContext(
+		testCtx := WorkflowTestHelper[*pipelinesv1.RunConfiguration]{
 			&pipelinesv1.RunConfiguration{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      apis.RandomLowercaseString(),
@@ -194,15 +194,18 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 				},
 				Status: pipelinesv1.RunConfigurationStatus{
 					Status: pipelinesv1.Status{
-						ProviderId: runConfigurationProviderId,
+						ProviderId: pipelinesv1.ProviderAndId{
+							Id:       runConfigurationProviderId,
+							Provider: "kfp",
+						},
 					},
 					ObservedPipelineVersion: versionName,
 				},
 			},
-			k8sClient, ctx)
+		}
 
-		setUp(testCtx.RunConfiguration)
-		workflow, err := constructWorkflow(testCtx.RunConfiguration)
+		setUp(testCtx.Resource)
+		workflow, err := constructWorkflow("kfp", testCtx.Resource)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
@@ -216,11 +219,11 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 			workflowFactory := RunConfigurationWorkflowFactory{
 				WorkflowFactoryBase: WorkflowFactoryBase{
 					Config: config.Configuration{
+						DefaultProvider:        suite.ProviderName(),
 						WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 						DefaultExperiment:      defaultExperiment,
 						WorkflowNamespace:      "argo",
 					},
-					ProviderConfig: suite.ProviderConfig(),
 				},
 			}
 
@@ -345,6 +348,5 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 		})
 	}
 
-	//RunSuite(VertexAIRunConfigurationWorkflowIntegrationSuite{}, "Vertex AI")
 	RunSuite(KfpRunConfigurationWorkflowIntegrationSuite{}, "Kubeflow Pipelines")
 })

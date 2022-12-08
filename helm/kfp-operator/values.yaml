@@ -28,7 +28,7 @@ manager:
   replicas: 1
   configuration: {}
   argo:
-    serviceAccount: ""
+    serviceAccount: "kfp-operator-workflow-runner"
     containerDefaults: {}
     metadataDefaults: {}
     ttlStrategy:
@@ -43,9 +43,8 @@ manager:
       endpointConfiguration: {}
   multiversion:
     enabled: false
-  provider:
-    type: kfp
-    configuration: {}
+
+providers: {}
 
 logging:
   verbosity: # info
@@ -54,11 +53,6 @@ eventsourceServer:
   create: false
   metadata: {}
   port: 8080
-  rbac:
-    create: true
-  serviceAccount:
-    create: true
-    name: "kfp-operator-run-completion-eventsource-server"
   resources:
     limits:
       cpu: 100m

@@ -1,11 +1,11 @@
-{{- if eq .Values.manager.provider.type "vai" -}}
+{{- if (include "kfp-operator.providerTypeExists" (merge (dict "ProviderType" "vai") . )) -}}
 apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:
   name: default
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
   labels:
-    {{- include "kfp-operator.labels" . | nindent 4 }}
+    {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:
   nats:
     native:
@@ -14,7 +14,7 @@ spec:
           requests:
             cpu: 100m
       metadata:
-        {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" .) | fromYaml) -}}
+        {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
         {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
       metricsContainerTemplate:
         resources:

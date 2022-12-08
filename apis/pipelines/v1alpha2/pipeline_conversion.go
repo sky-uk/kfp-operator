@@ -1,40 +1,34 @@
 package v1alpha2
 
 import (
-	"github.com/sky-uk/kfp-operator/apis"
+	pipelinesv1alpha3 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
-type PipelineConversionRemainder struct {
-	BeamArgs []apis.NamedValue `json:"beamArgs,omitempty"`
-	Env      []apis.NamedValue `json:"env,omitempty"`
-}
-
-func (pcr PipelineConversionRemainder) empty() bool {
-	return pcr.BeamArgs == nil && pcr.Env == nil
-}
-
 func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Pipeline)
 
-	dst.ObjectMeta = src.ObjectMeta
-	dst.Status.SynchronizationState = src.Status.SynchronizationState
-	dst.Status.ProviderId = src.Status.KfpId
-	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
-	dst.Status.Version = src.Status.Version
-	dst.Spec.Env = mapToNamedValues(src.Spec.Env)
-	dst.Spec.BeamArgs = mapToNamedValues(src.Spec.BeamArgs)
-	dst.Spec.Image = src.Spec.Image
-	dst.Spec.TfxComponents = src.Spec.TfxComponents
-
-	remainder := PipelineConversionRemainder{}
-	if err := retrieveAndUnsetConversionAnnotations(dst, &remainder); err != nil {
+	v1alpha3remainder := pipelinesv1alpha3.PipelineConversionRemainder{}
+	v1alpha4remainder := hub.ResourceConversionRemainder{}
+	if err := hub.RetrieveAndUnsetConversionAnnotations(src, &v1alpha3remainder, &v1alpha4remainder); err != nil {
 		return err
 	}
 
-	dst.Spec.BeamArgs = append(dst.Spec.BeamArgs, remainder.BeamArgs...)
-	dst.Spec.Env = append(dst.Spec.Env, remainder.Env...)
+	dst.ObjectMeta = src.ObjectMeta
+	dst.Status.SynchronizationState = src.Status.SynchronizationState
+	dst.Status.ProviderId = hub.ProviderAndId{
+		Provider: v1alpha4remainder.Provider,
+		Id:       src.Status.KfpId,
+	}
+	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
+	dst.Status.Version = src.Status.Version
+	dst.Spec.Env = hub.MapToNamedValues(src.Spec.Env)
+	dst.Spec.BeamArgs = hub.MapToNamedValues(src.Spec.BeamArgs)
+	dst.Spec.Image = src.Spec.Image
+	dst.Spec.TfxComponents = src.Spec.TfxComponents
+	dst.Spec.BeamArgs = append(dst.Spec.BeamArgs, v1alpha3remainder.BeamArgs...)
+	dst.Spec.Env = append(dst.Spec.Env, v1alpha3remainder.Env...)
 
 	return nil
 }
@@ -42,19 +36,21 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Pipeline)
 
-	remainder := PipelineConversionRemainder{}
+	v1alpha3remainder := pipelinesv1alpha3.PipelineConversionRemainder{}
+	v1alpha4remainder := hub.ResourceConversionRemainder{}
 
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
-	dst.Status.KfpId = src.Status.ProviderId
+	dst.Status.KfpId = src.Status.ProviderId.Id
 	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
 	dst.Status.Version = src.Status.Version
-	dst.Spec.Env, remainder.Env = namedValuesToMap(src.Spec.Env)
-	dst.Spec.BeamArgs, remainder.BeamArgs = namedValuesToMap(src.Spec.BeamArgs)
+	dst.Spec.Env, v1alpha3remainder.Env = hub.NamedValuesToMap(src.Spec.Env)
+	dst.Spec.BeamArgs, v1alpha3remainder.BeamArgs = hub.NamedValuesToMap(src.Spec.BeamArgs)
 	dst.Spec.Image = src.Spec.Image
 	dst.Spec.TfxComponents = src.Spec.TfxComponents
 
-	if err := setConversionAnnotations(dst, remainder); err != nil {
+	v1alpha4remainder.Provider = src.Status.ProviderId.Provider
+	if err := hub.SetConversionAnnotations(dst, &v1alpha3remainder, &v1alpha4remainder); err != nil {
 		return err
 	}
 

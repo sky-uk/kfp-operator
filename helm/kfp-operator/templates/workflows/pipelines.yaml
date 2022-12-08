@@ -15,11 +15,11 @@ spec:
         raw:
           data: |
             {{`{{workflow.parameters.pipeline-definition}}`}}
-        path: /tmp/pipeline-definition.yaml
+        path: /pipeline-definition.yaml
     outputs:
       artifacts:
       - name: pipeline
-        path: /tmp/pipeline.yaml
+        path: /pipeline.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -32,9 +32,9 @@ spec:
         name: shared
       args:
       - --output_file
-      - /tmp/pipeline.yaml
+      - /pipeline.yaml
       - --pipeline_config
-      - /tmp/pipeline-definition.yaml
+      - /pipeline-definition.yaml
       - --execution_mode
       - "{{`{{inputs.parameters.execution-mode}}`}}"
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -51,39 +51,39 @@ spec:
     inputs:
       parameters:
       - name: provider-image
+      - name: provider-sa
       artifacts:
       - name: pipeline
-        path: /tmp/pipeline.yaml
+        path: /pipeline.yaml
       - name: pipeline-definition
-        path: /tmp/pipeline-definition.yaml
+        path: /pipeline-definition.yaml
         raw:
           data: |
             {{`{{workflow.parameters.pipeline-definition}}`}}
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
           path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /tmp/provider-config.yaml
+      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
       - pipeline
       - create
       - --pipeline-definition
-      - /tmp/pipeline-definition.yaml
+      - /pipeline-definition.yaml
       - --pipeline-file
-      - /tmp/pipeline.yaml
+      - /pipeline.yaml
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -91,42 +91,42 @@ spec:
     inputs:
       artifacts:
       - name: pipeline
-        path: /tmp/pipeline.yaml
+        path: /pipeline.yaml
       - name: pipeline-definition
-        path: /tmp/pipeline-definition.yaml
+        path: /pipeline-definition.yaml
         raw:
           data: |
             {{`{{workflow.parameters.pipeline-definition}}`}}
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
       parameters:
       - name: pipeline-id
       - name: provider-image
+      - name: provider-sa
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
           path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /tmp/provider-config.yaml
+      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
       - pipeline
       - update
       - --pipeline-definition
-      - /tmp/pipeline-definition.yaml
+      - /pipeline-definition.yaml
       - --pipeline-id
       - '{{`{{inputs.parameters.pipeline-id}}`}}'
       - --pipeline-file
-      - /tmp/pipeline.yaml
+      - /pipeline.yaml
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -134,30 +134,29 @@ spec:
     inputs:
       parameters:
       - name: provider-image
-      artifacts:
-      - name: provider-config
-        path: /tmp/provider-config.yaml
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
+      - name: provider-sa
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
           path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
+      image: "{{`{{inputs.parameters.provider-image}}`}}"
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
       command:
       - /provider
-      image: "{{`{{inputs.parameters.provider-image}}`}}"
       args:
       - --provider-config
-      - /tmp/provider-config.yaml
+      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
       - pipeline
       - delete
       - --pipeline-definition
-      - /tmp/pipeline-definition.yaml
+      - /pipeline-definition.yaml
       - --pipeline-id
       - '{{`{{workflow.parameters.pipeline-id}}`}}'
       - --out
@@ -170,12 +169,16 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-pipeline
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: {{ include "kfp-operator.fullname" . }}-providers
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
+    - name: provider-name
     - name: pipeline-definition
-    - name: provider-config
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -196,6 +199,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: select-execution-mode
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
@@ -229,6 +240,8 @@ spec:
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+          - name: provider-sa
+            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -236,13 +249,17 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-pipeline
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: {{ include "kfp-operator.fullname" . }}-providers
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
-    - name: pipeline-definition
-    - name: provider-config
+    - name: provider-name
     - name: pipeline-id
+    - name: pipeline-definition
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -263,6 +280,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: select-execution-mode
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
@@ -298,6 +323,8 @@ spec:
             value: '{{`{{workflow.parameters.pipeline-id}}`}}'
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+          - name: provider-sa
+            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -305,11 +332,15 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-delete-pipeline
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: {{ include "kfp-operator.fullname" . }}-providers
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
-    - name: provider-config
+    - name: provider-name
     - name: pipeline-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
@@ -331,6 +362,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
@@ -339,3 +378,5 @@ spec:
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+          - name: provider-sa
+            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'

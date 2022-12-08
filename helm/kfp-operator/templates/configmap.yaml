@@ -21,9 +21,3 @@ data:
         resourceName: kfp-operator-lock
     spec:
       {{- include "kfp-operator.configuration" . | nindent 6 }}
-  provider.yaml: |
-    image: {{ include "kfp-operator.providerImage" . }}
-    executionMode: {{ if eq .Values.manager.provider.type "kfp" }}v1{{ else }}v2{{ end }}
-    {{- if not (empty .Values.manager.provider.configuration) -}}
-    {{- .Values.manager.provider.configuration | toYaml | nindent 4 }}
-    {{- end }}

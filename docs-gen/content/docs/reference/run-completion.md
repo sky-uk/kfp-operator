@@ -1,6 +1,6 @@
 ---
 title: "Run Completion EventSource"
-weight: 4
+weight: 3
 ---
 
 The Run Completion Eventsource allows reacting to finished pipeline runs.

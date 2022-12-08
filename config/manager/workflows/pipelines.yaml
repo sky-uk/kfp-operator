@@ -15,25 +15,25 @@ spec:
           raw:
             data: |
               {{workflow.parameters.pipeline-definition}}
-          path: /tmp/pipeline-definition.yaml
+          path: /pipeline-definition.yaml
       outputs:
         artifacts:
         - name: pipeline
-          path: /tmp/pipeline.yaml
+          path: /pipeline.yaml
       metadata: {}
       container:
-        command:
-        - /shared/compile.sh
-        image: '{{inputs.parameters.pipeline-image}}'
         name: pipeline
+        image: '{{inputs.parameters.pipeline-image}}'
         volumeMounts:
         - mountPath: /shared
           name: shared
+        command:
+        - /shared/compile.sh
         args:
         - --output_file
-        - /tmp/pipeline.yaml
+        - /pipeline.yaml
         - --pipeline_config
-        - /tmp/pipeline-definition.yaml
+        - /pipeline-definition.yaml
         - --execution_mode
         - "{{inputs.parameters.execution-mode}}"
       volumes:
@@ -48,108 +48,107 @@ spec:
       inputs:
         parameters:
         - name: provider-image
+        - name: provider-sa
         artifacts:
         - name: pipeline
-          path: /tmp/pipeline.yaml
+          path: /pipeline.yaml
         - name: pipeline-definition
-          path: /tmp/pipeline-definition.yaml
+          path: /pipeline-definition.yaml
           raw:
             data: |
               {{workflow.parameters.pipeline-definition}}
-        - name: provider-config
-          path: /tmp/provider-config.yaml
-          raw:
-            data: |
-              {{workflow.parameters.provider-config}}
       outputs:
         parameters:
         - name: provider-output
           valueFrom:
             path: /tmp/provider-output.yaml
+      podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
       metadata: {}
       container:
         image: "{{inputs.parameters.provider-image}}"
+        volumeMounts:
+        - name: providers-config
+          mountPath: /providers-config
         command:
         - /provider
         args:
         - --provider-config
-        - /tmp/provider-config.yaml
+        - /providers-config/{{workflow.parameters.provider-name}}
         - pipeline
         - create
         - --pipeline-definition
-        - /tmp/pipeline-definition.yaml
+        - /pipeline-definition.yaml
         - --pipeline-file
-        - /tmp/pipeline.yaml
+        - /pipeline.yaml
         - --out
         - /tmp/provider-output.yaml
     - name: update
       inputs:
         artifacts:
         - name: pipeline
-          path: /tmp/pipeline.yaml
+          path: /pipeline.yaml
         - name: pipeline-definition
-          path: /tmp/pipeline-definition.yaml
+          path: /pipeline-definition.yaml
           raw:
             data: |
               {{workflow.parameters.pipeline-definition}}
-        - name: provider-config
-          path: /tmp/provider-config.yaml
-          raw:
-            data: |
-              {{workflow.parameters.provider-config}}
         parameters:
         - name: pipeline-id
         - name: provider-image
+        - name: provider-sa
       outputs:
         parameters:
         - name: provider-output
           valueFrom:
             path: /tmp/provider-output.yaml
+      podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
       metadata: {}
       container:
         image: "{{inputs.parameters.provider-image}}"
+        volumeMounts:
+        - name: providers-config
+          mountPath: /providers-config
         command:
         - /provider
         args:
         - --provider-config
-        - /tmp/provider-config.yaml
+        - /providers-config/{{workflow.parameters.provider-name}}
         - pipeline
         - update
         - --pipeline-definition
-        - /tmp/pipeline-definition.yaml
+        - /pipeline-definition.yaml
         - --pipeline-id
         - '{{inputs.parameters.pipeline-id}}'
         - --pipeline-file
-        - /tmp/pipeline.yaml
+        - /pipeline.yaml
         - --out
         - /tmp/provider-output.yaml
     - name: delete
       inputs:
         parameters:
         - name: provider-image
-        artifacts:
-        - name: provider-config
-          path: /tmp/provider-config.yaml
-          raw:
-            data: |
-              {{workflow.parameters.provider-config}}
+        - name: provider-sa
       outputs:
         parameters:
         - name: provider-output
           valueFrom:
             path: /tmp/provider-output.yaml
+      podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
       metadata: {}
       container:
-        command:
-        - /provider
         image: "{{inputs.parameters.provider-image}}"
+        volumeMounts:
+        - name: providers-config
+          mountPath: /providers-config
+        command:
+          - /provider
         args:
         - --provider-config
-        - /tmp/provider-config.yaml
+        - /providers-config/{{workflow.parameters.provider-name}}
         - pipeline
         - delete
         - --pipeline-definition
-        - /tmp/pipeline-definition.yaml
+        - /pipeline-definition.yaml
         - --pipeline-id
         - '{{workflow.parameters.pipeline-id}}'
         - --out
@@ -161,14 +160,19 @@ metadata:
   name: create-pipeline
   namespace: kfp-operator-system
 spec:
+  serviceAccountName: kfp-operator-workflow-runner
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 600
     secondsAfterSuccess: 600
     secondsAfterFailure: 3600
   arguments:
     parameters:
+    - name: provider-name
     - name: pipeline-definition
-    - name: provider-config
   entrypoint: main
   templates:
   - name: main
@@ -186,6 +190,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: select-execution-mode
         templateRef:
           name: kfp-operator-common-steps
@@ -219,6 +231,8 @@ spec:
           parameters:
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
+          - name: provider-sa
+            value: '{{steps.select-provider-sa.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -226,15 +240,20 @@ metadata:
   name: update-pipeline
   namespace: kfp-operator-system
 spec:
+  serviceAccountName: kfp-operator-workflow-runner
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 600
     secondsAfterSuccess: 600
     secondsAfterFailure: 3600
   arguments:
     parameters:
-    - name: pipeline-definition
-    - name: provider-config
+    - name: provider-name
     - name: pipeline-id
+    - name: pipeline-definition
   entrypoint: main
   templates:
   - name: main
@@ -252,6 +271,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: select-execution-mode
         templateRef:
           name: kfp-operator-common-steps
@@ -287,6 +314,8 @@ spec:
             value: '{{workflow.parameters.pipeline-id}}'
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
+          - name: provider-sa
+            value: '{{steps.select-provider-sa.outputs.result}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -294,13 +323,18 @@ metadata:
   name: delete-pipeline
   namespace: kfp-operator-system
 spec:
+  serviceAccountName: kfp-operator-workflow-runner
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 600
     secondsAfterSuccess: 600
     secondsAfterFailure: 3600
   arguments:
     parameters:
-    - name: provider-config
+    - name: provider-name
     - name: pipeline-id
   entrypoint: main
   templates:
@@ -319,6 +353,14 @@ spec:
           parameters:
           - name: parameter
             value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
     - - name: provider
         templateRef:
           name: kfp-operator-pipeline-steps
@@ -327,3 +369,5 @@ spec:
           parameters:
           - name: provider-image
             value: '{{steps.select-provider-image.outputs.result}}'
+          - name: provider-sa
+            value: '{{steps.select-provider-sa.outputs.result}}'

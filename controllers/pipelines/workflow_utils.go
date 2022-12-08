@@ -16,6 +16,16 @@ var mapParams = func(params []argo.Parameter) map[string]string {
 	return m
 }
 
+func getWorkflowParameter(workflow *argo.Workflow, name string) string {
+	for _, parameter := range workflow.Spec.Arguments.Parameters {
+		if parameter.Name == name {
+			return parameter.Value.String()
+		}
+	}
+
+	return ""
+}
+
 func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, error) {
 	output := providers.Output{}
 
@@ -29,6 +39,12 @@ func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, e
 	err := yaml.Unmarshal(yamlOutput, &output)
 
 	return output, err
+}
+
+func setWorkflowProvider(workflow *argo.Workflow, provider string) *argo.Workflow {
+	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: WorkflowConstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider)})
+
+	return workflow
 }
 
 func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *argo.Workflow {

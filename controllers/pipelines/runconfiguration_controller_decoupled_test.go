@@ -16,51 +16,56 @@ import (
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			providerId := "12345"
+			rcHelper := Create(pipelinesv1.RandomRunConfiguration())
 
-			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-
-			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
-
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 			})).Should(Succeed())
 
-			testCtx.WorkflowSucceeded(WorkflowConstants.CreateOperationLabel)
-
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			Eventually(rcHelper.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
+				workflow.Status.Phase = argo.WorkflowSucceeded
+				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Expect(testCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(runConfiguration.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
+			})).Should(Succeed())
+
+			Expect(rcHelper.Update(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec = pipelinesv1.RandomRunConfigurationSpec()
 			})).To(Succeed())
 
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
 			})).Should(Succeed())
 
-			testCtx.WorkflowSucceeded(WorkflowConstants.UpdateOperationLabel)
-
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			Eventually(rcHelper.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
+				workflow.Status.Phase = argo.WorkflowSucceeded
+				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Expect(testCtx.DeleteRunConfiguration()).To(Succeed())
+			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(runConfiguration.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
+			})).Should(Succeed())
 
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Expect(rcHelper.Delete()).To(Succeed())
+
+			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Deleting))
 			})).Should(Succeed())
 
-			Eventually(testCtx.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(rcHelper.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
-			Eventually(testCtx.RunConfigurationExists).Should(Not(Succeed()))
+			Eventually(rcHelper.Exists).Should(Not(Succeed()))
 
-			Eventually(testCtx.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
+			Eventually(rcHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(
 					HaveReason(EventReasons.Syncing),
 					HaveReason(EventReasons.Synced),
@@ -79,10 +84,9 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			pipelineVersion := apis.RandomString()
 			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
 
-			testCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-			Expect(k8sClient.Create(ctx, testCtx.RunConfiguration)).To(Succeed())
+			rcHelper := Create(runConfiguration)
 
-			Eventually(testCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
@@ -96,16 +100,15 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Pipeline = pipeline.UnversionedIdentifier()
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 
-			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
-			pipelineTestCtx.StablePipelineCreated()
+			pipelineHelper := CreateStable(pipeline)
 
-			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-			runCfgTestCtx.StableRunConfigurationCreated()
+			rcHelper := CreateStable(runConfiguration)
 
-			pipeline.Spec = pipelinesv1.RandomPipelineSpec()
-			pipelineTestCtx.StablePipelineUpdated(*pipeline)
+			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
+				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
+			})
 
-			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
 			})).Should(Succeed())
@@ -118,26 +121,26 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			fixedIdentifier := pipeline.VersionedIdentifier()
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
+
 			runConfiguration.Spec.Pipeline = fixedIdentifier
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 
-			pipelineTestCtx := NewPipelineTestContext(pipeline, k8sClient, ctx)
-			pipelineTestCtx.StablePipelineCreated()
+			pipelineHelper := CreateStable(pipeline)
 
-			runCfgTestCtx := NewRunConfigurationTestContext(runConfiguration, k8sClient, ctx)
-			runCfgTestCtx.StableRunConfigurationCreated()
+			rcHelper := CreateStable(runConfiguration)
 
-			pipeline.Spec = pipelinesv1.RandomPipelineSpec()
-			pipelineTestCtx.StablePipelineUpdated(*pipeline)
+			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
+				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
+			})
 
 			// To verify the absence of additional RC updates, force another update of the resource.
 			// If the update is processed but the pipeline version hasn't changed,
 			// given that reconciliation requests are processed in-order, we can conclude that the RC is fixed.
-			runCfgTestCtx.UpdateRunConfiguration(func(runConfiguration *pipelinesv1.RunConfiguration) {
+			rcHelper.Update(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec.Schedule = apis.RandomString()
 			})
 
-			Eventually(runCfgTestCtx.RunConfigurationToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
 			})).Should(Succeed())

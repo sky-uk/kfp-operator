@@ -569,11 +569,11 @@ spec:
                 type: array
               defaultExperiment:
                 type: string
+              defaultProvider:
+                type: string
               multiversion:
                 type: boolean
               pipelineStorage:
-                type: string
-              providerConfigFile:
                 type: string
               workflowNamespace:
                 type: string
