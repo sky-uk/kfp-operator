@@ -179,10 +179,12 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;li>Runs
 &lt;ul>
 &lt;li>Topic: &lt;code>runsTopic&lt;/code>&lt;/li>
-&lt;li>Subscriptions:&lt;code>submitterRunsSubscription&lt;/code>, &lt;code>eventsourceRunsSubscription&lt;/code>&lt;/li>
+&lt;li>Subscriptions:&lt;code>submitterRunsSubscription&lt;/code>, &lt;code>eventsourceRunsSubscription&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/li>
 &lt;/ul>
 &lt;/li>
 &lt;/ul>
+&lt;p>It is important to configure the retry policy for the &lt;code>eventsourceRunsSubscription&lt;/code> subscription according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
+We suggest an exponential backoff with min and max backoff set to at least 10 seconds each, resulting in a fixed 10 seconds wait between polls.&lt;/p>
 &lt;p>GCS pipeline storage bucket &lt;code>provider.configuration.pipelineBucket&lt;/code> needs to be created&lt;/p>
 &lt;p>The configured &lt;code>serviceAccount&lt;/code> needs to have &lt;a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">workload identity&lt;/a> enabled and be granted the following permissions:&lt;/p>
 &lt;ul>
@@ -193,11 +195,12 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;li>&lt;code>cloudscheduler.jobs.update&lt;/code>&lt;/li>
 &lt;li>&lt;code>cloudscheduler.jobs.delete&lt;/code>&lt;/li>
 &lt;li>&lt;code>projects.topics.publish&lt;/code> to the configured &lt;code>runs&lt;/code> and &lt;code>runIntentsTopic&lt;/code> topic&lt;/li>
-&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured &lt;code>enqueuerRunIntentsSubscription&lt;/code>, &lt;code>submitterRunsSubscription&lt;/code> and &lt;code>eventsourceRunsSubscription&lt;/code> subscriptions&lt;/li>
+&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured &lt;code>enqueuerRunIntentsSubscription&lt;/code>, &lt;code>submitterRunsSubscription&lt;/code> and &lt;code>eventsourceRunsSubscription&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> subscriptions&lt;/li>
 &lt;li>&lt;code>aiplatform.pipelineJobs.create&lt;/code>&lt;/li>
-&lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;/li>
+&lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/li>
 &lt;li>&lt;code>iam.serviceAccounts.actAs&lt;/code> the configured &lt;code>vaiJobServiceAccount&lt;/code> Vertex AI Job Runner&lt;/li>
-&lt;/ul></description></item><item><title>Docs: Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>
+&lt;/ul>
+&lt;p>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> fields only needed if the operator is installed with &lt;a href="../../getting-started/overview/#eventing-support">eventing support&lt;/a>&lt;/p></description></item><item><title>Docs: Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>
 &lt;p>The Kubeflow Pipelines Operator provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
 A provider is a runtime environment for managing and executing ML pipelines and related resources.&lt;/p>
 &lt;h2 id="compatibility">Compatibility&lt;/h2>
@@ -923,6 +926,7 @@ A sensor for the pipeline &lt;code>penguin-pipeline&lt;/code> could look as foll
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#34;penguin-pipeline&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">template&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">log&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">log&lt;/span>: {}
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>For more information and an in-depth example, see the &lt;a href="../../getting-started#5-optional-deploy-newly-trained-models">Quickstart Guide&lt;/a> and &lt;a href="https://argoproj.github.io/argo-events/">Argo-Events Documentation&lt;/a>.&lt;/p>
 &lt;p>Please make sure to provide an event bus for the eventsource and the sensor to connect to.

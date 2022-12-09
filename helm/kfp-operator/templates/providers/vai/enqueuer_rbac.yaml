@@ -1,0 +1,36 @@
+{{- if .Values.manager.rbac.create -}}
+{{- if (include "kfp-operator.providerTypeExists" (merge (dict "ProviderType" "vai") . )) -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: null
+  name: {{ include "kfp-operator.fullname" . }}-vai-run-enqueuer-role
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+rules:
+- apiGroups:
+    - argoproj.io
+  resources:
+    - workflows
+  verbs:
+    - create
+{{- end -}}
+
+{{- range $providerName, $providerBlock := .Values.providers -}}
+{{- if eq $providerBlock.type "vai" }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer-rolebinding
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "kfp-operator.fullname" $ }}-vai-run-enqueuer-role
+subjects:
+- kind: ServiceAccount
+  name: {{ $providerBlock.configuration.serviceAccount }}
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+{{- end -}}
+{{- end -}}
+{{- end -}}

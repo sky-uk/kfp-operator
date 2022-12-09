@@ -73,6 +73,7 @@ spec:
               - "penguin-pipeline"
   triggers:
     - template:
+        name: log
         log: {}
 ```
 

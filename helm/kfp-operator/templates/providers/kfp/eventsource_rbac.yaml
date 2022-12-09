@@ -1,4 +1,4 @@
-{{- if and .Values.eventsourceServer.create -}}
+{{- if and .Values.eventsourceServer.create .Values.manager.rbac.create -}}
 {{- if (include "kfp-operator.providerTypeExists" (merge (dict "ProviderType" "kfp") . )) -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
