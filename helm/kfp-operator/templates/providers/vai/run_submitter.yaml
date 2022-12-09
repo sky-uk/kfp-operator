@@ -1,5 +1,68 @@
+{{- if (include "kfp-operator.providerTypeExists" (merge (dict "ProviderType" "vai") . )) -}}
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-submit-vai-run
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: {{ include "kfp-operator.fullname" $ }}-providers
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
+  arguments:
+    parameters:
+    - name: run
+    - name: provider-name
+  entrypoint: main
+  templates:
+  - name: main
+    steps:
+    - - name: select-provider-image
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: image
+    - - name: submit
+        arguments:
+          parameters:
+          - name: provider-image
+            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
+        template: submit
+  - name: submit
+    metadata:
+      {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 10 }}
+    inputs:
+      parameters:
+      - name: provider-image
+      artifacts:
+      - name: run
+        path: /run.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.run}}`}}
+    container:
+      image: '{{`{{inputs.parameters.provider-image}}`}}'
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
+      command:
+      - /provider
+      args:
+      - --provider-config
+      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
+      - custom
+      - vai-run
+      - submit
+      - --run
+      - /run.json
+{{- end -}}
 {{- range $providerName, $providerBlock := .Values.providers -}}
-{{- if eq $providerBlock.type "vai" -}}
+{{- if eq $providerBlock.type "vai" }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
@@ -43,46 +106,15 @@ spec:
             metadata:
               generateName: {{ include "kfp-operator.fullname" $ }}-submit-run-
             spec:
-              volumes:
-              - name: providers-config
-                configMap:
-                  name: {{ include "kfp-operator.fullname" $ }}-providers
-              ttlStrategy:
-                secondsAfterCompletion: 300
               serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
-              entrypoint: submit
               arguments:
                 parameters:
                 - name: run
-                  value: "set from parameters block below"
+                  value: "set below"
                 - name: provider-name
                   value: "{{ $providerName }}"
-              templates:
-              - name: submit
-                metadata:
-                  {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 18 }}
-                inputs:
-                  artifacts:
-                  - name: run
-                    path: /run.json
-                    raw:
-                      data: |
-                        {{`{{workflow.parameters.run}}`}}
-                container:
-                  image: {{ include "kfp-operator.providerImage" (merge (dict "Provider" $providerBlock) $ ) }}
-                  volumeMounts:
-                  - name: providers-config
-                    mountPath: /providers-config
-                  command:
-                  - /provider
-                  args:
-                  - --provider-config
-                  - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-                  - custom
-                  - vai-run
-                  - submit
-                  - --run
-                  - /run.json
+              workflowTemplateRef:
+                name: {{ include "kfp-operator.fullname" $ }}-submit-vai-run
         parameters:
           - src:
               dependencyName: runs
