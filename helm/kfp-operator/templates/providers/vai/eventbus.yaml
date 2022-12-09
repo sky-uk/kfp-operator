@@ -4,8 +4,6 @@ kind: EventBus
 metadata:
   name: default
   namespace: {{ include "kfp-operator.argoNamespace" . }}
-  labels:
-    {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:
   nats:
     native:
@@ -14,8 +12,7 @@ spec:
           requests:
             cpu: 100m
       metadata:
-        {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-        {{- (merge .Values.manager.metadata $defaultMetadata) | toYaml | nindent 6 }}
+        {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 8 }}
       metricsContainerTemplate:
         resources:
           requests:

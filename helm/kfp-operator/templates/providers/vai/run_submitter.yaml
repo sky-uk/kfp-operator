@@ -6,13 +6,10 @@ kind: EventSource
 metadata:
   name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-submitter
   namespace: {{ include "kfp-operator.argoNamespace" $ }}
-  labels:
-    {{- include "kfp-operator.labels" $ | nindent 4 }}
 spec:
   template:
     metadata:
-      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-      {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 6 }}
+      {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
   pubSub:
     runs:
@@ -29,8 +26,7 @@ spec:
   template:
     serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
     metadata:
-      {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-      {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 6 }}
+      {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
   dependencies:
     - name: runs
       eventSourceName: {{ include "kfp-operator.fullname" $ }}-run-submitter
@@ -62,8 +58,7 @@ spec:
               templates:
               - name: submit
                 metadata:
-                  {{- $defaultMetadata := dict "labels"  ((include "kfp-operator.labels" $ ) | fromYaml) -}}
-                  {{- (deepCopy $.Values.manager.metadata | merge $defaultMetadata) | toYaml | nindent 18 }}
+                  {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 18 }}
                 inputs:
                   artifacts:
                   - name: run
