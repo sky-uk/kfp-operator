@@ -73,7 +73,10 @@ Pub/Sub topics and subscriptions need to be created for:
   - Subscriptions: `enqueuerRunIntentsSubscription`
 - Runs
   - Topic: `runsTopic`
-  - Subscriptions:`submitterRunsSubscription`, `eventsourceRunsSubscription`
+  - Subscriptions:`submitterRunsSubscription`, `eventsourceRunsSubscription`<sup>*</sup>
+
+It is important to configure the retry policy `eventsourceRunsSubscription` according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
+We suggest an exponential backoff with min and max backoff set to at least 10 seconds each, resulting in a fixed 10 seconds wait between polls.
 
 GCS pipeline storage bucket `provider.configuration.pipelineBucket` needs to be created
 
@@ -85,7 +88,9 @@ The configured `serviceAccount` needs to have [workload identity](https://cloud.
   - `cloudscheduler.jobs.update`
   - `cloudscheduler.jobs.delete`
   - `projects.topics.publish` to the configured `runs` and `runIntentsTopic` topic
-  - `projects.subscriptions.pull` from the configured `enqueuerRunIntentsSubscription`, `submitterRunsSubscription` and `eventsourceRunsSubscription` subscriptions
+  - `projects.subscriptions.pull` from the configured `enqueuerRunIntentsSubscription`, `submitterRunsSubscription` and `eventsourceRunsSubscription`<sup>*</sup> subscriptions
   - `aiplatform.pipelineJobs.create`
-  - `aiplatform.pipelineJobs.get`
+  - `aiplatform.pipelineJobs.get`<sup>*</sup>
   - `iam.serviceAccounts.actAs` the configured `vaiJobServiceAccount` Vertex AI Job Runner
+
+<sup>*</sup> fields only needed if the operator is installed with [eventing support](../../getting-started/overview/#eventing-support)
