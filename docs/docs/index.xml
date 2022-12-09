@@ -183,7 +183,7 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;/ul>
 &lt;/li>
 &lt;/ul>
-&lt;p>It is important to configure the retry policy &lt;code>eventsourceRunsSubscription&lt;/code> according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
+&lt;p>It is important to configure the retry policy for the &lt;code>eventsourceRunsSubscription&lt;/code> subscription according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
 We suggest an exponential backoff with min and max backoff set to at least 10 seconds each, resulting in a fixed 10 seconds wait between polls.&lt;/p>
 &lt;p>GCS pipeline storage bucket &lt;code>provider.configuration.pipelineBucket&lt;/code> needs to be created&lt;/p>
 &lt;p>The configured &lt;code>serviceAccount&lt;/code> needs to have &lt;a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">workload identity&lt;/a> enabled and be granted the following permissions:&lt;/p>
