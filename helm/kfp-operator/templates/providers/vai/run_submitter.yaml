@@ -29,7 +29,7 @@ spec:
       {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
   dependencies:
     - name: runs
-      eventSourceName: {{ include "kfp-operator.fullname" $ }}-run-submitter
+      eventSourceName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-submitter
       eventName: runs
   triggers:
   - template:
@@ -55,6 +55,8 @@ spec:
                 parameters:
                 - name: run
                   value: "set from parameters block below"
+                - name: provider-name
+                  value: "{{ $providerName }}"
               templates:
               - name: submit
                 metadata:
