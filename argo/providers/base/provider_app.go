@@ -159,7 +159,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{pipelineDefinitionFlag, pipelineIdFlag, outFlag},
+					Flags: []cli.Flag{pipelineIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
 						providerConfig, err := providerApp.LoadProviderConfig(c)
@@ -225,7 +225,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
+					Flags: []cli.Flag{runConfigurationIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunConfigurationIdParameter)
 						providerConfig, err := providerApp.LoadProviderConfig(c)
@@ -292,7 +292,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{experimentDefinitionFlag, experimentIdFlag, outFlag},
+					Flags: []cli.Flag{experimentIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.ExperimentIdParameter)
 						providerConfig, err := providerApp.LoadProviderConfig(c)

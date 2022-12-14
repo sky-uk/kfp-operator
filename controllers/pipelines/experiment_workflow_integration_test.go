@@ -17,16 +17,12 @@ import (
 )
 
 var _ = Context("Experiment Workflows", Serial, func() {
-	workflowFactory := ExperimentWorkflowFactory{
-		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config.Configuration{
-				DefaultExperiment:      "Default",
-				DefaultProvider:        "kfp",
-				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
-				WorkflowNamespace:      "argo",
-			},
-		},
-	}
+	workflowFactory := ExperimentWorkflowFactory(config.Configuration{
+		DefaultExperiment:      "Default",
+		DefaultProvider:        "kfp",
+		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
+		WorkflowNamespace:      "argo",
+	})
 
 	experimentProviderId := apis.RandomString()
 	newExperimentProviderId := apis.RandomString()
@@ -101,6 +97,7 @@ var _ = Context("Experiment Workflows", Serial, func() {
 		}
 
 		setUp(testCtx.Resource)
+		fmt.Println(workflowFactory)
 		workflow, err := constructWorkflow("kfp", testCtx.Resource)
 
 		Expect(err).NotTo(HaveOccurred())

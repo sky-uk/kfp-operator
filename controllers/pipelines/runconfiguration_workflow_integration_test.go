@@ -216,16 +216,12 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 
 	var RunSuite = func(suite RunConfigurationWorkflowIntegrationSuite, suitName string) {
 		Context(suitName, func() {
-			workflowFactory := RunConfigurationWorkflowFactory{
-				WorkflowFactoryBase: WorkflowFactoryBase{
-					Config: config.Configuration{
-						DefaultProvider:        suite.ProviderName(),
-						WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
-						DefaultExperiment:      defaultExperiment,
-						WorkflowNamespace:      "argo",
-					},
-				},
-			}
+			workflowFactory := RunConfigurationWorkflowFactory(config.Configuration{
+				DefaultProvider:        suite.ProviderName(),
+				WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
+				DefaultExperiment:      defaultExperiment,
+				WorkflowNamespace:      "argo",
+			})
 
 			DescribeTable("Creation Workflow", AssertWorkflow,
 				Entry("Creation succeeds",
@@ -237,8 +233,8 @@ var _ = Context("RunConfiguration Workflows", Serial, func() {
 						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
 						output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 						g.Expect(err).NotTo(HaveOccurred())
-						g.Expect(output.Id).To(Equal(runConfigurationProviderId))
 						g.Expect(output.ProviderError).To(BeEmpty())
+						g.Expect(output.Id).To(Equal(runConfigurationProviderId))
 					},
 				),
 				Entry("Creation fails",

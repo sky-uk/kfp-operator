@@ -41,9 +41,13 @@ type WorkflowFactory[R pipelinesv1.Resource] interface {
 	ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error)
 }
 
+type CompiledResourceWorkflowFactory[R pipelinesv1.Resource] struct {
+	WorkflowFactoryBase
+	DefinitionCreator func(R) string
+}
+
 type WorkflowFactoryBase struct {
-	ResourceKind string
-	Config       config.Configuration
+	Config config.Configuration
 }
 
 func (w WorkflowFactoryBase) CommonWorkflowMeta(owner pipelinesv1.Resource, operation string) *metav1.ObjectMeta {
