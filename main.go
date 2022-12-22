@@ -101,10 +101,6 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}
 
-	workflowFactory := pipelinescontrollers.WorkflowFactoryBase{
-		Config: ctrlConfig.Workflows,
-	}
-
 	ec := pipelinescontrollers.K8sExecutionContext{
 		Client:             client,
 		Recorder:           mgr.GetEventRecorderFor("kfp-operator"),
@@ -116,9 +112,7 @@ func main() {
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Pipeline]{
-				WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
-					WorkflowFactoryBase: workflowFactory,
-				},
+				WorkflowFactory:    pipelinescontrollers.PipelineWorkflowFactory(ctrlConfig.Workflows),
 				WorkflowRepository: workflowRepository,
 			},
 		},
@@ -132,9 +126,7 @@ func main() {
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.RunConfiguration]{
-				WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
-					WorkflowFactoryBase: workflowFactory,
-				},
+				WorkflowFactory:    pipelinescontrollers.RunConfigurationWorkflowFactory(ctrlConfig.Workflows),
 				WorkflowRepository: workflowRepository,
 			},
 		},
@@ -148,9 +140,7 @@ func main() {
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Experiment]{
-				WorkflowFactory: pipelinescontrollers.ExperimentWorkflowFactory{
-					WorkflowFactoryBase: workflowFactory,
-				},
+				WorkflowFactory:    pipelinescontrollers.ExperimentWorkflowFactory(ctrlConfig.Workflows),
 				WorkflowRepository: workflowRepository,
 			},
 		},

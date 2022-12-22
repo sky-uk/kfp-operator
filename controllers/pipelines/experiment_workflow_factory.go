@@ -11,7 +11,7 @@ type ExperimentDefinitionCreator struct {
 	Config config.Configuration
 }
 
-func (rcdc ExperimentDefinitionCreator) experimentDefinitionYaml(experiment *pipelinesv1.Experiment) (string, error) {
+func (edc ExperimentDefinitionCreator) experimentDefinitionYaml(experiment *pipelinesv1.Experiment) (string, error) {
 	experimentDefinition := providers.ExperimentDefinition{
 		Name:        experiment.ObjectMeta.Name,
 		Version:     experiment.ComputeVersion(),
@@ -31,8 +31,6 @@ func ExperimentWorkflowFactory(config config.Configuration) ResourceWorkflowFact
 		DefinitionCreator: ExperimentDefinitionCreator{
 			Config: config,
 		}.experimentDefinitionYaml,
-		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config,
-		},
+		Config: config,
 	}
 }

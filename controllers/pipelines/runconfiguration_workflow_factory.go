@@ -48,8 +48,6 @@ func RunConfigurationWorkflowFactory(config config.Configuration) ResourceWorkfl
 		DefinitionCreator: RunConfigurationDefinitionCreator{
 			Config: config,
 		}.runConfigurationDefinitionYaml,
-		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: config,
-		},
+		Config: config,
 	}
 }

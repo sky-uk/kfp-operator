@@ -1,40 +1,40 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+  name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   templates:
   - name: compile
     inputs:
       parameters:
-      - name: pipeline-image
+      - name: resource-image
       - name: execution-mode
       artifacts:
-      - name: pipeline-definition
+      - name: resource-definition
         raw:
           data: |
-            {{`{{workflow.parameters.pipeline-definition}}`}}
-        path: /pipeline-definition.yaml
+            {{`{{workflow.parameters.resource-definition}}`}}
+        path: /resource-definition.yaml
     outputs:
       artifacts:
-      - name: pipeline
-        path: /pipeline.yaml
+      - name: resource
+        path: /resource.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
       command:
       - /shared/compile.sh
-      image: "{{`{{inputs.parameters.pipeline-image}}`}}"
-      name: pipeline
+      image: "{{`{{inputs.parameters.resource-image}}`}}"
+      name: resource
       volumeMounts:
       - mountPath: /shared
         name: shared
       args:
       - --output_file
-      - /pipeline.yaml
-      - --pipeline_config
-      - /pipeline-definition.yaml
+      - /resource.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}_config
+      - /resource-definition.yaml
       - --execution_mode
       - "{{`{{inputs.parameters.execution-mode}}`}}"
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -53,13 +53,13 @@ spec:
       - name: provider-image
       - name: provider-sa
       artifacts:
-      - name: pipeline
-        path: /pipeline.yaml
-      - name: pipeline-definition
-        path: /pipeline-definition.yaml
+      - name: resource
+        path: /resource.yaml
+      - name: resource-definition
+        path: /resource-definition.yaml
         raw:
           data: |
-            {{`{{workflow.parameters.pipeline-definition}}`}}
+            {{`{{workflow.parameters.resource-definition}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -78,27 +78,27 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - pipeline
+      - '{{`{{workflow.parameters.resource-kind}}`}}'
       - create
-      - --pipeline-definition
-      - /pipeline-definition.yaml
-      - --pipeline-file
-      - /pipeline.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-definition
+      - /resource-definition.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-file
+      - /resource.yaml
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: update
     inputs:
       artifacts:
-      - name: pipeline
-        path: /pipeline.yaml
-      - name: pipeline-definition
-        path: /pipeline-definition.yaml
+      - name: resource
+        path: /resource.yaml
+      - name: resource-definition
+        path: /resource-definition.yaml
         raw:
           data: |
-            {{`{{workflow.parameters.pipeline-definition}}`}}
+            {{`{{workflow.parameters.resource-definition}}`}}
       parameters:
-      - name: pipeline-id
+      - name: resource-id
       - name: provider-image
       - name: provider-sa
     outputs:
@@ -119,14 +119,14 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - pipeline
+      - '{{`{{workflow.parameters.resource-kind}}`}}'
       - update
-      - --pipeline-definition
-      - /pipeline-definition.yaml
-      - --pipeline-id
-      - '{{`{{inputs.parameters.pipeline-id}}`}}'
-      - --pipeline-file
-      - /pipeline.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-definition
+      - /resource-definition.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-id
+      - '{{`{{inputs.parameters.resource-id}}`}}'
+      - --{{`{{workflow.parameters.resource-kind}}`}}-file
+      - /resource.yaml
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -153,12 +153,10 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - pipeline
+      - '{{`{{workflow.parameters.resource-kind}}`}}'
       - delete
-      - --pipeline-definition
-      - /pipeline-definition.yaml
-      - --pipeline-id
-      - '{{`{{workflow.parameters.pipeline-id}}`}}'
+      - --{{`{{workflow.parameters.resource-kind}}`}}-id
+      - '{{`{{workflow.parameters.resource-id}}`}}'
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -166,7 +164,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-create-pipeline
+  name: {{ include "kfp-operator.fullname" . }}-create-compiled
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   volumes:
@@ -178,7 +176,8 @@ spec:
   arguments:
     parameters:
     - name: provider-name
-    - name: pipeline-definition
+    - name: resource-kind
+    - name: resource-definition
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -215,28 +214,28 @@ spec:
           parameters:
           - name: parameter
             value: executionMode
-    - - name: select-pipeline-image
+    - - name: select-resource-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-pipeline-image
+          template: select-resource-image
     - - name: compile
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: compile
         arguments:
           parameters:
-          - name: pipeline-image
-            value: '{{`{{steps.select-pipeline-image.outputs.result}}`}}'
+          - name: resource-image
+            value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
           - name: execution-mode
             value: '{{`{{steps.select-execution-mode.outputs.result}}`}}'
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: create
         arguments:
           artifacts:
-          - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
-            name: pipeline
+          - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
+            name: resource
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
@@ -246,7 +245,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-update-pipeline
+  name: {{ include "kfp-operator.fullname" . }}-update-compiled
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   volumes:
@@ -258,8 +257,9 @@ spec:
   arguments:
     parameters:
     - name: provider-name
-    - name: pipeline-id
-    - name: pipeline-definition
+    - name: resource-kind
+    - name: resource-id
+    - name: resource-definition
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -296,31 +296,31 @@ spec:
           parameters:
           - name: parameter
             value: executionMode
-    - - name: select-pipeline-image
+    - - name: select-resource-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-pipeline-image
+          template: select-resource-image
     - - name: compile
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: compile
         arguments:
           parameters:
-          - name: pipeline-image
-            value: '{{`{{steps.select-pipeline-image.outputs.result}}`}}'
+          - name: resource-image
+            value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
           - name: execution-mode
             value: '{{`{{steps.select-execution-mode.outputs.result}}`}}'
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: update
         arguments:
           artifacts:
-          - from: '{{`{{steps.compile.outputs.artifacts.pipeline}}`}}'
-            name: pipeline
+          - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
+            name: resource
           parameters:
-          - name: pipeline-id
-            value: '{{`{{workflow.parameters.pipeline-id}}`}}'
+          - name: resource-id
+            value: '{{`{{workflow.parameters.resource-id}}`}}'
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           - name: provider-sa
@@ -329,7 +329,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-delete-pipeline
+  name: {{ include "kfp-operator.fullname" . }}-delete-compiled
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   volumes:
@@ -341,7 +341,8 @@ spec:
   arguments:
     parameters:
     - name: provider-name
-    - name: pipeline-id
+    - name: resource-kind
+    - name: resource-id
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -372,7 +373,7 @@ spec:
             value: serviceAccount
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-pipeline-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: delete
         arguments:
           parameters:
