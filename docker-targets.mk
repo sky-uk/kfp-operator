@@ -19,4 +19,4 @@ endef
 endif
 
 docker-build: build ## Build container image
-	docker build ${DOCKER_BUILD_EXTRA_PARAMS} -t ${IMG} -t ${IMG}:${VERSION} .
+	docker build ${DOCKER_BUILD_EXTRA_PARAMS} -t ${IMG} -t ${IMG}:${VERSION} $(foreach tag,$(DOCKER_BUILD_EXTRA_TAGS),-t $(tag)) .

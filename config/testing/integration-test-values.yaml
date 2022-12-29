@@ -8,16 +8,7 @@ manager:
     containerDefaults:
       imagePullPolicy: Never
 providers:
-  kfp:
+  stub:
     type: kfp
     configuration:
       serviceAccount: default
-      restKfpApiUrl: http://wiremock:80
-      executionMode: v1
-  vai:
-    type: vai
-    configuration:
-      serviceAccount: default
-      gcsEndpoint: http://wiremock:80
-      pipelineBucket: pipelineBucket
-      executionMode: v2

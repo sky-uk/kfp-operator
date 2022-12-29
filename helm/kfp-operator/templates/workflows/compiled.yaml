@@ -19,7 +19,7 @@ spec:
     outputs:
       artifacts:
       - name: resource
-        path: /resource.yaml
+        path: /tmp/resource.yaml
     metadata:
       {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
     container:
@@ -28,11 +28,13 @@ spec:
       image: "{{`{{inputs.parameters.resource-image}}`}}"
       name: resource
       volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
       - mountPath: /shared
         name: shared
       args:
       - --output_file
-      - /resource.yaml
+      - /tmp/resource.yaml
       - --{{`{{workflow.parameters.resource-kind}}`}}_config
       - /resource-definition.yaml
       - --execution_mode

@@ -62,17 +62,17 @@ integration-test-up:
 	# Set up mocks
 	kubectl apply -n argo -f config/testing/wiremock.yaml
 	rm -f config/testing/pids
-	kubectl wait -n argo deployment/wiremock --for condition=available --timeout=5m
-	kubectl port-forward -n argo service/wiremock 8081:80 & echo $$! >> config/testing/pids
+	#kubectl wait -n argo deployment/wiremock --for condition=available --timeout=5m
+	#kubectl port-forward -n argo service/wiremock 8081:80 & echo $$! >> config/testing/pids
 	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! >> config/testing/pids
 
 integration-test: manifests generate helm-cmd yq ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
-	$(MAKE) docker-build-argo && \
+	$(MAKE) -C argo/providers -f stub.mk docker-build && \
 	docker build docs-gen/includes/quickstart -t kfp-quickstart
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
- 		$(YQ) e 'select(.kind == "*WorkflowTemplate" or .kind == "ConfigMap" and .metadata.namespace == "argo")' - | \
+ 		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
  		kubectl apply -f -
 	go test ./... -tags=integration --timeout 20m
 
