@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-openapi/runtime"
@@ -23,7 +22,6 @@ import (
 	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	. "github.com/sky-uk/kfp-operator/providers/kfp"
 	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
-	"github.com/yalp/jsonpath"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/client-go/dynamic"
@@ -31,9 +29,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 )
 
 const KfpResourceNotFoundCode = 5
@@ -56,48 +54,86 @@ func main() {
 	app.Run(KfpProvider{})
 }
 
-func pipelineUploadService(providerConfig KfpProviderConfig) *pipeline_upload_service.Client {
+func pipelineUploadService(providerConfig KfpProviderConfig) (*pipeline_upload_service.Client, error) {
+	url, err := url.Parse(providerConfig.RestKfpApiUrl)
+	if err != nil {
+		return nil, err
+	}
+
 	return pipeline_upload_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &pipeline_upload_client.TransportConfig{
-		Host:    providerConfig.RestKfpApiUrl,
-		Schemes: []string{"http"},
-	}).PipelineUploadService
+		Host:     url.Host,
+		Schemes:  []string{url.Scheme},
+		BasePath: url.Path,
+	}).PipelineUploadService, nil
 }
 
-func pipelineService(providerConfig KfpProviderConfig) *pipeline_service.Client {
+func pipelineService(providerConfig KfpProviderConfig) (*pipeline_service.Client, error) {
+	url, err := url.Parse(providerConfig.RestKfpApiUrl)
+	if err != nil {
+		return nil, err
+	}
+
 	return pipeline_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &pipeline_client.TransportConfig{
-		Host:    providerConfig.RestKfpApiUrl,
-		Schemes: []string{"http"},
-	}).PipelineService
+		Host:     url.Host,
+		Schemes:  []string{url.Scheme},
+		BasePath: url.Path,
+	}).PipelineService, nil
 }
 
-func experimentService(providerConfig KfpProviderConfig) *experiment_service.Client {
+func experimentService(providerConfig KfpProviderConfig) (*experiment_service.Client, error) {
+	url, err := url.Parse(providerConfig.RestKfpApiUrl)
+	if err != nil {
+		return nil, err
+	}
+
 	return experiment_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &experiment_client.TransportConfig{
-		Host:    providerConfig.RestKfpApiUrl,
-		Schemes: []string{"http"},
-	}).ExperimentService
+		Host:     url.Host,
+		Schemes:  []string{url.Scheme},
+		BasePath: url.Path,
+	}).ExperimentService, nil
 }
 
-func jobService(providerConfig KfpProviderConfig) *job_service.Client {
+func jobService(providerConfig KfpProviderConfig) (*job_service.Client, error) {
+	url, err := url.Parse(providerConfig.RestKfpApiUrl)
+	if err != nil {
+		return nil, err
+	}
+
 	return job_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &job_client.TransportConfig{
-		Host:    providerConfig.RestKfpApiUrl,
-		Schemes: []string{"http"},
-	}).JobService
+		Host:     url.Host,
+		Schemes:  []string{url.Scheme},
+		BasePath: url.Path,
+	}).JobService, nil
+}
+
+func byNameFilter(name string) *string {
+	filter := fmt.Sprintf(`{"predicates": [{"op": 1, "key": "name", "stringValue": "%s"}]}`, name)
+	return &filter
+}
+
+// ListPipelineVersions uses a different filter syntax than other List* operations
+func pipelineVersionByNameFilter(name string) *string {
+	filter := fmt.Sprintf(`{"predicates": [{"op": "EQUALS", "key": "name", "string_value": "%s"}]}`, name)
+	return &filter
 }
 
 func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string) (string, error) {
 	reader, err := os.Open(pipelineFileName)
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
-	result, err := pipelineUploadService(providerConfig).UploadPipeline(&pipeline_upload_service.UploadPipelineParams{
+	pipelineUploadService, err := pipelineUploadService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := pipelineUploadService.UploadPipeline(&pipeline_upload_service.UploadPipelineParams{
 		Name:       &pipelineDefinition.Name,
 		Uploadfile: runtime.NamedReader(pipelineFileName, reader),
 		Context:    ctx,
 	}, nil)
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
@@ -110,7 +146,12 @@ func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpPr
 		return "", err
 	}
 
-	_, err = pipelineUploadService(providerConfig).UploadPipelineVersion(&pipeline_upload_service.UploadPipelineVersionParams{
+	pipelineUploadService, err := pipelineUploadService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = pipelineUploadService.UploadPipelineVersion(&pipeline_upload_service.UploadPipelineVersionParams{
 		Name:       &pipelineDefinition.Version,
 		Uploadfile: runtime.NamedReader(pipelineFile, reader),
 		Pipelineid: &id,
@@ -124,7 +165,12 @@ func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpPr
 }
 
 func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
-	_, err := pipelineService(providerConfig).DeletePipeline(&pipeline_service.DeletePipelineParams{
+	pipelineService, err := pipelineService(providerConfig)
+	if err != nil {
+		return err
+	}
+
+	_, err = pipelineService.DeletePipeline(&pipeline_service.DeletePipelineParams{
 		ID:      id,
 		Context: ctx,
 	}, nil)
@@ -133,71 +179,73 @@ func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpPr
 }
 
 func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
-	pipelineService := pipelineService(providerConfig)
-	pipelineResult, err := pipelineService.GetPipelineByName(&pipeline_service.GetPipelineByNameParams{
-		Name:    runConfigurationDefinition.PipelineName,
-		Context: ctx,
-	}, nil)
+	pipelineService, err := pipelineService(providerConfig)
 	if err != nil {
-		fmt.Println(1)
-		fmt.Println(err)
 		return "", err
 	}
 
-	pipelineVersionByNameFilter := fmt.Sprintf(`
-	"predicates": [{
-	"op": 1,
-	"key": "name",
-	"stringValue": %s,
-	}]
-	`, runConfigurationDefinition.PipelineVersion)
+	pipelineResult, err := pipelineService.ListPipelines(&pipeline_service.ListPipelinesParams{
+		Filter:  byNameFilter(runConfigurationDefinition.PipelineName),
+		Context: ctx,
+	}, nil)
+	if err != nil {
+		return "", err
+	}
+	if len(pipelineResult.Payload.Pipelines) < 1 {
+		return "", errors.New("pipeline not found")
+	}
+	if len(pipelineResult.Payload.Pipelines) > 1 {
+		return "", errors.New("more than one pipeline found")
+	}
+
 	pipelineVersionResult, err := pipelineService.ListPipelineVersions(&pipeline_service.ListPipelineVersionsParams{
-		Filter:  &pipelineVersionByNameFilter,
-		Context: ctx,
+		Filter:        pipelineVersionByNameFilter(runConfigurationDefinition.PipelineVersion),
+		ResourceKeyID: &pipelineResult.Payload.Pipelines[0].ID,
+		Context:       ctx,
 	}, nil)
 	if err != nil {
-		fmt.Println(2)
-		fmt.Println(err)
 		return "", err
 	}
-	if len(pipelineVersionResult.Payload.Versions) != 1 {
-		fmt.Println(3)
-		return "", errors.New("")
+	if len(pipelineVersionResult.Payload.Versions) < 1 {
+		return "", errors.New("pipeline version not found")
+	}
+	if len(pipelineVersionResult.Payload.Versions) > 1 {
+		return "", errors.New("more than one pipeline version found")
 	}
 
-	experimentByNameFilter := fmt.Sprintf(`
-	"predicates": [{
-	"op": 1,
-	"key": "name",
-	"stringValue": %s,
-	}]
-	`, runConfigurationDefinition.ExperimentName)
-	experimentResult, err := experimentService(providerConfig).ListExperiment(&experiment_service.ListExperimentParams{
-		Filter:  &experimentByNameFilter,
+	experimentService, err := experimentService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	experimentResult, err := experimentService.ListExperiment(&experiment_service.ListExperimentParams{
+		Filter:  byNameFilter(runConfigurationDefinition.ExperimentName),
 		Context: ctx,
 	}, nil)
 	if err != nil {
-		fmt.Println(4)
-		fmt.Println(err)
 		return "", err
 	}
-	if len(experimentResult.Payload.Experiments) != 1 {
-		fmt.Println(5)
-		fmt.Println("XXX")
-		return "", errors.New("")
+	if len(experimentResult.Payload.Experiments) < 1 {
+		return "", errors.New("experiment= not found")
+	}
+	if len(experimentResult.Payload.Experiments) > 1 {
+		return "", errors.New("more than one experiment found")
 	}
 
 	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
 	if err != nil {
-		fmt.Println(6)
-		fmt.Println(err)
 		return "", err
 	}
 
-	jobResult, err := jobService(providerConfig).CreateJob(&job_service.CreateJobParams{
+	jobService, err := jobService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	jobResult, err := jobService.CreateJob(&job_service.CreateJobParams{
 		Body: &job_model.APIJob{
 			PipelineSpec: &job_model.APIPipelineSpec{
-				PipelineID: pipelineResult.Payload.ID,
+				PipelineID: pipelineResult.Payload.Pipelines[0].ID,
 			},
 			Name: runConfigurationDefinition.Name,
 			ResourceReferences: []*job_model.APIResourceReference{
@@ -211,7 +259,7 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 				{
 					Key: &job_model.APIResourceKey{
 						Type: job_model.APIResourceTypePIPELINEVERSION,
-						ID:   pipelineVersionResult.Payload.Versions[1].ID,
+						ID:   pipelineVersionResult.Payload.Versions[0].ID,
 					},
 					Relationship: job_model.APIRelationshipCREATOR,
 				},
@@ -222,10 +270,9 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 				},
 			},
 		},
+		Context: ctx,
 	}, nil)
 	if err != nil {
-		fmt.Println(7)
-		fmt.Println(err)
 		return "", err
 	}
 
@@ -241,29 +288,21 @@ func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConf
 }
 
 func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
-	result, err := jobService(providerConfig).DeleteJob(&job_service.DeleteJobParams{
+	jobService, err := jobService(providerConfig)
+	if err != nil {
+		return err
+	}
+
+	_, err = jobService.DeleteJob(&job_service.DeleteJobParams{
 		ID:      id,
 		Context: ctx,
 	}, nil)
+
 	if err != nil {
-		re := regexp.MustCompile(`(?m)^.*HTTP response body: ({.*})$`)
-		matches := re.FindStringSubmatch(result.Error())
 
-		if len(matches) < 2 {
-			return err
-		}
+		errorResult := err.(*job_service.DeleteJobDefault)
 
-		var jsonResponse interface{}
-		if err = json.Unmarshal([]byte(matches[1]), &jsonResponse); err != nil {
-			return err
-		}
-
-		errorCode, err := jsonpath.Read(jsonResponse, `$["code"]`)
-		if err != nil {
-			return err
-		}
-
-		if int(errorCode.(float64)) != KfpResourceNotFoundCode {
+		if errorResult.Payload.Code != KfpResourceNotFoundCode {
 			return err
 		}
 	}
@@ -272,7 +311,12 @@ func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConf
 }
 
 func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition) (string, error) {
-	result, err := experimentService(providerConfig).CreateExperiment(&experiment_service.CreateExperimentParams{
+	experimentService, err := experimentService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := experimentService.CreateExperiment(&experiment_service.CreateExperimentParams{
 		Body: &experiment_model.APIExperiment{
 			Name:        experimentDefinition.Name,
 			Description: experimentDefinition.Description,
@@ -280,7 +324,6 @@ func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig Kfp
 		Context: ctx,
 	}, nil)
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
@@ -296,7 +339,12 @@ func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig Kfp
 }
 
 func (kfpp KfpProvider) DeleteExperiment(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
-	_, err := experimentService(providerConfig).DeleteExperiment(&experiment_service.DeleteExperimentParams{
+	experimentService, err := experimentService(providerConfig)
+	if err != nil {
+		return err
+	}
+
+	_, err = experimentService.DeleteExperiment(&experiment_service.DeleteExperimentParams{
 		ID:      id,
 		Context: ctx,
 	}, nil)

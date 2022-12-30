@@ -12,7 +12,7 @@ providers:
     type: kfp
     configuration:
       serviceAccount: default
-      restKfpApiUrl: wiremock:80
+      restKfpApiUrl: http://wiremock:80
       executionMode: v1
   vai:
     type: vai
