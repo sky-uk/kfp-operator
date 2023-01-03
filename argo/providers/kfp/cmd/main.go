@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
@@ -42,12 +41,7 @@ type KfpProviderConfig struct {
 	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
 }
 
-type KfpProvider struct {
-	PipelineUpload pipeline_upload_client.PipelineUpload
-	Pipeline       pipeline_client.Pipeline
-	Job            job_client.Job
-	Experiment     experiment_client.Experiment
-}
+type KfpProvider struct{}
 
 func main() {
 	app := NewProviderApp[KfpProviderConfig]()
@@ -55,54 +49,54 @@ func main() {
 }
 
 func pipelineUploadService(providerConfig KfpProviderConfig) (*pipeline_upload_service.Client, error) {
-	url, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}
 
 	return pipeline_upload_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &pipeline_upload_client.TransportConfig{
-		Host:     url.Host,
-		Schemes:  []string{url.Scheme},
-		BasePath: url.Path,
+		Host:     apiUrl.Host,
+		Schemes:  []string{apiUrl.Scheme},
+		BasePath: apiUrl.Path,
 	}).PipelineUploadService, nil
 }
 
 func pipelineService(providerConfig KfpProviderConfig) (*pipeline_service.Client, error) {
-	url, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}
 
 	return pipeline_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &pipeline_client.TransportConfig{
-		Host:     url.Host,
-		Schemes:  []string{url.Scheme},
-		BasePath: url.Path,
+		Host:     apiUrl.Host,
+		Schemes:  []string{apiUrl.Scheme},
+		BasePath: apiUrl.Path,
 	}).PipelineService, nil
 }
 
 func experimentService(providerConfig KfpProviderConfig) (*experiment_service.Client, error) {
-	url, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}
 
 	return experiment_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &experiment_client.TransportConfig{
-		Host:     url.Host,
-		Schemes:  []string{url.Scheme},
-		BasePath: url.Path,
+		Host:     apiUrl.Host,
+		Schemes:  []string{apiUrl.Scheme},
+		BasePath: apiUrl.Path,
 	}).ExperimentService, nil
 }
 
 func jobService(providerConfig KfpProviderConfig) (*job_service.Client, error) {
-	url, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}
 
 	return job_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &job_client.TransportConfig{
-		Host:     url.Host,
-		Schemes:  []string{url.Scheme},
-		BasePath: url.Path,
+		Host:     apiUrl.Host,
+		Schemes:  []string{apiUrl.Scheme},
+		BasePath: apiUrl.Path,
 	}).JobService, nil
 }
 
@@ -143,12 +137,12 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
 	reader, err := os.Open(pipelineFile)
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	pipelineUploadService, err := pipelineUploadService(providerConfig)
 	if err != nil {
-		return "", err
+		return id, err
 	}
 
 	_, err = pipelineUploadService.UploadPipelineVersion(&pipeline_upload_service.UploadPipelineVersionParams{
@@ -157,9 +151,6 @@ func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpPr
 		Pipelineid: &id,
 		Context:    ctx,
 	}, nil)
-	if err != nil {
-		return "", err
-	}
 
 	return id, err
 }
@@ -191,11 +182,9 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 	if err != nil {
 		return "", err
 	}
-	if len(pipelineResult.Payload.Pipelines) < 1 {
-		return "", errors.New("pipeline not found")
-	}
-	if len(pipelineResult.Payload.Pipelines) > 1 {
-		return "", errors.New("more than one pipeline found")
+	numPipelines := len(pipelineResult.Payload.Pipelines)
+	if numPipelines != 1 {
+		return "", fmt.Errorf("found %d pipelines, expected exactly one", numPipelines)
 	}
 
 	pipelineVersionResult, err := pipelineService.ListPipelineVersions(&pipeline_service.ListPipelineVersionsParams{
@@ -206,11 +195,9 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 	if err != nil {
 		return "", err
 	}
-	if len(pipelineVersionResult.Payload.Versions) < 1 {
-		return "", errors.New("pipeline version not found")
-	}
-	if len(pipelineVersionResult.Payload.Versions) > 1 {
-		return "", errors.New("more than one pipeline version found")
+	numPipelineVersions := len(pipelineVersionResult.Payload.Versions)
+	if numPipelineVersions != 1 {
+		return "", fmt.Errorf("found %d pipeline versions, expected exactly one", numPipelineVersions)
 	}
 
 	experimentService, err := experimentService(providerConfig)
@@ -225,11 +212,9 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 	if err != nil {
 		return "", err
 	}
-	if len(experimentResult.Payload.Experiments) < 1 {
-		return "", errors.New("experiment= not found")
-	}
-	if len(experimentResult.Payload.Experiments) > 1 {
-		return "", errors.New("more than one experiment found")
+	numExperiments := len(experimentResult.Payload.Experiments)
+	if numExperiments != 1 {
+		return "", fmt.Errorf("found %d experiments, expected exactly one", numExperiments)
 	}
 
 	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
@@ -247,7 +232,10 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 			PipelineSpec: &job_model.APIPipelineSpec{
 				PipelineID: pipelineResult.Payload.Pipelines[0].ID,
 			},
-			Name: runConfigurationDefinition.Name,
+			Name:           runConfigurationDefinition.Name,
+			MaxConcurrency: 1,
+			Enabled:        true,
+			NoCatchup:      true,
 			ResourceReferences: []*job_model.APIResourceReference{
 				{
 					Key: &job_model.APIResourceKey{
@@ -299,9 +287,7 @@ func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConf
 	}, nil)
 
 	if err != nil {
-
 		errorResult := err.(*job_service.DeleteJobDefault)
-
 		if errorResult.Payload.Code != KfpResourceNotFoundCode {
 			return err
 		}
