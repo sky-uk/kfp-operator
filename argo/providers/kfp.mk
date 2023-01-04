@@ -32,25 +32,14 @@ decoupled-test: ## Run decoupled acceptance tests
 unit-test:
 	go test ./... -tags=unit
 
-test-python: build-sdk
-	poetry run pytest
-
-test: test-python unit-test decoupled-test
+test: unit-test decoupled-test
 
 ##@ Build
 
-build-sdk:
-	pip install poetry-dynamic-versioning --quiet
-	poetry install
-	poetry build
-
-build-go: generate
+build: generate
 	go build -o bin/provider ./kfp/cmd
-
-build: build-sdk build-go
 
 ##@ Containers
 
-WHEEL_VERSION=$(shell poetry version | cut -d ' ' -f 2)
-DOCKER_BUILD_EXTRA_PARAMS=-f kfp/Dockerfile --build-arg WHEEL_VERSION=${WHEEL_VERSION}
+DOCKER_BUILD_EXTRA_PARAMS=-f kfp/Dockerfile
 include ../../docker-targets.mk

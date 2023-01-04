@@ -120,7 +120,7 @@ func (kfprcwis KfpRunConfigurationWorkflowIntegrationSuite) FailDeletionNotFound
 func (_ KfpRunConfigurationWorkflowIntegrationSuite) failDeletionWithCode(code int64) error {
 	return wiremockClient.StubFor(wiremock.Delete(wiremock.URLPathEqualTo("/apis/v1beta1/jobs/"+runConfigurationProviderId)).
 		WillReturn(
-			fmt.Sprintf(`HTTP response body: {"status": "failed", "code": %d}`, code),
+			fmt.Sprintf(`{"status": "failed", "code": %d}`, code),
 			map[string]string{"Content-Type": "application/json"},
 			404,
 		))

@@ -150,6 +150,14 @@ func (st StateTransitionTestCase) DeletionRequested() StateTransitionTestCase {
 	return st
 }
 
+func anyNonDeletedState() apis.SynchronizationState {
+	for {
+		if state := apis.RandomSynchronizationState(); state != apis.Deleted {
+			return state
+		}
+	}
+}
+
 var _ = Describe("State handler", func() {
 	provider := apis.RandomString()
 	providerId := pipelinesv1.ProviderAndId{
@@ -171,7 +179,6 @@ var _ = Describe("State handler", func() {
 	v1 := apis.RandomShortHash()
 	v2 := apis.RandomShortHash()
 	UnknownState := apis.SynchronizationState(apis.RandomString())
-	AnyState := apis.RandomSynchronizationState()
 
 	var Check = func(description string, transition StateTransitionTestCase) TableEntry {
 		return Entry(
@@ -558,8 +565,8 @@ var _ = Describe("State handler", func() {
 			From(apis.Deleted, providerId, v1, irrelevant).
 				ReleaseExperiment(),
 		),
-		Check("Any State with different provider",
-			From(AnyState, anotherProviderId, irrelevant, irrelevant).
+		Check("Any non-deleted state with different provider",
+			From(anyNonDeletedState(), anotherProviderId, irrelevant, irrelevant).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(irrelevant).

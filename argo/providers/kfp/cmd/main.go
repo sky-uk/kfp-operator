@@ -2,26 +2,35 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
+	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_client"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_client/experiment_service"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_model"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/job_client"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/job_client/job_service"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/job_model"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_client"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_client/pipeline_service"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/sky-uk/kfp-operator/providers/base"
 	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	. "github.com/sky-uk/kfp-operator/providers/kfp"
 	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
-	"github.com/yalp/jsonpath"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"io"
 	"k8s.io/client-go/dynamic"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"regexp"
 )
 
 const KfpResourceNotFoundCode = 5
@@ -32,75 +41,230 @@ type KfpProviderConfig struct {
 	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
 }
 
-type KfpProvider struct {
-}
+type KfpProvider struct{}
 
 func main() {
 	app := NewProviderApp[KfpProviderConfig]()
 	app.Run(KfpProvider{})
 }
 
-func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string) (string, error) {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "pipeline", "upload", "--pipeline-name", pipelineDefinition.Name, pipelineFileName)
-	output, err := cmd.Output()
+func pipelineUploadService(providerConfig KfpProviderConfig) (*pipeline_upload_service.Client, error) {
+	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	var jsonOutput interface{}
-	if err = json.Unmarshal(output, &jsonOutput); err != nil {
-		return "", err
-	}
-
-	id, err := jsonpath.Read(jsonOutput, `$["Pipeline Details"]["Pipeline ID"]`)
-	if err != nil {
-		return "", err
-	}
-
-	return kfpp.UpdatePipeline(ctx, providerConfig, pipelineDefinition, id.(string), pipelineFileName)
+	return pipeline_upload_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &pipeline_upload_client.TransportConfig{
+		Host:     apiUrl.Host,
+		Schemes:  []string{apiUrl.Scheme},
+		BasePath: apiUrl.Path,
+	}).PipelineUploadService, nil
 }
 
-func (kfpp KfpProvider) UpdatePipeline(_ context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "pipeline", "upload-version", "--pipeline-version", pipelineDefinition.Version, "--pipeline-id", id, pipelineFile)
+func pipelineService(providerConfig KfpProviderConfig) (*pipeline_service.Client, error) {
+	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
+	if err != nil {
+		return nil, err
+	}
 
-	return id, cmd.Run()
+	return pipeline_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &pipeline_client.TransportConfig{
+		Host:     apiUrl.Host,
+		Schemes:  []string{apiUrl.Scheme},
+		BasePath: apiUrl.Path,
+	}).PipelineService, nil
+}
+
+func experimentService(providerConfig KfpProviderConfig) (*experiment_service.Client, error) {
+	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return experiment_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &experiment_client.TransportConfig{
+		Host:     apiUrl.Host,
+		Schemes:  []string{apiUrl.Scheme},
+		BasePath: apiUrl.Path,
+	}).ExperimentService, nil
+}
+
+func jobService(providerConfig KfpProviderConfig) (*job_service.Client, error) {
+	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return job_client.NewHTTPClientWithConfig(strfmt.NewFormats(), &job_client.TransportConfig{
+		Host:     apiUrl.Host,
+		Schemes:  []string{apiUrl.Scheme},
+		BasePath: apiUrl.Path,
+	}).JobService, nil
+}
+
+func byNameFilter(name string) *string {
+	filter := fmt.Sprintf(`{"predicates": [{"op": 1, "key": "name", "stringValue": "%s"}]}`, name)
+	return &filter
+}
+
+// ListPipelineVersions uses a different filter syntax than other List* operations
+func pipelineVersionByNameFilter(name string) *string {
+	filter := fmt.Sprintf(`{"predicates": [{"op": "EQUALS", "key": "name", "string_value": "%s"}]}`, name)
+	return &filter
+}
+
+func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string) (string, error) {
+	reader, err := os.Open(pipelineFileName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineUploadService, err := pipelineUploadService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := pipelineUploadService.UploadPipeline(&pipeline_upload_service.UploadPipelineParams{
+		Name:       &pipelineDefinition.Name,
+		Uploadfile: runtime.NamedReader(pipelineFileName, reader),
+		Context:    ctx,
+	}, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return kfpp.UpdatePipeline(ctx, providerConfig, pipelineDefinition, result.Payload.ID, pipelineFileName)
+}
+
+func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
+	reader, err := os.Open(pipelineFile)
+	if err != nil {
+		return id, err
+	}
+
+	pipelineUploadService, err := pipelineUploadService(providerConfig)
+	if err != nil {
+		return id, err
+	}
+
+	_, err = pipelineUploadService.UploadPipelineVersion(&pipeline_upload_service.UploadPipelineVersionParams{
+		Name:       &pipelineDefinition.Version,
+		Uploadfile: runtime.NamedReader(pipelineFile, reader),
+		Pipelineid: &id,
+		Context:    ctx,
+	}, nil)
+
+	return id, err
 }
 
 func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "pipeline", "delete", id)
+	pipelineService, err := pipelineService(providerConfig)
+	if err != nil {
+		return err
+	}
 
-	return cmd.Run()
+	_, err = pipelineService.DeletePipeline(&pipeline_service.DeletePipelineParams{
+		ID:      id,
+		Context: ctx,
+	}, nil)
+
+	return err
 }
 
-func (kfpp KfpProvider) CreateRunConfiguration(_ context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
+func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
+	pipelineService, err := pipelineService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineResult, err := pipelineService.ListPipelines(&pipeline_service.ListPipelinesParams{
+		Filter:  byNameFilter(runConfigurationDefinition.PipelineName),
+		Context: ctx,
+	}, nil)
+	if err != nil {
+		return "", err
+	}
+	numPipelines := len(pipelineResult.Payload.Pipelines)
+	if numPipelines != 1 {
+		return "", fmt.Errorf("found %d pipelines, expected exactly one", numPipelines)
+	}
+
+	pipelineVersionResult, err := pipelineService.ListPipelineVersions(&pipeline_service.ListPipelineVersionsParams{
+		Filter:        pipelineVersionByNameFilter(runConfigurationDefinition.PipelineVersion),
+		ResourceKeyID: &pipelineResult.Payload.Pipelines[0].ID,
+		Context:       ctx,
+	}, nil)
+	if err != nil {
+		return "", err
+	}
+	numPipelineVersions := len(pipelineVersionResult.Payload.Versions)
+	if numPipelineVersions != 1 {
+		return "", fmt.Errorf("found %d pipeline versions, expected exactly one", numPipelineVersions)
+	}
+
+	experimentService, err := experimentService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	experimentResult, err := experimentService.ListExperiment(&experiment_service.ListExperimentParams{
+		Filter:  byNameFilter(runConfigurationDefinition.ExperimentName),
+		Context: ctx,
+	}, nil)
+	if err != nil {
+		return "", err
+	}
+	numExperiments := len(experimentResult.Payload.Experiments)
+	if numExperiments != 1 {
+		return "", fmt.Errorf("found %d experiments, expected exactly one", numExperiments)
+	}
+
 	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
 	if err != nil {
 		return "", err
 	}
 
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "job", "submit",
-		"--pipeline-name", runConfigurationDefinition.PipelineName,
-		"--job-name", runConfigurationDefinition.Name,
-		"--experiment-name", runConfigurationDefinition.ExperimentName,
-		"--version-name", runConfigurationDefinition.PipelineVersion,
-		"--cron-expression", schedule.PrintGo())
-
-	output, err := cmd.Output()
+	jobService, err := jobService(providerConfig)
 	if err != nil {
 		return "", err
 	}
 
-	var jsonOutput interface{}
-	if err = json.Unmarshal(output, &jsonOutput); err != nil {
-		return "", err
-	}
-
-	id, err := jsonpath.Read(jsonOutput, `$["Job Details"]["ID"]`)
+	jobResult, err := jobService.CreateJob(&job_service.CreateJobParams{
+		Body: &job_model.APIJob{
+			PipelineSpec: &job_model.APIPipelineSpec{
+				PipelineID: pipelineResult.Payload.Pipelines[0].ID,
+			},
+			Name:           runConfigurationDefinition.Name,
+			MaxConcurrency: 1,
+			Enabled:        true,
+			NoCatchup:      true,
+			ResourceReferences: []*job_model.APIResourceReference{
+				{
+					Key: &job_model.APIResourceKey{
+						Type: job_model.APIResourceTypeEXPERIMENT,
+						ID:   experimentResult.Payload.Experiments[0].ID,
+					},
+					Relationship: job_model.APIRelationshipOWNER,
+				},
+				{
+					Key: &job_model.APIResourceKey{
+						Type: job_model.APIResourceTypePIPELINEVERSION,
+						ID:   pipelineVersionResult.Payload.Versions[0].ID,
+					},
+					Relationship: job_model.APIRelationshipCREATOR,
+				},
+			},
+			Trigger: &job_model.APITrigger{
+				CronSchedule: &job_model.APICronSchedule{
+					Cron: schedule.PrintGo(),
+				},
+			},
+		},
+		Context: ctx,
+	}, nil)
 	if err != nil {
 		return "", err
 	}
 
-	return id.(string), nil
+	return jobResult.Payload.ID, nil
 }
 
 func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition, id string) (string, error) {
@@ -111,71 +275,45 @@ func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConf
 	return kfpp.CreateRunConfiguration(ctx, providerConfig, runConfigurationDefinition)
 }
 
-func (kfpp KfpProvider) DeleteRunConfiguration(_ context.Context, providerConfig KfpProviderConfig, id string) error {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "job", "delete", id)
-
-	stderr, err := cmd.StderrPipe()
+func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
+	jobService, err := jobService(providerConfig)
 	if err != nil {
 		return err
 	}
 
-	if err := cmd.Start(); err != nil {
-		return err
-	}
+	_, err = jobService.DeleteJob(&job_service.DeleteJobParams{
+		ID:      id,
+		Context: ctx,
+	}, nil)
 
-	errOutput, err := io.ReadAll(stderr)
 	if err != nil {
-		return err
-	}
-
-	if cmdErr := cmd.Wait(); cmdErr != nil {
-		if _, isExitError := cmdErr.(*exec.ExitError); !isExitError {
-			return cmdErr
-		}
-
-		re := regexp.MustCompile(`(?m)^.*HTTP response body: ({.*})$`)
-		matches := re.FindStringSubmatch(string(errOutput))
-
-		if len(matches) < 2 {
-			return cmdErr
-		}
-
-		var jsonResponse interface{}
-		if err = json.Unmarshal([]byte(matches[1]), &jsonResponse); err != nil {
+		errorResult := err.(*job_service.DeleteJobDefault)
+		if errorResult.Payload.Code != KfpResourceNotFoundCode {
 			return err
-		}
-
-		errorCode, err := jsonpath.Read(jsonResponse, `$["code"]`)
-		if err != nil {
-			return err
-		}
-
-		if int(errorCode.(float64)) != KfpResourceNotFoundCode {
-			return cmdErr
 		}
 	}
 
 	return nil
 }
 
-func (kfpp KfpProvider) CreateExperiment(_ context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition) (string, error) {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "experiment", "create", experimentDefinition.Name)
-	output, err := cmd.Output()
+func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition) (string, error) {
+	experimentService, err := experimentService(providerConfig)
 	if err != nil {
 		return "", err
 	}
 
-	var jsonOutput interface{}
-	if err = json.Unmarshal(output, &jsonOutput); err != nil {
-		return "", err
-	}
-
-	id, err := jsonpath.Read(jsonOutput, `$["ID"]`)
+	result, err := experimentService.CreateExperiment(&experiment_service.CreateExperimentParams{
+		Body: &experiment_model.APIExperiment{
+			Name:        experimentDefinition.Name,
+			Description: experimentDefinition.Description,
+		},
+		Context: ctx,
+	}, nil)
 	if err != nil {
 		return "", err
 	}
 
-	return id.(string), nil
+	return result.Payload.ID, nil
 }
 
 func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition, id string) (string, error) {
@@ -186,18 +324,18 @@ func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig Kfp
 	return kfpp.CreateExperiment(ctx, providerConfig, experimentDefinition)
 }
 
-func (kfpp KfpProvider) DeleteExperiment(_ context.Context, providerConfig KfpProviderConfig, id string) error {
-	cmd := exec.Command("kfp-ext", "--endpoint", providerConfig.RestKfpApiUrl, "--output", "json", "experiment", "delete", id)
-	stdin, err := cmd.StdinPipe()
+func (kfpp KfpProvider) DeleteExperiment(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
+	experimentService, err := experimentService(providerConfig)
 	if err != nil {
 		return err
 	}
 
-	if _, err = io.WriteString(stdin, "y\n"); err != nil {
-		return err
-	}
+	_, err = experimentService.DeleteExperiment(&experiment_service.DeleteExperimentParams{
+		ID:      id,
+		Context: ctx,
+	}, nil)
 
-	return cmd.Run()
+	return err
 }
 
 func createK8sClient() (dynamic.Interface, error) {
