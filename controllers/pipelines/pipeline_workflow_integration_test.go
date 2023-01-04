@@ -26,7 +26,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 				Namespace: "argo",
 			},
 			Spec: pipelinesv1.PipelineSpec{
-				Image: "kfp-operator-argo-kfp-pipeline",
+				Image: "kfp-operator-stub-provider",
 			},
 			Status: pipelinesv1.Status{
 				ProviderId: pipelinesv1.ProviderAndId{
