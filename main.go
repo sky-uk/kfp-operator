@@ -101,24 +101,19 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}
 
-	workflowFactory := pipelinescontrollers.WorkflowFactoryBase{
-		Config: ctrlConfig.Workflows,
-	}
-
 	ec := pipelinescontrollers.K8sExecutionContext{
 		Client:             client,
 		Recorder:           mgr.GetEventRecorderFor("kfp-operator"),
 		WorkflowRepository: workflowRepository,
 	}
 
+	pipelineWorkflowFactory := pipelinescontrollers.PipelineWorkflowFactory(ctrlConfig.Workflows)
 	if err = (&pipelinescontrollers.PipelineReconciler{
 		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Pipeline]{
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Pipeline]{
-				WorkflowFactory: pipelinescontrollers.PipelineWorkflowFactory{
-					WorkflowFactoryBase: workflowFactory,
-				},
+				WorkflowFactory:    &pipelineWorkflowFactory,
 				WorkflowRepository: workflowRepository,
 			},
 		},
@@ -127,14 +122,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	runConfigurationWorkflowFactory := pipelinescontrollers.RunConfigurationWorkflowFactory(ctrlConfig.Workflows)
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
 		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.RunConfiguration]{
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.RunConfiguration]{
-				WorkflowFactory: pipelinescontrollers.RunConfigurationWorkflowFactory{
-					WorkflowFactoryBase: workflowFactory,
-				},
+				WorkflowFactory:    &runConfigurationWorkflowFactory,
 				WorkflowRepository: workflowRepository,
 			},
 		},
@@ -143,14 +137,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	experimentWorkflowFactory := pipelinescontrollers.ExperimentWorkflowFactory(ctrlConfig.Workflows)
 	if err = (&pipelinescontrollers.ExperimentReconciler{
 		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Experiment]{
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Experiment]{
-				WorkflowFactory: pipelinescontrollers.ExperimentWorkflowFactory{
-					WorkflowFactoryBase: workflowFactory,
-				},
+				WorkflowFactory:    &experimentWorkflowFactory,
 				WorkflowRepository: workflowRepository,
 			},
 		},

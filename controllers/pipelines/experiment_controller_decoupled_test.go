@@ -25,7 +25,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 				g.Expect(experiment.Status.ObservedGeneration).To(Equal(experiment.GetGeneration()))
 			})).Should(Succeed())
 
-			Eventually(experimentHelper.WorkflowToBeUpdated(WorkflowConstants.CreateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(experimentHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
@@ -43,7 +43,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Updating))
 			})).Should(Succeed())
 
-			Eventually(experimentHelper.WorkflowToBeUpdated(WorkflowConstants.UpdateOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(experimentHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: anotherProviderId})
 			})).Should(Succeed())
@@ -59,7 +59,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Deleting))
 			})).Should(Succeed())
 
-			Eventually(experimentHelper.WorkflowToBeUpdated(WorkflowConstants.DeleteOperationLabel, func(workflow *argo.Workflow) {
+			Eventually(experimentHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())

@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
+  name: {{ include "kfp-operator.fullname" . }}-simple-workflow-steps
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   templates:
@@ -11,11 +11,11 @@ spec:
       - name: provider-image
       - name: provider-sa
       artifacts:
-      - name: runconfiguration-definition
-        path: /runconfiguration-definition.yaml
+      - name: resource-definition
+        path: /resource-definition.yaml
         raw:
           data: |
-            {{`{{workflow.parameters.runconfiguration-definition}}`}}
+            {{`{{workflow.parameters.resource-definition}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -34,10 +34,10 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - runconfiguration
+      - '{{`{{workflow.parameters.resource-kind}}`}}'
       - create
-      - --runconfiguration-definition
-      - /runconfiguration-definition.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-definition
+      - /resource-definition.yaml
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -47,11 +47,11 @@ spec:
       - name: provider-image
       - name: provider-sa
       artifacts:
-      - name: runconfiguration-definition
-        path: /runconfiguration-definition.yaml
+      - name: resource-definition
+        path: /resource-definition.yaml
         raw:
           data: |
-            {{`{{workflow.parameters.runconfiguration-definition}}`}}
+            {{`{{workflow.parameters.resource-definition}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -70,44 +70,12 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - runconfiguration
+      - '{{`{{workflow.parameters.resource-kind}}`}}'
       - update
-      - --runconfiguration-definition
-      - /runconfiguration-definition.yaml
-      - --runconfiguration-id
-      - '{{`{{workflow.parameters.runconfiguration-id}}`}}'
-      - --out
-      - /tmp/provider-output.yaml
-    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
-  - name: delete
-    inputs:
-      parameters:
-      - name: provider-image
-      - name: provider-sa
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
-    metadata:
-      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    container:
-      image: "{{`{{inputs.parameters.provider-image}}`}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
-      command:
-      - /provider
-      args:
-      - --provider-config
-      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - runconfiguration
-      - delete
-      - --runconfiguration-definition
-      - /runconfiguration-definition.yaml
-      - --runconfiguration-id
-      - '{{`{{workflow.parameters.runconfiguration-id}}`}}'
+      - --{{`{{workflow.parameters.resource-kind}}`}}-definition
+      - /resource-definition.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-id
+      - '{{`{{workflow.parameters.resource-id}}`}}'
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -115,7 +83,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-create-runconfiguration
+  name: {{ include "kfp-operator.fullname" . }}-create-simple
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   volumes:
@@ -127,7 +95,8 @@ spec:
   arguments:
     parameters:
     - name: provider-name
-    - name: runconfiguration-definition
+    - name: resource-kind
+    - name: resource-definition
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -158,7 +127,7 @@ spec:
             value: serviceAccount
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
+          name: {{ include "kfp-operator.fullname" . }}-simple-workflow-steps
           template: create
         arguments:
           parameters:
@@ -170,7 +139,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-update-runconfiguration
+  name: {{ include "kfp-operator.fullname" . }}-update-simple
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   volumes:
@@ -182,8 +151,9 @@ spec:
   arguments:
     parameters:
     - name: provider-name
-    - name: runconfiguration-id
-    - name: runconfiguration-definition
+    - name: resource-kind
+    - name: resource-id
+    - name: resource-definition
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -214,63 +184,8 @@ spec:
             value: serviceAccount
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
+          name: {{ include "kfp-operator.fullname" . }}-simple-workflow-steps
           template: update
-        arguments:
-          parameters:
-          - name: provider-image
-            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-          - name: provider-sa
-            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
----
-apiVersion: argoproj.io/v1alpha1
-kind: WorkflowTemplate
-metadata:
-  name: {{ include "kfp-operator.fullname" . }}-delete-runconfiguration
-  namespace: {{ include "kfp-operator.argoNamespace" . }}
-spec:
-  volumes:
-  - name: providers-config
-    configMap:
-      name: {{ include "kfp-operator.fullname" . }}-providers
-  ttlStrategy:
-    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
-  arguments:
-    parameters:
-    - name: provider-name
-    - name: runconfiguration-id
-  entrypoint: main
-  {{ if .Values.manager.argo.serviceAccount -}}
-  serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
-  {{- end }}
-  templates:
-  - name: main
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
-    steps:
-    - - name: select-provider-image
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: parameter
-            value: image
-    - - name: select-provider-sa
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: parameter
-            value: serviceAccount
-    - - name: provider
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-runconfiguration-steps
-          template: delete
         arguments:
           parameters:
           - name: provider-image

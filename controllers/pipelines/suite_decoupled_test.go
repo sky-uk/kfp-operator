@@ -94,11 +94,7 @@ var _ = BeforeSuite(func() {
 
 func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *PipelineReconciler {
 	// TODO: mock workflowFactory
-	var workflowFactory = PipelineWorkflowFactory{
-		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: testConfig,
-		},
-	}
+	var workflowFactory = PipelineWorkflowFactory(testConfig)
 
 	return &PipelineReconciler{
 		BaseReconciler: BaseReconciler[*pipelinesv1.Pipeline]{
@@ -106,7 +102,7 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.Pipeline]{
 				WorkflowRepository: workflowRepository,
-				WorkflowFactory:    workflowFactory,
+				WorkflowFactory:    &workflowFactory,
 			},
 		},
 	}
@@ -114,11 +110,7 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 
 func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *RunConfigurationReconciler {
 	// TODO: mock workflowFactory
-	var workflowFactory = RunConfigurationWorkflowFactory{
-		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: testConfig,
-		},
-	}
+	var workflowFactory = RunConfigurationWorkflowFactory(testConfig)
 
 	return &RunConfigurationReconciler{
 		BaseReconciler: BaseReconciler[*pipelinesv1.RunConfiguration]{
@@ -126,7 +118,7 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.RunConfiguration]{
 				WorkflowRepository: workflowRepository,
-				WorkflowFactory:    workflowFactory,
+				WorkflowFactory:    &workflowFactory,
 			},
 		},
 	}
@@ -134,11 +126,7 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 
 func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *ExperimentReconciler {
 	// TODO: mock workflowFactory
-	var workflowFactory = ExperimentWorkflowFactory{
-		WorkflowFactoryBase: WorkflowFactoryBase{
-			Config: testConfig,
-		},
-	}
+	var workflowFactory = ExperimentWorkflowFactory(testConfig)
 
 	return &ExperimentReconciler{
 		BaseReconciler: BaseReconciler[*pipelinesv1.Experiment]{
@@ -146,7 +134,7 @@ func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository Work
 			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.Experiment]{
 				WorkflowRepository: workflowRepository,
-				WorkflowFactory:    workflowFactory,
+				WorkflowFactory:    &workflowFactory,
 			},
 		},
 	}

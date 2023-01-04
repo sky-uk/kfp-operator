@@ -29,9 +29,7 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider string,
 	} else {
 		switch resource.GetStatus().SynchronizationState {
 		case apis.Creating:
-			commands = st.onCreating(ctx, resource,
-				st.WorkflowRepository.GetByLabels(ctx,
-					CommonWorkflowLabels(resource, WorkflowConstants.CreateOperationLabel)))
+			commands = st.onCreating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, CommonWorkflowLabels(resource)))
 		case apis.Succeeded, apis.Failed:
 			if !resource.GetDeletionTimestamp().IsZero() {
 				commands = st.onDelete(ctx, provider, resource)
@@ -39,13 +37,9 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider string,
 				commands = st.onSucceededOrFailed(ctx, provider, resource)
 			}
 		case apis.Updating:
-			commands = st.onUpdating(ctx, resource,
-				st.WorkflowRepository.GetByLabels(ctx,
-					CommonWorkflowLabels(resource, WorkflowConstants.UpdateOperationLabel)))
+			commands = st.onUpdating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, CommonWorkflowLabels(resource)))
 		case apis.Deleting:
-			commands = st.onDeleting(ctx, resource,
-				st.WorkflowRepository.GetByLabels(ctx,
-					CommonWorkflowLabels(resource, WorkflowConstants.DeleteOperationLabel)))
+			commands = st.onDeleting(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, CommonWorkflowLabels(resource)))
 		case apis.Deleted:
 		default:
 			commands = st.onUnknown(ctx, provider, resource)

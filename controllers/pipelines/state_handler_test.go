@@ -63,14 +63,14 @@ func (st StateTransitionTestCase) WithWorkFlow(workflow *argo.Workflow) StateTra
 }
 
 func (st StateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) StateTransitionTestCase {
-	return st.WithWorkFlow(CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, phase))
+	return st.WithWorkFlow(CreateTestWorkflow(phase))
 }
 
 func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(providerId pipelinesv1.ProviderAndId, providerError string) StateTransitionTestCase {
 	return st.WithWorkFlow(
 		setProviderOutput(
 			setWorkflowProvider(
-				CreateTestWorkflow(WorkflowConstants.CreateOperationLabel, argo.WorkflowSucceeded),
+				CreateTestWorkflow(argo.WorkflowSucceeded),
 				providerId.Provider),
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),
@@ -79,7 +79,7 @@ func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(providerId pipelin
 
 func (st StateTransitionTestCase) WithFailedUpdateWorkflow() StateTransitionTestCase {
 	return st.WithWorkFlow(
-		CreateTestWorkflow(WorkflowConstants.UpdateOperationLabel, argo.WorkflowFailed),
+		CreateTestWorkflow(argo.WorkflowFailed),
 	)
 }
 
@@ -87,7 +87,7 @@ func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(providerId pipelin
 	return st.WithWorkFlow(
 		setProviderOutput(
 			setWorkflowProvider(
-				CreateTestWorkflow(WorkflowConstants.UpdateOperationLabel, argo.WorkflowSucceeded),
+				CreateTestWorkflow(argo.WorkflowSucceeded),
 				providerId.Provider),
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),
@@ -96,7 +96,7 @@ func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(providerId pipelin
 
 func (st StateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase) StateTransitionTestCase {
 	return st.WithWorkFlow(
-		CreateTestWorkflow(WorkflowConstants.DeleteOperationLabel, phase),
+		CreateTestWorkflow(phase),
 	)
 }
 
@@ -104,7 +104,7 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(providerId pipel
 	return st.WithWorkFlow(
 		setProviderOutput(
 			setWorkflowProvider(
-				CreateTestWorkflow(WorkflowConstants.DeleteOperationLabel, argo.WorkflowSucceeded),
+				CreateTestWorkflow(argo.WorkflowSucceeded),
 				providerId.Provider),
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),

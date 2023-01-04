@@ -1,21 +1,67 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-experiment-steps
+  name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   templates:
+  - name: compile
+    inputs:
+      parameters:
+      - name: resource-image
+      - name: execution-mode
+      artifacts:
+      - name: resource-definition
+        raw:
+          data: |
+            {{`{{workflow.parameters.resource-definition}}`}}
+        path: /resource-definition.yaml
+    outputs:
+      artifacts:
+      - name: resource
+        path: /tmp/resource.yaml
+    metadata:
+      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+    container:
+      command:
+      - /shared/compile.sh
+      image: "{{`{{inputs.parameters.resource-image}}`}}"
+      name: resource
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
+      - mountPath: /shared
+        name: shared
+      args:
+      - --output_file
+      - /tmp/resource.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}_config
+      - /resource-definition.yaml
+      - --execution_mode
+      - "{{`{{inputs.parameters.execution-mode}}`}}"
+      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+    volumes:
+    - name: shared
+    initContainers:
+    - args:
+      - /shared
+      image: {{ include "kfp-operator.compilerImage" . }}
+      mirrorVolumeMounts: true
+      name: compile
+      {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: create
     inputs:
       parameters:
       - name: provider-image
       - name: provider-sa
       artifacts:
-      - name: experiment-definition
-        path: /experiment-definition.yaml
+      - name: resource
+        path: /resource.yaml
+      - name: resource-definition
+        path: /resource-definition.yaml
         raw:
           data: |
-            {{`{{workflow.parameters.experiment-definition}}`}}
+            {{`{{workflow.parameters.resource-definition}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -34,54 +80,27 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - experiment
+      - '{{`{{workflow.parameters.resource-kind}}`}}'
       - create
-      - --experiment-definition
-      - /experiment-definition.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-definition
+      - /resource-definition.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-file
+      - /resource.yaml
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: update
     inputs:
-      parameters:
-      - name: provider-image
-      - name: provider-sa
       artifacts:
-      - name: experiment-definition
-        path: /experiment-definition.yaml
+      - name: resource
+        path: /resource.yaml
+      - name: resource-definition
+        path: /resource-definition.yaml
         raw:
           data: |
-            {{`{{workflow.parameters.experiment-definition}}`}}
-    outputs:
+            {{`{{workflow.parameters.resource-definition}}`}}
       parameters:
-      - name: provider-output
-        valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
-    metadata:
-      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    container:
-      image: "{{`{{inputs.parameters.provider-image}}`}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
-      command:
-      - /provider
-      args:
-      - --provider-config
-      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - experiment
-      - update
-      - --experiment-definition
-      - /experiment-definition.yaml
-      - --experiment-id
-      - '{{`{{workflow.parameters.experiment-id}}`}}'
-      - --out
-      - /tmp/provider-output.yaml
-    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
-  - name: delete
-    inputs:
-      parameters:
+      - name: resource-id
       - name: provider-image
       - name: provider-sa
     outputs:
@@ -102,12 +121,14 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-      - experiment
-      - delete
-      - --experiment-definition
-      - /experiment-definition.yaml
-      - --experiment-id
-      - '{{`{{workflow.parameters.experiment-id}}`}}'
+      - '{{`{{workflow.parameters.resource-kind}}`}}'
+      - update
+      - --{{`{{workflow.parameters.resource-kind}}`}}-definition
+      - /resource-definition.yaml
+      - --{{`{{workflow.parameters.resource-kind}}`}}-id
+      - '{{`{{inputs.parameters.resource-id}}`}}'
+      - --{{`{{workflow.parameters.resource-kind}}`}}-file
+      - /resource.yaml
       - --out
       - /tmp/provider-output.yaml
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -115,7 +136,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-create-experiment
+  name: {{ include "kfp-operator.fullname" . }}-create-compiled
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   volumes:
@@ -127,7 +148,8 @@ spec:
   arguments:
     parameters:
     - name: provider-name
-    - name: experiment-definition
+    - name: resource-kind
+    - name: resource-definition
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -156,11 +178,36 @@ spec:
           parameters:
           - name: parameter
             value: serviceAccount
+    - - name: select-execution-mode
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: executionMode
+    - - name: select-resource-image
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-resource-image
+    - - name: compile
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          template: compile
+        arguments:
+          parameters:
+          - name: resource-image
+            value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
+          - name: execution-mode
+            value: '{{`{{steps.select-execution-mode.outputs.result}}`}}'
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-experiment-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: create
         arguments:
+          artifacts:
+          - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
+            name: resource
           parameters:
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
@@ -170,7 +217,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-update-experiment
+  name: {{ include "kfp-operator.fullname" . }}-update-compiled
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   volumes:
@@ -182,8 +229,9 @@ spec:
   arguments:
     parameters:
     - name: provider-name
-    - name: experiment-id
-    - name: experiment-definition
+    - name: resource-kind
+    - name: resource-id
+    - name: resource-definition
   entrypoint: main
   {{ if .Values.manager.argo.serviceAccount -}}
   serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
@@ -212,67 +260,39 @@ spec:
           parameters:
           - name: parameter
             value: serviceAccount
+    - - name: select-execution-mode
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: executionMode
+    - - name: select-resource-image
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-resource-image
+    - - name: compile
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          template: compile
+        arguments:
+          parameters:
+          - name: resource-image
+            value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
+          - name: execution-mode
+            value: '{{`{{steps.select-execution-mode.outputs.result}}`}}'
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-experiment-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: update
         arguments:
+          artifacts:
+          - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
+            name: resource
           parameters:
-          - name: provider-image
-            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-          - name: provider-sa
-            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
----
-apiVersion: argoproj.io/v1alpha1
-kind: WorkflowTemplate
-metadata:
-  name: {{ include "kfp-operator.fullname" . }}-delete-experiment
-  namespace: {{ include "kfp-operator.argoNamespace" . }}
-spec:
-  volumes:
-  - name: providers-config
-    configMap:
-      name: {{ include "kfp-operator.fullname" . }}-providers
-  ttlStrategy:
-    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
-  arguments:
-    parameters:
-    - name: provider-name
-    - name: experiment-id
-  entrypoint: main
-  {{ if .Values.manager.argo.serviceAccount -}}
-  serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
-  {{- end }}
-  templates:
-  - name: main
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
-    steps:
-    - - name: select-provider-image
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: parameter
-            value: image
-    - - name: select-provider-sa
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: parameter
-            value: serviceAccount
-    - - name: provider
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-experiment-steps
-          template: delete
-        arguments:
-          parameters:
+          - name: resource-id
+            value: '{{`{{workflow.parameters.resource-id}}`}}'
           - name: provider-image
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           - name: provider-sa

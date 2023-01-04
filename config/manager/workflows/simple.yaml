@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: runconfiguration-steps
+  name: simple-workflow-steps
   namespace: kfp-operator-system
 spec:
   templates:
@@ -11,11 +11,11 @@ spec:
       - name: provider-image
       - name: provider-sa
       artifacts:
-      - name: runconfiguration-definition
-        path: /runconfiguration-definition.yaml
+      - name: resource-definition
+        path: /resource-definition.yaml
         raw:
           data: |
-            {{workflow.parameters.runconfiguration-definition}}
+            {{workflow.parameters.resource-definition}}
     outputs:
       parameters:
       - name: provider-output
@@ -33,10 +33,10 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{workflow.parameters.provider-name}}
-      - runconfiguration
+      - '{{workflow.parameters.resource-kind}}'
       - create
-      - --runconfiguration-definition
-      - /runconfiguration-definition.yaml
+      - --{{workflow.parameters.resource-kind}}-definition
+      - /resource-definition.yaml
       - --out
       - /tmp/provider-output.yaml
   - name: update
@@ -45,17 +45,17 @@ spec:
       - name: provider-image
       - name: provider-sa
       artifacts:
-      - name: runconfiguration-definition
-        path: /runconfiguration-definition.yaml
+      - name: resource-definition
+        path: /resource-definition.yaml
         raw:
           data: |
-            {{workflow.parameters.runconfiguration-definition}}
-    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
+            {{workflow.parameters.resource-definition}}
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
           path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
     container:
       image: "{{inputs.parameters.provider-image}}"
@@ -67,65 +67,36 @@ spec:
       args:
       - --provider-config
       - /providers-config/{{workflow.parameters.provider-name}}
-      - runconfiguration
+      - '{{workflow.parameters.resource-kind}}'
       - update
-      - --runconfiguration-definition
-      - /runconfiguration-definition.yaml
-      - --runconfiguration-id
-      - '{{workflow.parameters.runconfiguration-id}}'
-      - --out
-      - /tmp/provider-output.yaml
-  - name: delete
-    inputs:
-      parameters:
-      - name: provider-image
-      - name: provider-sa
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
-    metadata: {}
-    container:
-      image: "{{inputs.parameters.provider-image}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
-      command:
-      - /provider
-      args:
-      - --provider-config
-      - /providers-config/{{workflow.parameters.provider-name}}
-      - runconfiguration
-      - delete
-      - --runconfiguration-definition
-      - /runconfiguration-definition.yaml
-      - --runconfiguration-id
-      - '{{workflow.parameters.runconfiguration-id}}'
+      - --{{workflow.parameters.resource-kind}}-definition
+      - /resource-definition.yaml
+      - --{{workflow.parameters.resource-kind}}-id
+      - '{{workflow.parameters.resource-id}}'
       - --out
       - /tmp/provider-output.yaml
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: create-runconfiguration
+  name: create-simple
   namespace: kfp-operator-system
 spec:
-  serviceAccountName: kfp-operator-workflow-runner
   volumes:
   - name: providers-config
     configMap:
       name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 600
-    secondsAfterSuccess: 600
     secondsAfterFailure: 3600
+    secondsAfterSuccess: 600
   arguments:
     parameters:
     - name: provider-name
-    - name: runconfiguration-definition
+    - name: resource-kind
+    - name: resource-definition
   entrypoint: main
+  serviceAccountName: kfp-operator-workflow-runner
   templates:
   - name: main
     outputs:
@@ -152,7 +123,7 @@ spec:
             value: serviceAccount
     - - name: provider
         templateRef:
-          name: kfp-operator-runconfiguration-steps
+          name: kfp-operator-simple-workflow-steps
           template: create
         arguments:
           parameters:
@@ -164,24 +135,25 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: update-runconfiguration
+  name: update-simple
   namespace: kfp-operator-system
 spec:
-  serviceAccountName: kfp-operator-workflow-runner
   volumes:
   - name: providers-config
     configMap:
       name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 600
-    secondsAfterSuccess: 600
     secondsAfterFailure: 3600
+    secondsAfterSuccess: 600
   arguments:
     parameters:
     - name: provider-name
-    - name: runconfiguration-id
-    - name: runconfiguration-definition
+    - name: resource-kind
+    - name: resource-id
+    - name: resource-definition
   entrypoint: main
+  serviceAccountName: kfp-operator-workflow-runner
   templates:
   - name: main
     outputs:
@@ -208,63 +180,8 @@ spec:
             value: serviceAccount
     - - name: provider
         templateRef:
-          name: kfp-operator-runconfiguration-steps
+          name: kfp-operator-simple-workflow-steps
           template: update
-        arguments:
-          parameters:
-          - name: provider-image
-            value: '{{steps.select-provider-image.outputs.result}}'
-          - name: provider-sa
-            value: '{{steps.select-provider-sa.outputs.result}}'
----
-apiVersion: argoproj.io/v1alpha1
-kind: WorkflowTemplate
-metadata:
-  name: delete-runconfiguration
-  namespace: kfp-operator-system
-spec:
-  serviceAccountName: kfp-operator-workflow-runner
-  volumes:
-  - name: providers-config
-    configMap:
-      name: kfp-operator-providers
-  ttlStrategy:
-    secondsAfterCompletion: 600
-    secondsAfterSuccess: 600
-    secondsAfterFailure: 3600
-  arguments:
-    parameters:
-    - name: provider-name
-    - name: runconfiguration-id
-  entrypoint: main
-  templates:
-  - name: main
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
-    steps:
-    - - name: select-provider-image
-        templateRef:
-          name: kfp-operator-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: parameter
-            value: image
-    - - name: select-provider-sa
-        templateRef:
-          name: kfp-operator-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: parameter
-            value: serviceAccount
-    - - name: provider
-        templateRef:
-          name: kfp-operator-runconfiguration-steps
-          template: delete
         arguments:
           parameters:
           - name: provider-image

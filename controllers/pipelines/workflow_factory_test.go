@@ -14,21 +14,19 @@ import (
 var _ = Describe("CommonWorkflowMeta", func() {
 	It("creates metadata", func() {
 		owner := pipelinesv1.RandomResource()
-		operation := RandomString()
 		namespace := RandomString()
-		w := WorkflowFactoryBase{
+		w := ResourceWorkflowFactory[*pipelinesv1.TestResource, interface{}]{
 			Config: config.Configuration{
 				WorkflowNamespace: namespace,
 			},
 		}
-		meta := w.CommonWorkflowMeta(owner, operation)
+		meta := w.CommonWorkflowMeta(owner)
 
 		Expect(meta.Namespace).To(Equal(namespace))
-		Expect(meta.GetGenerateName()).To(Equal(operation + "-" + owner.GetKind() + "-"))
+		Expect(meta.GetGenerateName()).To(Equal(owner.GetKind() + "-" + owner.GetName() + "-"))
 
 		Expect(meta.Labels[WorkflowConstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
 		Expect(meta.Labels[WorkflowConstants.OwnerNameLabelKey]).To(Equal(owner.GetName()))
 		Expect(meta.Labels[WorkflowConstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
-		Expect(meta.Labels[WorkflowConstants.OperationLabelKey]).To(Equal(operation))
 	})
 })
