@@ -59,13 +59,8 @@ integration-test-up:
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
-	# Set up mocks
-	kubectl apply -n argo -f config/testing/wiremock.yaml
-	rm -f config/testing/pids
-	#kubectl wait -n argo deployment/wiremock --for condition=available --timeout=5m
-	#kubectl port-forward -n argo service/wiremock 8081:80 & echo $$! >> config/testing/pids
 	# Proxy K8s API
-	kubectl proxy --port=8080 & echo $$! >> config/testing/pids
+	kubectl proxy --port=8080 & echo $$! > config/testing/pids
 
 integration-test: manifests generate helm-cmd yq ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
