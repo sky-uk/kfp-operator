@@ -1,0 +1,190 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: simple-workflow-steps
+  namespace: kfp-operator-system
+spec:
+  templates:
+  - name: create
+    inputs:
+      parameters:
+      - name: provider-image
+      - name: provider-sa
+      artifacts:
+      - name: resource-definition
+        path: /resource-definition.yaml
+        raw:
+          data: |
+            {{workflow.parameters.resource-definition}}
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
+    metadata: {}
+    container:
+      image: "{{inputs.parameters.provider-image}}"
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
+      command:
+      - /provider
+      args:
+      - --provider-config
+      - /providers-config/{{workflow.parameters.provider-name}}
+      - '{{workflow.parameters.resource-kind}}'
+      - create
+      - --{{workflow.parameters.resource-kind}}-definition
+      - /resource-definition.yaml
+      - --out
+      - /tmp/provider-output.yaml
+  - name: update
+    inputs:
+      parameters:
+      - name: provider-image
+      - name: provider-sa
+      artifacts:
+      - name: resource-definition
+        path: /resource-definition.yaml
+        raw:
+          data: |
+            {{workflow.parameters.resource-definition}}
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
+    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
+    metadata: {}
+    container:
+      image: "{{inputs.parameters.provider-image}}"
+      volumeMounts:
+      - name: providers-config
+        mountPath: /providers-config
+      command:
+      - /provider
+      args:
+      - --provider-config
+      - /providers-config/{{workflow.parameters.provider-name}}
+      - '{{workflow.parameters.resource-kind}}'
+      - update
+      - --{{workflow.parameters.resource-kind}}-definition
+      - /resource-definition.yaml
+      - --{{workflow.parameters.resource-kind}}-id
+      - '{{workflow.parameters.resource-id}}'
+      - --out
+      - /tmp/provider-output.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: create-simple
+  namespace: kfp-operator-system
+spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterFailure: 3600
+    secondsAfterSuccess: 600
+  arguments:
+    parameters:
+    - name: provider-name
+    - name: resource-kind
+    - name: resource-definition
+  entrypoint: main
+  serviceAccountName: kfp-operator-workflow-runner
+  templates:
+  - name: main
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
+    steps:
+    - - name: select-provider-image
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
+    - - name: provider
+        templateRef:
+          name: kfp-operator-simple-workflow-steps
+          template: create
+        arguments:
+          parameters:
+          - name: provider-image
+            value: '{{steps.select-provider-image.outputs.result}}'
+          - name: provider-sa
+            value: '{{steps.select-provider-sa.outputs.result}}'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: update-simple
+  namespace: kfp-operator-system
+spec:
+  volumes:
+  - name: providers-config
+    configMap:
+      name: kfp-operator-providers
+  ttlStrategy:
+    secondsAfterCompletion: 600
+    secondsAfterFailure: 3600
+    secondsAfterSuccess: 600
+  arguments:
+    parameters:
+    - name: provider-name
+    - name: resource-kind
+    - name: resource-id
+    - name: resource-definition
+  entrypoint: main
+  serviceAccountName: kfp-operator-workflow-runner
+  templates:
+  - name: main
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
+    steps:
+    - - name: select-provider-image
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: image
+    - - name: select-provider-sa
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-provider-parameter
+        arguments:
+          parameters:
+          - name: parameter
+            value: serviceAccount
+    - - name: provider
+        templateRef:
+          name: kfp-operator-simple-workflow-steps
+          template: update
+        arguments:
+          parameters:
+          - name: provider-image
+            value: '{{steps.select-provider-image.outputs.result}}'
+          - name: provider-sa
+            value: '{{steps.select-provider-sa.outputs.result}}'
