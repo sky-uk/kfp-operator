@@ -56,7 +56,18 @@ var _ = BeforeEach(func() {
 		}})
 })
 
-func StubProvider(providerConfig stub.StubProviderConfig) base.Output {
+func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R) base.Output {
+	providerConfig := stub.StubProviderConfig{
+		StubbedOutput: stubbedOutput,
+		ExpectedInput: stub.ExpectedInput{
+			Id: resource.GetStatus().ProviderId.Id,
+			ResourceDefinition: stub.ResourceDefinition{
+				Name:    resource.GetName(),
+				Version: resource.ComputeVersion(),
+			},
+		},
+	}
+
 	configYaml, err := yaml.Marshal(providerConfig)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -70,58 +81,42 @@ func StubProvider(providerConfig stub.StubProviderConfig) base.Output {
 		},
 	})).To(Succeed())
 
-	return providerConfig.ExpectedOutput
+	return providerConfig.StubbedOutput
 }
 
-func SucceedCreation[R pipelinesv1.Resource](_ R) base.Output {
-	return StubProvider(stub.StubProviderConfig{
-		ExpectedOutput: base.Output{
-			Id: apis.RandomString(),
-		},
-	})
+func SucceedCreation[R pipelinesv1.Resource](resource R) base.Output {
+	return StubProvider(base.Output{
+		Id: apis.RandomString(),
+	}, resource)
 }
 
-func FailCreation[R pipelinesv1.Resource](_ R) base.Output {
-	return StubProvider(stub.StubProviderConfig{
-		ExpectedOutput: base.Output{
-			ProviderError: "an error occurred",
-		},
-	})
+func FailCreation[R pipelinesv1.Resource](resource R) base.Output {
+	return StubProvider(base.Output{
+		ProviderError: "an error occurred",
+	}, resource)
 }
 
 func SucceedUpdating[R pipelinesv1.Resource](resource R) base.Output {
-	return StubProvider(stub.StubProviderConfig{
-		ExpectedOutput: base.Output{
-			Id: apis.RandomString(),
-		},
-		ExpectedId: resource.GetStatus().ProviderId.Id,
-	})
+	return StubProvider(base.Output{
+		Id: apis.RandomString(),
+	}, resource)
 }
 
 func FailUpdating[R pipelinesv1.Resource](resource R) base.Output {
-	return StubProvider(stub.StubProviderConfig{
-		ExpectedOutput: base.Output{
-			ProviderError: "an error occurred",
-		},
-		ExpectedId: resource.GetStatus().ProviderId.Id,
-	})
+	return StubProvider(base.Output{
+		ProviderError: "an error occurred",
+	}, resource)
 }
 
 func SucceedDeletion[R pipelinesv1.Resource](resource R) base.Output {
-	return StubProvider(stub.StubProviderConfig{
-		ExpectedOutput: base.Output{},
-		ExpectedId:     resource.GetStatus().ProviderId.Id,
-	})
+	return StubProvider(base.Output{}, resource)
 }
 
 func FailDeletion[R pipelinesv1.Resource](resource R) base.Output {
-	return StubProvider(stub.StubProviderConfig{
-		ExpectedOutput: base.Output{
-			ProviderError: "an error occurred",
-			Id:            resource.GetStatus().ProviderId.Id,
-		},
-		ExpectedId: resource.GetStatus().ProviderId.Id,
-	})
+	return StubProvider(base.Output{
+		ProviderError: "an error occurred",
+		Id:            resource.GetStatus().ProviderId.Id,
+	}, resource)
 }
 
 func AssertWorkflow[R pipelinesv1.Resource](

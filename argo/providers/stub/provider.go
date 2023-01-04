@@ -9,86 +9,91 @@ import (
 )
 
 type StubProviderConfig struct {
-	ExpectedOutput base.Output `yaml:"expectedOutput"`
-	ExpectedId     string      `yaml:"expectedId"`
+	StubbedOutput base.Output   `yaml:"expectedOutput"`
+	ExpectedInput ExpectedInput `yaml:"expectedInput"`
+}
+
+type ResourceDefinition struct {
+	Name    string `yaml:"name"`
+	Version string `yaml:"version"`
+}
+
+type ExpectedInput struct {
+	Id                 string             `yaml:"id"`
+	ResourceDefinition ResourceDefinition `yaml:"resourceDefinition"`
 }
 
 type StubProvider struct {
 }
 
-func (s StubProvider) CreatePipeline(ctx context.Context, providerConfig StubProviderConfig, pipelineDefinition base.PipelineDefinition, pipelineFile string) (string, error) {
-	return providerConfig.ExpectedOutput.Id, errors.New(providerConfig.ExpectedOutput.ProviderError)
-}
-
-func (s StubProvider) UpdatePipeline(ctx context.Context, providerConfig StubProviderConfig, pipelineDefinition base.PipelineDefinition, id string, pipelineFile string) (string, error) {
-	if providerConfig.ExpectedId != id {
-		return "", fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedId, id)
+func verifyResourceDefinition(providerConfig StubProviderConfig, actual ResourceDefinition) (string, error) {
+	if providerConfig.ExpectedInput.ResourceDefinition != actual {
+		return "", fmt.Errorf("expected resource definition %+v did not match provided %+v", providerConfig.ExpectedInput.ResourceDefinition, actual)
 	}
 
-	return providerConfig.ExpectedOutput.Id, errors.New(providerConfig.ExpectedOutput.ProviderError)
+	return providerConfig.StubbedOutput.Id, errors.New(providerConfig.StubbedOutput.ProviderError)
 }
 
-func (s StubProvider) DeletePipeline(ctx context.Context, providerConfig StubProviderConfig, id string) error {
-	if providerConfig.ExpectedId != id {
-		return fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedId, id)
-	}
-
-	if providerConfig.ExpectedOutput.ProviderError != "" {
-		return errors.New(providerConfig.ExpectedOutput.ProviderError)
-	}
-
-	return nil
+func verifyCreateCall(providerConfig StubProviderConfig, actual ResourceDefinition) (string, error) {
+	return verifyResourceDefinition(providerConfig, actual)
 }
 
-func (s StubProvider) CreateRunConfiguration(ctx context.Context, providerConfig StubProviderConfig, runConfigurationDefinition base.RunConfigurationDefinition) (string, error) {
-	return providerConfig.ExpectedOutput.Id, errors.New(providerConfig.ExpectedOutput.ProviderError)
-}
-
-func (s StubProvider) UpdateRunConfiguration(ctx context.Context, providerConfig StubProviderConfig, runConfigurationDefinition base.RunConfigurationDefinition, id string) (string, error) {
-	if providerConfig.ExpectedId != id {
-		return "", fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedId, id)
+func verifyUpdateCall(providerConfig StubProviderConfig, actual ResourceDefinition, id string) (string, error) {
+	if providerConfig.ExpectedInput.Id != id {
+		return "", fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedInput, id)
 	}
 
-	return providerConfig.ExpectedOutput.Id, errors.New(providerConfig.ExpectedOutput.ProviderError)
+	return verifyResourceDefinition(providerConfig, actual)
 }
 
-func (s StubProvider) DeleteRunConfiguration(ctx context.Context, providerConfig StubProviderConfig, id string) error {
-	if providerConfig.ExpectedId != id {
-		return fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedId, id)
+func verifyDeleteCall(providerConfig StubProviderConfig, id string) error {
+	if providerConfig.ExpectedInput.Id != id {
+		return fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedInput, id)
 	}
 
-	if providerConfig.ExpectedOutput.ProviderError != "" {
-		return errors.New(providerConfig.ExpectedOutput.ProviderError)
+	if providerConfig.StubbedOutput.ProviderError != "" {
+		return errors.New(providerConfig.StubbedOutput.ProviderError)
 	}
 
 	return nil
 }
 
-func (s StubProvider) CreateExperiment(_ context.Context, providerConfig StubProviderConfig, experimentDefinition base.ExperimentDefinition) (string, error) {
-	return providerConfig.ExpectedOutput.Id, errors.New(providerConfig.ExpectedOutput.ProviderError)
+func (s StubProvider) CreatePipeline(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.PipelineDefinition, _ string) (string, error) {
+	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
 }
 
-func (s StubProvider) UpdateExperiment(_ context.Context, providerConfig StubProviderConfig, experimentDefinition base.ExperimentDefinition, id string) (string, error) {
-	if providerConfig.ExpectedId != id {
-		return "", fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedId, id)
-	}
+func (s StubProvider) UpdatePipeline(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.PipelineDefinition, id string, _ string) (string, error) {
+	return verifyUpdateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version}, id)
+}
 
-	return providerConfig.ExpectedOutput.Id, errors.New(providerConfig.ExpectedOutput.ProviderError)
+func (s StubProvider) DeletePipeline(_ context.Context, providerConfig StubProviderConfig, id string) error {
+	return verifyDeleteCall(providerConfig, id)
+}
+
+func (s StubProvider) CreateRunConfiguration(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunConfigurationDefinition) (string, error) {
+	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
+}
+
+func (s StubProvider) UpdateRunConfiguration(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunConfigurationDefinition, id string) (string, error) {
+	return verifyUpdateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version}, id)
+}
+
+func (s StubProvider) DeleteRunConfiguration(_ context.Context, providerConfig StubProviderConfig, id string) error {
+	return verifyDeleteCall(providerConfig, id)
+}
+
+func (s StubProvider) CreateExperiment(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.ExperimentDefinition) (string, error) {
+	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
+}
+
+func (s StubProvider) UpdateExperiment(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.ExperimentDefinition, id string) (string, error) {
+	return verifyUpdateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version}, id)
 }
 
 func (s StubProvider) DeleteExperiment(_ context.Context, providerConfig StubProviderConfig, id string) error {
-	if providerConfig.ExpectedId != id {
-		return fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedId, id)
-	}
-
-	if providerConfig.ExpectedOutput.ProviderError != "" {
-		return errors.New(providerConfig.ExpectedOutput.ProviderError)
-	}
-
-	return nil
+	return verifyDeleteCall(providerConfig, id)
 }
 
-func (s StubProvider) EventingServer(ctx context.Context, providerConfig StubProviderConfig) (generic.EventingServer, error) {
-	//TODO implement me
-	panic("implement me")
+func (s StubProvider) EventingServer(_ context.Context, _ StubProviderConfig) (generic.EventingServer, error) {
+	panic("unimplemented")
 }
