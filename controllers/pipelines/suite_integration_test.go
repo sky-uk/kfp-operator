@@ -84,38 +84,21 @@ func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R)
 	return providerConfig.StubbedOutput
 }
 
-func SucceedCreation[R pipelinesv1.Resource](resource R) base.Output {
+func StubWithIdAndError[R pipelinesv1.Resource](resource R) base.Output {
 	return StubProvider(base.Output{
-		Id: apis.RandomString(),
+		Id:            apis.RandomString(),
+		ProviderError: apis.RandomString(),
 	}, resource)
 }
 
-func FailCreation[R pipelinesv1.Resource](resource R) base.Output {
-	return StubProvider(base.Output{
-		ProviderError: "an error occurred",
-	}, resource)
-}
-
-func SucceedUpdating[R pipelinesv1.Resource](resource R) base.Output {
-	return StubProvider(base.Output{
-		Id: apis.RandomString(),
-	}, resource)
-}
-
-func FailUpdating[R pipelinesv1.Resource](resource R) base.Output {
-	return StubProvider(base.Output{
-		ProviderError: "an error occurred",
-	}, resource)
-}
-
-func SucceedDeletion[R pipelinesv1.Resource](resource R) base.Output {
+func StubWithEmpty[R pipelinesv1.Resource](resource R) base.Output {
 	return StubProvider(base.Output{}, resource)
 }
 
-func FailDeletion[R pipelinesv1.Resource](resource R) base.Output {
+func StubWithExistingIdAndError[R pipelinesv1.Resource](resource R) base.Output {
 	return StubProvider(base.Output{
-		ProviderError: "an error occurred",
 		Id:            resource.GetStatus().ProviderId.Id,
+		ProviderError: apis.RandomString(),
 	}, resource)
 }
 
