@@ -48,6 +48,7 @@ func RunConfigurationWorkflowFactory(config config.Configuration) ResourceWorkfl
 		DefinitionCreator: RunConfigurationDefinitionCreator{
 			Config: config,
 		}.runConfigurationDefinitionYaml,
-		Config: config,
+		Config:                config,
+		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
 	}
 }

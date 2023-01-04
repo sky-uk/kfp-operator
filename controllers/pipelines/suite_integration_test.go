@@ -14,7 +14,6 @@ import (
 	"github.com/sky-uk/kfp-operator/external"
 	"github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/stub"
-	"github.com/walkerus/go-wiremock"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,13 +33,6 @@ var (
 		Host:    "http://localhost:8080",
 		APIPath: "/api",
 	}
-
-	pipelineSpec = pipelinesv1.PipelineSpec{
-		Image:         "kfp-quickstart",
-		TfxComponents: "pipeline.create_components",
-	}
-
-	wiremockClient *wiremock.Client
 )
 
 func TestPipelineControllersIntegrationSuite(t *testing.T) {

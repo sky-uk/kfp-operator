@@ -31,6 +31,7 @@ func ExperimentWorkflowFactory(config config.Configuration) ResourceWorkflowFact
 		DefinitionCreator: ExperimentDefinitionCreator{
 			Config: config,
 		}.experimentDefinitionYaml,
-		Config: config,
+		Config:                config,
+		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
 	}
 }

@@ -45,10 +45,41 @@ type WorkflowFactory[R pipelinesv1.Resource] interface {
 	ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error)
 }
 
+type TemplateNameGenerator interface {
+	CreateTemplate() string
+	UpdateTemplate() string
+	DeleteTemplate() string
+}
+
+type SuffixedTemplateNameGenerator struct {
+	config config.Configuration
+	suffix string
+}
+
+func CompiledTemplateNameGenerator(config config.Configuration) TemplateNameGenerator {
+	return SuffixedTemplateNameGenerator{config: config, suffix: "compiled"}
+}
+
+func SimpleTemplateNameGenerator(config config.Configuration) TemplateNameGenerator {
+	return SuffixedTemplateNameGenerator{config: config, suffix: "simple"}
+}
+
+func (ctng SuffixedTemplateNameGenerator) CreateTemplate() string {
+	return fmt.Sprintf("%screate-%s", ctng.config.WorkflowTemplatePrefix, ctng.suffix)
+}
+
+func (ctng SuffixedTemplateNameGenerator) UpdateTemplate() string {
+	return fmt.Sprintf("%supdate-%s", ctng.config.WorkflowTemplatePrefix, ctng.suffix)
+}
+
+func (ctng SuffixedTemplateNameGenerator) DeleteTemplate() string {
+	return fmt.Sprintf("%sdelete", ctng.config.WorkflowTemplatePrefix)
+}
+
 type ResourceWorkflowFactory[R pipelinesv1.Resource] struct {
-	Config            config.Configuration
-	Compiled          bool
-	DefinitionCreator func(R) (string, error)
+	Config                config.Configuration
+	TemplateNameGenerator TemplateNameGenerator
+	DefinitionCreator     func(R) (string, error)
 }
 
 func (workflows ResourceWorkflowFactory[R]) CommonWorkflowMeta(owner pipelinesv1.Resource, operation string) *metav1.ObjectMeta {
@@ -68,15 +99,9 @@ func CommonWorkflowLabels(owner pipelinesv1.Resource, operation string) map[stri
 	}
 }
 
-func (workflows ResourceWorkflowFactory[R]) templateName(name string) string {
-	if workflows.Compiled {
-		return workflows.Config.WorkflowTemplatePrefix + name + "-compiled"
-	}
-
-	return workflows.Config.WorkflowTemplatePrefix + name
-}
-
-func (workflows ResourceWorkflowFactory[R]) ConstructCreationWorkflow(provider string, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R]) ConstructCreationWorkflow(provider string, resource R) (*argo.Workflow, error) {
+	fmt.Println(workflows)
+	fmt.Print(workflows.DefinitionCreator(resource))
 	resourceDefinition, err := workflows.DefinitionCreator(resource)
 	if err != nil {
 		return nil, err
@@ -102,13 +127,13 @@ func (workflows ResourceWorkflowFactory[R]) ConstructCreationWorkflow(provider s
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.templateName("create"),
+				Name: workflows.TemplateNameGenerator.CreateTemplate(),
 			},
 		},
 	}, nil
 }
 
-func (workflows ResourceWorkflowFactory[R]) ConstructUpdateWorkflow(provider string, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R]) ConstructUpdateWorkflow(provider string, resource R) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.DefinitionCreator(resource)
 	if err != nil {
 		return nil, err
@@ -138,13 +163,13 @@ func (workflows ResourceWorkflowFactory[R]) ConstructUpdateWorkflow(provider str
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.templateName("update"),
+				Name: workflows.TemplateNameGenerator.UpdateTemplate(),
 			},
 		},
 	}, nil
 }
 
-func (workflows ResourceWorkflowFactory[R]) ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R]) ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error) {
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource, WorkflowConstants.DeleteOperationLabel),
 		Spec: argo.WorkflowSpec{
@@ -165,7 +190,7 @@ func (workflows ResourceWorkflowFactory[R]) ConstructDeletionWorkflow(provider s
 				},
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
-				Name: workflows.templateName("delete"),
+				Name: workflows.TemplateNameGenerator.DeleteTemplate(),
 			},
 		},
 	}, nil

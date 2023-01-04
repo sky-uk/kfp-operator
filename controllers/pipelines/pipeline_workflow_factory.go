@@ -67,10 +67,10 @@ func (pdc PipelineDefinitionCreator) pipelineDefinitionYaml(pipeline *pipelinesv
 
 func PipelineWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Pipeline] {
 	return ResourceWorkflowFactory[*pipelinesv1.Pipeline]{
-		Compiled: true,
 		DefinitionCreator: PipelineDefinitionCreator{
 			Config: config,
 		}.pipelineDefinitionYaml,
-		Config: config,
+		Config:                config,
+		TemplateNameGenerator: CompiledTemplateNameGenerator(config),
 	}
 }
