@@ -5,7 +5,6 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	providers "github.com/sky-uk/kfp-operator/providers/base"
-	"gopkg.in/yaml.v2"
 )
 
 type PipelineDefinitionCreator struct {
@@ -36,7 +35,8 @@ func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
 	return multimap
 }
 
-func (pdc PipelineDefinitionCreator) pipelineDefinitionYaml(pipeline *pipelinesv1.Pipeline) (string, error) {
+// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
+func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pipeline) (providers.PipelineDefinition, error) {
 	// TODO: should come from config
 	servingPath := "/serving"
 	tempPath := "/tmp"
@@ -46,7 +46,7 @@ func (pdc PipelineDefinitionCreator) pipelineDefinitionYaml(pipeline *pipelinesv
 	beamArgs := append(pdc.Config.DefaultBeamArgs, pipeline.Spec.BeamArgs...)
 	beamArgs = append(beamArgs, apis.NamedValue{Name: "temp_location", Value: pipelineRoot + tempPath})
 
-	pipelineDefinition := providers.PipelineDefinition{
+	return providers.PipelineDefinition{
 		RootLocation:    pipelineRoot,
 		ServingLocation: pipelineRoot + servingPath,
 		Name:            pipeline.ObjectMeta.Name,
@@ -55,21 +55,14 @@ func (pdc PipelineDefinitionCreator) pipelineDefinitionYaml(pipeline *pipelinesv
 		TfxComponents:   pipeline.Spec.TfxComponents,
 		Env:             NamedValuesToMap(pipeline.Spec.Env),
 		BeamArgs:        NamedValuesToMultiMap(beamArgs),
-	}
-
-	marshalled, err := yaml.Marshal(&pipelineDefinition)
-	if err != nil {
-		return "", err
-	}
-
-	return string(marshalled), nil
+	}, nil
 }
 
-func PipelineWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Pipeline] {
-	return ResourceWorkflowFactory[*pipelinesv1.Pipeline]{
+func PipelineWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
+	return ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
 		DefinitionCreator: PipelineDefinitionCreator{
 			Config: config,
-		}.pipelineDefinitionYaml,
+		}.pipelineDefinition,
 		Config:                config,
 		TemplateNameGenerator: CompiledTemplateNameGenerator(config),
 	}

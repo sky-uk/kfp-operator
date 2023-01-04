@@ -17,7 +17,7 @@ import (
 var _ = Describe("PipelineDefinition", func() {
 
 	Specify("Some fields are copied from Pipeline resource", func() {
-		wf := PipelineWorkflowFactory{}
+		wf := PipelineDefinitionCreator{}
 		pipeline := &pipelinesv1.Pipeline{
 			ObjectMeta: v1.ObjectMeta{
 				Name: "pipelineName",
@@ -31,7 +31,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.pipelineDefinition(pipeline)
+		compilerConfig, _ := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.Name).To(Equal("pipelineName"))
 		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
@@ -40,11 +40,9 @@ var _ = Describe("PipelineDefinition", func() {
 	})
 
 	Specify("Paths are appended to PipelineStorage", func() {
-		wf := PipelineWorkflowFactory{
-			WorkflowFactoryBase: WorkflowFactoryBase{
-				Config: config.Configuration{
-					PipelineStorage: "gs://bucket",
-				},
+		wf := PipelineDefinitionCreator{
+			Config: config.Configuration{
+				PipelineStorage: "gs://bucket",
 			},
 		}
 		pipeline := &pipelinesv1.Pipeline{
@@ -53,14 +51,14 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.pipelineDefinition(pipeline)
+		compilerConfig, _ := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.RootLocation).To(Equal("gs://bucket/pipelineName"))
 		Expect(compilerConfig.ServingLocation).To(Equal("gs://bucket/pipelineName/serving"))
 	})
 
 	Specify("Original BeamArgs are copied", func() {
-		wf := PipelineWorkflowFactory{}
+		wf := PipelineDefinitionCreator{}
 		pipeline := &pipelinesv1.Pipeline{
 			Spec: pipelinesv1.PipelineSpec{
 				BeamArgs: []apis.NamedValue{
@@ -69,17 +67,15 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.pipelineDefinition(pipeline)
+		compilerConfig, _ := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.BeamArgs["a"]).To(Equal([]string{"b"}))
 	})
 
 	Specify("BeamArgs are enriched with temp_location", func() {
-		wf := PipelineWorkflowFactory{
-			WorkflowFactoryBase: WorkflowFactoryBase{
-				Config: config.Configuration{
-					PipelineStorage: "gs://bucket",
-				},
+		wf := PipelineDefinitionCreator{
+			Config: config.Configuration{
+				PipelineStorage: "gs://bucket",
 			},
 		}
 
@@ -89,19 +85,17 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.pipelineDefinition(pipeline)
+		compilerConfig, _ := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.BeamArgs["temp_location"]).To(Equal([]string{"gs://bucket/pipelineName/tmp"}))
 	})
 
 	Specify("BeamArgs are appended to default configuration values", func() {
-		wf := PipelineWorkflowFactory{
-			WorkflowFactoryBase: WorkflowFactoryBase{
-				Config: config.Configuration{
-					DefaultBeamArgs: []apis.NamedValue{
-						{Name: "ba", Value: "default"},
-						{Name: "bc", Value: "default"},
-					},
+		wf := PipelineDefinitionCreator{
+			Config: config.Configuration{
+				DefaultBeamArgs: []apis.NamedValue{
+					{Name: "ba", Value: "default"},
+					{Name: "bc", Value: "default"},
 				},
 			},
 		}
@@ -114,7 +108,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 
-		compilerConfig := wf.pipelineDefinition(pipeline)
+		compilerConfig, _ := wf.pipelineDefinition(pipeline)
 
 		Expect(compilerConfig.BeamArgs["ba"]).To(Equal([]string{"default"}))
 		Expect(compilerConfig.BeamArgs["bc"]).To(Equal([]string{"default", "bd"}))

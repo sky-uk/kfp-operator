@@ -6,6 +6,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -13,10 +14,6 @@ var WorkflowConstants = struct {
 	OwnerKindLabelKey               string
 	OwnerNameLabelKey               string
 	OwnerNamespaceLabelKey          string
-	OperationLabelKey               string
-	CreateOperationLabel            string
-	DeleteOperationLabel            string
-	UpdateOperationLabel            string
 	ConstructionFailedError         string
 	ProviderNameParameterName       string
 	ProviderOutputParameterName     string
@@ -27,10 +24,6 @@ var WorkflowConstants = struct {
 	OwnerKindLabelKey:               apis.Group + "/owner.kind",
 	OwnerNameLabelKey:               apis.Group + "/owner.name",
 	OwnerNamespaceLabelKey:          apis.Group + "/owner.namespace",
-	OperationLabelKey:               apis.Group + "/operation",
-	CreateOperationLabel:            "create",
-	DeleteOperationLabel:            "delete",
-	UpdateOperationLabel:            "update",
 	ConstructionFailedError:         "error constructing workflow",
 	ProviderNameParameterName:       "provider-name",
 	ProviderOutputParameterName:     "provider-output",
@@ -76,39 +69,50 @@ func (ctng SuffixedTemplateNameGenerator) DeleteTemplate() string {
 	return fmt.Sprintf("%sdelete", ctng.config.WorkflowTemplatePrefix)
 }
 
-type ResourceWorkflowFactory[R pipelinesv1.Resource] struct {
+type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] struct {
 	Config                config.Configuration
 	TemplateNameGenerator TemplateNameGenerator
-	DefinitionCreator     func(R) (string, error)
+	DefinitionCreator     func(R) (ResourceDefinition, error)
 }
 
-func (workflows ResourceWorkflowFactory[R]) CommonWorkflowMeta(owner pipelinesv1.Resource, operation string) *metav1.ObjectMeta {
+func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(owner pipelinesv1.Resource) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
-		GenerateName: fmt.Sprintf("%s-%s-", operation, owner.GetKind()),
+		GenerateName: fmt.Sprintf("%s-%s-", owner.GetKind(), owner.GetName()),
 		Namespace:    workflows.Config.WorkflowNamespace,
-		Labels:       CommonWorkflowLabels(owner, operation),
+		Labels:       CommonWorkflowLabels(owner),
 	}
 }
 
-func CommonWorkflowLabels(owner pipelinesv1.Resource, operation string) map[string]string {
+func CommonWorkflowLabels(owner pipelinesv1.Resource) map[string]string {
 	return map[string]string{
-		WorkflowConstants.OperationLabelKey:      operation,
 		WorkflowConstants.OwnerKindLabelKey:      owner.GetKind(),
 		WorkflowConstants.OwnerNameLabelKey:      owner.GetName(),
 		WorkflowConstants.OwnerNamespaceLabelKey: owner.GetNamespace(),
 	}
 }
 
-func (workflows *ResourceWorkflowFactory[R]) ConstructCreationWorkflow(provider string, resource R) (*argo.Workflow, error) {
-	fmt.Println(workflows)
-	fmt.Print(workflows.DefinitionCreator(resource))
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionYaml(resource R) (string, error) {
 	resourceDefinition, err := workflows.DefinitionCreator(resource)
+	if err != nil {
+		return "", err
+	}
+
+	marshalled, err := yaml.Marshal(&resourceDefinition)
+	if err != nil {
+		return "", err
+	}
+
+	return string(marshalled), nil
+}
+
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(provider string, resource R) (*argo.Workflow, error) {
+	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
 	if err != nil {
 		return nil, err
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource, WorkflowConstants.CreateOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -133,14 +137,14 @@ func (workflows *ResourceWorkflowFactory[R]) ConstructCreationWorkflow(provider 
 	}, nil
 }
 
-func (workflows *ResourceWorkflowFactory[R]) ConstructUpdateWorkflow(provider string, resource R) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.DefinitionCreator(resource)
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(provider string, resource R) (*argo.Workflow, error) {
+	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
 	if err != nil {
 		return nil, err
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource, WorkflowConstants.UpdateOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -169,9 +173,9 @@ func (workflows *ResourceWorkflowFactory[R]) ConstructUpdateWorkflow(provider st
 	}, nil
 }
 
-func (workflows *ResourceWorkflowFactory[R]) ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error) {
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource, WorkflowConstants.DeleteOperationLabel),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
