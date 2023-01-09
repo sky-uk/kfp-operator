@@ -23,12 +23,13 @@ type ExperimentDefinition struct {
 }
 
 type RunConfigurationDefinition struct {
-	Name            string `yaml:"name"`
-	Version         string `yaml:"version"`
-	PipelineName    string `yaml:"pipelineName"`
-	PipelineVersion string `yaml:"pipelineVersion"`
-	ExperimentName  string `yaml:"experimentName"`
-	Schedule        string `yaml:"schedule"`
+	Name              string            `yaml:"name"`
+	Version           string            `yaml:"version"`
+	PipelineName      string            `yaml:"pipelineName"`
+	PipelineVersion   string            `yaml:"pipelineVersion"`
+	ExperimentName    string            `yaml:"experimentName"`
+	Schedule          string            `yaml:"schedule"`
+	RuntimeParameters map[string]string `yaml:"runtimeParameters"`
 }
 
 type Output struct {

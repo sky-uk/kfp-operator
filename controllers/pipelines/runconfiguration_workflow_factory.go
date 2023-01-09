@@ -25,12 +25,13 @@ func (rcdc RunConfigurationDefinitionCreator) runConfigurationDefinition(runConf
 	}
 
 	return providers.RunConfigurationDefinition{
-		Name:            runConfiguration.ObjectMeta.Name,
-		Version:         runConfiguration.ComputeVersion(),
-		PipelineName:    runConfiguration.Spec.Pipeline.Name,
-		PipelineVersion: runConfiguration.Status.ObservedPipelineVersion,
-		ExperimentName:  experimentName,
-		Schedule:        runConfiguration.Spec.Schedule,
+		Name:              runConfiguration.ObjectMeta.Name,
+		Version:           runConfiguration.ComputeVersion(),
+		PipelineName:      runConfiguration.Spec.Pipeline.Name,
+		PipelineVersion:   runConfiguration.Status.ObservedPipelineVersion,
+		ExperimentName:    experimentName,
+		Schedule:          runConfiguration.Spec.Schedule,
+		RuntimeParameters: NamedValuesToMap(runConfiguration.Spec.RuntimeParameters),
 	}, nil
 }
 

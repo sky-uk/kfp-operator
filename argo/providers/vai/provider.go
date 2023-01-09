@@ -186,7 +186,7 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 		RunConfigurationName: runConfigurationDefinition.Name,
 		PipelineName:         runConfigurationDefinition.PipelineName,
 		PipelineVersion:      runConfigurationDefinition.PipelineVersion,
-		RuntimeParameters:    map[string]string{}, // See https://github.com/sky-uk/kfp-operator/issues/175
+		RuntimeParameters:    runConfigurationDefinition.RuntimeParameters,
 	}
 
 	data, err := json.Marshal(runIntent)
@@ -357,9 +357,7 @@ func (vaip VAIProvider) specFromTemplateUri(ctx context.Context, providerConfig 
 
 	gcsOutputDirectory := raw["runtimeConfig"].(map[string]interface{})["gcsOutputDirectory"].(string)
 
-	job.RuntimeConfig = &aiplatformpb.PipelineJob_RuntimeConfig{
-		GcsOutputDirectory: gcsOutputDirectory,
-	}
+	job.RuntimeConfig.GcsOutputDirectory = gcsOutputDirectory
 
 	return nil
 }
@@ -371,10 +369,22 @@ func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProvide
 	}
 	defer pipelineClient.Close()
 
+	parameters := make(map[string]*aiplatformpb.Value, len(vaiRun.RuntimeParameters))
+	for name, value := range vaiRun.RuntimeParameters {
+		parameters[name] = &aiplatformpb.Value{
+			Value: &aiplatformpb.Value_StringValue{
+				StringValue: value,
+			},
+		}
+	}
+
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         vaiRun.Labels,
 		TemplateUri:    vaiRun.PipelineUri,
 		ServiceAccount: providerConfig.VaiJobServiceAccount,
+		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+			Parameters: parameters,
+		},
 	}
 
 	err = vaip.specFromTemplateUri(ctx, providerConfig, pipelineJob)

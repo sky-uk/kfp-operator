@@ -33,6 +33,13 @@ import (
 	"path/filepath"
 )
 
+func main() {
+	app := NewProviderApp[KfpProviderConfig]()
+	app.Run(KfpProvider{})
+}
+
+// TODO: Move everything else into provider.go outside of main like for the VAI provider
+
 const KfpResourceNotFoundCode = 5
 
 type KfpProviderConfig struct {
@@ -42,11 +49,6 @@ type KfpProviderConfig struct {
 }
 
 type KfpProvider struct{}
-
-func main() {
-	app := NewProviderApp[KfpProviderConfig]()
-	app.Run(KfpProvider{})
-}
 
 func pipelineUploadService(providerConfig KfpProviderConfig) (*pipeline_upload_service.Client, error) {
 	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
@@ -227,10 +229,16 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 		return "", err
 	}
 
+	jobParameters := make([]*job_model.APIParameter, 0, len(runConfigurationDefinition.RuntimeParameters))
+	for name, value := range runConfigurationDefinition.RuntimeParameters {
+		jobParameters = append(jobParameters, &job_model.APIParameter{Name: name, Value: value})
+	}
+
 	jobResult, err := jobService.CreateJob(&job_service.CreateJobParams{
 		Body: &job_model.APIJob{
 			PipelineSpec: &job_model.APIPipelineSpec{
 				PipelineID: pipelineResult.Payload.Pipelines[0].ID,
+				Parameters: jobParameters,
 			},
 			Name:           runConfigurationDefinition.Name,
 			MaxConcurrency: 1,

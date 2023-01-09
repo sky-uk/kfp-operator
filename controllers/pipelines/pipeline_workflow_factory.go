@@ -11,30 +11,6 @@ type PipelineDefinitionCreator struct {
 	Config config.Configuration
 }
 
-func NamedValuesToMap(namedValues []apis.NamedValue) map[string]string {
-	m := make(map[string]string)
-
-	for _, nv := range namedValues {
-		m[nv.Name] = nv.Value
-	}
-
-	return m
-}
-
-func NamedValuesToMultiMap(namedValues []apis.NamedValue) map[string][]string {
-	multimap := make(map[string][]string)
-
-	for _, nv := range namedValues {
-		if _, found := multimap[nv.Name]; !found {
-			multimap[nv.Name] = []string{}
-		}
-
-		multimap[nv.Name] = append(multimap[nv.Name], nv.Value)
-	}
-
-	return multimap
-}
-
 // TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
 func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pipeline) (providers.PipelineDefinition, error) {
 	// TODO: should come from config
