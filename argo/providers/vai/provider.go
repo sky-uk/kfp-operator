@@ -357,9 +357,7 @@ func (vaip VAIProvider) specFromTemplateUri(ctx context.Context, providerConfig 
 
 	gcsOutputDirectory := raw["runtimeConfig"].(map[string]interface{})["gcsOutputDirectory"].(string)
 
-	job.RuntimeConfig = &aiplatformpb.PipelineJob_RuntimeConfig{
-		GcsOutputDirectory: gcsOutputDirectory,
-	}
+	job.RuntimeConfig.GcsOutputDirectory = gcsOutputDirectory
 
 	return nil
 }
@@ -371,9 +369,13 @@ func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProvide
 	}
 	defer pipelineClient.Close()
 
-	parameterValues := make(map[string]*structpb.Value, len(vaiRun.RuntimeParameters))
+	parameters := make(map[string]*aiplatformpb.Value, len(vaiRun.RuntimeParameters))
 	for name, value := range vaiRun.RuntimeParameters {
-		parameterValues[name] = structpb.NewStringValue(value)
+		parameters[name] = &aiplatformpb.Value{
+			Value: &aiplatformpb.Value_StringValue{
+				StringValue: value,
+			},
+		}
 	}
 
 	pipelineJob := &aiplatformpb.PipelineJob{
@@ -381,7 +383,7 @@ func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProvide
 		TemplateUri:    vaiRun.PipelineUri,
 		ServiceAccount: providerConfig.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
-			ParameterValues: parameterValues,
+			Parameters: parameters,
 		},
 	}
 
