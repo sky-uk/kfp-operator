@@ -1,3 +1,4 @@
+include ../../common.mk
 include get-proto.mk
 
 IMG := kfp-operator-kfp-provider
@@ -15,7 +16,7 @@ test: base-test
 
 ##@ Build
 
-generate:
+generate: protoc-gen-go
 	$(call get-proto,github.com/argoproj/argo-events,v1.5.4)
 	protoc --go_out=. --go-grpc_out=base/generic \
 		-I $(PROTOPATH)/github.com/argoproj/argo-events@v1.5.4/ \
