@@ -76,7 +76,7 @@ Pub/Sub topics and subscriptions need to be created for:
   - Subscriptions:`submitterRunsSubscription`, `eventsourceRunsSubscription`<sup>*</sup>
 
 It is important to configure the retry policy for the `eventsourceRunsSubscription` subscription according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
-We suggest an exponential backoff with min and max backoff set to at least 10 seconds each, resulting in a fixed 10 seconds wait between polls.
+We suggest an exponential backoff with min and max backoff set to at least 1 minute each, resulting in a fixed one-minute wait between polls.
 
 GCS pipeline storage bucket `provider.configuration.pipelineBucket` needs to be created
 
