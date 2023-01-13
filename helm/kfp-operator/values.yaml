@@ -28,7 +28,9 @@ manager:
   replicas: 1
   configuration: {}
   argo:
-    serviceAccount: "kfp-operator-workflow-runner"
+    serviceAccount:
+      name: "kfp-operator-argo"
+      create: true
     containerDefaults: {}
     metadataDefaults: {}
     ttlStrategy:

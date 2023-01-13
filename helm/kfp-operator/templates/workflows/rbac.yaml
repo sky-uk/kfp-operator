@@ -1,8 +1,11 @@
+{{- if .Values.manager.argo.serviceAccount.create }}
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.manager.argo.serviceAccount }}
+  name: {{ .Values.manager.argo.serviceAccount.name }}
   namespace: {{ include "kfp-operator.argoNamespace" . }}
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -29,7 +32,7 @@ roleRef:
   name: {{ include "kfp-operator.fullname" . }}-workflow-executor
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.manager.argo.serviceAccount }}
+    name: {{ .Values.manager.argo.serviceAccount.name }}
     namespace: {{ include "kfp-operator.argoNamespace" . }}
 {{- range $providerName, $providerBlock := .Values.providers }}
   - kind: ServiceAccount

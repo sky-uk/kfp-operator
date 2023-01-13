@@ -146,7 +146,7 @@ spec:
     - name: resource-kind
     - name: resource-definition
   entrypoint: main
-  serviceAccountName: kfp-operator-workflow-runner
+  serviceAccountName: kfp-operator-argo
   templates:
   - name: main
     outputs:
@@ -228,7 +228,7 @@ spec:
     - name: resource-id
     - name: resource-definition
   entrypoint: main
-  serviceAccountName: kfp-operator-workflow-runner
+  serviceAccountName: kfp-operator-argo
   templates:
   - name: main
     outputs:
