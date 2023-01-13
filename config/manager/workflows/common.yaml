@@ -79,7 +79,7 @@ spec:
     - name: resource-kind
     - name: resource-id
   entrypoint: main
-  serviceAccountName: kfp-operator-workflow-runner
+  serviceAccountName: kfp-operator-argo
   templates:
   - name: main
     outputs:

@@ -4,7 +4,9 @@ manager:
   configuration:
     workflowNamespace: argo
   argo:
-    serviceAccount: default
+    serviceAccount:
+      name: default
+      create: false
     compilerImage: kfp-operator-stub-provider
     containerDefaults:
       imagePullPolicy: Never

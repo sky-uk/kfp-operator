@@ -98,9 +98,7 @@ spec:
     - name: resource-kind
     - name: resource-definition
   entrypoint: main
-  {{ if .Values.manager.argo.serviceAccount -}}
-  serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
-  {{- end }}
+  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
   - name: main
     outputs:
@@ -155,9 +153,7 @@ spec:
     - name: resource-id
     - name: resource-definition
   entrypoint: main
-  {{ if .Values.manager.argo.serviceAccount -}}
-  serviceAccountName: {{ .Values.manager.argo.serviceAccount }}
-  {{- end }}
+  serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
   - name: main
     outputs:
