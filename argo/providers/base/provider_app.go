@@ -292,7 +292,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 							return err
 						}
 
-						err = provider.DeleteRunConfiguration(providerApp.Context, providerConfig, id)
+						err = provider.DeleteRun(providerApp.Context, providerConfig, id)
 						updatedId := ""
 						if err != nil {
 							updatedId = id
