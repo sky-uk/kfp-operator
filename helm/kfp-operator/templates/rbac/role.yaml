@@ -111,4 +111,30 @@ rules:
     - get
     - patch
     - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - runs
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - runs/finalizers
+  verbs:
+    - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
+    - runs/status
+  verbs:
+    - get
+    - patch
+    - update
 {{- end -}}
