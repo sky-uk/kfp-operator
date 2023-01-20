@@ -74,10 +74,6 @@ func (s StubProvider) CreateRun(_ context.Context, providerConfig StubProviderCo
 	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
 }
 
-func (s StubProvider) UpdateRun(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunDefinition, id string) (string, error) {
-	return verifyUpdateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version}, id)
-}
-
 func (s StubProvider) DeleteRun(_ context.Context, providerConfig StubProviderConfig, id string) error {
 	return verifyDeleteCall(providerConfig, id)
 }

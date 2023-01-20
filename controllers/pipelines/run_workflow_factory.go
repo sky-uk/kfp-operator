@@ -28,8 +28,8 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 	}, nil
 }
 
-func RunWorkflowFactory(config config.Configuration) WorkflowFactory[*pipelinesv1.Run] {
-	return &ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
+func RunWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
+	return ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
 		DefinitionCreator: RunDefinitionCreator{
 			Config: config,
 		}.runDefinition,

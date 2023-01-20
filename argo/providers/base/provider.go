@@ -52,7 +52,6 @@ type Provider[Config any] interface {
 	DeletePipeline(ctx context.Context, providerConfig Config, id string) error
 
 	CreateRun(ctx context.Context, providerConfig Config, runConfigurationDefinition RunDefinition) (string, error)
-	UpdateRun(ctx context.Context, providerConfig Config, runConfigurationDefinition RunDefinition, id string) (string, error)
 	DeleteRun(ctx context.Context, providerConfig Config, id string) error
 
 	CreateRunConfiguration(ctx context.Context, providerConfig Config, runConfigurationDefinition RunConfigurationDefinition) (string, error)

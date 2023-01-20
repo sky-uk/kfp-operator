@@ -35,8 +35,8 @@ func (rcdc RunConfigurationDefinitionCreator) runConfigurationDefinition(runConf
 	}, nil
 }
 
-func RunConfigurationWorkflowFactory(config config.Configuration) WorkflowFactory[*pipelinesv1.RunConfiguration] {
-	return &ResourceWorkflowFactory[*pipelinesv1.RunConfiguration, providers.RunConfigurationDefinition]{
+func RunConfigurationWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.RunConfiguration, providers.RunConfigurationDefinition] {
+	return ResourceWorkflowFactory[*pipelinesv1.RunConfiguration, providers.RunConfigurationDefinition]{
 		DefinitionCreator: RunConfigurationDefinitionCreator{
 			Config: config,
 		}.runConfigurationDefinition,

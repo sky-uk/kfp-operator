@@ -2,7 +2,6 @@ package kfp
 
 import (
 	"context"
-	"errors"
 	"github.com/go-openapi/runtime"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_client/experiment_service"
@@ -13,7 +12,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client/run_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_model"
-	"github.com/sky-uk/kfp-operator/providers/base"
+	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
 	"google.golang.org/grpc"
@@ -36,7 +35,7 @@ type KfpProviderConfig struct {
 
 type KfpProvider struct{}
 
-func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition base.PipelineDefinition, pipelineFileName string) (string, error) {
+func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string) (string, error) {
 	reader, err := os.Open(pipelineFileName)
 	if err != nil {
 		return "", err
@@ -59,7 +58,7 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 	return kfpp.UpdatePipeline(ctx, providerConfig, pipelineDefinition, result.Payload.ID, pipelineFileName)
 }
 
-func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition base.PipelineDefinition, id string, pipelineFile string) (string, error) {
+func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
 	reader, err := os.Open(pipelineFile)
 	if err != nil {
 		return id, err
@@ -94,7 +93,7 @@ func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpPr
 	return err
 }
 
-func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProviderConfig, runDefinition base.RunDefinition) (string, error) {
+func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProviderConfig, runDefinition RunDefinition) (string, error) {
 	pipelineService, err := NewPipelineService(providerConfig)
 	if err != nil {
 		return "", err
@@ -161,15 +160,11 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 	return runResult.Payload.Run.ID, nil
 }
 
-func (kfpp KfpProvider) UpdateRun(_ context.Context, _ KfpProviderConfig, _ base.RunDefinition, _ string) (string, error) {
-	return "", errors.New("run updates are not supported by this provider")
-}
-
 func (kfpp KfpProvider) DeleteRun(_ context.Context, _ KfpProviderConfig, _ string) error {
 	return nil
 }
 
-func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition base.RunConfigurationDefinition) (string, error) {
+func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
 	pipelineService, err := NewPipelineService(providerConfig)
 	if err != nil {
 		return "", err
@@ -192,7 +187,7 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 
 	experimentVersion, err := experimentService.ExperimentIdByName(ctx, runConfigurationDefinition.ExperimentName)
 
-	schedule, err := base.ParseCron(runConfigurationDefinition.Schedule)
+	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
 	if err != nil {
 		return "", err
 	}
@@ -248,7 +243,7 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 	return jobResult.Payload.ID, nil
 }
 
-func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition base.RunConfigurationDefinition, id string) (string, error) {
+func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition, id string) (string, error) {
 	if err := kfpp.DeleteRunConfiguration(ctx, providerConfig, id); err != nil {
 		return id, err
 	}
@@ -277,7 +272,7 @@ func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConf
 	return nil
 }
 
-func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition base.ExperimentDefinition) (string, error) {
+func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition) (string, error) {
 	experimentService, err := NewExperimentService(providerConfig)
 	if err != nil {
 		return "", err
@@ -297,7 +292,7 @@ func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig Kfp
 	return result.Payload.ID, nil
 }
 
-func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition base.ExperimentDefinition, id string) (string, error) {
+func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition, id string) (string, error) {
 	if err := kfpp.DeleteExperiment(ctx, providerConfig, id); err != nil {
 		return id, err
 	}
@@ -377,7 +372,7 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpPr
 
 	return &KfpEventingServer{
 		K8sClient:     k8sClient,
-		Logger:        base.LoggerFromContext(ctx),
+		Logger:        LoggerFromContext(ctx),
 		MetadataStore: metadataStore,
 		KfpApi:        kfpApi,
 	}, nil

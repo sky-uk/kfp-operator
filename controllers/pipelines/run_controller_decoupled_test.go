@@ -34,10 +34,6 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				g.Expect(run.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
-			//Expect(runHelper.Update(func(run *pipelinesv1.Run) {
-			//	run.Spec = pipelinesv1.RandomRunSpec()
-			//})).To(Succeed())
-
 			Expect(runHelper.Delete()).To(Succeed())
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {

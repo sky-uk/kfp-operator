@@ -283,27 +283,6 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					},
 				},
 				{
-					Name:  "update",
-					Flags: []cli.Flag{runDefinitionFlag, runIdFlag, outFlag},
-					Action: func(c *cli.Context) error {
-						id := c.String(ProviderConstants.RunIdParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
-						if err != nil {
-							return err
-						}
-						runDefinition, err := LoadYamlFromFile[RunDefinition](c.String(ProviderConstants.RunDefinitionParameter))
-						if err != nil {
-							return err
-						}
-
-						updatedId, err := provider.UpdateRun(providerApp.Context, providerConfig, runDefinition, id)
-
-						logResult(providerApp.Context, "run", "update", id, updatedId, err)
-
-						return writeOutput(c, updatedId, err)
-					},
-				},
-				{
 					Name:  "delete",
 					Flags: []cli.Flag{runIdFlag, outFlag},
 					Action: func(c *cli.Context) error {

@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -30,7 +29,6 @@ type RunReconciler struct {
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=pipeline,verbs=get;list;watch
 
 func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	fmt.Println("XXX")
 	logger := log.FromContext(ctx)
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started")

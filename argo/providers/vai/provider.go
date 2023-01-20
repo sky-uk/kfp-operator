@@ -214,10 +214,6 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig  VAIProvid
 	})
 }
 
-func (vaip VAIProvider) UpdateRun(_ context.Context, _ VAIProviderConfig, _ RunDefinition, _ string) (string, error) {
-	return "", errors.New("run updates are not supported by this provider")
-}
-
 func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ string) error {
 	return nil
 }
