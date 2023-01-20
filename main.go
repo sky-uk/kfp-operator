@@ -113,12 +113,27 @@ func main() {
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Pipeline]{
-				WorkflowFactory:    &pipelineWorkflowFactory,
+				WorkflowFactory:    pipelineWorkflowFactory,
 				WorkflowRepository: workflowRepository,
 			},
 		},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
+		os.Exit(1)
+	}
+
+	runWorkflowFactory := pipelinescontrollers.RunWorkflowFactory(ctrlConfig.Workflows)
+	if err = (&pipelinescontrollers.RunReconciler{
+		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Run]{
+			Config: ctrlConfig.Workflows,
+			EC:     ec,
+			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Run]{
+				WorkflowFactory:    runWorkflowFactory,
+				WorkflowRepository: workflowRepository,
+			},
+		},
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Run")
 		os.Exit(1)
 	}
 
@@ -128,7 +143,7 @@ func main() {
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.RunConfiguration]{
-				WorkflowFactory:    &runConfigurationWorkflowFactory,
+				WorkflowFactory:    runConfigurationWorkflowFactory,
 				WorkflowRepository: workflowRepository,
 			},
 		},
@@ -143,7 +158,7 @@ func main() {
 			Config: ctrlConfig.Workflows,
 			EC:     ec,
 			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Experiment]{
-				WorkflowFactory:    &experimentWorkflowFactory,
+				WorkflowFactory:    experimentWorkflowFactory,
 				WorkflowRepository: workflowRepository,
 			},
 		},
@@ -157,6 +172,10 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
 			os.Exit(1)
 		}
+		//if err = (&pipelinesv1.Run{}).SetupWebhookWithManager(mgr); err != nil {
+		//	setupLog.Error(err, "unable to create webhook", "webhook", "Runn")
+		//	os.Exit(1)
+		//}
 		if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
 			os.Exit(1)

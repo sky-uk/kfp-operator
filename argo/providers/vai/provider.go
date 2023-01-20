@@ -206,6 +206,18 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 	}, nil
 }
 
+func (vaip VAIProvider) CreateRun(_ context.Context, _ VAIProviderConfig, _ RunDefinition) (string, error) {
+	return "", nil
+}
+
+func (vaip VAIProvider) UpdateRun(_ context.Context, _ VAIProviderConfig, _ RunDefinition, _ string) (string, error) {
+	return "", errors.New("run updates are not supported by this provider")
+}
+
+func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ string) error {
+	return nil
+}
+
 func (vaip VAIProvider) CreateRunConfiguration(ctx context.Context, providerConfig VAIProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
 	client, err := scheduler.NewCloudSchedulerClient(ctx)
 	if err != nil {

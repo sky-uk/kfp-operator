@@ -5,6 +5,7 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
@@ -44,6 +45,7 @@ var _ = BeforeSuite(func() {
 	}
 
 	cfg, err := testEnv.Start()
+	fmt.Print(err)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
@@ -83,6 +85,7 @@ var _ = BeforeSuite(func() {
 	}
 
 	Expect((NewTestPipelineReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
+	Expect((NewTestRunReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((NewTestRunConfigurationReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((NewTestExperimentReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(workflowRepository.SetupWithManager(k8sManager)).To(Succeed())
@@ -102,7 +105,23 @@ func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository Workfl
 			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.Pipeline]{
 				WorkflowRepository: workflowRepository,
-				WorkflowFactory:    &workflowFactory,
+				WorkflowFactory:    workflowFactory,
+			},
+		},
+	}
+}
+
+func NewTestRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *RunReconciler {
+	// TODO: mock workflowFactory
+	var workflowFactory = RunWorkflowFactory(testConfig)
+
+	return &RunReconciler{
+		BaseReconciler: BaseReconciler[*pipelinesv1.Run]{
+			Config: testConfig,
+			EC:     ec,
+			StateHandler: StateHandler[*pipelinesv1.Run]{
+				WorkflowRepository: workflowRepository,
+				WorkflowFactory:    workflowFactory,
 			},
 		},
 	}
@@ -118,7 +137,7 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.RunConfiguration]{
 				WorkflowRepository: workflowRepository,
-				WorkflowFactory:    &workflowFactory,
+				WorkflowFactory:    workflowFactory,
 			},
 		},
 	}
@@ -134,7 +153,7 @@ func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository Work
 			EC:     ec,
 			StateHandler: StateHandler[*pipelinesv1.Experiment]{
 				WorkflowRepository: workflowRepository,
-				WorkflowFactory:    &workflowFactory,
+				WorkflowFactory:    workflowFactory,
 			},
 		},
 	}

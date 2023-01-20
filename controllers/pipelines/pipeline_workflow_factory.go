@@ -34,8 +34,8 @@ func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pi
 	}, nil
 }
 
-func PipelineWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
-	return ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
+func PipelineWorkflowFactory(config config.Configuration) WorkflowFactory[*pipelinesv1.Pipeline] {
+	return &ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
 		DefinitionCreator: PipelineDefinitionCreator{
 			Config: config,
 		}.pipelineDefinition,

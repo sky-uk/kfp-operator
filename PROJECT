@@ -31,6 +31,15 @@ resources:
   controller: true
   domain: kubeflow.org
   group: pipelines
+  kind: Run
+  path: github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3
+  version: v1alpha3
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kubeflow.org
+  group: pipelines
   kind: RunConfiguration
   path: github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3
   version: v1alpha3

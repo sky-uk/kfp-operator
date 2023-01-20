@@ -2,6 +2,7 @@ package kfp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-openapi/runtime"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
@@ -92,6 +93,18 @@ func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpPr
 	}, nil)
 
 	return err
+}
+
+func (kfpp KfpProvider) CreateRun(_ context.Context, _ KfpProviderConfig, _ base.RunDefinition) (string, error) {
+	return "", nil
+}
+
+func (kfpp KfpProvider) UpdateRun(_ context.Context, _ KfpProviderConfig, _ base.RunDefinition, _ string) (string, error) {
+	return "", errors.New("run updates are not supported by this provider")
+}
+
+func (kfpp KfpProvider) DeleteRun(_ context.Context, _ KfpProviderConfig, _ string) error {
+	return nil
 }
 
 func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {

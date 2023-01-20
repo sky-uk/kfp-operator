@@ -18,8 +18,8 @@ func (edc ExperimentDefinitionCreator) experimentDefinition(experiment *pipeline
 	}, nil
 }
 
-func ExperimentWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition] {
-	return ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition]{
+func ExperimentWorkflowFactory(config config.Configuration) WorkflowFactory[*pipelinesv1.Experiment] {
+	return &ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition]{
 		DefinitionCreator: ExperimentDefinitionCreator{
 			Config: config,
 		}.experimentDefinition,
