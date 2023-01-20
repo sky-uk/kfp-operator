@@ -3,7 +3,6 @@ package kfp
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/go-openapi/runtime"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_client/experiment_service"
@@ -12,14 +11,14 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/job_model"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_client/pipeline_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client/run_service"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_model"
 	"github.com/sky-uk/kfp-operator/providers/base"
-	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/base/generic"
 	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/client-go/dynamic"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
@@ -37,7 +36,7 @@ type KfpProviderConfig struct {
 
 type KfpProvider struct{}
 
-func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string) (string, error) {
+func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition base.PipelineDefinition, pipelineFileName string) (string, error) {
 	reader, err := os.Open(pipelineFileName)
 	if err != nil {
 		return "", err
@@ -60,7 +59,7 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 	return kfpp.UpdatePipeline(ctx, providerConfig, pipelineDefinition, result.Payload.ID, pipelineFileName)
 }
 
-func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
+func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition base.PipelineDefinition, id string, pipelineFile string) (string, error) {
 	reader, err := os.Open(pipelineFile)
 	if err != nil {
 		return id, err
@@ -82,7 +81,7 @@ func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpPr
 }
 
 func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
-	pipelineService, err := pipelineService(providerConfig)
+	pipelineService, err := NewPipelineService(providerConfig)
 	if err != nil {
 		return err
 	}
@@ -95,8 +94,71 @@ func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpPr
 	return err
 }
 
-func (kfpp KfpProvider) CreateRun(_ context.Context, _ KfpProviderConfig, _ base.RunDefinition) (string, error) {
-	return "", nil
+func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProviderConfig, runDefinition base.RunDefinition) (string, error) {
+	pipelineService, err := NewPipelineService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineId, err := pipelineService.PipelineIdForName(ctx, runDefinition.PipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	jobParameters := make([]*run_model.APIParameter, 0, len(runDefinition.RuntimeParameters))
+	for name, value := range runDefinition.RuntimeParameters {
+		jobParameters = append(jobParameters, &run_model.APIParameter{Name: name, Value: value})
+	}
+
+	pipelineVersionId, err := pipelineService.PipelineVersionIdForName(ctx, runDefinition.PipelineVersion, pipelineId)
+	if err != nil {
+		return "", err
+	}
+
+	experimentService, err := NewExperimentService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	experimentVersion, err := experimentService.ExperimentIdByName(ctx, runDefinition.ExperimentName)
+
+	runService, err := runService(providerConfig)
+	if err != nil {
+		return "", err
+	}
+
+	runResult, err := runService.CreateRun(&run_service.CreateRunParams{
+		Body: &run_model.APIRun{
+			Name: runDefinition.Name,
+			PipelineSpec: &run_model.APIPipelineSpec{
+				PipelineID: pipelineId,
+				Parameters: jobParameters,
+			},
+			ResourceReferences: []*run_model.APIResourceReference{
+				{
+					Key: &run_model.APIResourceKey{
+						Type: run_model.APIResourceTypeEXPERIMENT,
+						ID:   experimentVersion,
+					},
+					Relationship: run_model.APIRelationshipOWNER,
+				},
+				{
+					Key: &run_model.APIResourceKey{
+						Type: run_model.APIResourceTypePIPELINEVERSION,
+						ID:   pipelineVersionId,
+					},
+					Relationship: run_model.APIRelationshipCREATOR,
+				},
+			},
+		},
+		Context: ctx,
+	}, nil)
+
+	if err != nil {
+		return "", err
+	}
+
+	return runResult.Payload.Run.ID, nil
 }
 
 func (kfpp KfpProvider) UpdateRun(_ context.Context, _ KfpProviderConfig, _ base.RunDefinition, _ string) (string, error) {
@@ -107,55 +169,30 @@ func (kfpp KfpProvider) DeleteRun(_ context.Context, _ KfpProviderConfig, _ stri
 	return nil
 }
 
-func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
-	pipelineService, err := pipelineService(providerConfig)
+func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition base.RunConfigurationDefinition) (string, error) {
+	pipelineService, err := NewPipelineService(providerConfig)
 	if err != nil {
 		return "", err
 	}
 
-	pipelineResult, err := pipelineService.ListPipelines(&pipeline_service.ListPipelinesParams{
-		Filter:  byNameFilter(runConfigurationDefinition.PipelineName),
-		Context: ctx,
-	}, nil)
-	if err != nil {
-		return "", err
-	}
-	numPipelines := len(pipelineResult.Payload.Pipelines)
-	if numPipelines != 1 {
-		return "", fmt.Errorf("found %d pipelines, expected exactly one", numPipelines)
-	}
-
-	pipelineVersionResult, err := pipelineService.ListPipelineVersions(&pipeline_service.ListPipelineVersionsParams{
-		Filter:        pipelineVersionByNameFilter(runConfigurationDefinition.PipelineVersion),
-		ResourceKeyID: &pipelineResult.Payload.Pipelines[0].ID,
-		Context:       ctx,
-	}, nil)
-	if err != nil {
-		return "", err
-	}
-	numPipelineVersions := len(pipelineVersionResult.Payload.Versions)
-	if numPipelineVersions != 1 {
-		return "", fmt.Errorf("found %d pipeline versions, expected exactly one", numPipelineVersions)
-	}
-
-	experimentService, err := experimentService(providerConfig)
+	pipelineId, err := pipelineService.PipelineIdForName(ctx, runConfigurationDefinition.PipelineName)
 	if err != nil {
 		return "", err
 	}
 
-	experimentResult, err := experimentService.ListExperiment(&experiment_service.ListExperimentParams{
-		Filter:  byNameFilter(runConfigurationDefinition.ExperimentName),
-		Context: ctx,
-	}, nil)
+	pipelineVersionId, err := pipelineService.PipelineVersionIdForName(ctx, runConfigurationDefinition.PipelineVersion, pipelineId)
 	if err != nil {
 		return "", err
 	}
-	numExperiments := len(experimentResult.Payload.Experiments)
-	if numExperiments != 1 {
-		return "", fmt.Errorf("found %d experiments, expected exactly one", numExperiments)
+
+	experimentService, err := NewExperimentService(providerConfig)
+	if err != nil {
+		return "", err
 	}
 
-	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
+	experimentVersion, err := experimentService.ExperimentIdByName(ctx, runConfigurationDefinition.ExperimentName)
+
+	schedule, err := base.ParseCron(runConfigurationDefinition.Schedule)
 	if err != nil {
 		return "", err
 	}
@@ -173,7 +210,7 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 	jobResult, err := jobService.CreateJob(&job_service.CreateJobParams{
 		Body: &job_model.APIJob{
 			PipelineSpec: &job_model.APIPipelineSpec{
-				PipelineID: pipelineResult.Payload.Pipelines[0].ID,
+				PipelineID: pipelineId,
 				Parameters: jobParameters,
 			},
 			Name:           runConfigurationDefinition.Name,
@@ -184,14 +221,14 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 				{
 					Key: &job_model.APIResourceKey{
 						Type: job_model.APIResourceTypeEXPERIMENT,
-						ID:   experimentResult.Payload.Experiments[0].ID,
+						ID:   experimentVersion,
 					},
 					Relationship: job_model.APIRelationshipOWNER,
 				},
 				{
 					Key: &job_model.APIResourceKey{
 						Type: job_model.APIResourceTypePIPELINEVERSION,
-						ID:   pipelineVersionResult.Payload.Versions[0].ID,
+						ID:   pipelineVersionId,
 					},
 					Relationship: job_model.APIRelationshipCREATOR,
 				},
@@ -211,7 +248,7 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 	return jobResult.Payload.ID, nil
 }
 
-func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition, id string) (string, error) {
+func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition base.RunConfigurationDefinition, id string) (string, error) {
 	if err := kfpp.DeleteRunConfiguration(ctx, providerConfig, id); err != nil {
 		return id, err
 	}
@@ -240,8 +277,8 @@ func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConf
 	return nil
 }
 
-func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition) (string, error) {
-	experimentService, err := experimentService(providerConfig)
+func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition base.ExperimentDefinition) (string, error) {
+	experimentService, err := NewExperimentService(providerConfig)
 	if err != nil {
 		return "", err
 	}
@@ -260,7 +297,7 @@ func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig Kfp
 	return result.Payload.ID, nil
 }
 
-func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition, id string) (string, error) {
+func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition base.ExperimentDefinition, id string) (string, error) {
 	if err := kfpp.DeleteExperiment(ctx, providerConfig, id); err != nil {
 		return id, err
 	}
@@ -269,7 +306,7 @@ func (kfpp KfpProvider) UpdateExperiment(ctx context.Context, providerConfig Kfp
 }
 
 func (kfpp KfpProvider) DeleteExperiment(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
-	experimentService, err := experimentService(providerConfig)
+	experimentService, err := NewExperimentService(providerConfig)
 	if err != nil {
 		return err
 	}
