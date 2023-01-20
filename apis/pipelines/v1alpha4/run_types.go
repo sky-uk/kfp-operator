@@ -29,7 +29,7 @@ func (r Run) ComputeVersion() string {
 }
 
 type RunStatus struct {
-	Status                  `json:",inline"`
+	Status `json:",inline"`
 }
 
 //+kubebuilder:object:root=true
@@ -44,8 +44,8 @@ type Run struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RunSpec   `json:"spec,omitempty"`
-	Status Status `json:"status,omitempty"`
+	Spec   RunSpec `json:"spec,omitempty"`
+	Status Status  `json:"status,omitempty"`
 }
 
 func (rc *Run) GetStatus() Status {

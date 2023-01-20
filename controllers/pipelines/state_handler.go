@@ -83,7 +83,6 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resou
 			}
 		}
 
-
 		return []Command{
 			*From(resource.GetStatus()).
 				WithSynchronizationState(apis.Updating).
@@ -94,7 +93,6 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resou
 
 	logger.Info("empty state, creating resource")
 	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(provider, resource)
-
 
 	if err != nil {
 		failureMessage := WorkflowConstants.ConstructionFailedError

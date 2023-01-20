@@ -206,10 +206,10 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 	}, nil
 }
 
-func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig  VAIProviderConfig, runDefinition RunDefinition) (string, error) {
+func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
 	return vaip.EnqueueRun(ctx, providerConfig, RunIntent{
-		PipelineName: runDefinition.PipelineName,
-		PipelineVersion: runDefinition.Version,
+		PipelineName:      runDefinition.PipelineName,
+		PipelineVersion:   runDefinition.Version,
 		RuntimeParameters: runDefinition.RuntimeParameters,
 	})
 }
@@ -303,9 +303,9 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	topic := pubsubClient.Topic(providerConfig.RunsTopic)
 	defer topic.Stop()
 
-	runLabels := map[string]string {
-		labels.PipelineName:     runIntent.PipelineName,
-		labels.PipelineVersion:  runIntent.PipelineVersion,
+	runLabels := map[string]string{
+		labels.PipelineName:    runIntent.PipelineName,
+		labels.PipelineVersion: runIntent.PipelineVersion,
 	}
 
 	var runId string
@@ -317,11 +317,10 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 		runId = fmt.Sprintf("rc-%s", uuid.New().String())
 	}
 
-
 	vaiRun := VAIRun{
-		RunId:       runId,
-		PipelineUri: providerConfig.pipelineUri(runIntent.PipelineName, runIntent.PipelineVersion),
-		Labels: runLabels,
+		RunId:             runId,
+		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName, runIntent.PipelineVersion),
+		Labels:            runLabels,
 		RuntimeParameters: runIntent.RuntimeParameters,
 	}
 

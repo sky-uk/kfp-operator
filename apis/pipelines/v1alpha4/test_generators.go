@@ -55,12 +55,12 @@ func RandomRunConfigurationSpec() RunConfigurationSpec {
 }
 
 func RandomRun() *Run {
-	return &Run {
+	return &Run{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec: RandomRunSpec(),
+		Spec:   RandomRunSpec(),
 		Status: RandomStatus(),
 	}
 }

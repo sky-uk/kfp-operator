@@ -20,25 +20,25 @@ import (
 var ProviderConstants = struct {
 	PipelineDefinitionParameter         string
 	ExperimentDefinitionParameter       string
-	RunDefinitionParameter string
+	RunDefinitionParameter              string
 	RunConfigurationDefinitionParameter string
 	ProviderConfigParameter             string
 	PipelineIdParameter                 string
 	ExperimentIdParameter               string
 	RunConfigurationIdParameter         string
-	RunIdParameter         string
+	RunIdParameter                      string
 	PipelineFileParameter               string
 	OutputParameter                     string
 	EventsourceServerPortParameter      string
 }{
 	PipelineDefinitionParameter:         "pipeline-definition",
 	ExperimentDefinitionParameter:       "experiment-definition",
-	RunDefinitionParameter: "run-definition",
+	RunDefinitionParameter:              "run-definition",
 	RunConfigurationDefinitionParameter: "runconfiguration-definition",
 	ProviderConfigParameter:             "provider-config",
 	PipelineIdParameter:                 "pipeline-id",
 	ExperimentIdParameter:               "experiment-id",
-	RunIdParameter:         "run-id",
+	RunIdParameter:                      "run-id",
 	RunConfigurationIdParameter:         "runconfiguration-id",
 	PipelineFileParameter:               "pipeline-file",
 	OutputParameter:                     "out",
