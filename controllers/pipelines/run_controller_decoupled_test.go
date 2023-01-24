@@ -14,7 +14,7 @@ import (
 )
 
 var _ = Describe("Run controller k8s integration", Serial, func() {
-	When("Creating, updating and deleting", func() {
+	When("Creating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
 			runHelper := Create(pipelinesv1.RandomRun())

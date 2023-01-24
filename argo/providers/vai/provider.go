@@ -314,7 +314,7 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 		runId = fmt.Sprintf("rc-%s-%s", runIntent.RunConfigurationName, uuid.New().String())
 		runLabels[labels.RunConfiguration] = runIntent.RunConfigurationName
 	} else {
-		runId = fmt.Sprintf("rc-%s", uuid.New().String())
+		runId = fmt.Sprintf("run-%s", uuid.New().String())
 	}
 
 	vaiRun := VAIRun{
