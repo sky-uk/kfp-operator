@@ -182,6 +182,10 @@ func main() {
 		}
 	}
 
+	if err = (&pipelinesv1.Run{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "Run")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err = workflowRepository.SetupWithManager(mgr); err != nil {
