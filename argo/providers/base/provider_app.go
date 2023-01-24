@@ -20,21 +20,25 @@ import (
 var ProviderConstants = struct {
 	PipelineDefinitionParameter         string
 	ExperimentDefinitionParameter       string
+	RunDefinitionParameter              string
 	RunConfigurationDefinitionParameter string
 	ProviderConfigParameter             string
 	PipelineIdParameter                 string
 	ExperimentIdParameter               string
 	RunConfigurationIdParameter         string
+	RunIdParameter                      string
 	PipelineFileParameter               string
 	OutputParameter                     string
 	EventsourceServerPortParameter      string
 }{
 	PipelineDefinitionParameter:         "pipeline-definition",
 	ExperimentDefinitionParameter:       "experiment-definition",
+	RunDefinitionParameter:              "run-definition",
 	RunConfigurationDefinitionParameter: "runconfiguration-definition",
 	ProviderConfigParameter:             "provider-config",
 	PipelineIdParameter:                 "pipeline-id",
 	ExperimentIdParameter:               "experiment-id",
+	RunIdParameter:                      "run-id",
 	RunConfigurationIdParameter:         "runconfiguration-id",
 	PipelineFileParameter:               "pipeline-file",
 	OutputParameter:                     "out",
@@ -82,8 +86,18 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 		Required: true,
 	}
 
+	runDefinitionFlag := cli.StringFlag{
+		Name:     ProviderConstants.RunDefinitionParameter,
+		Required: true,
+	}
+
 	runConfigurationDefinitionFlag := cli.StringFlag{
 		Name:     ProviderConstants.RunConfigurationDefinitionParameter,
+		Required: true,
+	}
+
+	runIdFlag := cli.StringFlag{
+		Name:     ProviderConstants.RunIdParameter,
 		Required: true,
 	}
 
@@ -240,6 +254,51 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 						}
 
 						logResult(providerApp.Context, "runconfiguration", "delete", id, updatedId, err)
+
+						return writeOutput(c, updatedId, err)
+					},
+				},
+			},
+		},
+		{
+			Name: "run",
+			Subcommands: []cli.Command{
+				{
+					Name:  "create",
+					Flags: []cli.Flag{runDefinitionFlag, outFlag},
+					Action: func(c *cli.Context) error {
+						providerConfig, err := providerApp.LoadProviderConfig(c)
+						if err != nil {
+							return err
+						}
+						runDefinition, err := LoadYamlFromFile[RunDefinition](c.String(ProviderConstants.RunDefinitionParameter))
+						if err != nil {
+							return err
+						}
+						id, err := provider.CreateRun(providerApp.Context, providerConfig, runDefinition)
+
+						logResult(providerApp.Context, "run", "create", "", id, err)
+
+						return writeOutput(c, id, err)
+					},
+				},
+				{
+					Name:  "delete",
+					Flags: []cli.Flag{runIdFlag, outFlag},
+					Action: func(c *cli.Context) error {
+						id := c.String(ProviderConstants.RunIdParameter)
+						providerConfig, err := providerApp.LoadProviderConfig(c)
+						if err != nil {
+							return err
+						}
+
+						err = provider.DeleteRun(providerApp.Context, providerConfig, id)
+						updatedId := ""
+						if err != nil {
+							updatedId = id
+						}
+
+						logResult(providerApp.Context, "run", "delete", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},

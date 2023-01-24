@@ -122,6 +122,21 @@ func main() {
 		os.Exit(1)
 	}
 
+	runWorkflowFactory := pipelinescontrollers.RunWorkflowFactory(ctrlConfig.Workflows)
+	if err = (&pipelinescontrollers.RunReconciler{
+		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Run]{
+			Config: ctrlConfig.Workflows,
+			EC:     ec,
+			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Run]{
+				WorkflowFactory:    &runWorkflowFactory,
+				WorkflowRepository: workflowRepository,
+			},
+		},
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Run")
+		os.Exit(1)
+	}
+
 	runConfigurationWorkflowFactory := pipelinescontrollers.RunConfigurationWorkflowFactory(ctrlConfig.Workflows)
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
 		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.RunConfiguration]{

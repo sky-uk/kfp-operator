@@ -70,6 +70,14 @@ func (s StubProvider) DeletePipeline(_ context.Context, providerConfig StubProvi
 	return verifyDeleteCall(providerConfig, id)
 }
 
+func (s StubProvider) CreateRun(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunDefinition) (string, error) {
+	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
+}
+
+func (s StubProvider) DeleteRun(_ context.Context, providerConfig StubProviderConfig, id string) error {
+	return verifyDeleteCall(providerConfig, id)
+}
+
 func (s StubProvider) CreateRunConfiguration(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunConfigurationDefinition) (string, error) {
 	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
 }

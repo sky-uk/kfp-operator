@@ -32,6 +32,15 @@ type RunConfigurationDefinition struct {
 	RuntimeParameters map[string]string `yaml:"runtimeParameters"`
 }
 
+type RunDefinition struct {
+	Name              string            `yaml:"name"`
+	Version           string            `yaml:"version"`
+	PipelineName      string            `yaml:"pipelineName"`
+	PipelineVersion   string            `yaml:"pipelineVersion"`
+	ExperimentName    string            `yaml:"experimentName"`
+	RuntimeParameters map[string]string `yaml:"runtimeParameters"`
+}
+
 type Output struct {
 	Id            string `yaml:"id"`
 	ProviderError string `yaml:"providerError"`
@@ -41,6 +50,9 @@ type Provider[Config any] interface {
 	CreatePipeline(ctx context.Context, providerConfig Config, pipelineDefinition PipelineDefinition, pipelineFile string) (string, error)
 	UpdatePipeline(ctx context.Context, providerConfig Config, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error)
 	DeletePipeline(ctx context.Context, providerConfig Config, id string) error
+
+	CreateRun(ctx context.Context, providerConfig Config, runConfigurationDefinition RunDefinition) (string, error)
+	DeleteRun(ctx context.Context, providerConfig Config, id string) error
 
 	CreateRunConfiguration(ctx context.Context, providerConfig Config, runConfigurationDefinition RunConfigurationDefinition) (string, error)
 	UpdateRunConfiguration(ctx context.Context, providerConfig Config, runConfigurationDefinition RunConfigurationDefinition, id string) (string, error)

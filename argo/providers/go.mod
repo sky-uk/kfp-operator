@@ -19,7 +19,6 @@ require (
 	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/onsi/gomega v1.20.1
 	github.com/urfave/cli v1.22.10
-	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0
 	go.uber.org/zap v1.23.0
 	google.golang.org/api v0.103.0
 	google.golang.org/genproto v0.0.0-20221114212237-e4508ebdbee1

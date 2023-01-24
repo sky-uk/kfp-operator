@@ -66,7 +66,7 @@ func (st *StateHandler[R]) StateTransition(ctx context.Context, provider string,
 func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resource R) []Command {
 	logger := log.FromContext(ctx)
 
-	newExperimentVersion := resource.ComputeVersion()
+	newVersion := resource.ComputeVersion()
 
 	if resource.GetStatus().ProviderId.Id != "" {
 		logger.Info("empty state but ProviderId already exists, updating resource")
@@ -78,7 +78,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resou
 
 			return []Command{
 				*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
-					WithVersion(newExperimentVersion).
+					WithVersion(newVersion).
 					WithMessage(failureMessage),
 			}
 		}
@@ -86,7 +86,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resou
 		return []Command{
 			*From(resource.GetStatus()).
 				WithSynchronizationState(apis.Updating).
-				WithVersion(newExperimentVersion),
+				WithVersion(newVersion),
 			CreateWorkflow{Workflow: *workflow},
 		}
 	}
@@ -100,7 +100,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resou
 
 		return []Command{
 			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
-				WithVersion(newExperimentVersion).
+				WithVersion(newVersion).
 				WithMessage(failureMessage),
 		}
 	}
@@ -108,7 +108,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resou
 	return []Command{
 		SetStatus{
 			Status: pipelinesv1.Status{
-				Version:              newExperimentVersion,
+				Version:              newVersion,
 				SynchronizationState: apis.Creating,
 			},
 		},

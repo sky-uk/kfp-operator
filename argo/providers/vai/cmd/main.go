@@ -27,7 +27,8 @@ func main() {
 					if err != nil {
 						return err
 					}
-					return provider.EnqueueRun(app.Context, providerConfig, runIntent)
+					_, err = provider.EnqueueRun(app.Context, providerConfig, runIntent)
+					return err
 				},
 			},
 			{

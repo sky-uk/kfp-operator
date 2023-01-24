@@ -206,6 +206,18 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 	}, nil
 }
 
+func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
+	return vaip.EnqueueRun(ctx, providerConfig, RunIntent{
+		PipelineName:      runDefinition.PipelineName,
+		PipelineVersion:   runDefinition.PipelineVersion,
+		RuntimeParameters: runDefinition.RuntimeParameters,
+	})
+}
+
+func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ string) error {
+	return nil
+}
+
 func (vaip VAIProvider) CreateRunConfiguration(ctx context.Context, providerConfig VAIProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
 	client, err := scheduler.NewCloudSchedulerClient(ctx)
 	if err != nil {
@@ -282,34 +294,48 @@ func (vaip VAIProvider) DeleteExperiment(_ context.Context, _ VAIProviderConfig,
 	return errors.New("not implemented")
 }
 
-func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProviderConfig, runIntent RunIntent) error {
+func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProviderConfig, runIntent RunIntent) (string, error) {
 	pubsubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	topic := pubsubClient.Topic(providerConfig.RunsTopic)
 	defer topic.Stop()
 
-	runId := fmt.Sprintf("rc-%s-%s", runIntent.RunConfigurationName, uuid.New().String())
+	runLabels := map[string]string{
+		labels.PipelineName:    runIntent.PipelineName,
+		labels.PipelineVersion: runIntent.PipelineVersion,
+	}
+
+	var runId string
+
+	if runIntent.RunConfigurationName != "" {
+		runId = fmt.Sprintf("rc-%s-%s", runIntent.RunConfigurationName, uuid.New().String())
+		runLabels[labels.RunConfiguration] = runIntent.RunConfigurationName
+	} else {
+		runId = fmt.Sprintf("run-%s", uuid.New().String())
+	}
+
 	vaiRun := VAIRun{
-		RunId:       runId,
-		PipelineUri: providerConfig.pipelineUri(runIntent.PipelineName, runIntent.PipelineVersion),
-		Labels: map[string]string{
-			labels.RunConfiguration: runIntent.RunConfigurationName,
-			labels.PipelineName:     runIntent.PipelineName,
-			labels.PipelineVersion:  runIntent.PipelineVersion,
-		},
+		RunId:             runId,
+		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName, runIntent.PipelineVersion),
+		Labels:            runLabels,
 		RuntimeParameters: runIntent.RuntimeParameters,
 	}
 
 	payload, err := json.Marshal(vaiRun)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	_, err = topic.Publish(ctx, &pubsub.Message{Data: payload}).Get(ctx)
-	return err
+
+	if err != nil {
+		return "", err
+	}
+
+	return runId, nil
 }
 
 func (vaip VAIProvider) specFromTemplateUri(ctx context.Context, providerConfig VAIProviderConfig, job *aiplatformpb.PipelineJob) error {

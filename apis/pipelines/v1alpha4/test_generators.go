@@ -54,6 +54,24 @@ func RandomRunConfigurationSpec() RunConfigurationSpec {
 	}
 }
 
+func RandomRun() *Run {
+	return &Run{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandomLowercaseString(),
+			Namespace: "default",
+		},
+		Spec:   RandomRunSpec(),
+		Status: RandomStatus(),
+	}
+}
+
+func RandomRunSpec() RunSpec {
+	return RunSpec{
+		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		RuntimeParameters: RandomNamedValues(),
+	}
+}
+
 func RandomExperiment() *Experiment {
 	return &Experiment{
 		ObjectMeta: metav1.ObjectMeta{
