@@ -10,8 +10,3 @@ manager:
     compilerImage: kfp-operator-stub-provider
     containerDefaults:
       imagePullPolicy: Never
-providers:
-  stub:
-    type: kfp
-    configuration:
-      serviceAccount: default

@@ -35,7 +35,7 @@ spec:
         template: submit
   - name: submit
     metadata:
-      {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 10 }}
+      {{- $.Values.manager.argo.metadata | toYaml | nindent 10 }}
     inputs:
       parameters:
       - name: provider-image
@@ -72,8 +72,8 @@ metadata:
 spec:
   template:
     metadata:
-      {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+      {{- $.Values.manager.argo.metadata | toYaml | nindent 6 }}
+    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
   pubSub:
     runs:
       jsonBody: true
@@ -87,9 +87,9 @@ metadata:
   namespace: {{ include "kfp-operator.argoNamespace" $ }}
 spec:
   template:
-    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
     metadata:
-      {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+      {{- $.Values.manager.argo.metadata | toYaml | nindent 6 }}
   dependencies:
     - name: runs
       eventSourceName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-submitter
@@ -106,7 +106,7 @@ spec:
             metadata:
               generateName: {{ include "kfp-operator.fullname" $ }}-submit-run-
             spec:
-              serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+              serviceAccountName: {{ $providerBlock.serviceAccount.name }}
               arguments:
                 parameters:
                 - name: run

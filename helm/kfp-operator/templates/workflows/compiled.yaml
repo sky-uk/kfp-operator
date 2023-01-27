@@ -21,7 +21,7 @@ spec:
       - name: resource
         path: /tmp/resource.yaml
     metadata:
-      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     container:
       command:
       - /shared/compile.sh
@@ -69,7 +69,7 @@ spec:
           path: /tmp/provider-output.yaml
     podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
-      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
       volumeMounts:
@@ -110,7 +110,7 @@ spec:
           path: /tmp/provider-output.yaml
     podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
-      {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
       volumeMounts:

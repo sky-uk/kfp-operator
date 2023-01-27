@@ -12,7 +12,7 @@ spec:
           requests:
             cpu: 100m
       metadata:
-        {{- .Values.manager.argo.metadataDefaults | toYaml | nindent 8 }}
+        {{- .Values.manager.argo.metadata | toYaml | nindent 8 }}
       metricsContainerTemplate:
         resources:
           requests:

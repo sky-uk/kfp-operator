@@ -29,7 +29,7 @@ roleRef:
   name: {{ include "kfp-operator.fullname" $ }}-vai-run-enqueuer-role
 subjects:
 - kind: ServiceAccount
-  name: {{ $providerBlock.configuration.serviceAccount }}
+  name: {{ $providerBlock.serviceAccount.name }}
   namespace: {{ include "kfp-operator.argoNamespace" $ }}
 {{- end -}}
 {{- end -}}

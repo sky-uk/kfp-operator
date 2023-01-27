@@ -22,11 +22,11 @@ The provider configurations are specific to the implementation. The operator sup
 
 ### Common
 
-| Parameter name              | Description                                                                                                                          | Example                                  |
-|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
-| `image`<sup>*</sup>         | Container image of the provider                                                                                                      | `kfp-operator-kfp-provider:0.0.2`        |
-| `executionMode`<sup>*</sup> | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode) | `v1` (currently KFP) or `v2` (Vertex AI) |
-| `serviceAccount`            | Service Account name to be used for all provider-specific operations (see respective provider)                                       | `kfp-operator-vertex-ai`                 |
+| Parameter name               | Description                                                                                                                          | Example                                  |
+|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------|
+| `image`<sup>*</sup>          | Container image of the provider                                                                                                      | `kfp-operator-kfp-provider:0.0.2`        |
+| `executionMode`<sup>*</sup>  | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode) | `v1` (currently KFP) or `v2` (Vertex AI) |
+| `serviceAccount`<sup>*</sup> | Service Account name to be used for all provider-specific operations (see respective provider)                                       | `kfp-operator-vertex-ai`                 |
 
 <sup>*</sup> field automatically populated by Helm based on provider type
 

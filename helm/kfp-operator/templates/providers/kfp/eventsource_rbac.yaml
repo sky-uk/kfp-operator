@@ -31,7 +31,7 @@ roleRef:
   name: {{ include "kfp-operator.fullname" $ }}-kfp-eventsource-server-role
 subjects:
 - kind: ServiceAccount
-  name: {{ $providerBlock.configuration.serviceAccount }}
+  name: {{ $providerBlock.serviceAccount.name }}
   namespace: {{ include "kfp-operator.argoNamespace" $ }}
 {{- end -}}
 {{- end -}}
