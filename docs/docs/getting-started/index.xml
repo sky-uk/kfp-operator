@@ -116,8 +116,16 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;td>&lt;a href="https://argoproj.github.io/argo-workflows/fields/#ttlstrategy">TTL Strategy&lt;/a> used for all Argo Workflows&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.argo.serviceAccount&lt;/code>&lt;/td>
-&lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s Service account&lt;/a> used to run Argo workflows&lt;/td>
+&lt;td>&lt;code>manager.argo.serviceAccount.name&lt;/code>&lt;/td>
+&lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s service account&lt;/a> used to run Argo workflows&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.argo.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the Argo Workflows service account (or assume it has been created externally)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.argo.serviceAccount.metadata&lt;/code>&lt;/td>
+&lt;td>Optional Argo Workflows service account default metadata&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>manager.metadata&lt;/code>&lt;/td>
@@ -128,12 +136,12 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;td>Create roles and rolebindings for the operator&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.serviceAccount.create&lt;/code>&lt;/td>
-&lt;td>Create the manager&amp;rsquo;s service account or expect it to be created externally&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>manager.serviceAccount.name&lt;/code>&lt;/td>
 &lt;td>Manager service account&amp;rsquo;s name&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the manager&amp;rsquo;s service account or expect it to be created externally&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>manager.replicas&lt;/code>&lt;/td>
@@ -208,12 +216,12 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;td>Create roles and rolebindings for the eventsource server&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>eventsourceServer.serviceAccount.create&lt;/code>&lt;/td>
-&lt;td>Create the eventsource server&amp;rsquo;s service account or expect it to be created externally&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>eventsourceServer.serviceAccount.name&lt;/code>&lt;/td>
 &lt;td>Eventsource server&amp;rsquo;s service account&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the eventsource server&amp;rsquo;s service account or expect it to be created externally&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>eventsourceServer.resources&lt;/code>&lt;/td>
@@ -247,7 +255,7 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>serviceAccount.create&lt;/code>&lt;/td>
-&lt;td>Create the service account or assume it has been created externally&lt;/td>
+&lt;td>Create the service account (or assume it has been created externally)&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>serviceAccount.metadata&lt;/code>&lt;/td>
