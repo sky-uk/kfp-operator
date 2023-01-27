@@ -36,7 +36,7 @@ Valid configuration options to override the [Default `values.yaml`]({{< ghblob "
 | `namespace.create`                                        | Create the namespace for the operator                                                                                                                                                                               |
 | `namespace.name`                                          | Operator namespace name                                                                                                                                                                                             |
 | `manager.argo.containerDefaults`                          | Container Spec defaults to be used for Argo workflow pods created by the operator                                                                                                                                   |
-| `manager.argo.metadataDefaults`                           | Container Metadata defaults to be used for Argo workflow pods created by the operator                                                                                                                               |
+| `manager.argo.metadata`                                   | Container Metadata defaults to be used for Argo workflow pods created by the operator                                                                                                                               |
 | `manager.argo.ttlStrategy`                                | [TTL Strategy](https://argoproj.github.io/argo-workflows/fields/#ttlstrategy) used for all Argo Workflows                                                                                                           |
 | `manager.argo.serviceAccount`                             | The [k8s Service account](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) used to run Argo workflows                                                                           |
 | `manager.metadata`                                        | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the manager's pods                                                                            |
@@ -72,10 +72,13 @@ Examples for these values can be found in the [test configuration]({{< ghblob "/
 
 The `providers` block contains a dictionary of provider names to provider configurations:
 
-| Parameter name  | Description                                                                                                                                                 |
-|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `type`          | Provider type (`kfp` or `vai`)                                                                                                                              |
-| `configuration` | See [Provider Configuration](../../reference/configuration/#provider-configurations) for all available providers and their respective configuration options |
+| Parameter name            | Description                                                                                                                                                 |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `type`                    | Provider type (`kfp` or `vai`)                                                                                                                              |
+| `serviceAccount.name`     | Name of the service account to run provider-specific operations                                                                                             |
+| `serviceAccount.create`   | Create the service account or assume it has been created externally                                                                                         |
+| `serviceAccount.metadata` | Optional service account default metadata                                                                                                                   |
+| `configuration`           | See [Provider Configuration](../../reference/configuration/#provider-configurations) for all available providers and their respective configuration options |
 
 Example:
 
@@ -83,10 +86,19 @@ Example:
 providers:
   kfp:
     type: kfp
+    serviceAccount:
+      name: kfp-operator-kfp
+      create: false
     configuration:
       ...
   vai:
     type: vai
+    serviceAccount: 
+      name: kfp-operator-kfp
+      create: true
+      metadata:
+        annotations:
+          iam.gke.io/gcp-service-account: kfp-operator-vai@my-project.iam.gserviceaccount.com
     configuration:
       ...
 ```

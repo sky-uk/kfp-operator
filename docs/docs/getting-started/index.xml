@@ -108,7 +108,7 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;td>Container Spec defaults to be used for Argo workflow pods created by the operator&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.argo.metadataDefaults&lt;/code>&lt;/td>
+&lt;td>&lt;code>manager.argo.metadata&lt;/code>&lt;/td>
 &lt;td>Container Metadata defaults to be used for Argo workflow pods created by the operator&lt;/td>
 &lt;/tr>
 &lt;tr>
@@ -242,6 +242,18 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;td>Provider type (&lt;code>kfp&lt;/code> or &lt;code>vai&lt;/code>)&lt;/td>
 &lt;/tr>
 &lt;tr>
+&lt;td>&lt;code>serviceAccount.name&lt;/code>&lt;/td>
+&lt;td>Name of the service account to run provider-specific operations&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the service account or assume it has been created externally&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>serviceAccount.metadata&lt;/code>&lt;/td>
+&lt;td>Optional service account default metadata&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>configuration&lt;/code>&lt;/td>
 &lt;td>See &lt;a href="../../reference/configuration/#provider-configurations">Provider Configuration&lt;/a> for all available providers and their respective configuration options&lt;/td>
 &lt;/tr>
@@ -251,10 +263,19 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">providers&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kfp&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">create&lt;/span>: &lt;span style="color:#66d9ef">false&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#ae81ff">...&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">vai&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">vai&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">create&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">annotations&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">iam.gke.io/gcp-service-account&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-vai@my-project.iam.gserviceaccount.com&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#ae81ff">...&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>

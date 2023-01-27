@@ -65,7 +65,7 @@
 &lt;td>&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>serviceAccount&lt;/code>&lt;/td>
+&lt;td>&lt;code>serviceAccount&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/td>
 &lt;td>Service Account name to be used for all provider-specific operations (see respective provider)&lt;/td>
 &lt;td>&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
 &lt;/tr>

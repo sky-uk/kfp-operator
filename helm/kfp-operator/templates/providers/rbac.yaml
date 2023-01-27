@@ -6,7 +6,9 @@ kind: ServiceAccount
 metadata:
   name: {{ $providerBlock.serviceAccount.name }}
   namespace: {{ include "kfp-operator.argoNamespace" $ }}
+{{- if $providerBlock.serviceAccount.metadata }}
   {{ $providerBlock.serviceAccount.metadata | toYaml | nindent 2 }}
+{{- end }}
 {{- end }}
 {{- end }}
 ---

@@ -9,7 +9,7 @@ metadata:
 spec:
   template:
     metadata:
-      {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+      {{- $.Values.manager.argo.metadata | toYaml | nindent 6 }}
     serviceAccountName: {{ $providerBlock.serviceAccount.name }}
   pubSub:
     run-intents:
@@ -26,7 +26,7 @@ spec:
   template:
     serviceAccountName: {{ $providerBlock.serviceAccount.name }}
     metadata:
-      {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
+      {{- $.Values.manager.argo.metadata | toYaml | nindent 6 }}
   dependencies:
     - name: run-intents
       eventSourceName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-enqueuer
@@ -54,7 +54,7 @@ spec:
               templates:
               - name: enqueue
                 metadata:
-                  {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 18 }}
+                  {{- $.Values.manager.argo.metadata | toYaml | nindent 18 }}
                 inputs:
                   artifacts:
                   - name: provider-config

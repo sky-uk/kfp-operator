@@ -32,7 +32,7 @@ manager:
       name: "kfp-operator-argo"
       create: true
     containerDefaults: {}
-    metadataDefaults: {}
+    metadata: {}
     ttlStrategy:
       secondsAfterCompletion: 600
       secondsAfterSuccess: 600
