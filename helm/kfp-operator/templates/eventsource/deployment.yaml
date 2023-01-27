@@ -46,7 +46,7 @@ spec:
       - name: provider-configs
         configMap:
           name: {{ include "kfp-operator.fullname" $ }}-providers
-      serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+      serviceAccountName: {{ $providerBlock.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
 {{ end }}
 {{- end -}}

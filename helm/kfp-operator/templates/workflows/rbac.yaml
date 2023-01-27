@@ -34,8 +34,3 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Values.manager.argo.serviceAccount.name }}
     namespace: {{ include "kfp-operator.argoNamespace" . }}
-{{- range $providerName, $providerBlock := .Values.providers }}
-  - kind: ServiceAccount
-    name: {{ $providerBlock.configuration.serviceAccount }}
-    namespace: {{ include "kfp-operator.argoNamespace" $ }}
-{{- end -}}

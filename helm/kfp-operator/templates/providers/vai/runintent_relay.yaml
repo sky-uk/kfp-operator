@@ -10,7 +10,7 @@ spec:
   template:
     metadata:
       {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
-    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
   pubSub:
     run-intents:
       jsonBody: true
@@ -24,7 +24,7 @@ metadata:
   namespace: {{ include "kfp-operator.argoNamespace" $ }}
 spec:
   template:
-    serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+    serviceAccountName: {{ $providerBlock.serviceAccount.name }}
     metadata:
       {{- $.Values.manager.argo.metadataDefaults | toYaml | nindent 6 }}
   dependencies:
@@ -45,7 +45,7 @@ spec:
             spec:
               ttlStrategy:
                 secondsAfterCompletion: 300
-              serviceAccountName: {{ $providerBlock.configuration.serviceAccount }}
+              serviceAccountName: {{ $providerBlock.serviceAccount.name }}
               entrypoint: enqueue
               arguments:
                 parameters:

@@ -8,6 +8,7 @@ data:
   {{ $providerName }}: |
     image: {{ include "kfp-operator.providerImage" (merge (dict "Provider" $providerBlock) $ ) }}
     executionMode: {{ if eq $providerBlock.type "kfp" }}v1{{ else }}v2{{ end }}
+    serviceAccount: {{ $providerBlock.serviceAccount.name }}
     {{- if not (empty $providerBlock.configuration) -}}
     {{- $providerBlock.configuration | toYaml | nindent 4 }}
     {{- end }}

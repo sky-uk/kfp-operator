@@ -13,5 +13,6 @@ manager:
 providers:
   stub:
     type: kfp
-    configuration:
-      serviceAccount: default
+    serviceAccount:
+      name: default
+      create: false
