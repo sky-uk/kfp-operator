@@ -3,6 +3,7 @@ package vai
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -35,6 +36,7 @@ var _ = Context("VaiEventingServer", func() {
 		mockPipelineJobClient = NewMockPipelineJobClient(mockCtrl)
 		eventingServer = VaiEventingServer{
 			PipelineJobClient: mockPipelineJobClient,
+			Logger: logr.Discard(),
 		}
 	})
 
@@ -259,18 +261,18 @@ var _ = Context("VaiEventingServer", func() {
 
 	Describe("runCompletionEventForRun", func() {
 		When("GetPipelineJob errors", func() {
-			It("Errors", func() {
+			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("an error"))
-				_, err := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
-				Expect(err).To(HaveOccurred())
+				event := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
+				Expect(event).To(BeNil())
 			})
 		})
 
 		When("GetPipelineJob return no result", func() {
-			It("Errors", func() {
+			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, nil)
-				_, err := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
-				Expect(err).To(HaveOccurred())
+				event := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
+				Expect(event).To(BeNil())
 			})
 		})
 
@@ -279,8 +281,7 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
 					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
 				}, nil)
-				event, err := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
-				Expect(err).NotTo(HaveOccurred())
+				event := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
 				Expect(event).NotTo(BeNil())
 			})
 		})
