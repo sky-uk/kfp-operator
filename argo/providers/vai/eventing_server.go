@@ -4,7 +4,6 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
-	"errors"
 	"github.com/go-logr/logr"
 	"github.com/googleapis/gax-go/v2"
 	. "github.com/sky-uk/kfp-operator/providers/base"
@@ -53,9 +52,8 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			return
 		}
 
-		event, err := es.runCompletionEventForRun(stream.Context(), run.RunId)
-		if err != nil || event == nil {
-			es.Logger.Error(err, "couldn't fetch pipeline job ot job has not finished yet")
+		event := es.runCompletionEventForRun(stream.Context(), run.RunId)
+		if event == nil {
 			m.Nack()
 			return
 		}
@@ -87,18 +85,20 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 	return nil
 }
 
-func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId string) (*RunCompletionEvent, error) {
+func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId string) *RunCompletionEvent {
 	job, err := es.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
 		Name: es.ProviderConfig.pipelineJobName(runId),
 	})
 	if err != nil {
-		return nil, err
+		es.Logger.Error(err, "could not fetch pipeline job")
+		return nil
 	}
 	if job == nil {
-		return nil, errors.New("pipeline job not found")
+		es.Logger.Info("pipeline job not found")
+		return nil
 	}
 
-	return toRunCompletionEvent(job), nil
+	return toRunCompletionEvent(job)
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []ServingModelArtifact {
