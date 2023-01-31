@@ -107,18 +107,33 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []ServingModelAr
 	for _, task := range job.GetJobDetail().GetTaskDetails() {
 		for name, output := range task.GetOutputs() {
 			for _, artifact := range output.GetArtifacts() {
-				if artifact.SchemaTitle == PushedModelArtifactType {
-					properties := artifact.Metadata.AsMap()
-					if pushedProperty, hasPushed := properties[ModelPushedMetadataProperty]; hasPushed {
-						if pushed, isFloat := pushedProperty.(float64); isFloat && pushed == ModelPushedMetadataValue {
-							if pushedDestinationProperty, hasPushedDestination := properties[ModelPushedDestinationProperty]; hasPushedDestination {
-								if pushedDestination, isString := pushedDestinationProperty.(string); isString {
-									servingModelArtifacts = append(servingModelArtifacts, ServingModelArtifact{Name: name, Location: pushedDestination})
-								}
-							}
-						}
-					}
+				if artifact.SchemaTitle != PushedModelArtifactType {
+					continue
 				}
+
+				properties := artifact.Metadata.AsMap()
+
+				pushedProperty, hasPushed := properties[ModelPushedMetadataProperty]
+				if !hasPushed {
+					continue
+				}
+
+				pushed, isFloat := pushedProperty.(float64)
+				if !isFloat || pushed != ModelPushedMetadataValue {
+					continue
+				}
+
+				pushedDestinationProperty, hasPushedDestination := properties[ModelPushedDestinationProperty]
+				if !hasPushedDestination {
+					continue
+				}
+
+				pushedDestination, isString := pushedDestinationProperty.(string)
+				if !isString {
+					continue
+				}
+
+				servingModelArtifacts = append(servingModelArtifacts, ServingModelArtifact{Name: name, Location: pushedDestination})
 			}
 		}
 	}
