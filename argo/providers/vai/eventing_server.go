@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	PushedModelArtifactType     = "tfx.PushedModel"
-	ModelPushedMetadataProperty = "pushed"
-	ModelPushedMetadataValue    = 1
+	PushedModelArtifactType        = "tfx.PushedModel"
+	ModelPushedMetadataProperty    = "pushed"
+	ModelPushedMetadataValue       = 1
 	ModelPushedDestinationProperty = "pushed_destination"
 )
 
@@ -109,11 +109,13 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []ServingModelAr
 			for _, artifact := range output.GetArtifacts() {
 				if artifact.SchemaTitle == PushedModelArtifactType {
 					properties := artifact.Metadata.AsMap()
-					pushedProperty, hasPushed := properties[ModelPushedMetadataProperty]
-					if hasPushed && pushedProperty.(float64) == ModelPushedMetadataValue {
-						pushedDestinationProperty, hasPushedDestination := properties[ModelPushedDestinationProperty]
-						if hasPushedDestination {
-							servingModelArtifacts = append(servingModelArtifacts, ServingModelArtifact{Name: name, Location: pushedDestinationProperty.(string)})
+					if pushedProperty, hasPushed := properties[ModelPushedMetadataProperty]; hasPushed {
+						if pushed, isFloat := pushedProperty.(float64); isFloat && pushed == ModelPushedMetadataValue {
+							if pushedDestinationProperty, hasPushedDestination := properties[ModelPushedDestinationProperty]; hasPushedDestination {
+								if pushedDestination, isString := pushedDestinationProperty.(string); isString {
+									servingModelArtifacts = append(servingModelArtifacts, ServingModelArtifact{Name: name, Location: pushedDestination})
+								}
+							}
 						}
 					}
 				}
