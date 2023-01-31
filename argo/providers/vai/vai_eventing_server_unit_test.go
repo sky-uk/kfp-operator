@@ -12,13 +12,13 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func artifact(uri string) *aiplatformpb.Artifact {
+func artifact(pushedDestination string) *aiplatformpb.Artifact {
 	return &aiplatformpb.Artifact{
-		Uri:         uri,
 		SchemaTitle: "tfx.PushedModel",
 		Metadata: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
 				"pushed": structpb.NewNumberValue(1),
+				"pushed_destination": structpb.NewStringValue(pushedDestination),
 			},
 		},
 	}
@@ -66,11 +66,11 @@ var _ = Context("VaiEventingServer", func() {
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
 											{
-												Uri:         "gs://some/where",
 												SchemaTitle: "a.Type",
 												Metadata: &structpb.Struct{
 													Fields: map[string]*structpb.Value{
 														"pushed": structpb.NewNumberValue(1),
+														"pushed_destination": structpb.NewStringValue("gs://some/where"),
 													},
 												},
 											},
@@ -94,11 +94,11 @@ var _ = Context("VaiEventingServer", func() {
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
 											{
-												Uri:         "gs://some/where",
 												SchemaTitle: "a.Type",
 												Metadata: &structpb.Struct{
 													Fields: map[string]*structpb.Value{
 														"pushed": structpb.NewNumberValue(0),
+														"pushed_destination": structpb.NewStringValue("gs://some/where"),
 													},
 												},
 											},
@@ -122,7 +122,6 @@ var _ = Context("VaiEventingServer", func() {
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
 											{
-												Uri:         "gs://some/where",
 												SchemaTitle: "a.Type",
 											},
 										},
@@ -227,15 +226,7 @@ var _ = Context("VaiEventingServer", func() {
 						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 							"a-model": {
 								Artifacts: []*aiplatformpb.Artifact{
-									{
-										Uri:         "gs://some/where",
-										SchemaTitle: "tfx.PushedModel",
-										Metadata: &structpb.Struct{
-											Fields: map[string]*structpb.Value{
-												"pushed": structpb.NewNumberValue(1),
-											},
-										},
-									},
+									artifact("gs://some/where"),
 								},
 							},
 						},

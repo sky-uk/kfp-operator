@@ -16,6 +16,7 @@ const (
 	PushedModelArtifactType     = "tfx.PushedModel"
 	ModelPushedMetadataProperty = "pushed"
 	ModelPushedMetadataValue    = 1
+	ModelPushedDestinationProperty = "pushed_destination"
 )
 
 type PipelineJobClient interface {
@@ -107,9 +108,13 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []ServingModelAr
 		for name, output := range task.GetOutputs() {
 			for _, artifact := range output.GetArtifacts() {
 				if artifact.SchemaTitle == PushedModelArtifactType {
-					pushedProperty, ok := artifact.Metadata.AsMap()[ModelPushedMetadataProperty]
-					if ok && pushedProperty.(float64) == ModelPushedMetadataValue {
-						servingModelArtifacts = append(servingModelArtifacts, ServingModelArtifact{Name: name, Location: artifact.GetUri()})
+					properties := artifact.Metadata.AsMap()
+					pushedProperty, hasPushed := properties[ModelPushedMetadataProperty]
+					if hasPushed && pushedProperty.(float64) == ModelPushedMetadataValue {
+						pushedDestinationProperty, hasPushedDestination := properties[ModelPushedDestinationProperty]
+						if hasPushedDestination {
+							servingModelArtifacts = append(servingModelArtifacts, ServingModelArtifact{Name: name, Location: pushedDestinationProperty.(string)})
+						}
 					}
 				}
 			}
