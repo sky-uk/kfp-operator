@@ -12,13 +12,13 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func artifact(uri string) *aiplatformpb.Artifact {
+func artifact() *aiplatformpb.Artifact {
 	return &aiplatformpb.Artifact{
-		Uri:         uri,
 		SchemaTitle: "tfx.PushedModel",
 		Metadata: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
-				"pushed": structpb.NewNumberValue(1),
+				"pushed":             structpb.NewNumberValue(1),
+				"pushed_destination": structpb.NewStringValue("gs://some/where"),
 			},
 		},
 	}
@@ -58,6 +58,9 @@ var _ = Context("VaiEventingServer", func() {
 	Describe("modelServingArtifactsForJob", func() {
 		When("The job has an output with an artifact that doesn't match the SchemaTitle", func() {
 			It("Produces no servingModelArtifacts", func() {
+				incorrectArtifact := artifact()
+				incorrectArtifact.SchemaTitle = "a.Type"
+
 				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
@@ -65,15 +68,7 @@ var _ = Context("VaiEventingServer", func() {
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
-											{
-												Uri:         "gs://some/where",
-												SchemaTitle: "a.Type",
-												Metadata: &structpb.Struct{
-													Fields: map[string]*structpb.Value{
-														"pushed": structpb.NewNumberValue(1),
-													},
-												},
-											},
+											incorrectArtifact,
 										},
 									},
 								},
@@ -86,6 +81,9 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("The job has an output with an artifact that hasn't been pushed", func() {
 			It("Produces no servingModelArtifacts", func() {
+				incorrectArtifact := artifact()
+				incorrectArtifact.Metadata.Fields["pushed"] = structpb.NewNumberValue(0)
+
 				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
@@ -93,15 +91,30 @@ var _ = Context("VaiEventingServer", func() {
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
-											{
-												Uri:         "gs://some/where",
-												SchemaTitle: "a.Type",
-												Metadata: &structpb.Struct{
-													Fields: map[string]*structpb.Value{
-														"pushed": structpb.NewNumberValue(0),
-													},
-												},
-											},
+											incorrectArtifact,
+										},
+									},
+								},
+							},
+						},
+					},
+				})).To(BeEmpty())
+			})
+		})
+
+		When("The job has an output with an artifact that isn't a float", func() {
+			It("Produces no servingModelArtifacts", func() {
+				incorrectArtifact := artifact()
+				incorrectArtifact.Metadata.Fields["pushed"] = structpb.NewStringValue("42")
+
+				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+							{
+								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+									"a-model": {
+										Artifacts: []*aiplatformpb.Artifact{
+											incorrectArtifact,
 										},
 									},
 								},
@@ -114,6 +127,9 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("The job has an output with an artifact that has no pushed property", func() {
 			It("Produces no servingModelArtifacts", func() {
+				incorrectArtifact := artifact()
+				delete(incorrectArtifact.Metadata.Fields, "pushed")
+
 				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
@@ -121,10 +137,53 @@ var _ = Context("VaiEventingServer", func() {
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
-											{
-												Uri:         "gs://some/where",
-												SchemaTitle: "a.Type",
-											},
+											incorrectArtifact,
+										},
+									},
+								},
+							},
+						},
+					},
+				})).To(BeEmpty())
+			})
+		})
+
+		When("The job has an output with an artifact that has a pushed_destination that is not a string", func() {
+			It("Produces no servingModelArtifacts", func() {
+				incorrectArtifact := artifact()
+				incorrectArtifact.Metadata.Fields["pushed"] = structpb.NewNumberValue(42)
+
+				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+							{
+								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+									"a-model": {
+										Artifacts: []*aiplatformpb.Artifact{
+											incorrectArtifact,
+										},
+									},
+								},
+							},
+						},
+					},
+				})).To(BeEmpty())
+			})
+		})
+
+		When("The job has an output with an artifact that has no pushed_destination property", func() {
+			It("Produces no servingModelArtifacts", func() {
+				incorrectArtifact := artifact()
+				delete(incorrectArtifact.Metadata.Fields, "pushed_destination")
+
+				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+							{
+								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+									"a-model": {
+										Artifacts: []*aiplatformpb.Artifact{
+											incorrectArtifact,
 										},
 									},
 								},
@@ -137,6 +196,10 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("The job has an output with several artifacts", func() {
 			It("Produces several servingModelArtifacts", func() {
+				firstArtifact := artifact()
+				secondArtifact := artifact()
+				secondArtifact.Metadata.Fields["pushed_destination"] = structpb.NewStringValue("gs://some/where/else")
+
 				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
@@ -144,8 +207,8 @@ var _ = Context("VaiEventingServer", func() {
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
-											artifact("gs://some/where"),
-											artifact("gs://some/where/else"),
+											firstArtifact,
+											secondArtifact,
 										},
 									},
 								},
@@ -158,6 +221,10 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("The job has several outputs with artifacts", func() {
 			It("Produces several servingModelArtifacts", func() {
+				firstArtifact := artifact()
+				secondArtifact := artifact()
+				secondArtifact.Metadata.Fields["pushed_destination"] = structpb.NewStringValue("gs://some/where/else")
+
 				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
@@ -165,12 +232,12 @@ var _ = Context("VaiEventingServer", func() {
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
-											artifact("gs://some/where"),
+											firstArtifact,
 										},
 									},
 									"another-model": {
 										Artifacts: []*aiplatformpb.Artifact{
-											artifact("gs://some/where/else"),
+											secondArtifact,
 										},
 									},
 								},
@@ -183,6 +250,10 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("The job has several tasks with artifacts", func() {
 			It("Produces several servingModelArtifacts", func() {
+				firstArtifact := artifact()
+				secondArtifact := artifact()
+				secondArtifact.Metadata.Fields["pushed_destination"] = structpb.NewStringValue("gs://some/where/else")
+
 				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
@@ -190,7 +261,7 @@ var _ = Context("VaiEventingServer", func() {
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 									"a-model": {
 										Artifacts: []*aiplatformpb.Artifact{
-											artifact("gs://some/where"),
+											firstArtifact,
 										},
 									},
 								},
@@ -199,7 +270,7 @@ var _ = Context("VaiEventingServer", func() {
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 									"another-model": {
 										Artifacts: []*aiplatformpb.Artifact{
-											artifact("gs://some/where/else"),
+											secondArtifact,
 										},
 									},
 								},
@@ -227,15 +298,7 @@ var _ = Context("VaiEventingServer", func() {
 						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
 							"a-model": {
 								Artifacts: []*aiplatformpb.Artifact{
-									{
-										Uri:         "gs://some/where",
-										SchemaTitle: "tfx.PushedModel",
-										Metadata: &structpb.Struct{
-											Fields: map[string]*structpb.Value{
-												"pushed": structpb.NewNumberValue(1),
-											},
-										},
-									},
+									artifact(),
 								},
 							},
 						},
