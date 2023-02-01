@@ -21,7 +21,6 @@ webhooks:
     apiVersions:
     - v1alpha4
     operations:
-    - CREATE
     - UPDATE
     resources:
     - runs

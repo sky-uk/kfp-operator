@@ -5,7 +5,6 @@ package pipelines
 
 import (
 	"context"
-	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -99,8 +98,7 @@ var _ = BeforeSuite(func() {
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
 	go func() {
-		err := k8sManager.Start(ctrl.SetupSignalHandler())
-		fmt.Println(err)
+		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
 	}()
 })
 
