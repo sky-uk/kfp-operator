@@ -1,4 +1,4 @@
-package v1alpha4
+package pipelines
 
 import (
 	"testing"
@@ -6,8 +6,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
-
-var PropertyBased = MustPassRepeatedly(5)
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
