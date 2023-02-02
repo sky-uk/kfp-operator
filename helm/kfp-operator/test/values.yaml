@@ -19,8 +19,8 @@ manager:
           insecureSkipVerify: true
   multiversion:
     enabled: true
-    webhookCertificates:
-      provider: cert-manager
+  webhookCertificates:
+    provider: cert-manager
 providers: {}
 
 eventsourceServer:

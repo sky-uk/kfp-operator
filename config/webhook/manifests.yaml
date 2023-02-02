@@ -1,0 +1,27 @@
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-pipelines-kubeflow-org-v1alpha4-run
+  failurePolicy: Fail
+  name: vrun.kb.io
+  rules:
+  - apiGroups:
+    - pipelines.kubeflow.org
+    apiVersions:
+    - v1alpha4
+    operations:
+    - UPDATE
+    resources:
+    - runs
+  sideEffects: None

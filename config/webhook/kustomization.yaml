@@ -1,5 +1,16 @@
 resources:
+- manifests.yaml
 - service.yaml
+
+patchesStrategicMerge:
+  - patches/cainjection_in_manifests.yaml
+patches:
+  - path: patches/namespace.yaml
+    target:
+      group: admissionregistration.k8s.io
+      version: v1
+      kind: ValidatingWebhookConfiguration
+      name: validating-webhook-configuration
 
 configurations:
 - kustomizeconfig.yaml

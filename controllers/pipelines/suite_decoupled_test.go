@@ -5,6 +5,8 @@ package pipelines
 
 import (
 	"context"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
@@ -17,9 +19,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"testing"
-
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 )
 
 func TestPipelineControllersDecoupledSuite(t *testing.T) {
@@ -41,6 +40,9 @@ var _ = BeforeSuite(func() {
 			filepath.Join("..", "..", "config", "crd", "external"),
 		},
 		ErrorIfCRDPathMissing: true,
+		WebhookInstallOptions: envtest.WebhookInstallOptions{
+			Paths: []string{filepath.Join("..", "..", "config", "webhook")},
+		},
 	}
 
 	cfg, err := testEnv.Start()
@@ -56,8 +58,14 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
+	webhookInstallOptions := &testEnv.WebhookInstallOptions
 	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
-		Scheme: scheme.Scheme,
+		Scheme:             scheme.Scheme,
+		Host:               webhookInstallOptions.LocalServingHost,
+		Port:               webhookInstallOptions.LocalServingPort,
+		CertDir:            webhookInstallOptions.LocalServingCertDir,
+		LeaderElection:     false,
+		MetricsBindAddress: "0",
 	})
 	Expect(err).ToNot(HaveOccurred())
 
@@ -82,11 +90,12 @@ var _ = BeforeSuite(func() {
 		DefaultProvider:   apis.RandomString(),
 	}
 
-	Expect((NewTestPipelineReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
-	Expect((NewTestRunReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
-	Expect((NewTestRunConfigurationReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
-	Expect((NewTestExperimentReconciler(ec, &workflowRepository)).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewTestPipelineReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewTestRunReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewTestRunConfigurationReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewTestExperimentReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(workflowRepository.SetupWithManager(k8sManager)).To(Succeed())
+	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
