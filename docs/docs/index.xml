@@ -424,15 +424,15 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;td>Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.multiversion.webhookCertificates.provider&lt;/code>&lt;/td>
+&lt;td>&lt;code>manager.webhookCertificates.provider&lt;/code>&lt;/td>
 &lt;td>K8s conversion webhook TLS certificate provider - choose &lt;code>cert-manager&lt;/code> for Helm to deploy certificates if cert-manager is available or &lt;code>custom&lt;/code> otherwise (see below)&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.multiversion.webhookCertificates.secretName&lt;/code>&lt;/td>
+&lt;td>&lt;code>manager.webhookCertificates.secretName&lt;/code>&lt;/td>
 &lt;td>Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.multiversion.webhookCertificates.caBundle&lt;/code>&lt;/td>
+&lt;td>&lt;code>manager.webhookCertificates.caBundle&lt;/code>&lt;/td>
 &lt;td>CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
 &lt;/tr>
 &lt;tr>
