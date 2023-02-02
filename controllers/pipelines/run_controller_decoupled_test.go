@@ -36,7 +36,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Expect(runHelper.Update(func(run *pipelinesv1.Run) {
 				run.Spec = pipelinesv1.RandomRunSpec()
-			})).NotTo(Succeed())
+			})).To(MatchError(ContainSubstring("immutable")))
 
 			Expect(runHelper.Delete()).To(Succeed())
 
