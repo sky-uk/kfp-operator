@@ -40,16 +40,18 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 }
 
 func (oh ObjectHasher) WriteNamedValueListField(namedValues []NamedValue) {
+	sorted := make([]NamedValue, len(namedValues))
+	copy(sorted, namedValues)
 
-	sort.Slice(namedValues, func(i, j int) bool {
-		if namedValues[i].Name != namedValues[j].Name {
-			return namedValues[i].Name < namedValues[j].Name
+	sort.Slice(sorted, func(i, j int) bool {
+		if sorted[i].Name != sorted[j].Name {
+			return sorted[i].Name < sorted[j].Name
 		} else {
-			return namedValues[i].Value < namedValues[j].Value
+			return sorted[i].Value < sorted[j].Value
 		}
 	})
 
-	for _, k := range namedValues {
+	for _, k := range sorted {
 		oh.WriteStringField(k.Name)
 		oh.WriteStringField(k.Value)
 	}

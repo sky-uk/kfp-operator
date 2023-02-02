@@ -108,6 +108,21 @@ var _ = Context("ObjectHasher", func() {
 
 			Expect(oh1.Sum()).To(Equal(oh2.Sum()))
 		})
+
+		Specify("The original array should not be altered", func() {
+			oh1 := NewObjectHasher()
+			namedValues := []NamedValue{
+				{Name: "b", Value: "1"},
+				{Name: "a", Value: "2"},
+			}
+
+			oh1.WriteNamedValueListField(namedValues)
+
+			Expect(namedValues).To(Equal([]NamedValue{
+				{Name: "b", Value: "1"},
+				{Name: "a", Value: "2"},
+			}))
+		})
 	})
 
 	var _ = Describe("WriteMapField", func() {
