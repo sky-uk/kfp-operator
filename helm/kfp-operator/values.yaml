@@ -45,6 +45,8 @@ manager:
       endpointConfiguration: {}
   multiversion:
     enabled: false
+  webhookCertificates:
+    provider: cert-manager
 
 providers: {}
 
