@@ -7,6 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+var PropertyBased = MustPassRepeatedly(5)
+
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Api Suite")

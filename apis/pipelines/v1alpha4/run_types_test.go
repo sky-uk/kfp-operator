@@ -50,6 +50,14 @@ var _ = Context("Run", func() {
 
 			Expect(hash2).NotTo(Equal(hash3))
 		})
+
+		Specify("The original object should not change", PropertyBased, func() {
+			rcs := RandomRun()
+			expected := rcs.DeepCopy()
+			rcs.ComputeHash()
+
+			Expect(rcs).To(Equal(expected))
+		})
 	})
 
 	var _ = Describe("ComputeVersion", func() {
