@@ -9,8 +9,9 @@ This guide assumes you are familiar with [Helm](https://helm.sh/).
 
 ## Prerequisites
 
+- [Argo 3.1.6-3.3](https://argoproj.github.io/argo-workflows/installation/) installed cluster-wide or into the namespace where the operator's workflows run (see [configuration](../../reference/configuration)).
+- [Argo-Events 1.7.4+](https://argoproj.github.io/argo-events/installation/) installed cluster-wide (see [configuration](../../reference/configuration)).
 - The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the [respective configuration section](../../reference/configuration/#provider-configuration) before proceeding.
-- Argo installed cluster-wide or into the namespace where the operator's workflows run (see [configuration](../../reference/configuration)). Note that Argo 3.4 is not supported yet.
 
 ## Build and Install
 
@@ -59,9 +60,7 @@ Valid configuration options to override the [Default `values.yaml`]({{< ghblob "
 | `manager.provider.type`                                   | Provider type (`kfp` for Kubeflow Pipelines or `vai` for Vertex AI Pipelines)                                                                                                                                       |
 | `manager.provider.configuration`                          | Configuration block for the specific provider (see [Provider Configuration](../../reference/configuration#provider-configuration)), automatically mounted as a file                                                 |
 | `logging.verbosity`                                       | Logging verbosity for all components - see the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values                                                    |
-| `eventsourceServer.create`                                | Create the [Argo-Events eventsource server](../../reference/run-completion)                                                                                                                                         |
 | `eventsourceServer.metadata`                              | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the eventsource server's pods                                                                 |
-| `eventsourceServer.port`                                  | Service port of the eventsource server                                                                                                                                                                              |
 | `eventsourceServer.rbac.create`                           | Create roles and rolebindings for the eventsource server                                                                                                                                                            |
 | `eventsourceServer.serviceAccount.name`                   | Eventsource server's service account                                                                                                                                                                                |
 | `eventsourceServer.serviceAccount.create`                 | Create the eventsource server's service account or expect it to be created externally                                                                                                                               |

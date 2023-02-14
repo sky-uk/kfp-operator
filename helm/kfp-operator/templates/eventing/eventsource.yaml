@@ -1,0 +1,65 @@
+{{- range $providerName, $providerBlock := .Values.providers }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-events
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+spec:
+  generic:
+    events:
+      insecure: true
+      url: '{{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-eventsource-server:8080'
+      config: |-
+        {{ $providerBlock.configuration | toYaml | nindent 8 }}
+{{- end }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: {{ include "kfp-operator.fullname" $ }}-aggregate-events
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+spec:
+  dependencies:
+{{- range $providerName, $providerBlock := .Values.providers }}
+  - eventName: events
+    eventSourceName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-events
+    name: "{{ $providerName }}-events"
+    transform:
+      jq: .body = (.body | @base64d | fromjson)
+{{- end }}
+  triggers:
+{{- range $providerName, $providerBlock := .Values.providers }}
+  - template:
+      conditions: "{{ $providerName }}-events"
+      name: "publish-{{ $providerName }}"
+      nats:
+        payload:
+        - dest: specversion
+          src:
+            value: "1.0"
+            dependencyName: "{{ $providerName }}-events"
+        - dest: id
+          src:
+            contextKey: id
+            dependencyName: "{{ $providerName }}-events"
+        - dest: source
+          src:
+            value: "{{ $providerName }}"
+            dependencyName: "{{ $providerName }}-events"
+        - dest: type
+          src:
+            value: "org.kubeflow.pipelines.run-completion"
+            dependencyName: "{{ $providerName }}-events"
+        - dest: datacontenttype
+          src:
+            value: "application/json"
+            dependencyName: "{{ $providerName }}-events"
+        - dest: data
+          src:
+            useRawData: true
+            dataKey: body
+            dependencyName: "{{ $providerName }}-events"
+        subject: events
+        url: eventbus-kfp-operator-events-stan-svc:4222
+{{- end }}

@@ -1,11 +1,10 @@
-{{ if .Values.eventsourceServer.create }}
 {{- range $providerName, $providerBlock := .Values.providers -}}
 {{- $labels := include "kfp-operator.eventsourceServer.labels" (merge (dict "ProviderName" $providerName) $ ) }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-run-completion-eventsource-server
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-eventsource-server
   namespace: {{ include "kfp-operator.argoNamespace" $ }}
   labels:
     {{- $labels | nindent 4 }}
@@ -21,7 +20,7 @@ spec:
       securityContext:
         runAsNonRoot: true
       containers:
-        - name: run-completion-eventsource-server
+        - name: eventsource-server
           command:
           - /provider
           args:
@@ -48,5 +47,20 @@ spec:
           name: {{ include "kfp-operator.fullname" $ }}-providers
       serviceAccountName: {{ $providerBlock.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-eventsource-server
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+  labels:
+    {{- $labels | nindent 4 }}
+spec:
+  selector:
+    {{- $labels | nindent 4 }}
+  ports:
+    - name: grpc
+      port: {{ $.Values.eventsourceServer.port }}
+      protocol: TCP
+      targetPort: grpc
 {{ end }}
-{{- end -}}
