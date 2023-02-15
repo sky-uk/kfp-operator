@@ -83,6 +83,11 @@
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
+&lt;td>&lt;code>kfpNamespace&lt;/code>&lt;/td>
+&lt;td>The KFP namespace&lt;/td>
+&lt;td>&lt;code>kubeflow&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>restKfpApiUrl&lt;/code>&lt;/td>
 &lt;td>The KFP REST URL available to the operator&lt;/td>
 &lt;td>&lt;code>http://ml-pipeline.kubeflow:8888&lt;/code>&lt;/td>
@@ -99,8 +104,7 @@
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
-&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>. Default endpoints are used below.
-Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> can be installed for eventing support.&lt;/p>
+&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>. Default endpoints are used below.&lt;/p>
 &lt;h3 id="vertex-ai-pipelines">Vertex AI Pipelines&lt;/h3>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/vai-provider.png" alt="Vertex AI Provider">&lt;/p>
 &lt;table>
@@ -159,7 +163,6 @@ Optionally, &lt;a href="https://argoproj.github.io/argo-events/installation/">Ar
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
-&lt;p>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events&lt;/a> must be installed into the operator&amp;rsquo;s Kubernetes cluster and any namespace that is going to use the eventsource server.&lt;/p>
 &lt;h4 id="gcp-project-setup">GCP Project Setup&lt;/h4>
 &lt;p>The following GCP APIs need to be enabled in the configured &lt;code>vaiProject&lt;/code>:&lt;/p>
 &lt;ul>
@@ -254,7 +257,7 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;li>&lt;a href="../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
 &lt;/ul>
 &lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/architecture.png" alt="Architecture">&lt;/p></description></item><item><title>Docs: Pipeline</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</guid><description>
+&lt;p>To do.&lt;/p></description></item><item><title>Docs: Pipeline</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</guid><description>
 &lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
 Pipelines can be created, updated and deleted via this resource.
 The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
@@ -305,8 +308,9 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>
 &lt;ul>
+&lt;li>&lt;a href="https://argoproj.github.io/argo-workflows/installation/">Argo 3.1.6-3.3&lt;/a> installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
+&lt;li>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events 1.7.4+&lt;/a> installed cluster-wide (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
 &lt;li>The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the &lt;a href="../../reference/configuration/#provider-configuration">respective configuration section&lt;/a> before proceeding.&lt;/li>
-&lt;li>Argo installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href="../../reference/configuration">configuration&lt;/a>). Note that Argo 3.4 is not supported yet.&lt;/li>
 &lt;/ul>
 &lt;h2 id="build-and-install">Build and Install&lt;/h2>
 &lt;p>Create basic &lt;code>values.yaml&lt;/code> with the following content:&lt;/p>
@@ -320,12 +324,10 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kfpNamespace&lt;/span>: &lt;span style="color:#ae81ff">kubeflow&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">restKfpApiUrl&lt;/span>: &lt;span style="color:#ae81ff">http://ml-pipeline.kubeflow:8888&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Uncomment below for eventing-support&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># grpcKfpApiAddress: ml-pipeline.kubeflow:8887&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#eventsourceServer:&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># create: true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">grpcKfpApiAddress&lt;/span>: &lt;span style="color:#ae81ff">ml-pipeline.kubeflow:8887&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">grpcMetadataStoreAddress&lt;/span>: &lt;span style="color:#ae81ff">metadata-grpc-service.kubeflow:8080&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Install the latest version of the operator&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>helm install oci://ghcr.io/kfp-operator/kfp-operator -f values.yaml
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="configuration-values">Configuration Values&lt;/h2>
@@ -448,16 +450,8 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;td>Logging verbosity for all components - see the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>eventsourceServer.create&lt;/code>&lt;/td>
-&lt;td>Create the &lt;a href="../../reference/run-completion">Argo-Events eventsource server&lt;/a>&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>eventsourceServer.metadata&lt;/code>&lt;/td>
 &lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the eventsource server&amp;rsquo;s pods&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.port&lt;/code>&lt;/td>
-&lt;td>Service port of the eventsource server&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>eventsourceServer.rbac.create&lt;/code>&lt;/td>
@@ -821,12 +815,16 @@ In this example we are updating a serving component with the location of the new
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">run-completion&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">generic&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">nats&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run-completion&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">insecure&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">url&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">config&lt;/span>: |-&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &lt;/span> &lt;span style="color:#f92672">kfpNamespace&lt;/span>: &lt;span style="color:#ae81ff">kubeflow-pipelines&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">connectionBackoff&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">duration&lt;/span>: &lt;span style="color:#ae81ff">10s&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">factor&lt;/span>: &lt;span style="color:#ae81ff">2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">jitter&lt;/span>: &lt;span style="color:#ae81ff">0.2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">steps&lt;/span>: &lt;span style="color:#ae81ff">5&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">jsonBody&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">subject&lt;/span>: &lt;span style="color:#ae81ff">events&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">url&lt;/span>: &lt;span style="color:#ae81ff">nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>---
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Sensor&lt;/span>
@@ -841,20 +839,19 @@ In this example we are updating a serving component with the location of the new
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">eventName&lt;/span>: &lt;span style="color:#ae81ff">run-completion&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">filters&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">data&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">template&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;{{ ((b64dec .Input) | mustFromJson).status }}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body.data.status&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">string&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">comparator&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;=&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#34;succeeded&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">template&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;{{ ((b64dec .Input) | mustFromJson).pipelineName }}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body.data.pipelineName&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">string&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">comparator&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;=&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#34;penguin-pipeline&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">template&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">update&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">k8s&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">operation&lt;/span>: &lt;span style="color:#ae81ff">update&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">source&lt;/span>:
@@ -868,7 +865,7 @@ In this example we are updating a serving component with the location of the new
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">parameters&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">src&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dependencyName&lt;/span>: &lt;span style="color:#ae81ff">run-completion&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dataKey&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;{{ (index ((b64dec .Input) | mustFromJson).servingModelArtifacts 0).location }}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dataKey&lt;/span>: &lt;span style="color:#ae81ff">body.data.servingModelArtifacts.0.location&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dest&lt;/span>: &lt;span style="color:#ae81ff">data.servingModel&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/apply-model-location.yaml
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Experiment</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</guid><description>
@@ -894,31 +891,33 @@ and can be configured as follows:&lt;/p>
 &lt;td>The description of the experiment&lt;/td>
 &lt;/tr>
 &lt;/tbody>
-&lt;/table></description></item><item><title>Docs: Run Completion EventSource</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
-&lt;p>The Run Completion Eventsource allows reacting to finished pipeline runs.&lt;/p>
+&lt;/table></description></item><item><title>Docs: Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.png" alt="Model Serving">&lt;/p>
-&lt;p>The specification of the eventsource follows those of other &lt;a href="https://argoproj.github.io/argo-events/eventsources/generic/">generic Argo-Events eventsources&lt;/a>.
-The configuration will depend on the chosen provider:&lt;/p>
-&lt;ul>
-&lt;li>The configuration for KFP has a single field &lt;code>kfpNamespace&lt;/code> which defines what namespace to watch pipeline workflows in.&lt;/li>
-&lt;li>The configuration for Vertex AI is the empty string.&lt;/li>
-&lt;/ul>
+&lt;p>The KFP-Operator Events system provides a &lt;a href="">NATS Event bus&lt;/a> in the operator namespace to consume events from.
+To use it, users can to create an Argo-Events &lt;a href="">NATS Eventsource&lt;/a> as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventSource&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">run-completion&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">generic&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">nats&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run-completion&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">insecure&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">url&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#KFP&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">config&lt;/span>: |-&lt;span style="color:#e6db74">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &lt;/span> &lt;span style="color:#f92672">kfpNamespace&lt;/span>: &lt;span style="color:#ae81ff">kubeflow-pipelines&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e">#VAI&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># config: &amp;#34;&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The events have the following format:&lt;/p>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">connectionBackoff&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">duration&lt;/span>: &lt;span style="color:#ae81ff">10s&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">factor&lt;/span>: &lt;span style="color:#ae81ff">2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">jitter&lt;/span>: &lt;span style="color:#ae81ff">0.2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">steps&lt;/span>: &lt;span style="color:#ae81ff">5&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">jsonBody&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">subject&lt;/span>: &lt;span style="color:#ae81ff">events&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">url&lt;/span>: &lt;span style="color:#ae81ff">nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The specification of the events follows &lt;a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md">CloudEvents&lt;/a>:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-json" data-lang="json">&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;id&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;{{ UNIQUE_MESSAGE_ID }}&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;specversion&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;1.0&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;source&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;{{ PROVIDER_NAME }}&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;type&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;org.kubeflow.pipelines.run-completion&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;datacontenttype&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;application/json&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;data&amp;#34;&lt;/span>: {
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;status&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;succeeded|failed&amp;#34;&lt;/span>,
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;pipelineName&amp;#34;&lt;/span>:&lt;span style="color:#e6db74">&amp;#34;{{ PIPELINE_NAME }}&amp;#34;&lt;/span>,
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;servingModelArtifacts&amp;#34;&lt;/span>: [
@@ -927,9 +926,9 @@ The configuration will depend on the chosen provider:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;location&amp;#34;&lt;/span>:&lt;span style="color:#e6db74">&amp;#34;gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Note that Argo-Events emits the body of these messages as base64 encoded Json string.
-A sensor for the pipeline &lt;code>penguin-pipeline&lt;/code> could look as follows:&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A sensor for the pipeline &lt;code>penguin-pipeline&lt;/code> could look as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Sensor&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
@@ -941,14 +940,12 @@ A sensor for the pipeline &lt;code>penguin-pipeline&lt;/code> could look as foll
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">eventName&lt;/span>: &lt;span style="color:#ae81ff">run-completion&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">filters&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">data&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">template&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;{{ ((b64dec .Input) | mustFromJson).status }}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body.status&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">string&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">comparator&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;=&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#34;succeeded&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">template&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;{{ ((b64dec .Input) | mustFromJson).pipelineName }}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body.pipelineName&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">string&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">comparator&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;=&amp;#34;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>:
