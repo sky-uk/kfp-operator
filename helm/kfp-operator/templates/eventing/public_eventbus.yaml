@@ -1,3 +1,4 @@
+{{- if gt (len .Values.providers) 0 }}
 apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:
@@ -17,3 +18,4 @@ spec:
         resources:
           requests:
             cpu: 100m
+{{- end -}}

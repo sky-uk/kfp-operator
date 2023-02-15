@@ -13,6 +13,7 @@ spec:
       config: |-
         {{ $providerBlock.configuration | toYaml | nindent 8 }}
 {{- end }}
+{{- if gt (len .Values.providers) 0 }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
@@ -63,3 +64,4 @@ spec:
         subject: events
         url: eventbus-kfp-operator-events-stan-svc:4222
 {{- end }}
+{{- end -}}
