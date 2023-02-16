@@ -66,6 +66,8 @@ spec:
             type: object
           status:
             properties:
+              completionState:
+                type: string
               observedGeneration:
                 format: int64
                 type: integer
