@@ -11,12 +11,16 @@ kind: EventSource
 metadata:
   name: run-completion
 spec:
-  generic:
+  nats:
     run-completion:
-      insecure: true
-      url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080"
-      config: |-
-        kfpNamespace: kubeflow-pipelines
+      connectionBackoff:
+        duration: 10s
+        factor: 2
+        jitter: 0.2
+        steps: 5
+      jsonBody: true
+      subject: events
+      url: nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
@@ -31,20 +35,19 @@ spec:
       eventName: run-completion
       filters:
         data:
-          - path: body
-            template: '{{ ((b64dec .Input) | mustFromJson).status }}'
+          - path: body.data.status
             type: string
             comparator: "="
             value:
               - "succeeded"
-          - path: body
-            template: '{{ ((b64dec .Input) | mustFromJson).pipelineName }}'
+          - path: body.data.pipelineName
             type: string
             comparator: "="
             value:
               - "penguin-pipeline"
   triggers:
     - template:
+        name: update
         k8s:
           operation: update
           source:
@@ -55,8 +58,8 @@ spec:
                 name: serving-config
               data:
                 servingModel: ""
-      parameters:
-        - src:
-            dependencyName: run-completion
-            dataKey: '{{ (index ((b64dec .Input) | mustFromJson).servingModelArtifacts 0).location }}'
-          dest: data.servingModel
+          parameters:
+            - src:
+                dependencyName: run-completion
+                dataKey: body.data.servingModelArtifacts.0.location
+              dest: data.servingModel

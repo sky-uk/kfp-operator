@@ -8,9 +8,7 @@ manager:
   provider:
     type: kfp
     configuration:
+      kfpNamespace: kubeflow
       restKfpApiUrl: http://ml-pipeline.kubeflow:8888
-# Uncomment below for eventing-support
-#     grpcKfpApiAddress: ml-pipeline.kubeflow:8887
-#     grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080
-#eventsourceServer:
-#  create: true
+      grpcKfpApiAddress: ml-pipeline.kubeflow:8887
+      grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080

@@ -52,5 +52,5 @@ Currently, we support the following eventsources:
 
 ## Architecture Overview
 
-![Architecture](/images/architecture.png)
+To do.
 

@@ -34,12 +34,12 @@ The provider configurations are specific to the implementation. The operator sup
 
 | Parameter name             | Description                                      | Example                                         |
 |----------------------------|--------------------------------------------------|-------------------------------------------------|
+| `kfpNamespace`             | The KFP namespace                                | `kubeflow`                                      |
 | `restKfpApiUrl`            | The KFP REST URL available to the operator       | `http://ml-pipeline.kubeflow:8888`              |
 | `grpcKfpApiAddress`        | The KFP gRPC address for the eventsource server  | `ml-pipeline.kubeflow-pipelines:8887`           |
 | `grpcMetadataStoreAddress` | The MLMD gRPC address for the eventsource server | `metadata-grpc-service.kubeflow-pipelines:8080` |
 
 KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). Default endpoints are used below.
-Optionally, [Argo-Events](https://argoproj.github.io/argo-events/installation/) can be installed for eventing support.
 
 ### Vertex AI Pipelines
 
@@ -56,8 +56,6 @@ Optionally, [Argo-Events](https://argoproj.github.io/argo-events/installation/) 
 | `runsTopic`                      | Pub/Sub topic name to publish runs                            | `kfp-operator-runs`                                               |
 | `submitterRunsSubscription`      | Subscription on the runs topic for the pipeline job submitter | `kfp-operator-runs-submitter`                                     |
 | `eventsourceRunsSubscription`    | Subscription to runs topic for the eventsource server         | `kfp-operator-runs-eventsource`                                   |
-
-[Argo-Events](https://argoproj.github.io/argo-events/installation/) must be installed into the operator's Kubernetes cluster and any namespace that is going to use the eventsource server.
 
 #### GCP Project Setup
 

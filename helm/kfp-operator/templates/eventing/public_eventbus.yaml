@@ -1,0 +1,21 @@
+{{- if gt (len .Values.providers) 0 }}
+apiVersion: argoproj.io/v1alpha1
+kind: EventBus
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-events
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+spec:
+  nats:
+    native:
+      containerTemplate:
+        resources:
+          requests:
+            cpu: 100m
+      metadata:
+        labels:
+          app: {{ include "kfp-operator.fullname" . }}-events
+      metricsContainerTemplate:
+        resources:
+          requests:
+            cpu: 100m
+{{- end -}}

@@ -1,16 +1,12 @@
 ---
-title: "Run Completion EventSource"
+title: "Run Completion Events"
 weight: 3
 ---
 
-The Run Completion Eventsource allows reacting to finished pipeline runs.
-
 ![Model Serving](/images/run-completion.png)
 
-The specification of the eventsource follows those of other [generic Argo-Events eventsources](https://argoproj.github.io/argo-events/eventsources/generic/).
-The configuration will depend on the chosen provider:
-- The configuration for KFP has a single field `kfpNamespace` which defines what namespace to watch pipeline workflows in.
-- The configuration for Vertex AI is the empty string.
+The KFP-Operator Events system provides a [NATS Event bus](https://nats.io/) in the operator namespace to consume events from. 
+To use it, users can to create an Argo-Events [NATS Eventsource](https://argoproj.github.io/argo-events/eventsources/setup/nats/) as follows:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -18,33 +14,40 @@ kind: EventSource
 metadata:
   name: run-completion
 spec:
-  generic:
+  nats:
     run-completion:
-      insecure: true
-      url: "kfp-operator-run-completion-eventsource-server.kfp-operator-system.svc:8080"
-#KFP
-      config: |-
-        kfpNamespace: kubeflow-pipelines
-#VAI
-#      config: ""
+      connectionBackoff:
+        duration: 10s
+        factor: 2
+        jitter: 0.2
+        steps: 5
+      jsonBody: true
+      subject: events
+      url: nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222
 ```
 
-The events have the following format:
+The specification of the events follows [CloudEvents](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md):
 
 ```json
 {
-  "status": "succeeded|failed",
-  "pipelineName":"{{ PIPELINE_NAME }}",
-  "servingModelArtifacts": [
-    {
-      "name":"{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
-      "location":"gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}"
-    }
-  ]
+  "id": "{{ UNIQUE_MESSAGE_ID }}",
+  "specversion": "1.0",
+  "source": "{{ PROVIDER_NAME }}",
+  "type": "org.kubeflow.pipelines.run-completion",
+  "datacontenttype": "application/json",
+  "data": {
+    "status": "succeeded|failed",
+    "pipelineName":"{{ PIPELINE_NAME }}",
+    "servingModelArtifacts": [
+      {
+        "name":"{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
+        "location":"gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}"
+      }
+    ]
+  }
 }
 ```
 
-Note that Argo-Events emits the body of these messages as base64 encoded Json string. 
 A sensor for the pipeline `penguin-pipeline` could look as follows:
 
 ```yaml
@@ -59,14 +62,12 @@ spec:
       eventName: run-completion
       filters:
         data:
-          - path: body
-            template: '{{ ((b64dec .Input) | mustFromJson).status }}'
+          - path: body.status
             type: string
             comparator: "="
             value:
               - "succeeded"
-          - path: body
-            template: '{{ ((b64dec .Input) | mustFromJson).pipelineName }}'
+          - path: body.pipelineName
             type: string
             comparator: "="
             value:
