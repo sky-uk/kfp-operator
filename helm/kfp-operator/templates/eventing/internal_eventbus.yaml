@@ -15,4 +15,4 @@ spec:
         resources:
           requests:
             cpu: 100m
-  {{- end -}}
+{{- end -}}
