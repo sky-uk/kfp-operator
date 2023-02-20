@@ -33,6 +33,7 @@ canonifyURLs = true
         disable = false
 
 [params]
+  description = "Kubernetes operator to manage ML pipelines on Kubeflow"
   github_repo = "https://github.com/sky-uk/kfp-operator"
   github_subdir = "docs-gen"
   github_branch = "master"
