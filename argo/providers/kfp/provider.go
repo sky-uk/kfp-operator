@@ -139,6 +139,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 						Type: run_model.APIResourceTypeEXPERIMENT,
 						ID:   experimentVersion,
 					},
+					Name: "kfp-operator-namespace",
 					Relationship: run_model.APIRelationshipOWNER,
 				},
 				{

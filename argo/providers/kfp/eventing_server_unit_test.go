@@ -11,6 +11,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/eventing"
 	. "github.com/sky-uk/kfp-operator/providers/base"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
@@ -87,16 +88,16 @@ var _ = Context("Eventing Server", func() {
 	)
 
 	DescribeTable("runCompletionStatus",
-		func(phase argo.WorkflowPhase, expectedStatus RunCompletionStatus) {
+		func(phase argo.WorkflowPhase, expectedStatus eventing.RunCompletionStatus) {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, phase)
 			status, hasFinished := runCompletionStatus(workflow)
 			Expect(status).To(Equal(expectedStatus))
 			Expect(hasFinished).To(Equal(true))
 		},
-		Entry("error", argo.WorkflowError, Failed),
-		Entry("failed", argo.WorkflowFailed, Failed),
-		Entry("succeeded", argo.WorkflowSucceeded, Succeeded),
+		Entry("error", argo.WorkflowError, eventing.RunCompletionStatuses.Failed),
+		Entry("failed", argo.WorkflowFailed, eventing.RunCompletionStatuses.Failed),
+		Entry("succeeded", argo.WorkflowSucceeded, eventing.RunCompletionStatuses.Succeeded),
 	)
 
 	Describe("getPipelineNameFromAnnotation", func() {
