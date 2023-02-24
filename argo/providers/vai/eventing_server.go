@@ -6,8 +6,9 @@ import (
 	"encoding/json"
 	"github.com/go-logr/logr"
 	"github.com/googleapis/gax-go/v2"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/eventing"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	"gopkg.in/yaml.v2"
 )
@@ -152,6 +153,7 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob) *eventing.RunCompletion
 		Status:                runCompletionStatus,
 		PipelineName:          job.Labels[labels.PipelineName],
 		RunConfigurationName:  job.Labels[labels.RunConfiguration],
+		RunName:               common.NamespacedNameFromString(job.Labels[labels.RunName]),
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 	}
 }

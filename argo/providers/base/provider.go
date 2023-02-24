@@ -2,7 +2,8 @@ package base
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 )
 
 type PipelineDefinition struct {
@@ -33,7 +34,7 @@ type RunConfigurationDefinition struct {
 }
 
 type RunDefinition struct {
-	Name              string            `yaml:"name"`
+	Name              common.NamespacedName            `yaml:"name"`
 	Version           string            `yaml:"version"`
 	PipelineName      string            `yaml:"pipelineName"`
 	PipelineVersion   string            `yaml:"pipelineVersion"`

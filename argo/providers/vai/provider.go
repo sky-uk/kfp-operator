@@ -11,8 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	. "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
@@ -28,9 +29,11 @@ import (
 var labels = struct {
 	RunConfiguration string
 	PipelineName     string
+	RunName          string
 	PipelineVersion  string
 }{
 	RunConfiguration: "run-configuration",
+	RunName:          "run-name",
 	PipelineName:     "pipeline-name",
 	PipelineVersion:  "pipeline-version",
 }
@@ -43,10 +46,11 @@ type VAIRun struct {
 }
 
 type RunIntent struct {
-	RunConfigurationName string            `json:"runConfigurationName,omitempty"`
-	PipelineName         string            `json:"pipelineName"`
-	PipelineVersion      string            `json:"pipelineVersion"`
-	RuntimeParameters    map[string]string `json:"runtimeParameters,omitempty"`
+	RunConfigurationName string                  `json:"runConfigurationName,omitempty"`
+	RunName              common.NamespacedName `json:"runName,omitempty"`
+	PipelineName         string                  `json:"pipelineName"`
+	PipelineVersion      string                  `json:"pipelineVersion"`
+	RuntimeParameters    map[string]string       `json:"runtimeParameters,omitempty"`
 }
 
 type VAIProviderConfig struct {
@@ -211,6 +215,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		PipelineName:      runDefinition.PipelineName,
 		PipelineVersion:   runDefinition.PipelineVersion,
 		RuntimeParameters: runDefinition.RuntimeParameters,
+		RunName: runDefinition.Name,
 	})
 }
 
@@ -306,6 +311,7 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	runLabels := map[string]string{
 		labels.PipelineName:    runIntent.PipelineName,
 		labels.PipelineVersion: runIntent.PipelineVersion,
+		labels.RunName:         runIntent.RunName.String(),
 	}
 
 	var runId string

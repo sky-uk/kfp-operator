@@ -8,7 +8,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/eventing"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -194,7 +194,7 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 	}
 
 	runId := workflow.GetLabels()[pipelineRunIdLabel]
-	runConfigurationName, err := es.KfpApi.GetRunConfiguration(ctx, runId)
+	resourceReferences, err := es.KfpApi.GetResourceReferences(ctx, runId)
 
 	if err != nil {
 		es.Logger.Error(err, "failed to retrieve RunConfiguration name")
@@ -204,7 +204,8 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 	return &eventing.RunCompletionEvent{
 		Status:                status,
 		PipelineName:          pipelineName,
-		RunConfigurationName:  runConfigurationName,
+		RunConfigurationName:  resourceReferences.RunConfigurationName,
+		RunName:               resourceReferences.RunName,
 		ServingModelArtifacts: modelArtifacts,
 	}, nil
 }

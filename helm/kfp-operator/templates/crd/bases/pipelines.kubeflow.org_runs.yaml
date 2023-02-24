@@ -28,6 +28,9 @@ spec:
     - jsonPath: .status.version
       name: Version
       type: string
+    - jsonPath: .status.completionState
+      name: CompletionState
+      type: string
     name: v1alpha4
     schema:
       openAPIV3Schema:

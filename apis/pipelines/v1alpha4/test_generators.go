@@ -70,10 +70,10 @@ func RandomRun() *Run {
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec:   RandomRunSpec(),
+		Spec: RandomRunSpec(),
 		Status: RunStatus{
 			CompletionState: RandomCompletionState(),
-			Status: RandomStatus(),
+			Status:          RandomStatus(),
 		},
 	}
 }

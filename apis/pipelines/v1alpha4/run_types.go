@@ -32,15 +32,15 @@ type CompletionState string
 
 var CompletionStates = struct {
 	Succeeded CompletionState
-	Failed CompletionState
+	Failed    CompletionState
 }{
 	Succeeded: "Succeeded",
-	Failed: "Failed",
+	Failed:    "Failed",
 }
 
 type RunStatus struct {
 	CompletionState CompletionState `json:"completionState,omitempty"`
-	Status `json:",inline"`
+	Status          `json:",inline"`
 }
 
 //+kubebuilder:object:root=true
@@ -56,8 +56,8 @@ type Run struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RunSpec `json:"spec,omitempty"`
-	Status RunStatus  `json:"status,omitempty"`
+	Spec   RunSpec   `json:"spec,omitempty"`
+	Status RunStatus `json:"status,omitempty"`
 }
 
 func (r *Run) GetStatus() Status {

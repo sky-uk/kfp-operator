@@ -5,31 +5,34 @@ package kfp
 
 import (
 	"context"
-	. "github.com/sky-uk/kfp-operator/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type MockKfpApi struct {
-	runConfiguration string
-	err              error
+	resourceReferences ResourceReferences
+	err                error
 }
 
-func (mka *MockKfpApi) GetRunConfiguration(_ context.Context, _ string) (string, error) {
-	return mka.runConfiguration, mka.err
+func (mka *MockKfpApi) GetResourceReferences(_ context.Context, _ string) (ResourceReferences, error) {
+	return mka.resourceReferences, mka.err
 }
 
 func (mka *MockKfpApi) reset() {
-	mka.runConfiguration = ""
+	mka.resourceReferences = ResourceReferences{}
 	mka.err = nil
 }
 
-func (mka *MockKfpApi) returnRunConfigurationForRun() string {
-	mka.runConfiguration = RandomString()
+func (mka *MockKfpApi) returnResourceReferencesForRun() ResourceReferences {
+	mka.resourceReferences = ResourceReferences{
+		RunConfigurationName: common.RandomString(),
+		RunName:              common.RandomNamespacedName(),
+	}
 	mka.err = nil
 
-	return mka.runConfiguration
+	return mka.resourceReferences
 }
 
 func (mka *MockKfpApi) error(err error) {
-	mka.runConfiguration = ""
+	mka.resourceReferences = ResourceReferences{}
 	mka.err = err
 }

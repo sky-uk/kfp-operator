@@ -3,8 +3,8 @@ package kfp
 import (
 	"context"
 	"fmt"
-	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
+	"github.com/sky-uk/kfp-operator/argo/eventing"
+	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -18,14 +18,14 @@ const (
 )
 
 type MetadataStore interface {
-	GetServingModelArtifact(ctx context.Context, workflowName string) ([]ServingModelArtifact, error)
+	GetServingModelArtifact(ctx context.Context, workflowName string) ([]eventing.ServingModelArtifact, error)
 }
 
 type GrpcMetadataStore struct {
 	MetadataStoreServiceClient ml_metadata.MetadataStoreServiceClient
 }
 
-func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]ServingModelArtifact, error) {
+func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]eventing.ServingModelArtifact, error) {
 	artifactTypeName := PushedModelArtifactType
 	typeResponse, err := gms.MetadataStoreServiceClient.GetArtifactType(ctx, &ml_metadata.GetArtifactTypeRequest{TypeName: &artifactTypeName})
 	if err != nil {
@@ -58,7 +58,7 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 		return nil, err
 	}
 
-	results := make([]ServingModelArtifact, 0)
+	results := make([]eventing.ServingModelArtifact, 0)
 	for _, artifact := range artifactsResponse.GetArtifacts() {
 		if artifact.GetTypeId() == artifactTypeId {
 			artifactUri := artifact.GetUri()
@@ -66,7 +66,7 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 			modelHasBeenPushed := artifact.GetCustomProperties()[PushedCustomProperty].GetIntValue()
 
 			if artifactName != "" && artifactUri != "" && modelHasBeenPushed == 1 {
-				results = append(results, ServingModelArtifact{
+				results = append(results, eventing.ServingModelArtifact{
 					Name:     artifactName,
 					Location: artifactUri,
 				})

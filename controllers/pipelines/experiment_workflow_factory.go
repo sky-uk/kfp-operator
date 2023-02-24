@@ -3,7 +3,7 @@ package pipelines
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
-	providers "github.com/sky-uk/kfp-operator/providers/base"
+	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type ExperimentDefinitionCreator struct {

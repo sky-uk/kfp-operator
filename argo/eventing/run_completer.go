@@ -25,7 +25,7 @@ type RunCompleter struct {
 func (c *RunCompleter) CompleteRun(ctx context.Context, runCompletionEvent RunCompletionEvent) error {
 	run := pipelinesv1.Run{}
 
-	err := c.K8sClient.Get(ctx, types.NamespacedName{Namespace: runCompletionEvent.Run.Namespace, Name: runCompletionEvent.Run.Name}, &run)
+	err := c.K8sClient.Get(ctx, types.NamespacedName{Namespace: runCompletionEvent.RunName.Namespace, Name: runCompletionEvent.RunName.Name}, &run)
 	if err != nil {
 		return err
 	}

@@ -12,9 +12,9 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client/run_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_model"
-	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
-	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
+	. "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/client-go/dynamic"
@@ -24,8 +24,6 @@ import (
 	"os"
 	"path/filepath"
 )
-
-const KfpResourceNotFoundCode = 5
 
 type KfpProviderConfig struct {
 	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
@@ -128,7 +126,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 
 	runResult, err := runService.CreateRun(&run_service.CreateRunParams{
 		Body: &run_model.APIRun{
-			Name: runDefinition.Name,
+			Name: runDefinition.Name.Name,
 			PipelineSpec: &run_model.APIPipelineSpec{
 				PipelineID: pipelineId,
 				Parameters: jobParameters,
@@ -139,7 +137,6 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 						Type: run_model.APIResourceTypeEXPERIMENT,
 						ID:   experimentVersion,
 					},
-					Name: "kfp-operator-namespace",
 					Relationship: run_model.APIRelationshipOWNER,
 				},
 				{
@@ -148,6 +145,13 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 						ID:   pipelineVersionId,
 					},
 					Relationship: run_model.APIRelationshipCREATOR,
+				},
+				{
+					Key: &run_model.APIResourceKey{
+						Type: run_model.APIResourceTypeUNKNOWNRESOURCETYPE,
+						ID:   ResourceIdentifier{Scheme: kfpApiConstants.RunNameScheme, Path: runDefinition.Name.String()}.String(),
+					},
+					Relationship: run_model.APIRelationshipUNKNOWNRELATIONSHIP,
 				},
 			},
 		},
@@ -265,7 +269,7 @@ func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConf
 
 	if err != nil {
 		errorResult := err.(*job_service.DeleteJobDefault)
-		if errorResult.Payload.Code != KfpResourceNotFoundCode {
+		if errorResult.Payload.Code != kfpApiConstants.KfpResourceNotFoundCode {
 			return err
 		}
 	}

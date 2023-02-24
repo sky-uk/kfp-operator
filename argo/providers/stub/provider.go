@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 )
 
 type StubProviderConfig struct {
@@ -71,7 +71,7 @@ func (s StubProvider) DeletePipeline(_ context.Context, providerConfig StubProvi
 }
 
 func (s StubProvider) CreateRun(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunDefinition) (string, error) {
-	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
+	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name.Name, resourceDefinition.Version})
 }
 
 func (s StubProvider) DeleteRun(_ context.Context, providerConfig StubProviderConfig, id string) error {

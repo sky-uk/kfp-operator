@@ -3,7 +3,7 @@ package pipelines
 import (
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	providers "github.com/sky-uk/kfp-operator/providers/base"
+	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
 )
 

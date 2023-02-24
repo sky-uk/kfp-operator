@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/client-go/kubernetes/scheme"
 	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -16,8 +17,8 @@ import (
 )
 
 var (
-	k8sClient client.Client
-	runCompleter         RunCompleter
+	k8sClient    client.Client
+	runCompleter RunCompleter
 )
 
 const (
@@ -54,26 +55,27 @@ var _ = BeforeSuite(func() {
 })
 
 func HasChangedTo(expectedState pipelinesv1.CompletionState) func(pipelinesv1.Run, pipelinesv1.Run) {
-	return func(_ pipelinesv1.Run, newRun  pipelinesv1.Run) {
+	return func(oldRun pipelinesv1.Run, newRun pipelinesv1.Run) {
+		Expect(oldRun.Status.CompletionState).NotTo(Equal(expectedState))
 		Expect(newRun.Status.CompletionState).To(Equal(expectedState))
 	}
 }
 
 func HasNotChanged() func(pipelinesv1.Run, pipelinesv1.Run) {
-	return func(oldRun pipelinesv1.Run, newRun  pipelinesv1.Run) {
+	return func(oldRun pipelinesv1.Run, newRun pipelinesv1.Run) {
 		Expect(newRun.Status).To(Equal(oldRun.Status))
 	}
 }
 
 var _ = Context("Run Completer", Serial, func() {
-	DescribeTable("known states",
+	DescribeTable("updates Run on known states only",
 		func(status RunCompletionStatus, expectation func(pipelinesv1.Run, pipelinesv1.Run)) {
 			ctx := context.Background()
 			run := pipelinesv1.RandomRun()
 			Expect(k8sClient.Create(ctx, run)).To(Succeed())
 
-			runCompletionEvent := RunCompletionEvent{Status: status, Run: NamespacedName{
-				Name: run.Name,
+			runCompletionEvent := RunCompletionEvent{Status: status, RunName: common.NamespacedName{
+				Name:      run.Name,
 				Namespace: run.Namespace,
 			}}
 
