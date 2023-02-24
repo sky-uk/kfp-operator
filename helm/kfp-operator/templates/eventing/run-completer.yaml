@@ -1,0 +1,86 @@
+{{- if gt (len .Values.providers) 0 }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-complete-run
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
+  arguments:
+    parameters:
+      - name: complete-run
+      - name: provider-name
+  entrypoint: complete-run
+  templates:
+  - name: complete-run
+    metadata:
+      {{- $.Values.manager.argo.metadata | toYaml | nindent 10 }}
+    inputs:
+      artifacts:
+      - name: run-completion-event
+        path: /run-completion-event.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.run-completion-event}}`}}
+    container:
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-run-completer:{{ .Chart.AppVersion }}
+      command:
+        - /run-completer
+      args:
+        - --run-completion-event
+        - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
+        - complete-run
+---
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: {{ include "kfp-operator.fullname" $ }}-events
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+spec:
+  nats:
+    {{ include "kfp-operator.fullname" $ }}-events:
+      connectionBackoff:
+        duration: 10s
+        factor: 2
+        jitter: 0.2
+        steps: 5
+      jsonBody: true
+      subject: events
+      url: nats://eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc.{{ include "kfp-operator.argoNamespace" . }}.svc:4222
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: {{ include "kfp-operator.fullname" $ }}-run-completer
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+spec:
+  dependencies:
+  - eventName: events
+    eventSourceName: {{ include "kfp-operator.fullname" $ }}-events
+    name: events
+  triggers:
+  - template:
+      name: complete-run
+      k8s:
+        operation: create
+        source:
+          resource:
+            apiVersion: argoproj.io/v1alpha1
+            kind: Workflow
+            metadata:
+              generateName: {{ include "kfp-operator.fullname" $ }}-complete-run-
+            spec:
+              arguments:
+                parameters:
+                  - name: run-completion-event
+                    value: "set below"
+              workflowTemplateRef:
+                name: {{ include "kfp-operator.fullname" $ }}-complete-run-run
+        parameters:
+            - src:
+              dependencyName: events
+              dataKey: body.data
+              dest: spec.arguments.parameters.0.value
+{{- end }}

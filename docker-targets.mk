@@ -19,4 +19,4 @@ endef
 endif
 
 docker-build: build ## Build container image
-	docker build ${DOCKER_BUILD_EXTRA_PARAMS} -t ${IMG} -t ${IMG}:${VERSION} .
+	docker build ${DOCKER_BUILD_EXTRA_PARAMS} -t ${IMG} -t ${IMG}:${VERSION} -f Dockerfile $(_DOCKER_TARGETS_MK_DIR)

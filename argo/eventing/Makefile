@@ -1,6 +1,6 @@
 include ../../common.mk
 
-IMG := kfp-operator-eventing
+IMG := kfp-operator-run-completer
 
 all: build
 
@@ -18,9 +18,6 @@ test: unit-test decoupled-test
 
 build:
 	go build -o bin/eventing ./cmd
-
-run:
-	go run ./cmd/main.go --run-completion-event /tmp/rce.yaml update-run
 
 fmt: ## Run go fmt against code.
 	go fmt ./...
