@@ -19,6 +19,7 @@ import (
 var (
 	k8sClient    client.Client
 	runCompleter RunCompleter
+	testEnv      *envtest.Environment
 )
 
 const (
@@ -31,7 +32,7 @@ func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	testEnv := &envtest.Environment{
+	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			filepath.Join("..", "..", "config", "crd", "bases"),
 		},
@@ -52,6 +53,10 @@ var _ = BeforeSuite(func() {
 	runCompleter = RunCompleter{
 		K8sClient: k8sClient,
 	}
+})
+
+var _ = AfterSuite(func() {
+	testEnv.Stop()
 })
 
 func HasChangedTo(expectedState pipelinesv1.CompletionState) func(pipelinesv1.Run, pipelinesv1.Run) {
@@ -88,4 +93,31 @@ var _ = Context("Run Completer", Serial, func() {
 		Entry("succeeded should succeed", RunCompletionStatuses.Succeeded, HasChangedTo(pipelinesv1.CompletionStates.Succeeded)),
 		Entry("failed should fail", RunCompletionStatuses.Failed, HasChangedTo(pipelinesv1.CompletionStates.Failed)),
 		Entry("unknown should not override", RunCompletionStatus(""), HasNotChanged()))
+
+	When("the run is not found", func() {
+		It("do nothing", func() {
+			ctx := context.Background()
+
+			runCompletionEvent := RunCompletionEvent{Status: RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
+				Name:      common.RandomString(),
+				Namespace: common.RandomString(),
+			}}
+
+			Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+		})
+	})
+
+	When("the k8s API is unreachable", func() {
+		It("errors", func() {
+			ctx := context.Background()
+
+			runCompletionEvent := RunCompletionEvent{Status: RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
+				Name:      common.RandomString(),
+				Namespace: common.RandomString(),
+			}}
+
+			testEnv.Stop()
+			Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).NotTo(Succeed())
+		})
+	})
 })

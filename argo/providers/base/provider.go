@@ -34,12 +34,12 @@ type RunConfigurationDefinition struct {
 }
 
 type RunDefinition struct {
-	Name              common.NamespacedName            `yaml:"name"`
-	Version           string            `yaml:"version"`
-	PipelineName      string            `yaml:"pipelineName"`
-	PipelineVersion   string            `yaml:"pipelineVersion"`
-	ExperimentName    string            `yaml:"experimentName"`
-	RuntimeParameters map[string]string `yaml:"runtimeParameters"`
+	Name              common.NamespacedName `yaml:"name"`
+	Version           string                `yaml:"version"`
+	PipelineName      string                `yaml:"pipelineName"`
+	PipelineVersion   string                `yaml:"pipelineVersion"`
+	ExperimentName    string                `yaml:"experimentName"`
+	RuntimeParameters map[string]string     `yaml:"runtimeParameters"`
 }
 
 type Output struct {

@@ -46,7 +46,7 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEvent for job that has not completed", func(state aiplatformpb.PipelineState) {
-		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state})).To(BeNil())
+		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state}, common.RandomString())).To(BeNil())
 	},
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_UNSPECIFIED),
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_QUEUED),
@@ -289,10 +289,11 @@ var _ = Context("VaiEventingServer", func() {
 		pipelineRunName := common.RandomNamespacedName()
 
 		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{
+			Name: pipelineRunName.Name,
 			Labels: map[string]string{
 				labels.RunConfiguration: runConfigurationName,
 				labels.PipelineName:     pipelineName,
-				labels.RunName:          pipelineRunName.String(),
+				labels.Namespace:        pipelineRunName.Namespace,
 			},
 			State: pipelineState,
 			JobDetail: &aiplatformpb.PipelineJobDetail{
@@ -308,7 +309,7 @@ var _ = Context("VaiEventingServer", func() {
 					},
 				},
 			},
-		})).To(Equal(&eventing.RunCompletionEvent{
+		}, pipelineRunName.Name)).To(Equal(&eventing.RunCompletionEvent{
 			RunConfigurationName: runConfigurationName,
 			PipelineName:         pipelineName,
 			RunName:              pipelineRunName,

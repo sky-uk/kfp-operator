@@ -12,8 +12,8 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/eventing"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/eventing"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
@@ -224,7 +224,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					Status:                eventing.RunCompletionStatuses.Succeeded,
 					PipelineName:          pipelineName,
 					RunConfigurationName:  resourceReferences.RunConfigurationName,
-					RunName: resourceReferences.RunName,
+					RunName:               resourceReferences.RunName,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
 				actualEvent := eventing.RunCompletionEvent{}
@@ -423,7 +423,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					Status:               eventing.RunCompletionStatuses.Succeeded,
 					PipelineName:         pipelineName,
 					RunConfigurationName: resourceReferences.RunConfigurationName,
-					RunName: resourceReferences.RunName,
+					RunName:              resourceReferences.RunName,
 				}
 				actualEvent := eventing.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)

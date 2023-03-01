@@ -148,10 +148,10 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 				},
 				{
 					Key: &run_model.APIResourceKey{
-						Type: run_model.APIResourceTypeUNKNOWNRESOURCETYPE,
-						ID:   ResourceIdentifier{Scheme: kfpApiConstants.RunNameScheme, Path: runDefinition.Name.String()}.String(),
+						Type: run_model.APIResourceTypeNAMESPACE,
+						ID:   runDefinition.Name.Namespace,
 					},
-					Relationship: run_model.APIRelationshipUNKNOWNRELATIONSHIP,
+					Relationship: run_model.APIRelationshipOWNER,
 				},
 			},
 		},

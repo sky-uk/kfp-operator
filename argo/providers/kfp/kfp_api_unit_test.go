@@ -47,21 +47,21 @@ var _ = Context("KFP API", func() {
 
 		When("passed an identifier string without a delimiter", func() {
 			It("errors", func() {
-				_ , err := ResourceIdentifierFromString("undefined")
+				_, err := ResourceIdentifierFromString("undefined")
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		When("passed an identifier string without a scheme", func() {
 			It("errors", func() {
-				_ , err := ResourceIdentifierFromString(":path")
+				_, err := ResourceIdentifierFromString(":path")
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		When("passed an identifier string without a path", func() {
 			It("errors", func() {
-				_ , err := ResourceIdentifierFromString("scheme:")
+				_, err := ResourceIdentifierFromString("scheme:")
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -178,7 +178,8 @@ var _ = Context("KFP API", func() {
 
 				runDetail := go_client.RunDetail{
 					Run: &go_client.Run{
-						Id: runId,
+						Id:   runId,
+						Name: runName.Name,
 						ResourceReferences: []*go_client.ResourceReference{
 							{
 								Name:         runConfigurationName,
@@ -189,10 +190,10 @@ var _ = Context("KFP API", func() {
 								},
 							},
 							{
-								Relationship: go_client.Relationship_UNKNOWN_RELATIONSHIP,
+								Relationship: go_client.Relationship_OWNER,
 								Key: &go_client.ResourceKey{
-									Type: go_client.ResourceType_UNKNOWN_RESOURCE_TYPE,
-									Id:   ResourceIdentifier{Scheme: kfpApiConstants.RunNameScheme, Path: runName.String()}.String(),
+									Type: go_client.ResourceType_NAMESPACE,
+									Id:   runName.Namespace,
 								},
 							},
 						},

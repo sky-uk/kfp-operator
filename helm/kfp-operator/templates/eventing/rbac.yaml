@@ -1,0 +1,96 @@
+{{- if gt (len .Values.providers) 0 }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-completer
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-completer-submitter
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-updater
+rules:
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs
+  verbs:
+  - get
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - runs/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-workflow-submitter
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+rules:
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - workflowtemplates
+    verbs:
+    - get
+  - apiGroups:
+    - argoproj.io
+    resources:
+    - workflows
+    verbs:
+    - create
+    - get
+    - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-completer-run-updater
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kfp-operator.fullname" . }}-run-updater
+subjects:
+- kind: ServiceAccount
+  name: {{ include "kfp-operator.fullname" . }}-run-completer
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-completer
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "kfp-operator.fullname" . }}-workflow-executor
+subjects:
+- kind: ServiceAccount
+  name: {{ include "kfp-operator.fullname" . }}-run-completer
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-completer-submitter
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "kfp-operator.fullname" . }}-workflow-submitter
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "kfp-operator.fullname" . }}-run-completer-submitter
+    namespace: {{ include "kfp-operator.argoNamespace" . }}
+{{- end }}

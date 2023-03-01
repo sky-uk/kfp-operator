@@ -29,13 +29,13 @@ import (
 var labels = struct {
 	RunConfiguration string
 	PipelineName     string
-	RunName          string
 	PipelineVersion  string
+	Namespace        string
 }{
 	RunConfiguration: "run-configuration",
-	RunName:          "run-name",
 	PipelineName:     "pipeline-name",
 	PipelineVersion:  "pipeline-version",
+	Namespace:        "namespace",
 }
 
 type VAIRun struct {
@@ -46,11 +46,11 @@ type VAIRun struct {
 }
 
 type RunIntent struct {
-	RunConfigurationName string                  `json:"runConfigurationName,omitempty"`
+	RunConfigurationName string                `json:"runConfigurationName,omitempty"`
 	RunName              common.NamespacedName `json:"runName,omitempty"`
-	PipelineName         string                  `json:"pipelineName"`
-	PipelineVersion      string                  `json:"pipelineVersion"`
-	RuntimeParameters    map[string]string       `json:"runtimeParameters,omitempty"`
+	PipelineName         string                `json:"pipelineName"`
+	PipelineVersion      string                `json:"pipelineVersion"`
+	RuntimeParameters    map[string]string     `json:"runtimeParameters,omitempty"`
 }
 
 type VAIProviderConfig struct {
@@ -215,7 +215,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		PipelineName:      runDefinition.PipelineName,
 		PipelineVersion:   runDefinition.PipelineVersion,
 		RuntimeParameters: runDefinition.RuntimeParameters,
-		RunName: runDefinition.Name,
+		RunName:           runDefinition.Name,
 	})
 }
 
@@ -311,17 +311,18 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	runLabels := map[string]string{
 		labels.PipelineName:    runIntent.PipelineName,
 		labels.PipelineVersion: runIntent.PipelineVersion,
-		labels.RunName:         runIntent.RunName.String(),
+		labels.Namespace:       runIntent.RunName.Namespace,
 	}
 
 	var runId string
 
-	if runIntent.RunConfigurationName != "" {
-		runId = fmt.Sprintf("rc-%s-%s", runIntent.RunConfigurationName, uuid.New().String())
+	if runIntent.RunName.Name != "" {
+		runId = fmt.Sprintf(runIntent.RunName.Name)
+	} else if runIntent.RunConfigurationName != "" {
+		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName, uuid.New().String())
 		runLabels[labels.RunConfiguration] = runIntent.RunConfigurationName
 	} else {
-		//TODO: use one-off run name
-		runId = fmt.Sprintf("run-%s", uuid.New().String())
+		runId = fmt.Sprintf("%s", uuid.New().String())
 	}
 
 	vaiRun := VAIRun{

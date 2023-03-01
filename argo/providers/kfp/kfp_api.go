@@ -9,18 +9,18 @@ import (
 )
 
 var kfpApiConstants = struct {
-	RunNameScheme string
+	RunNameScheme               string
 	ResourceIdentifierDelimiter string
-	KfpResourceNotFoundCode int32
-} {
-	RunNameScheme: "pipelines.kubeflow.org/run-name",
+	KfpResourceNotFoundCode     int32
+}{
+	RunNameScheme:               "pipelines.kubeflow.org/run-name",
 	ResourceIdentifierDelimiter: ":",
-	KfpResourceNotFoundCode: 5,
+	KfpResourceNotFoundCode:     5,
 }
 
 type ResourceIdentifier struct {
 	Scheme string
-	Path string
+	Path   string
 }
 
 func ResourceIdentifierFromString(input string) (ResourceIdentifier, error) {
@@ -32,7 +32,7 @@ func ResourceIdentifierFromString(input string) (ResourceIdentifier, error) {
 
 	return ResourceIdentifier{
 		Scheme: splits[0],
-		Path: strings.Join(splits[1:], kfpApiConstants.ResourceIdentifierDelimiter),
+		Path:   strings.Join(splits[1:], kfpApiConstants.ResourceIdentifierDelimiter),
 	}, nil
 }
 
@@ -61,18 +61,17 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 		return resourceReferences, err
 	}
 
+	resourceReferences.RunName.Name = runDetail.GetRun().GetName()
+
 	for _, ref := range runDetail.GetRun().GetResourceReferences() {
 		if ref.GetKey().GetType() == go_client.ResourceType_JOB && ref.GetRelationship() == go_client.Relationship_CREATOR {
 			resourceReferences.RunConfigurationName = ref.GetName()
 			continue
 		}
 
-		if ref.GetKey().GetType() == go_client.ResourceType_UNKNOWN_RESOURCE_TYPE && ref.GetRelationship() == go_client.Relationship_UNKNOWN_RELATIONSHIP {
-			resourceIdentifier, err := ResourceIdentifierFromString(ref.GetKey().GetId())
-			if err == nil && resourceIdentifier.Scheme  == kfpApiConstants.RunNameScheme {
-				resourceReferences.RunName = common.NamespacedNameFromString(resourceIdentifier.Path)
-				continue
-			}
+		if ref.GetKey().GetType() == go_client.ResourceType_NAMESPACE && ref.GetRelationship() == go_client.Relationship_OWNER {
+			resourceReferences.RunName.Namespace = ref.GetKey().GetId()
+			continue
 		}
 	}
 

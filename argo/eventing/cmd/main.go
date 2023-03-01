@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
@@ -9,7 +10,6 @@ import (
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -100,7 +100,7 @@ func main() {
 					return err
 				}
 
-				err = yaml.Unmarshal(contents, &rce)
+				err = json.Unmarshal(contents, &rce)
 				if err != nil {
 					return err
 				}
@@ -119,7 +119,7 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		logger.Error(err, "failed to run provider app")
+		logger.Error(err, "failed to run")
 		os.Exit(1)
 	}
 }

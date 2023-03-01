@@ -100,7 +100,7 @@ func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId
 		return nil
 	}
 
-	return toRunCompletionEvent(job)
+	return toRunCompletionEvent(job, runId)
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []eventing.ServingModelArtifact {
@@ -142,7 +142,7 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []eventing.Servi
 	return servingModelArtifacts
 }
 
-func toRunCompletionEvent(job *aiplatformpb.PipelineJob) *eventing.RunCompletionEvent {
+func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *eventing.RunCompletionEvent {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
@@ -150,10 +150,12 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob) *eventing.RunCompletion
 	}
 
 	return &eventing.RunCompletionEvent{
-		Status:                runCompletionStatus,
-		PipelineName:          job.Labels[labels.PipelineName],
-		RunConfigurationName:  job.Labels[labels.RunConfiguration],
-		RunName:               common.NamespacedNameFromString(job.Labels[labels.RunName]),
+		Status:               runCompletionStatus,
+		PipelineName:         job.Labels[labels.PipelineName],
+		RunConfigurationName: job.Labels[labels.RunConfiguration],
+		RunName: common.NamespacedName{
+			Name:      runId,
+			Namespace: job.Labels[labels.Namespace]},
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 	}
 }

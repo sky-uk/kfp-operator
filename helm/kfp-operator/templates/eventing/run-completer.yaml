@@ -6,17 +6,15 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-complete-run
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  serviceAccountName: {{ include "kfp-operator.fullname" . }}-run-completer
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
-  arguments:
-    parameters:
-      - name: complete-run
-      - name: provider-name
   entrypoint: complete-run
   templates:
   - name: complete-run
     metadata:
       {{- $.Values.manager.argo.metadata | toYaml | nindent 10 }}
+    retryStrategy: {}
     inputs:
       artifacts:
       - name: run-completion-event
@@ -24,14 +22,15 @@ spec:
         raw:
           data: |
             {{`{{workflow.parameters.run-completion-event}}`}}
+    script:
     container:
       image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-run-completer:{{ .Chart.AppVersion }}
       command:
-        - /run-completer
+      - /run-completer
       args:
-        - --run-completion-event
-        - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
-        - complete-run
+      - --run-completion-event
+      - /run-completion-event.json
+      - complete-run
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
@@ -56,15 +55,17 @@ metadata:
   name: {{ include "kfp-operator.fullname" $ }}-run-completer
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  template:
+    serviceAccountName: {{ include "kfp-operator.fullname" . }}-run-completer-submitter
   dependencies:
-  - eventName: events
+  - eventName: {{ include "kfp-operator.fullname" $ }}-events
     eventSourceName: {{ include "kfp-operator.fullname" $ }}-events
     name: events
   triggers:
   - template:
       name: complete-run
-      k8s:
-        operation: create
+      argoWorkflow:
+        operation: submit
         source:
           resource:
             apiVersion: argoproj.io/v1alpha1
@@ -74,13 +75,13 @@ spec:
             spec:
               arguments:
                 parameters:
-                  - name: run-completion-event
-                    value: "set below"
+                - name: run-completion-event
+                  value: "set below"
               workflowTemplateRef:
-                name: {{ include "kfp-operator.fullname" $ }}-complete-run-run
+                name: {{ include "kfp-operator.fullname" $ }}-complete-run
         parameters:
-            - src:
-              dependencyName: events
-              dataKey: body.data
-              dest: spec.arguments.parameters.0.value
+        - src:
+            dependencyName: events
+            dataKey: body.data
+          dest: spec.arguments.parameters.0.value
 {{- end }}
