@@ -5,6 +5,8 @@ import (
 	"fmt"
 	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -27,8 +29,13 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 	artifactTypeName := PushedModelArtifactType
 	typeResponse, err := gms.MetadataStoreServiceClient.GetArtifactType(ctx, &ml_metadata.GetArtifactTypeRequest{TypeName: &artifactTypeName})
 	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
+
 		return nil, err
 	}
+
 	artifactTypeId := typeResponse.GetArtifactType().GetId()
 	if artifactTypeId == InvalidId {
 		return nil, fmt.Errorf("invalid artifact ID")

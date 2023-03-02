@@ -11,6 +11,8 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/providers/base"
 	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ = Context("gRPC Metadata Store", func() {
@@ -59,6 +61,19 @@ var _ = Context("gRPC Metadata Store", func() {
 
 			return contextId
 		}
+
+		When("GetArtifactType errors with NotFound", func() {
+			It("returns no artifacts", func() {
+				typeName := PushedModelArtifactType
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactType(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactTypeRequest{TypeName: &typeName})).
+					Return(nil, status.Error(codes.NotFound, "type not found"))
+
+				servingModelArtifacts, err := store.GetServingModelArtifact(context.Background(), workflowName)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(servingModelArtifacts).To(BeEmpty())
+			})
+		})
 
 		When("GetArtifactType errors", func() {
 			It("Errors", func() {
