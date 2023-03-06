@@ -456,6 +456,6 @@ func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIPr
 		ProviderConfig:    providerConfig,
 		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,
-		Logger:            LoggerFromContext(ctx),
+		Logger:            common.LoggerFromContext(ctx),
 	}, nil
 }

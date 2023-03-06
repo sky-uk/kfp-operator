@@ -6,15 +6,14 @@ package kfp
 import (
 	"context"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/eventing"
 )
 
 type MockMetadataStore struct {
-	results []eventing.ServingModelArtifact
+	results []common.ServingModelArtifact
 	err     error
 }
 
-func (mms *MockMetadataStore) GetServingModelArtifact(_ context.Context, _ string) ([]eventing.ServingModelArtifact, error) {
+func (mms *MockMetadataStore) GetServingModelArtifact(_ context.Context, _ string) ([]common.ServingModelArtifact, error) {
 	return mms.results, mms.err
 }
 
@@ -23,8 +22,8 @@ func (mms *MockMetadataStore) reset() {
 	mms.err = nil
 }
 
-func (mms *MockMetadataStore) returnArtifactForPipeline() []eventing.ServingModelArtifact {
-	mms.results = []eventing.ServingModelArtifact{
+func (mms *MockMetadataStore) returnArtifactForPipeline() []common.ServingModelArtifact {
+	mms.results = []common.ServingModelArtifact{
 		{
 			common.RandomString(),
 			common.RandomString(),

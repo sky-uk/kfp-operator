@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/eventing"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -216,7 +215,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(ConsistOf(eventing.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, eventing.ServingModelArtifact{Name: "a-model", Location: "gs://some/where/else"}))
+				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where/else"}))
 			})
 		})
 
@@ -245,7 +244,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(ConsistOf(eventing.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, eventing.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
+				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
 			})
 		})
 
@@ -278,12 +277,12 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(ConsistOf(eventing.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, eventing.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
+				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
 			})
 		})
 	})
 
-	DescribeTable("toRunCompletionEvent for job that has completed", func(pipelineState aiplatformpb.PipelineState, status eventing.RunCompletionStatus) {
+	DescribeTable("toRunCompletionEvent for job that has completed", func(pipelineState aiplatformpb.PipelineState, status common.RunCompletionStatus) {
 		runConfigurationName := common.RandomString()
 		pipelineName := common.RandomString()
 		pipelineRunName := common.RandomNamespacedName()
@@ -309,12 +308,12 @@ var _ = Context("VaiEventingServer", func() {
 					},
 				},
 			},
-		}, pipelineRunName.Name)).To(Equal(&eventing.RunCompletionEvent{
+		}, pipelineRunName.Name)).To(Equal(&common.RunCompletionEvent{
 			RunConfigurationName: runConfigurationName,
 			PipelineName:         pipelineName,
 			RunName:              pipelineRunName,
 			Status:               status,
-			ServingModelArtifacts: []eventing.ServingModelArtifact{
+			ServingModelArtifacts: []common.ServingModelArtifact{
 				{
 					Name:     "a-model",
 					Location: "gs://some/where",
@@ -322,9 +321,9 @@ var _ = Context("VaiEventingServer", func() {
 			},
 		}))
 	},
-		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED, eventing.RunCompletionStatuses.Succeeded),
-		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_FAILED, eventing.RunCompletionStatuses.Failed),
-		Entry("Pending", aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLED, eventing.RunCompletionStatuses.Failed),
+		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED, common.RunCompletionStatuses.Succeeded),
+		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_FAILED, common.RunCompletionStatuses.Failed),
+		Entry("Pending", aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLED, common.RunCompletionStatuses.Failed),
 	)
 
 	Describe("runCompletionEventForRun", func() {

@@ -4,63 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-logr/logr"
-	"github.com/go-logr/zapr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
-	"github.com/sky-uk/kfp-operator/argo/eventing"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/run-completer"
 	"github.com/urfave/cli"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 	"log"
 	"os"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// TODO: common code to refactor
 var EventingConstants = struct {
 	RunCompletionEventParameter string
 }{
 	RunCompletionEventParameter: "run-completion-event",
 }
 
-func LoggerFromContext(ctx context.Context) logr.Logger {
-	logger, err := logr.FromContext(ctx)
-	if err != nil {
-		return logr.Discard()
-	}
-
-	return logger
-}
-
-// TODO: common code to refactor
-func newLogger(logLevel zapcore.Level) (logr.Logger, error) {
-	config := zap.NewProductionConfig()
-	config.Level.SetLevel(logLevel)
-	zapLogger, err := config.Build()
-	if err != nil {
-		return logr.Discard(), err
-	}
-
-	return zapr.NewLogger(zapLogger.Named("main")), nil
-}
-
-// TODO: common code to refactor
 func createK8sClient() (client.Client, error) {
-	var k8sConfig *rest.Config
-	var err error
-
-	kubeconfigPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
-	if _, err := os.Stat(kubeconfigPath); err == nil {
-		k8sConfig, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
-	} else {
-		k8sConfig, err = clientcmd.BuildConfigFromFlags("", "")
-	}
+	k8sConfig, err := common.K8sClientConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +37,7 @@ func createK8sClient() (client.Client, error) {
 }
 
 func main() {
-	logger, err := newLogger(zapcore.InfoLevel)
+	logger, err := common.NewLogger(zapcore.InfoLevel)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +57,7 @@ func main() {
 		{
 			Name: "complete-run",
 			Action: func(c *cli.Context) error {
-				var rce eventing.RunCompletionEvent
+				var rce common.RunCompletionEvent
 
 				contents, err := os.ReadFile(c.GlobalString(EventingConstants.RunCompletionEventParameter))
 				if err != nil {
@@ -110,7 +74,7 @@ func main() {
 					return err
 				}
 
-				completer := eventing.RunCompleter{
+				completer := run_completer.RunCompleter{
 					k8sClient,
 				}
 				return completer.CompleteRun(ctx, rce)

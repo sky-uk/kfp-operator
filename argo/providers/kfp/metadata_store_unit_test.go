@@ -10,7 +10,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/eventing"
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -348,11 +347,11 @@ var _ = Context("gRPC Metadata Store", func() {
 				results, err := store.GetServingModelArtifact(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(ContainElements(
-					eventing.ServingModelArtifact{
+					common.ServingModelArtifact{
 						Name:     "first-model",
 						Location: firstArtifactLocation,
 					},
-					eventing.ServingModelArtifact{
+					common.ServingModelArtifact{
 						Name:     "second-model",
 						Location: secondArtifactLocation,
 					},

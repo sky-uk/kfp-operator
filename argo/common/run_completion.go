@@ -1,8 +1,4 @@
-package eventing
-
-import (
-	"github.com/sky-uk/kfp-operator/argo/common"
-)
+package common
 
 const RunCompletionEventName = "run-completion"
 
@@ -25,6 +21,6 @@ type RunCompletionEvent struct {
 	Status                RunCompletionStatus    `json:"status"`
 	PipelineName          string                 `json:"pipelineName"`
 	RunConfigurationName  string                 `json:"runConfigurationName,omitempty"`
-	RunName               common.NamespacedName  `json:"runName,omitempty"`
+	RunName               NamespacedName         `json:"runName,omitempty"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }

@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/go-logr/zapr"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"github.com/urfave/cli"
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
@@ -50,7 +49,7 @@ type ProviderApp[Config any] struct {
 }
 
 func NewProviderApp[Config any]() ProviderApp[Config] {
-	logger, err := newLogger(zapcore.InfoLevel)
+	logger, err := common.NewLogger(zapcore.InfoLevel)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -379,7 +378,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 				Required: true,
 			}},
 			Action: func(c *cli.Context) error {
-				logger := LoggerFromContext(providerApp.Context)
+				logger := common.LoggerFromContext(providerApp.Context)
 				providerConfig, err := providerApp.LoadProviderConfig(c)
 
 				lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", c.Int(ProviderConstants.EventsourceServerPortParameter)))
@@ -417,33 +416,13 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		LoggerFromContext(providerApp.Context).Error(err, "failed to run provider app")
+		common.LoggerFromContext(providerApp.Context).Error(err, "failed to run provider app")
 		os.Exit(1)
 	}
 }
 
-func LoggerFromContext(ctx context.Context) logr.Logger {
-	logger, err := logr.FromContext(ctx)
-	if err != nil {
-		return logr.Discard()
-	}
-
-	return logger
-}
-
-func newLogger(logLevel zapcore.Level) (logr.Logger, error) {
-	config := zap.NewProductionConfig()
-	config.Level.SetLevel(logLevel)
-	zapLogger, err := config.Build()
-	if err != nil {
-		return logr.Discard(), err
-	}
-
-	return zapr.NewLogger(zapLogger.Named("main")), nil
-}
-
 func logResult(ctx context.Context, resourceType string, operation string, id string, updatedId string, err error) {
-	logger := LoggerFromContext(ctx)
+	logger := common.LoggerFromContext(ctx)
 
 	var msg string
 	if err == nil {

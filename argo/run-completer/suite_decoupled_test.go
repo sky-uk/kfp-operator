@@ -1,7 +1,7 @@
 //go:build decoupled
 // +build decoupled
 
-package eventing
+package run_completer
 
 import (
 	"context"
@@ -74,12 +74,12 @@ func HasNotChanged() func(pipelinesv1.Run, pipelinesv1.Run) {
 
 var _ = Context("Run Completer", Serial, func() {
 	DescribeTable("updates Run on known states only",
-		func(status RunCompletionStatus, expectation func(pipelinesv1.Run, pipelinesv1.Run)) {
+		func(status common.RunCompletionStatus, expectation func(pipelinesv1.Run, pipelinesv1.Run)) {
 			ctx := context.Background()
 			run := pipelinesv1.RandomRun()
 			Expect(k8sClient.Create(ctx, run)).To(Succeed())
 
-			runCompletionEvent := RunCompletionEvent{Status: status, RunName: common.NamespacedName{
+			runCompletionEvent := common.RunCompletionEvent{Status: status, RunName: common.NamespacedName{
 				Name:      run.Name,
 				Namespace: run.Namespace,
 			}}
@@ -90,15 +90,15 @@ var _ = Context("Run Completer", Serial, func() {
 			Expect(k8sClient.Get(ctx, run.GetNamespacedName(), &fetchedRun)).To(Succeed())
 			expectation(*run, fetchedRun)
 		},
-		Entry("succeeded should succeed", RunCompletionStatuses.Succeeded, HasChangedTo(pipelinesv1.CompletionStates.Succeeded)),
-		Entry("failed should fail", RunCompletionStatuses.Failed, HasChangedTo(pipelinesv1.CompletionStates.Failed)),
-		Entry("unknown should not override", RunCompletionStatus(""), HasNotChanged()))
+		Entry("succeeded should succeed", common.RunCompletionStatuses.Succeeded, HasChangedTo(pipelinesv1.CompletionStates.Succeeded)),
+		Entry("failed should fail", common.RunCompletionStatuses.Failed, HasChangedTo(pipelinesv1.CompletionStates.Failed)),
+		Entry("unknown should not override", common.RunCompletionStatus(""), HasNotChanged()))
 
 	When("the run is not found", func() {
 		It("do nothing", func() {
 			ctx := context.Background()
 
-			runCompletionEvent := RunCompletionEvent{Status: RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
+			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
 				Name:      common.RandomString(),
 				Namespace: common.RandomString(),
 			}}
@@ -111,7 +111,7 @@ var _ = Context("Run Completer", Serial, func() {
 		It("errors", func() {
 			ctx := context.Background()
 
-			runCompletionEvent := RunCompletionEvent{Status: RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
+			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
 				Name:      common.RandomString(),
 				Namespace: common.RandomString(),
 			}}

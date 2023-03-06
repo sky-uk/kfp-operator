@@ -1,4 +1,4 @@
-module github.com/sky-uk/kfp-operator/argo/eventing
+module github.com/sky-uk/kfp-operator/argo/run-completer
 
 go 1.18
 

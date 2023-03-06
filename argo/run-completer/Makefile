@@ -17,7 +17,7 @@ test: unit-test decoupled-test
 ##@ Build
 
 build:
-	go build -o bin/eventing ./cmd
+	go build -o bin/run-completer ./cmd
 
 fmt: ## Run go fmt against code.
 	go fmt ./...

@@ -7,7 +7,7 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/argo/eventing"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -148,7 +148,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		es.Logger.V(1).Info("sending run completion event", "event", runCompletionEvent)
 		if err = stream.Send(&generic.Event{
-			Name:    eventing.RunCompletionEventName,
+			Name:    common.RunCompletionEventName,
 			Payload: jsonPayload,
 		}); err != nil {
 			es.Logger.Error(err, "failed to send event")
@@ -170,7 +170,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 	return nil
 }
 
-func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*eventing.RunCompletionEvent, error) {
+func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEvent, error) {
 	status, hasFinished := runCompletionStatus(workflow)
 
 	if !hasFinished {
@@ -201,7 +201,7 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 		return nil, err
 	}
 
-	return &eventing.RunCompletionEvent{
+	return &common.RunCompletionEvent{
 		Status:                status,
 		PipelineName:          pipelineName,
 		RunConfigurationName:  resourceReferences.RunConfigurationName,
@@ -210,12 +210,12 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 	}, nil
 }
 
-func runCompletionStatus(workflow *unstructured.Unstructured) (eventing.RunCompletionStatus, bool) {
+func runCompletionStatus(workflow *unstructured.Unstructured) (common.RunCompletionStatus, bool) {
 	switch workflow.GetLabels()[workflowPhaseLabel] {
 	case string(argo.WorkflowSucceeded):
-		return eventing.RunCompletionStatuses.Succeeded, true
+		return common.RunCompletionStatuses.Succeeded, true
 	case string(argo.WorkflowFailed), string(argo.WorkflowError):
-		return eventing.RunCompletionStatuses.Failed, true
+		return common.RunCompletionStatuses.Failed, true
 	default:
 		return "", false
 	}

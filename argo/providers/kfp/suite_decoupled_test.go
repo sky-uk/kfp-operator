@@ -13,7 +13,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/eventing"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
@@ -137,7 +136,7 @@ func furtherEvents(ctx context.Context, stream generic.Eventing_StartEventSource
 		return err
 	}
 
-	actualEvent := eventing.RunCompletionEvent{}
+	actualEvent := common.RunCompletionEvent{}
 	err = json.Unmarshal(event.Payload, &actualEvent)
 	if err != nil {
 		return err
@@ -218,16 +217,16 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(eventing.RunCompletionEventName))
+				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
-				expectedEvent := eventing.RunCompletionEvent{
-					Status:                eventing.RunCompletionStatuses.Succeeded,
+				expectedEvent := common.RunCompletionEvent{
+					Status:                common.RunCompletionStatuses.Succeeded,
 					PipelineName:          pipelineName,
 					RunConfigurationName:  resourceReferences.RunConfigurationName,
 					RunName:               resourceReferences.RunName,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
-				actualEvent := eventing.RunCompletionEvent{}
+				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -256,13 +255,13 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(eventing.RunCompletionEventName))
+				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
-				expectedEvent := eventing.RunCompletionEvent{
-					Status:       eventing.RunCompletionStatuses.Succeeded,
+				expectedEvent := common.RunCompletionEvent{
+					Status:       common.RunCompletionStatuses.Succeeded,
 					PipelineName: pipelineName,
 				}
-				actualEvent := eventing.RunCompletionEvent{}
+				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -291,13 +290,13 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(eventing.RunCompletionEventName))
+				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
-				expectedEvent := eventing.RunCompletionEvent{
-					Status:       eventing.RunCompletionStatuses.Failed,
+				expectedEvent := common.RunCompletionEvent{
+					Status:       common.RunCompletionStatuses.Failed,
 					PipelineName: pipelineName,
 				}
-				actualEvent := eventing.RunCompletionEvent{}
+				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -326,13 +325,13 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(eventing.RunCompletionEventName))
+				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
-				expectedEvent := eventing.RunCompletionEvent{
-					Status:       eventing.RunCompletionStatuses.Succeeded,
+				expectedEvent := common.RunCompletionEvent{
+					Status:       common.RunCompletionStatuses.Succeeded,
 					PipelineName: pipelineName,
 				}
-				actualEvent := eventing.RunCompletionEvent{}
+				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -378,14 +377,14 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(eventing.RunCompletionEventName))
+				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
-				expectedEvent := eventing.RunCompletionEvent{
-					Status:                eventing.RunCompletionStatuses.Succeeded,
+				expectedEvent := common.RunCompletionEvent{
+					Status:                common.RunCompletionStatuses.Succeeded,
 					PipelineName:          pipelineName,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
-				actualEvent := eventing.RunCompletionEvent{}
+				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))
@@ -417,15 +416,15 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				event, err := stream.Recv()
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(event.Name).To(Equal(eventing.RunCompletionEventName))
+				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
-				expectedEvent := eventing.RunCompletionEvent{
-					Status:               eventing.RunCompletionStatuses.Succeeded,
+				expectedEvent := common.RunCompletionEvent{
+					Status:               common.RunCompletionStatuses.Succeeded,
 					PipelineName:         pipelineName,
 					RunConfigurationName: resourceReferences.RunConfigurationName,
 					RunName:              resourceReferences.RunName,
 				}
-				actualEvent := eventing.RunCompletionEvent{}
+				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(actualEvent).To(Equal(expectedEvent))

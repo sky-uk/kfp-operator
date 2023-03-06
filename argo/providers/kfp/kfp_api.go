@@ -2,43 +2,16 @@ package kfp
 
 import (
 	"context"
-	"fmt"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"strings"
 )
 
 var kfpApiConstants = struct {
-	RunNameScheme               string
-	ResourceIdentifierDelimiter string
 	KfpResourceNotFoundCode     int32
 }{
-	RunNameScheme:               "pipelines.kubeflow.org/run-name",
-	ResourceIdentifierDelimiter: ":",
 	KfpResourceNotFoundCode:     5,
 }
 
-type ResourceIdentifier struct {
-	Scheme string
-	Path   string
-}
-
-func ResourceIdentifierFromString(input string) (ResourceIdentifier, error) {
-	splits := strings.Split(input, kfpApiConstants.ResourceIdentifierDelimiter)
-
-	if len(splits) < 2 || splits[0] == "" || splits[1] == "" {
-		return ResourceIdentifier{}, fmt.Errorf("identifier must be in the format 'scheme:path'")
-	}
-
-	return ResourceIdentifier{
-		Scheme: splits[0],
-		Path:   strings.Join(splits[1:], kfpApiConstants.ResourceIdentifierDelimiter),
-	}, nil
-}
-
-func (ri ResourceIdentifier) String() string {
-	return fmt.Sprintf("%s:%s", ri.Scheme, ri.Path)
-}
 
 type KfpApi interface {
 	GetResourceReferences(ctx context.Context, runId string) (ResourceReferences, error)

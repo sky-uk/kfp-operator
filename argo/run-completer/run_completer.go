@@ -1,18 +1,19 @@
-package eventing
+package run_completer
 
 import (
 	"context"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func completionStateForRunCompletionStatus(rcs RunCompletionStatus) *pipelinesv1.CompletionState {
+func completionStateForRunCompletionStatus(rcs common.RunCompletionStatus) *pipelinesv1.CompletionState {
 	switch rcs {
-	case RunCompletionStatuses.Succeeded:
+	case common.RunCompletionStatuses.Succeeded:
 		return &pipelinesv1.CompletionStates.Succeeded
-	case RunCompletionStatuses.Failed:
+	case common.RunCompletionStatuses.Failed:
 		return &pipelinesv1.CompletionStates.Failed
 	default:
 		return nil
@@ -23,7 +24,7 @@ type RunCompleter struct {
 	K8sClient client.Client
 }
 
-func (c *RunCompleter) CompleteRun(ctx context.Context, runCompletionEvent RunCompletionEvent) error {
+func (c *RunCompleter) CompleteRun(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
 	run := pipelinesv1.Run{}
 
 	if err := c.K8sClient.Get(ctx, types.NamespacedName{Namespace: runCompletionEvent.RunName.Namespace, Name: runCompletionEvent.RunName.Name}, &run); err != nil {
