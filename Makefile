@@ -81,6 +81,7 @@ unit-test: manifests generate ## Run unit tests
 test: fmt vet unit-test decoupled-test
 
 test-argo:
+	$(MAKE) -C argo/common test
 	$(MAKE) -C argo/run-completer test
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test

@@ -21,7 +21,6 @@ func NewFailingClient() client.Client {
 	}
 }
 
-
 func (f failingClient) Get(_ context.Context, _ client.ObjectKey, _ client.Object, _ ...client.GetOption) error {
 	return f.err
 }
@@ -65,5 +64,3 @@ func (f failingClient) Scheme() *runtime.Scheme {
 func (f failingClient) RESTMapper() meta.RESTMapper {
 	return nil
 }
-
-
