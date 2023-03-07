@@ -7,8 +7,8 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
-	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -148,7 +148,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		es.Logger.V(1).Info("sending run completion event", "event", runCompletionEvent)
 		if err = stream.Send(&generic.Event{
-			Name:    RunCompletionEventName,
+			Name:    common.RunCompletionEventName,
 			Payload: jsonPayload,
 		}); err != nil {
 			es.Logger.Error(err, "failed to send event")
@@ -170,7 +170,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 	return nil
 }
 
-func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*RunCompletionEvent, error) {
+func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEvent, error) {
 	status, hasFinished := runCompletionStatus(workflow)
 
 	if !hasFinished {
@@ -194,27 +194,28 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 	}
 
 	runId := workflow.GetLabels()[pipelineRunIdLabel]
-	runConfigurationName, err := es.KfpApi.GetRunConfiguration(ctx, runId)
+	resourceReferences, err := es.KfpApi.GetResourceReferences(ctx, runId)
 
 	if err != nil {
 		es.Logger.Error(err, "failed to retrieve RunConfiguration name")
 		return nil, err
 	}
 
-	return &RunCompletionEvent{
+	return &common.RunCompletionEvent{
 		Status:                status,
 		PipelineName:          pipelineName,
-		RunConfigurationName:  runConfigurationName,
+		RunConfigurationName:  resourceReferences.RunConfigurationName,
+		RunName:               resourceReferences.RunName,
 		ServingModelArtifacts: modelArtifacts,
 	}, nil
 }
 
-func runCompletionStatus(workflow *unstructured.Unstructured) (RunCompletionStatus, bool) {
+func runCompletionStatus(workflow *unstructured.Unstructured) (common.RunCompletionStatus, bool) {
 	switch workflow.GetLabels()[workflowPhaseLabel] {
 	case string(argo.WorkflowSucceeded):
-		return Succeeded, true
+		return common.RunCompletionStatuses.Succeeded, true
 	case string(argo.WorkflowFailed), string(argo.WorkflowError):
-		return Failed, true
+		return common.RunCompletionStatuses.Failed, true
 	default:
 		return "", false
 	}

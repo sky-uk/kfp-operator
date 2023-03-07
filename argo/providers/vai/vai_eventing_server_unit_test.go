@@ -7,7 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -36,7 +36,7 @@ var _ = Context("VaiEventingServer", func() {
 		mockPipelineJobClient = NewMockPipelineJobClient(mockCtrl)
 		eventingServer = VaiEventingServer{
 			PipelineJobClient: mockPipelineJobClient,
-			Logger: logr.Discard(),
+			Logger:            logr.Discard(),
 		}
 	})
 
@@ -45,7 +45,7 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEvent for job that has not completed", func(state aiplatformpb.PipelineState) {
-		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state})).To(BeNil())
+		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state}, common.RandomString())).To(BeNil())
 	},
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_UNSPECIFIED),
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_QUEUED),
@@ -215,7 +215,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(ConsistOf(base.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, base.ServingModelArtifact{Name: "a-model", Location: "gs://some/where/else"}))
+				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where/else"}))
 			})
 		})
 
@@ -244,7 +244,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(ConsistOf(base.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, base.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
+				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
 			})
 		})
 
@@ -277,19 +277,22 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(ConsistOf(base.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, base.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
+				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
 			})
 		})
 	})
 
-	DescribeTable("toRunCompletionEvent for job that has completed", func(pipelineState aiplatformpb.PipelineState, status base.RunCompletionStatus) {
-		runConfigurationName := base.RandomString()
-		pipelineName := base.RandomString()
+	DescribeTable("toRunCompletionEvent for job that has completed", func(pipelineState aiplatformpb.PipelineState, status common.RunCompletionStatus) {
+		runConfigurationName := common.RandomString()
+		pipelineName := common.RandomString()
+		pipelineRunName := common.RandomNamespacedName()
 
 		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{
+			Name: pipelineRunName.Name,
 			Labels: map[string]string{
 				labels.RunConfiguration: runConfigurationName,
 				labels.PipelineName:     pipelineName,
+				labels.Namespace:        pipelineRunName.Namespace,
 			},
 			State: pipelineState,
 			JobDetail: &aiplatformpb.PipelineJobDetail{
@@ -305,11 +308,12 @@ var _ = Context("VaiEventingServer", func() {
 					},
 				},
 			},
-		})).To(Equal(&base.RunCompletionEvent{
+		}, pipelineRunName.Name)).To(Equal(&common.RunCompletionEvent{
 			RunConfigurationName: runConfigurationName,
 			PipelineName:         pipelineName,
+			RunName:              pipelineRunName,
 			Status:               status,
-			ServingModelArtifacts: []base.ServingModelArtifact{
+			ServingModelArtifacts: []common.ServingModelArtifact{
 				{
 					Name:     "a-model",
 					Location: "gs://some/where",
@@ -317,16 +321,16 @@ var _ = Context("VaiEventingServer", func() {
 			},
 		}))
 	},
-		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED, base.Succeeded),
-		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_FAILED, base.Failed),
-		Entry("Pending", aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLED, base.Failed),
+		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED, common.RunCompletionStatuses.Succeeded),
+		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_FAILED, common.RunCompletionStatuses.Failed),
+		Entry("Pending", aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLED, common.RunCompletionStatuses.Failed),
 	)
 
 	Describe("runCompletionEventForRun", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("an error"))
-				event := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
+				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString())
 				Expect(event).To(BeNil())
 			})
 		})
@@ -334,7 +338,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob return no result", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, nil)
-				event := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
+				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString())
 				Expect(event).To(BeNil())
 			})
 		})
@@ -344,7 +348,7 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
 					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
 				}, nil)
-				event := eventingServer.runCompletionEventForRun(context.Background(), base.RandomString())
+				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString())
 				Expect(event).NotTo(BeNil())
 			})
 		})

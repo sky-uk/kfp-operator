@@ -1,7 +1,7 @@
 //go:build unit || decoupled
 // +build unit decoupled
 
-package base
+package common
 
 import "k8s.io/apimachinery/pkg/util/rand"
 
@@ -20,3 +20,11 @@ func RandomExceptOne() int64 {
 		return n
 	}
 }
+
+func RandomNamespacedName() NamespacedName {
+	return NamespacedName{
+		Name:      RandomString(),
+		Namespace: RandomString(),
+	}
+}
+

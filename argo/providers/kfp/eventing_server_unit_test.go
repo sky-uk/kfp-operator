@@ -11,7 +11,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	. "github.com/sky-uk/kfp-operator/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -38,9 +38,9 @@ func setPipelineNameInSpec(workflow *unstructured.Unstructured, pipelineName str
 var _ = Context("Eventing Server", func() {
 	Describe("jsonPatchPath", func() {
 		It("concatenates path segments", func() {
-			segment1 := RandomString()
-			segment2 := RandomString()
-			segment3 := RandomString()
+			segment1 := common.RandomString()
+			segment2 := common.RandomString()
+			segment3 := common.RandomString()
 
 			expectedPath := fmt.Sprintf("/%s/%s/%s", segment1, segment2, segment3)
 
@@ -48,8 +48,8 @@ var _ = Context("Eventing Server", func() {
 		})
 
 		It("escapes '/'", func() {
-			segment1 := RandomString()
-			segment2 := RandomString()
+			segment1 := common.RandomString()
+			segment2 := common.RandomString()
 
 			toBeEscaped := fmt.Sprintf("%s/%s", segment1, segment2)
 			escaped := fmt.Sprintf("/%s~1%s", segment1, segment2)
@@ -57,8 +57,8 @@ var _ = Context("Eventing Server", func() {
 		})
 
 		It("escapes '~'", func() {
-			segment1 := RandomString()
-			segment2 := RandomString()
+			segment1 := common.RandomString()
+			segment2 := common.RandomString()
 
 			toBeEscaped := fmt.Sprintf("%s~%s", segment1, segment2)
 			escaped := fmt.Sprintf("/%s~0%s", segment1, segment2)
@@ -87,16 +87,16 @@ var _ = Context("Eventing Server", func() {
 	)
 
 	DescribeTable("runCompletionStatus",
-		func(phase argo.WorkflowPhase, expectedStatus RunCompletionStatus) {
+		func(phase argo.WorkflowPhase, expectedStatus common.RunCompletionStatus) {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, phase)
 			status, hasFinished := runCompletionStatus(workflow)
 			Expect(status).To(Equal(expectedStatus))
 			Expect(hasFinished).To(Equal(true))
 		},
-		Entry("error", argo.WorkflowError, Failed),
-		Entry("failed", argo.WorkflowFailed, Failed),
-		Entry("succeeded", argo.WorkflowSucceeded, Succeeded),
+		Entry("error", argo.WorkflowError, common.RunCompletionStatuses.Failed),
+		Entry("failed", argo.WorkflowFailed, common.RunCompletionStatuses.Failed),
+		Entry("succeeded", argo.WorkflowSucceeded, common.RunCompletionStatuses.Succeeded),
 	)
 
 	Describe("getPipelineNameFromAnnotation", func() {
@@ -128,7 +128,7 @@ var _ = Context("Eventing Server", func() {
 		})
 
 		It("returns the pipeline's name when the workflow has a pipeline spec annotation with the pipeline name", func() {
-			pipelineName := RandomString()
+			pipelineName := common.RandomString()
 			workflow := &unstructured.Unstructured{}
 			setPipelineNameInSpec(workflow, pipelineName)
 
@@ -154,7 +154,7 @@ var _ = Context("Eventing Server", func() {
 		})
 
 		It("returns the pipeline's name when the workflow has an entrypoint'", func() {
-			pipelineName := RandomString()
+			pipelineName := common.RandomString()
 			workflow := &unstructured.Unstructured{}
 			setWorkflowEntryPoint(workflow, pipelineName)
 
@@ -163,8 +163,8 @@ var _ = Context("Eventing Server", func() {
 		})
 	})
 
-	pipelineName := RandomString()
-	entrypoint := RandomString()
+	pipelineName := common.RandomString()
+	entrypoint := common.RandomString()
 
 	DescribeTable("getPipelineName", func(annotationValue string, entrypoint string, expected string) {
 		workflow := &unstructured.Unstructured{}
@@ -209,7 +209,7 @@ var _ = Context("Eventing Server", func() {
 		It("errors when the artifact store errors", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
-			setPipelineNameInSpec(workflow, RandomString())
+			setPipelineNameInSpec(workflow, common.RandomString())
 
 			mockMetadataStore := MockMetadataStore{}
 
@@ -230,8 +230,8 @@ var _ = Context("Eventing Server", func() {
 	DescribeTable("eventForWorkflow", func(phase argo.WorkflowPhase) {
 		workflow := &unstructured.Unstructured{}
 		setWorkflowPhase(workflow, phase)
-		setPipelineNameInSpec(workflow, RandomString())
-		workflow.SetName(RandomString())
+		setPipelineNameInSpec(workflow, common.RandomString())
+		workflow.SetName(common.RandomString())
 
 		mockMetadataStore := MockMetadataStore{}
 		mockKfpApi := MockKfpApi{}
@@ -243,11 +243,12 @@ var _ = Context("Eventing Server", func() {
 		}
 
 		artifacts := mockMetadataStore.returnArtifactForPipeline()
-		runConfiguration := mockKfpApi.returnRunConfigurationForRun()
+		resourceReferences := mockKfpApi.returnResourceReferencesForRun()
 		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 
 		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
-		Expect(event.RunConfigurationName).To(Equal(runConfiguration))
+		Expect(event.RunConfigurationName).To(Equal(resourceReferences.RunConfigurationName))
+		Expect(event.RunName).To(Equal(resourceReferences.RunName))
 		Expect(err).NotTo(HaveOccurred())
 	},
 		Entry("workflow succeeded", argo.WorkflowSucceeded),

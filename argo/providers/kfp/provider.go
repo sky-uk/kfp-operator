@@ -12,20 +12,15 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client/run_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_model"
-	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
-	"github.com/sky-uk/kfp-operator/providers/kfp/ml_metadata"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	. "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 	"os"
-	"path/filepath"
 )
-
-const KfpResourceNotFoundCode = 5
 
 type KfpProviderConfig struct {
 	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
@@ -128,7 +123,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 
 	runResult, err := runService.CreateRun(&run_service.CreateRunParams{
 		Body: &run_model.APIRun{
-			Name: runDefinition.Name,
+			Name: runDefinition.Name.Name,
 			PipelineSpec: &run_model.APIPipelineSpec{
 				PipelineID: pipelineId,
 				Parameters: jobParameters,
@@ -147,6 +142,13 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 						ID:   pipelineVersionId,
 					},
 					Relationship: run_model.APIRelationshipCREATOR,
+				},
+				{
+					Key: &run_model.APIResourceKey{
+						Type: run_model.APIResourceTypeNAMESPACE,
+						ID:   runDefinition.Name.Namespace,
+					},
+					Relationship: run_model.APIRelationshipOWNER,
 				},
 			},
 		},
@@ -264,7 +266,7 @@ func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConf
 
 	if err != nil {
 		errorResult := err.(*job_service.DeleteJobDefault)
-		if errorResult.Payload.Code != KfpResourceNotFoundCode {
+		if errorResult.Payload.Code != kfpApiConstants.KfpResourceNotFoundCode {
 			return err
 		}
 	}
@@ -315,16 +317,7 @@ func (kfpp KfpProvider) DeleteExperiment(ctx context.Context, providerConfig Kfp
 }
 
 func createK8sClient() (dynamic.Interface, error) {
-	var k8sConfig *rest.Config
-	var err error
-
-	kubeconfigPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
-	if _, err := os.Stat(kubeconfigPath); err == nil {
-		k8sConfig, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
-	} else {
-		k8sConfig, err = clientcmd.BuildConfigFromFlags("", "")
-	}
-
+	k8sConfig, err := common.K8sClientConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -372,7 +365,7 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpPr
 
 	return &KfpEventingServer{
 		K8sClient:     k8sClient,
-		Logger:        LoggerFromContext(ctx),
+		Logger:        common.LoggerFromContext(ctx),
 		MetadataStore: metadataStore,
 		KfpApi:        kfpApi,
 	}, nil

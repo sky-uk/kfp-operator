@@ -1,5 +1,5 @@
-include ../../common.mk
-include get-proto.mk
+include ../../../common.mk
+include ../get-proto.mk
 IMG := kfp-operator-kfp-provider
 
 all: build
@@ -12,17 +12,17 @@ mockgen: ## Download mockgen locally if necessary.
 
 generate: protoc-gen-go mockgen ## Generate service definitions from protobuf
 	$(call get-proto,github.com/google/ml-metadata,v1.5.0)
-	protoc --go_out=. --go-grpc_out=kfp/ml_metadata \
+	protoc --go_out=. --go-grpc_out=ml_metadata \
 		-I $(PROTOPATH)/github.com/google/ml-metadata@v1.5.0/ \
-		--go_opt=Mml_metadata/proto/metadata_store_service.proto=/kfp/ml_metadata \
-		--go_opt=Mml_metadata/proto/metadata_store.proto=/kfp/ml_metadata \
-		--go_opt=Mml_metadata/proto/metadata_source.proto=/kfp/ml_metadata \
+		--go_opt=Mml_metadata/proto/metadata_store_service.proto=/ml_metadata \
+		--go_opt=Mml_metadata/proto/metadata_store.proto=/ml_metadata \
+		--go_opt=Mml_metadata/proto/metadata_source.proto=/ml_metadata \
 		--go-grpc_opt=module=ml_metadata/proto \
 		ml_metadata/proto/metadata_store_service.proto \
 		ml_metadata/proto/metadata_store.proto
 
-	$(MOCKGEN) -destination kfp/ml_metadata/metadata_store_service_grpc_mock.go -package=ml_metadata -source=kfp/ml_metadata/metadata_store_service_grpc.pb.go
-	$(MOCKGEN) -destination kfp/run_service_grpc_mock.go -package=kfp github.com/kubeflow/pipelines/backend/api/go_client RunServiceClient
+	$(MOCKGEN) -destination ml_metadata/metadata_store_service_grpc_mock.go -package=ml_metadata -source=ml_metadata/metadata_store_service_grpc.pb.go
+	$(MOCKGEN) -destination run_service_grpc_mock.go -package=kfp github.com/kubeflow/pipelines/backend/api/go_client RunServiceClient
 
 ##@ Development
 
@@ -37,9 +37,8 @@ test: unit-test decoupled-test
 ##@ Build
 
 build: generate
-	go build -o bin/provider ./kfp/cmd
+	go build -o bin/provider ./cmd
 
 ##@ Containers
 
-DOCKER_BUILD_EXTRA_PARAMS=-f kfp/Dockerfile
-include ../../docker-targets.mk
+include ../../../docker-targets.mk

@@ -54,14 +54,27 @@ func RandomRunConfigurationSpec() RunConfigurationSpec {
 	}
 }
 
+func RandomCompletionState() CompletionState {
+	completionStates := []CompletionState{
+		"",
+		"Succeeded",
+		"Failed",
+	}
+
+	return completionStates[rand.Intn(len(completionStates))]
+}
+
 func RandomRun() *Run {
 	return &Run{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec:   RandomRunSpec(),
-		Status: RandomStatus(),
+		Spec: RandomRunSpec(),
+		Status: RunStatus{
+			CompletionState: RandomCompletionState(),
+			Status:          RandomStatus(),
+		},
 	}
 }
 

@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"github.com/go-logr/logr"
 	"github.com/googleapis/gax-go/v2"
-	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	"gopkg.in/yaml.v2"
 )
@@ -68,7 +68,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		es.Logger.V(1).Info("sending run completion event", "event", event)
 		if err = stream.Send(&generic.Event{
-			Name:    RunCompletionEventName,
+			Name:    common.RunCompletionEventName,
 			Payload: jsonPayload,
 		}); err != nil {
 			es.Logger.Error(err, "failed to send event")
@@ -86,7 +86,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 	return nil
 }
 
-func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId string) *RunCompletionEvent {
+func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId string) *common.RunCompletionEvent {
 	job, err := es.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
 		Name: es.ProviderConfig.pipelineJobName(runId),
 	})
@@ -99,11 +99,11 @@ func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId
 		return nil
 	}
 
-	return toRunCompletionEvent(job)
+	return toRunCompletionEvent(job, runId)
 }
 
-func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []ServingModelArtifact {
-	var servingModelArtifacts []ServingModelArtifact
+func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.ServingModelArtifact {
+	var servingModelArtifacts []common.ServingModelArtifact
 	for _, task := range job.GetJobDetail().GetTaskDetails() {
 		for name, output := range task.GetOutputs() {
 			for _, artifact := range output.GetArtifacts() {
@@ -133,7 +133,7 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []ServingModelAr
 					continue
 				}
 
-				servingModelArtifacts = append(servingModelArtifacts, ServingModelArtifact{Name: name, Location: pushedDestination})
+				servingModelArtifacts = append(servingModelArtifacts, common.ServingModelArtifact{Name: name, Location: pushedDestination})
 			}
 		}
 	}
@@ -141,27 +141,30 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []ServingModelAr
 	return servingModelArtifacts
 }
 
-func toRunCompletionEvent(job *aiplatformpb.PipelineJob) *RunCompletionEvent {
+func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.RunCompletionEvent {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
 		return nil
 	}
 
-	return &RunCompletionEvent{
-		Status:                runCompletionStatus,
-		PipelineName:          job.Labels[labels.PipelineName],
-		RunConfigurationName:  job.Labels[labels.RunConfiguration],
+	return &common.RunCompletionEvent{
+		Status:               runCompletionStatus,
+		PipelineName:         job.Labels[labels.PipelineName],
+		RunConfigurationName: job.Labels[labels.RunConfiguration],
+		RunName: common.NamespacedName{
+			Name:      runId,
+			Namespace: job.Labels[labels.Namespace]},
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 	}
 }
 
-func runCompletionStatus(job *aiplatformpb.PipelineJob) (RunCompletionStatus, bool) {
+func runCompletionStatus(job *aiplatformpb.PipelineJob) (common.RunCompletionStatus, bool) {
 	switch job.State {
 	case aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED:
-		return Succeeded, true
+		return common.RunCompletionStatuses.Succeeded, true
 	case aiplatformpb.PipelineState_PIPELINE_STATE_FAILED, aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLED:
-		return Failed, true
+		return common.RunCompletionStatuses.Failed, true
 	default:
 		return "", false
 	}

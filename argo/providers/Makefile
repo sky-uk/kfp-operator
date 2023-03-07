@@ -11,8 +11,8 @@ base-test:
 	go test ./base/... -tags=unit
 
 test: base-test
-	$(MAKE) -f kfp.mk test
-	$(MAKE) -f vai.mk test
+	$(MAKE) -C kfp test
+	$(MAKE) -C vai test
 
 ##@ Build
 
@@ -24,11 +24,11 @@ generate: protoc-gen-go
 		--go-grpc_opt=module=eventsources/sources/generic \
 		eventsources/sources/generic/generic.proto
 
-	$(MAKE) -f kfp.mk generate
+	$(MAKE) -C kfp generate
 
 build: generate
-	$(MAKE) -f kfp.mk build
-	$(MAKE) -f vai.mk build
+	$(MAKE) -C kfp build
+	$(MAKE) -C vai build
 
 fmt: ## Run go fmt against code.
 	go fmt ./...
@@ -39,9 +39,9 @@ vet: ## Run go vet against code.
 ##@ Containers
 
 docker-build:
-	$(MAKE) -f kfp.mk docker-build
-	$(MAKE) -f vai.mk docker-build
+	$(MAKE) -C kfp docker-build
+	$(MAKE) -C vai docker-build
 
 docker-push:
-	$(MAKE) -f kfp.mk docker-push
-	$(MAKE) -f vai.mk docker-push
+	$(MAKE) -C kfp docker-push
+	$(MAKE) -C vai docker-push

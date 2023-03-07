@@ -1,8 +1,8 @@
 package main
 
 import (
-	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/stub"
+	. "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/providers/stub"
 )
 
 func main() {

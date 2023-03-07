@@ -1,4 +1,4 @@
-module github.com/sky-uk/kfp-operator/providers
+module github.com/sky-uk/kfp-operator/argo/providers
 
 go 1.18
 

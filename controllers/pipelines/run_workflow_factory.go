@@ -3,7 +3,8 @@ package pipelines
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
-	providers "github.com/sky-uk/kfp-operator/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type RunDefinitionCreator struct {
@@ -20,7 +21,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 	}
 
 	return providers.RunDefinition{
-		Name:              run.ObjectMeta.Name,
+		Name:              common.NamespacedName{Name: run.Name, Namespace: run.Namespace},
 		Version:           run.ComputeVersion(),
 		PipelineName:      run.Spec.Pipeline.Name,
 		PipelineVersion:   run.Spec.Pipeline.Version,

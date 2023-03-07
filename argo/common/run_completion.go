@@ -1,4 +1,4 @@
-package base
+package common
 
 const RunCompletionEventName = "run-completion"
 
@@ -9,14 +9,18 @@ type ServingModelArtifact struct {
 
 type RunCompletionStatus string
 
-const (
-	Succeeded RunCompletionStatus = "succeeded"
-	Failed    RunCompletionStatus = "failed"
-)
+var RunCompletionStatuses = struct {
+	Succeeded RunCompletionStatus
+	Failed    RunCompletionStatus
+}{
+	Succeeded: "succeeded",
+	Failed:    "failed",
+}
 
 type RunCompletionEvent struct {
 	Status                RunCompletionStatus    `json:"status"`
 	PipelineName          string                 `json:"pipelineName"`
 	RunConfigurationName  string                 `json:"runConfigurationName,omitempty"`
+	RunName               NamespacedName         `json:"runName,omitempty"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }

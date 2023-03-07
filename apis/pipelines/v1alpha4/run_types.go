@@ -28,8 +28,19 @@ func (r Run) ComputeVersion() string {
 	return fmt.Sprintf("%x", hash)
 }
 
+type CompletionState string
+
+var CompletionStates = struct {
+	Succeeded CompletionState
+	Failed    CompletionState
+}{
+	Succeeded: "Succeeded",
+	Failed:    "Failed",
+}
+
 type RunStatus struct {
-	Status `json:",inline"`
+	CompletionState CompletionState `json:"completionState,omitempty"`
+	Status          `json:",inline"`
 }
 
 //+kubebuilder:object:root=true
@@ -38,22 +49,23 @@ type RunStatus struct {
 //+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
+//+kubebuilder:printcolumn:name="CompletionState",type="string",JSONPath=".status.completionState"
 //+kubebuilder:storageversion
 
 type Run struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RunSpec `json:"spec,omitempty"`
-	Status Status  `json:"status,omitempty"`
+	Spec   RunSpec   `json:"spec,omitempty"`
+	Status RunStatus `json:"status,omitempty"`
 }
 
-func (rc *Run) GetStatus() Status {
-	return rc.Status
+func (r *Run) GetStatus() Status {
+	return r.Status.Status
 }
 
-func (rc *Run) SetStatus(status Status) {
-	rc.Status = status
+func (r *Run) SetStatus(status Status) {
+	r.Status.Status = status
 }
 
 func (r Run) GetNamespacedName() types.NamespacedName {

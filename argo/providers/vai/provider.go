@@ -11,8 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	. "github.com/sky-uk/kfp-operator/providers/base"
-	"github.com/sky-uk/kfp-operator/providers/base/generic"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	. "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
@@ -29,10 +30,12 @@ var labels = struct {
 	RunConfiguration string
 	PipelineName     string
 	PipelineVersion  string
+	Namespace        string
 }{
 	RunConfiguration: "run-configuration",
 	PipelineName:     "pipeline-name",
 	PipelineVersion:  "pipeline-version",
+	Namespace:        "namespace",
 }
 
 type VAIRun struct {
@@ -43,10 +46,11 @@ type VAIRun struct {
 }
 
 type RunIntent struct {
-	RunConfigurationName string            `json:"runConfigurationName,omitempty"`
-	PipelineName         string            `json:"pipelineName"`
-	PipelineVersion      string            `json:"pipelineVersion"`
-	RuntimeParameters    map[string]string `json:"runtimeParameters,omitempty"`
+	RunConfigurationName string                `json:"runConfigurationName,omitempty"`
+	RunName              common.NamespacedName `json:"runName,omitempty"`
+	PipelineName         string                `json:"pipelineName"`
+	PipelineVersion      string                `json:"pipelineVersion"`
+	RuntimeParameters    map[string]string     `json:"runtimeParameters,omitempty"`
 }
 
 type VAIProviderConfig struct {
@@ -211,6 +215,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		PipelineName:      runDefinition.PipelineName,
 		PipelineVersion:   runDefinition.PipelineVersion,
 		RuntimeParameters: runDefinition.RuntimeParameters,
+		RunName:           runDefinition.Name,
 	})
 }
 
@@ -306,15 +311,18 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	runLabels := map[string]string{
 		labels.PipelineName:    runIntent.PipelineName,
 		labels.PipelineVersion: runIntent.PipelineVersion,
+		labels.Namespace:       runIntent.RunName.Namespace,
 	}
 
 	var runId string
 
-	if runIntent.RunConfigurationName != "" {
-		runId = fmt.Sprintf("rc-%s-%s", runIntent.RunConfigurationName, uuid.New().String())
+	if runIntent.RunName.Name != "" {
+		runId = fmt.Sprintf(runIntent.RunName.Name)
+	} else if runIntent.RunConfigurationName != "" {
+		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName, uuid.New().String())
 		runLabels[labels.RunConfiguration] = runIntent.RunConfigurationName
 	} else {
-		runId = fmt.Sprintf("run-%s", uuid.New().String())
+		runId = fmt.Sprintf("%s", uuid.New().String())
 	}
 
 	vaiRun := VAIRun{
@@ -448,6 +456,6 @@ func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIPr
 		ProviderConfig:    providerConfig,
 		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,
-		Logger:            LoggerFromContext(ctx),
+		Logger:            common.LoggerFromContext(ctx),
 	}, nil
 }
