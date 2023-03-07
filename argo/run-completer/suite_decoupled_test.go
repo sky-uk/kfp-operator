@@ -116,8 +116,9 @@ var _ = Context("Run Completer", Serial, func() {
 				Namespace: common.RandomString(),
 			}}
 
-			testEnv.Stop()
-			Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).NotTo(Succeed())
+			Expect((&RunCompleter{
+				NewFailingClient(),
+			}).CompleteRun(ctx, runCompletionEvent)).NotTo(Succeed())
 		})
 	})
 })
