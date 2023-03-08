@@ -48,6 +48,16 @@ func (testCtx ResourceTestHelper[R]) Update(updateFunc func(R)) error {
 	return k8sClient.Update(ctx, testCtx.Resource)
 }
 
+func (testCtx ResourceTestHelper[R]) UpdateStatus(updateFunc func(R)) error {
+	if err := k8sClient.Get(ctx, testCtx.Resource.GetNamespacedName(), testCtx.Resource); err != nil {
+		return err
+	}
+
+	updateFunc(testCtx.Resource)
+
+	return k8sClient.Status().Update(ctx, testCtx.Resource)
+}
+
 func (testCtx ResourceTestHelper[R]) Delete() error {
 	if err := k8sClient.Get(ctx, testCtx.Resource.GetNamespacedName(), testCtx.Resource); err != nil {
 		return err

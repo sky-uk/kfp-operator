@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -41,6 +42,11 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	logger.V(3).Info("found run", "resource", run)
 
+	result, err := r.handleCompletion(run)
+	if err != nil {
+		return result, err
+	}
+
 	desiredProvider := r.desiredProvider(run)
 
 	commands := r.StateHandler.StateTransition(ctx, desiredProvider, run)
@@ -48,14 +54,43 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, run); err != nil {
 			logger.Error(err, "error executing command", LogKeys.Command, commands[i])
-			return ctrl.Result{}, err
+			return result, err
 		}
 	}
 
 	duration := time.Now().Sub(startTime)
 	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
 
-	return ctrl.Result{}, nil
+	return result, nil
+}
+
+func (r *RunReconciler) handleCompletion(run *pipelinesv1.Run) (ctrl.Result, error) {
+	if err := r.markCompletedIfCompleted(ctx, run); err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if  r.Config.RunCompletionTTL == nil || run.Status.MarkedCompletedAt == nil || run.DeletionTimestamp != nil {
+		return ctrl.Result{}, nil
+	}
+
+	ttlExpiry := run.Status.MarkedCompletedAt.Time.Add(r.Config.RunCompletionTTL.Duration)
+
+	if time.Now().After(ttlExpiry) {
+		err := r.EC.Client.Delete(ctx, run)
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{RequeueAfter: time.Until(ttlExpiry)}, nil
+}
+
+func (r *RunReconciler) markCompletedIfCompleted(ctx context.Context, run *pipelinesv1.Run) error {
+	if run.Status.CompletionState != "" && run.Status.MarkedCompletedAt == nil {
+		now := metav1.Now()
+		run.Status.MarkedCompletedAt = &now
+		return r.EC.Client.Status().Update(ctx, run)
+	}
+
+	return nil
 }
 
 func (r *RunReconciler) reconciliationRequestsWorkflow(workflow client.Object) []reconcile.Request {

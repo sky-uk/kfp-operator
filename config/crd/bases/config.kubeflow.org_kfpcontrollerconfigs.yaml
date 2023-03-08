@@ -575,6 +575,8 @@ spec:
                 type: boolean
               pipelineStorage:
                 type: string
+              runCompletionTTL:
+                type: string
               workflowNamespace:
                 type: string
               workflowTemplatePrefix:

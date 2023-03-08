@@ -39,8 +39,9 @@ var CompletionStates = struct {
 }
 
 type RunStatus struct {
-	CompletionState CompletionState `json:"completionState,omitempty"`
-	Status          `json:",inline"`
+	CompletionState   CompletionState `json:"completionState,omitempty"`
+	MarkedCompletedAt *metav1.Time    `json:"markedCompletedAt,omitempty"`
+	Status            `json:",inline"`
 }
 
 //+kubebuilder:object:root=true

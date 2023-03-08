@@ -12,6 +12,7 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/external"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -19,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"testing"
+	"time"
 )
 
 func TestPipelineControllersDecoupledSuite(t *testing.T) {
@@ -88,6 +90,7 @@ var _ = BeforeSuite(func() {
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
 		DefaultProvider:   apis.RandomString(),
+		RunCompletionTTL: &metav1.Duration{Duration: time.Minute},
 	}
 
 	Expect(NewTestPipelineReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
