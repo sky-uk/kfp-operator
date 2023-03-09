@@ -72,7 +72,7 @@ func RandomRun() *Run {
 		},
 		Spec: RandomRunSpec(),
 		Status: RunStatus{
-			Status:          RandomStatus(),
+			Status: RandomStatus(),
 		},
 	}
 }

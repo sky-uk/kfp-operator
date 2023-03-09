@@ -42,7 +42,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	logger.V(3).Info("found run", "resource", run)
 
-	result, err := r.handleCompletion(run)
+	result, err := r.handleCompletion(ctx, run)
 	if err != nil {
 		return result, err
 	}
@@ -64,12 +64,12 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	return result, nil
 }
 
-func (r *RunReconciler) handleCompletion(run *pipelinesv1.Run) (ctrl.Result, error) {
+func (r *RunReconciler) handleCompletion(ctx context.Context, run *pipelinesv1.Run) (ctrl.Result, error) {
 	if err := r.markCompletedIfCompleted(ctx, run); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if  r.Config.RunCompletionTTL == nil || run.Status.MarkedCompletedAt == nil || run.DeletionTimestamp != nil {
+	if r.Config.RunCompletionTTL == nil || run.Status.MarkedCompletedAt == nil || run.DeletionTimestamp != nil {
 		return ctrl.Result{}, nil
 	}
 

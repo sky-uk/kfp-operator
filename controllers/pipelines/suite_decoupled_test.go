@@ -90,7 +90,7 @@ var _ = BeforeSuite(func() {
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
 		DefaultProvider:   apis.RandomString(),
-		RunCompletionTTL: &metav1.Duration{Duration: time.Minute},
+		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 	}
 
 	Expect(NewTestPipelineReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())

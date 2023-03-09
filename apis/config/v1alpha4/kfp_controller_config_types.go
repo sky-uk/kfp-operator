@@ -21,7 +21,7 @@ type Configuration struct {
 
 	DefaultExperiment string `json:"defaultExperiment,omitempty"`
 
-	RunCompletionTTL *metav1.Duration `json:"runCompletionTTL,omitempty""`
+	RunCompletionTTL *metav1.Duration `json:"runCompletionTTL,omitempty"`
 }
 
 //+kubebuilder:object:root=true
