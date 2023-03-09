@@ -20,6 +20,8 @@ type Configuration struct {
 	DefaultBeamArgs []apis.NamedValue `json:"defaultBeamArgs,omitempty"`
 
 	DefaultExperiment string `json:"defaultExperiment,omitempty"`
+
+	RunCompletionTTL *metav1.Duration `json:"runCompletionTTL,omitempty"`
 }
 
 //+kubebuilder:object:root=true

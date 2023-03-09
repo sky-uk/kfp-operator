@@ -7,6 +7,7 @@ package v1alpha4
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -17,6 +18,11 @@ func (in *Configuration) DeepCopyInto(out *Configuration) {
 		in, out := &in.DefaultBeamArgs, &out.DefaultBeamArgs
 		*out = make([]apis.NamedValue, len(*in))
 		copy(*out, *in)
+	}
+	if in.RunCompletionTTL != nil {
+		in, out := &in.RunCompletionTTL, &out.RunCompletionTTL
+		*out = new(v1.Duration)
+		**out = **in
 	}
 }
 

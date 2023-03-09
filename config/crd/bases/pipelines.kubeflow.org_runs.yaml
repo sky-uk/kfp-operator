@@ -71,6 +71,9 @@ spec:
             properties:
               completionState:
                 type: string
+              markedCompletedAt:
+                format: date-time
+                type: string
               observedGeneration:
                 format: int64
                 type: integer
