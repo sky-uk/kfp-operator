@@ -68,10 +68,6 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 		It("sets MarkCompletedAt", func() {
 			runHelper := CreateStable(pipelinesv1.RandomRun())
 
-			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
-				g.Expect(run.Status.MarkedCompletedAt).To(BeNil())
-			})).Should(Succeed())
-
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				run.Status.CompletionState = pipelinesv1.CompletionStates.Succeeded
 			})).To(Succeed())

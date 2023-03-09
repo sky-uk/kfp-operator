@@ -72,7 +72,6 @@ func RandomRun() *Run {
 		},
 		Spec: RandomRunSpec(),
 		Status: RunStatus{
-			CompletionState: RandomCompletionState(),
 			Status:          RandomStatus(),
 		},
 	}
