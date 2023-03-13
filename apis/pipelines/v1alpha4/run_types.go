@@ -19,6 +19,7 @@ func (r Run) ComputeHash() []byte {
 	oh.WriteStringField(r.Spec.Pipeline.String())
 	oh.WriteStringField(r.Spec.ExperimentName)
 	oh.WriteNamedValueListField(r.Spec.RuntimeParameters)
+	oh.WriteStringField(r.Status.ObservedPipelineVersion)
 	return oh.Sum()
 }
 
@@ -39,9 +40,10 @@ var CompletionStates = struct {
 }
 
 type RunStatus struct {
-	CompletionState   CompletionState `json:"completionState,omitempty"`
-	MarkedCompletedAt *metav1.Time    `json:"markedCompletedAt,omitempty"`
-	Status            `json:",inline"`
+	Status                  `json:",inline"`
+	ObservedPipelineVersion string          `json:"observedPipelineVersion,omitempty"`
+	CompletionState         CompletionState `json:"completionState,omitempty"`
+	MarkedCompletedAt       *metav1.Time    `json:"markedCompletedAt,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -59,6 +61,14 @@ type Run struct {
 
 	Spec   RunSpec   `json:"spec,omitempty"`
 	Status RunStatus `json:"status,omitempty"`
+}
+
+func (r *Run) GetObservedPipelineVersion() string {
+	return r.Status.ObservedPipelineVersion
+}
+
+func (r *Run) SetObservedPipelineVersion(newVersion string) {
+	r.Status.ObservedPipelineVersion = newVersion
 }
 
 func (r *Run) GetStatus() Status {

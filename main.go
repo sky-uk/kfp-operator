@@ -124,12 +124,14 @@ func main() {
 
 	runWorkflowFactory := pipelinescontrollers.RunWorkflowFactory(ctrlConfig.Workflows)
 	if err = (&pipelinescontrollers.RunReconciler{
-		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Run]{
-			Config: ctrlConfig.Workflows,
-			EC:     ec,
-			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Run]{
-				WorkflowFactory:    &runWorkflowFactory,
-				WorkflowRepository: workflowRepository,
+		DependingOnPipelineReconciler: pipelinescontrollers.DependingOnPipelineReconciler[*pipelinesv1.Run]{
+			BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.Run]{
+				Config: ctrlConfig.Workflows,
+				EC:     ec,
+				StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.Run]{
+					WorkflowFactory:    &runWorkflowFactory,
+					WorkflowRepository: workflowRepository,
+				},
 			},
 		},
 	}).SetupWithManager(mgr); err != nil {
@@ -139,12 +141,14 @@ func main() {
 
 	runConfigurationWorkflowFactory := pipelinescontrollers.RunConfigurationWorkflowFactory(ctrlConfig.Workflows)
 	if err = (&pipelinescontrollers.RunConfigurationReconciler{
-		BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.RunConfiguration]{
-			Config: ctrlConfig.Workflows,
-			EC:     ec,
-			StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.RunConfiguration]{
-				WorkflowFactory:    &runConfigurationWorkflowFactory,
-				WorkflowRepository: workflowRepository,
+		DependingOnPipelineReconciler: pipelinescontrollers.DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
+			BaseReconciler: pipelinescontrollers.BaseReconciler[*pipelinesv1.RunConfiguration]{
+				Config: ctrlConfig.Workflows,
+				EC:     ec,
+				StateHandler: pipelinescontrollers.StateHandler[*pipelinesv1.RunConfiguration]{
+					WorkflowFactory:    &runConfigurationWorkflowFactory,
+					WorkflowRepository: workflowRepository,
+				},
 			},
 		},
 	}).SetupWithManager(mgr); err != nil {

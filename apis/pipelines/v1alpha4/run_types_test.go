@@ -13,50 +13,60 @@ var _ = Context("Run", func() {
 	var _ = Describe("ComputeHash", func() {
 
 		Specify("Pipeline should change the hash", func() {
-			rcs := Run{}
-			hash1 := rcs.ComputeHash()
+			run := Run{}
+			hash1 := run.ComputeHash()
 
-			rcs.Spec.Pipeline = PipelineIdentifier{Name: "notempty"}
-			hash2 := rcs.ComputeHash()
+			run.Spec.Pipeline = PipelineIdentifier{Name: "notempty"}
+			hash2 := run.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("ExperimentName should change the hash", func() {
-			rcs := Run{}
-			hash1 := rcs.ComputeHash()
+			run := Run{}
+			hash1 := run.ComputeHash()
 
-			rcs.Spec.ExperimentName = "notempty"
-			hash2 := rcs.ComputeHash()
+			run.Spec.ExperimentName = "notempty"
+			hash2 := run.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
+		Specify("ObservedPipelineVersion should change the hash", func() {
+			run := Run{}
+			hash1 := run.ComputeHash()
+
+			run.Status.ObservedPipelineVersion = "notempty"
+			hash2 := run.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("All RuntimeParameters keys should change the hash", func() {
-			rcs := Run{}
-			hash1 := rcs.ComputeHash()
+			run := Run{}
+			hash1 := run.ComputeHash()
 
-			rcs.Spec.RuntimeParameters = []apis.NamedValue{
+			run.Spec.RuntimeParameters = []apis.NamedValue{
 				{Name: "a", Value: ""},
 			}
-			hash2 := rcs.ComputeHash()
+			hash2 := run.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			rcs.Spec.RuntimeParameters = []apis.NamedValue{
+			run.Spec.RuntimeParameters = []apis.NamedValue{
 				{Name: "b", Value: "notempty"},
 			}
-			hash3 := rcs.ComputeHash()
+			hash3 := run.ComputeHash()
 
 			Expect(hash2).NotTo(Equal(hash3))
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			rcs := RandomRun()
-			expected := rcs.DeepCopy()
-			rcs.ComputeHash()
+			run := RandomRun()
+			expected := run.DeepCopy()
+			run.ComputeHash()
 
-			Expect(rcs).To(Equal(expected))
+			Expect(run).To(Equal(expected))
 		})
 	})
 

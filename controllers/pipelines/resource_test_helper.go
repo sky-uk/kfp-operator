@@ -82,10 +82,10 @@ func (testCtx ResourceTestHelper[R]) UpdateStable(updateFunc func(resource R)) {
 		g.Expect(resource.GetStatus().SynchronizationState).To(Equal(apis.Updating))
 	})).Should(Succeed())
 
-	testCtx.UpdateToStableStatus()
+	testCtx.UpdateToSucceeded()
 }
 
-func (testCtx ResourceTestHelper[R]) UpdateToStableStatus() {
+func (testCtx ResourceTestHelper[R]) UpdateToSucceeded() {
 	Expect(k8sClient.Get(ctx, testCtx.Resource.GetNamespacedName(), testCtx.Resource)).To(Succeed())
 
 	testCtx.Resource.SetStatus(pipelinesv1.Status{
@@ -104,13 +104,18 @@ func (testCtx ResourceTestHelper[R]) UpdateToStableStatus() {
 	})).Should(Succeed())
 }
 
+func CreateSucceeded[R pipelinesv1.Resource](resource R) ResourceTestHelper[R] {
+	testCtx := CreateStable(resource)
+	testCtx.UpdateToSucceeded()
+
+	return testCtx
+}
+
 func CreateStable[R pipelinesv1.Resource](resource R) ResourceTestHelper[R] {
 	testCtx := Create(resource)
 	Eventually(testCtx.ToMatch(func(g Gomega, resource R) {
 		g.Expect(resource.GetStatus().SynchronizationState).To(Equal(apis.Creating))
 	})).Should(Succeed())
-
-	testCtx.UpdateToStableStatus()
 
 	return testCtx
 }

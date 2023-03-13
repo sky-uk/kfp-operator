@@ -66,7 +66,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("the completion state is set", func() {
 		It("sets MarkCompletedAt", func() {
-			runHelper := CreateStable(pipelinesv1.RandomRun())
+			runHelper := CreateSucceeded(pipelinesv1.RandomRun())
 
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				run.Status.CompletionState = pipelinesv1.CompletionStates.Succeeded
@@ -80,7 +80,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("MarkCompletedAt is set and the TTL has passed", func() {
 		It("deletes the resource", func() {
-			runHelper := CreateStable(pipelinesv1.RandomRun())
+			runHelper := CreateSucceeded(pipelinesv1.RandomRun())
 
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				// time.Sub does not exist for Durations
@@ -89,6 +89,71 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Deleting))
+			})).Should(Succeed())
+		})
+	})
+
+	When("The pipeline version is fixed", func() {
+		It("triggers a create with an ObservedPipelineVersion that matches the fixed version", func() {
+			run := pipelinesv1.RandomRun()
+			pipelineVersion := apis.RandomString()
+			run.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
+
+			runHelper := Create(run)
+
+			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
+				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
+				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+			})).Should(Succeed())
+		})
+	})
+
+	When("The pipeline version is not fixed and the pipeline has succeeded", func() {
+		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
+			pipeline := pipelinesv1.RandomPipeline()
+			CreateSucceeded(pipeline)
+
+			run := pipelinesv1.RandomRun()
+			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
+			runHelper := Create(run)
+
+			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
+				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
+				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipeline.Status.Version))
+			})).Should(Succeed())
+		})
+	})
+
+	When("The pipeline version is not fixed and the pipeline has not succeeded", func() {
+		It("fails the run with an empty ObservedPipelineVersion", func() {
+			pipeline := pipelinesv1.RandomPipeline()
+			CreateStable(pipeline)
+
+			run := pipelinesv1.RandomRun()
+			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
+			runHelper := Create(run)
+
+			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
+				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Failed))
+				g.Expect(run.Status.ObservedPipelineVersion).To(BeEmpty())
+			})).Should(Succeed())
+		})
+	})
+
+	When("The pipeline version is not fixed and the pipeline succeeds", func() {
+		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
+			pipeline := pipelinesv1.RandomPipeline()
+			pipelineHelper := CreateStable(pipeline)
+
+			run := pipelinesv1.RandomRun()
+			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
+			runHelper := Create(run)
+
+			pipelineHelper.UpdateToSucceeded()
+
+			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
+				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
+				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipeline.Status.Version))
 			})).Should(Succeed())
 		})
 	})

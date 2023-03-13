@@ -79,6 +79,8 @@ spec:
                 type: integer
               providerId:
                 type: string
+              observedPipelineVersion:
+                type: string
               synchronizationState:
                 type: string
               version:
