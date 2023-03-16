@@ -13,6 +13,7 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | `multiversion`      | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                                               | `true`                                                 |
 | `pipelineStorage`   | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline | `gcs://kubeflow-pipelines-bucket`                      |
 | `workflowNamespace` | Namespace where operator Argo workflows should be running - defaults to the operator's namespace                                                                                                                                   | `kfp-operator-workflows`                               |
+| `runCompletionTTL`  | Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)                      | `10m`                                                  |
 
 An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml).
 
