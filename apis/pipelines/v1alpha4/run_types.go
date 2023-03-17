@@ -63,6 +63,10 @@ type Run struct {
 	Status RunStatus `json:"status,omitempty"`
 }
 
+func (r *Run) GetPipeline() PipelineIdentifier {
+	return r.Spec.Pipeline
+}
+
 func (r *Run) GetObservedPipelineVersion() string {
 	return r.Status.ObservedPipelineVersion
 }

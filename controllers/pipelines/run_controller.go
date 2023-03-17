@@ -129,10 +129,7 @@ func (r *RunReconciler) reconciliationRequestsWorkflow(workflow client.Object) [
 }
 
 func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &pipelinesv1.Run{}, pipelineRefField, func(rawObj client.Object) []string {
-		run := rawObj.(*pipelinesv1.Run)
-		return []string{run.Spec.Pipeline.Name}
-	}); err != nil {
+	if err := r.setupIndexer(mgr, &pipelinesv1.Run{}); err != nil {
 		return err
 	}
 

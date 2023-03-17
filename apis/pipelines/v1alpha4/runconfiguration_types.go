@@ -52,6 +52,10 @@ type RunConfiguration struct {
 	Status RunConfigurationStatus `json:"status,omitempty"`
 }
 
+func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {
+	return rc.Spec.Pipeline
+}
+
 func (rc *RunConfiguration) GetObservedPipelineVersion() string {
 	return rc.Status.ObservedPipelineVersion
 }
