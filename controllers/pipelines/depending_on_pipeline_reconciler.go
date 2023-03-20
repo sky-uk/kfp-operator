@@ -15,7 +15,15 @@ const (
 	pipelineRefField = ".spec.pipeline"
 )
 
-type DependingOnPipelineReconciler[R pipelinesv1.DependingOnPipelineResource] struct {
+type DependingOnPipelineResource interface {
+	pipelinesv1.Resource
+	GetPipeline() pipelinesv1.PipelineIdentifier
+	GetObservedPipelineVersion() string
+	SetObservedPipelineVersion(string)
+}
+
+
+type DependingOnPipelineReconciler[R DependingOnPipelineResource] struct {
 	BaseReconciler[R]
 }
 
