@@ -83,14 +83,14 @@ func (r *Run) SetStatus(status Status) {
 	r.Status.Status = status
 }
 
-func (r Run) GetNamespacedName() types.NamespacedName {
+func (r *Run) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      r.Name,
 		Namespace: r.Namespace,
 	}
 }
 
-func (r Run) GetKind() string {
+func (r *Run) GetKind() string {
 	return "run"
 }
 

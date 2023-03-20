@@ -22,17 +22,17 @@ var _ = Describe("DependingOnPipelineReconciler", func() {
 		}
 	}
 
-	DescribeTable("dependentPipelineVersionIfSucceeded", func(pipeline *pipelinesv1.Pipeline, expectedSetVersion bool, expectedVersion string) {
-		setVersion, version := dependentPipelineVersionIfSucceeded(pipeline)
-		Expect(setVersion).To(Equal(expectedSetVersion))
+	DescribeTable("dependentPipelineVersionIfSucceeded", func(pipeline *pipelinesv1.Pipeline, expectedVersion string, expectedSetVersion bool) {
+		version, setVersion := dependentPipelineVersionIfSucceeded(pipeline)
 		Expect(version).To(Equal(version))
+		Expect(setVersion).To(Equal(expectedSetVersion))
 	},
-		Entry(nil, pipelineInState(apis.Succeeded), true, version),
-		Entry(nil, pipelineInState(apis.Deleted), true, ""),
-		Entry(nil, nil, true, ""),
-		Entry(nil, pipelineInState(apis.Creating), false, ""),
-		Entry(nil, pipelineInState(apis.Updating), false, ""),
-		Entry(nil, pipelineInState(apis.Deleting), false, ""),
-		Entry(nil, pipelineInState(apis.Failed), false, ""),
+		Entry(nil, pipelineInState(apis.Succeeded), version, true),
+		Entry(nil, pipelineInState(apis.Deleted), "", true),
+		Entry(nil, nil, "", true),
+		Entry(nil, pipelineInState(apis.Creating), "", false),
+		Entry(nil, pipelineInState(apis.Updating), "", false),
+		Entry(nil, pipelineInState(apis.Deleting), "", false),
+		Entry(nil, pipelineInState(apis.Failed), "", false),
 	)
 })

@@ -2,15 +2,10 @@ package pipelines
 
 import (
 	"context"
-	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
@@ -50,8 +45,9 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	desiredProvider := r.desiredProvider(run)
 
+	// Never change after being set
 	if run.Status.ObservedPipelineVersion == "" {
-		if err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); err != nil {
+		if hasChanged, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
 	}
@@ -124,25 +120,11 @@ func (r *RunReconciler) reconciliationRequestsForPipeline(pipeline client.Object
 	return requests
 }
 
-func (r *RunReconciler) reconciliationRequestsWorkflow(workflow client.Object) []reconcile.Request {
-	return r.BaseReconciler.reconciliationRequestsWorkflow(workflow, &pipelinesv1.Run{})
-}
-
 func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := r.setupIndexer(mgr, &pipelinesv1.Run{}); err != nil {
+	controllerBuilder, err := r.setupWithManager(mgr, &pipelinesv1.Run{}, r.reconciliationRequestsForPipeline)
+	if err != nil {
 		return err
 	}
 
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&pipelinesv1.Run{}).
-		Watches(
-			&source.Kind{Type: &pipelinesv1.Pipeline{}},
-			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsForPipeline),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
-		Watches(&source.Kind{Type: &argo.Workflow{}},
-			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsWorkflow),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
-		Complete(r)
+	return controllerBuilder.Complete(r)
 }

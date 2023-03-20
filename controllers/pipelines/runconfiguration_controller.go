@@ -4,19 +4,13 @@ import (
 	"context"
 	"time"
 
-	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 )
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
@@ -45,7 +39,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	desiredProvider := r.desiredProvider(runConfiguration)
 
-	if err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Pipeline, runConfiguration); err != nil {
+	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Pipeline, runConfiguration); hasChanged || err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -88,25 +82,11 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 	return requests
 }
 
-func (r *RunConfigurationReconciler) reconciliationRequestsWorkflow(workflow client.Object) []reconcile.Request {
-	return r.BaseReconciler.reconciliationRequestsWorkflow(workflow, &pipelinesv1.RunConfiguration{})
-}
-
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := r.setupIndexer(mgr, &pipelinesv1.RunConfiguration{}); err != nil {
+	controllerBuilder, err := r.setupWithManager(mgr, &pipelinesv1.RunConfiguration{}, r.reconciliationRequestsForPipeline)
+	if err != nil {
 		return err
 	}
 
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&pipelinesv1.RunConfiguration{}).
-		Watches(
-			&source.Kind{Type: &pipelinesv1.Pipeline{}},
-			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsForPipeline),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
-		Watches(&source.Kind{Type: &argo.Workflow{}},
-			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsWorkflow),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
-		Complete(r)
+	return controllerBuilder.Complete(r)
 }

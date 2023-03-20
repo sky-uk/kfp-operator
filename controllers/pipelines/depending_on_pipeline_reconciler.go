@@ -7,8 +7,13 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const (
@@ -22,28 +27,26 @@ type DependingOnPipelineResource interface {
 	SetObservedPipelineVersion(string)
 }
 
-
 type DependingOnPipelineReconciler[R DependingOnPipelineResource] struct {
 	BaseReconciler[R]
 }
 
-func (dr DependingOnPipelineReconciler[R]) handleObservedPipelineVersion(ctx context.Context, dependencyIdentifier pipelinesv1.PipelineIdentifier, resource R) error {
+func (dr DependingOnPipelineReconciler[R]) handleObservedPipelineVersion(ctx context.Context, pipelineIdentifier pipelinesv1.PipelineIdentifier, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
 	setVersion := true
-	desiredVersion := dependencyIdentifier.Version
+	desiredVersion := pipelineIdentifier.Version
 
-	if dependencyIdentifier.Version == "" {
-		pipeline := &pipelinesv1.Pipeline{}
-		err := dr.getIgnoreNotFound(ctx, types.NamespacedName{
+	if pipelineIdentifier.Version == "" {
+		pipeline, err := dr.getIgnoreNotFound(ctx, types.NamespacedName{
 			Namespace: resource.GetNamespace(),
-			Name:      dependencyIdentifier.Name,
-		}, pipeline)
+			Name:      pipelineIdentifier.Name,
+		})
 		if err != nil {
-			return err
+			return false, err
 		}
 
-		setVersion, desiredVersion = dependentPipelineVersionIfSucceeded(pipeline)
+		desiredVersion, setVersion = dependentPipelineVersionIfSucceeded(pipeline)
 	}
 
 	if setVersion && resource.GetObservedPipelineVersion() != desiredVersion {
@@ -51,45 +54,63 @@ func (dr DependingOnPipelineReconciler[R]) handleObservedPipelineVersion(ctx con
 
 		if err := dr.EC.Client.Status().Update(ctx, resource); err != nil {
 			logger.Error(err, "error updating resource with observed pipeline version")
-			return err
+			return false, err
 		}
+
+		return true, nil
 	}
 
-	return nil
+	return false, nil
 }
 
-func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context, key client.ObjectKey) (*pipelinesv1.Pipeline, error) {
 	logger := log.FromContext(ctx)
+	pipeline := &pipelinesv1.Pipeline{}
 
-	if err := dr.EC.Client.NonCached.Get(ctx, key, obj); !errors.IsNotFound(err) {
+	if err := dr.EC.Client.NonCached.Get(ctx, key, pipeline); err != nil {
+		if errors.IsNotFound(err) {
+			logger.Info("object not found")
+			return nil, nil
+		}
+
 		logger.Error(err, "unable to fetch object")
-		return err
-
-	} else if err != nil {
-		logger.Info("object not found")
+		return nil, err
 	}
 
-	return nil
+	return pipeline, nil
 }
 
-func (dr DependingOnPipelineReconciler[R]) setupIndexer(mgr ctrl.Manager, resource R) error {
-	return mgr.GetFieldIndexer().IndexField(context.Background(), resource, pipelineRefField, func(rawObj client.Object) []string {
+func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, resource R, reconciliationRequestsForPipeline func(object client.Object) []reconcile.Request) (*builder.Builder, error) {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, pipelineRefField, func(rawObj client.Object) []string {
 		referencingResource := rawObj.(R)
 		return []string{referencingResource.GetPipeline().Name}
-	})
+	}); err != nil {
+		return nil, err
+	}
+
+	controllerBuilder, err := dr.BaseReconciler.setupWithManager(mgr, resource)
+	if err != nil {
+		return controllerBuilder, err
+	}
+
+	return controllerBuilder.Watches(
+		&source.Kind{Type: &pipelinesv1.Pipeline{}},
+		handler.EnqueueRequestsFromMapFunc(reconciliationRequestsForPipeline),
+		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+	), nil
 }
 
-func dependentPipelineVersionIfSucceeded(pipeline *pipelinesv1.Pipeline) (bool, string) {
+func dependentPipelineVersionIfSucceeded(pipeline *pipelinesv1.Pipeline) (string, bool) {
 	if pipeline == nil {
-		return true, ""
-	} else {
-		switch pipeline.Status.SynchronizationState {
-		case apis.Succeeded:
-			return true, pipeline.Status.Version
-		case apis.Deleted:
-			return true, ""
-		default:
-			return false, ""
-		}
+		return "", true
+	}
+
+	switch pipeline.Status.SynchronizationState {
+	case apis.Succeeded:
+		return pipeline.Status.Version, true
+	case apis.Deleted:
+		return "", true
+	default:
+		return "", false
 	}
 }

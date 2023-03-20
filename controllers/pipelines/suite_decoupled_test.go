@@ -127,14 +127,15 @@ func NewTestRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRep
 
 	return &RunReconciler{
 		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.Run]{
-			BaseReconciler[*pipelinesv1.Run]{
+			BaseReconciler: BaseReconciler[*pipelinesv1.Run]{
 				Config: testConfig,
 				EC:     ec,
 				StateHandler: StateHandler[*pipelinesv1.Run]{
 					WorkflowRepository: workflowRepository,
 					WorkflowFactory:    &workflowFactory,
 				},
-			}},
+			},
+		},
 	}
 }
 
@@ -144,14 +145,15 @@ func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepositor
 
 	return &RunConfigurationReconciler{
 		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
-			BaseReconciler[*pipelinesv1.RunConfiguration]{
+			BaseReconciler: BaseReconciler[*pipelinesv1.RunConfiguration]{
 				Config: testConfig,
 				EC:     ec,
 				StateHandler: StateHandler[*pipelinesv1.RunConfiguration]{
 					WorkflowRepository: workflowRepository,
 					WorkflowFactory:    &workflowFactory,
 				},
-			}},
+			},
+		},
 	}
 }
 

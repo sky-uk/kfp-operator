@@ -72,14 +72,14 @@ func (rc *RunConfiguration) SetStatus(status Status) {
 	rc.Status.Status = status
 }
 
-func (rc RunConfiguration) GetNamespacedName() types.NamespacedName {
+func (rc *RunConfiguration) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      rc.Name,
 		Namespace: rc.Namespace,
 	}
 }
 
-func (rc RunConfiguration) GetKind() string {
+func (rc *RunConfiguration) GetKind() string {
 	return "runconfiguration"
 }
 
