@@ -29,10 +29,12 @@ var _ = Context("Resource Workflows", Serial, func() {
 				Name:      apis.RandomLowercaseString(),
 				Namespace: "argo",
 			},
-			Status: pipelinesv1.Status{
-				ProviderId: pipelinesv1.ProviderAndId{
-					Provider: "stub",
-					Id:       apis.RandomString(),
+			Status: pipelinesv1.RunStatus{
+				Status: pipelinesv1.Status{
+					ProviderId: pipelinesv1.ProviderAndId{
+						Provider: "stub",
+						Id:       apis.RandomString(),
+					},
 				},
 			},
 		}
