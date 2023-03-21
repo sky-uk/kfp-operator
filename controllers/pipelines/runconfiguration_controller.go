@@ -2,33 +2,20 @@ package pipelines
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/apis"
-	"net/http"
 	"time"
 
-	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
-)
-
-const (
-	pipelineRefField = ".spec.pipeline"
 )
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
-	BaseReconciler[*pipelinesv1.RunConfiguration]
+	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations,verbs=get;list;watch;create;update;patch;delete
@@ -52,30 +39,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	desiredProvider := r.desiredProvider(runConfiguration)
 
-	var desiredVersion *string
-	pipelineVersion := runConfiguration.Spec.Pipeline.Version
-
-	if pipelineVersion == "" {
-		pipeline, err := r.fetchDependentPipeline(ctx, runConfiguration)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-
-		desiredVersion = dependentPipelineVersionIfStable(pipeline)
-	} else {
-		desiredVersion = &pipelineVersion
-	}
-
-	if desiredVersion != nil && *desiredVersion != runConfiguration.Status.ObservedPipelineVersion {
-		runConfiguration.Status.ObservedPipelineVersion = *desiredVersion
-		err := r.EC.Client.Status().Update(ctx, runConfiguration)
-
-		if err != nil {
-			logger.Error(err, "error updating run configuration with new desired pipeline version")
-			return ctrl.Result{}, err
-		}
-
-		return ctrl.Result{}, nil
+	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Pipeline, runConfiguration); hasChanged || err != nil {
+		return ctrl.Result{}, err
 	}
 
 	commands := r.StateHandler.StateTransition(ctx, desiredProvider, runConfiguration)
@@ -93,47 +58,13 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-func (r *RunConfigurationReconciler) fetchDependentPipeline(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Pipeline, error) {
-	logger := log.FromContext(ctx)
-
-	pipeline := &pipelinesv1.Pipeline{}
-	if err := r.EC.Client.NonCached.Get(ctx, types.NamespacedName{Namespace: runConfiguration.Namespace, Name: runConfiguration.Spec.Pipeline.Name}, pipeline); err != nil {
-		if statusError, isStatusError := err.(*errors.StatusError); !isStatusError || statusError.ErrStatus.Code != http.StatusNotFound {
-			logger.Error(err, "unable to fetch dependent pipeline")
-
-			return nil, err
-		}
-
-		logger.Info("dependent pipeline not found")
-		return nil, nil
-	}
-
-	return pipeline, nil
-}
-
-func dependentPipelineVersionIfStable(dependentPipeline *pipelinesv1.Pipeline) *string {
-	empty := ""
-
-	if dependentPipeline == nil {
-		return &empty
-	} else {
-		switch dependentPipeline.Status.SynchronizationState {
-		case apis.Succeeded:
-			return &dependentPipeline.Status.Version
-		case apis.Deleted:
-			return &empty
-		default:
-			return nil
-		}
-	}
-}
-
 func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline client.Object) []reconcile.Request {
 	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
 	listOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(pipelineRefField, pipeline.GetName()),
 		Namespace:     pipeline.GetNamespace(),
 	}
+
 	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, listOps)
 	if err != nil {
 		return []reconcile.Request{}
@@ -151,28 +82,11 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 	return requests
 }
 
-func (r *RunConfigurationReconciler) reconciliationRequestsWorkflow(workflow client.Object) []reconcile.Request {
-	return r.BaseReconciler.reconciliationRequestsWorkflow(workflow, &pipelinesv1.RunConfiguration{})
-}
-
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &pipelinesv1.RunConfiguration{}, pipelineRefField, func(rawObj client.Object) []string {
-		runConfiguration := rawObj.(*pipelinesv1.RunConfiguration)
-		return []string{runConfiguration.Spec.Pipeline.Name}
-	}); err != nil {
+	controllerBuilder, err := r.setupWithManager(mgr, &pipelinesv1.RunConfiguration{}, r.reconciliationRequestsForPipeline)
+	if err != nil {
 		return err
 	}
 
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&pipelinesv1.RunConfiguration{}).
-		Watches(
-			&source.Kind{Type: &pipelinesv1.Pipeline{}},
-			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsForPipeline),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
-		Watches(&source.Kind{Type: &argo.Workflow{}},
-			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsWorkflow),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
-		Complete(r)
+	return controllerBuilder.Complete(r)
 }

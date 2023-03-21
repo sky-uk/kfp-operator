@@ -3,24 +3,20 @@ package pipelines
 import (
 	"context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
-	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // RunReconciler reconciles a Run object
 type RunReconciler struct {
-	BaseReconciler[*pipelinesv1.Run]
+	DependingOnPipelineReconciler[*pipelinesv1.Run]
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runs,verbs=get;list;watch;create;update;patch;delete
@@ -48,6 +44,13 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	desiredProvider := r.desiredProvider(run)
+
+	// Never change after being set
+	if run.Status.ObservedPipelineVersion == "" {
+		if hasChanged, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); hasChanged || err != nil {
+			return ctrl.Result{}, err
+		}
+	}
 
 	commands := r.StateHandler.StateTransition(ctx, desiredProvider, run)
 
@@ -93,16 +96,35 @@ func (r *RunReconciler) markCompletedIfCompleted(ctx context.Context, run *pipel
 	return nil
 }
 
-func (r *RunReconciler) reconciliationRequestsWorkflow(workflow client.Object) []reconcile.Request {
-	return r.BaseReconciler.reconciliationRequestsWorkflow(workflow, &pipelinesv1.Run{})
+func (r *RunReconciler) reconciliationRequestsForPipeline(pipeline client.Object) []reconcile.Request {
+	referencingRuns := &pipelinesv1.RunList{}
+	listOps := &client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector(pipelineRefField, pipeline.GetName()),
+		Namespace:     pipeline.GetNamespace(),
+	}
+
+	err := r.EC.Client.Cached.List(context.TODO(), referencingRuns, listOps)
+	if err != nil {
+		return []reconcile.Request{}
+	}
+
+	requests := make([]reconcile.Request, len(referencingRuns.Items))
+	for i, item := range referencingRuns.Items {
+		requests[i] = reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name:      item.GetName(),
+				Namespace: item.GetNamespace(),
+			},
+		}
+	}
+	return requests
 }
 
 func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&pipelinesv1.Run{}).
-		Watches(&source.Kind{Type: &argo.Workflow{}},
-			handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsWorkflow),
-			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-		).
-		Complete(r)
+	controllerBuilder, err := r.setupWithManager(mgr, &pipelinesv1.Run{}, r.reconciliationRequestsForPipeline)
+	if err != nil {
+		return err
+	}
+
+	return controllerBuilder.Complete(r)
 }

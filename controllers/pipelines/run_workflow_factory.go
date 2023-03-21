@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"fmt"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -20,11 +21,15 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		experimentName = run.Spec.ExperimentName
 	}
 
+	if run.Status.ObservedPipelineVersion == "" {
+		return providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
+	}
+
 	return providers.RunDefinition{
 		Name:              common.NamespacedName{Name: run.Name, Namespace: run.Namespace},
 		Version:           run.ComputeVersion(),
 		PipelineName:      run.Spec.Pipeline.Name,
-		PipelineVersion:   run.Spec.Pipeline.Version,
+		PipelineVersion:   run.Status.ObservedPipelineVersion,
 		ExperimentName:    experimentName,
 		RuntimeParameters: NamedValuesToMap(run.Spec.RuntimeParameters),
 	}, nil

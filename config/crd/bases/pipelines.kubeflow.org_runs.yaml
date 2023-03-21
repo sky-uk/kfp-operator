@@ -77,6 +77,8 @@ spec:
               observedGeneration:
                 format: int64
                 type: integer
+              observedPipelineVersion:
+                type: string
               providerId:
                 type: string
               synchronizationState:

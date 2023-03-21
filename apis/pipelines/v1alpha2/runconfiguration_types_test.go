@@ -12,60 +12,60 @@ var _ = Context("RunConfiguration", func() {
 	var _ = Describe("ComputeHash", func() {
 
 		Specify("Pipeline should change the hash", func() {
-			rcs := RunConfiguration{}
-			hash1 := rcs.ComputeHash()
+			rc := RunConfiguration{}
+			hash1 := rc.ComputeHash()
 
-			rcs.Spec.Pipeline = PipelineIdentifier{Name: "notempty"}
-			hash2 := rcs.ComputeHash()
+			rc.Spec.Pipeline = PipelineIdentifier{Name: "notempty"}
+			hash2 := rc.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("ExperimentName should change the hash", func() {
-			rcs := RunConfiguration{}
-			hash1 := rcs.ComputeHash()
+			rc := RunConfiguration{}
+			hash1 := rc.ComputeHash()
 
-			rcs.Spec.ExperimentName = "notempty"
-			hash2 := rcs.ComputeHash()
+			rc.Spec.ExperimentName = "notempty"
+			hash2 := rc.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("Schedule should change the hash", func() {
-			rcs := RunConfiguration{}
-			hash1 := rcs.ComputeHash()
+			rc := RunConfiguration{}
+			hash1 := rc.ComputeHash()
 
-			rcs.Spec.Schedule = "notempty"
-			hash2 := rcs.ComputeHash()
+			rc.Spec.Schedule = "notempty"
+			hash2 := rc.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("lastKnownPipelineVersion should change the hash", func() {
-			rcs := RunConfiguration{}
-			hash1 := rcs.ComputeHash()
+		Specify("ObservedPipelineVersion should change the hash", func() {
+			rc := RunConfiguration{}
+			hash1 := rc.ComputeHash()
 
-			rcs.Status.ObservedPipelineVersion = "notempty"
-			hash2 := rcs.ComputeHash()
+			rc.Status.ObservedPipelineVersion = "notempty"
+			hash2 := rc.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("All RuntimeParameters keys should change the hash", func() {
-			rcs := RunConfiguration{}
-			hash1 := rcs.ComputeHash()
+			rc := RunConfiguration{}
+			hash1 := rc.ComputeHash()
 
-			rcs.Spec.RuntimeParameters = map[string]string{
+			rc.Spec.RuntimeParameters = map[string]string{
 				"a": "",
 			}
-			hash2 := rcs.ComputeHash()
+			hash2 := rc.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			rcs.Spec.RuntimeParameters = map[string]string{
+			rc.Spec.RuntimeParameters = map[string]string{
 				"b": "notempty",
 			}
-			hash3 := rcs.ComputeHash()
+			hash3 := rc.ComputeHash()
 
 			Expect(hash2).NotTo(Equal(hash3))
 		})

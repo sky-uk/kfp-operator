@@ -78,8 +78,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
-	When("Creating with a fixed pipeline version", func() {
-		It("creates a RC with an ObservedPipelineVersion that matches the fixed version", func() {
+	When("Creating an RC with a fixed pipeline version", func() {
+		It("triggers a create with an ObservedPipelineVersion that matches the fixed version", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			pipelineVersion := apis.RandomString()
 			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
@@ -87,6 +87,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			rcHelper := Create(runConfiguration)
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
@@ -95,14 +96,13 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating the referenced pipeline with no version specified on the RC", func() {
 		It("triggers an update of the run configuration", func() {
 			pipeline := pipelinesv1.RandomPipeline()
+			pipelineHelper := CreateSucceeded(pipeline)
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			runConfiguration.Spec.Pipeline = pipeline.UnversionedIdentifier()
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 
-			pipelineHelper := CreateStable(pipeline)
-
-			rcHelper := CreateStable(runConfiguration)
+			rcHelper := CreateSucceeded(runConfiguration)
 
 			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
@@ -125,9 +125,9 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Pipeline = fixedIdentifier
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 
-			pipelineHelper := CreateStable(pipeline)
+			pipelineHelper := CreateSucceeded(pipeline)
 
-			rcHelper := CreateStable(runConfiguration)
+			rcHelper := CreateSucceeded(runConfiguration)
 
 			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
@@ -136,9 +136,9 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			// To verify the absence of additional RC updates, force another update of the resource.
 			// If the update is processed but the pipeline version hasn't changed,
 			// given that reconciliation requests are processed in-order, we can conclude that the RC is fixed.
-			rcHelper.Update(func(runConfiguration *pipelinesv1.RunConfiguration) {
+			Expect(rcHelper.Update(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec.Schedule = apis.RandomString()
-			})
+			})).To(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))

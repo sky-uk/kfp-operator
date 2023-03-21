@@ -52,6 +52,18 @@ type RunConfiguration struct {
 	Status RunConfigurationStatus `json:"status,omitempty"`
 }
 
+func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {
+	return rc.Spec.Pipeline
+}
+
+func (rc *RunConfiguration) GetObservedPipelineVersion() string {
+	return rc.Status.ObservedPipelineVersion
+}
+
+func (rc *RunConfiguration) SetObservedPipelineVersion(newVersion string) {
+	rc.Status.ObservedPipelineVersion = newVersion
+}
+
 func (rc *RunConfiguration) GetStatus() Status {
 	return rc.Status.Status
 }
@@ -60,14 +72,14 @@ func (rc *RunConfiguration) SetStatus(status Status) {
 	rc.Status.Status = status
 }
 
-func (rc RunConfiguration) GetNamespacedName() types.NamespacedName {
+func (rc *RunConfiguration) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      rc.Name,
 		Namespace: rc.Namespace,
 	}
 }
 
-func (rc RunConfiguration) GetKind() string {
+func (rc *RunConfiguration) GetKind() string {
 	return "runconfiguration"
 }
 
