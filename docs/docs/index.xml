@@ -288,19 +288,19 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;tbody>
 &lt;tr>
 &lt;td>&lt;code>spec.image&lt;/code>&lt;/td>
-&lt;td>Container image containing TFX component definitions&lt;/td>
+&lt;td>Container image containing TFX component definitions.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.tfxComponents&lt;/code>&lt;/td>
-&lt;td>Fully qualified name of the Python function creating pipeline components&lt;/td>
+&lt;td>Fully qualified name of the Python function creating pipeline components.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.env&lt;/code>&lt;/td>
-&lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables&lt;/td>
+&lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.beamArgs&lt;/code>&lt;/td>
-&lt;td>List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline&lt;/td>
+&lt;td>List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
@@ -562,15 +562,15 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.experimentName&lt;/code>&lt;/td>
-&lt;td>The name of the corresponding experiment resource (Optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided)&lt;/td>
+&lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.schedule&lt;/code>&lt;/td>
-&lt;td>A cron schedule to execute training runs&lt;/td>
+&lt;td>A cron schedule to execute training runs.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.runtimeParameters&lt;/code>&lt;/td>
-&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline&lt;/td>
+&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
@@ -898,15 +898,15 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;tbody>
 &lt;tr>
 &lt;td>&lt;code>spec.pipeline&lt;/code>&lt;/td>
-&lt;td>The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will track the latest version of the specified pipeline.&lt;/td>
+&lt;td>The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.experimentName&lt;/code>&lt;/td>
-&lt;td>The name of the corresponding experiment resource (Optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided)&lt;/td>
+&lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.runtimeParameters&lt;/code>&lt;/td>
-&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline&lt;/td>
+&lt;td>Dictionary of runtime parameters as exposed by the pipeline.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
@@ -1005,7 +1005,7 @@ and can be configured as follows:&lt;/p>
 &lt;tbody>
 &lt;tr>
 &lt;td>&lt;code>spec.description&lt;/code>&lt;/td>
-&lt;td>The description of the experiment&lt;/td>
+&lt;td>The description of the experiment.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Using Multiple Providers</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</guid><description>
