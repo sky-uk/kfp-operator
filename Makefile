@@ -64,7 +64,7 @@ integration-test-up:
 
 integration-test: manifests generate helm-cmd yq ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
-	$(MAKE) -C argo/providers -f stub.mk docker-build && \
+	$(MAKE) -C argo/providers/stub docker-build && \
 	docker build docs-gen/includes/quickstart -t kfp-quickstart
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
  		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
