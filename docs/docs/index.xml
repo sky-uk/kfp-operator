@@ -39,6 +39,11 @@
 &lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
 &lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>runCompletionTTL&lt;/code>&lt;/td>
+&lt;td>Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
+&lt;td>&lt;code>10m&lt;/code>&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
@@ -283,19 +288,19 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;tbody>
 &lt;tr>
 &lt;td>&lt;code>spec.image&lt;/code>&lt;/td>
-&lt;td>Container image containing TFX component definitions&lt;/td>
+&lt;td>Container image containing TFX component definitions.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.tfxComponents&lt;/code>&lt;/td>
-&lt;td>Fully qualified name of the Python function creating pipeline components&lt;/td>
+&lt;td>Fully qualified name of the Python function creating pipeline components.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.env&lt;/code>&lt;/td>
-&lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables&lt;/td>
+&lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.beamArgs&lt;/code>&lt;/td>
-&lt;td>List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline&lt;/td>
+&lt;td>List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
@@ -557,15 +562,15 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.experimentName&lt;/code>&lt;/td>
-&lt;td>The name of the corresponding experiment resource (Optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided)&lt;/td>
+&lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.schedule&lt;/code>&lt;/td>
-&lt;td>A cron schedule to execute training runs&lt;/td>
+&lt;td>A cron schedule to execute training runs.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.runtimeParameters&lt;/code>&lt;/td>
-&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline&lt;/td>
+&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
@@ -868,16 +873,21 @@ In this example we are updating a serving component with the location of the new
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dataKey&lt;/span>: &lt;span style="color:#ae81ff">body.data.servingModelArtifacts.0.location&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dest&lt;/span>: &lt;span style="color:#ae81ff">data.servingModel&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/apply-model-location.yaml
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Experiment</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</guid><description>
-&lt;p>The Experiment resource represents the lifecycle of Experiments,
-and can be configured as follows:&lt;/p>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>
+&lt;p>The Run resource represents the lifecycle of a one-off run.
+One-off pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Run&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">generateName&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-run-&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">description&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;An experiment for the penguin pipeline&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Note the usage of &lt;code>metadata.generateName&lt;/code> which tells Kubernetes to generate a new name based on the given prefix for every new resource.&lt;/p>
+&lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -887,14 +897,25 @@ and can be configured as follows:&lt;/p>
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>spec.description&lt;/code>&lt;/td>
-&lt;td>The description of the experiment&lt;/td>
+&lt;td>&lt;code>spec.pipeline&lt;/code>&lt;/td>
+&lt;td>The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>spec.experimentName&lt;/code>&lt;/td>
+&lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>spec.runtimeParameters&lt;/code>&lt;/td>
+&lt;td>Dictionary of runtime parameters as exposed by the pipeline.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
-&lt;/table></description></item><item><title>Docs: Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
+&lt;/table>
+&lt;h2 id="lifecycle">Lifecycle&lt;/h2>
+&lt;p>The KFP-Operator tracks the completion of the created run in the &lt;code>CompletionState&lt;/code> of the resource&amp;rsquo;s status.
+The operator will clean up completed runs automatically based on the configured TTL. See &lt;a href="../../configuration">Configuration&lt;/a> for more information.&lt;/p></description></item><item><title>Docs: Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.png" alt="Model Serving">&lt;/p>
 &lt;p>The KFP-Operator Events system provides a &lt;a href="https://nats.io/">NATS Event bus&lt;/a> in the operator namespace to consume events from.
-To use it, users can to create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows:&lt;/p>
+To use it, users can create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventSource&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
@@ -964,7 +985,30 @@ You can define a default event bus, which does not require further configuration
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">nats&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">native&lt;/span>: {}
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Using Multiple Providers</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</guid><description>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Experiment</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</guid><description>
+&lt;p>The Experiment resource represents the lifecycle of Experiments,
+and can be configured as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">description&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;An experiment for the penguin pipeline&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>spec.description&lt;/code>&lt;/td>
+&lt;td>The description of the experiment.&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table></description></item><item><title>Docs: Using Multiple Providers</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</guid><description>
 &lt;p>The KFP operator supports multiple provider backends. In most cases, the configured &lt;code>DefaultProvider&lt;/code> will be sufficient.
 For migration scenarios or advanced use-cases, users can overwrite the default using the &lt;code>pipelines.kubeflow.org/provider&lt;/code> annotation on any resource specifying the name of the provider.&lt;/p>
 &lt;p>Changing the provider of a resource that was previously managed by another provider will result in the resource erroring.

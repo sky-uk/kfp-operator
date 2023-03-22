@@ -1,6 +1,6 @@
 ---
 title: "Experiment"
-weight: 3
+weight: 4
 ---
 
 The Experiment resource represents the lifecycle of Experiments,
@@ -17,6 +17,6 @@ spec:
 
 ## Fields
 
-| Name | Description |
-| --- | --- |
-| `spec.description` | The description of the experiment |
+| Name               | Description                        |
+|--------------------|------------------------------------|
+| `spec.description` | The description of the experiment. |
