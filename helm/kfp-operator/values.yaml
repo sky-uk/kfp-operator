@@ -34,9 +34,7 @@ manager:
     containerDefaults: {}
     metadata: {}
     ttlStrategy:
-      secondsAfterCompletion: 600
-      secondsAfterSuccess: 600
-      secondsAfterFailure: 3600
+      secondsAfterCompletion: 3600
   monitoring:
     create: false
     rbacSecured: false

@@ -87,9 +87,7 @@ spec:
     configMap:
       name: kfp-operator-providers
   ttlStrategy:
-    secondsAfterCompletion: 600
-    secondsAfterFailure: 3600
-    secondsAfterSuccess: 600
+    secondsAfterCompletion: 3600
   arguments:
     parameters:
     - name: provider-name
@@ -143,9 +141,7 @@ spec:
     configMap:
       name: kfp-operator-providers
   ttlStrategy:
-    secondsAfterCompletion: 600
-    secondsAfterFailure: 3600
-    secondsAfterSuccess: 600
+    secondsAfterCompletion: 3600
   arguments:
     parameters:
     - name: provider-name
