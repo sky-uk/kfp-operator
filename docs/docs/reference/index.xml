@@ -326,4 +326,39 @@ Any referenced resources must always match the provider of the referencing resou
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Warning SyncFailed 101s kfp-operator Failed &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>: pipeline update failed
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="compiling-locally">Compiling locally&lt;/h2>
+&lt;p>The KFP-Operator&amp;rsquo;s compiler can be used locally for debugging purposes. This can be especially useful for troubleshooting environment variable and beam argument resolution.&lt;/p>
+&lt;h3 id="environment-setup-and-compiler-injection">Environment setup and compiler injection&lt;/h3>
+&lt;p>The compiler is injected into a shared directory first before it can be called from within the pipeline image.
+Note that the setup is usually only needed once unless you want to use a different version of the compiler.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>export KFP_COMPILER_IMAGE&lt;span style="color:#f92672">=&lt;/span>ghcr.io/kfp-operator/kfp-operator-argo-kfp-compiler:&amp;lt;KFP-Operator version&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull $KFP_COMPILER_IMAGE
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Create a temporary directory for the following steps, alternatively choose a different location&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>SHARED_DIR&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>mktemp -d&lt;span style="color:#66d9ef">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Inject the compiler into the shared temporary directory&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker run -v $SHARED_DIR:/shared $KFP_COMPILER_IMAGE /shared
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="compiler-configuration">Compiler configuration&lt;/h3>
+&lt;p>The compilation process can be configured as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>export PIPELINE_IMAGE&lt;span style="color:#f92672">=&lt;/span>&amp;lt;your pipeline image&amp;gt;
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Choose an execution mode: v1 for KFP or v2 for Vertex AI&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>export EXECUTION_MODE&lt;span style="color:#f92672">=&lt;/span>v1
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># create the compiler configuration&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cat &amp;gt; $SHARED_DIR/config.yaml &lt;span style="color:#e6db74">&amp;lt;&amp;lt; EOF
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">name: &amp;lt;Your pipeline name&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">rootLocation: &amp;lt;pipeline root location. for debugging, this can be any string&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">servingLocation: &amp;lt;model serving location. for debugging, this can be any string&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">image: $PIPELINE_IMAGE
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">tfxComponents: &amp;lt;component function&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">env:
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &amp;lt;Dict[str, str] of environment variables to be passed to the compilation step&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">beamArgs:
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &amp;lt;Dict[str, List[str]] of beam arguments&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="running-the-compiler">Running the compiler&lt;/h3>
+&lt;p>You can then run the compiler from inside your pipeline container to produce &lt;code>$SHARED_DIR/pipeline_out.yaml&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Run the compiler in your pipeline image&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker run -v $SHARED_DIR:/shared --entrypoint /shared/compile.sh $PIPELINE_IMAGE --pipeline_config /shared/config.yaml --output_file /shared/pipeline_out.yaml --execution_mode $EXECUTION_MODE
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>
