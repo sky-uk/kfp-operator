@@ -3,7 +3,7 @@ package pipelines
 import (
 	"context"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -21,14 +21,15 @@ const (
 )
 
 type DependingOnPipelineResource interface {
-	pipelinesv1.Resource
+	client.Object
+	//pipelinesv1.Resource
 	GetPipeline() pipelinesv1.PipelineIdentifier
 	GetObservedPipelineVersion() string
 	SetObservedPipelineVersion(string)
 }
 
 type DependingOnPipelineReconciler[R DependingOnPipelineResource] struct {
-	BaseReconciler[R]
+	EC K8sExecutionContext
 }
 
 func (dr DependingOnPipelineReconciler[R]) handleObservedPipelineVersion(ctx context.Context, pipelineIdentifier pipelinesv1.PipelineIdentifier, resource R) (bool, error) {
@@ -80,17 +81,12 @@ func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context
 	return pipeline, nil
 }
 
-func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, resource R, reconciliationRequestsForPipeline func(object client.Object) []reconcile.Request) (*builder.Builder, error) {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, pipelineRefField, func(rawObj client.Object) []string {
+func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, pipelineRefField, func(rawObj client.Object) []string {
 		referencingResource := rawObj.(R)
 		return []string{referencingResource.GetPipeline().Name}
 	}); err != nil {
 		return nil, err
-	}
-
-	controllerBuilder, err := dr.BaseReconciler.setupWithManager(mgr, resource)
-	if err != nil {
-		return controllerBuilder, err
 	}
 
 	return controllerBuilder.Watches(

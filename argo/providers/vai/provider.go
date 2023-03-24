@@ -180,17 +180,17 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
-func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (*schedulerpb.Job, error) {
-	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
+func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*schedulerpb.Job, error) {
+	schedule, err := ParseCron(runScheduleDefinition.Schedule)
 	if err != nil {
 		return nil, err
 	}
 
 	runIntent := RunIntent{
-		RunConfigurationName: runConfigurationDefinition.Name,
-		PipelineName:         runConfigurationDefinition.PipelineName,
-		PipelineVersion:      runConfigurationDefinition.PipelineVersion,
-		RuntimeParameters:    runConfigurationDefinition.RuntimeParameters,
+		RunConfigurationName: runScheduleDefinition.RunConfigurationName,
+		PipelineName:         runScheduleDefinition.PipelineName,
+		PipelineVersion:      runScheduleDefinition.PipelineVersion,
+		RuntimeParameters:    runScheduleDefinition.RuntimeParameters,
 	}
 
 	data, err := json.Marshal(runIntent)
@@ -199,7 +199,7 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 	}
 
 	return &schedulerpb.Job{
-		Name:     providerConfig.schedulerJobName(fmt.Sprintf("rc-%s", runConfigurationDefinition.Name)),
+		Name:     providerConfig.schedulerJobName(fmt.Sprintf("rc-%s", runScheduleDefinition.Name)),
 		Schedule: schedule.PrintStandard(),
 		Target: &schedulerpb.Job_PubsubTarget{
 			PubsubTarget: &schedulerpb.PubsubTarget{
@@ -223,13 +223,13 @@ func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ stri
 	return nil
 }
 
-func (vaip VAIProvider) CreateRunConfiguration(ctx context.Context, providerConfig VAIProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
+func (vaip VAIProvider) CreateRunSchedule(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (string, error) {
 	client, err := scheduler.NewCloudSchedulerClient(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	jobPb, err := vaip.createSchedulerJobPb(providerConfig, runConfigurationDefinition)
+	jobPb, err := vaip.createSchedulerJobPb(providerConfig, runScheduleDefinition)
 	if err != nil {
 		return "", err
 	}
@@ -246,13 +246,13 @@ func (vaip VAIProvider) CreateRunConfiguration(ctx context.Context, providerConf
 	return job.Name, nil
 }
 
-func (vaip VAIProvider) UpdateRunConfiguration(ctx context.Context, providerConfig VAIProviderConfig, runConfigurationDefinition RunConfigurationDefinition, providerId string) (string, error) {
+func (vaip VAIProvider) UpdateRunSchedule(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, providerId string) (string, error) {
 	client, err := scheduler.NewCloudSchedulerClient(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	jobPb, err := vaip.createSchedulerJobPb(providerConfig, runConfigurationDefinition)
+	jobPb, err := vaip.createSchedulerJobPb(providerConfig, runScheduleDefinition)
 	if err != nil {
 		return "", err
 	}
@@ -276,7 +276,7 @@ func (vaip VAIProvider) UpdateRunConfiguration(ctx context.Context, providerConf
 	return job.Name, nil
 }
 
-func (vaip VAIProvider) DeleteRunConfiguration(ctx context.Context, _ VAIProviderConfig, providerId string) error {
+func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, _ VAIProviderConfig, providerId string) error {
 	client, err := scheduler.NewCloudSchedulerClient(ctx)
 	if err != nil {
 		return err

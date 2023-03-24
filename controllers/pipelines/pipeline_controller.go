@@ -2,12 +2,13 @@ package pipelines
 
 import (
 	"context"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
 var (
@@ -17,7 +18,21 @@ var (
 )
 
 type PipelineReconciler struct {
-	BaseReconciler[*pipelinesv1.Pipeline]
+	StateHandler[*pipelinesv1.Pipeline]
+	ResourceReconciler[*pipelinesv1.Pipeline]
+}
+
+func NewPipelineReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.Configuration) *PipelineReconciler {
+	return &PipelineReconciler{
+		StateHandler: StateHandler[*pipelinesv1.Pipeline]{
+			WorkflowRepository: workflowRepository,
+			WorkflowFactory:    PipelineWorkflowFactory(config),
+		},
+		ResourceReconciler: ResourceReconciler[*pipelinesv1.Pipeline]{
+			EC:     ec,
+			Config: config,
+		},
+	}
 }
 
 //+kubebuilder:rbac:groups=argoproj.io,resources=workflows,verbs=get;list;watch;create;update;patch;delete
@@ -57,10 +72,11 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 }
 
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	controllerBuilder, err := r.setupWithManager(mgr, &pipelinesv1.Pipeline{})
-	if err != nil {
-		return err
-	}
+	pipeline := &pipelinesv1.Pipeline{}
+	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
+		For(pipeline)
+
+	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, pipeline)
 
 	return controllerBuilder.Complete(r)
 }

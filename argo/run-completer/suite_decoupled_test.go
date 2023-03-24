@@ -7,7 +7,7 @@ import (
 	"context"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/client-go/kubernetes/scheme"
 	"path/filepath"
@@ -20,10 +20,6 @@ var (
 	k8sClient    client.Client
 	runCompleter RunCompleter
 	testEnv      *envtest.Environment
-)
-
-const (
-	defaultNamespace = "default"
 )
 
 func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {

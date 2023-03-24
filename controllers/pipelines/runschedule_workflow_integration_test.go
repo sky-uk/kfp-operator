@@ -6,37 +6,37 @@ package pipelines
 import (
 	. "github.com/onsi/ginkgo/v2"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
 var _ = Context("Resource Workflows", Serial, func() {
-	workflowFactory := RunConfigurationWorkflowFactory(config.Configuration{
+	workflowFactory := RunScheduleWorkflowFactory(config.Configuration{
 		DefaultExperiment:      "Default",
 		DefaultProvider:        "stub",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
 	})
 
-	var newRunConfiguration = func() *pipelinesv1.RunConfiguration {
-		return withIntegrationTestFields(pipelinesv1.RandomRunConfiguration())
+	var newRunSchedule = func() *pipelinesv1.RunSchedule {
+		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule())
 	}
 
-	DescribeTable("RunConfiguration Workflows", AssertWorkflow[*pipelinesv1.RunConfiguration],
+	DescribeTable("RunSchedule Workflows", AssertWorkflow[*pipelinesv1.RunSchedule],
 		Entry("Creation",
-			newRunConfiguration,
-			StubWithIdAndError[*pipelinesv1.RunConfiguration],
+			newRunSchedule,
+			StubWithIdAndError[*pipelinesv1.RunSchedule],
 			workflowFactory.ConstructCreationWorkflow,
 		), Entry("Update",
-			newRunConfiguration,
-			StubWithIdAndError[*pipelinesv1.RunConfiguration],
+			newRunSchedule,
+			StubWithIdAndError[*pipelinesv1.RunSchedule],
 			workflowFactory.ConstructUpdateWorkflow,
 		), Entry("Deletion succeeds",
-			newRunConfiguration,
-			StubWithEmpty[*pipelinesv1.RunConfiguration],
+			newRunSchedule,
+			StubWithEmpty[*pipelinesv1.RunSchedule],
 			workflowFactory.ConstructDeletionWorkflow,
 		), Entry("Deletion fails",
-			newRunConfiguration,
-			StubWithExistingIdAndError[*pipelinesv1.RunConfiguration],
+			newRunSchedule,
+			StubWithExistingIdAndError[*pipelinesv1.RunSchedule],
 			workflowFactory.ConstructDeletionWorkflow,
 		),
 	)

@@ -54,6 +54,14 @@ rules:
 - apiGroups:
     - pipelines.kubeflow.org
   resources:
+    - pipeline
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
     - pipelines
   verbs:
     - create
@@ -129,10 +137,10 @@ rules:
     - get
     - patch
     - update
-- apiGroups:
-    - pipelines.kubeflow.org
-  resources:
+- resources:
     - runschedules
+  apiGroups:
+    - pipelines.kubeflow.org
   verbs:
     - create
     - delete
@@ -141,10 +149,16 @@ rules:
     - patch
     - update
     - watch
-- apiGroups:
+- resources:
+    - runschedules/finalizers
+  apiGroups:
     - pipelines.kubeflow.org
-  resources:
+  verbs:
+    - update
+- resources:
     - runschedules/status
+  apiGroups:
+    - pipelines.kubeflow.org
   verbs:
     - get
     - patch

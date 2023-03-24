@@ -3,7 +3,7 @@ package pipelines
 import (
 	"fmt"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
@@ -35,8 +35,8 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 	}, nil
 }
 
-func RunWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
-	return ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
+func RunWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
+	return &ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
 		DefinitionCreator: RunDefinitionCreator{
 			Config: config,
 		}.runDefinition,

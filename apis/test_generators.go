@@ -22,15 +22,33 @@ func RandomString() string {
 	return randstr.String(rand.Intn(20) + 1)
 }
 
-func RandomNamedValues() []NamedValue {
-	size := rand.Intn(5)
+func RandomMap() map[string]string {
+	size := rand.Intn(5) + 1
 
-	rMap := make([]NamedValue, size)
-	for i := 0; i < size; i++ {
-		rMap[i] = NamedValue{Name: RandomString(), Value: RandomString()}
+	rMap := make(map[string]string, size)
+	for i := 1; i <= size; i++ {
+		rMap[RandomString()] = RandomString()
 	}
 
 	return rMap
+}
+
+func RandomList[T any](gen func() T) []T {
+	size := rand.Intn(5)
+
+	rList := make([]T, size)
+
+	for i := 0; i < size; i++ {
+		rList[i] = gen()
+	}
+
+	return rList
+}
+
+func RandomNamedValues() []NamedValue {
+	return RandomList(func() NamedValue {
+		return NamedValue{Name: RandomString(), Value: RandomString()}
+	})
 }
 
 func RandomSynchronizationState() SynchronizationState {

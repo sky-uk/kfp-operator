@@ -20,11 +20,11 @@ var ProviderConstants = struct {
 	PipelineDefinitionParameter         string
 	ExperimentDefinitionParameter       string
 	RunDefinitionParameter              string
-	RunConfigurationDefinitionParameter string
+	RunScheduleDefinitionParameter string
 	ProviderConfigParameter             string
 	PipelineIdParameter                 string
 	ExperimentIdParameter               string
-	RunConfigurationIdParameter         string
+	RunScheduleIdParameter         string
 	RunIdParameter                      string
 	PipelineFileParameter               string
 	OutputParameter                     string
@@ -33,12 +33,12 @@ var ProviderConstants = struct {
 	PipelineDefinitionParameter:         "pipeline-definition",
 	ExperimentDefinitionParameter:       "experiment-definition",
 	RunDefinitionParameter:              "run-definition",
-	RunConfigurationDefinitionParameter: "runconfiguration-definition",
+	RunScheduleDefinitionParameter: "runschedule-definition",
 	ProviderConfigParameter:             "provider-config",
 	PipelineIdParameter:                 "pipeline-id",
 	ExperimentIdParameter:               "experiment-id",
 	RunIdParameter:                      "run-id",
-	RunConfigurationIdParameter:         "runconfiguration-id",
+	RunScheduleIdParameter:         "runschedule-id",
 	PipelineFileParameter:               "pipeline-file",
 	OutputParameter:                     "out",
 	EventsourceServerPortParameter:      "port",
@@ -90,8 +90,8 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 		Required: true,
 	}
 
-	runConfigurationDefinitionFlag := cli.StringFlag{
-		Name:     ProviderConstants.RunConfigurationDefinitionParameter,
+	runScheduleDefinitionFlag := cli.StringFlag{
+		Name:     ProviderConstants.RunScheduleDefinitionParameter,
 		Required: true,
 	}
 
@@ -100,8 +100,8 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 		Required: true,
 	}
 
-	runConfigurationIdFlag := cli.StringFlag{
-		Name:     ProviderConstants.RunConfigurationIdParameter,
+	runScheduleIdFlag := cli.StringFlag{
+		Name:     ProviderConstants.RunScheduleIdParameter,
 		Required: true,
 	}
 
@@ -194,65 +194,65 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 			},
 		},
 		{
-			Name: "runconfiguration",
+			Name: "runschedule",
 			Subcommands: []cli.Command{
 				{
 					Name:  "create",
-					Flags: []cli.Flag{runConfigurationDefinitionFlag, outFlag},
+					Flags: []cli.Flag{runScheduleDefinitionFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
-						runConfigurationDefinition, err := LoadYamlFromFile[RunConfigurationDefinition](c.String(ProviderConstants.RunConfigurationDefinitionParameter))
+						runScheduleDefinition, err := LoadYamlFromFile[RunScheduleDefinition](c.String(ProviderConstants.RunScheduleDefinitionParameter))
 						if err != nil {
 							return err
 						}
-						id, err := provider.CreateRunConfiguration(providerApp.Context, providerConfig, runConfigurationDefinition)
+						id, err := provider.CreateRunSchedule(providerApp.Context, providerConfig, runScheduleDefinition)
 
-						logResult(providerApp.Context, "runconfiguration", "create", "", id, err)
+						logResult(providerApp.Context, "runschedule", "create", "", id, err)
 
 						return writeOutput(c, id, err)
 					},
 				},
 				{
 					Name:  "update",
-					Flags: []cli.Flag{runConfigurationDefinitionFlag, runConfigurationIdFlag, outFlag},
+					Flags: []cli.Flag{runScheduleDefinitionFlag, runScheduleIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						id := c.String(ProviderConstants.RunConfigurationIdParameter)
+						id := c.String(ProviderConstants.RunScheduleIdParameter)
 						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
-						runConfigurationDefinition, err := LoadYamlFromFile[RunConfigurationDefinition](c.String(ProviderConstants.RunConfigurationDefinitionParameter))
+						runScheduleDefinition, err := LoadYamlFromFile[RunScheduleDefinition](c.String(ProviderConstants.RunScheduleDefinitionParameter))
 						if err != nil {
 							return err
 						}
 
-						updatedId, err := provider.UpdateRunConfiguration(providerApp.Context, providerConfig, runConfigurationDefinition, id)
+						updatedId, err := provider.UpdateRunSchedule(providerApp.Context, providerConfig, runScheduleDefinition, id)
 
-						logResult(providerApp.Context, "runconfiguration", "update", id, updatedId, err)
+						logResult(providerApp.Context, "runschedule", "update", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},
 				},
 				{
 					Name:  "delete",
-					Flags: []cli.Flag{runConfigurationIdFlag, outFlag},
+					Flags: []cli.Flag{runScheduleIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						id := c.String(ProviderConstants.RunConfigurationIdParameter)
+						id := c.String(ProviderConstants.RunScheduleIdParameter)
 						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
 						}
 
-						err = provider.DeleteRunConfiguration(providerApp.Context, providerConfig, id)
+						err = provider.DeleteRunSchedule(providerApp.Context, providerConfig, id)
 						updatedId := ""
 						if err != nil {
 							updatedId = id
 						}
 
-						logResult(providerApp.Context, "runconfiguration", "delete", id, updatedId, err)
+						logResult(providerApp.Context, "runschedule", "delete", id, updatedId, err)
 
 						return writeOutput(c, updatedId, err)
 					},

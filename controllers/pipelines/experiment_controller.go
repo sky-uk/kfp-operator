@@ -2,17 +2,32 @@ package pipelines
 
 import (
 	"context"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
 // ExperimentReconciler reconciles a Experiment object
 type ExperimentReconciler struct {
-	BaseReconciler[*pipelinesv1.Experiment]
+	StateHandler[*pipelinesv1.Experiment]
+	ResourceReconciler[*pipelinesv1.Experiment]
+}
+
+func NewExperimentReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.Configuration) *ExperimentReconciler {
+	return &ExperimentReconciler{
+		StateHandler: StateHandler[*pipelinesv1.Experiment]{
+			WorkflowRepository: workflowRepository,
+			WorkflowFactory:    ExperimentWorkflowFactory(config),
+		},
+		ResourceReconciler: ResourceReconciler[*pipelinesv1.Experiment]{
+			EC:     ec,
+			Config: config,
+		},
+	}
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=experiments,verbs=get;list;watch;create;update;patch;delete
@@ -51,10 +66,11 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 }
 
 func (r *ExperimentReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	controllerBuilder, err := r.setupWithManager(mgr, &pipelinesv1.Experiment{})
-	if err != nil {
-		return err
-	}
+	experiment := &pipelinesv1.Experiment{}
+	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
+		For(experiment)
+
+	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, experiment)
 
 	return controllerBuilder.Complete(r)
 }

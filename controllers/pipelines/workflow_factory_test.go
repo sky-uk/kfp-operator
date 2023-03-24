@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
 var _ = Describe("CommonWorkflowMeta", func() {

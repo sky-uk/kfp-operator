@@ -78,15 +78,15 @@ func (s StubProvider) DeleteRun(_ context.Context, providerConfig StubProviderCo
 	return verifyDeleteCall(providerConfig, id)
 }
 
-func (s StubProvider) CreateRunConfiguration(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunConfigurationDefinition) (string, error) {
+func (s StubProvider) CreateRunSchedule(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunScheduleDefinition) (string, error) {
 	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
 }
 
-func (s StubProvider) UpdateRunConfiguration(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunConfigurationDefinition, id string) (string, error) {
+func (s StubProvider) UpdateRunSchedule(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunScheduleDefinition, id string) (string, error) {
 	return verifyUpdateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version}, id)
 }
 
-func (s StubProvider) DeleteRunConfiguration(_ context.Context, providerConfig StubProviderConfig, id string) error {
+func (s StubProvider) DeleteRunSchedule(_ context.Context, providerConfig StubProviderConfig, id string) error {
 	return verifyDeleteCall(providerConfig, id)
 }
 

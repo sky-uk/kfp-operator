@@ -4,151 +4,73 @@
 package pipelines
 
 import (
-	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
-	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
-	When("Creating, updating and deleting", func() {
-		It("transitions through all stages", func() {
-			providerId := apis.RandomString()
-			rcHelper := Create(pipelinesv1.RandomRunConfiguration())
+	It("creates RunSchedule owned resources that are in the triggers", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomTrigger()}
+		Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Creating))
-				g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
-			})).Should(Succeed())
+		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
+			g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+		})).Should(Succeed())
 
-			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
-				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
-			})).Should(Succeed())
+		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
+			g.Expect(ownedSchedule.Spec.Pipeline).To(Equal(runConfiguration.Spec.Pipeline))
+			g.Expect(ownedSchedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.RuntimeParameters))
+			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[0].CronExpression))
+			g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
+		})).Should(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
-				g.Expect(runConfiguration.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
-			})).Should(Succeed())
+		Expect(updateOwnedSchedules(runConfiguration, func(ownedSchedule *pipelinesv1.RunSchedule) {
+			ownedSchedule.Status.SynchronizationState = apis.Succeeded
+		})).To(Succeed())
 
-			Expect(rcHelper.Update(func(runConfiguration *pipelinesv1.RunConfiguration) {
-				runConfiguration.Spec = pipelinesv1.RandomRunConfigurationSpec()
-			})).To(Succeed())
+		Eventually(func(g Gomega) {
+			g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
+			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+		}).Should(Succeed())
+	})
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
-			})).Should(Succeed())
+	It("deletes RunSchedule owned resources that are not in the triggers", func() {
+		runConfiguration := createSucceededRcWithSchedule()
 
-			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
-				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
-			})).Should(Succeed())
+		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{}
+		Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
-				g.Expect(runConfiguration.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
-			})).Should(Succeed())
+		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+		})).Should(Succeed())
 
-			Expect(rcHelper.Delete()).To(Succeed())
+		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
+	})
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Deleting))
-			})).Should(Succeed())
+	It("cascades deletes when the RunConfiguration is deleted", func() {
+		Skip("See https://github.com/kubernetes-sigs/controller-runtime/issues/1459. Keep test for documentation")
+		runConfiguration := createSucceededRcWithSchedule()
 
-			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
-				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: ""})
-			})).Should(Succeed())
+		Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(rcHelper.Exists).Should(Not(Succeed()))
-
-			Eventually(rcHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
-				g.Expect(events).To(ConsistOf(
-					HaveReason(EventReasons.Syncing),
-					HaveReason(EventReasons.Synced),
-					HaveReason(EventReasons.Syncing),
-					HaveReason(EventReasons.Synced),
-					HaveReason(EventReasons.Syncing),
-					HaveReason(EventReasons.Synced),
-				))
-			})).Should(Succeed())
-		})
-
-		It("keeps a RunSchedule in sync", func() {
-			providerId := apis.RandomString()
-			rcHelper := Create(pipelinesv1.RandomRunConfiguration())
-
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Creating))
-			})).Should(Succeed())
-
-			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
-
-			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
-				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
-			})).Should(Succeed())
-
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
-			})).Should(Succeed())
-
-			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
-
-			Expect(rcHelper.Update(func(runConfiguration *pipelinesv1.RunConfiguration) {
-				runConfiguration.Spec = pipelinesv1.RandomRunConfigurationSpec()
-			})).To(Succeed())
-
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
-			})).Should(Succeed())
-
-			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
-
-			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
-				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
-			})).Should(Succeed())
-
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
-			})).Should(Succeed())
-
-			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
-
-			Expect(rcHelper.Delete()).To(Succeed())
-
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Deleting))
-			})).Should(Succeed())
-
-			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
-
-			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
-				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: ""})
-			})).Should(Succeed())
-
-			Eventually(rcHelper.Exists).Should(Not(Succeed()))
-			// We can't test deletion because of https://github.com/kubernetes-sigs/controller-runtime/issues/1459
-		})
+		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 	})
 
 	When("Creating an RC with a fixed pipeline version", func() {
-		It("triggers a create with an ObservedPipelineVersion that matches the fixed version", func() {
+		It("sets the ObservedPipelineVersion to the fixed version", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			pipelineVersion := apis.RandomString()
 			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
 
-			rcHelper := Create(runConfiguration)
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Creating))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
@@ -163,33 +85,15 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Pipeline = pipeline.UnversionedIdentifier()
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 
-			rcHelper := CreateSucceeded(runConfiguration)
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
 			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
 			})
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
 			})).Should(Succeed())
-		})
-
-		It("updates the run schedule", func() {
-			pipeline := pipelinesv1.RandomPipeline()
-			pipelineHelper := CreateSucceeded(pipeline)
-
-			runConfiguration := pipelinesv1.RandomRunConfiguration()
-			runConfiguration.Spec.Pipeline = pipeline.UnversionedIdentifier()
-			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
-
-			rcHelper := CreateSucceeded(runConfiguration)
-
-			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
-				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
-			})
-
-			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
 		})
 	})
 
@@ -205,7 +109,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			pipelineHelper := CreateSucceeded(pipeline)
 
-			rcHelper := CreateSucceeded(runConfiguration)
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
 			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
@@ -214,72 +118,81 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			// To verify the absence of additional RC updates, force another update of the resource.
 			// If the update is processed but the pipeline version hasn't changed,
 			// given that reconciliation requests are processed in-order, we can conclude that the RC is fixed.
-			Expect(rcHelper.Update(func(runConfiguration *pipelinesv1.RunConfiguration) {
-				runConfiguration.Spec.Schedule = apis.RandomString()
-			})).To(Succeed())
+			newExperiment := apis.RandomString()
+			Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
+			runConfiguration.Spec.ExperimentName = newExperiment
+			Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Spec.ExperimentName).To(Equal(newExperiment))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
 			})).Should(Succeed())
 		})
 	})
-
-	When("A RunSchedule with a ProviderId exists for a RunConfiguration without a ProviderId", func() {
-		It("keeps the RunConfiguration in sync", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration()
-			rcHelper := CreateSucceeded(runConfiguration)
-			expectedProviderId := rcHelper.Resource.Status.ProviderId
-			expectedVersion := rcHelper.Resource.Status.Version
-
-			Expect(rcHelper.UpdateStatus(func(configuration *pipelinesv1.RunConfiguration) {
-				configuration.Status.ProviderId = pipelinesv1.ProviderAndId{}
-				configuration.Status.Version = apis.RandomString()
-			})).To(Succeed())
-
-			Eventually(rcHelper.ToMatch(func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(configuration.Status.ProviderId).To(Equal(expectedProviderId))
-				g.Expect(configuration.Status.Version).To(Equal(expectedVersion))
-				g.Expect(configuration.Status.SynchronizationState).To(Equal(apis.Succeeded))
-			})).Should(Succeed())
-		})
-	})
-
-	When("More than one RunSchedule exists for a RunConfiguration", func() {
-		It("keeps only one matching RunSchedule", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration()
-			CreateSucceeded(runConfiguration)
-
-			matchingSchedule := runScheduleForRunConfiguration(runConfiguration)
-
-			runSchedules := []*pipelinesv1.RunSchedule{
-				matchingSchedule,
-				matchingSchedule.DeepCopy(),
-				pipelinesv1.RandomRunSchedule(),
-				pipelinesv1.RandomRunSchedule(),
-			}
-
-			for _, runSchedule := range runSchedules {
-				Expect(controllerutil.SetControllerReference(runConfiguration, runSchedule, scheme.Scheme)).To(Succeed())
-				Expect(k8sClient.Create(ctx, runSchedule)).To(Succeed())
-			}
-
-			Eventually(func(g Gomega) {
-				ownedSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
-				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(ownedSchedules).To(HaveLen(1))
-				g.Expect(ownedSchedules[0].Spec).To(Equal(matchingSchedule.Spec))
-			}).Should(Succeed())
-		})
-	})
 })
 
-func hasRunScheduleWithMatchingPipelineVersion(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
-	return func(g Gomega) {
-		ownedRunSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
-		Expect(err).NotTo(HaveOccurred())
-
-		g.Expect(ownedRunSchedules).To(HaveLen(1))
-		g.Expect(ownedRunSchedules[0].Spec.Pipeline.Version).To(Equal(runConfiguration.GetObservedPipelineVersion()))
+func updateOwnedSchedules(runConfiguration *pipelinesv1.RunConfiguration, updateFn func(schedule *pipelinesv1.RunSchedule)) error {
+	ownedSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
+	if err != nil {
+		return err
 	}
+
+	for _, ownedSchedule := range ownedSchedules {
+		updateFn(&ownedSchedule)
+		Expect(k8sClient.Status().Update(ctx, &ownedSchedule)).To(Succeed())
+	}
+
+	return nil
+}
+
+func matchRunConfiguration(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gomega, *pipelinesv1.RunConfiguration)) func(Gomega) {
+	return func(g Gomega) {
+		g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
+		matcher(g, runConfiguration)
+	}
+}
+
+func matchSchedules(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gomega, *pipelinesv1.RunSchedule)) func(Gomega) {
+	return func(g Gomega) {
+		ownedSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(ownedSchedules).NotTo(BeEmpty())
+		for _, ownedSchedule := range ownedSchedules {
+			matcher(g, &ownedSchedule)
+		}
+	}
+}
+
+func hasNoSchedules(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
+	return func(g Gomega) {
+		ownedSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(ownedSchedules).To(BeEmpty())
+	}
+}
+
+func createSucceededRcWithSchedule() *pipelinesv1.RunConfiguration {
+	runConfiguration := pipelinesv1.RandomRunConfiguration()
+	runConfiguration.Spec.Triggers = append(runConfiguration.Spec.Triggers, pipelinesv1.RandomTrigger())
+	Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+	Eventually(func(g Gomega) {
+		g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
+		g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
+	}).Should(Succeed())
+
+	Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
+		g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
+	})).Should(Succeed())
+
+	Expect(updateOwnedSchedules(runConfiguration, func(ownedSchedule *pipelinesv1.RunSchedule) {
+		ownedSchedule.Status.SynchronizationState = apis.Succeeded
+	})).To(Succeed())
+
+	Eventually(func(g Gomega) {
+		g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
+		g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+	}).Should(Succeed())
+
+	return runConfiguration
 }

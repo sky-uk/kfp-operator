@@ -8,13 +8,12 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("ConvertTo", func() {
-
 		Specify("Converts RuntimeParameters to a list of NamedValue", func() {
 			src := RunConfiguration{Spec: RunConfigurationSpec{RuntimeParameters: map[string]string{"a": "b", "c": "d"}}}
 			dst := hub.RunConfiguration{}
@@ -28,7 +27,6 @@ var _ = Context("RunConfiguration Conversion", func() {
 	})
 
 	var _ = Describe("ConvertFrom", func() {
-
 		Specify("Converts RuntimeParameters to a map", func() {
 			src := hub.RunConfiguration{Spec: hub.RunConfigurationSpec{
 				RuntimeParameters: []apis.NamedValue{
@@ -54,9 +52,25 @@ var _ = Context("RunConfiguration Conversion", func() {
 		})
 	})
 
-	var _ = Describe("Roundtrip", func() {
+	var _ = Describe("Roundtrip forward", func() {
+		Specify("converts to and from the same object", func() {
+			src := RandomRunConfiguration()
+			src.Status.KfpId = ""
+			src.Status.Version = ""
+			intermediate := &hub.RunConfiguration{}
+			dst := &RunConfiguration{}
+
+			Expect(src.ConvertTo(intermediate)).To(Succeed())
+			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+		})
+	})
+
+	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunConfiguration()
+			src.Spec.Triggers = []hub.Trigger{hub.RandomTrigger()}
 
 			intermediate := &RunConfiguration{}
 			dst := &hub.RunConfiguration{}
@@ -91,16 +105,6 @@ var _ = Context("RunConfiguration Conversion", func() {
 			Expect(intermediate.ConvertTo(&dst)).To(Succeed())
 
 			Expect(src).To(Equal(dst))
-		})
-	})
-
-	var _ = Describe("ComputeVersion", func() {
-		Specify("Does not change between versions", func() {
-			src := hub.RandomRunConfiguration()
-			dst := RunConfiguration{}
-
-			Expect(dst.ConvertFrom(src)).To(Succeed())
-			Expect(src.ComputeVersion()).To(Equal(dst.ComputeVersion()))
 		})
 	})
 })

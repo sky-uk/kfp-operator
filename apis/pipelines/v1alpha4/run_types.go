@@ -53,7 +53,6 @@ type RunStatus struct {
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 //+kubebuilder:printcolumn:name="CompletionState",type="string",JSONPath=".status.completionState"
-//+kubebuilder:storageversion
 
 type Run struct {
 	metav1.TypeMeta   `json:",inline"`

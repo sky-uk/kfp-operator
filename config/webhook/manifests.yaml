@@ -12,14 +12,14 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-pipelines-kubeflow-org-v1alpha4-run
+      path: /validate-pipelines-kubeflow-org-v1alpha5-run
   failurePolicy: Fail
   name: vrun.kb.io
   rules:
   - apiGroups:
     - pipelines.kubeflow.org
     apiVersions:
-    - v1alpha4
+    - v1alpha5
     operations:
     - UPDATE
     resources:

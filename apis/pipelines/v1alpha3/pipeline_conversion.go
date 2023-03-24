@@ -1,15 +1,17 @@
 package v1alpha3
 
 import (
-	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
 func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Pipeline)
 
-	v1alpha4remainder := hub.ResourceConversionRemainder{}
-	if err := hub.RetrieveAndUnsetConversionAnnotations(src, &v1alpha4remainder); err != nil {
+	v1alpha4remainder := v1alpha4.ResourceConversionRemainder{}
+	if err := pipelines.RetrieveAndUnsetConversionAnnotations(src, &v1alpha4remainder); err != nil {
 		return err
 	}
 
@@ -32,7 +34,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Pipeline)
 
-	v1alpha4remainder := hub.ResourceConversionRemainder{}
+	v1alpha4remainder := v1alpha4.ResourceConversionRemainder{}
 
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
@@ -45,7 +47,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Spec.TfxComponents = src.Spec.TfxComponents
 
 	v1alpha4remainder.Provider = src.Status.ProviderId.Provider
-	if err := hub.SetConversionAnnotations(dst, &v1alpha4remainder); err != nil {
+	if err := pipelines.SetConversionAnnotations(dst, &v1alpha4remainder); err != nil {
 		return err
 	}
 

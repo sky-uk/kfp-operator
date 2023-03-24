@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
 var _ = Context("Experiment Conversion", func() {
