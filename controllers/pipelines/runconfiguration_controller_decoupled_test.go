@@ -11,6 +11,8 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
@@ -224,12 +226,43 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 		})
 	})
+
+	When("RunSchedules exists for a RunConfiguration", func() {
+		It("keeps only one matching RunSchedule", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			CreateSucceeded(runConfiguration)
+
+			matchingSchedule := runScheduleForRunConfiguration(runConfiguration)
+
+			runSchedules := []*pipelinesv1.RunSchedule{
+				matchingSchedule,
+				matchingSchedule.DeepCopy(),
+				pipelinesv1.RandomRunSchedule(),
+				pipelinesv1.RandomRunSchedule(),
+			}
+
+			for _, runSchedule := range runSchedules {
+				Expect(controllerutil.SetControllerReference(runConfiguration, runSchedule, scheme.Scheme)).To(Succeed())
+				Expect(k8sClient.Create(ctx, runSchedule)).To(Succeed())
+			}
+
+			Eventually(func(g Gomega) {
+				ownedSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(ownedSchedules).To(HaveLen(1))
+				g.Expect(ownedSchedules[0].Spec).To(Equal(matchingSchedule.Spec))
+			}).Should(Succeed())
+		})
+	})
 })
 
 func matchedPipelineVersion(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
 	return func(g Gomega) {
-		ownedRunSchedule := &pipelinesv1.RunSchedule{}
-		g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), ownedRunSchedule)).To(Succeed())
-		g.Expect(ownedRunSchedule.Spec.Pipeline.Version).To(Equal(runConfiguration.GetObservedPipelineVersion()))
+		ownedRunSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
+		Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(ownedRunSchedules).To(HaveLen(1))
+
+		g.Expect(ownedRunSchedules[0].Spec.Pipeline.Version).To(Equal(runConfiguration.GetObservedPipelineVersion()))
 	}
 }
