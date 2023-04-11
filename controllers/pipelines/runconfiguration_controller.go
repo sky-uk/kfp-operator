@@ -24,7 +24,9 @@ type RunConfigurationReconciler struct {
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
-//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=pipeline,verbs=get;list;watch
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=pipelines,verbs=get;list;watch
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runschedules,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runschedules/status,verbs=get;update;patch
 
 func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
@@ -119,8 +121,8 @@ func findOwnedRunSchedules(ctx context.Context, cli client.Reader, runConfigurat
 func runScheduleForRunConfiguration(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunSchedule {
 	rs := &pipelinesv1.RunSchedule{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName:      runConfiguration.Name+"-",
-			Namespace: runConfiguration.Namespace,
+			GenerateName: runConfiguration.Name + "-",
+			Namespace:    runConfiguration.Namespace,
 		},
 		Spec: pipelinesv1.RunScheduleSpec{
 			Schedule:       runConfiguration.Spec.Schedule,
@@ -174,5 +176,5 @@ func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	return controllerBuilder.Complete(r)
+	return controllerBuilder.Owns(&pipelinesv1.RunSchedule{}).Complete(r)
 }
