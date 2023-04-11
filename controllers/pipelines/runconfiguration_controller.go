@@ -71,33 +71,33 @@ func (r *RunConfigurationReconciler) syncRunSchedule(ctx context.Context, runCon
 		return err
 	}
 
-	var ownedRunSchedule *pipelinesv1.RunSchedule = nil
+	var runSchedule *pipelinesv1.RunSchedule = nil
 
-	for _, schedule := range ownedRunSchedules {
-		if ownedRunSchedule == nil && cmpRunSchedule(schedule, *expectedRunSchedule) {
-			ownedRunSchedule = &schedule
+	for _, ownedRunSchedule := range ownedRunSchedules {
+		if runSchedule == nil && match(ownedRunSchedule, *expectedRunSchedule) {
+			runSchedule = &ownedRunSchedule
 		} else {
-			if err = r.EC.Client.Delete(ctx, &schedule); err != nil {
+			if err = r.EC.Client.Delete(ctx, &ownedRunSchedule); err != nil {
 				return err
 			}
 		}
 	}
 
-	if ownedRunSchedule == nil {
+	if runSchedule == nil {
 		if err = controllerutil.SetControllerReference(runConfiguration, expectedRunSchedule, r.EC.Scheme); err != nil {
 			return err
 		}
 
-		ownedRunSchedule = expectedRunSchedule
+		runSchedule = expectedRunSchedule
 
-		if err = r.EC.Client.Create(ctx, ownedRunSchedule); err != nil {
+		if err = r.EC.Client.Create(ctx, runSchedule); err != nil {
 			return err
 		}
 	}
 
-	ownedRunSchedule.Status = expectedRunSchedule.Status
+	runSchedule.Status = expectedRunSchedule.Status
 
-	return r.EC.Client.Status().Update(ctx, ownedRunSchedule)
+	return r.EC.Client.Status().Update(ctx, runSchedule)
 }
 
 func findOwnedRunSchedules(ctx context.Context, cli client.Reader, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
@@ -140,7 +140,7 @@ func runScheduleForRunConfiguration(runConfiguration *pipelinesv1.RunConfigurati
 	return rs
 }
 
-func cmpRunSchedule(a, b pipelinesv1.RunSchedule) bool {
+func match(a, b pipelinesv1.RunSchedule) bool {
 	return string(a.ComputeHash()) == string(b.ComputeHash())
 }
 

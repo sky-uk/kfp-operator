@@ -177,7 +177,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 		})
 
-		It("triggers an update of the run schedule", func() {
+		It("updates of the run schedule", func() {
 			pipeline := pipelinesv1.RandomPipeline()
 			pipelineHelper := CreateSucceeded(pipeline)
 
@@ -227,7 +227,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
-	When("RunSchedules exists for a RunConfiguration", func() {
+	When("More than one RunSchedule exists for a RunConfiguration", func() {
 		It("keeps only one matching RunSchedule", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			CreateSucceeded(runConfiguration)
@@ -262,7 +262,6 @@ func matchedPipelineVersion(runConfiguration *pipelinesv1.RunConfiguration) func
 		Expect(err).NotTo(HaveOccurred())
 
 		g.Expect(ownedRunSchedules).To(HaveLen(1))
-
 		g.Expect(ownedRunSchedules[0].Spec.Pipeline.Version).To(Equal(runConfiguration.GetObservedPipelineVersion()))
 	}
 }
