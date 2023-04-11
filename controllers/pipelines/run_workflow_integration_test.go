@@ -30,6 +30,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 				Namespace: "argo",
 			},
 			Status: pipelinesv1.RunStatus{
+				ObservedPipelineVersion: apis.RandomString(),
 				Status: pipelinesv1.Status{
 					ProviderId: pipelinesv1.ProviderAndId{
 						Provider: "stub",
