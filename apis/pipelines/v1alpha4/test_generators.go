@@ -72,7 +72,8 @@ func RandomRun() *Run {
 		},
 		Spec: RandomRunSpec(),
 		Status: RunStatus{
-			Status: RandomStatus(),
+			ObservedPipelineVersion: RandomString(),
+			Status:                  RandomStatus(),
 		},
 	}
 }

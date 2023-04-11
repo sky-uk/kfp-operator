@@ -126,3 +126,12 @@ func AssertWorkflow[R pipelinesv1.Resource](
 			g.Expect(output.Id).To(Equal(expectedOutput.Id))
 		}), TestTimeout).Should(Succeed())
 }
+
+func withIntegrationTestFields[T pipelinesv1.Resource](resource T) T {
+	resource.SetNamespace("argo")
+	resourceStatus := resource.GetStatus()
+	resourceStatus.ProviderId.Provider = "stub"
+	resource.SetStatus(resourceStatus)
+
+	return resource
+}
