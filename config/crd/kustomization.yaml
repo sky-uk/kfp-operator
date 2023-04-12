@@ -6,6 +6,7 @@ resources:
 - bases/config.kubeflow.org_kfpcontrollerconfigs.yaml
 - bases/pipelines.kubeflow.org_runs.yaml
 - bases/pipelines.kubeflow.org_runconfigurations.yaml
+- bases/pipelines.kubeflow.org_runschedules.yaml
 - bases/pipelines.kubeflow.org_experiments.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 

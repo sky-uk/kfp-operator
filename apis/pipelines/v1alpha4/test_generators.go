@@ -46,6 +46,26 @@ func RandomRunConfiguration() *RunConfiguration {
 	}
 }
 
+func RandomRunScheduleSpec() RunScheduleSpec {
+	return RunScheduleSpec{
+		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		ExperimentName:    RandomString(),
+		Schedule:          RandomString(),
+		RuntimeParameters: RandomNamedValues(),
+	}
+}
+
+func RandomRunSchedule() *RunSchedule {
+	return &RunSchedule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandomLowercaseString(),
+			Namespace: "default",
+		},
+		Spec:   RandomRunScheduleSpec(),
+		Status: RandomStatus(),
+	}
+}
+
 func RandomRunConfigurationSpec() RunConfigurationSpec {
 	return RunConfigurationSpec{
 		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},

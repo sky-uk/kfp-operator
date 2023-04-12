@@ -104,6 +104,7 @@ func main() {
 	ec := pipelinescontrollers.K8sExecutionContext{
 		Client:             client,
 		Recorder:           mgr.GetEventRecorderFor("kfp-operator"),
+		Scheme:             mgr.GetScheme(),
 		WorkflowRepository: workflowRepository,
 	}
 

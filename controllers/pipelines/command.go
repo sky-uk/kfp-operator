@@ -7,6 +7,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
 	"github.com/sky-uk/kfp-operator/controllers"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -32,6 +33,7 @@ var EventReasons = struct {
 type K8sExecutionContext struct {
 	Client             controllers.OptInClient
 	Recorder           record.EventRecorder
+	Scheme             *runtime.Scheme
 	WorkflowRepository WorkflowRepository
 }
 
