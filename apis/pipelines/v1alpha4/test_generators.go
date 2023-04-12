@@ -49,6 +49,7 @@ func RandomRunConfiguration() *RunConfiguration {
 func RandomRunScheduleSpec() RunScheduleSpec {
 	return RunScheduleSpec{
 		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		ExperimentName:    RandomString(),
 		Schedule:          RandomString(),
 		RuntimeParameters: RandomNamedValues(),
 	}

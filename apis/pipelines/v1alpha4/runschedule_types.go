@@ -15,21 +15,6 @@ type RunScheduleSpec struct {
 	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
 }
 
-func (rc RunSchedule) ComputeHash() []byte {
-	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(rc.Spec.Pipeline.String())
-	oh.WriteStringField(rc.Spec.ExperimentName)
-	oh.WriteStringField(rc.Spec.Schedule)
-	oh.WriteNamedValueListField(rc.Spec.RuntimeParameters)
-	return oh.Sum()
-}
-
-func (rc RunSchedule) ComputeVersion() string {
-	hash := rc.ComputeHash()[0:3]
-
-	return fmt.Sprintf("%x", hash)
-}
-
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:shortName="mlrs"
 //+kubebuilder:subresource:status
@@ -44,6 +29,21 @@ type RunSchedule struct {
 
 	Spec   RunScheduleSpec `json:"spec,omitempty"`
 	Status Status          `json:"status,omitempty"`
+}
+
+func (rc RunSchedule) ComputeHash() []byte {
+	oh := pipelines.NewObjectHasher()
+	oh.WriteStringField(rc.Spec.Pipeline.String())
+	oh.WriteStringField(rc.Spec.ExperimentName)
+	oh.WriteStringField(rc.Spec.Schedule)
+	oh.WriteNamedValueListField(rc.Spec.RuntimeParameters)
+	return oh.Sum()
+}
+
+func (rc RunSchedule) ComputeVersion() string {
+	hash := rc.ComputeHash()[0:3]
+
+	return fmt.Sprintf("%x", hash)
 }
 
 func (rc *RunSchedule) GetPipeline() PipelineIdentifier {

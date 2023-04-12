@@ -18,7 +18,7 @@ import (
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
-			providerId := "12345"
+			providerId := apis.RandomString()
 			rcHelper := Create(pipelinesv1.RandomRunConfiguration())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
@@ -80,14 +80,14 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 
 		It("keeps a RunSchedule in sync", func() {
-			providerId := "12345"
+			providerId := apis.RandomString()
 			rcHelper := Create(pipelinesv1.RandomRunConfiguration())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Creating))
 			})).Should(Succeed())
 
-			Eventually(matchedPipelineVersion(rcHelper.Resource)).Should(Succeed())
+			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
@@ -98,7 +98,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
 
-			Eventually(matchedPipelineVersion(rcHelper.Resource)).Should(Succeed())
+			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
 
 			Expect(rcHelper.Update(func(runConfiguration *pipelinesv1.RunConfiguration) {
 				runConfiguration.Spec = pipelinesv1.RandomRunConfigurationSpec()
@@ -108,20 +108,18 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
 			})).Should(Succeed())
 
-			Eventually(matchedPipelineVersion(rcHelper.Resource)).Should(Succeed())
+			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
 				setProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Eventually(matchedPipelineVersion(rcHelper.Resource)).Should(Succeed())
-
 			Eventually(rcHelper.ToMatch(func(g Gomega, runConfiguration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
 
-			Eventually(matchedPipelineVersion(rcHelper.Resource)).Should(Succeed())
+			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
 
 			Expect(rcHelper.Delete()).To(Succeed())
 
@@ -129,7 +127,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Deleting))
 			})).Should(Succeed())
 
-			Eventually(matchedPipelineVersion(rcHelper.Resource)).Should(Succeed())
+			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
@@ -177,7 +175,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 		})
 
-		It("updates of the run schedule", func() {
+		It("updates the run schedule", func() {
 			pipeline := pipelinesv1.RandomPipeline()
 			pipelineHelper := CreateSucceeded(pipeline)
 
@@ -191,7 +189,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
 			})
 
-			Eventually(matchedPipelineVersion(rcHelper.Resource)).Should(Succeed())
+			Eventually(hasRunScheduleWithMatchingPipelineVersion(rcHelper.Resource)).Should(Succeed())
 		})
 	})
 
@@ -256,7 +254,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	})
 })
 
-func matchedPipelineVersion(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
+func hasRunScheduleWithMatchingPipelineVersion(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
 	return func(g Gomega) {
 		ownedRunSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
