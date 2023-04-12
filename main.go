@@ -35,7 +35,7 @@ import (
 	pipelinesv1alpha2 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha2"
 	pipelinesv1alpha3 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha3"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
-	controllers "github.com/sky-uk/kfp-operator/controllers"
+	"github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
 
 	//+kubebuilder:scaffold:imports
