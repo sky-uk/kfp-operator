@@ -1,4 +1,4 @@
-apiVersion: pipelines.kubeflow.org/v1alpha4
+apiVersion: pipelines.kubeflow.org/v1alpha3
 kind: RunConfiguration
 metadata:
   name: runconfiguration-sample
