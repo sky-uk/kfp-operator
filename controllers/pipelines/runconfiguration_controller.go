@@ -47,6 +47,10 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
+	if hasChanged, err := r.syncRunSchedule(ctx, runConfiguration); hasChanged || err != nil {
+		return ctrl.Result{}, err
+	}
+
 	commands := r.StateHandler.StateTransition(ctx, desiredProvider, runConfiguration)
 
 	for i := range commands {
@@ -56,21 +60,17 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 	}
 
-	if err := r.syncRunSchedule(ctx, runConfiguration); err != nil {
-		return ctrl.Result{}, err
-	}
-
 	duration := time.Now().Sub(startTime)
 	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
 
-func (r *RunConfigurationReconciler) syncRunSchedule(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) error {
+func (r *RunConfigurationReconciler) syncRunSchedule(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (hasChanged bool, err error) {
 	expectedRunSchedule := runScheduleForRunConfiguration(runConfiguration)
 	ownedRunSchedules, err := findOwnedRunSchedules(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
-		return err
+		return
 	}
 
 	var runSchedule *pipelinesv1.RunSchedule = nil
@@ -79,27 +79,44 @@ func (r *RunConfigurationReconciler) syncRunSchedule(ctx context.Context, runCon
 		if runSchedule == nil && match(ownedRunSchedule, *expectedRunSchedule) {
 			runSchedule = &ownedRunSchedule
 		} else {
+			hasChanged = true
 			if err = r.EC.Client.Delete(ctx, &ownedRunSchedule); err != nil {
-				return err
+				return
 			}
 		}
 	}
 
 	if runSchedule == nil {
+		hasChanged = true
+
 		if err = controllerutil.SetControllerReference(runConfiguration, expectedRunSchedule, r.EC.Scheme); err != nil {
-			return err
+			return
 		}
 
 		runSchedule = expectedRunSchedule
 
 		if err = r.EC.Client.Create(ctx, runSchedule); err != nil {
-			return err
+			return
+		}
+	} else if runConfiguration.Status.ProviderId.Id == "" && runSchedule.Status.ProviderId.Id != "" {
+		hasChanged = true
+		runConfiguration.Status.ProviderId = runSchedule.Status.ProviderId
+
+		err = r.EC.Client.Status().Update(ctx, runConfiguration)
+
+		return
+	}
+
+	if runSchedule.Status != expectedRunSchedule.Status {
+		hasChanged = true
+
+		runSchedule.Status = expectedRunSchedule.Status
+		if err = r.EC.Client.Status().Update(ctx, runSchedule); err != nil {
+			return
 		}
 	}
 
-	runSchedule.Status = expectedRunSchedule.Status
-
-	return r.EC.Client.Status().Update(ctx, runSchedule)
+	return
 }
 
 func findOwnedRunSchedules(ctx context.Context, cli client.Reader, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {

@@ -225,6 +225,22 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
+	When("A RunSchedule with a ProviderId exists for a RunConfiguration without a ProviderId", func() {
+		It("keeps the RunConfiguration in sync", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			rcHelper := CreateSucceeded(runConfiguration)
+			expectedProviderId := rcHelper.Resource.Status.ProviderId
+
+			Expect(rcHelper.UpdateStatus(func(configuration *pipelinesv1.RunConfiguration) {
+				configuration.Status.ProviderId = pipelinesv1.ProviderAndId{}
+			})).To(Succeed())
+
+			Eventually(rcHelper.ToMatch(func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+				g.Expect(configuration.Status.ProviderId).To(Equal(expectedProviderId))
+			})).Should(Succeed())
+		})
+	})
+
 	When("More than one RunSchedule exists for a RunConfiguration", func() {
 		It("keeps only one matching RunSchedule", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
