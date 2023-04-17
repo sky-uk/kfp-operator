@@ -100,7 +100,9 @@ var _ = Context("KFP API", func() {
 			})
 		})
 
-		When("GetRun returns run with JOB as CREATOR", func() {
+		//TODO: test description
+
+		When("GetRun returns run with JOB as CREATOR and no Description", func() {
 			It("Returns populated ResourceReferences", func() {
 				runConfigurationName := common.RandomString()
 				runName := common.RandomNamespacedName()
@@ -111,11 +113,12 @@ var _ = Context("KFP API", func() {
 						Name: runName.Name,
 						ResourceReferences: []*go_client.ResourceReference{
 							{
+
 								Name:         runConfigurationName,
 								Relationship: go_client.Relationship_CREATOR,
-								Key: &go_client.ResourceKey{
+								Key:          &go_client.ResourceKey{
 									Type: go_client.ResourceType_JOB,
-									Id:   common.RandomString(),
+									Id: common.RandomString(),
 								},
 							},
 							{

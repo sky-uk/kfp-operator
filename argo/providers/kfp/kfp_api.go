@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	"gopkg.in/yaml.v2"
 )
 
 var kfpApiConstants = struct {
@@ -35,9 +37,13 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	}
 
 	resourceReferences.RunName.Name = runDetail.GetRun().GetName()
+	runScheduleDefinition := base.RunScheduleDefinition{}
+	if err := yaml.Unmarshal([]byte(runDetail.Run.Description), &runScheduleDefinition); err == nil {
+		resourceReferences.RunConfigurationName = runScheduleDefinition.RunConfigurationName
+	}
 
 	for _, ref := range runDetail.GetRun().GetResourceReferences() {
-		if ref.GetKey().GetType() == go_client.ResourceType_JOB && ref.GetRelationship() == go_client.Relationship_CREATOR {
+		if resourceReferences.RunConfigurationName == "" && ref.GetKey().GetType() == go_client.ResourceType_JOB && ref.GetRelationship() == go_client.Relationship_CREATOR {
 			resourceReferences.RunConfigurationName = ref.GetName()
 			continue
 		}

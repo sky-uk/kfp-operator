@@ -18,6 +18,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/dynamic"
 	"os"
 )
@@ -166,7 +167,6 @@ func (kfpp KfpProvider) DeleteRun(_ context.Context, _ KfpProviderConfig, _ stri
 	return nil
 }
 
-//TODO set RC name
 func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig KfpProviderConfig, runScheduleDefinition RunScheduleDefinition) (string, error) {
 	pipelineService, err := NewPipelineService(providerConfig)
 	if err != nil {
@@ -195,6 +195,12 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 		return "", err
 	}
 
+	// needed to write metadata of the job as no other field is possible
+	runScheduleAsDescription, err := yaml.Marshal(runScheduleDefinition)
+	if err != nil {
+		return "", err
+	}
+
 	jobService, err := jobService(providerConfig)
 	if err != nil {
 		return "", err
@@ -211,6 +217,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 				PipelineID: pipelineId,
 				Parameters: jobParameters,
 			},
+			Description: string(runScheduleAsDescription),
 			Name:           runScheduleDefinition.Name,
 			MaxConcurrency: 1,
 			Enabled:        true,
