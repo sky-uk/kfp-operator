@@ -101,6 +101,7 @@ func (r *RunConfigurationReconciler) syncRunSchedule(ctx context.Context, runCon
 	} else if runConfiguration.Status.ProviderId.Id == "" && runSchedule.Status.ProviderId.Id != "" {
 		hasChanged = true
 		runConfiguration.Status.ProviderId = runSchedule.Status.ProviderId
+		runConfiguration.Status.Version = runConfiguration.ComputeVersion()
 
 		err = r.EC.Client.Status().Update(ctx, runConfiguration)
 
