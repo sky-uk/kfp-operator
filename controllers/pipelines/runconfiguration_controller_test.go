@@ -12,8 +12,8 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
-var _ = Context("RunConfigurationController", func() {
-	DescribeTable("aggregateState", func(subStates []apis.SynchronizationState, expected apis.SynchronizationState) {
+var _ = Context("aggregateState", func() {
+	DescribeTable("calculates based on sub states", func(subStates []apis.SynchronizationState, expected apis.SynchronizationState) {
 		runSchedules := make([]pipelinesv1.RunSchedule, len(subStates))
 		for i, state := range subStates {
 			runSchedules[i] = pipelinesv1.RunSchedule{Status: pipelinesv1.Status{SynchronizationState: state}}
@@ -29,12 +29,15 @@ var _ = Context("RunConfigurationController", func() {
 		Entry(nil, []apis.SynchronizationState{"", apis.Failed}, apis.Updating),
 		Entry(nil, []apis.SynchronizationState{apis.Succeeded}, apis.Succeeded),
 	)
+})
 
-	It("constructRunSchedulesForTriggers", func() {
+var _ = Context("constructRunSchedulesForTriggers", func() {
+	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
+
+	It("sets all spec fields", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
 		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomTrigger(), pipelinesv1.RandomTrigger(), pipelinesv1.RandomTrigger()}
 
-		Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
 		runSchedules, err := constructRunSchedulesForTriggers(runConfiguration, scheme.Scheme)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -46,6 +49,20 @@ var _ = Context("RunConfigurationController", func() {
 			Expect(schedule.Spec.ExperimentName).To(Equal(runConfiguration.Spec.ExperimentName))
 			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[i].CronExpression))
 			Expect(metav1.IsControlledBy(&schedule, runConfiguration)).To(BeTrue())
+		}
+	})
+
+	It("propagates the provider annotation", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomTrigger()}
+		provider := apis.RandomString()
+		metav1.SetMetaDataAnnotation(&runConfiguration.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
+
+		runSchedules, err := constructRunSchedulesForTriggers(runConfiguration, scheme.Scheme)
+		Expect(err).NotTo(HaveOccurred())
+
+		for _, schedule := range runSchedules {
+			Expect(schedule.GetAnnotations()[apis.ResourceAnnotations.Provider]).To(Equal(provider))
 		}
 	})
 })

@@ -194,6 +194,7 @@ func constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfigura
 			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, scheme); err != nil {
 				return nil, err
 			}
+			metav1.SetMetaDataAnnotation(&schedule.ObjectMeta, apis.ResourceAnnotations.Provider, runConfiguration.GetAnnotations()[apis.ResourceAnnotations.Provider])
 			schedules = append(schedules, schedule)
 		}
 	}
