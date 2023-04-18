@@ -352,6 +352,7 @@ func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
 
 	return &GrpcKfpApi{
 		RunServiceClient: go_client.NewRunServiceClient(conn),
+		JobServiceClient: go_client.NewJobServiceClient(conn),
 	}, nil
 }
 

@@ -21,6 +21,7 @@ type KfpApi interface {
 
 type GrpcKfpApi struct {
 	RunServiceClient go_client.RunServiceClient
+	JobServiceClient go_client.JobServiceClient
 }
 
 type ResourceReferences struct {
@@ -37,14 +38,18 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	}
 
 	resourceReferences.RunName.Name = runDetail.GetRun().GetName()
-	runScheduleDefinition := base.RunScheduleDefinition{}
-	if err := yaml.Unmarshal([]byte(runDetail.Run.Description), &runScheduleDefinition); err == nil {
-		resourceReferences.RunConfigurationName = runScheduleDefinition.RunConfigurationName
-	}
 
 	for _, ref := range runDetail.GetRun().GetResourceReferences() {
-		if resourceReferences.RunConfigurationName == "" && ref.GetKey().GetType() == go_client.ResourceType_JOB && ref.GetRelationship() == go_client.Relationship_CREATOR {
-			resourceReferences.RunConfigurationName = ref.GetName()
+		if ref.GetKey().GetType() == go_client.ResourceType_JOB && ref.GetRelationship() == go_client.Relationship_CREATOR {
+			rcNameFromJob, err := gka.GetX(ctx, ref.GetKey().GetId())
+			if err != nil {
+				return ResourceReferences{}, err
+			}
+			if rcNameFromJob == "" {
+				resourceReferences.RunConfigurationName = ref.GetName()
+			} else {
+				resourceReferences.RunConfigurationName = rcNameFromJob
+			}
 			continue
 		}
 
@@ -55,4 +60,18 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	}
 
 	return resourceReferences, nil
+}
+
+func (gka *GrpcKfpApi) GetX(ctx context.Context, jobId string) (string, error) {
+	job, err := gka.JobServiceClient.GetJob(ctx, &go_client.GetJobRequest{Id: jobId})
+	if err != nil {
+		return "", err
+	}
+
+	runScheduleDefinition := base.RunScheduleDefinition{}
+	if err := yaml.Unmarshal([]byte(job.Description), &runScheduleDefinition); err != nil {
+		return "", nil
+	}
+
+	return runScheduleDefinition.RunConfigurationName, nil
 }

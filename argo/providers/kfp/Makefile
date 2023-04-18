@@ -23,6 +23,7 @@ generate: protoc-gen-go mockgen ## Generate service definitions from protobuf
 
 	$(MOCKGEN) -destination ml_metadata/metadata_store_service_grpc_mock.go -package=ml_metadata -source=ml_metadata/metadata_store_service_grpc.pb.go
 	$(MOCKGEN) -destination run_service_grpc_mock.go -package=kfp github.com/kubeflow/pipelines/backend/api/go_client RunServiceClient
+	$(MOCKGEN) -destination job_service_grpc_mock.go -package=kfp github.com/kubeflow/pipelines/backend/api/go_client JobServiceClient
 
 ##@ Development
 

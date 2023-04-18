@@ -17,6 +17,7 @@ var _ = Context("KFP API", func() {
 	var (
 		mockCtrl             *gomock.Controller
 		mockRunServiceClient *MockRunServiceClient
+		mockJobServiceClient *MockJobServiceClient
 		kfpApi               GrpcKfpApi
 		runId                string
 	)
@@ -24,7 +25,8 @@ var _ = Context("KFP API", func() {
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		mockRunServiceClient = NewMockRunServiceClient(mockCtrl)
-		kfpApi = GrpcKfpApi{RunServiceClient: mockRunServiceClient}
+		mockJobServiceClient = NewMockJobServiceClient(mockCtrl)
+		kfpApi = GrpcKfpApi{RunServiceClient: mockRunServiceClient, JobServiceClient: mockJobServiceClient}
 		runId = common.RandomString()
 	})
 
@@ -100,12 +102,11 @@ var _ = Context("KFP API", func() {
 			})
 		})
 
-		//TODO: test description
-
-		When("GetRun returns run with JOB as CREATOR and no Description", func() {
+		When("GetRun returns run with JOB without Description as CREATOR", func() {
 			It("Returns populated ResourceReferences", func() {
 				runConfigurationName := common.RandomString()
 				runName := common.RandomNamespacedName()
+				jobId := common.RandomString()
 
 				runDetail := go_client.RunDetail{
 					Run: &go_client.Run{
@@ -113,12 +114,11 @@ var _ = Context("KFP API", func() {
 						Name: runName.Name,
 						ResourceReferences: []*go_client.ResourceReference{
 							{
-
 								Name:         runConfigurationName,
 								Relationship: go_client.Relationship_CREATOR,
 								Key:          &go_client.ResourceKey{
 									Type: go_client.ResourceType_JOB,
-									Id: common.RandomString(),
+									Id: jobId,
 								},
 							},
 							{
@@ -135,6 +135,53 @@ var _ = Context("KFP API", func() {
 				mockRunServiceClient.EXPECT().
 					GetRun(gomock.Any(), gomock.Eq(&go_client.GetRunRequest{RunId: runId})).
 					Return(&runDetail, nil)
+
+				mockJobServiceClient.EXPECT().
+					GetJob(gomock.Any(), gomock.Eq(&go_client.GetJobRequest{Id: jobId})).
+					Return(&go_client.Job{}, nil)
+
+				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
+				Expect(err).To(BeNil())
+				Expect(resourceReferences.RunConfigurationName).To(Equal(runConfigurationName))
+				Expect(resourceReferences.RunName).To(Equal(runName))
+			})
+		})
+
+		When("GetRun returns run with JOB with Description as CREATOR", func() {
+			It("Returns populated ResourceReferences", func() {
+				runConfigurationName := common.RandomString()
+				runName := common.NamespacedName{
+					Name: common.RandomString(),
+				}
+				jobId := common.RandomString()
+
+				runDetail := go_client.RunDetail{
+					Run: &go_client.Run{
+						Id:   runId,
+						Name: runName.Name,
+						ResourceReferences: []*go_client.ResourceReference{
+							{
+								Relationship: go_client.Relationship_CREATOR,
+								Key:          &go_client.ResourceKey{
+									Type: go_client.ResourceType_JOB,
+									Id: jobId,
+								},
+							},
+						},
+					},
+				}
+
+				jobDetail := go_client.Job{
+					Description: "runConfigurationName: "+runConfigurationName,
+				}
+
+				mockRunServiceClient.EXPECT().
+					GetRun(gomock.Any(), gomock.Eq(&go_client.GetRunRequest{RunId: runId})).
+					Return(&runDetail, nil)
+
+				mockJobServiceClient.EXPECT().
+					GetJob(gomock.Any(), gomock.Eq(&go_client.GetJobRequest{Id: jobId})).
+					Return(&jobDetail, nil)
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())
