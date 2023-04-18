@@ -25,6 +25,10 @@ type RunCompleter struct {
 }
 
 func (c *RunCompleter) CompleteRun(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
+	if runCompletionEvent.RunName.Namespace == "" {
+		return nil
+	}
+
 	run := pipelinesv1.Run{}
 
 	if err := c.K8sClient.Get(ctx, types.NamespacedName{Namespace: runCompletionEvent.RunName.Namespace, Name: runCompletionEvent.RunName.Name}, &run); err != nil {
