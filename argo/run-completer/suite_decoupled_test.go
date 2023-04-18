@@ -107,6 +107,18 @@ var _ = Context("Run Completer", Serial, func() {
 		})
 	})
 
+	When("the run name has no namespace", func() {
+		It("do nothing", func() {
+			ctx := context.Background()
+
+			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
+				Name:      common.RandomString(),
+			}}
+
+			Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+		})
+	})
+
 	When("the k8s API is unreachable", func() {
 		It("errors", func() {
 			ctx := context.Background()
