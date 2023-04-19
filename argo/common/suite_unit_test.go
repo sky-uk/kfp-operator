@@ -15,14 +15,19 @@ func TestCommonUnitSuite(t *testing.T) {
 	RunSpecs(t, "Common unit Suite")
 }
 
-var _ = Context("NamespacedName.Marshal", Serial, func() {
-	namespacedName := NamespacedName{}
+var _ = Context("Marshal NamespacedName", Serial, func() {
+	name := RandomString()
+	namespace := RandomString()
+	namespacedName := NamespacedName{Namespace: namespace, Name: name}
 
 	When("value is provided", func() {
 		It("custom marshaller is called", func() {
 			serialised, err := json.Marshal(namespacedName)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(serialised)).To(Equal(`""`))
+			Expect(string(serialised)).To(Equal(`"`+namespace+"/"+name+`"`))
+			deserialised := NamespacedName{}
+			Expect(json.Unmarshal(serialised, &deserialised)).To(Succeed())
+			Expect(deserialised).To(Equal(namespacedName))
 		})
 	})
 
@@ -30,7 +35,10 @@ var _ = Context("NamespacedName.Marshal", Serial, func() {
 		It("custom marshaller is called", func() {
 			serialised, err := json.Marshal(&namespacedName)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(serialised)).To(Equal(`""`))
+			Expect(string(serialised)).To(Equal(`"`+namespace+"/"+name+`"`))
+			deserialised := NamespacedName{}
+			Expect(json.Unmarshal(serialised, &deserialised)).To(Succeed())
+			Expect(deserialised).To(Equal(namespacedName))
 		})
 	})
 })

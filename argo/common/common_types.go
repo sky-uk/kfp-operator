@@ -55,14 +55,14 @@ func (nsn NamespacedName) MarshalJSON() ([]byte, error) {
 	return json.Marshal(serialised)
 }
 
-func (nsn NamespacedName) UnmarshalJSON(bytes []byte) error {
+func (nsn *NamespacedName) UnmarshalJSON(bytes []byte) error {
 	var pidStr string
 	err := json.Unmarshal(bytes, &pidStr)
 	if err != nil {
 		return err
 	}
 
-	nsn, err = namespacedNameFromString(pidStr)
+	*nsn, err = namespacedNameFromString(pidStr)
 
 	return err
 }
