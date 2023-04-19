@@ -46,7 +46,7 @@ func namespacedNameFromString(namespacedName string) (NamespacedName, error) {
 	}, nil
 }
 
-func (nsn *NamespacedName) MarshalJSON() ([]byte, error) {
+func (nsn NamespacedName) MarshalJSON() ([]byte, error) {
 	serialised, err := nsn.string()
 	if err != nil {
 		return nil, err

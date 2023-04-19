@@ -4,6 +4,7 @@
 package common
 
 import (
+	"encoding/json"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"testing"
@@ -13,6 +14,34 @@ func TestCommonUnitSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Common unit Suite")
 }
+
+var _ = Context("Marshal NamespacedName", Serial, func() {
+	name := RandomString()
+	namespace := RandomString()
+	namespacedName := NamespacedName{Namespace: namespace, Name: name}
+
+	When("value is provided", func() {
+		It("custom marshaller is called", func() {
+			serialised, err := json.Marshal(namespacedName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(serialised)).To(Equal(`"`+namespace+"/"+name+`"`))
+			deserialised := NamespacedName{}
+			Expect(json.Unmarshal(serialised, &deserialised)).To(Succeed())
+			Expect(deserialised).To(Equal(namespacedName))
+		})
+	})
+
+	When("pointer is provider", func() {
+		It("custom marshaller is called", func() {
+			serialised, err := json.Marshal(&namespacedName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(serialised)).To(Equal(`"`+namespace+"/"+name+`"`))
+			deserialised := NamespacedName{}
+			Expect(json.Unmarshal(serialised, &deserialised)).To(Succeed())
+			Expect(deserialised).To(Equal(namespacedName))
+		})
+	})
+})
 
 var _ = Context("NamespacedName.string", Serial, func() {
 	name := RandomString()
