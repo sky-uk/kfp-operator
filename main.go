@@ -140,7 +140,7 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
 			os.Exit(1)
 		}
-		if err = (&pipelinesv1.RunSchedule{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
 			os.Exit(1)
 		}
@@ -148,8 +148,13 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
 			os.Exit(1)
 		}
+		if err = (&pipelinesv1.RunSchedule{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "RunSchedule")
+			os.Exit(1)
+		}
 	}
 
+	// Runs have a validation webhook in addition to conversion
 	if err = (&pipelinesv1.Run{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Run")
 		os.Exit(1)
