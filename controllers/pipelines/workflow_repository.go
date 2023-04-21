@@ -6,11 +6,9 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/controllers"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/selection"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -64,26 +62,6 @@ func (w WorkflowRepositoryImpl) GetByLabels(ctx context.Context, matchingLabels 
 	}
 
 	return workflows.Items
-}
-
-func (w WorkflowRepositoryImpl) SetupWithManager(mgr ctrl.Manager) error {
-	return mgr.GetFieldIndexer().IndexField(context.Background(), &argo.Workflow{}, workflowOwnerKey, func(rawObj client.Object) []string {
-		workflow := rawObj.(*argo.Workflow)
-
-		owner := metav1.GetControllerOf(workflow)
-
-		if owner == nil {
-			return nil
-		}
-
-		isOwnedWorkflow := owner.APIVersion == apiGVStr && (owner.Kind == "Pipeline" || owner.Kind == "RunSchedule")
-
-		if !isOwnedWorkflow {
-			return nil
-		}
-
-		return []string{owner.Name}
-	})
 }
 
 func (w WorkflowRepositoryImpl) MarkWorkflowAsProcessed(ctx context.Context, workflow *argo.Workflow) error {
