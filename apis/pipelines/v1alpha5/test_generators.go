@@ -50,11 +50,11 @@ func RandomRunConfigurationSpec() RunConfigurationSpec {
 		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		RuntimeParameters: RandomNamedValues(),
 		ExperimentName:    RandomString(),
-		Triggers:          RandomList(RandomTrigger),
+		Triggers:          RandomList(RandomCronTrigger),
 	}
 }
 
-func RandomTrigger() Trigger {
+func RandomCronTrigger() Trigger {
 	return Trigger{Type: TriggerTypes.Schedule, CronExpression: RandomString()}
 }
 

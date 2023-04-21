@@ -70,7 +70,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunConfiguration()
-			src.Spec.Triggers = []hub.Trigger{hub.RandomTrigger()}
+			src.Spec.Triggers = []hub.Trigger{hub.RandomCronTrigger()}
 
 			intermediate := &RunConfiguration{}
 			dst := &hub.RunConfiguration{}

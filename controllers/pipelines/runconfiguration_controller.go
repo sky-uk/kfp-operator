@@ -32,7 +32,6 @@ func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Schem
 	}
 }
 
-//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runschedules,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations/finalizers,verbs=update
@@ -94,8 +93,8 @@ func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, r
 		return
 	}
 
-	missingSchedules := sliceDiff(desiredSchedules, dependentSchedules, cmpRunSchedule)
-	excessSchedules := sliceDiff(dependentSchedules, desiredSchedules, cmpRunSchedule)
+	missingSchedules := sliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
+	excessSchedules := sliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
 	isSynced := len(missingSchedules) == 0 && len(excessSchedules) == 0
 
 	if !isSynced {
@@ -216,6 +215,6 @@ func aggregateState(dependencies []pipelinesv1.RunSchedule) apis.Synchronization
 	return aggState
 }
 
-func cmpRunSchedule(a, b pipelinesv1.RunSchedule) bool {
+func compareRunSchedules(a, b pipelinesv1.RunSchedule) bool {
 	return string(a.ComputeHash()) == string(b.ComputeHash())
 }

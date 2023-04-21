@@ -9,11 +9,10 @@ import (
 )
 
 var kfpApiConstants = struct {
-	KfpResourceNotFoundCode     int32
+	KfpResourceNotFoundCode int32
 }{
-	KfpResourceNotFoundCode:     5,
+	KfpResourceNotFoundCode: 5,
 }
-
 
 type KfpApi interface {
 	GetResourceReferences(ctx context.Context, runId string) (ResourceReferences, error)
@@ -41,11 +40,12 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 
 	for _, ref := range runDetail.GetRun().GetResourceReferences() {
 		if ref.GetKey().GetType() == go_client.ResourceType_JOB && ref.GetRelationship() == go_client.Relationship_CREATOR {
-			rcNameFromJob, err := gka.GetX(ctx, ref.GetKey().GetId())
+			rcNameFromJob, err := gka.GetRunConfigurationNameFromJob(ctx, ref.GetKey().GetId())
 			if err != nil {
 				return ResourceReferences{}, err
 			}
 			if rcNameFromJob == "" {
+				// For migration from v1alpha4. Remove afterwards.
 				resourceReferences.RunConfigurationName = ref.GetName()
 			} else {
 				resourceReferences.RunConfigurationName = rcNameFromJob
@@ -62,7 +62,7 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	return resourceReferences, nil
 }
 
-func (gka *GrpcKfpApi) GetX(ctx context.Context, jobId string) (string, error) {
+func (gka *GrpcKfpApi) GetRunConfigurationNameFromJob(ctx context.Context, jobId string) (string, error) {
 	job, err := gka.JobServiceClient.GetJob(ctx, &go_client.GetJobRequest{Id: jobId})
 	if err != nil {
 		return "", err

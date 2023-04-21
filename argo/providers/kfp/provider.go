@@ -217,7 +217,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 				PipelineID: pipelineId,
 				Parameters: jobParameters,
 			},
-			Description: string(runScheduleAsDescription),
+			Description:    string(runScheduleAsDescription),
 			Name:           runScheduleDefinition.Name,
 			MaxConcurrency: 1,
 			Enabled:        true,

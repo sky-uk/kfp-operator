@@ -36,7 +36,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 
 	It("sets all spec fields", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
-		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomTrigger(), pipelinesv1.RandomTrigger(), pipelinesv1.RandomTrigger()}
+		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger()}
 
 		runSchedules, err := constructRunSchedulesForTriggers(runConfiguration, scheme.Scheme)
 		Expect(err).NotTo(HaveOccurred())
@@ -54,7 +54,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 
 	It("propagates the provider annotation", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
-		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomTrigger()}
+		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger()}
 		provider := apis.RandomString()
 		metav1.SetMetaDataAnnotation(&runConfiguration.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
 

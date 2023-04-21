@@ -9,11 +9,10 @@ import (
 )
 
 type RunConfigurationSpec struct {
-	Pipeline       PipelineIdentifier `json:"pipeline,omitempty"`
-	ExperimentName string             `json:"experimentName,omitempty"`
-	// +kubebuilder:validation:Required
-	Schedule          string            `json:"schedule"`
-	RuntimeParameters []apis.NamedValue `json:"runtimeParameters,omitempty"`
+	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
+	ExperimentName    string             `json:"experimentName,omitempty"`
+	Schedule          string             `json:"schedule,omitempty"`
+	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
 }
 
 func (rc RunConfiguration) ComputeHash() []byte {

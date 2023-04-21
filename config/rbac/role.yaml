@@ -54,14 +54,6 @@ rules:
 - apiGroups:
   - pipelines.kubeflow.org
   resources:
-  - pipeline
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
   - pipelines
   verbs:
   - create

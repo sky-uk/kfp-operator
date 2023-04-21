@@ -116,9 +116,9 @@ var _ = Context("KFP API", func() {
 							{
 								Name:         runConfigurationName,
 								Relationship: go_client.Relationship_CREATOR,
-								Key:          &go_client.ResourceKey{
+								Key: &go_client.ResourceKey{
 									Type: go_client.ResourceType_JOB,
-									Id: jobId,
+									Id:   jobId,
 								},
 							},
 							{
@@ -162,9 +162,9 @@ var _ = Context("KFP API", func() {
 						ResourceReferences: []*go_client.ResourceReference{
 							{
 								Relationship: go_client.Relationship_CREATOR,
-								Key:          &go_client.ResourceKey{
+								Key: &go_client.ResourceKey{
 									Type: go_client.ResourceType_JOB,
-									Id: jobId,
+									Id:   jobId,
 								},
 							},
 						},
@@ -172,7 +172,7 @@ var _ = Context("KFP API", func() {
 				}
 
 				jobDetail := go_client.Job{
-					Description: "runConfigurationName: "+runConfigurationName,
+					Description: "runConfigurationName: " + runConfigurationName,
 				}
 
 				mockRunServiceClient.EXPECT().

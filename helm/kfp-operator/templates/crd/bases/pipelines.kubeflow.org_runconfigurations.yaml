@@ -207,8 +207,6 @@ spec:
                 type: array
               schedule:
                 type: string
-            required:
-              - schedule
             type: object
           status:
             properties:

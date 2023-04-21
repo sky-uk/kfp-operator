@@ -17,31 +17,31 @@ import (
 )
 
 var ProviderConstants = struct {
-	PipelineDefinitionParameter         string
-	ExperimentDefinitionParameter       string
-	RunDefinitionParameter              string
+	PipelineDefinitionParameter    string
+	ExperimentDefinitionParameter  string
+	RunDefinitionParameter         string
 	RunScheduleDefinitionParameter string
-	ProviderConfigParameter             string
-	PipelineIdParameter                 string
-	ExperimentIdParameter               string
+	ProviderConfigParameter        string
+	PipelineIdParameter            string
+	ExperimentIdParameter          string
 	RunScheduleIdParameter         string
-	RunIdParameter                      string
-	PipelineFileParameter               string
-	OutputParameter                     string
-	EventsourceServerPortParameter      string
+	RunIdParameter                 string
+	PipelineFileParameter          string
+	OutputParameter                string
+	EventsourceServerPortParameter string
 }{
-	PipelineDefinitionParameter:         "pipeline-definition",
-	ExperimentDefinitionParameter:       "experiment-definition",
-	RunDefinitionParameter:              "run-definition",
+	PipelineDefinitionParameter:    "pipeline-definition",
+	ExperimentDefinitionParameter:  "experiment-definition",
+	RunDefinitionParameter:         "run-definition",
 	RunScheduleDefinitionParameter: "runschedule-definition",
-	ProviderConfigParameter:             "provider-config",
-	PipelineIdParameter:                 "pipeline-id",
-	ExperimentIdParameter:               "experiment-id",
-	RunIdParameter:                      "run-id",
+	ProviderConfigParameter:        "provider-config",
+	PipelineIdParameter:            "pipeline-id",
+	ExperimentIdParameter:          "experiment-id",
+	RunIdParameter:                 "run-id",
 	RunScheduleIdParameter:         "runschedule-id",
-	PipelineFileParameter:               "pipeline-file",
-	OutputParameter:                     "out",
-	EventsourceServerPortParameter:      "port",
+	PipelineFileParameter:          "pipeline-file",
+	OutputParameter:                "out",
+	EventsourceServerPortParameter: "port",
 }
 
 type ProviderApp[Config any] struct {

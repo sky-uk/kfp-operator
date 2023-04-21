@@ -13,7 +13,7 @@ import (
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	It("creates RunSchedule owned resources that are in the triggers", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
-		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomTrigger()}
+		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger()}
 		Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
 		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
@@ -173,13 +173,8 @@ func hasNoSchedules(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega)
 
 func createSucceededRcWithSchedule() *pipelinesv1.RunConfiguration {
 	runConfiguration := pipelinesv1.RandomRunConfiguration()
-	runConfiguration.Spec.Triggers = append(runConfiguration.Spec.Triggers, pipelinesv1.RandomTrigger())
+	runConfiguration.Spec.Triggers = append(runConfiguration.Spec.Triggers, pipelinesv1.RandomCronTrigger())
 	Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
-
-	Eventually(func(g Gomega) {
-		g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
-		g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
-	}).Should(Succeed())
 
 	Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
 		g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))

@@ -19,7 +19,7 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 
 		runSchedule.OwnerReferences = []metav1.OwnerReference{{
 			Controller: pointer.Bool(true),
-			APIVersion: "pipelines.kubeflow.org/v1alpha5",
+			APIVersion: pipelinesv1.GroupVersion.String(),
 			Kind:       "RunConfiguration",
 			Name:       runConfiguration.Name,
 		}}

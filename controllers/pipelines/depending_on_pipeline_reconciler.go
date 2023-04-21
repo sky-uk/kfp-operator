@@ -22,7 +22,6 @@ const (
 
 type DependingOnPipelineResource interface {
 	client.Object
-	//pipelinesv1.Resource
 	GetPipeline() pipelinesv1.PipelineIdentifier
 	GetObservedPipelineVersion() string
 	SetObservedPipelineVersion(string)
