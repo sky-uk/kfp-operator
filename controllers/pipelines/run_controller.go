@@ -2,7 +2,7 @@ package pipelines
 
 import (
 	"context"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"

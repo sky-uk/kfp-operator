@@ -2,7 +2,7 @@ package pipelines
 
 import (
 	"context"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
