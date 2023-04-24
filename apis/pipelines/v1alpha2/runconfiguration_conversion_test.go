@@ -19,7 +19,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 			dst := hub.RunConfiguration{}
 
 			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(dst.Spec.RuntimeParameters).To(Equal([]apis.NamedValue{
+			Expect(dst.Spec.Run.RuntimeParameters).To(Equal([]apis.NamedValue{
 				{Name: "a", Value: "b"},
 				{Name: "c", Value: "d"},
 			}))
@@ -28,11 +28,11 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 	var _ = Describe("ConvertFrom", func() {
 		Specify("Converts RuntimeParameters to a map", func() {
-			src := hub.RunConfiguration{Spec: hub.RunConfigurationSpec{
+			src := hub.RunConfiguration{Spec: hub.RunConfigurationSpec{Run: hub.RunSpec{
 				RuntimeParameters: []apis.NamedValue{
 					{Name: "a", Value: "b"},
 					{Name: "c", Value: "d"},
-				}}}
+				}}}}
 			dst := RunConfiguration{}
 
 			Expect(dst.ConvertFrom(&src)).To(Succeed())
@@ -40,11 +40,11 @@ var _ = Context("RunConfiguration Conversion", func() {
 		})
 
 		Specify("Removes duplicates and adds remainder annotation when RuntimeParameters contains a duplicate NamedValue", func() {
-			src := hub.RunConfiguration{Spec: hub.RunConfigurationSpec{
+			src := hub.RunConfiguration{Spec: hub.RunConfigurationSpec{Run: hub.RunSpec{
 				RuntimeParameters: []apis.NamedValue{
 					{Name: "a", Value: "b"},
 					{Name: "a", Value: "d"},
-				}}}
+				}}}}
 			dst := RunConfiguration{}
 
 			Expect(dst.ConvertFrom(&src)).To(Succeed())
@@ -78,9 +78,9 @@ var _ = Context("RunConfiguration Conversion", func() {
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
-			Expect(src.Spec.RuntimeParameters).To(ConsistOf(dst.Spec.RuntimeParameters))
-			src.Spec.RuntimeParameters = nil
-			dst.Spec.RuntimeParameters = nil
+			Expect(src.Spec.Run.RuntimeParameters).To(ConsistOf(dst.Spec.Run.RuntimeParameters))
+			src.Spec.Run.RuntimeParameters = nil
+			dst.Spec.Run.RuntimeParameters = nil
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
@@ -91,9 +91,11 @@ var _ = Context("RunConfiguration Conversion", func() {
 					Annotations: map[string]string{},
 				},
 				Spec: hub.RunConfigurationSpec{
-					RuntimeParameters: []apis.NamedValue{
-						{Name: "a", Value: "b"},
-						{Name: "a", Value: "d"},
+					Run: hub.RunSpec{
+						RuntimeParameters: []apis.NamedValue{
+							{Name: "a", Value: "b"},
+							{Name: "a", Value: "d"},
+						},
 					},
 				},
 			}

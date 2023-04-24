@@ -10,12 +10,12 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunConfiguration)
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
-	dst.Spec.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
+	dst.Spec.Run.RuntimeParameters = src.Spec.RuntimeParameters
+	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	if src.Spec.Schedule != "" {
 		dst.Spec.Triggers = []hub.Trigger{{Type: hub.TriggerTypes.Schedule, CronExpression: src.Spec.Schedule}}
 	}
-	dst.Spec.ExperimentName = src.Spec.ExperimentName
+	dst.Spec.Run.ExperimentName = src.Spec.ExperimentName
 	dst.Status = hub.RunConfigurationStatus{
 		ObservedPipelineVersion: src.Status.ObservedPipelineVersion,
 		SynchronizationState:    src.Status.SynchronizationState,
@@ -43,10 +43,10 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
-	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
+	dst.Spec.RuntimeParameters = src.Spec.Run.RuntimeParameters
+	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Run.Pipeline.Name, Version: src.Spec.Run.Pipeline.Version}
 	dst.Spec.Schedule = trigger.CronExpression
-	dst.Spec.ExperimentName = src.Spec.ExperimentName
+	dst.Spec.ExperimentName = src.Spec.Run.ExperimentName
 
 	dst.Status = RunConfigurationStatus{
 		ObservedPipelineVersion: src.Status.ObservedPipelineVersion,

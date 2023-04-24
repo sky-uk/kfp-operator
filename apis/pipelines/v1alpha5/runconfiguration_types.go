@@ -21,10 +21,8 @@ var TriggerTypes = struct {
 }
 
 type RunConfigurationSpec struct {
-	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
-	ExperimentName    string             `json:"experimentName,omitempty"`
-	Triggers          []Trigger          `json:"triggers,omitempty"`
-	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
+	Run      RunSpec   `json:"run,omitempty"`
+	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
 type RunConfigurationStatus struct {
@@ -49,7 +47,7 @@ type RunConfiguration struct {
 }
 
 func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {
-	return rc.Spec.Pipeline
+	return rc.Spec.Run.Pipeline
 }
 
 func (rc *RunConfiguration) GetObservedPipelineVersion() string {

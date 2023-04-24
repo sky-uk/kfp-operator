@@ -250,23 +250,26 @@ spec:
             type: object
           spec:
             properties:
-              experimentName:
-                type: string
-              pipeline:
-                pattern: ^[\w-]+(?::[\w-]+)?$
-                type: string
-              runtimeParameters:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                  required:
-                    - name
-                    - value
-                  type: object
-                type: array
+              run:
+                properties:
+                  experimentName:
+                    type: string
+                  pipeline:
+                    pattern: ^[\w-]+(?::[\w-]+)?$
+                    type: string
+                  runtimeParameters:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        value:
+                          type: string
+                      required:
+                        - name
+                        - value
+                      type: object
+                    type: array
+                type: object
               triggers:
                 items:
                   properties:

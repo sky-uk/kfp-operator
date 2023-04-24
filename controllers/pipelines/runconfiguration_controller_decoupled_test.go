@@ -22,8 +22,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})).Should(Succeed())
 
 		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
-			g.Expect(ownedSchedule.Spec.Pipeline).To(Equal(runConfiguration.Spec.Pipeline))
-			g.Expect(ownedSchedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.RuntimeParameters))
+			g.Expect(ownedSchedule.Spec.Pipeline).To(Equal(runConfiguration.Spec.Run.Pipeline))
+			g.Expect(ownedSchedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.Run.RuntimeParameters))
 			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[0].CronExpression))
 			g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 		})).Should(Succeed())
@@ -66,7 +66,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		It("sets the ObservedPipelineVersion to the fixed version", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			pipelineVersion := apis.RandomString()
-			runConfiguration.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
+			runConfiguration.Spec.Run.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
@@ -82,7 +82,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			pipelineHelper := CreateSucceeded(pipeline)
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
-			runConfiguration.Spec.Pipeline = pipeline.UnversionedIdentifier()
+			runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
@@ -104,7 +104,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 
-			runConfiguration.Spec.Pipeline = fixedIdentifier
+			runConfiguration.Spec.Run.Pipeline = fixedIdentifier
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 
 			pipelineHelper := CreateSucceeded(pipeline)
@@ -120,11 +120,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			// given that reconciliation requests are processed in-order, we can conclude that the RC is fixed.
 			newExperiment := apis.RandomString()
 			Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
-			runConfiguration.Spec.ExperimentName = newExperiment
+			runConfiguration.Spec.Run.ExperimentName = newExperiment
 			Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Spec.ExperimentName).To(Equal(newExperiment))
+				g.Expect(runConfiguration.Spec.Run.ExperimentName).To(Equal(newExperiment))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
 			})).Should(Succeed())
 		})

@@ -53,7 +53,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
-	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Pipeline, runConfiguration); hasChanged || err != nil {
+	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -182,12 +182,12 @@ func constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfigura
 				},
 				Spec: pipelinesv1.RunScheduleSpec{
 					Pipeline: pipelinesv1.PipelineIdentifier{
-						Name:    runConfiguration.Spec.Pipeline.Name,
+						Name:    runConfiguration.Spec.Run.Pipeline.Name,
 						Version: runConfiguration.Status.ObservedPipelineVersion,
 					},
-					RuntimeParameters: runConfiguration.Spec.RuntimeParameters,
+					RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
 					Schedule:          trigger.CronExpression,
-					ExperimentName:    runConfiguration.Spec.ExperimentName,
+					ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
 				},
 			}
 			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, scheme); err != nil {

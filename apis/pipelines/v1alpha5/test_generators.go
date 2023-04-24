@@ -47,10 +47,8 @@ func RandomRunConfiguration() *RunConfiguration {
 
 func RandomRunConfigurationSpec() RunConfigurationSpec {
 	return RunConfigurationSpec{
-		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
-		RuntimeParameters: RandomNamedValues(),
-		ExperimentName:    RandomString(),
-		Triggers:          RandomList(RandomCronTrigger),
+		Run:      RandomRunSpec(),
+		Triggers: RandomList(RandomCronTrigger),
 	}
 }
 
@@ -94,6 +92,7 @@ func RandomRun() *Run {
 func RandomRunSpec() RunSpec {
 	return RunSpec{
 		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		ExperimentName:    RandomString(),
 		RuntimeParameters: RandomNamedValues(),
 	}
 }
