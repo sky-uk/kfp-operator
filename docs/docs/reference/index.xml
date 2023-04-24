@@ -220,20 +220,31 @@ We suggest an exponential backoff with min and max backoff set to at least 10 se
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>providerId&lt;/code>&lt;/td>
-&lt;td>The resource identifier inside the targeted provider&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>version&lt;/code>&lt;/td>
-&lt;td>The resource version&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>synchronizationState&lt;/code>&lt;/td>
 &lt;td>The current synchronization state with the targeted provider&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>observedGeneration&lt;/code>&lt;/td>
 &lt;td>The last processed &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">generation&lt;/a> of the resource&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Additionally, all resources that are directly synchronised with a provider have the following status fields:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>providerId&lt;/code>&lt;/td>
+&lt;td>The resource identifier inside the targeted provider&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>version&lt;/code>&lt;/td>
+&lt;td>The resource version&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>

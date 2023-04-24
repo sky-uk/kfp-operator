@@ -9,16 +9,16 @@ The operator compiles the pipeline into a deployable artifact while providing co
 It then submits the pipeline to Kubeflow and manages versions accordingly.
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha4
+apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: Pipeline
 metadata:
-    name: penguin-pipeline
+  name: penguin-pipeline
 spec:
-    image: kfp-quickstart:v1
-    tfxComponents: base_pipeline.create_components
-    env:
-    - name: TRAINING_RUNS
-      value: 100
+  image: kfp-quickstart:v1
+  tfxComponents: base_pipeline.create_components
+  env:
+  - name: TRAINING_RUNS
+    value: 100
 ```
 
 ## Fields

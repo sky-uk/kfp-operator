@@ -3,7 +3,7 @@
 Pipelines can be created, updated and deleted via this resource.
 The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
 It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline&lt;/span>
@@ -45,20 +45,24 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;h2 id="identifier">Identifier&lt;/h2>
 &lt;p>A pipeline identifier field adheres to the following syntax:&lt;/p>
 &lt;p>&lt;code>PIPELIE_NAME[:PIPELINE_VERSION]&lt;/code>&lt;/p></description></item><item><title>Docs: RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>
-&lt;p>The RunConfiguration resource represents the lifecycle of Recurring Runs (aka Jobs).
+&lt;p>The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).
 Pipeline training runs can be configured using this resource as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-recurring-run&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">schedule&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;0 0 * * * *&amp;#39;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">schedule&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">cronExpression&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A Run Configuration can have one of more triggers that determine when the next training run will be started.&lt;/p>
+&lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -68,26 +72,44 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>spec.pipeline&lt;/code>&lt;/td>
+&lt;td>&lt;code>spec.run.pipeline&lt;/code>&lt;/td>
 &lt;td>The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will track the latest version of the specified pipeline.&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>spec.experimentName&lt;/code>&lt;/td>
+&lt;td>&lt;code>spec.run.experimentName&lt;/code>&lt;/td>
 &lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>spec.schedule&lt;/code>&lt;/td>
-&lt;td>A cron schedule to execute training runs.&lt;/td>
+&lt;td>&lt;code>spec.run.runtimeParameters&lt;/code>&lt;/td>
+&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline.&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>spec.runtimeParameters&lt;/code>&lt;/td>
-&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline.&lt;/td>
+&lt;td>&lt;code>spec.triggers[].type&lt;/code>&lt;/td>
+&lt;td>Describe the kind of event that will start a run.&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Each trigger type can accept other type-specific parameters.&lt;/p>
+&lt;h3 id="scheduled-trigger">Scheduled Trigger&lt;/h3>
+&lt;p>Runs are executed on a schedule.&lt;/p>
+&lt;p>Type: &lt;code>schedule&lt;/code>&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>cronExpression&lt;/code>&lt;/td>
+&lt;td>A cron schedule to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>
 &lt;p>The Run resource represents the lifecycle of a one-off run.
 One-off pipeline training runs can be configured using this resource as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Run&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">generateName&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-run-&lt;/span>
@@ -126,7 +148,7 @@ One-off pipeline training runs can be configured using this resource as follows:
 The operator will clean up completed runs automatically based on the configured TTL. See &lt;a href="../../configuration">Configuration&lt;/a> for more information.&lt;/p></description></item><item><title>Docs: Experiment</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</guid><description>
 &lt;p>The Experiment resource represents the lifecycle of Experiments,
 and can be configured as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha4&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Experiment&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
