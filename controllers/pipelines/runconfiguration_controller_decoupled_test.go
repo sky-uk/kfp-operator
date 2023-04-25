@@ -8,6 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
@@ -95,6 +97,30 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
 			})).Should(Succeed())
 		})
+
+		It("creates a run if there is a change trigger", func() {
+			pipeline := pipelinesv1.RandomPipeline()
+			pipelineHelper := CreateSucceeded(pipeline)
+
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
+			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
+
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{{Type: pipelinesv1.TriggerTypes.Change}}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
+				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
+			})
+
+			Eventually(func(g Gomega) {
+				ownedRuns, err := findOwnedRuns(runConfiguration)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(ownedRuns).To(HaveLen(1))
+				Expect(ownedRuns[0].Spec.Pipeline).To(Equal(pipeline.ComputeVersion()))
+			}).Should(Succeed())
+		})
 	})
 
 	When("Updating the referenced pipeline with a fixed version specified on the RC", func() {
@@ -127,6 +153,34 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(runConfiguration.Spec.Run.ExperimentName).To(Equal(newExperiment))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
 			})).Should(Succeed())
+		})
+	})
+
+	When("Validation fails", func() {
+		It("fails creates", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{
+				{Type: "not a type"},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(MatchError(
+				ContainSubstring("is invalid: spec.triggers[0].type"),
+			))
+		})
+
+		It("fails updates", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+			Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
+
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{
+				{Type: "not a type"},
+			}
+
+			Expect(k8sClient.Update(ctx, runConfiguration)).To(MatchError(
+				ContainSubstring("is invalid: spec.triggers[0].type"),
+			))
 		})
 	})
 })
@@ -190,4 +244,20 @@ func createSucceededRcWithSchedule() *pipelinesv1.RunConfiguration {
 	}).Should(Succeed())
 
 	return runConfiguration
+}
+
+func findOwnedRuns(runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.Run, error) {
+	ownedRunsList := &pipelinesv1.RunList{}
+	if err := k8sClient.List(ctx, ownedRunsList, client.InNamespace(runConfiguration.Namespace)); err != nil {
+		return nil, err
+	}
+
+	var ownedRuns []pipelinesv1.Run
+	for _, run := range ownedRunsList.Items {
+		if metav1.IsControlledBy(&run, runConfiguration) {
+			ownedRuns = append(ownedRuns, run)
+		}
+	}
+
+	return ownedRuns, nil
 }

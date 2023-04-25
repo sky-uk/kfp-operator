@@ -261,7 +261,6 @@ spec:
                     type:
                       type: string
                   required:
-                  - cronExpression
                   - type
                   type: object
                 type: array

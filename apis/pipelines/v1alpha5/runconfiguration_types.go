@@ -7,17 +7,18 @@ import (
 )
 
 type Trigger struct {
-	Type TriggerType `json:"type"`
-	// +kubebuilder:validation:Required
-	CronExpression string `json:"cronExpression"`
+	Type           TriggerType `json:"type"`
+	CronExpression string      `json:"cronExpression,omitempty"`
 }
 
 type TriggerType string
 
 var TriggerTypes = struct {
 	Schedule TriggerType
+	Change   TriggerType
 }{
 	Schedule: "schedule",
+	Change:   "change",
 }
 
 type RunConfigurationSpec struct {
