@@ -1,8 +1,8 @@
 package pipelines
 
 import (
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
@@ -18,8 +18,8 @@ func (edc ExperimentDefinitionCreator) experimentDefinition(experiment *pipeline
 	}, nil
 }
 
-func ExperimentWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition] {
-	return ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition]{
+func ExperimentWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition] {
+	return &ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition]{
 		DefinitionCreator: ExperimentDefinitionCreator{
 			Config: config,
 		}.experimentDefinition,

@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/external"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -94,85 +94,17 @@ var _ = BeforeSuite(func() {
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 	}
 
-	Expect(NewTestPipelineReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewTestRunReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewTestRunConfigurationReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewTestExperimentReconciler(ec, &workflowRepository).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(workflowRepository.SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewPipelineReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewRunReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewRunConfigurationReconciler(ec, k8sManager.GetScheme()).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewRunScheduleReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewExperimentReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
 	}()
 })
-
-func NewTestPipelineReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *PipelineReconciler {
-	// TODO: mock workflowFactory
-	var workflowFactory = PipelineWorkflowFactory(testConfig)
-
-	return &PipelineReconciler{
-		BaseReconciler: BaseReconciler[*pipelinesv1.Pipeline]{
-			Config: testConfig,
-			EC:     ec,
-			StateHandler: StateHandler[*pipelinesv1.Pipeline]{
-				WorkflowRepository: workflowRepository,
-				WorkflowFactory:    &workflowFactory,
-			},
-		},
-	}
-}
-
-func NewTestRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *RunReconciler {
-	// TODO: mock workflowFactory
-	var workflowFactory = RunWorkflowFactory(testConfig)
-
-	return &RunReconciler{
-		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.Run]{
-			BaseReconciler: BaseReconciler[*pipelinesv1.Run]{
-				Config: testConfig,
-				EC:     ec,
-				StateHandler: StateHandler[*pipelinesv1.Run]{
-					WorkflowRepository: workflowRepository,
-					WorkflowFactory:    &workflowFactory,
-				},
-			},
-		},
-	}
-}
-
-func NewTestRunConfigurationReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *RunConfigurationReconciler {
-	// TODO: mock workflowFactory
-	var workflowFactory = RunConfigurationWorkflowFactory(testConfig)
-
-	return &RunConfigurationReconciler{
-		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
-			BaseReconciler: BaseReconciler[*pipelinesv1.RunConfiguration]{
-				Config: testConfig,
-				EC:     ec,
-				StateHandler: StateHandler[*pipelinesv1.RunConfiguration]{
-					WorkflowRepository: workflowRepository,
-					WorkflowFactory:    &workflowFactory,
-				},
-			},
-		},
-	}
-}
-
-func NewTestExperimentReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository) *ExperimentReconciler {
-	// TODO: mock workflowFactory
-	var workflowFactory = ExperimentWorkflowFactory(testConfig)
-
-	return &ExperimentReconciler{
-		BaseReconciler: BaseReconciler[*pipelinesv1.Experiment]{
-			Config: testConfig,
-			EC:     ec,
-			StateHandler: StateHandler[*pipelinesv1.Experiment]{
-				WorkflowRepository: workflowRepository,
-				WorkflowFactory:    &workflowFactory,
-			},
-		},
-	}
-}
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")

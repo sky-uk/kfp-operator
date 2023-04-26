@@ -42,7 +42,6 @@ type RunConfigurationStatus struct {
 //+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`

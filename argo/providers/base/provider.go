@@ -23,14 +23,15 @@ type ExperimentDefinition struct {
 	Description string `yaml:"description"`
 }
 
-type RunConfigurationDefinition struct {
-	Name              string            `yaml:"name"`
-	Version           string            `yaml:"version"`
-	PipelineName      string            `yaml:"pipelineName"`
-	PipelineVersion   string            `yaml:"pipelineVersion"`
-	ExperimentName    string            `yaml:"experimentName"`
-	Schedule          string            `yaml:"schedule"`
-	RuntimeParameters map[string]string `yaml:"runtimeParameters"`
+type RunScheduleDefinition struct {
+	Name                 string            `yaml:"name"`
+	RunConfigurationName string            `yaml:"runConfigurationName"`
+	Version              string            `yaml:"version"`
+	PipelineName         string            `yaml:"pipelineName"`
+	PipelineVersion      string            `yaml:"pipelineVersion"`
+	ExperimentName       string            `yaml:"experimentName"`
+	Schedule             string            `yaml:"schedule"`
+	RuntimeParameters    map[string]string `yaml:"runtimeParameters"`
 }
 
 type RunDefinition struct {
@@ -55,9 +56,9 @@ type Provider[Config any] interface {
 	CreateRun(ctx context.Context, providerConfig Config, runConfigurationDefinition RunDefinition) (string, error)
 	DeleteRun(ctx context.Context, providerConfig Config, id string) error
 
-	CreateRunConfiguration(ctx context.Context, providerConfig Config, runConfigurationDefinition RunConfigurationDefinition) (string, error)
-	UpdateRunConfiguration(ctx context.Context, providerConfig Config, runConfigurationDefinition RunConfigurationDefinition, id string) (string, error)
-	DeleteRunConfiguration(ctx context.Context, providerConfig Config, id string) error
+	CreateRunSchedule(ctx context.Context, providerConfig Config, runScheduleDefinition RunScheduleDefinition) (string, error)
+	UpdateRunSchedule(ctx context.Context, providerConfig Config, runScheduleDefinition RunScheduleDefinition, id string) (string, error)
+	DeleteRunSchedule(ctx context.Context, providerConfig Config, id string) error
 
 	CreateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition) (string, error)
 	UpdateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition, id string) (string, error)

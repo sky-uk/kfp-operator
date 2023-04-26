@@ -1,4 +1,4 @@
-package v1alpha4
+package v1alpha5
 
 import (
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -6,9 +6,9 @@ import (
 )
 
 // log is for logging in this package.
-var experimentlog = logf.Log.WithName("experiment-resource")
+var runconfigurationlog = logf.Log.WithName("runconfiguration-resource")
 
-func (r *Experiment) SetupWebhookWithManager(mgr ctrl.Manager) error {
+func (r *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
 		Complete()

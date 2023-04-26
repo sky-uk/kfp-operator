@@ -7,16 +7,16 @@ The Run resource represents the lifecycle of a one-off run.
 One-off pipeline training runs can be configured using this resource as follows:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha4
+apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: Run
 metadata:
-    generateName: penguin-pipeline-run-
+  generateName: penguin-pipeline-run-
 spec:
-    pipeline: penguin-pipeline:v1-abcdef
-    experimentName: penguin-experiment
-    runtimeParameters:
-    - name: TRAINING_RUNS
-      value: '100'
+  pipeline: penguin-pipeline:v1-abcdef
+  experimentName: penguin-experiment
+  runtimeParameters:
+  - name: TRAINING_RUNS
+    value: '100'
 ```
 
 Note the usage of `metadata.generateName` which tells Kubernetes to generate a new name based on the given prefix for every new resource.

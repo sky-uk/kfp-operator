@@ -2,8 +2,8 @@ package pipelines
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha4"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
@@ -34,8 +34,8 @@ func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pi
 	}, nil
 }
 
-func PipelineWorkflowFactory(config config.Configuration) ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
-	return ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
+func PipelineWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
+	return &ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
 		DefinitionCreator: PipelineDefinitionCreator{
 			Config: config,
 		}.pipelineDefinition,

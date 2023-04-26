@@ -1,4 +1,4 @@
-package v1alpha4
+package v1alpha5
 
 import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -15,7 +15,7 @@ func (r *Run) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1alpha4-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=update,versions=v1alpha4,name=vrun.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1alpha5-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=update,versions=v1alpha5,name=vrun.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Validator = &Run{}
 

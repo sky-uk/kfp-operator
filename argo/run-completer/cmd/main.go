@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-logr/logr"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/run-completer"
 	"github.com/urfave/cli"

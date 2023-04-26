@@ -2,22 +2,34 @@ package pipelines
 
 import (
 	"context"
+	"github.com/sky-uk/kfp-operator/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
-	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/types"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
+	Scheme *runtime.Scheme
+}
+
+func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Scheme) *RunConfigurationReconciler {
+	return &RunConfigurationReconciler{
+		DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
+			EC: ec,
+		},
+		scheme,
+	}
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runconfigurations,verbs=get;list;watch;create;update;patch;delete
@@ -41,21 +53,23 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
-	desiredProvider := r.desiredProvider(runConfiguration)
-
-	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Pipeline, runConfiguration); hasChanged || err != nil {
+	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if hasChanged, err := r.syncRunSchedule(ctx, runConfiguration); hasChanged || err != nil {
+	newStatus := runConfiguration.Status
+	newStatus.ObservedGeneration = runConfiguration.GetGeneration()
+
+	newSynchronizationState, err := r.syncWithRunSchedules(ctx, runConfiguration)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, desiredProvider, runConfiguration)
+	newStatus.SynchronizationState = newSynchronizationState
 
-	for i := range commands {
-		if err := commands[i].execute(ctx, r.EC, runConfiguration); err != nil {
-			logger.Error(err, "error executing command", LogKeys.Command, commands[i])
+	if newStatus != runConfiguration.Status {
+		runConfiguration.Status = newStatus
+		if err := r.EC.Client.Status().Update(ctx, runConfiguration); err != nil {
 			return ctrl.Result{}, err
 		}
 	}
@@ -66,102 +80,41 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-func (r *RunConfigurationReconciler) syncRunSchedule(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (hasChanged bool, err error) {
-	expectedRunSchedule := runScheduleForRunConfiguration(runConfiguration)
-	ownedRunSchedules, err := findOwnedRunSchedules(ctx, r.EC.Client.NonCached, runConfiguration)
+func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (state apis.SynchronizationState, err error) {
+	state = runConfiguration.Status.SynchronizationState
+
+	desiredSchedules, err := constructRunSchedulesForTriggers(runConfiguration, r.Scheme)
 	if err != nil {
 		return
 	}
 
-	var runSchedule *pipelinesv1.RunSchedule = nil
+	dependentSchedules, err := findOwnedRunSchedules(ctx, r.EC.Client.NonCached, runConfiguration)
+	if err != nil {
+		return
+	}
 
-	for _, ownedRunSchedule := range ownedRunSchedules {
-		if runSchedule == nil && match(ownedRunSchedule, *expectedRunSchedule) {
-			runSchedule = &ownedRunSchedule
-		} else {
-			hasChanged = true
-			if err = r.EC.Client.Delete(ctx, &ownedRunSchedule); err != nil {
+	missingSchedules := sliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
+	excessSchedules := sliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
+	isSynced := len(missingSchedules) == 0 && len(excessSchedules) == 0
+
+	if !isSynced {
+		for _, desiredSchedule := range missingSchedules {
+			if err = r.EC.Client.Create(ctx, &desiredSchedule); err != nil {
 				return
 			}
 		}
-	}
 
-	if runSchedule == nil {
-		hasChanged = true
-
-		if err = controllerutil.SetControllerReference(runConfiguration, expectedRunSchedule, r.EC.Scheme); err != nil {
-			return
+		for _, excessSchedule := range excessSchedules {
+			if err = r.EC.Client.Delete(ctx, &excessSchedule); err != nil {
+				return
+			}
 		}
-
-		runSchedule = expectedRunSchedule
-
-		if err = r.EC.Client.Create(ctx, runSchedule); err != nil {
-			return
-		}
-	} else if runConfiguration.Status.ProviderId.Id == "" && runSchedule.Status.ProviderId.Id != "" {
-		hasChanged = true
-		runConfiguration.Status.ProviderId = runSchedule.Status.ProviderId
-		runConfiguration.Status.Version = runConfiguration.ComputeVersion()
-
-		err = r.EC.Client.Status().Update(ctx, runConfiguration)
 
 		return
 	}
 
-	if runSchedule.Status != expectedRunSchedule.Status {
-		hasChanged = true
-
-		runSchedule.Status = expectedRunSchedule.Status
-		if err = r.EC.Client.Status().Update(ctx, runSchedule); err != nil {
-			return
-		}
-	}
-
+	state = aggregateState(dependentSchedules)
 	return
-}
-
-func findOwnedRunSchedules(ctx context.Context, cli client.Reader, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
-	ownedRunSchedulesList := &pipelinesv1.RunScheduleList{}
-	if err := cli.List(ctx, ownedRunSchedulesList, client.InNamespace(runConfiguration.Namespace)); err != nil {
-		return nil, err
-	}
-
-	var ownedSchedules []pipelinesv1.RunSchedule
-	for _, schedule := range ownedRunSchedulesList.Items {
-		if metav1.IsControlledBy(&schedule, runConfiguration) {
-			ownedSchedules = append(ownedSchedules, schedule)
-		}
-	}
-
-	return ownedSchedules, nil
-}
-
-func runScheduleForRunConfiguration(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunSchedule {
-	rs := &pipelinesv1.RunSchedule{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: runConfiguration.Name + "-",
-			Namespace:    runConfiguration.Namespace,
-		},
-		Spec: pipelinesv1.RunScheduleSpec{
-			Schedule:       runConfiguration.Spec.Schedule,
-			ExperimentName: runConfiguration.Spec.ExperimentName,
-			Pipeline: pipelinesv1.PipelineIdentifier{
-				Name:    runConfiguration.Spec.Pipeline.Name,
-				Version: runConfiguration.Status.ObservedPipelineVersion,
-			},
-			RuntimeParameters: runConfiguration.Spec.RuntimeParameters,
-		},
-		Status: pipelinesv1.Status{
-			ProviderId:           runConfiguration.Status.ProviderId,
-			SynchronizationState: runConfiguration.Status.SynchronizationState,
-		},
-	}
-	rs.Status.Version = rs.ComputeVersion()
-	return rs
-}
-
-func match(a, b pipelinesv1.RunSchedule) bool {
-	return string(a.ComputeHash()) == string(b.ComputeHash())
 }
 
 func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline client.Object) []reconcile.Request {
@@ -189,10 +142,81 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 }
 
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	controllerBuilder, err := r.setupWithManager(mgr, &pipelinesv1.RunConfiguration{}, r.reconciliationRequestsForPipeline)
+	runConfiguration := &pipelinesv1.RunConfiguration{}
+	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
+		For(runConfiguration)
+
+	controllerBuilder, err := r.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForPipeline)
 	if err != nil {
 		return err
 	}
 
 	return controllerBuilder.Owns(&pipelinesv1.RunSchedule{}).Complete(r)
+}
+
+func findOwnedRunSchedules(ctx context.Context, cli client.Reader, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
+	ownedRunSchedulesList := &pipelinesv1.RunScheduleList{}
+	if err := cli.List(ctx, ownedRunSchedulesList, client.InNamespace(runConfiguration.Namespace)); err != nil {
+		return nil, err
+	}
+
+	var ownedSchedules []pipelinesv1.RunSchedule
+	for _, schedule := range ownedRunSchedulesList.Items {
+		if metav1.IsControlledBy(&schedule, runConfiguration) {
+			ownedSchedules = append(ownedSchedules, schedule)
+		}
+	}
+
+	return ownedSchedules, nil
+}
+
+func constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfiguration, scheme *runtime.Scheme) ([]pipelinesv1.RunSchedule, error) {
+	var schedules []pipelinesv1.RunSchedule
+
+	for _, trigger := range runConfiguration.Spec.Triggers {
+		if trigger.Type == pipelinesv1.TriggerTypes.Schedule {
+			schedule := pipelinesv1.RunSchedule{
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: runConfiguration.Name + "-",
+					Namespace:    runConfiguration.Namespace,
+				},
+				Spec: pipelinesv1.RunScheduleSpec{
+					RunSpec: pipelinesv1.RunSpec{
+						Pipeline: pipelinesv1.PipelineIdentifier{
+							Name:    runConfiguration.Spec.Run.Pipeline.Name,
+							Version: runConfiguration.Status.ObservedPipelineVersion,
+						},
+						RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
+						ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
+					},
+					Schedule: trigger.CronExpression,
+				},
+			}
+			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, scheme); err != nil {
+				return nil, err
+			}
+			metav1.SetMetaDataAnnotation(&schedule.ObjectMeta, apis.ResourceAnnotations.Provider, runConfiguration.GetAnnotations()[apis.ResourceAnnotations.Provider])
+			schedules = append(schedules, schedule)
+		}
+	}
+
+	return schedules, nil
+}
+
+func aggregateState(dependencies []pipelinesv1.RunSchedule) apis.SynchronizationState {
+	aggState := apis.Succeeded
+
+	for _, dependency := range dependencies {
+		if dependency.Status.SynchronizationState == apis.Failed {
+			aggState = apis.Failed
+		} else if dependency.Status.SynchronizationState != apis.Succeeded {
+			return apis.Updating
+		}
+	}
+
+	return aggState
+}
+
+func compareRunSchedules(a, b pipelinesv1.RunSchedule) bool {
+	return string(a.ComputeHash()) == string(b.ComputeHash())
 }

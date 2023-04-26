@@ -18,6 +18,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"gopkg.in/yaml.v2"
 	"k8s.io/client-go/dynamic"
 	"os"
 )
@@ -166,18 +167,18 @@ func (kfpp KfpProvider) DeleteRun(_ context.Context, _ KfpProviderConfig, _ stri
 	return nil
 }
 
-func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition) (string, error) {
+func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig KfpProviderConfig, runScheduleDefinition RunScheduleDefinition) (string, error) {
 	pipelineService, err := NewPipelineService(providerConfig)
 	if err != nil {
 		return "", err
 	}
 
-	pipelineId, err := pipelineService.PipelineIdForName(ctx, runConfigurationDefinition.PipelineName)
+	pipelineId, err := pipelineService.PipelineIdForName(ctx, runScheduleDefinition.PipelineName)
 	if err != nil {
 		return "", err
 	}
 
-	pipelineVersionId, err := pipelineService.PipelineVersionIdForName(ctx, runConfigurationDefinition.PipelineVersion, pipelineId)
+	pipelineVersionId, err := pipelineService.PipelineVersionIdForName(ctx, runScheduleDefinition.PipelineVersion, pipelineId)
 	if err != nil {
 		return "", err
 	}
@@ -187,9 +188,15 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 		return "", err
 	}
 
-	experimentVersion, err := experimentService.ExperimentIdByName(ctx, runConfigurationDefinition.ExperimentName)
+	experimentVersion, err := experimentService.ExperimentIdByName(ctx, runScheduleDefinition.ExperimentName)
 
-	schedule, err := ParseCron(runConfigurationDefinition.Schedule)
+	schedule, err := ParseCron(runScheduleDefinition.Schedule)
+	if err != nil {
+		return "", err
+	}
+
+	// needed to write metadata of the job as no other field is possible
+	runScheduleAsDescription, err := yaml.Marshal(runScheduleDefinition)
 	if err != nil {
 		return "", err
 	}
@@ -199,8 +206,8 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 		return "", err
 	}
 
-	jobParameters := make([]*job_model.APIParameter, 0, len(runConfigurationDefinition.RuntimeParameters))
-	for name, value := range runConfigurationDefinition.RuntimeParameters {
+	jobParameters := make([]*job_model.APIParameter, 0, len(runScheduleDefinition.RuntimeParameters))
+	for name, value := range runScheduleDefinition.RuntimeParameters {
 		jobParameters = append(jobParameters, &job_model.APIParameter{Name: name, Value: value})
 	}
 
@@ -210,7 +217,8 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 				PipelineID: pipelineId,
 				Parameters: jobParameters,
 			},
-			Name:           runConfigurationDefinition.Name,
+			Description:    string(runScheduleAsDescription),
+			Name:           runScheduleDefinition.Name,
 			MaxConcurrency: 1,
 			Enabled:        true,
 			NoCatchup:      true,
@@ -245,15 +253,15 @@ func (kfpp KfpProvider) CreateRunConfiguration(ctx context.Context, providerConf
 	return jobResult.Payload.ID, nil
 }
 
-func (kfpp KfpProvider) UpdateRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, runConfigurationDefinition RunConfigurationDefinition, id string) (string, error) {
-	if err := kfpp.DeleteRunConfiguration(ctx, providerConfig, id); err != nil {
+func (kfpp KfpProvider) UpdateRunSchedule(ctx context.Context, providerConfig KfpProviderConfig, runScheduleDefinition RunScheduleDefinition, id string) (string, error) {
+	if err := kfpp.DeleteRunSchedule(ctx, providerConfig, id); err != nil {
 		return id, err
 	}
 
-	return kfpp.CreateRunConfiguration(ctx, providerConfig, runConfigurationDefinition)
+	return kfpp.CreateRunSchedule(ctx, providerConfig, runScheduleDefinition)
 }
 
-func (kfpp KfpProvider) DeleteRunConfiguration(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
+func (kfpp KfpProvider) DeleteRunSchedule(ctx context.Context, providerConfig KfpProviderConfig, id string) error {
 	jobService, err := jobService(providerConfig)
 	if err != nil {
 		return err
@@ -344,6 +352,7 @@ func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
 
 	return &GrpcKfpApi{
 		RunServiceClient: go_client.NewRunServiceClient(conn),
+		JobServiceClient: go_client.NewJobServiceClient(conn),
 	}, nil
 }
 

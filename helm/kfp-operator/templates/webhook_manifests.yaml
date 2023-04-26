@@ -14,7 +14,7 @@ webhooks:
       service:
         name: {{ include "kfp-operator.fullname" . }}-webhook-service
         namespace: {{ .Values.namespace.name }}
-        path: /validate-pipelines-kubeflow-org-v1alpha4-run
+        path: /validate-pipelines-kubeflow-org-v1alpha5-run
       {{- if eq .Values.manager.webhookCertificates.provider "custom" }}
       caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
       {{- end }}
@@ -24,7 +24,7 @@ webhooks:
       - apiGroups:
           - pipelines.kubeflow.org
         apiVersions:
-          - v1alpha4
+          - v1alpha5
         operations:
           - UPDATE
         resources:

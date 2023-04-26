@@ -144,6 +144,12 @@ rules:
 - apiGroups:
     - pipelines.kubeflow.org
   resources:
+    - runschedules/finalizers
+  verbs:
+    - update
+- apiGroups:
+    - pipelines.kubeflow.org
+  resources:
     - runschedules/status
   verbs:
     - get

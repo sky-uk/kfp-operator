@@ -21,7 +21,7 @@ func NewObjectHasher() ObjectHasher {
 
 func (oh ObjectHasher) WriteStringField(value string) {
 	oh.h.Write([]byte(value))
-	oh.h.Write(hashFieldSeparator)
+	oh.WriteFieldSeparator()
 }
 
 func (oh ObjectHasher) WriteMapField(value map[string]string) {
@@ -36,7 +36,7 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 		oh.WriteStringField(value[k])
 	}
 
-	oh.h.Write(hashFieldSeparator)
+	oh.WriteFieldSeparator()
 }
 
 func (oh ObjectHasher) WriteNamedValueListField(namedValues []NamedValue) {
@@ -56,6 +56,10 @@ func (oh ObjectHasher) WriteNamedValueListField(namedValues []NamedValue) {
 		oh.WriteStringField(k.Value)
 	}
 
+	oh.WriteFieldSeparator()
+}
+
+func (oh ObjectHasher) WriteFieldSeparator() {
 	oh.h.Write(hashFieldSeparator)
 }
 

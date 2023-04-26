@@ -1,5 +1,5 @@
-//go:build integration || decoupled || unit
-// +build integration decoupled unit
+//go:build unit
+// +build unit
 
 package v1alpha4
 

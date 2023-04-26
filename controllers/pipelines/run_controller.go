@@ -2,13 +2,14 @@ package pipelines
 
 import (
 	"context"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha4"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -16,7 +17,27 @@ import (
 
 // RunReconciler reconciles a Run object
 type RunReconciler struct {
+	EC K8sExecutionContext
+	StateHandler[*pipelinesv1.Run]
 	DependingOnPipelineReconciler[*pipelinesv1.Run]
+	ResourceReconciler[*pipelinesv1.Run]
+}
+
+func NewRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.Configuration) *RunReconciler {
+	return &RunReconciler{
+		StateHandler: StateHandler[*pipelinesv1.Run]{
+			WorkflowRepository: workflowRepository,
+			WorkflowFactory:    RunWorkflowFactory(config),
+		},
+		EC: ec,
+		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.Run]{
+			EC: ec,
+		},
+		ResourceReconciler: ResourceReconciler[*pipelinesv1.Run]{
+			EC:     ec,
+			Config: config,
+		},
+	}
 }
 
 //+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=runs,verbs=get;list;watch;create;update;patch;delete
@@ -121,7 +142,12 @@ func (r *RunReconciler) reconciliationRequestsForPipeline(pipeline client.Object
 }
 
 func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	controllerBuilder, err := r.setupWithManager(mgr, &pipelinesv1.Run{}, r.reconciliationRequestsForPipeline)
+	run := &pipelinesv1.Run{}
+	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
+		For(run)
+
+	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, run)
+	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForPipeline)
 	if err != nil {
 		return err
 	}
