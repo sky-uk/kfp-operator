@@ -69,9 +69,8 @@ func RandomRunSchedule() *RunSchedule {
 
 func RandomRunScheduleSpec() RunScheduleSpec {
 	return RunScheduleSpec{
-		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
-		Schedule:          RandomString(),
-		RuntimeParameters: RandomNamedValues(),
+		RunSpec:  RandomRunSpec(),
+		Schedule: RandomString(),
 	}
 }
 

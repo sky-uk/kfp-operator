@@ -181,13 +181,15 @@ func constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfigura
 					Namespace:    runConfiguration.Namespace,
 				},
 				Spec: pipelinesv1.RunScheduleSpec{
-					Pipeline: pipelinesv1.PipelineIdentifier{
-						Name:    runConfiguration.Spec.Run.Pipeline.Name,
-						Version: runConfiguration.Status.ObservedPipelineVersion,
+					RunSpec: pipelinesv1.RunSpec{
+						Pipeline: pipelinesv1.PipelineIdentifier{
+							Name:    runConfiguration.Spec.Run.Pipeline.Name,
+							Version: runConfiguration.Status.ObservedPipelineVersion,
+						},
+						RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
+						ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
 					},
-					RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
-					Schedule:          trigger.CronExpression,
-					ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
+					Schedule: trigger.CronExpression,
 				},
 			}
 			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, scheme); err != nil {
