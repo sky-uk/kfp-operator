@@ -45,3 +45,9 @@ Type: `schedule`
 | Parameter        | Description                                                                                                                                                                                        |
 |------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `cronExpression` | A cron schedule to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted. |
+
+### On-Change Trigger
+
+Runs are executed when the referenced pipeline changes.
+
+Type: `onChange`
