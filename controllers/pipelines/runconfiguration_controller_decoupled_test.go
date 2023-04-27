@@ -158,6 +158,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			fixedIdentifier := pipeline.VersionedIdentifier()
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{}
 
 			runConfiguration.Spec.Run.Pipeline = fixedIdentifier
 			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
@@ -200,8 +201,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		It("fails updates", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{}
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
-			Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+			})).Should(Succeed())
 
 			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{
 				{Type: "not a type"},
