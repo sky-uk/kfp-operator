@@ -58,7 +58,7 @@ func RandomTrigger() Trigger {
 	case 0:
 		return RandomCronTrigger()
 	case 1:
-		return Trigger{Type: TriggerTypes.Change}
+		return Trigger{Type: TriggerTypes.OnChange}
 	default:
 		panic("this should never happen")
 	}

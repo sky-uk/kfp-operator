@@ -15,10 +15,10 @@ type TriggerType string
 
 var TriggerTypes = struct {
 	Schedule TriggerType
-	Change   TriggerType
+	OnChange TriggerType
 }{
 	Schedule: "schedule",
-	Change:   "change",
+	OnChange: "onChange",
 }
 
 type RunConfigurationSpec struct {
@@ -26,11 +26,22 @@ type RunConfigurationSpec struct {
 	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
+func (rcs *RunConfigurationSpec) HasOnChangeTrigger() bool {
+	for _, trigger := range rcs.Triggers {
+		if trigger.Type == TriggerTypes.OnChange {
+			return true
+		}
+	}
+
+	return false
+}
+
 type RunConfigurationStatus struct {
-	SynchronizationState    apis.SynchronizationState `json:"synchronizationState,omitempty"`
-	Provider                string                    `json:"provider,omitempty"`
-	ObservedPipelineVersion string                    `json:"observedPipelineVersion,omitempty"`
-	ObservedGeneration      int64                     `json:"observedGeneration,omitempty"`
+	SynchronizationState     apis.SynchronizationState `json:"synchronizationState,omitempty"`
+	Provider                 string                    `json:"provider,omitempty"`
+	ObservedPipelineVersion  string                    `json:"observedPipelineVersion,omitempty"`
+	TriggeredPipelineVersion string                    `json:"triggeredPipelineVersion,omitempty"`
+	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -286,6 +286,8 @@ spec:
             properties:
               observedPipelineVersion:
                 type: string
+              triggeredPipelineVersion:
+                type: string
               observedGeneration:
                 type: integer
                 format: int64

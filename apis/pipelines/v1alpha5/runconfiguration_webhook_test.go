@@ -48,15 +48,15 @@ var _ = Context("RunConfiguration Webhook", func() {
 		Specify("rejects cron expression for non-schedule triggers", func() {
 			rc := RandomRunConfiguration()
 			rc.Spec.Triggers = []Trigger{
-				{Type: TriggerTypes.Change},
-				{Type: TriggerTypes.Change, CronExpression: "1 2 3 4 5"},
+				{Type: TriggerTypes.OnChange},
+				{Type: TriggerTypes.OnChange, CronExpression: "1 2 3 4 5"},
 			}
 
 			errors := rc.errorsInTriggers()
 			Expect(errors).To(HaveLen(1))
 			Expect(errors[0].Type).To(Equal(field.ErrorTypeForbidden))
 			Expect(errors[0].Field).To(Equal("spec.triggers[1].cronExpression"))
-			Expect(errors[0].Detail).To(Equal("not allowed for trigger type change"))
+			Expect(errors[0].Detail).To(Equal("not allowed for trigger type onChange"))
 		})
 	})
 })

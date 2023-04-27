@@ -54,7 +54,7 @@ func (rc *RunConfiguration) errorsInTriggers() field.ErrorList {
 					detail,
 				))
 			}
-		case TriggerTypes.Change:
+		case TriggerTypes.OnChange:
 			if trigger.CronExpression != "" {
 				detail := fmt.Sprintf("not allowed for trigger type %s", trigger.Type)
 				errors = append(errors, field.Forbidden(

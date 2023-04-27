@@ -4,12 +4,13 @@
 package pipelines
 
 import (
+	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
+	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
@@ -98,27 +99,55 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 		})
 
-		It("creates a run if there is a change trigger", func() {
+		It("change trigger creates a run when the pipeline is updated", func() {
 			pipeline := pipelinesv1.RandomPipeline()
 			pipelineHelper := CreateSucceeded(pipeline)
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
-			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{{Type: pipelinesv1.TriggerTypes.OnChange}}
 
-			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{{Type: pipelinesv1.TriggerTypes.Change}}
+			firstPipelineVersion := pipeline.ComputeVersion()
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+			Eventually(func(g Gomega) {
+				ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(ownedRuns).To(ConsistOf(HavePipelineVersion(firstPipelineVersion)))
+			}).Should(Succeed())
 
 			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
 			})
 
 			Eventually(func(g Gomega) {
-				ownedRuns, err := findOwnedRuns(runConfiguration)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(ownedRuns).To(HaveLen(1))
-				Expect(ownedRuns[0].Spec.Pipeline).To(Equal(pipeline.ComputeVersion()))
+				ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(ownedRuns).To(ConsistOf(HavePipelineVersion(firstPipelineVersion), HavePipelineVersion(pipeline.ComputeVersion())))
+			}).Should(Succeed())
+		})
+
+		It("change trigger creates a run when the pipeline is created", func() {
+			pipeline := pipelinesv1.RandomPipeline()
+
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{{Type: pipelinesv1.TriggerTypes.OnChange}}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+			}))
+			ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(ownedRuns).To(BeEmpty())
+
+			CreateSucceeded(pipeline)
+
+			Eventually(func(g Gomega) {
+				ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(ownedRuns).To(ConsistOf(HavePipelineVersion(pipeline.ComputeVersion())))
 			}).Should(Succeed())
 		})
 	})
@@ -246,18 +275,29 @@ func createSucceededRcWithSchedule() *pipelinesv1.RunConfiguration {
 	return runConfiguration
 }
 
-func findOwnedRuns(runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.Run, error) {
-	ownedRunsList := &pipelinesv1.RunList{}
-	if err := k8sClient.List(ctx, ownedRunsList, client.InNamespace(runConfiguration.Namespace)); err != nil {
-		return nil, err
+func HavePipelineVersion(version string) types.GomegaMatcher {
+	return &HavePipelineVersionMatcher{
+		Version: version,
+	}
+}
+
+type HavePipelineVersionMatcher struct {
+	Version string
+}
+
+func (matcher *HavePipelineVersionMatcher) Match(actual interface{}) (success bool, err error) {
+	run, isRun := actual.(pipelinesv1.Run)
+	if !isRun {
+		return false, fmt.Errorf("HavePipelineVersionMatcher matcher expects a Run.  Got:\n%s", format.Object(actual, 1))
 	}
 
-	var ownedRuns []pipelinesv1.Run
-	for _, run := range ownedRunsList.Items {
-		if metav1.IsControlledBy(&run, runConfiguration) {
-			ownedRuns = append(ownedRuns, run)
-		}
-	}
+	return run.Spec.Pipeline.Version == matcher.Version, nil
+}
 
-	return ownedRuns, nil
+func (matcher *HavePipelineVersionMatcher) FailureMessage(actual interface{}) (message string) {
+	return format.Message(actual, "to have version", matcher.Version)
+}
+
+func (matcher *HavePipelineVersionMatcher) NegatedFailureMessage(actual interface{}) (message string) {
+	return format.Message(actual, "not to have version", matcher.Version)
 }

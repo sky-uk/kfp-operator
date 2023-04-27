@@ -33,12 +33,15 @@ var _ = Context("aggregateState", func() {
 
 var _ = Context("constructRunSchedulesForTriggers", func() {
 	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
+	rcr := RunConfigurationReconciler{
+		Scheme: scheme.Scheme,
+	}
 
 	It("sets all spec fields", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
 		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger()}
 
-		runSchedules, err := constructRunSchedulesForTriggers(runConfiguration, scheme.Scheme)
+		runSchedules, err := rcr.constructRunSchedulesForTriggers(runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
 
 		for i, schedule := range runSchedules {
@@ -58,7 +61,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 		provider := apis.RandomString()
 		metav1.SetMetaDataAnnotation(&runConfiguration.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
 
-		runSchedules, err := constructRunSchedulesForTriggers(runConfiguration, scheme.Scheme)
+		runSchedules, err := rcr.constructRunSchedulesForTriggers(runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
 
 		for _, schedule := range runSchedules {
