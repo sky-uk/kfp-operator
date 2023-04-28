@@ -13,7 +13,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst.Spec.Run.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	if src.Spec.Schedule != "" {
-		dst.Spec.Triggers = []hub.Trigger{{Type: hub.TriggerTypes.Schedule, CronExpression: src.Spec.Schedule}}
+		dst.Spec.Triggers = []hub.Trigger{{Schedule: &hub.ScheduleTrigger{CronExpression: src.Spec.Schedule}}}
 	}
 	dst.Spec.Run.ExperimentName = src.Spec.ExperimentName
 	dst.Status = hub.RunConfigurationStatus{
@@ -29,13 +29,13 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
 
-	var trigger hub.Trigger
+	var scheduleTrigger *hub.ScheduleTrigger
 	switch len(src.Spec.Triggers) {
 	case 0:
-		trigger = hub.Trigger{}
+		scheduleTrigger = &hub.ScheduleTrigger{}
 	case 1:
-		trigger = src.Spec.Triggers[0]
-		if trigger.Type != hub.TriggerTypes.Schedule {
+		scheduleTrigger = src.Spec.Triggers[0].Schedule
+		if scheduleTrigger == nil {
 			return fmt.Errorf("conversion only supported for schedule triggers")
 		}
 	default:
@@ -45,7 +45,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.RuntimeParameters = src.Spec.Run.RuntimeParameters
 	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Run.Pipeline.Name, Version: src.Spec.Run.Pipeline.Version}
-	dst.Spec.Schedule = trigger.CronExpression
+	dst.Spec.Schedule = scheduleTrigger.CronExpression
 	dst.Spec.ExperimentName = src.Spec.Run.ExperimentName
 
 	dst.Status = RunConfigurationStatus{

@@ -45,26 +45,34 @@ func (rc *RunConfiguration) validateTriggers() error {
 func (rc *RunConfiguration) errorsInTriggers() field.ErrorList {
 	var errors field.ErrorList
 	for i, trigger := range rc.Spec.Triggers {
-		switch trigger.Type {
-		case TriggerTypes.Schedule:
-			if trigger.CronExpression == "" {
-				detail := fmt.Sprintf("required for trigger type %s", trigger.Type)
+		numberOfTriggerFields := 0
+
+		if trigger.Schedule != nil {
+			numberOfTriggerFields++
+
+			if trigger.Schedule.CronExpression == "" {
 				errors = append(errors, field.Required(
-					triggerFieldPath(i).Child("cronExpression"),
-					detail,
+					triggerFieldPath(i).Child("schedule").Child("cronExpression"),
+					"required for trigger type schedule",
 				))
 			}
-		case TriggerTypes.OnChange:
-			if trigger.CronExpression != "" {
-				detail := fmt.Sprintf("not allowed for trigger type %s", trigger.Type)
-				errors = append(errors, field.Forbidden(
-					triggerFieldPath(i).Child("cronExpression"),
-					detail,
-				))
-			}
-		default:
-			errors = append(errors, field.NotSupported(
-				triggerFieldPath(i).Child("type"), trigger.Type, nil,
+		}
+
+		if trigger.OnChange != nil {
+			numberOfTriggerFields++
+		}
+
+		if numberOfTriggerFields == 0 {
+			detail := fmt.Sprintf("a trigger must be set")
+			errors = append(errors, field.Required(
+				triggerFieldPath(i),
+				detail,
+			))
+		}
+
+		if numberOfTriggerFields > 1 {
+			errors = append(errors, field.TooMany(
+				triggerFieldPath(i), numberOfTriggerFields, 1,
 			))
 		}
 	}

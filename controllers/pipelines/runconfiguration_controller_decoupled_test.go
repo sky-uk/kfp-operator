@@ -27,7 +27,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
 			g.Expect(ownedSchedule.Spec.Pipeline).To(Equal(runConfiguration.Spec.Run.Pipeline))
 			g.Expect(ownedSchedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.Run.RuntimeParameters))
-			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[0].CronExpression))
+			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[0].Schedule.CronExpression))
 			g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 		})).Should(Succeed())
 
@@ -105,7 +105,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
-			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{{Type: pipelinesv1.TriggerTypes.OnChange}}
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomOnChangeTrigger()}
 
 			firstPipelineVersion := pipeline.ComputeVersion()
 
@@ -132,7 +132,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
-			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{{Type: pipelinesv1.TriggerTypes.OnChange}}
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomOnChangeTrigger()}
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
@@ -191,11 +191,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 
 			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{
-				{Type: "not a type"},
+				pipelinesv1.InvalidTrigger(),
 			}
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(MatchError(
-				ContainSubstring("is invalid: spec.triggers[0].type"),
+				ContainSubstring("is invalid"),
 			))
 		})
 
@@ -208,11 +208,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{
-				{Type: "not a type"},
+				pipelinesv1.InvalidTrigger(),
 			}
 
 			Expect(k8sClient.Update(ctx, runConfiguration)).To(MatchError(
-				ContainSubstring("is invalid: spec.triggers[0].type"),
+				ContainSubstring("is invalid"),
 			))
 		})
 	})

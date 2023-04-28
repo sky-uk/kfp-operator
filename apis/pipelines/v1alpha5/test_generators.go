@@ -58,14 +58,28 @@ func RandomTrigger() Trigger {
 	case 0:
 		return RandomCronTrigger()
 	case 1:
-		return Trigger{Type: TriggerTypes.OnChange}
+		return Trigger{OnChange: &OnChangeTrigger{}}
 	default:
 		panic("this should never happen")
 	}
 }
 
 func RandomCronTrigger() Trigger {
-	return Trigger{Type: TriggerTypes.Schedule, CronExpression: RandomString()}
+	return Trigger{Schedule: &ScheduleTrigger{
+		CronExpression: RandomString(),
+	}}
+}
+
+func RandomOnChangeTrigger() Trigger {
+	return Trigger{
+		OnChange: &OnChangeTrigger{},
+	}
+}
+
+func InvalidTrigger() Trigger {
+	return Trigger{
+		Schedule: &ScheduleTrigger{},
+	}
 }
 
 func RandomRunSchedule() *RunSchedule {
