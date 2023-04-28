@@ -59,8 +59,9 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">schedule&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">schedule&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">cronExpression&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">onChange&lt;/span>: {}
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A Run Configuration can have one of more triggers that determine when the next training run will be started.&lt;/p>
 &lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
@@ -84,7 +85,7 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;td>Dictionary of runtime-time parameters as exposed by the pipeline.&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>spec.triggers[].type&lt;/code>&lt;/td>
+&lt;td>&lt;code>spec.triggers[]&lt;/code>&lt;/td>
 &lt;td>Describe the kind of event that will start a run.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
@@ -92,7 +93,6 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;p>Each trigger type can accept other type-specific parameters.&lt;/p>
 &lt;h3 id="scheduled-trigger">Scheduled Trigger&lt;/h3>
 &lt;p>Runs are executed on a schedule.&lt;/p>
-&lt;p>Type: &lt;code>schedule&lt;/code>&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -108,8 +108,7 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/tbody>
 &lt;/table>
 &lt;h3 id="on-change-trigger">On-Change Trigger&lt;/h3>
-&lt;p>Runs are executed when the referenced pipeline changes.&lt;/p>
-&lt;p>Type: &lt;code>onChange&lt;/code>&lt;/p></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>
+&lt;p>Runs are executed when the referenced pipeline changes.&lt;/p></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>
 &lt;p>The Run resource represents the lifecycle of a one-off run.
 One-off pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
