@@ -40,8 +40,9 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 	It("sets all spec fields", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
 		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger()}
+		provider := apis.RandomString()
 
-		runSchedules, err := rcr.constructRunSchedulesForTriggers("", runConfiguration)
+		runSchedules, err := rcr.constructRunSchedulesForTriggers(provider, runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
 
 		for i, schedule := range runSchedules {
@@ -52,19 +53,6 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 			Expect(schedule.Spec.ExperimentName).To(Equal(runConfiguration.Spec.Run.ExperimentName))
 			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[i].Schedule.CronExpression))
 			Expect(metav1.IsControlledBy(&schedule, runConfiguration)).To(BeTrue())
-		}
-	})
-
-	It("propagates the provider annotation", func() {
-		runConfiguration := pipelinesv1.RandomRunConfiguration()
-		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger()}
-		provider := apis.RandomString()
-		metav1.SetMetaDataAnnotation(&runConfiguration.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
-
-		runSchedules, err := rcr.constructRunSchedulesForTriggers("", runConfiguration)
-		Expect(err).NotTo(HaveOccurred())
-
-		for _, schedule := range runSchedules {
 			Expect(schedule.GetAnnotations()[apis.ResourceAnnotations.Provider]).To(Equal(provider))
 		}
 	})
