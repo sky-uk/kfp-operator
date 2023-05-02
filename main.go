@@ -140,10 +140,6 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
 			os.Exit(1)
 		}
-		if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
-			os.Exit(1)
-		}
 		if err = (&pipelinesv1.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
 			os.Exit(1)
@@ -154,11 +150,16 @@ func main() {
 		}
 	}
 
-	// Runs have a validation webhook in addition to conversion
+	// Resources that have a validation webhook in addition to conversion
+	if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
+		os.Exit(1)
+	}
 	if err = (&pipelinesv1.Run{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Run")
 		os.Exit(1)
 	}
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

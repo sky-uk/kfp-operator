@@ -11,7 +11,7 @@ import (
 )
 
 func RandomLowercaseString() string {
-	return randstr.String(rand.Intn(20)+1, "0123456789abcdefghijklmnopqrstuvwxyz")
+	return randstr.String(rand.Intn(15)+5, "0123456789abcdefghijklmnopqrstuvwxyz")
 }
 
 func RandomShortHash() string {
@@ -19,11 +19,11 @@ func RandomShortHash() string {
 }
 
 func RandomString() string {
-	return randstr.String(rand.Intn(20) + 1)
+	return randstr.String(rand.Intn(15) + 5)
 }
 
 func RandomMap() map[string]string {
-	size := rand.Intn(5) + 1
+	size := rand.Intn(5)
 
 	rMap := make(map[string]string, size)
 	for i := 1; i <= size; i++ {

@@ -106,7 +106,10 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;td>A cron schedule to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
-&lt;/table></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>
+&lt;/table>
+&lt;h3 id="on-change-trigger">On-Change Trigger&lt;/h3>
+&lt;p>Runs are executed when the referenced pipeline changes.&lt;/p>
+&lt;p>Type: &lt;code>onChange&lt;/code>&lt;/p></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>
 &lt;p>The Run resource represents the lifecycle of a one-off run.
 One-off pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>

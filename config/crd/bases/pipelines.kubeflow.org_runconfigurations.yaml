@@ -261,7 +261,6 @@ spec:
                     type:
                       type: string
                   required:
-                  - cronExpression
                   - type
                   type: object
                 type: array
@@ -276,6 +275,8 @@ spec:
               provider:
                 type: string
               synchronizationState:
+                type: string
+              triggeredPipelineVersion:
                 type: string
             type: object
         type: object

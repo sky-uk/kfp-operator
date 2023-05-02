@@ -7,17 +7,18 @@ import (
 )
 
 type Trigger struct {
-	Type TriggerType `json:"type"`
-	// +kubebuilder:validation:Required
-	CronExpression string `json:"cronExpression"`
+	Type           TriggerType `json:"type"`
+	CronExpression string      `json:"cronExpression,omitempty"`
 }
 
 type TriggerType string
 
 var TriggerTypes = struct {
 	Schedule TriggerType
+	OnChange TriggerType
 }{
 	Schedule: "schedule",
+	OnChange: "onChange",
 }
 
 type RunConfigurationSpec struct {
@@ -25,11 +26,22 @@ type RunConfigurationSpec struct {
 	Triggers []Trigger `json:"triggers,omitempty"`
 }
 
+func (rcs *RunConfigurationSpec) HasOnChangeTrigger() bool {
+	for _, trigger := range rcs.Triggers {
+		if trigger.Type == TriggerTypes.OnChange {
+			return true
+		}
+	}
+
+	return false
+}
+
 type RunConfigurationStatus struct {
-	SynchronizationState    apis.SynchronizationState `json:"synchronizationState,omitempty"`
-	Provider                string                    `json:"provider,omitempty"`
-	ObservedPipelineVersion string                    `json:"observedPipelineVersion,omitempty"`
-	ObservedGeneration      int64                     `json:"observedGeneration,omitempty"`
+	SynchronizationState     apis.SynchronizationState `json:"synchronizationState,omitempty"`
+	Provider                 string                    `json:"provider,omitempty"`
+	ObservedPipelineVersion  string                    `json:"observedPipelineVersion,omitempty"`
+	TriggeredPipelineVersion string                    `json:"triggeredPipelineVersion,omitempty"`
+	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
 }
 
 //+kubebuilder:object:root=true

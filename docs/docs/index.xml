@@ -595,7 +595,10 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;td>A cron schedule to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
-&lt;/table></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
+&lt;/table>
+&lt;h3 id="on-change-trigger">On-Change Trigger&lt;/h3>
+&lt;p>Runs are executed when the referenced pipeline changes.&lt;/p>
+&lt;p>Type: &lt;code>onChange&lt;/code>&lt;/p></description></item><item><title>Docs: Example</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/example/</guid><description>
 &lt;p>This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p>
 &lt;p>All code samples can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart">GitHub&lt;/a>.&lt;/p>
 &lt;p>We assume that you are already familiar with TFX and Kubeflow and that you have access to a running instance of Kubeflow Pipelines.&lt;/p>

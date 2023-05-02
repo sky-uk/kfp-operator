@@ -6,6 +6,7 @@ package v1alpha5
 import (
 	"fmt"
 	. "github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -48,7 +49,18 @@ func RandomRunConfiguration() *RunConfiguration {
 func RandomRunConfigurationSpec() RunConfigurationSpec {
 	return RunConfigurationSpec{
 		Run:      RandomRunSpec(),
-		Triggers: RandomList(RandomCronTrigger),
+		Triggers: RandomList(RandomTrigger),
+	}
+}
+
+func RandomTrigger() Trigger {
+	switch common.RandomInt64() % 2 {
+	case 0:
+		return RandomCronTrigger()
+	case 1:
+		return Trigger{Type: TriggerTypes.OnChange}
+	default:
+		panic("this should never happen")
 	}
 }
 

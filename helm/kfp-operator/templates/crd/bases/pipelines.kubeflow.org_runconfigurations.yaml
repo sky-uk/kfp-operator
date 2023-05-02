@@ -278,7 +278,6 @@ spec:
                     type:
                       type: string
                   required:
-                    - cronExpression
                     - type
                   type: object
                 type: array
@@ -286,6 +285,8 @@ spec:
           status:
             properties:
               observedPipelineVersion:
+                type: string
+              triggeredPipelineVersion:
                 type: string
               observedGeneration:
                 type: integer

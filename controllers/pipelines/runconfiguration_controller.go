@@ -57,6 +57,10 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
+	if runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.HasOnChangeTrigger() {
+		return ctrl.Result{}, r.syncWithRuns(ctx, runConfiguration)
+	}
+
 	newStatus := runConfiguration.Status
 	newStatus.ObservedGeneration = runConfiguration.GetGeneration()
 
@@ -80,10 +84,38 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
+func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) error {
+	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
+	if err != nil {
+		return err
+	}
+
+	desiredRun, err := r.constructRunForRunConfiguration(runConfiguration)
+	if err != nil {
+		return err
+	}
+
+	runExists := false
+	for _, run := range runs {
+		if string(run.ComputeHash()) == string(desiredRun.ComputeHash()) {
+			runExists = true
+		}
+	}
+
+	if !runExists {
+		if err := r.EC.Client.Create(ctx, desiredRun); err != nil {
+			return err
+		}
+	}
+
+	runConfiguration.Status.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
+	return r.EC.Client.Status().Update(ctx, runConfiguration)
+}
+
 func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (state apis.SynchronizationState, err error) {
 	state = runConfiguration.Status.SynchronizationState
 
-	desiredSchedules, err := constructRunSchedulesForTriggers(runConfiguration, r.Scheme)
+	desiredSchedules, err := r.constructRunSchedulesForTriggers(runConfiguration)
 	if err != nil {
 		return
 	}
@@ -170,7 +202,47 @@ func findOwnedRunSchedules(ctx context.Context, cli client.Reader, runConfigurat
 	return ownedSchedules, nil
 }
 
-func constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfiguration, scheme *runtime.Scheme) ([]pipelinesv1.RunSchedule, error) {
+func findOwnedRuns(ctx context.Context, cli client.Reader, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.Run, error) {
+	ownedRunsList := &pipelinesv1.RunList{}
+	if err := cli.List(ctx, ownedRunsList, client.InNamespace(runConfiguration.Namespace)); err != nil {
+		return nil, err
+	}
+
+	var ownedRuns []pipelinesv1.Run
+	for _, run := range ownedRunsList.Items {
+		if metav1.IsControlledBy(&run, runConfiguration) {
+			ownedRuns = append(ownedRuns, run)
+		}
+	}
+
+	return ownedRuns, nil
+}
+
+func (r *RunConfigurationReconciler) constructRunForRunConfiguration(runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Run, error) {
+	run := pipelinesv1.Run{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: runConfiguration.Name + "-",
+			Namespace:    runConfiguration.Namespace,
+		},
+		Spec: pipelinesv1.RunSpec{
+			Pipeline: pipelinesv1.PipelineIdentifier{
+				Name:    runConfiguration.Spec.Run.Pipeline.Name,
+				Version: runConfiguration.Status.ObservedPipelineVersion,
+			},
+			RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
+			ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
+		},
+	}
+
+	if err := controllerutil.SetControllerReference(runConfiguration, &run, r.Scheme); err != nil {
+		return nil, err
+	}
+	metav1.SetMetaDataAnnotation(&run.ObjectMeta, apis.ResourceAnnotations.Provider, runConfiguration.GetAnnotations()[apis.ResourceAnnotations.Provider])
+
+	return &run, nil
+}
+
+func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
 	var schedules []pipelinesv1.RunSchedule
 
 	for _, trigger := range runConfiguration.Spec.Triggers {
@@ -192,7 +264,7 @@ func constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfigura
 					Schedule: trigger.CronExpression,
 				},
 			}
-			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, scheme); err != nil {
+			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, r.Scheme); err != nil {
 				return nil, err
 			}
 			metav1.SetMetaDataAnnotation(&schedule.ObjectMeta, apis.ResourceAnnotations.Provider, runConfiguration.GetAnnotations()[apis.ResourceAnnotations.Provider])
