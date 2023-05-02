@@ -57,6 +57,10 @@ type RunConfiguration struct {
 	Status RunConfigurationStatus `json:"status,omitempty"`
 }
 
+func (rc *RunConfiguration) GetProvider() string {
+	return rc.Status.Provider
+}
+
 func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {
 	return rc.Spec.Run.Pipeline
 }

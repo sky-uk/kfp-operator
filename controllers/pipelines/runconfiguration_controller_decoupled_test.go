@@ -11,6 +11,7 @@ import (
 	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
@@ -216,6 +217,48 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			))
 		})
 	})
+
+	When("setting the provider", func() {
+		It("stores the provider in the status", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{}
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.Provider).To(Equal(testConfig.DefaultProvider))
+			})).Should(Succeed())
+		})
+
+		It("passes the provider to owned resources", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomOnChangeTrigger()}
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
+				g.Expect(ownedSchedule.GetAnnotations()[apis.ResourceAnnotations.Provider]).To(Equal(testConfig.DefaultProvider))
+			})).Should(Succeed())
+			Eventually(matchRuns(runConfiguration, func(g Gomega, ownedRun *pipelinesv1.Run) {
+				g.Expect(ownedRun.GetAnnotations()[apis.ResourceAnnotations.Provider]).To(Equal(testConfig.DefaultProvider))
+			})).Should(Succeed())
+		})
+	})
+
+	When("changing the provider", func() {
+		It("fails the resource", func() {
+			runConfiguration := createSucceededRcWithSchedule()
+
+			metav1.SetMetaDataAnnotation(&runConfiguration.ObjectMeta, apis.ResourceAnnotations.Provider, apis.RandomString())
+			Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Failed))
+			})).Should(Succeed())
+
+			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
+				g.Expect(ownedSchedule.GetAnnotations()[apis.ResourceAnnotations.Provider]).To(Equal(testConfig.DefaultProvider))
+			})).Should(Succeed())
+		})
+	})
 })
 
 func updateOwnedSchedules(runConfiguration *pipelinesv1.RunConfiguration, updateFn func(schedule *pipelinesv1.RunSchedule)) error {
@@ -246,6 +289,17 @@ func matchSchedules(runConfiguration *pipelinesv1.RunConfiguration, matcher func
 		g.Expect(ownedSchedules).NotTo(BeEmpty())
 		for _, ownedSchedule := range ownedSchedules {
 			matcher(g, &ownedSchedule)
+		}
+	}
+}
+
+func matchRuns(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gomega, *pipelinesv1.Run)) func(Gomega) {
+	return func(g Gomega) {
+		ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(ownedRuns).NotTo(BeEmpty())
+		for _, ownedRun := range ownedRuns {
+			matcher(g, &ownedRun)
 		}
 	}
 }

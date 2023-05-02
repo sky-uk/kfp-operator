@@ -19,12 +19,16 @@ type ResourceReconciler[R pipelinesv1.Resource] struct {
 	Config config.Configuration
 }
 
-func (br ResourceReconciler[R]) desiredProvider(resource R) string {
+func desiredProvider(resource pipelinesv1.HasProvider, config config.Configuration) string {
 	if provider, hasProvider := resource.GetAnnotations()[apis.ResourceAnnotations.Provider]; hasProvider {
 		return provider
 	}
 
-	return br.Config.DefaultProvider
+	if provider := resource.GetProvider(); provider != "" {
+		return provider
+	}
+
+	return config.DefaultProvider
 }
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipelinesv1.Resource) func(client.Object) []reconcile.Request {

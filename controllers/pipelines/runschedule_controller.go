@@ -48,7 +48,7 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	logger.V(3).Info("found run schedule", "resource", runSchedule)
 
-	desiredProvider := r.desiredProvider(runSchedule)
+	desiredProvider := desiredProvider(runSchedule, r.Config)
 
 	commands := r.StateHandler.StateTransition(ctx, desiredProvider, runSchedule)
 
