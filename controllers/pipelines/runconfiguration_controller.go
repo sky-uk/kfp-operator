@@ -74,13 +74,13 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	if runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.HasOnChangeTrigger() {
-		return ctrl.Result{}, r.syncWithRuns(ctx, runConfiguration, desiredProvider)
+		return ctrl.Result{}, r.syncWithRuns(ctx, desiredProvider, runConfiguration)
 	}
 
 	newStatus := runConfiguration.Status
 	newStatus.ObservedGeneration = runConfiguration.GetGeneration()
 
-	newSynchronizationState, err := r.syncWithRunSchedules(ctx, runConfiguration, desiredProvider)
+	newSynchronizationState, err := r.syncWithRunSchedules(ctx, desiredProvider, runConfiguration)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -101,13 +101,13 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, provider string) error {
+func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
 		return err
 	}
 
-	desiredRun, err := r.constructRunForRunConfiguration(runConfiguration, provider)
+	desiredRun, err := r.constructRunForRunConfiguration(provider, runConfiguration)
 	if err != nil {
 		return err
 	}
@@ -129,10 +129,10 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, runConfig
 	return r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
-func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration, provider string) (state apis.SynchronizationState, err error) {
+func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (state apis.SynchronizationState, err error) {
 	state = runConfiguration.Status.SynchronizationState
 
-	desiredSchedules, err := r.constructRunSchedulesForTriggers(runConfiguration, provider)
+	desiredSchedules, err := r.constructRunSchedulesForTriggers(provider, runConfiguration)
 	if err != nil {
 		return
 	}
@@ -235,7 +235,7 @@ func findOwnedRuns(ctx context.Context, cli client.Reader, runConfiguration *pip
 	return ownedRuns, nil
 }
 
-func (r *RunConfigurationReconciler) constructRunForRunConfiguration(runConfiguration *pipelinesv1.RunConfiguration, provider string) (*pipelinesv1.Run, error) {
+func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider string, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Run, error) {
 	run := pipelinesv1.Run{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: runConfiguration.Name + "-",
@@ -259,7 +259,7 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(runConfigur
 	return &run, nil
 }
 
-func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfiguration, provider string) ([]pipelinesv1.RunSchedule, error) {
+func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider string, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
 	var schedules []pipelinesv1.RunSchedule
 
 	for _, trigger := range runConfiguration.Spec.Triggers {

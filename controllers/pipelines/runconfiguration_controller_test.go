@@ -41,7 +41,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
 		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger()}
 
-		runSchedules, err := rcr.constructRunSchedulesForTriggers(runConfiguration, "")
+		runSchedules, err := rcr.constructRunSchedulesForTriggers("", runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
 
 		for i, schedule := range runSchedules {
@@ -61,7 +61,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 		provider := apis.RandomString()
 		metav1.SetMetaDataAnnotation(&runConfiguration.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
 
-		runSchedules, err := rcr.constructRunSchedulesForTriggers(runConfiguration, "")
+		runSchedules, err := rcr.constructRunSchedulesForTriggers("", runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
 
 		for _, schedule := range runSchedules {
