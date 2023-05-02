@@ -12,6 +12,7 @@ type Trigger struct {
 }
 
 type ScheduleTrigger struct {
+	// +kubebuilder:validation:Required
 	CronExpression string `json:"cronExpression"`
 }
 

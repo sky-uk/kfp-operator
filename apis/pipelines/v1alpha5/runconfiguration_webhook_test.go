@@ -45,7 +45,7 @@ var _ = Context("RunConfiguration Webhook", func() {
 			Expect(errors[0].Detail).To(Equal("required for trigger type schedule"))
 		})
 
-		Specify("rejects more than one trigger", func() {
+		Specify("rejects more than one trigger type in the same trigger", func() {
 			rc := RandomRunConfiguration()
 			rc.Spec.Triggers = []Trigger{
 				{Schedule: &ScheduleTrigger{CronExpression: "1 2 3 4 5"}, OnChange: &OnChangeTrigger{}},
@@ -58,7 +58,7 @@ var _ = Context("RunConfiguration Webhook", func() {
 			Expect(errors[0].Detail).To(Equal("must have at most 1 items"))
 		})
 
-		Specify("rejects no trigger", func() {
+		Specify("rejects no trigger type in a trigger", func() {
 			rc := RandomRunConfiguration()
 			rc.Spec.Triggers = []Trigger{
 				{},
@@ -68,7 +68,7 @@ var _ = Context("RunConfiguration Webhook", func() {
 			Expect(errors).To(HaveLen(1))
 			Expect(errors[0].Type).To(Equal(field.ErrorTypeRequired))
 			Expect(errors[0].Field).To(Equal("spec.triggers[0]"))
-			Expect(errors[0].Detail).To(Equal("a trigger must be set"))
+			Expect(errors[0].Detail).To(Equal("a trigger type must be set"))
 		})
 	})
 })

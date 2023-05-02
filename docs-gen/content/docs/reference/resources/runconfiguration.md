@@ -28,12 +28,12 @@ A Run Configuration can have one of more triggers that determine when the next t
 
 ## Fields
 
-| Name                        | Description                                                                                                                                                                                                                                       |
-|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spec.run.pipeline`         | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will track the latest version of the specified pipeline.                                           |
-| `spec.run.experimentName`   | The name of the corresponding experiment resource (optional - the `Default` Experiment as defined in the [Installation and Configuration section of the documentation](README.md#configuration) will be used if no `experimentName` is provided). |
+| Name                         | Description                                                                                                                                                                                                                                       |
+|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `spec.run.pipeline`          | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will track the latest version of the specified pipeline.                                           |
+| `spec.run.experimentName`    | The name of the corresponding experiment resource (optional - the `Default` Experiment as defined in the [Installation and Configuration section of the documentation](README.md#configuration) will be used if no `experimentName` is provided). |
 | `spec.run.runtimeParameters` | Dictionary of runtime-time parameters as exposed by the pipeline.                                                                                                                                                                                 |
-| `spec.triggers[]`       | Describe the kind of event that will start a run.                                                                                                                                                                                                 |
+| `spec.triggers[]`            | Describe the kind of event that will start a run.                                                                                                                                                                                                 |
 
 Each trigger type can accept other type-specific parameters.
 
@@ -41,9 +41,9 @@ Each trigger type can accept other type-specific parameters.
 
 Runs are executed on a schedule.
 
-| Parameter        | Description                                                                                                                                                                                        |
-|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `cronExpression` | A cron schedule to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted. |
+| Parameter                 | Description                                                                                                                                                                                        |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `schedule.cronExpression` | A cron schedule to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted. |
 
 ### On-Change Trigger
 

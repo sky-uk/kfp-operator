@@ -63,7 +63,7 @@ func (rc *RunConfiguration) errorsInTriggers() field.ErrorList {
 		}
 
 		if numberOfTriggerFields == 0 {
-			detail := fmt.Sprintf("a trigger must be set")
+			detail := fmt.Sprintf("a trigger type must be set")
 			errors = append(errors, field.Required(
 				triggerFieldPath(i),
 				detail,
