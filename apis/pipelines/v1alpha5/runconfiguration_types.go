@@ -47,6 +47,7 @@ type RunConfigurationStatus struct {
 //+kubebuilder:resource:shortName="mlrc"
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+//+kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
 //+kubebuilder:storageversion
 
 type RunConfiguration struct {

@@ -215,6 +215,9 @@ spec:
     - jsonPath: .status.synchronizationState
       name: SynchronizationState
       type: string
+    - jsonPath: .status.provider
+      name: Provider
+      type: string
     name: v1alpha5
     schema:
       openAPIV3Schema:
