@@ -50,7 +50,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 			Expect(schedule.Spec.Pipeline.Version).To(Equal(runConfiguration.Status.ObservedPipelineVersion))
 			Expect(schedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.Run.RuntimeParameters))
 			Expect(schedule.Spec.ExperimentName).To(Equal(runConfiguration.Spec.Run.ExperimentName))
-			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[i].CronExpression))
+			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[i].Schedule.CronExpression))
 			Expect(metav1.IsControlledBy(&schedule, runConfiguration)).To(BeTrue())
 		}
 	})

@@ -7,18 +7,16 @@ import (
 )
 
 type Trigger struct {
-	Type           TriggerType `json:"type"`
-	CronExpression string      `json:"cronExpression,omitempty"`
+	Schedule *ScheduleTrigger `json:"schedule,omitempty"`
+	OnChange *OnChangeTrigger `json:"onChange,omitempty"`
 }
 
-type TriggerType string
+type ScheduleTrigger struct {
+	// +kubebuilder:validation:Required
+	CronExpression string `json:"cronExpression"`
+}
 
-var TriggerTypes = struct {
-	Schedule TriggerType
-	OnChange TriggerType
-}{
-	Schedule: "schedule",
-	OnChange: "onChange",
+type OnChangeTrigger struct {
 }
 
 type RunConfigurationSpec struct {
@@ -28,7 +26,8 @@ type RunConfigurationSpec struct {
 
 func (rcs *RunConfigurationSpec) HasOnChangeTrigger() bool {
 	for _, trigger := range rcs.Triggers {
-		if trigger.Type == TriggerTypes.OnChange {
+
+		if trigger.OnChange != nil {
 			return true
 		}
 	}

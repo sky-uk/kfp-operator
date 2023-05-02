@@ -48,13 +48,5 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 			Expect(dst.ConvertFrom(src)).NotTo(Succeed())
 		})
-
-		Specify("fails for unsupported triggers", func() {
-			src := hub.RandomRunConfiguration()
-			src.Spec.Triggers = []hub.Trigger{{Type: "unsupported"}}
-			dst := &RunConfiguration{}
-
-			Expect(dst.ConvertFrom(src)).NotTo(Succeed())
-		})
 	})
 })

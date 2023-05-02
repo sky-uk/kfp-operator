@@ -246,7 +246,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(runConfigu
 	var schedules []pipelinesv1.RunSchedule
 
 	for _, trigger := range runConfiguration.Spec.Triggers {
-		if trigger.Type == pipelinesv1.TriggerTypes.Schedule {
+		if trigger.Schedule != nil {
 			schedule := pipelinesv1.RunSchedule{
 				ObjectMeta: metav1.ObjectMeta{
 					GenerateName: runConfiguration.Name + "-",
@@ -261,7 +261,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(runConfigu
 						RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
 						ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
 					},
-					Schedule: trigger.CronExpression,
+					Schedule: trigger.Schedule.CronExpression,
 				},
 			}
 			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, r.Scheme); err != nil {
