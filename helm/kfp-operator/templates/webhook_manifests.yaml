@@ -37,6 +37,9 @@ webhooks:
         name: {{ include "kfp-operator.fullname" . }}-webhook-service
         namespace: {{ .Values.namespace.name }}
         path: /validate-pipelines-kubeflow-org-v1alpha5-runconfiguration
+      {{- if eq .Values.manager.webhookCertificates.provider "custom" }}
+      caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
+      {{- end }}
     failurePolicy: Fail
     name: vrunconfiguration.kb.io
     rules:
