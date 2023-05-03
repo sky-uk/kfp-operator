@@ -15,14 +15,16 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 	}
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
-	dst.Status.SynchronizationState = src.Status.SynchronizationState
 	dst.Status.ProviderId = hub.ProviderAndId{
 		Provider: src.Status.ProviderId.Provider,
 		Id:       src.Status.ProviderId.Id,
 	}
-	dst.Status.ObservedPipelineVersion = src.Status.ObservedPipelineVersion
-	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
+	dst.Status.SynchronizationState = src.Status.SynchronizationState
 	dst.Status.Version = src.Status.Version
+	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
+	dst.Status.ObservedPipelineVersion = src.Status.ObservedPipelineVersion
+	dst.Status.CompletionState = hub.CompletionState(src.Status.CompletionState)
+	dst.Status.MarkedCompletedAt = src.Status.MarkedCompletedAt
 
 	return nil
 }
@@ -37,14 +39,16 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
-	dst.Status.SynchronizationState = src.Status.SynchronizationState
 	dst.Status.ProviderId = ProviderAndId{
 		Provider: src.Status.ProviderId.Provider,
 		Id:       src.Status.ProviderId.Id,
 	}
-	dst.Status.ObservedPipelineVersion = src.Status.ObservedPipelineVersion
-	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
+	dst.Status.SynchronizationState = src.Status.SynchronizationState
 	dst.Status.Version = src.Status.Version
+	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
+	dst.Status.ObservedPipelineVersion = src.Status.ObservedPipelineVersion
+	dst.Status.CompletionState = CompletionState(src.Status.CompletionState)
+	dst.Status.MarkedCompletedAt = src.Status.MarkedCompletedAt
 
 	return nil
 }
