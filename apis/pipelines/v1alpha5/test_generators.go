@@ -161,6 +161,10 @@ type TestResource struct {
 	ComputedVersion string
 }
 
+func (tr *TestResource) GetProvider() string {
+	return tr.Status.ProviderId.Provider
+}
+
 func (tr *TestResource) GetStatus() Status {
 	return tr.Status
 }

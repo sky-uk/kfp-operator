@@ -130,7 +130,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunConfigurationReconciler(ec, scheme).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewRunConfigurationReconciler(ec, scheme, ctrlConfig.Workflows).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
 		os.Exit(1)
 	}

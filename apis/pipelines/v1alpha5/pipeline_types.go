@@ -55,6 +55,10 @@ type Pipeline struct {
 	Status Status       `json:"status,omitempty"`
 }
 
+func (p *Pipeline) GetProvider() string {
+	return p.Status.ProviderId.Provider
+}
+
 func (p *Pipeline) GetStatus() Status {
 	return p.Status
 }

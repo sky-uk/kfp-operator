@@ -2,7 +2,9 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,14 +23,16 @@ import (
 type RunConfigurationReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
 	Scheme *runtime.Scheme
+	Config config.Configuration
 }
 
-func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Scheme) *RunConfigurationReconciler {
+func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Scheme, config config.Configuration) *RunConfigurationReconciler {
 	return &RunConfigurationReconciler{
 		DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
 			EC: ec,
 		},
 		scheme,
+		config,
 	}
 }
 
@@ -53,23 +57,36 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
+	desiredProvider := desiredProvider(runConfiguration, r.Config)
+	if runConfiguration.Status.Provider != "" && desiredProvider != runConfiguration.Status.Provider {
+		//TODO: refactor to use Commands and introduce a StateHandler
+		runConfiguration.Status.SynchronizationState = apis.Failed
+		if err := r.EC.Client.Status().Update(ctx, runConfiguration); err != nil {
+			return ctrl.Result{}, err
+		}
+
+		message := fmt.Sprintf(`%s: %s`, string(runConfiguration.Status.SynchronizationState), StateHandlerConstants.ProviderChangedError)
+		r.EC.Recorder.Event(runConfiguration, EventTypes.Warning, EventReasons.SyncFailed, message)
+	}
+
 	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
 		return ctrl.Result{}, err
 	}
 
 	if runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.HasOnChangeTrigger() {
-		return ctrl.Result{}, r.syncWithRuns(ctx, runConfiguration)
+		return ctrl.Result{}, r.syncWithRuns(ctx, desiredProvider, runConfiguration)
 	}
 
 	newStatus := runConfiguration.Status
 	newStatus.ObservedGeneration = runConfiguration.GetGeneration()
 
-	newSynchronizationState, err := r.syncWithRunSchedules(ctx, runConfiguration)
+	newSynchronizationState, err := r.syncWithRunSchedules(ctx, desiredProvider, runConfiguration)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	newStatus.SynchronizationState = newSynchronizationState
+	newStatus.Provider = desiredProvider
 
 	if newStatus != runConfiguration.Status {
 		runConfiguration.Status = newStatus
@@ -84,13 +101,13 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) error {
+func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
 		return err
 	}
 
-	desiredRun, err := r.constructRunForRunConfiguration(runConfiguration)
+	desiredRun, err := r.constructRunForRunConfiguration(provider, runConfiguration)
 	if err != nil {
 		return err
 	}
@@ -112,10 +129,10 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, runConfig
 	return r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
-func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, runConfiguration *pipelinesv1.RunConfiguration) (state apis.SynchronizationState, err error) {
+func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (state apis.SynchronizationState, err error) {
 	state = runConfiguration.Status.SynchronizationState
 
-	desiredSchedules, err := r.constructRunSchedulesForTriggers(runConfiguration)
+	desiredSchedules, err := r.constructRunSchedulesForTriggers(provider, runConfiguration)
 	if err != nil {
 		return
 	}
@@ -218,7 +235,7 @@ func findOwnedRuns(ctx context.Context, cli client.Reader, runConfiguration *pip
 	return ownedRuns, nil
 }
 
-func (r *RunConfigurationReconciler) constructRunForRunConfiguration(runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Run, error) {
+func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider string, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Run, error) {
 	run := pipelinesv1.Run{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: runConfiguration.Name + "-",
@@ -237,12 +254,12 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(runConfigur
 	if err := controllerutil.SetControllerReference(runConfiguration, &run, r.Scheme); err != nil {
 		return nil, err
 	}
-	metav1.SetMetaDataAnnotation(&run.ObjectMeta, apis.ResourceAnnotations.Provider, runConfiguration.GetAnnotations()[apis.ResourceAnnotations.Provider])
+	metav1.SetMetaDataAnnotation(&run.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
 
 	return &run, nil
 }
 
-func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
+func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider string, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
 	var schedules []pipelinesv1.RunSchedule
 
 	for _, trigger := range runConfiguration.Spec.Triggers {
@@ -267,7 +284,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(runConfigu
 			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, r.Scheme); err != nil {
 				return nil, err
 			}
-			metav1.SetMetaDataAnnotation(&schedule.ObjectMeta, apis.ResourceAnnotations.Provider, runConfiguration.GetAnnotations()[apis.ResourceAnnotations.Provider])
+			metav1.SetMetaDataAnnotation(&schedule.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
 			schedules = append(schedules, schedule)
 		}
 	}

@@ -47,6 +47,7 @@ type RunConfigurationStatus struct {
 //+kubebuilder:resource:shortName="mlrc"
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+//+kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
 //+kubebuilder:storageversion
 
 type RunConfiguration struct {
@@ -55,6 +56,10 @@ type RunConfiguration struct {
 
 	Spec   RunConfigurationSpec   `json:"spec,omitempty"`
 	Status RunConfigurationStatus `json:"status,omitempty"`
+}
+
+func (rc *RunConfiguration) GetProvider() string {
+	return rc.Status.Provider
 }
 
 func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {

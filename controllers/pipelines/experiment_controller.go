@@ -48,7 +48,7 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	logger.V(3).Info("found experiment", "resource", experiment)
 
-	desiredProvider := r.desiredProvider(experiment)
+	desiredProvider := desiredProvider(experiment, r.Config)
 
 	commands := r.StateHandler.StateTransition(ctx, desiredProvider, experiment)
 

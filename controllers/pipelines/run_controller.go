@@ -64,7 +64,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return result, err
 	}
 
-	desiredProvider := r.desiredProvider(run)
+	desiredProvider := desiredProvider(run, r.Config)
 
 	// Never change after being set
 	if run.Status.ObservedPipelineVersion == "" {

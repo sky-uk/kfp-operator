@@ -12,17 +12,17 @@ type RunScheduleSpec struct {
 	Schedule string `json:"schedule,omitempty"`
 }
 
-func (rc RunSchedule) ComputeHash() []byte {
+func (rs RunSchedule) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(rc.Spec.Pipeline.String())
-	oh.WriteStringField(rc.Spec.ExperimentName)
-	oh.WriteStringField(rc.Spec.Schedule)
-	oh.WriteNamedValueListField(rc.Spec.RuntimeParameters)
+	oh.WriteStringField(rs.Spec.Pipeline.String())
+	oh.WriteStringField(rs.Spec.ExperimentName)
+	oh.WriteStringField(rs.Spec.Schedule)
+	oh.WriteNamedValueListField(rs.Spec.RuntimeParameters)
 	return oh.Sum()
 }
 
-func (rc RunSchedule) ComputeVersion() string {
-	hash := rc.ComputeHash()[0:3]
+func (rs RunSchedule) ComputeVersion() string {
+	hash := rs.ComputeHash()[0:3]
 
 	return fmt.Sprintf("%x", hash)
 }
@@ -43,26 +43,30 @@ type RunSchedule struct {
 	Status Status          `json:"status,omitempty"`
 }
 
-func (rc *RunSchedule) GetPipeline() PipelineIdentifier {
-	return rc.Spec.Pipeline
+func (rs *RunSchedule) GetProvider() string {
+	return rs.Status.ProviderId.Provider
 }
 
-func (rc *RunSchedule) GetStatus() Status {
-	return rc.Status
+func (rs *RunSchedule) GetPipeline() PipelineIdentifier {
+	return rs.Spec.Pipeline
 }
 
-func (rc *RunSchedule) SetStatus(status Status) {
-	rc.Status = status
+func (rs *RunSchedule) GetStatus() Status {
+	return rs.Status
 }
 
-func (rc *RunSchedule) GetNamespacedName() types.NamespacedName {
+func (rs *RunSchedule) SetStatus(status Status) {
+	rs.Status = status
+}
+
+func (rs *RunSchedule) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
-		Name:      rc.Name,
-		Namespace: rc.Namespace,
+		Name:      rs.Name,
+		Namespace: rs.Namespace,
 	}
 }
 
-func (rc *RunSchedule) GetKind() string {
+func (rs *RunSchedule) GetKind() string {
 	return "runschedule"
 }
 
