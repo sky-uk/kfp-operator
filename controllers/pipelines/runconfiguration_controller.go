@@ -61,12 +61,11 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	if runConfiguration.Status.Provider != "" && desiredProvider != runConfiguration.Status.Provider {
 		//TODO: refactor to use Commands and introduce a StateHandler
 		runConfiguration.Status.SynchronizationState = apis.Failed
-		if err := r.EC.Client.Status().Update(ctx, runConfiguration); err != nil {
-			return ctrl.Result{}, err
-		}
 
 		message := fmt.Sprintf(`%s: %s`, string(runConfiguration.Status.SynchronizationState), StateHandlerConstants.ProviderChangedError)
 		r.EC.Recorder.Event(runConfiguration, EventTypes.Warning, EventReasons.SyncFailed, message)
+
+		return ctrl.Result{}, r.EC.Client.Status().Update(ctx, runConfiguration)
 	}
 
 	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
