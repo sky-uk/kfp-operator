@@ -50,7 +50,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
 
 		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
 			g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 		})).Should(Succeed())
 
