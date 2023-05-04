@@ -61,12 +61,11 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	if runConfiguration.Status.Provider != "" && desiredProvider != runConfiguration.Status.Provider {
 		//TODO: refactor to use Commands and introduce a StateHandler
 		runConfiguration.Status.SynchronizationState = apis.Failed
-		if err := r.EC.Client.Status().Update(ctx, runConfiguration); err != nil {
-			return ctrl.Result{}, err
-		}
 
 		message := fmt.Sprintf(`%s: %s`, string(runConfiguration.Status.SynchronizationState), StateHandlerConstants.ProviderChangedError)
 		r.EC.Recorder.Event(runConfiguration, EventTypes.Warning, EventReasons.SyncFailed, message)
+
+		return ctrl.Result{}, r.EC.Client.Status().Update(ctx, runConfiguration)
 	}
 
 	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
@@ -144,7 +143,11 @@ func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, p
 
 	missingSchedules := sliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
 	excessSchedules := sliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
-	isSynced := len(missingSchedules) == 0 && len(excessSchedules) == 0
+	excessSchedulesNotMarkedForDeletion := filter(excessSchedules, func(schedule pipelinesv1.RunSchedule) bool {
+		return schedule.DeletionTimestamp == nil
+	})
+
+	isSynced := len(missingSchedules) == 0 && len(excessSchedulesNotMarkedForDeletion) == 0
 
 	if !isSynced {
 		for _, desiredSchedule := range missingSchedules {
@@ -153,7 +156,7 @@ func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, p
 			}
 		}
 
-		for _, excessSchedule := range excessSchedules {
+		for _, excessSchedule := range excessSchedulesNotMarkedForDeletion {
 			if err = r.EC.Client.Delete(ctx, &excessSchedule); err != nil {
 				return
 			}
