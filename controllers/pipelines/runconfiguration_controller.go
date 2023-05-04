@@ -143,7 +143,9 @@ func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, p
 	}
 
 	missingSchedules := sliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
-	excessSchedules := sliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
+	excessSchedules := filter(sliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules), func(schedule pipelinesv1.RunSchedule) bool {
+		return schedule.DeletionTimestamp == nil
+	})
 	isSynced := len(missingSchedules) == 0 && len(excessSchedules) == 0
 
 	if !isSynced {

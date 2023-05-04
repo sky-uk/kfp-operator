@@ -36,3 +36,13 @@ func sliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 
 	return diff
 }
+
+func filter[T any](ts []T, filter func(T) bool) (filtered []T) {
+	for _, t := range ts {
+		if filter(t) {
+			filtered = append(filtered, t)
+		}
+	}
+
+	return
+}
