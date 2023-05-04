@@ -13,9 +13,9 @@ import (
 // log is for logging in this package.
 var runconfigurationlog = logf.Log.WithName("runconfiguration-resource")
 
-func (r *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
+func (rc *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
+		For(rc).
 		Complete()
 }
 
