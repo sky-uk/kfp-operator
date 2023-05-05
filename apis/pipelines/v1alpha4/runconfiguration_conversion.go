@@ -1,7 +1,7 @@
 package v1alpha4
 
 import (
-	"fmt"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
@@ -9,12 +9,18 @@ import (
 func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunConfiguration)
 
+	v1alpha5remainder := hub.ResourceConversionRemainder{}
+	if err := pipelines.RetrieveAndUnsetConversionAnnotations(src, &v1alpha5remainder); err != nil {
+		return err
+	}
+
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Run.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	if src.Spec.Schedule != "" {
 		dst.Spec.Triggers = []hub.Trigger{{Schedule: &hub.ScheduleTrigger{CronExpression: src.Spec.Schedule}}}
 	}
+	dst.Spec.Triggers = append(dst.Spec.Triggers, v1alpha5remainder.Triggers...)
 	dst.Spec.Run.ExperimentName = src.Spec.ExperimentName
 	dst.Status = hub.RunConfigurationStatus{
 		ObservedPipelineVersion: src.Status.ObservedPipelineVersion,
@@ -29,17 +35,20 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
 
+	v1alpha5remainder := hub.ResourceConversionRemainder{}
+
 	var scheduleTrigger *hub.ScheduleTrigger
-	switch len(src.Spec.Triggers) {
-	case 0:
-		scheduleTrigger = &hub.ScheduleTrigger{}
-	case 1:
-		scheduleTrigger = src.Spec.Triggers[0].Schedule
-		if scheduleTrigger == nil {
-			return fmt.Errorf("conversion only supported for schedule triggers")
+
+	for _, trigger := range src.Spec.Triggers {
+		if trigger.Schedule != nil && scheduleTrigger == nil {
+			scheduleTrigger = trigger.Schedule
+		} else {
+			v1alpha5remainder.Triggers = append(v1alpha5remainder.Triggers, trigger)
 		}
-	default:
-		return fmt.Errorf("conversion only supported for at most one trigger")
+	}
+
+	if scheduleTrigger == nil {
+		scheduleTrigger = &hub.ScheduleTrigger{}
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
@@ -59,5 +68,5 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 		},
 	}
 
-	return nil
+	return pipelines.SetConversionAnnotations(dst, &v1alpha5remainder)
 }
