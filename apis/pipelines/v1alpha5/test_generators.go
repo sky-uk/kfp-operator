@@ -49,37 +49,28 @@ func RandomRunConfiguration() *RunConfiguration {
 func RandomRunConfigurationSpec() RunConfigurationSpec {
 	return RunConfigurationSpec{
 		Run:      RandomRunSpec(),
-		Triggers: RandomList(RandomTrigger),
+		Triggers: RandomTriggers(),
 	}
 }
 
-func RandomTrigger() Trigger {
-	switch common.RandomInt64() % 2 {
-	case 0:
-		return RandomCronTrigger()
-	case 1:
-		return RandomOnChangeTrigger()
-	default:
-		panic("this should never happen")
+func RandomTriggers() Triggers {
+	var onChange []OnChangeType
+	if common.RandomInt64()%2 == 0 {
+		onChange = []OnChangeType{OnChangeTypes.Pipeline}
+	}
+
+	return Triggers{
+		Schedules: RandomList(RandomString),
+		OnChange:  onChange,
 	}
 }
 
-func RandomCronTrigger() Trigger {
-	return Trigger{Schedule: &ScheduleTrigger{
-		CronExpression: RandomString(),
-	}}
+func RandomScheduleTrigger() Triggers {
+	return Triggers{Schedules: []string{RandomString()}}
 }
 
-func RandomOnChangeTrigger() Trigger {
-	return Trigger{
-		OnChange: &OnChangeTrigger{},
-	}
-}
-
-func InvalidTrigger() Trigger {
-	return Trigger{
-		Schedule: &ScheduleTrigger{},
-	}
+func RandomOnChangeTrigger() Triggers {
+	return Triggers{OnChange: []OnChangeType{OnChangeTypes.Pipeline}}
 }
 
 func RandomRunSchedule() *RunSchedule {

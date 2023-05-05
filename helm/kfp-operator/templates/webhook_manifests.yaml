@@ -30,26 +30,3 @@ webhooks:
         resources:
           - runs
     sideEffects: None
-  - admissionReviewVersions:
-      - v1
-    clientConfig:
-      service:
-        name: {{ include "kfp-operator.fullname" . }}-webhook-service
-        namespace: {{ .Values.namespace.name }}
-        path: /validate-pipelines-kubeflow-org-v1alpha5-runconfiguration
-      {{- if eq .Values.manager.webhookCertificates.provider "custom" }}
-      caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
-      {{- end }}
-    failurePolicy: Fail
-    name: vrunconfiguration.kb.io
-    rules:
-      - apiGroups:
-          - pipelines.kubeflow.org
-        apiVersions:
-          - v1alpha5
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - runconfigurations
-    sideEffects: None

@@ -72,7 +72,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	if runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.HasOnChangeTrigger() {
+	if runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.Triggers.OnChange != nil {
 		return ctrl.Result{}, r.syncWithRuns(ctx, desiredProvider, runConfiguration)
 	}
 
@@ -265,31 +265,29 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider st
 func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider string, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
 	var schedules []pipelinesv1.RunSchedule
 
-	for _, trigger := range runConfiguration.Spec.Triggers {
-		if trigger.Schedule != nil {
-			schedule := pipelinesv1.RunSchedule{
-				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: runConfiguration.Name + "-",
-					Namespace:    runConfiguration.Namespace,
-				},
-				Spec: pipelinesv1.RunScheduleSpec{
-					RunSpec: pipelinesv1.RunSpec{
-						Pipeline: pipelinesv1.PipelineIdentifier{
-							Name:    runConfiguration.Spec.Run.Pipeline.Name,
-							Version: runConfiguration.Status.ObservedPipelineVersion,
-						},
-						RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
-						ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
+	for _, schedule := range runConfiguration.Spec.Triggers.Schedules {
+		runSchedule := pipelinesv1.RunSchedule{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: runConfiguration.Name + "-",
+				Namespace:    runConfiguration.Namespace,
+			},
+			Spec: pipelinesv1.RunScheduleSpec{
+				RunSpec: pipelinesv1.RunSpec{
+					Pipeline: pipelinesv1.PipelineIdentifier{
+						Name:    runConfiguration.Spec.Run.Pipeline.Name,
+						Version: runConfiguration.Status.ObservedPipelineVersion,
 					},
-					Schedule: trigger.Schedule.CronExpression,
+					RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
+					ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
 				},
-			}
-			if err := controllerutil.SetControllerReference(runConfiguration, &schedule, r.Scheme); err != nil {
-				return nil, err
-			}
-			metav1.SetMetaDataAnnotation(&schedule.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
-			schedules = append(schedules, schedule)
+				Schedule: schedule,
+			},
 		}
+		if err := controllerutil.SetControllerReference(runConfiguration, &runSchedule, r.Scheme); err != nil {
+			return nil, err
+		}
+		metav1.SetMetaDataAnnotation(&runSchedule.ObjectMeta, apis.ResourceAnnotations.Provider, provider)
+		schedules = append(schedules, runSchedule)
 	}
 
 	return schedules, nil
