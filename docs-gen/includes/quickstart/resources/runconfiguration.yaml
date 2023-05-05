@@ -7,5 +7,5 @@ spec:
       pipeline: penguin-pipeline
       experimentName: penguin-experiment
     triggers:
-    - schedule:
-        cronExpression: '0 * * * *'
+      schedules:
+      - '0 * * * *'
