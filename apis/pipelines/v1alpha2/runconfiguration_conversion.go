@@ -21,7 +21,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Run.RuntimeParameters = append(v1alpha4.MapToNamedValues(src.Spec.RuntimeParameters), v1alpha3remainder.RuntimeParameters...)
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
-	dst.Spec.Triggers = *v1alpha5remainder.Triggers.DeepCopy()
+	dst.Spec.Triggers = v1alpha5remainder.Triggers
 	if src.Spec.Schedule != "" {
 		dst.Spec.Triggers.Schedules = append([]string{src.Spec.Schedule}, dst.Spec.Triggers.Schedules...)
 	}
@@ -46,7 +46,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.RuntimeParameters, v1alpha3remainder.RuntimeParameters = v1alpha4.NamedValuesToMap(src.Spec.Run.RuntimeParameters)
 	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Run.Pipeline.Name, Version: src.Spec.Run.Pipeline.Version}
-	v1alpha5remainder.Triggers = *src.Spec.Triggers.DeepCopy()
+	v1alpha5remainder.Triggers = src.Spec.Triggers
 	if len(src.Spec.Triggers.Schedules) > 0 {
 		dst.Spec.Schedule = v1alpha5remainder.Triggers.Schedules[0]
 		v1alpha5remainder.Triggers.Schedules = v1alpha5remainder.Triggers.Schedules[1:]
