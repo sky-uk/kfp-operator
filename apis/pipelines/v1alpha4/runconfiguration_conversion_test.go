@@ -39,16 +39,5 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
-
-		Specify("converts empty schedule to no triggers", func() {
-			src := hub.RandomRunConfiguration()
-			intermediate := &RunConfiguration{}
-			dst := &hub.RunConfiguration{}
-
-			Expect(intermediate.ConvertFrom(src)).To(Succeed())
-			Expect(intermediate.ConvertTo(dst)).To(Succeed())
-
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
-		})
 	})
 })

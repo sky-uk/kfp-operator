@@ -31,7 +31,7 @@ var _ = Context("aggregateState", func() {
 	)
 })
 
-var _ = Context("constructRunSchedulesForTriggers", func() {
+var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
 	rcr := RunConfigurationReconciler{
 		Scheme: scheme.Scheme,
@@ -39,7 +39,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 
 	It("sets all spec fields", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
-		runConfiguration.Spec.Triggers = pipelinesv1.RandomScheduleTrigger()
+		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(apis.RandomString)}
 		provider := apis.RandomString()
 
 		runSchedules, err := rcr.constructRunSchedulesForTriggers(provider, runConfiguration)
