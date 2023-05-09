@@ -1,24 +1,5 @@
 package pipelines
 
-func containsString(slice []string, s string) bool {
-	for _, item := range slice {
-		if item == s {
-			return true
-		}
-	}
-	return false
-}
-
-var removeString = func(slice []string, s string) (result []string) {
-	for _, item := range slice {
-		if item == s {
-			continue
-		}
-		result = append(result, item)
-	}
-	return
-}
-
 func sliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	var diff []T
 	for _, a := range as {

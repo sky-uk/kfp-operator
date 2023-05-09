@@ -58,13 +58,31 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 	})
 
-	It("cascades deletes when the RunConfiguration is deleted", func() {
-		Skip("See https://github.com/kubernetes-sigs/controller-runtime/issues/1459. Keep test for documentation")
-		runConfiguration := createSucceededRcWithSchedule()
+	When("Deleted", func() {
 
-		Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
+		It("cascades deletes", func() {
+			Skip("See https://github.com/kubernetes-sigs/controller-runtime/issues/1459. Keep test for documentation")
+			runConfiguration := createSucceededRcWithSchedule()
 
-		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
+		})
+	})
+
+	When("Migrating from v1alpha4", func() {
+		It("Releases previously acquired resources", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
+			controllerutil.AddFinalizer(runConfiguration, finalizerName)
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(func(g Gomega) {
+				g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).NotTo(Succeed())
+			}).Should(Succeed())
+		})
 	})
 
 	When("Creating an RC with a fixed pipeline version", func() {
@@ -150,19 +168,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(ownedRuns).To(ConsistOf(HavePipelineVersion(pipeline.ComputeVersion())))
-			}).Should(Succeed())
-		})
-
-		// For migration from v1alpha4. Remove afterwards.
-		It("Releases previously acquired resources", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration()
-			controllerutil.AddFinalizer(runConfiguration, finalizerName)
-			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
-
-			Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
-
-			Eventually(func(g Gomega) {
-				g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).NotTo(Succeed())
 			}).Should(Succeed())
 		})
 	})

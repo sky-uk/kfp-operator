@@ -59,9 +59,13 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	// For migration from v1alpha4. Remove afterwards.
 	if controllerutil.ContainsFinalizer(runConfiguration, finalizerName) {
-		logger.V(3).Info("Removing")
+		logger.V(3).Info("Removing finalizer", "resource", runConfiguration)
 		controllerutil.RemoveFinalizer(runConfiguration, finalizerName)
 		return ctrl.Result{}, r.EC.Client.Update(ctx, runConfiguration)
+	}
+
+	if runConfiguration.DeletionTimestamp != nil {
+		return ctrl.Result{}, nil
 	}
 
 	desiredProvider := desiredProvider(runConfiguration, r.Config)
