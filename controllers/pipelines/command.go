@@ -9,6 +9,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -194,9 +195,9 @@ type AcquireResource struct {
 func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
-	if !containsString(resource.GetFinalizers(), finalizerName) {
+	if !controllerutil.ContainsFinalizer(resource, finalizerName) {
 		logger.V(2).Info("adding finalizer")
-		resource.SetFinalizers(append(resource.GetFinalizers(), finalizerName))
+		controllerutil.AddFinalizer(resource, finalizerName)
 
 		return ec.Client.Update(ctx, resource)
 	}
@@ -210,9 +211,9 @@ type ReleaseResource struct {
 func (rp ReleaseResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
-	if containsString(resource.GetFinalizers(), finalizerName) {
+	if controllerutil.ContainsFinalizer(resource, finalizerName) {
 		logger.V(2).Info("removing finalizer")
-		resource.SetFinalizers(removeString(resource.GetFinalizers(), finalizerName))
+		controllerutil.RemoveFinalizer(resource, finalizerName)
 		return ec.Client.Update(ctx, resource)
 	}
 
