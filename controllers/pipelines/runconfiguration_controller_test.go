@@ -31,7 +31,7 @@ var _ = Context("aggregateState", func() {
 	)
 })
 
-var _ = Context("constructRunSchedulesForTriggers", func() {
+var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
 	rcr := RunConfigurationReconciler{
 		Scheme: scheme.Scheme,
@@ -39,7 +39,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 
 	It("sets all spec fields", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
-		runConfiguration.Spec.Triggers = []pipelinesv1.Trigger{pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger(), pipelinesv1.RandomCronTrigger()}
+		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(apis.RandomString)}
 		provider := apis.RandomString()
 
 		runSchedules, err := rcr.constructRunSchedulesForTriggers(provider, runConfiguration)
@@ -51,7 +51,7 @@ var _ = Context("constructRunSchedulesForTriggers", func() {
 			Expect(schedule.Spec.Pipeline.Version).To(Equal(runConfiguration.Status.ObservedPipelineVersion))
 			Expect(schedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.Run.RuntimeParameters))
 			Expect(schedule.Spec.ExperimentName).To(Equal(runConfiguration.Spec.Run.ExperimentName))
-			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers[i].Schedule.CronExpression))
+			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[i]))
 			Expect(metav1.IsControlledBy(&schedule, runConfiguration)).To(BeTrue())
 			Expect(schedule.GetAnnotations()[apis.ResourceAnnotations.Provider]).To(Equal(provider))
 		}

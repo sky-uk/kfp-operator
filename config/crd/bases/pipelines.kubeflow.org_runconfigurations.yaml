@@ -257,19 +257,18 @@ spec:
                     type: array
                 type: object
               triggers:
-                items:
-                  properties:
-                    onChange:
-                      type: object
-                    schedule:
-                      properties:
-                        cronExpression:
-                          type: string
-                      required:
-                      - cronExpression
-                      type: object
-                  type: object
-                type: array
+                properties:
+                  onChange:
+                    items:
+                      enum:
+                      - pipeline
+                      type: string
+                    type: array
+                  schedules:
+                    items:
+                      type: string
+                    type: array
+                type: object
             type: object
           status:
             properties:

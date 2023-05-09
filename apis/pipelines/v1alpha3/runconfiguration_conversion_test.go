@@ -12,14 +12,16 @@ import (
 
 var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object", func() {
+		Specify("converts empty Schedule into no triggers", func() {
 			src := RandomRunConfiguration()
+			src.Spec.Schedule = ""
 			src.Status.KfpId = ""
 			src.Status.Version = ""
 			intermediate := &hub.RunConfiguration{}
 			dst := &RunConfiguration{}
 
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
+			Expect(intermediate.Spec.Triggers.Schedules).To(BeEmpty())
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
@@ -29,7 +31,6 @@ var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunConfiguration()
-			src.Spec.Triggers = []hub.Trigger{hub.RandomCronTrigger()}
 			intermediate := &RunConfiguration{}
 			dst := &hub.RunConfiguration{}
 
@@ -37,16 +38,6 @@ var _ = Context("RunConfiguration Conversion", func() {
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
-		})
-	})
-
-	var _ = Describe("ConvertFrom", func() {
-		Specify("fails if more than one trigger exist", func() {
-			src := hub.RandomRunConfiguration()
-			src.Spec.Triggers = []hub.Trigger{{}, {}}
-			dst := &RunConfiguration{}
-
-			Expect(dst.ConvertFrom(src)).NotTo(Succeed())
 		})
 	})
 })

@@ -25,23 +25,3 @@ webhooks:
     resources:
     - runs
   sideEffects: None
-- admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: system
-      path: /validate-pipelines-kubeflow-org-v1alpha5-runconfiguration
-  failurePolicy: Fail
-  name: vrunconfiguration.kb.io
-  rules:
-  - apiGroups:
-    - pipelines.kubeflow.org
-    apiVersions:
-    - v1alpha5
-    operations:
-    - CREATE
-    - UPDATE
-    resources:
-    - runconfigurations
-  sideEffects: None

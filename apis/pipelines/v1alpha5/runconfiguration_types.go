@@ -6,33 +6,23 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type Trigger struct {
-	Schedule *ScheduleTrigger `json:"schedule,omitempty"`
-	OnChange *OnChangeTrigger `json:"onChange,omitempty"`
+type Triggers struct {
+	Schedules []string       `json:"schedules,omitempty"`
+	OnChange  []OnChangeType `json:"onChange,omitempty"`
 }
 
-type ScheduleTrigger struct {
-	// +kubebuilder:validation:Required
-	CronExpression string `json:"cronExpression"`
-}
+// +kubebuilder:validation:Enum=pipeline
+type OnChangeType string
 
-type OnChangeTrigger struct {
+var OnChangeTypes = struct {
+	Pipeline OnChangeType
+}{
+	Pipeline: "pipeline",
 }
 
 type RunConfigurationSpec struct {
-	Run      RunSpec   `json:"run,omitempty"`
-	Triggers []Trigger `json:"triggers,omitempty"`
-}
-
-func (rcs *RunConfigurationSpec) HasOnChangeTrigger() bool {
-	for _, trigger := range rcs.Triggers {
-
-		if trigger.OnChange != nil {
-			return true
-		}
-	}
-
-	return false
+	Run      RunSpec  `json:"run,omitempty"`
+	Triggers Triggers `json:"triggers,omitempty"`
 }
 
 type RunConfigurationStatus struct {
