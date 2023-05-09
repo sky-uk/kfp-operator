@@ -57,6 +57,13 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	logger.V(3).Info("found run configuration", "resource", runConfiguration)
 
+	// For migration from v1alpha4. Remove afterwards.
+	if controllerutil.ContainsFinalizer(runConfiguration, finalizerName) {
+		logger.V(3).Info("Removing")
+		controllerutil.RemoveFinalizer(runConfiguration, finalizerName)
+		return ctrl.Result{}, r.EC.Client.Update(ctx, runConfiguration)
+	}
+
 	desiredProvider := desiredProvider(runConfiguration, r.Config)
 	if runConfiguration.Status.Provider != "" && desiredProvider != runConfiguration.Status.Provider {
 		//TODO: refactor to use Commands and introduce a StateHandler

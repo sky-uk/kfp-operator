@@ -12,6 +12,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
@@ -149,6 +150,19 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(ownedRuns).To(ConsistOf(HavePipelineVersion(pipeline.ComputeVersion())))
+			}).Should(Succeed())
+		})
+
+		// For migration from v1alpha4. Remove afterwards.
+		It("Releases previously acquired resources", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			controllerutil.AddFinalizer(runConfiguration, finalizerName)
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(func(g Gomega) {
+				g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).NotTo(Succeed())
 			}).Should(Succeed())
 		})
 	})
