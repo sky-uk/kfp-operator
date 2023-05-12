@@ -5,7 +5,7 @@ IMG := kfp-operator-stub-provider
 ##@ Build
 
 build:
-	go build -o bin/provider ./cmd
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/provider ./cmd
 
 ##@ Containers
 

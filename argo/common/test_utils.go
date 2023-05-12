@@ -1,5 +1,5 @@
-//go:build unit || decoupled
-// +build unit decoupled
+//go:build unit || decoupled || integration
+// +build unit decoupled integration
 
 package common
 
