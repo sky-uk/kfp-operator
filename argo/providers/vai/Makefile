@@ -19,7 +19,7 @@ generate: mockgen
 	$(MOCKGEN) -destination mock_pipeline_client.go -package=vai github.com/sky-uk/kfp-operator/argo/providers/vai PipelineJobClient
 
 build: generate
-	go build -o bin/provider ./cmd
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/provider ./cmd
 
 ##@ Containers
 

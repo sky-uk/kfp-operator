@@ -7,13 +7,6 @@ IMG ?= kfp-operator-controller
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:preserveUnknownFields=false"
 
-# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
-ifeq (,$(shell go env GOBIN))
-GOBIN=$(shell go env GOPATH)/bin
-else
-GOBIN=$(shell go env GOBIN)
-endif
-
 all: build
 
 ##@ General
@@ -94,7 +87,7 @@ integration-test-all: integration-test
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/manager main.go
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go --zap-devel --config config/manager/controller_manager_config.yaml
