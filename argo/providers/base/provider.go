@@ -24,14 +24,14 @@ type ExperimentDefinition struct {
 }
 
 type RunScheduleDefinition struct {
-	Name                 string            `yaml:"name"`
-	RunConfigurationName string            `yaml:"runConfigurationName"`
-	Version              string            `yaml:"version"`
-	PipelineName         string            `yaml:"pipelineName"`
-	PipelineVersion      string            `yaml:"pipelineVersion"`
-	ExperimentName       string            `yaml:"experimentName"`
-	Schedule             string            `yaml:"schedule"`
-	RuntimeParameters    map[string]string `yaml:"runtimeParameters"`
+	Name                 string                `yaml:"name"`
+	RunConfigurationName common.NamespacedName `yaml:"runConfigurationName"`
+	Version              string                `yaml:"version"`
+	PipelineName         string                `yaml:"pipelineName"`
+	PipelineVersion      string                `yaml:"pipelineVersion"`
+	ExperimentName       string                `yaml:"experimentName"`
+	Schedule             string                `yaml:"schedule"`
+	RuntimeParameters    map[string]string     `yaml:"runtimeParameters"`
 }
 
 type RunDefinition struct {

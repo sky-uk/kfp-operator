@@ -46,7 +46,7 @@ type VAIRun struct {
 }
 
 type RunIntent struct {
-	RunConfigurationName string                `json:"runConfigurationName,omitempty"`
+	RunConfigurationName common.NamespacedName `json:"runConfigurationName,omitempty"`
 	RunName              common.NamespacedName `json:"runName,omitempty"`
 	PipelineName         string                `json:"pipelineName"`
 	PipelineVersion      string                `json:"pipelineVersion"`
@@ -316,11 +316,16 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 
 	var runId string
 
-	if runIntent.RunName.Name != "" {
+	if !runIntent.RunName.Empty() {
 		runId = fmt.Sprintf(runIntent.RunName.Name)
-	} else if runIntent.RunConfigurationName != "" {
-		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName, uuid.New().String())
-		runLabels[labels.RunConfiguration] = runIntent.RunConfigurationName
+	} else if !runIntent.RunConfigurationName.Empty() {
+		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName.Name, uuid.New().String())
+		runConfigurationName, err := runIntent.RunConfigurationName.String()
+		if err != nil {
+			return "", err
+		}
+
+		runLabels[labels.RunConfiguration] = runConfigurationName
 	} else {
 		runId = fmt.Sprintf("%s", uuid.New().String())
 	}

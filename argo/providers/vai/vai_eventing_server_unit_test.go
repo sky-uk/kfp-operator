@@ -283,14 +283,16 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEvent for job that has completed", func(pipelineState aiplatformpb.PipelineState, status common.RunCompletionStatus) {
-		runConfigurationName := common.RandomString()
+		runConfigurationName := common.RandomNamespacedName()
+		runConfigurationNameString, err := runConfigurationName.String()
+		Expect(err).NotTo(HaveOccurred())
 		pipelineName := common.RandomString()
 		pipelineRunName := common.RandomNamespacedName()
 
 		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{
 			Name: pipelineRunName.Name,
 			Labels: map[string]string{
-				labels.RunConfiguration: runConfigurationName,
+				labels.RunConfiguration: runConfigurationNameString,
 				labels.PipelineName:     pipelineName,
 				labels.Namespace:        pipelineRunName.Namespace,
 			},

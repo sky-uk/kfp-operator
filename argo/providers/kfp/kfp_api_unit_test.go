@@ -104,8 +104,11 @@ var _ = Context("KFP API", func() {
 
 		When("GetRun returns run with JOB without Description as CREATOR", func() {
 			It("Returns populated ResourceReferences", func() {
-				runConfigurationName := common.RandomString()
+				runConfigurationName := common.NamespacedName{
+					Name: common.RandomString(),
+				}
 				runName := common.RandomNamespacedName()
+
 				jobId := common.RandomString()
 
 				runDetail := go_client.RunDetail{
@@ -114,7 +117,7 @@ var _ = Context("KFP API", func() {
 						Name: runName.Name,
 						ResourceReferences: []*go_client.ResourceReference{
 							{
-								Name:         runConfigurationName,
+								Name:         runConfigurationName.Name,
 								Relationship: go_client.Relationship_CREATOR,
 								Key: &go_client.ResourceKey{
 									Type: go_client.ResourceType_JOB,
@@ -149,7 +152,9 @@ var _ = Context("KFP API", func() {
 
 		When("GetRun returns run with JOB with Description as CREATOR", func() {
 			It("Returns populated ResourceReferences", func() {
-				runConfigurationName := common.RandomString()
+				runConfigurationName := common.RandomNamespacedName()
+				runConfigurationNameString, err := runConfigurationName.String()
+				Expect(err).NotTo(HaveOccurred())
 				runName := common.NamespacedName{
 					Name: common.RandomString(),
 				}
@@ -172,7 +177,7 @@ var _ = Context("KFP API", func() {
 				}
 
 				jobDetail := go_client.Job{
-					Description: "runConfigurationName: " + runConfigurationName,
+					Description: "runConfigurationName: " + runConfigurationNameString,
 				}
 
 				mockRunServiceClient.EXPECT().

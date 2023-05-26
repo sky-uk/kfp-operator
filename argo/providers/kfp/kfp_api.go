@@ -2,6 +2,7 @@ package kfp
 
 import (
 	"context"
+	"fmt"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
@@ -24,7 +25,7 @@ type GrpcKfpApi struct {
 }
 
 type ResourceReferences struct {
-	RunConfigurationName string
+	RunConfigurationName common.NamespacedName
 	RunName              common.NamespacedName
 }
 
@@ -44,9 +45,10 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 			if err != nil {
 				return ResourceReferences{}, err
 			}
-			if rcNameFromJob == "" {
+
+			if rcNameFromJob.Empty() {
 				// For migration from v1alpha4. Remove afterwards.
-				resourceReferences.RunConfigurationName = ref.GetName()
+				resourceReferences.RunConfigurationName.Name = ref.GetName()
 			} else {
 				resourceReferences.RunConfigurationName = rcNameFromJob
 			}
@@ -62,16 +64,20 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	return resourceReferences, nil
 }
 
-func (gka *GrpcKfpApi) GetRunConfigurationNameFromJob(ctx context.Context, jobId string) (string, error) {
+func (gka *GrpcKfpApi) GetRunConfigurationNameFromJob(ctx context.Context, jobId string) (common.NamespacedName, error) {
 	job, err := gka.JobServiceClient.GetJob(ctx, &go_client.GetJobRequest{Id: jobId})
 	if err != nil {
-		return "", err
+		return common.NamespacedName{}, err
 	}
+	fmt.Println(job.Description)
 
 	runScheduleDefinition := base.RunScheduleDefinition{}
 	if err := yaml.Unmarshal([]byte(job.Description), &runScheduleDefinition); err != nil {
-		return "", nil
+		fmt.Println(err)
+		return common.NamespacedName{}, err
 	}
+
+	fmt.Println(runScheduleDefinition)
 
 	return runScheduleDefinition.RunConfigurationName, nil
 }

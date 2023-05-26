@@ -20,7 +20,7 @@ var RunCompletionStatuses = struct {
 type RunCompletionEvent struct {
 	Status                RunCompletionStatus    `json:"status"`
 	PipelineName          string                 `json:"pipelineName"`
-	RunConfigurationName  string                 `json:"runConfigurationName,omitempty"`
+	RunConfigurationName  NamespacedName                 `json:"runConfigurationName,omitempty"`
 	RunName               NamespacedName         `json:"runName,omitempty"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }
