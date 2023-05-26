@@ -22,5 +22,6 @@ type RunCompletionEvent struct {
 	PipelineName          string                 `json:"pipelineName"`
 	RunConfigurationName  string                 `json:"runConfigurationName,omitempty"`
 	RunName               NamespacedName         `json:"runName,omitempty"`
+	RunId				  string 			     `json:"runId"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }

@@ -206,6 +206,7 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 		PipelineName:          pipelineName,
 		RunConfigurationName:  resourceReferences.RunConfigurationName,
 		RunName:               resourceReferences.RunName,
+		RunId: 				   runId,
 		ServingModelArtifacts: modelArtifacts,
 	}, nil
 }

@@ -312,6 +312,7 @@ var _ = Context("VaiEventingServer", func() {
 			RunConfigurationName: runConfigurationName,
 			PipelineName:         pipelineName,
 			RunName:              pipelineRunName,
+			RunId: 				  pipelineRunName.Name,
 			Status:               status,
 			ServingModelArtifacts: []common.ServingModelArtifact{
 				{

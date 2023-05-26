@@ -152,6 +152,7 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.R
 		Status:               runCompletionStatus,
 		PipelineName:         job.Labels[labels.PipelineName],
 		RunConfigurationName: job.Labels[labels.RunConfiguration],
+		RunId: 				  job.Name,
 		RunName: common.NamespacedName{
 			Name:      runId,
 			Namespace: job.Labels[labels.Namespace]},
