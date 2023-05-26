@@ -1,17 +1,20 @@
 package common
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 )
 
 type NamespacedName struct {
-	Name      string `json:"-"`
-	Namespace string `json:"-"`
+	Name      string `json:"-" yaml:"-"`
+	Namespace string `json:"-" yaml:"-"`
 }
 
-func (nsn NamespacedName) string() (string, error) {
+func (nsn NamespacedName) Empty() bool {
+	return nsn.Name == "" && nsn.Namespace == ""
+}
+
+func (nsn NamespacedName) String() (string, error) {
 	if nsn.Namespace == "" {
 		return nsn.Name, nil
 	}
@@ -23,7 +26,7 @@ func (nsn NamespacedName) string() (string, error) {
 	return strings.Join([]string{nsn.Namespace, nsn.Name}, "/"), nil
 }
 
-func namespacedNameFromString(namespacedName string) (NamespacedName, error) {
+func NamespacedNameFromString(namespacedName string) (NamespacedName, error) {
 	splits := strings.Split(namespacedName, "/")
 
 	if len(splits) < 2 {
@@ -46,23 +49,18 @@ func namespacedNameFromString(namespacedName string) (NamespacedName, error) {
 	}, nil
 }
 
-func (nsn NamespacedName) MarshalJSON() ([]byte, error) {
-	serialised, err := nsn.string()
+func (nsn NamespacedName) MarshalText() ([]byte, error) {
+	serialised, err := nsn.String()
 	if err != nil {
 		return nil, err
 	}
 
-	return json.Marshal(serialised)
+	return []byte(serialised), nil
 }
 
-func (nsn *NamespacedName) UnmarshalJSON(bytes []byte) error {
-	var pidStr string
-	err := json.Unmarshal(bytes, &pidStr)
-	if err != nil {
-		return err
-	}
-
-	*nsn, err = namespacedNameFromString(pidStr)
+func (nsn *NamespacedName) UnmarshalText(bytes []byte) error {
+	deserialised, err := NamespacedNameFromString(string(bytes))
+	*nsn = deserialised
 
 	return err
 }
