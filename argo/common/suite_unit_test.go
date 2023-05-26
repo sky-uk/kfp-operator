@@ -48,7 +48,7 @@ var _ = Context("NamespacedName.String", Serial, func() {
 	namespace := RandomString()
 
 	When("all fields are provided", func() {
-		It("serialises into a '/' separated String", func() {
+		It("serialises into a '/' separated string", func() {
 			serialised, err := NamespacedName{Namespace: namespace, Name: name}.String()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(serialised).To(Equal(namespace+"/"+name))
@@ -71,7 +71,7 @@ var _ = Context("NamespacedName.String", Serial, func() {
 	})
 
 	When("nothing is provided", func() {
-		It("serialises into the empty String", func() {
+		It("serialises into the empty string", func() {
 			serialised, err := NamespacedName{}.String()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(serialised).To(BeEmpty())
@@ -115,7 +115,7 @@ var _ = Context("NamespacedNameFromString", Serial, func() {
 		})
 	})
 
-	When("empty String", func() {
+	When("empty string", func() {
 		It("deserialises into empty NamespacedName", func() {
 			deserialised, err := NamespacedNameFromString("")
 			Expect(err).NotTo(HaveOccurred())

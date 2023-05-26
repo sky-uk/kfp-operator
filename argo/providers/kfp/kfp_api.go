@@ -2,7 +2,6 @@ package kfp
 
 import (
 	"context"
-	"fmt"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
@@ -69,15 +68,11 @@ func (gka *GrpcKfpApi) GetRunConfigurationNameFromJob(ctx context.Context, jobId
 	if err != nil {
 		return common.NamespacedName{}, err
 	}
-	fmt.Println(job.Description)
 
 	runScheduleDefinition := base.RunScheduleDefinition{}
 	if err := yaml.Unmarshal([]byte(job.Description), &runScheduleDefinition); err != nil {
-		fmt.Println(err)
 		return common.NamespacedName{}, err
 	}
-
-	fmt.Println(runScheduleDefinition)
 
 	return runScheduleDefinition.RunConfigurationName, nil
 }
