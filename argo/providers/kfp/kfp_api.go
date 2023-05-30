@@ -46,7 +46,7 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 			}
 
 			if rcNameFromJob.Empty() {
-				// For migration from v1alpha4. Remove afterwards.
+				// For compatability with resources created with v0.3.0 and older
 				resourceReferences.RunConfigurationName.Name = ref.GetName()
 			} else {
 				resourceReferences.RunConfigurationName = rcNameFromJob
