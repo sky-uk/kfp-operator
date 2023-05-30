@@ -48,7 +48,7 @@ type VAIRun struct {
 type RunIntent struct {
 	RunConfigurationName common.NamespacedName `json:"runConfigurationName,omitempty"`
 	RunName              common.NamespacedName `json:"runName,omitempty"`
-	PipelineName         string                `json:"pipelineName"`
+	PipelineName         common.NamespacedName `json:"pipelineName"`
 	PipelineVersion      string                `json:"pipelineVersion"`
 	RuntimeParameters    map[string]string     `json:"runtimeParameters,omitempty"`
 }
@@ -308,8 +308,13 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	topic := pubsubClient.Topic(providerConfig.RunsTopic)
 	defer topic.Stop()
 
+	pipelineName, err := runIntent.PipelineName.String()
+	if err !=  nil {
+		return "", err
+	}
+
 	runLabels := map[string]string{
-		labels.PipelineName:    runIntent.PipelineName,
+		labels.PipelineName:    pipelineName,
 		labels.PipelineVersion: runIntent.PipelineVersion,
 		labels.Namespace:       runIntent.RunName.Namespace,
 	}
@@ -332,7 +337,7 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 
 	vaiRun := VAIRun{
 		RunId:             runId,
-		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName, runIntent.PipelineVersion),
+		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName.Name, runIntent.PipelineVersion),
 		Labels:            runLabels,
 		RuntimeParameters: runIntent.RuntimeParameters,
 	}

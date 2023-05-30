@@ -152,14 +152,19 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.R
 	if err != nil {
 		return nil
 	}
+	pipelineName, err := common.NamespacedNameFromString(job.Labels[labels.PipelineName])
+	if err != nil {
+		return nil
+	}
 
 	return &common.RunCompletionEvent{
 		Status:               runCompletionStatus,
-		PipelineName:         job.Labels[labels.PipelineName],
+		PipelineName:         pipelineName,
 		RunConfigurationName: runConfigurationName,
 		RunName: common.NamespacedName{
 			Name:      runId,
 			Namespace: job.Labels[labels.Namespace]},
+		RunId: runId,
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 	}
 }

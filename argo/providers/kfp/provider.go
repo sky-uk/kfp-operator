@@ -95,7 +95,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 		return "", err
 	}
 
-	pipelineId, err := pipelineService.PipelineIdForName(ctx, runDefinition.PipelineName)
+	pipelineId, err := pipelineService.PipelineIdForName(ctx, runDefinition.PipelineName.Name)
 	if err != nil {
 		return "", err
 	}
@@ -122,6 +122,15 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 		return "", err
 	}
 
+	// needed to write metadata of the job as no other field is possible
+	runAsDescription, err := yaml.Marshal(ResourceReferences{
+		RunName: runDefinition.Name,
+		PipelineName: runDefinition.PipelineName,
+	})
+	if err != nil {
+		return "", err
+	}
+
 	runResult, err := runService.CreateRun(&run_service.CreateRunParams{
 		Body: &run_model.APIRun{
 			Name: runDefinition.Name.Name,
@@ -129,6 +138,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 				PipelineID: pipelineId,
 				Parameters: jobParameters,
 			},
+			Description: string(runAsDescription),
 			ResourceReferences: []*run_model.APIResourceReference{
 				{
 					Key: &run_model.APIResourceKey{
@@ -173,7 +183,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 		return "", err
 	}
 
-	pipelineId, err := pipelineService.PipelineIdForName(ctx, runScheduleDefinition.PipelineName)
+	pipelineId, err := pipelineService.PipelineIdForName(ctx, runScheduleDefinition.PipelineName.Name)
 	if err != nil {
 		return "", err
 	}
@@ -196,7 +206,10 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 	}
 
 	// needed to write metadata of the job as no other field is possible
-	runScheduleAsDescription, err := yaml.Marshal(runScheduleDefinition)
+	runScheduleAsDescription, err := yaml.Marshal(ResourceReferences{
+		PipelineName: runScheduleDefinition.PipelineName,
+		RunConfigurationName: runScheduleDefinition.RunConfigurationName,
+	})
 	if err != nil {
 		return "", err
 	}

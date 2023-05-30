@@ -172,22 +172,14 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEvent, error) {
 	status, hasFinished := runCompletionStatus(workflow)
-
 	if !hasFinished {
 		es.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
 		return nil, nil
 	}
 
 	workflowName := workflow.GetName()
-	pipelineName := getPipelineName(workflow)
-
-	if pipelineName == "" {
-		es.Logger.Info("failed to get pipeline name from workflow")
-		return nil, nil
-	}
 
 	modelArtifacts, err := es.MetadataStore.GetServingModelArtifact(ctx, workflowName)
-
 	if err != nil {
 		es.Logger.Error(err, "failed to retrieve serving model artifact")
 		return nil, err
@@ -195,17 +187,27 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 
 	runId := workflow.GetLabels()[pipelineRunIdLabel]
 	resourceReferences, err := es.KfpApi.GetResourceReferences(ctx, runId)
-
 	if err != nil {
-		es.Logger.Error(err, "failed to retrieve RunConfiguration name")
+		es.Logger.Error(err, "failed to retrieve resource references")
 		return nil, err
+	}
+
+	if resourceReferences.PipelineName.Empty() {
+		pipelineName := getPipelineName(workflow)
+		if pipelineName == "" {
+			es.Logger.Info("failed to get pipeline name from workflow")
+			return nil, nil
+		}
+
+		resourceReferences.PipelineName.Name = pipelineName
 	}
 
 	return &common.RunCompletionEvent{
 		Status:                status,
-		PipelineName:          pipelineName,
+		PipelineName: 		   resourceReferences.PipelineName,
 		RunConfigurationName:  resourceReferences.RunConfigurationName,
 		RunName:               resourceReferences.RunName,
+		RunId: 				   runId,
 		ServingModelArtifacts: modelArtifacts,
 	}, nil
 }

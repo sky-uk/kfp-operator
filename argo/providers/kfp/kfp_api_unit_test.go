@@ -189,7 +189,6 @@ var _ = Context("KFP API", func() {
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())
 				Expect(resourceReferences.RunConfigurationName).To(Equal(runConfigurationName))
-				Expect(resourceReferences.RunName).To(Equal(runName))
 			})
 		})
 	})

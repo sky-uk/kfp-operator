@@ -28,7 +28,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 	return providers.RunDefinition{
 		Name:              common.NamespacedName{Name: run.Name, Namespace: run.Namespace},
 		Version:           run.ComputeVersion(),
-		PipelineName:      run.Spec.Pipeline.Name,
+		PipelineName:      common.NamespacedName{Name: run.Spec.Pipeline.Name, Namespace: run.Namespace},
 		PipelineVersion:   run.Status.ObservedPipelineVersion,
 		ExperimentName:    experimentName,
 		RuntimeParameters: NamedValuesToMap(run.Spec.RuntimeParameters),

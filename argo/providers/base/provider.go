@@ -27,7 +27,7 @@ type RunScheduleDefinition struct {
 	Name                 string                `yaml:"name"`
 	RunConfigurationName common.NamespacedName `yaml:"runConfigurationName"`
 	Version              string                `yaml:"version"`
-	PipelineName         string                `yaml:"pipelineName"`
+	PipelineName         common.NamespacedName `yaml:"pipelineName"`
 	PipelineVersion      string                `yaml:"pipelineVersion"`
 	ExperimentName       string                `yaml:"experimentName"`
 	Schedule             string                `yaml:"schedule"`
@@ -37,7 +37,7 @@ type RunScheduleDefinition struct {
 type RunDefinition struct {
 	Name              common.NamespacedName `yaml:"name"`
 	Version           string                `yaml:"version"`
-	PipelineName      string                `yaml:"pipelineName"`
+	PipelineName      common.NamespacedName `yaml:"pipelineName"`
 	PipelineVersion   string                `yaml:"pipelineVersion"`
 	ExperimentName    string                `yaml:"experimentName"`
 	RuntimeParameters map[string]string     `yaml:"runtimeParameters"`
