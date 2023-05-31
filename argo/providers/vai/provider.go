@@ -27,15 +27,25 @@ import (
 )
 
 var labels = struct {
-	RunConfiguration string
-	PipelineName     string
-	PipelineVersion  string
-	Namespace        string
+	RunConfigurationName      string
+	RunConfigurationNamespace string
+	PipelineName              string
+	PipelineNamespace         string
+	PipelineVersion           string
+	RunName                   string
+	RunNamespace              string
+	LegacyNamespace 		  string
+	LegacyRunConfiguration    string
 }{
-	RunConfiguration: "run-configuration",
-	PipelineName:     "pipeline-name",
-	PipelineVersion:  "pipeline-version",
-	Namespace:        "namespace",
+	RunConfigurationName:      "run-configuration-name",
+	RunConfigurationNamespace: "run-configuration-namespace",
+	PipelineName:              "pipeline-name",
+	PipelineNamespace:         "pipeline-namespace",
+	PipelineVersion:           "pipeline-version",
+	RunName:                   "run-name",
+	RunNamespace:              "run-namespace",
+	LegacyNamespace: 	       "namespace",
+	LegacyRunConfiguration:    "run-configuration",
 }
 
 type VAIRun struct {
@@ -308,29 +318,23 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	topic := pubsubClient.Topic(providerConfig.RunsTopic)
 	defer topic.Stop()
 
-	pipelineName, err := runIntent.PipelineName.String()
-	if err !=  nil {
-		return "", err
-	}
-
 	runLabels := map[string]string{
-		labels.PipelineName:    pipelineName,
-		labels.PipelineVersion: runIntent.PipelineVersion,
-		labels.Namespace:       runIntent.RunName.Namespace,
+		labels.PipelineName:      runIntent.PipelineName.Name,
+		labels.PipelineNamespace: runIntent.PipelineName.Namespace,
+		labels.PipelineVersion:   runIntent.PipelineVersion,
 	}
 
 	var runId string
 
 	if !runIntent.RunName.Empty() {
 		runId = fmt.Sprintf(runIntent.RunName.Name)
+		runLabels[labels.RunName] = runIntent.RunName.Name
+		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
 	} else if !runIntent.RunConfigurationName.Empty() {
 		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName.Name, uuid.New().String())
-		runConfigurationName, err := runIntent.RunConfigurationName.String()
-		if err != nil {
-			return "", err
-		}
 
-		runLabels[labels.RunConfiguration] = runConfigurationName
+		runLabels[labels.RunConfigurationName] = runIntent.RunConfigurationName.Name
+		runLabels[labels.RunConfigurationNamespace] = runIntent.RunConfigurationName.Namespace
 	} else {
 		runId = fmt.Sprintf("%s", uuid.New().String())
 	}

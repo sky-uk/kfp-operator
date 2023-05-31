@@ -290,9 +290,12 @@ var _ = Context("VaiEventingServer", func() {
 		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{
 			Name: pipelineRunName.Name,
 			Labels: map[string]string{
-				labels.RunConfiguration: common.UnsafeValue(runConfigurationName.String()),
-				labels.PipelineName:     common.UnsafeValue(pipelineName.String()),
-				labels.Namespace:        pipelineRunName.Namespace,
+				labels.RunConfigurationName:      runConfigurationName.Name,
+				labels.RunConfigurationNamespace: runConfigurationName.Namespace,
+				labels.PipelineName:              pipelineName.Name,
+				labels.PipelineNamespace:         pipelineName.Namespace,
+				labels.RunName:         		  pipelineRunName.Name,
+				labels.RunNamespace:      		  pipelineRunName.Namespace,
 			},
 			State: pipelineState,
 			JobDetail: &aiplatformpb.PipelineJobDetail{

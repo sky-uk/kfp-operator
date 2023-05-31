@@ -148,22 +148,41 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.R
 		return nil
 	}
 
-	runConfigurationName, err := common.NamespacedNameFromString(job.Labels[labels.RunConfiguration])
-	if err != nil {
-		return nil
+	var runName, runConfigurationName, pipelineName common.NamespacedName
+	if legacyNamespace, ok := job.Labels[labels.LegacyNamespace]; ok {
+		// For compatability with resources created with v0.3.0 and older
+		runName = common.NamespacedName{
+			Name:      runId,
+			Namespace: legacyNamespace,
+		}
+	} else {
+		runName = common.NamespacedName{
+			Name:      job.Labels[labels.RunName],
+			Namespace: job.Labels[labels.RunNamespace]}
 	}
-	pipelineName, err := common.NamespacedNameFromString(job.Labels[labels.PipelineName])
-	if err != nil {
-		return nil
+
+	if legacyRunConfiguration, ok := job.Labels[labels.LegacyRunConfiguration]; ok {
+		// For compatability with resources created with v0.3.0 and older
+		runConfigurationName = common.NamespacedName{
+			Name:      legacyRunConfiguration,
+		}
+	} else {
+		runConfigurationName = common.NamespacedName{
+			Name:      job.Labels[labels.RunConfigurationName],
+			Namespace: job.Labels[labels.RunConfigurationNamespace]}
 	}
+
+	pipelineName.Name = job.Labels[labels.PipelineName]
+	if pipelineNamespace, ok := job.Labels[labels.PipelineNamespace]; ok {
+		pipelineName.Namespace = pipelineNamespace
+	}
+
 
 	return &common.RunCompletionEvent{
 		Status:               runCompletionStatus,
 		PipelineName:         pipelineName,
 		RunConfigurationName: runConfigurationName,
-		RunName: common.NamespacedName{
-			Name:      runId,
-			Namespace: job.Labels[labels.Namespace]},
+		RunName: runName,
 		RunId: runId,
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 	}
