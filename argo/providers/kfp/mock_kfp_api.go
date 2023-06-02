@@ -24,8 +24,9 @@ func (mka *MockKfpApi) reset() {
 
 func (mka *MockKfpApi) returnResourceReferencesForRun() ResourceReferences {
 	mka.resourceReferences = ResourceReferences{
-		RunConfigurationName: common.RandomString(),
+		RunConfigurationName: common.RandomNamespacedName(),
 		RunName:              common.RandomNamespacedName(),
+		PipelineName: 		  common.RandomNamespacedName(),
 	}
 	mka.err = nil
 

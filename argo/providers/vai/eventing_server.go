@@ -148,13 +148,42 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.R
 		return nil
 	}
 
-	return &common.RunCompletionEvent{
-		Status:               runCompletionStatus,
-		PipelineName:         job.Labels[labels.PipelineName],
-		RunConfigurationName: job.Labels[labels.RunConfiguration],
-		RunName: common.NamespacedName{
+	var runName, runConfigurationName, pipelineName common.NamespacedName
+
+	pipelineName.Name = job.Labels[labels.PipelineName]
+	if pipelineNamespace, ok := job.Labels[labels.PipelineNamespace]; ok {
+		pipelineName.Namespace = pipelineNamespace
+	}
+
+	if legacyNamespace, ok := job.Labels[labels.LegacyNamespace]; ok {
+		// For compatability with resources created with v0.3.0 and older
+		runName = common.NamespacedName{
 			Name:      runId,
-			Namespace: job.Labels[labels.Namespace]},
+			Namespace: legacyNamespace,
+		}
+	} else {
+		runName = common.NamespacedName{
+			Name:      job.Labels[labels.RunName],
+			Namespace: job.Labels[labels.RunNamespace]}
+	}
+
+	if legacyRunConfiguration, ok := job.Labels[labels.LegacyRunConfiguration]; ok {
+		// For compatability with resources created with v0.3.0 and older
+		runConfigurationName = common.NamespacedName{
+			Name:      legacyRunConfiguration,
+		}
+	} else {
+		runConfigurationName = common.NamespacedName{
+			Name:      job.Labels[labels.RunConfigurationName],
+			Namespace: job.Labels[labels.RunConfigurationNamespace]}
+	}
+
+	return &common.RunCompletionEvent{
+		Status:                runCompletionStatus,
+		PipelineName:          pipelineName,
+		RunConfigurationName:  runConfigurationName.NonEmptyPtr(),
+		RunName:               runName.NonEmptyPtr(),
+		RunId:                 runId,
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 	}
 }

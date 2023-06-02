@@ -193,12 +193,17 @@ var _ = Context("Eventing Server", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("Doesn't emit an event when the workflow has no pipeline name", func() {
+		It("Doesn't emit an event when no ResourceReferences can be found and the workflow has no pipeline name", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 
+			mockMetadataStore := MockMetadataStore{}
+			mockKfpApi := MockKfpApi{}
+
 			eventingServer := KfpEventingServer{
 				Logger: logr.Discard(),
+				MetadataStore: &mockMetadataStore,
+				KfpApi:        &mockKfpApi,
 			}
 
 			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
@@ -247,8 +252,8 @@ var _ = Context("Eventing Server", func() {
 		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 
 		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
-		Expect(event.RunConfigurationName).To(Equal(resourceReferences.RunConfigurationName))
-		Expect(event.RunName).To(Equal(resourceReferences.RunName))
+		Expect(*event.RunConfigurationName).To(Equal(resourceReferences.RunConfigurationName))
+		Expect(*event.RunName).To(Equal(resourceReferences.RunName))
 		Expect(err).NotTo(HaveOccurred())
 	},
 		Entry("workflow succeeded", argo.WorkflowSucceeded),

@@ -28,3 +28,6 @@ func RandomNamespacedName() NamespacedName {
 	}
 }
 
+func UnsafeValue[T any](t T, _ error) T {
+	return t
+}

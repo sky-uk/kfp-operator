@@ -43,13 +43,13 @@ var _ = Context("Marshal NamespacedName", Serial, func() {
 	})
 })
 
-var _ = Context("NamespacedName.string", Serial, func() {
+var _ = Context("NamespacedName.String", Serial, func() {
 	name := RandomString()
 	namespace := RandomString()
 
 	When("all fields are provided", func() {
 		It("serialises into a '/' separated string", func() {
-			serialised, err := NamespacedName{Namespace: namespace, Name: name}.string()
+			serialised, err := NamespacedName{Namespace: namespace, Name: name}.String()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(serialised).To(Equal(namespace+"/"+name))
 		})
@@ -57,7 +57,7 @@ var _ = Context("NamespacedName.string", Serial, func() {
 
 	When("only a name is provided", func() {
 		It("serialises only the name", func() {
-			serialised, err := NamespacedName{Name: name}.string()
+			serialised, err := NamespacedName{Name: name}.String()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(serialised).To(Equal(name))
 		})
@@ -65,27 +65,27 @@ var _ = Context("NamespacedName.string", Serial, func() {
 
 	When("only namespace provided", func() {
 		It("errors", func() {
-			_, err := NamespacedName{Namespace: namespace}.string()
+			_, err := NamespacedName{Namespace: namespace}.String()
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	When("nothing is provided", func() {
 		It("serialises into the empty string", func() {
-			serialised, err := NamespacedName{}.string()
+			serialised, err := NamespacedName{}.String()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(serialised).To(BeEmpty())
 		})
 	})
 })
 
-var _ = Context("namespacedNameFromString", Serial, func() {
+var _ = Context("NamespacedNameFromString", Serial, func() {
 	name := RandomString()
 	namespace := RandomString()
 
 	When("single `/` with fields", func() {
 		It("deserialises into NamespacedName", func() {
-			deserialised, err := namespacedNameFromString(namespace+"/"+name)
+			deserialised, err := NamespacedNameFromString(namespace+"/"+name)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deserialised).To(Equal(NamespacedName{Namespace: namespace, Name: name}))
 		})
@@ -93,23 +93,23 @@ var _ = Context("namespacedNameFromString", Serial, func() {
 
 	When("single `/` without fields", func() {
 		It("errors", func() {
-			_, err := namespacedNameFromString("/"+name)
+			_, err := NamespacedNameFromString("/"+name)
 			Expect(err).To(HaveOccurred())
-			_, err = namespacedNameFromString(namespace+"/")
+			_, err = NamespacedNameFromString(namespace+"/")
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	When("multiple `/`", func() {
 		It("deserialises into NamespacedName", func() {
-			_, err := namespacedNameFromString(namespace+"/"+name+"/"+RandomString())
+			_, err := NamespacedNameFromString(namespace+"/"+name+"/"+RandomString())
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	When("no `/`", func() {
 		It("deserialises into empty name only", func() {
-			deserialised, err := namespacedNameFromString(name)
+			deserialised, err := NamespacedNameFromString(name)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deserialised).To(Equal(NamespacedName{Name: name}))
 		})
@@ -117,7 +117,7 @@ var _ = Context("namespacedNameFromString", Serial, func() {
 
 	When("empty string", func() {
 		It("deserialises into empty NamespacedName", func() {
-			deserialised, err := namespacedNameFromString("")
+			deserialised, err := NamespacedNameFromString("")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deserialised).To(Equal(NamespacedName{}))
 		})

@@ -4,6 +4,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -27,7 +28,7 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		Name:                 runSchedule.ObjectMeta.Name,
 		RunConfigurationName: runConfigurationNameForRunSchedule(runSchedule),
 		Version:              runSchedule.ComputeVersion(),
-		PipelineName:         runSchedule.Spec.Pipeline.Name,
+		PipelineName:         common.NamespacedName{Name: runSchedule.Spec.Pipeline.Name, Namespace: runSchedule.Namespace},
 		PipelineVersion:      runSchedule.Spec.Pipeline.Version,
 		ExperimentName:       experimentName,
 		Schedule:             runSchedule.Spec.Schedule,
@@ -35,24 +36,25 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 	}, nil
 }
 
-func runConfigurationNameForRunSchedule(runSchedule *pipelinesv1.RunSchedule) string {
+func runConfigurationNameForRunSchedule(runSchedule *pipelinesv1.RunSchedule) (runConfigurationName common.NamespacedName) {
 	rc := pipelinesv1.RunConfiguration{}
 
 	owner := metav1.GetControllerOf(runSchedule)
 	if owner == nil {
-		return ""
+		return
 	}
 
 	ownerGroupVersion, err := schema.ParseGroupVersion(owner.APIVersion)
 	if err != nil {
-		return ""
+		return
 	}
 
 	if ownerGroupVersion.Group == apis.Group && strings.ToLower(owner.Kind) == rc.GetKind() {
-		return owner.Name
+		runConfigurationName.Name = owner.Name
+		runConfigurationName.Namespace = runSchedule.Namespace
 	}
 
-	return ""
+	return
 }
 
 func RunScheduleWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition] {

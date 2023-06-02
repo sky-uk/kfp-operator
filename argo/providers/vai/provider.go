@@ -27,15 +27,25 @@ import (
 )
 
 var labels = struct {
-	RunConfiguration string
-	PipelineName     string
-	PipelineVersion  string
-	Namespace        string
+	PipelineName              string
+	PipelineNamespace         string
+	PipelineVersion           string
+	RunConfigurationName      string
+	RunConfigurationNamespace string
+	RunName                   string
+	RunNamespace              string
+	LegacyNamespace 		  string
+	LegacyRunConfiguration    string
 }{
-	RunConfiguration: "run-configuration",
-	PipelineName:     "pipeline-name",
-	PipelineVersion:  "pipeline-version",
-	Namespace:        "namespace",
+	PipelineName:              "pipeline-name",
+	PipelineNamespace:         "pipeline-namespace",
+	PipelineVersion:           "pipeline-version",
+	RunConfigurationName:      "runconfiguration-name",
+	RunConfigurationNamespace: "runconfiguration-namespace",
+	RunName:                   "run-name",
+	RunNamespace:              "run-namespace",
+	LegacyNamespace:           "namespace",
+	LegacyRunConfiguration:    "run-configuration",
 }
 
 type VAIRun struct {
@@ -46,9 +56,9 @@ type VAIRun struct {
 }
 
 type RunIntent struct {
-	RunConfigurationName string                `json:"runConfigurationName,omitempty"`
+	RunConfigurationName common.NamespacedName `json:"runConfigurationName,omitempty"`
 	RunName              common.NamespacedName `json:"runName,omitempty"`
-	PipelineName         string                `json:"pipelineName"`
+	PipelineName         common.NamespacedName `json:"pipelineName"`
 	PipelineVersion      string                `json:"pipelineVersion"`
 	RuntimeParameters    map[string]string     `json:"runtimeParameters,omitempty"`
 }
@@ -309,25 +319,28 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	defer topic.Stop()
 
 	runLabels := map[string]string{
-		labels.PipelineName:    runIntent.PipelineName,
-		labels.PipelineVersion: runIntent.PipelineVersion,
-		labels.Namespace:       runIntent.RunName.Namespace,
+		labels.PipelineName:      runIntent.PipelineName.Name,
+		labels.PipelineNamespace: runIntent.PipelineName.Namespace,
+		labels.PipelineVersion:   runIntent.PipelineVersion,
 	}
 
 	var runId string
 
-	if runIntent.RunName.Name != "" {
+	if !runIntent.RunName.Empty() {
 		runId = fmt.Sprintf(runIntent.RunName.Name)
-	} else if runIntent.RunConfigurationName != "" {
-		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName, uuid.New().String())
-		runLabels[labels.RunConfiguration] = runIntent.RunConfigurationName
+		runLabels[labels.RunName] = runIntent.RunName.Name
+		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
+	} else if !runIntent.RunConfigurationName.Empty() {
+		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName.Name, uuid.New().String())
+		runLabels[labels.RunConfigurationName] = runIntent.RunConfigurationName.Name
+		runLabels[labels.RunConfigurationNamespace] = runIntent.RunConfigurationName.Namespace
 	} else {
 		runId = fmt.Sprintf("%s", uuid.New().String())
 	}
 
 	vaiRun := VAIRun{
 		RunId:             runId,
-		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName, runIntent.PipelineVersion),
+		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName.Name, runIntent.PipelineVersion),
 		Labels:            runLabels,
 		RuntimeParameters: runIntent.RuntimeParameters,
 	}
