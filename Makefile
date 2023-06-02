@@ -87,7 +87,7 @@ integration-test-all: integration-test
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/manager main.go
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/manager main.go
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go --zap-devel --config config/manager/controller_manager_config.yaml
