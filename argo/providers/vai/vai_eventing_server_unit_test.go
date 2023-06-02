@@ -294,8 +294,8 @@ var _ = Context("VaiEventingServer", func() {
 				labels.RunConfigurationNamespace: runConfigurationName.Namespace,
 				labels.PipelineName:              pipelineName.Name,
 				labels.PipelineNamespace:         pipelineName.Namespace,
-				labels.RunName:         		  pipelineRunName.Name,
-				labels.RunNamespace:      		  pipelineRunName.Namespace,
+				labels.RunName:                   pipelineRunName.Name,
+				labels.RunNamespace:              pipelineRunName.Namespace,
 			},
 			State: pipelineState,
 			JobDetail: &aiplatformpb.PipelineJobDetail{
@@ -312,10 +312,10 @@ var _ = Context("VaiEventingServer", func() {
 				},
 			},
 		}, pipelineRunName.Name)).To(Equal(&common.RunCompletionEvent{
-			RunConfigurationName: runConfigurationName,
+			RunConfigurationName: runConfigurationName.NonEmptyPtr(),
 			PipelineName:         pipelineName,
-			RunName:              pipelineRunName,
-			RunId: 				  pipelineRunName.Name,
+			RunName:              pipelineRunName.NonEmptyPtr(),
+			RunId:                pipelineRunName.Name,
 			Status:               status,
 			ServingModelArtifacts: []common.ServingModelArtifact{
 				{

@@ -49,6 +49,15 @@ func NamespacedNameFromString(namespacedName string) (NamespacedName, error) {
 	}, nil
 }
 
+// Optionally render structs until https://github.com/golang/go/issues/11939 is addressed
+func (nsn NamespacedName) NonEmptyPtr() *NamespacedName {
+	if nsn.Empty() {
+		return nil
+	}
+
+	return &nsn
+}
+
 func (nsn NamespacedName) MarshalText() ([]byte, error) {
 	serialised, err := nsn.String()
 	if err != nil {

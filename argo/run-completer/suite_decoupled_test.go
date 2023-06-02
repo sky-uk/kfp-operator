@@ -75,7 +75,7 @@ var _ = Context("Run Completer", Serial, func() {
 			run := pipelinesv1.RandomRun()
 			Expect(k8sClient.Create(ctx, run)).To(Succeed())
 
-			runCompletionEvent := common.RunCompletionEvent{Status: status, RunName: common.NamespacedName{
+			runCompletionEvent := common.RunCompletionEvent{Status: status, RunName: &common.NamespacedName{
 				Name:      run.Name,
 				Namespace: run.Namespace,
 			}}
@@ -94,7 +94,7 @@ var _ = Context("Run Completer", Serial, func() {
 		It("do nothing", func() {
 			ctx := context.Background()
 
-			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
+			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
 				Name:      common.RandomString(),
 				Namespace: common.RandomString(),
 			}}
@@ -107,7 +107,7 @@ var _ = Context("Run Completer", Serial, func() {
 		It("do nothing", func() {
 			ctx := context.Background()
 
-			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
+			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
 				Name:      common.RandomString(),
 			}}
 
@@ -119,7 +119,7 @@ var _ = Context("Run Completer", Serial, func() {
 		It("errors", func() {
 			ctx := context.Background()
 
-			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: common.NamespacedName{
+			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
 				Name:      common.RandomString(),
 				Namespace: common.RandomString(),
 			}}

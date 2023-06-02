@@ -224,8 +224,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				expectedEvent := common.RunCompletionEvent{
 					Status:                common.RunCompletionStatuses.Succeeded,
 					PipelineName:          resourceReferences.PipelineName,
-					RunConfigurationName:  resourceReferences.RunConfigurationName,
-					RunName:               resourceReferences.RunName,
+					RunConfigurationName:  resourceReferences.RunConfigurationName.NonEmptyPtr(),
+					RunName:               resourceReferences.RunName.NonEmptyPtr(),
 					RunId: runId,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
@@ -433,9 +433,9 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				expectedEvent := common.RunCompletionEvent{
 					Status:               common.RunCompletionStatuses.Succeeded,
 					PipelineName:         resourceReferences.PipelineName,
-					RunConfigurationName: resourceReferences.RunConfigurationName,
-					RunName:              resourceReferences.RunName,
-					RunId: runId,
+					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
+					RunName:              resourceReferences.RunName.NonEmptyPtr(),
+					RunId:                runId,
 				}
 				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)

@@ -20,8 +20,9 @@ var RunCompletionStatuses = struct {
 type RunCompletionEvent struct {
 	Status                RunCompletionStatus    `json:"status"`
 	PipelineName          NamespacedName         `json:"pipelineName"`
-	RunConfigurationName  NamespacedName         `json:"runConfigurationName,omitempty"`
-	RunName               NamespacedName         `json:"runName,omitempty"`
-	RunId				  string 			     `json:"runId"`
+	// Optionally render structs until https://github.com/golang/go/issues/11939 is addressed
+	RunConfigurationName  *NamespacedName        `json:"runConfigurationName,omitempty"`
+	RunName               *NamespacedName        `json:"runName,omitempty"`
+	RunId                 string                 `json:"runId"`
 	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
 }

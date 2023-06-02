@@ -192,6 +192,7 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 		return nil, err
 	}
 
+	// For compatability with resources created with v0.3.0 and older
 	if resourceReferences.PipelineName.Empty() {
 		pipelineName := getPipelineName(workflow)
 		if pipelineName == "" {
@@ -204,10 +205,10 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 
 	return &common.RunCompletionEvent{
 		Status:                status,
-		PipelineName: 		   resourceReferences.PipelineName,
-		RunConfigurationName:  resourceReferences.RunConfigurationName,
-		RunName:               resourceReferences.RunName,
-		RunId: 				   runId,
+		PipelineName:          resourceReferences.PipelineName,
+		RunConfigurationName:  resourceReferences.RunConfigurationName.NonEmptyPtr(),
+		RunName:               resourceReferences.RunName.NonEmptyPtr(),
+		RunId:                 runId,
 		ServingModelArtifacts: modelArtifacts,
 	}, nil
 }

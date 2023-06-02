@@ -27,24 +27,24 @@ import (
 )
 
 var labels = struct {
-	RunConfigurationName      string
-	RunConfigurationNamespace string
 	PipelineName              string
 	PipelineNamespace         string
 	PipelineVersion           string
+	RunConfigurationName      string
+	RunConfigurationNamespace string
 	RunName                   string
 	RunNamespace              string
 	LegacyNamespace 		  string
 	LegacyRunConfiguration    string
 }{
-	RunConfigurationName:      "run-configuration-name",
-	RunConfigurationNamespace: "run-configuration-namespace",
 	PipelineName:              "pipeline-name",
 	PipelineNamespace:         "pipeline-namespace",
 	PipelineVersion:           "pipeline-version",
+	RunConfigurationName:      "runconfiguration-name",
+	RunConfigurationNamespace: "runconfiguration-namespace",
 	RunName:                   "run-name",
 	RunNamespace:              "run-namespace",
-	LegacyNamespace: 	       "namespace",
+	LegacyNamespace:           "namespace",
 	LegacyRunConfiguration:    "run-configuration",
 }
 
@@ -332,7 +332,6 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
 	} else if !runIntent.RunConfigurationName.Empty() {
 		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName.Name, uuid.New().String())
-
 		runLabels[labels.RunConfigurationName] = runIntent.RunConfigurationName.Name
 		runLabels[labels.RunConfigurationNamespace] = runIntent.RunConfigurationName.Namespace
 	} else {

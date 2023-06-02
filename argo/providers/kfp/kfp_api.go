@@ -23,9 +23,9 @@ type GrpcKfpApi struct {
 }
 
 type ResourceReferences struct {
+	PipelineName         common.NamespacedName `yaml:"pipelineName"`
 	RunConfigurationName common.NamespacedName `yaml:"runConfigurationName"`
 	RunName              common.NamespacedName `yaml:"runName"`
-	PipelineName         common.NamespacedName `yaml:"pipelineName"`
 }
 
 func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) (ResourceReferences, error) {
@@ -52,12 +52,14 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 			}
 
 			// For compatability with resources created with v0.3.0 and older
+			// Pipeline name set by caller
 			resourceReferences.RunConfigurationName.Name = ref.GetName()
 			continue
 		}
 
 		if ref.GetKey().GetType() == go_client.ResourceType_NAMESPACE && ref.GetRelationship() == go_client.Relationship_OWNER {
 			// For compatability with resources created with v0.3.0 and older
+			// Pipeline name set by caller
 			resourceReferences.RunName.Name = runDetail.GetRun().GetName()
 			resourceReferences.RunName.Namespace = ref.GetKey().GetId()
 			continue
