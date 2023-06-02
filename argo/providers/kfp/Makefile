@@ -38,7 +38,7 @@ test: unit-test decoupled-test
 ##@ Build
 
 build: generate
-	GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/provider ./cmd
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/provider ./cmd
 
 ##@ Containers
 
