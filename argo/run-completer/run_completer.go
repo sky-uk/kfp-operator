@@ -25,6 +25,22 @@ type RunCompleter struct {
 }
 
 func (c *RunCompleter) CompleteRun(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
+	if runCompletionEvent.RunName != nil {
+		if err := c.completeRun(ctx, runCompletionEvent); err != nil {
+			return err
+		}
+	}
+
+	if runCompletionEvent.RunConfigurationName != nil {
+		if err := c.completeRunConfiguration(ctx, runCompletionEvent); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *RunCompleter) completeRun(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
 	if runCompletionEvent.RunName.Namespace == "" {
 		return nil
 	}
@@ -49,6 +65,34 @@ func (c *RunCompleter) CompleteRun(ctx context.Context, runCompletionEvent commo
 
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (c *RunCompleter) completeRunConfiguration(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
+	if runCompletionEvent.Status != common.RunCompletionStatuses.Succeeded || runCompletionEvent.RunConfigurationName.Namespace == "" {
+		return nil
+	}
+
+	runConfiguration := pipelinesv1.RunConfiguration{}
+
+	if err := c.K8sClient.Get(ctx, types.NamespacedName{Namespace: runCompletionEvent.RunConfigurationName.Namespace, Name: runCompletionEvent.RunConfigurationName.Name}, &runConfiguration); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+
+		return err
+	}
+
+	runConfiguration.Status.LatestRuns.Succeeded.ProviderId = runCompletionEvent.RunId
+
+	if err := c.K8sClient.Status().Update(ctx, &runConfiguration); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+
+		return err
 	}
 
 	return nil

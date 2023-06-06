@@ -55,78 +55,155 @@ var _ = AfterSuite(func() {
 	testEnv.Stop()
 })
 
-func HasChangedTo(expectedState pipelinesv1.CompletionState) func(pipelinesv1.Run, pipelinesv1.Run) {
-	return func(oldRun pipelinesv1.Run, newRun pipelinesv1.Run) {
-		Expect(oldRun.Status.CompletionState).NotTo(Equal(expectedState))
-		Expect(newRun.Status.CompletionState).To(Equal(expectedState))
-	}
-}
+var _ = Describe("Run Completer", Serial, func() {
+	Context("Runs", func() {
+		var CompletionStateHasChangedTo = func (expectedState pipelinesv1.CompletionState) func(pipelinesv1.Run, pipelinesv1.Run) {
+			return func(oldRun pipelinesv1.Run, newRun pipelinesv1.Run) {
+				Expect(oldRun.Status.CompletionState).NotTo(Equal(expectedState))
+				Expect(newRun.Status.CompletionState).To(Equal(expectedState))
+			}
+		}
 
-func HasNotChanged() func(pipelinesv1.Run, pipelinesv1.Run) {
-	return func(oldRun pipelinesv1.Run, newRun pipelinesv1.Run) {
-		Expect(newRun.Status).To(Equal(oldRun.Status))
-	}
-}
+		var HasNotChanged = func() func(pipelinesv1.Run, pipelinesv1.Run) {
+			return func(oldRun pipelinesv1.Run, newRun pipelinesv1.Run) {
+				Expect(newRun.GetStatus()).To(Equal(oldRun.GetStatus()))
+			}
+		}
 
-var _ = Context("Run Completer", Serial, func() {
-	DescribeTable("updates Run on known states only",
-		func(status common.RunCompletionStatus, expectation func(pipelinesv1.Run, pipelinesv1.Run)) {
-			ctx := context.Background()
-			run := pipelinesv1.RandomRun()
-			Expect(k8sClient.Create(ctx, run)).To(Succeed())
+		DescribeTable("updates Run on known states only",
+			func(status common.RunCompletionStatus, expectation func(pipelinesv1.Run, pipelinesv1.Run)) {
+				ctx := context.Background()
+				run := pipelinesv1.RandomRun()
+				Expect(k8sClient.Create(ctx, run)).To(Succeed())
 
-			runCompletionEvent := common.RunCompletionEvent{Status: status, RunName: &common.NamespacedName{
-				Name:      run.Name,
-				Namespace: run.Namespace,
-			}}
+				runCompletionEvent := common.RunCompletionEvent{Status: status, RunName: &common.NamespacedName{
+					Name:      run.Name,
+					Namespace: run.Namespace,
+				}}
 
-			Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
 
-			fetchedRun := pipelinesv1.Run{}
-			Expect(k8sClient.Get(ctx, run.GetNamespacedName(), &fetchedRun)).To(Succeed())
-			expectation(*run, fetchedRun)
-		},
-		Entry("succeeded should succeed", common.RunCompletionStatuses.Succeeded, HasChangedTo(pipelinesv1.CompletionStates.Succeeded)),
-		Entry("failed should fail", common.RunCompletionStatuses.Failed, HasChangedTo(pipelinesv1.CompletionStates.Failed)),
-		Entry("unknown should not override", common.RunCompletionStatus(""), HasNotChanged()))
+				fetchedRun := pipelinesv1.Run{}
+				Expect(k8sClient.Get(ctx, run.GetNamespacedName(), &fetchedRun)).To(Succeed())
+				expectation(*run, fetchedRun)
+			},
+			Entry("succeeded should succeed", common.RunCompletionStatuses.Succeeded, CompletionStateHasChangedTo(pipelinesv1.CompletionStates.Succeeded)),
+			Entry("failed should fail", common.RunCompletionStatuses.Failed, CompletionStateHasChangedTo(pipelinesv1.CompletionStates.Failed)),
+			Entry("unknown should not override", common.RunCompletionStatus(""), HasNotChanged()))
 
-	When("the run is not found", func() {
-		It("do nothing", func() {
-			ctx := context.Background()
+		When("the run is not found", func() {
+			It("do nothing", func() {
+				ctx := context.Background()
 
-			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
-				Name:      common.RandomString(),
-				Namespace: common.RandomString(),
-			}}
+				runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
+					Name:      common.RandomString(),
+					Namespace: common.RandomString(),
+				}}
 
-			Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+			})
+		})
+
+		When("the runName has no namespace", func() {
+			It("do nothing", func() {
+				ctx := context.Background()
+
+				runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
+					Name:      common.RandomString(),
+				}}
+
+				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+			})
+		})
+
+		When("the k8s API is unreachable", func() {
+			It("errors", func() {
+				ctx := context.Background()
+
+				runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
+					Name:      common.RandomString(),
+					Namespace: common.RandomString(),
+				}}
+
+				Expect((&RunCompleter{
+					NewFailingClient(),
+				}).CompleteRun(ctx, runCompletionEvent)).NotTo(Succeed())
+			})
 		})
 	})
 
-	When("the run name has no namespace", func() {
-		It("do nothing", func() {
-			ctx := context.Background()
+	Context("RunConfigurations", func() {
+		var LastSucceededRunHasBeenUpdated = func() func(pipelinesv1.RunConfiguration, common.RunCompletionEvent, pipelinesv1.RunConfiguration) {
+			return func(oldRun pipelinesv1.RunConfiguration, event common.RunCompletionEvent, newRun pipelinesv1.RunConfiguration) {
+				Expect(newRun.Status.LatestRuns.Succeeded.ProviderId).To(Equal(event.RunId))
+			}
+		}
 
-			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
-				Name:      common.RandomString(),
-			}}
+		var HasNotChanged = func() func(pipelinesv1.RunConfiguration, common.RunCompletionEvent, pipelinesv1.RunConfiguration) {
+			return func(oldRun pipelinesv1.RunConfiguration, event common.RunCompletionEvent, newRun pipelinesv1.RunConfiguration) {
+				Expect(newRun.Status).To(Equal(oldRun.Status))
+			}
+		}
 
-			Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+		DescribeTable("updates RunConfiguration on known states only",
+			func(status common.RunCompletionStatus, expectation func(pipelinesv1.RunConfiguration, common.RunCompletionEvent, pipelinesv1.RunConfiguration)) {
+				ctx := context.Background()
+				runConfiguration := pipelinesv1.RandomRunConfiguration()
+				Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+				runCompletionEvent := common.RunCompletionEvent{Status: status, RunConfigurationName: &common.NamespacedName{
+					Name:      runConfiguration.Name,
+					Namespace: runConfiguration.Namespace,
+				}, RunId: common.RandomString()}
+
+				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+
+				fetchedRunConfiguration := pipelinesv1.RunConfiguration{}
+				Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), &fetchedRunConfiguration)).To(Succeed())
+				expectation(*runConfiguration, runCompletionEvent, fetchedRunConfiguration)
+			},
+			Entry("succeeded should succeed", common.RunCompletionStatuses.Succeeded, LastSucceededRunHasBeenUpdated()),
+			Entry("failed should fail", common.RunCompletionStatuses.Failed, HasNotChanged()),
+			Entry("unknown should not override", common.RunCompletionStatus(""), HasNotChanged()))
+
+		When("RunConfiguration is not found", func() {
+			It("do nothing", func() {
+				ctx := context.Background()
+
+				runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunConfigurationName: &common.NamespacedName{
+					Name:      common.RandomString(),
+					Namespace: common.RandomString(),
+				}}
+
+				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+			})
 		})
-	})
 
-	When("the k8s API is unreachable", func() {
-		It("errors", func() {
-			ctx := context.Background()
+		When("the runConfigurationName has no namespace", func() {
+			It("do nothing", func() {
+				ctx := context.Background()
 
-			runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
-				Name:      common.RandomString(),
-				Namespace: common.RandomString(),
-			}}
+				runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunConfigurationName: &common.NamespacedName{
+					Name:      common.RandomString(),
+				}}
 
-			Expect((&RunCompleter{
-				NewFailingClient(),
-			}).CompleteRun(ctx, runCompletionEvent)).NotTo(Succeed())
+				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+			})
+		})
+
+		When("the k8s API is unreachable", func() {
+			It("errors", func() {
+				ctx := context.Background()
+
+				runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunConfigurationName: &common.NamespacedName{
+					Name:      common.RandomString(),
+					Namespace: common.RandomString(),
+				}}
+
+				Expect((&RunCompleter{
+					NewFailingClient(),
+				}).CompleteRun(ctx, runCompletionEvent)).NotTo(Succeed())
+			})
 		})
 	})
 })
