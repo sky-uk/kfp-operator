@@ -22,9 +22,9 @@ var (
 	testEnv       *envtest.Environment
 )
 
-func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
+func StatusUpdaterDecoupledSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Eventing Decoupled Suite")
+	RunSpecs(t, "Status Updater Decoupled Suite")
 }
 
 var _ = BeforeSuite(func() {
