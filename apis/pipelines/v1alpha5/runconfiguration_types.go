@@ -1,9 +1,11 @@
 package v1alpha5
 
 import (
+	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"regexp"
 )
 
 type Triggers struct {
@@ -19,10 +21,68 @@ var OnChangeTypes = struct {
 }{
 	Pipeline: "pipeline",
 }
+const ArtifactPathPattern = `^([^\[\]]+)(?:\[([^\[\]]+)\])?$`
+// +kubebuilder:validation:Type=string
+// +kubebuilder:validation:Pattern=`^([^\[\]]+)(?:\[([^\[\]]+)\])?$`
+type ArtifactPath struct {
+	Path   string `json:"-" yaml:"-"`
+	Filter string `json:"-" yaml:"-"`
+}
+
+func (ap ArtifactPath) String() (string, error) {
+	if ap.Filter == "" {
+		return ap.Path, nil
+	}
+
+	if ap.Path == ""  {
+		return "", fmt.Errorf("artifact path provided without a path")
+	}
+
+	return fmt.Sprintf("%s[%s]", ap.Path, ap.Filter), nil
+}
+
+func ArtifactPathFromString(path string) (artifactPath ArtifactPath, err error) {
+	pathPattern := regexp.MustCompile(ArtifactPathPattern)
+	matches := pathPattern.FindStringSubmatch(path)
+
+	if len(matches) == 0 {
+		err = fmt.Errorf("ArtifactPath must match pattern %s", ArtifactPathPattern)
+	}
+
+	artifactPath.Path = matches[0]
+
+	if len(matches) > 1 {
+		artifactPath.Filter = matches[1]
+	}
+
+	return
+}
+
+func (ap ArtifactPath) MarshalText() ([]byte, error) {
+	serialised, err := ap.String()
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(serialised), nil
+}
+
+func (ap *ArtifactPath) UnmarshalText(bytes []byte) error {
+	deserialised, err := ArtifactPathFromString(string(bytes))
+	*ap = deserialised
+
+	return err
+}
+
+type Artifact struct {
+	Name string       `json:"name"`
+	Path []ArtifactPath `json:"path"`
+}
 
 type RunConfigurationSpec struct {
 	Run      RunSpec  `json:"run,omitempty"`
 	Triggers Triggers `json:"triggers,omitempty"`
+	Artifacts []Artifact `json:"artifacts,omitempty"`
 }
 
 type RunReference struct {

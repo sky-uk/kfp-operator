@@ -236,6 +236,21 @@ spec:
             type: object
           spec:
             properties:
+              artifacts:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    path:
+                      items:
+                        pattern: ^([^\[\]]+)(?:\[([^\[\]]+)\])?$
+                        type: string
+                      type: array
+                  required:
+                  - name
+                  - path
+                  type: object
+                type: array
               run:
                 properties:
                   experimentName:
