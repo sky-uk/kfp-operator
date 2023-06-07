@@ -1,6 +1,6 @@
 include ../../common.mk
 
-IMG := kfp-operator-run-completer
+IMG := kfp-operator-status-updater
 
 all: build
 
@@ -17,7 +17,7 @@ test: unit-test decoupled-test
 ##@ Build
 
 build:
-	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/run-completer ./cmd
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/status-updater ./cmd
 
 fmt: ## Run go fmt against code.
 	go fmt ./...

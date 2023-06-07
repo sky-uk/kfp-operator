@@ -300,6 +300,14 @@ spec:
                 type: string
               synchronizationState:
                 type: string
+              latestRuns:
+                type: object
+                properties:
+                  succeeded:
+                    type: object
+                    properties:
+                      providerId:
+                        type: string
             type: object
         type: object
     served: true

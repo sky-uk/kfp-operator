@@ -6,7 +6,7 @@ import (
 	"github.com/go-logr/logr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/run-completer"
+	"github.com/sky-uk/kfp-operator/argo/status-updater"
 	"github.com/urfave/cli"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -74,10 +74,10 @@ func main() {
 					return err
 				}
 
-				completer := run_completer.RunCompleter{
+				completer := status_updater.StatusUpdater{
 					k8sClient,
 				}
-				return completer.CompleteRun(ctx, rce)
+				return completer.UpdateStatus(ctx, rce)
 			},
 		},
 	}

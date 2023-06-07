@@ -25,11 +25,20 @@ type RunConfigurationSpec struct {
 	Triggers Triggers `json:"triggers,omitempty"`
 }
 
+type RunReference struct {
+	ProviderId string `json:"providerId,omitempty"`
+}
+
+type LatestRuns struct {
+	Succeeded RunReference `json:"succeeded,omitempty"`
+}
+
 type RunConfigurationStatus struct {
 	SynchronizationState     apis.SynchronizationState `json:"synchronizationState,omitempty"`
 	Provider                 string                    `json:"provider,omitempty"`
 	ObservedPipelineVersion  string                    `json:"observedPipelineVersion,omitempty"`
 	TriggeredPipelineVersion string                    `json:"triggeredPipelineVersion,omitempty"`
+	LatestRuns               LatestRuns                `json:"latestRuns,omitempty"`
 	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
 }
 
