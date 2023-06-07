@@ -1,7 +1,7 @@
 //go:build decoupled
 // +build decoupled
 
-package run_completer
+package status_updater
 
 import (
 	"context"
@@ -17,9 +17,9 @@ import (
 )
 
 var (
-	k8sClient    client.Client
-	runCompleter RunCompleter
-	testEnv      *envtest.Environment
+	k8sClient     client.Client
+	statusUpdater StatusUpdater
+	testEnv       *envtest.Environment
 )
 
 func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
@@ -46,7 +46,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	runCompleter = RunCompleter{
+	statusUpdater = StatusUpdater{
 		K8sClient: k8sClient,
 	}
 })
@@ -55,7 +55,7 @@ var _ = AfterSuite(func() {
 	testEnv.Stop()
 })
 
-var _ = Describe("Run Completer", Serial, func() {
+var _ = Describe("Status Updater", Serial, func() {
 	Context("Runs", func() {
 		var CompletionStateHasChangedTo = func (expectedState pipelinesv1.CompletionState) func(pipelinesv1.Run, pipelinesv1.Run) {
 			return func(oldRun pipelinesv1.Run, newRun pipelinesv1.Run) {
@@ -81,7 +81,7 @@ var _ = Describe("Run Completer", Serial, func() {
 					Namespace: run.Namespace,
 				}}
 
-				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())
 
 				fetchedRun := pipelinesv1.Run{}
 				Expect(k8sClient.Get(ctx, run.GetNamespacedName(), &fetchedRun)).To(Succeed())
@@ -100,7 +100,7 @@ var _ = Describe("Run Completer", Serial, func() {
 					Namespace: common.RandomString(),
 				}}
 
-				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())
 			})
 		})
 
@@ -112,7 +112,7 @@ var _ = Describe("Run Completer", Serial, func() {
 					Name:      common.RandomString(),
 				}}
 
-				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())
 			})
 		})
 
@@ -125,9 +125,9 @@ var _ = Describe("Run Completer", Serial, func() {
 					Namespace: common.RandomString(),
 				}}
 
-				Expect((&RunCompleter{
+				Expect((&StatusUpdater{
 					NewFailingClient(),
-				}).CompleteRun(ctx, runCompletionEvent)).NotTo(Succeed())
+				}).UpdateStatus(ctx, runCompletionEvent)).NotTo(Succeed())
 			})
 		})
 	})
@@ -156,7 +156,7 @@ var _ = Describe("Run Completer", Serial, func() {
 					Namespace: runConfiguration.Namespace,
 				}, RunId: common.RandomString()}
 
-				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())
 
 				fetchedRunConfiguration := pipelinesv1.RunConfiguration{}
 				Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), &fetchedRunConfiguration)).To(Succeed())
@@ -175,7 +175,7 @@ var _ = Describe("Run Completer", Serial, func() {
 					Namespace: common.RandomString(),
 				}}
 
-				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())
 			})
 		})
 
@@ -187,7 +187,7 @@ var _ = Describe("Run Completer", Serial, func() {
 					Name:      common.RandomString(),
 				}}
 
-				Expect(runCompleter.CompleteRun(ctx, runCompletionEvent)).To(Succeed())
+				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())
 			})
 		})
 
@@ -200,9 +200,9 @@ var _ = Describe("Run Completer", Serial, func() {
 					Namespace: common.RandomString(),
 				}}
 
-				Expect((&RunCompleter{
+				Expect((&StatusUpdater{
 					NewFailingClient(),
-				}).CompleteRun(ctx, runCompletionEvent)).NotTo(Succeed())
+				}).UpdateStatus(ctx, runCompletionEvent)).NotTo(Succeed())
 			})
 		})
 	})

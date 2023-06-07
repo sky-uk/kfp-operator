@@ -6,7 +6,7 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-complete-run
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
-  serviceAccountName: {{ include "kfp-operator.fullname" . }}-run-completer
+  serviceAccountName: {{ include "kfp-operator.fullname" . }}-status-updater
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   entrypoint: complete-run
@@ -24,9 +24,9 @@ spec:
             {{`{{workflow.parameters.run-completion-event}}`}}
     script:
     container:
-      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-run-completer:{{ .Chart.AppVersion }}
+      image: {{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-status-updater:{{ .Chart.AppVersion }}
       command:
-      - /run-completer
+      - /status-updater
       args:
       - --run-completion-event
       - /run-completion-event.json
@@ -52,11 +52,11 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
 metadata:
-  name: {{ include "kfp-operator.fullname" $ }}-run-completer
+  name: {{ include "kfp-operator.fullname" $ }}-status-updater
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   template:
-    serviceAccountName: {{ include "kfp-operator.fullname" . }}-run-completer-submitter
+    serviceAccountName: {{ include "kfp-operator.fullname" . }}-status-updater-submitter
   dependencies:
   - eventName: {{ include "kfp-operator.fullname" $ }}-events
     eventSourceName: {{ include "kfp-operator.fullname" $ }}-events

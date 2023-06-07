@@ -1,4 +1,4 @@
-module github.com/sky-uk/kfp-operator/argo/run-completer
+module github.com/sky-uk/kfp-operator/argo/status-updater
 
 go 1.18
 

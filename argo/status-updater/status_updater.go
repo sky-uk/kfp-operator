@@ -1,4 +1,4 @@
-package run_completer
+package status_updater
 
 import (
 	"context"
@@ -20,11 +20,11 @@ func completionStateForRunCompletionStatus(rcs common.RunCompletionStatus) *pipe
 	}
 }
 
-type RunCompleter struct {
+type StatusUpdater struct {
 	K8sClient client.Client
 }
 
-func (c *RunCompleter) CompleteRun(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
+func (c *StatusUpdater) UpdateStatus(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
 	if runCompletionEvent.RunName != nil {
 		if err := c.completeRun(ctx, runCompletionEvent); err != nil {
 			return err
@@ -40,7 +40,7 @@ func (c *RunCompleter) CompleteRun(ctx context.Context, runCompletionEvent commo
 	return nil
 }
 
-func (c *RunCompleter) completeRun(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
+func (c *StatusUpdater) completeRun(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
 	if runCompletionEvent.RunName.Namespace == "" {
 		return nil
 	}
@@ -70,7 +70,7 @@ func (c *RunCompleter) completeRun(ctx context.Context, runCompletionEvent commo
 	return nil
 }
 
-func (c *RunCompleter) completeRunConfiguration(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
+func (c *StatusUpdater) completeRunConfiguration(ctx context.Context, runCompletionEvent common.RunCompletionEvent) error {
 	if runCompletionEvent.Status != common.RunCompletionStatuses.Succeeded || runCompletionEvent.RunConfigurationName.Namespace == "" {
 		return nil
 	}

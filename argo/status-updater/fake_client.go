@@ -1,7 +1,7 @@
 //go:build decoupled
 // +build decoupled
 
-package run_completer
+package status_updater
 
 import (
 	"context"

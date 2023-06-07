@@ -1,7 +1,7 @@
 FROM gcr.io/distroless/static:nonroot
 
 WORKDIR /
-COPY bin/run-completer .
+COPY bin/status-updater .
 USER 65532:65532
 
-ENTRYPOINT ["/run-completer"]
+ENTRYPOINT ["/status-updater"]
