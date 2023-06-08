@@ -347,11 +347,11 @@ var _ = Context("gRPC Metadata Store", func() {
 				results, err := store.GetServingModelArtifact(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(ContainElements(
-					common.ServingModelArtifact{
+					common.Artifact{
 						Name:     "first-model",
 						Location: firstArtifactLocation,
 					},
-					common.ServingModelArtifact{
+					common.Artifact{
 						Name:     "second-model",
 						Location: secondArtifactLocation,
 					},

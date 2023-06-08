@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -14,11 +15,11 @@ import (
 
 func artifact() *aiplatformpb.Artifact {
 	return &aiplatformpb.Artifact{
-		SchemaTitle: "tfx.PushedModel",
+		DisplayName: "a-model",
+		Uri: "gs://some/where",
 		Metadata: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
-				"pushed":             structpb.NewNumberValue(1),
-				"pushed_destination": structpb.NewStringValue("gs://some/where"),
+				"pushed": structpb.NewNumberValue(1),
 			},
 		},
 	}
@@ -45,7 +46,7 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEvent for job that has not completed", func(state aiplatformpb.PipelineState) {
-		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state}, common.RandomString())).To(BeNil())
+		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state}, VAIRun{RunId: common.RandomString()})).To(BeNil())
 	},
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_UNSPECIFIED),
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_QUEUED),
@@ -55,18 +56,75 @@ var _ = Context("VaiEventingServer", func() {
 		Entry("Paused", aiplatformpb.PipelineState_PIPELINE_STATE_PAUSED),
 	)
 
-	Describe("modelServingArtifactsForJob", func() {
-		When("The job has an output with an artifact that doesn't match the SchemaTitle", func() {
-			It("Produces no servingModelArtifacts", func() {
-				incorrectArtifact := artifact()
-				incorrectArtifact.SchemaTitle = "a.Type"
+	Describe("artifactsForJob", func() {
+		When("The job is missing the component", func() {
+			It("Produces no artifacts", func() {
+				artifactDefs := []pipelinesv1.Artifact{{
+					Name: common.RandomString(),
+					Path: pipelinesv1.ArtifactPathDefinition{
+						Path: pipelinesv1.ArtifactPath{
+							Component: common.RandomString(),
+						},
+					},
+				}}
 
-				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
+				Expect(artifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{},
+					},
+				}, artifactDefs)).To(BeEmpty())
+			})
+		})
+
+		When("The job has a matching component that misses the output", func() {
+			It("Produces no artifacts", func() {
+				componentName := common.RandomString()
+				artifactDefs := []pipelinesv1.Artifact{{
+					Name: common.RandomString(),
+					Path: pipelinesv1.ArtifactPathDefinition{
+						Path: pipelinesv1.ArtifactPath{
+							Component: componentName,
+							Artifact:  common.RandomString(),
+						},
+					},
+				}}
+
+				Expect(artifactsForJob(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
 							{
+								TaskName: componentName,
+							},
+						},
+					},
+				}, artifactDefs)).To(BeEmpty())
+			})
+		})
+
+		When("The job has a matching component and a matching output but the artifact has no uri", func() {
+			It("Produces the artifacts", func() {
+				componentName := common.RandomString()
+				outputName := common.RandomString()
+				incorrectArtifact := artifact()
+				incorrectArtifact.Uri = ""
+
+				artifactDefs := []pipelinesv1.Artifact{{
+					Name: common.RandomString(),
+					Path: pipelinesv1.ArtifactPathDefinition{
+						Path: pipelinesv1.ArtifactPath{
+							Component: componentName,
+							Artifact:  outputName,
+						},
+					},
+				}}
+
+				Expect(artifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+							{
+								TaskName: componentName,
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
+									outputName: {
 										Artifacts: []*aiplatformpb.Artifact{
 											incorrectArtifact,
 										},
@@ -75,10 +133,130 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(BeEmpty())
+				}, artifactDefs)).To(BeEmpty())
 			})
 		})
 
+		When("The job has a matching component and a matching output but no matching properties", func() {
+			It("Produces the artifacts", func() {
+				componentName := common.RandomString()
+				outputName := common.RandomString()
+				incorrectArtifact := artifact()
+				incorrectArtifact.Metadata.Fields = nil
+
+				artifactDefs := []pipelinesv1.Artifact{{
+					Name: common.RandomString(),
+					Path: pipelinesv1.ArtifactPathDefinition{
+						Path: pipelinesv1.ArtifactPath{
+							Component: componentName,
+							Artifact:  outputName,
+						},
+						Filter: "a == b",
+					},
+				}}
+
+				Expect(artifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+							{
+								TaskName: componentName,
+								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+									outputName: {
+										Artifacts: []*aiplatformpb.Artifact{
+											artifact(),
+										},
+									},
+								},
+							},
+						},
+					},
+				}, artifactDefs)).To(BeEmpty())
+			})
+		})
+
+		When("The job has a matching component and a matching component with several artifacts", func() {
+			It("Produces the artifacts", func() {
+				componentName := common.RandomString()
+				outputName := common.RandomString()
+				artifactName := common.RandomString()
+				artifactDefs := []pipelinesv1.Artifact{{
+					Name: artifactName,
+					Path: pipelinesv1.ArtifactPathDefinition{
+						Path: pipelinesv1.ArtifactPath{
+							Component: componentName,
+							Artifact:  outputName,
+						},
+					},
+				}}
+
+				firstArtifact := artifact()
+				secondArtifact := artifact()
+				secondArtifact.Uri = "gs://some/where/else"
+				secondArtifact.DisplayName = "another-artifact"
+
+				Expect(artifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+							{
+								TaskName: componentName,
+								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+									outputName: {
+										Artifacts: []*aiplatformpb.Artifact{
+											firstArtifact,
+											secondArtifact,
+										},
+									},
+								},
+							},
+						},
+					},
+				}, artifactDefs)).To(ConsistOf(common.Artifact{Name: artifactName, Location: "gs://some/where"}, common.Artifact{Name: artifactName, Location: "gs://some/where/else"}))
+			})
+		})
+
+		When("The job has a matching component and a matching component with several artifacts that have matching properties", func() {
+			It("Produces the artifacts", func() {
+				componentName := common.RandomString()
+				outputName := common.RandomString()
+				artifactName := common.RandomString()
+				artifactDefs := []pipelinesv1.Artifact{{
+					Name: artifactName,
+					Path: pipelinesv1.ArtifactPathDefinition{
+						Path: pipelinesv1.ArtifactPath{
+							Component: componentName,
+							Artifact:  outputName,
+						},
+						Filter: "pushed == 1",
+					},
+				}}
+
+				firstArtifact := artifact()
+				secondArtifact := artifact()
+				secondArtifact.Uri = "gs://some/where/else"
+				secondArtifact.DisplayName = "another-artifact"
+
+				Expect(artifactsForJob(&aiplatformpb.PipelineJob{
+					JobDetail: &aiplatformpb.PipelineJobDetail{
+						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+							{
+								TaskName: componentName,
+								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+									outputName: {
+										Artifacts: []*aiplatformpb.Artifact{
+											firstArtifact,
+											secondArtifact,
+										},
+									},
+								},
+							},
+						},
+					},
+				}, artifactDefs)).To(ConsistOf(common.Artifact{Name: artifactName, Location: "gs://some/where"}, common.Artifact{Name: artifactName, Location: "gs://some/where/else"}))
+			})
+		})
+	})
+
+	Describe("Legacy: modelServingArtifactsForJob", func() {
 		When("The job has an output with an artifact that hasn't been pushed", func() {
 			It("Produces no servingModelArtifacts", func() {
 				incorrectArtifact := artifact()
@@ -89,30 +267,7 @@ var _ = Context("VaiEventingServer", func() {
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
 							{
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
-										Artifacts: []*aiplatformpb.Artifact{
-											incorrectArtifact,
-										},
-									},
-								},
-							},
-						},
-					},
-				})).To(BeEmpty())
-			})
-		})
-
-		When("The job has an output with an artifact that isn't a float", func() {
-			It("Produces no servingModelArtifacts", func() {
-				incorrectArtifact := artifact()
-				incorrectArtifact.Metadata.Fields["pushed"] = structpb.NewStringValue("42")
-
-				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
-					JobDetail: &aiplatformpb.PipelineJobDetail{
-						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-							{
-								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
+									"an-artifact": {
 										Artifacts: []*aiplatformpb.Artifact{
 											incorrectArtifact,
 										},
@@ -135,53 +290,7 @@ var _ = Context("VaiEventingServer", func() {
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
 							{
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
-										Artifacts: []*aiplatformpb.Artifact{
-											incorrectArtifact,
-										},
-									},
-								},
-							},
-						},
-					},
-				})).To(BeEmpty())
-			})
-		})
-
-		When("The job has an output with an artifact that has a pushed_destination that is not a string", func() {
-			It("Produces no servingModelArtifacts", func() {
-				incorrectArtifact := artifact()
-				incorrectArtifact.Metadata.Fields["pushed"] = structpb.NewNumberValue(42)
-
-				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
-					JobDetail: &aiplatformpb.PipelineJobDetail{
-						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-							{
-								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
-										Artifacts: []*aiplatformpb.Artifact{
-											incorrectArtifact,
-										},
-									},
-								},
-							},
-						},
-					},
-				})).To(BeEmpty())
-			})
-		})
-
-		When("The job has an output with an artifact that has no pushed_destination property", func() {
-			It("Produces no servingModelArtifacts", func() {
-				incorrectArtifact := artifact()
-				delete(incorrectArtifact.Metadata.Fields, "pushed_destination")
-
-				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
-					JobDetail: &aiplatformpb.PipelineJobDetail{
-						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-							{
-								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
+									"an-artifact": {
 										Artifacts: []*aiplatformpb.Artifact{
 											incorrectArtifact,
 										},
@@ -198,14 +307,15 @@ var _ = Context("VaiEventingServer", func() {
 			It("Produces several servingModelArtifacts", func() {
 				firstArtifact := artifact()
 				secondArtifact := artifact()
-				secondArtifact.Metadata.Fields["pushed_destination"] = structpb.NewStringValue("gs://some/where/else")
+				secondArtifact.Uri = "gs://some/where/else"
 
 				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
 						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
 							{
+								TaskName: "Pusher",
 								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
+									"pushed_model": {
 										Artifacts: []*aiplatformpb.Artifact{
 											firstArtifact,
 											secondArtifact,
@@ -215,69 +325,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where/else"}))
-			})
-		})
-
-		When("The job has several outputs with artifacts", func() {
-			It("Produces several servingModelArtifacts", func() {
-				firstArtifact := artifact()
-				secondArtifact := artifact()
-				secondArtifact.Metadata.Fields["pushed_destination"] = structpb.NewStringValue("gs://some/where/else")
-
-				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
-					JobDetail: &aiplatformpb.PipelineJobDetail{
-						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-							{
-								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
-										Artifacts: []*aiplatformpb.Artifact{
-											firstArtifact,
-										},
-									},
-									"another-model": {
-										Artifacts: []*aiplatformpb.Artifact{
-											secondArtifact,
-										},
-									},
-								},
-							},
-						},
-					},
-				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
-			})
-		})
-
-		When("The job has several tasks with artifacts", func() {
-			It("Produces several servingModelArtifacts", func() {
-				firstArtifact := artifact()
-				secondArtifact := artifact()
-				secondArtifact.Metadata.Fields["pushed_destination"] = structpb.NewStringValue("gs://some/where/else")
-
-				Expect(modelServingArtifactsForJob(&aiplatformpb.PipelineJob{
-					JobDetail: &aiplatformpb.PipelineJobDetail{
-						TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-							{
-								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"a-model": {
-										Artifacts: []*aiplatformpb.Artifact{
-											firstArtifact,
-										},
-									},
-								},
-							},
-							{
-								Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-									"another-model": {
-										Artifacts: []*aiplatformpb.Artifact{
-											secondArtifact,
-										},
-									},
-								},
-							},
-						},
-					},
-				})).To(ConsistOf(common.ServingModelArtifact{Name: "a-model", Location: "gs://some/where"}, common.ServingModelArtifact{Name: "another-model", Location: "gs://some/where/else"}))
+				})).To(ConsistOf(common.Artifact{Name: "pushed_model", Location: "gs://some/where"}, common.Artifact{Name: "pushed_model", Location: "gs://some/where/else"}))
 			})
 		})
 	})
@@ -286,6 +334,16 @@ var _ = Context("VaiEventingServer", func() {
 		runConfigurationName := common.RandomNamespacedName()
 		pipelineName := common.RandomNamespacedName()
 		pipelineRunName := common.RandomNamespacedName()
+		artifactDefs := []pipelinesv1.Artifact{{
+			Name: "an_artifact",
+			Path: pipelinesv1.ArtifactPathDefinition{
+				Path: pipelinesv1.ArtifactPath{
+					Component: "a_component",
+					Artifact:  "an_artifact",
+				},
+				Filter: "some == thing",
+			},
+		}}
 
 		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{
 			Name: pipelineRunName.Name,
@@ -301,26 +359,51 @@ var _ = Context("VaiEventingServer", func() {
 			JobDetail: &aiplatformpb.PipelineJobDetail{
 				TaskDetails: []*aiplatformpb.PipelineTaskDetail{
 					{
+						TaskName: "Pusher",
 						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-							"a-model": {
+							"pushed_model": {
 								Artifacts: []*aiplatformpb.Artifact{
 									artifact(),
 								},
 							},
 						},
 					},
+					{
+						TaskName: "a_component",
+						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+							"an_artifact": {
+								Artifacts: []*aiplatformpb.Artifact{
+									{
+										DisplayName: "an_artifact",
+										Uri:         "gs://some/where/else",
+										Metadata: &structpb.Struct{
+											Fields: map[string]*structpb.Value{
+												"some": structpb.NewStringValue("thing"),
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
-		}, pipelineRunName.Name)).To(Equal(&common.RunCompletionEvent{
+		}, VAIRun{RunId: pipelineRunName.Name, Artifacts: artifactDefs})).To(Equal(&common.RunCompletionEvent{
 			RunConfigurationName: runConfigurationName.NonEmptyPtr(),
 			PipelineName:         pipelineName,
 			RunName:              pipelineRunName.NonEmptyPtr(),
 			RunId:                pipelineRunName.Name,
 			Status:               status,
-			ServingModelArtifacts: []common.ServingModelArtifact{
+			ServingModelArtifacts: []common.Artifact{
 				{
-					Name:     "a-model",
+					Name:     "pushed_model",
 					Location: "gs://some/where",
+				},
+			},
+			Artifacts: []common.Artifact{
+				{
+					Name:     "an_artifact",
+					Location: "gs://some/where/else",
 				},
 			},
 		}))
@@ -334,7 +417,9 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("an error"))
-				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString())
+				event := eventingServer.runCompletionEventForRun(context.Background(), VAIRun{
+					RunId: common.RandomString(),
+				})
 				Expect(event).To(BeNil())
 			})
 		})
@@ -342,7 +427,9 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob return no result", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, nil)
-				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString())
+				event := eventingServer.runCompletionEventForRun(context.Background(), VAIRun{
+					RunId: common.RandomString(),
+				})
 				Expect(event).To(BeNil())
 			})
 		})
@@ -352,7 +439,9 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
 					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
 				}, nil)
-				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString())
+				event := eventingServer.runCompletionEventForRun(context.Background(), VAIRun{
+					RunId: common.RandomString(),
+				})
 				Expect(event).NotTo(BeNil())
 			})
 		})

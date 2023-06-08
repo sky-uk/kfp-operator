@@ -2,7 +2,7 @@ package common
 
 const RunCompletionEventName = "run-completion"
 
-type ServingModelArtifact struct {
+type Artifact struct {
 	Name     string `json:"name"`
 	Location string `json:"location"`
 }
@@ -24,5 +24,6 @@ type RunCompletionEvent struct {
 	RunConfigurationName  *NamespacedName        `json:"runConfigurationName,omitempty"`
 	RunName               *NamespacedName        `json:"runName,omitempty"`
 	RunId                 string                 `json:"runId"`
-	ServingModelArtifacts []ServingModelArtifact `json:"servingModelArtifacts"`
+	ServingModelArtifacts []Artifact             `json:"servingModelArtifacts"`
+	Artifacts             []Artifact             `json:"artifacts,omitempty"`
 }

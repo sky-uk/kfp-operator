@@ -3209,7 +3209,7 @@ func (x *MetadataStoreServerConfig) GetSslConfig() *MetadataStoreServerConfig_SS
 }
 
 // ListOperationOptions represents the set of options and predicates to be
-// used for List operations on Artifacts, Executions and Contexts.
+// used for List operations on Artifact, Executions and Contexts.
 type ListOperationOptions struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3309,7 +3309,7 @@ type ListOperationOptions struct {
 	//   - child_contexts_a.type = 'RunContext'
 	//   - parent_contexts_a.name = 'parent_context_1'
 	//
-	// h) to filter Artifacts on Events
+	// h) to filter Artifact on Events
 	//   - events_0.execution_id = 1
 	//   - events_0.type = INPUT
 	//   - events_0.milliseconds_since_epoch = 1

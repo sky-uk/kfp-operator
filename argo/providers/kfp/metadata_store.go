@@ -18,14 +18,14 @@ const (
 )
 
 type MetadataStore interface {
-	GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.ServingModelArtifact, error)
+	GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error)
 }
 
 type GrpcMetadataStore struct {
 	MetadataStoreServiceClient ml_metadata.MetadataStoreServiceClient
 }
 
-func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.ServingModelArtifact, error) {
+func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error) {
 	artifactTypeName := PushedModelArtifactType
 	typeResponse, err := gms.MetadataStoreServiceClient.GetArtifactType(ctx, &ml_metadata.GetArtifactTypeRequest{TypeName: &artifactTypeName})
 	if err != nil {
@@ -58,7 +58,7 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 		return nil, err
 	}
 
-	results := make([]common.ServingModelArtifact, 0)
+	results := make([]common.Artifact, 0)
 	for _, artifact := range artifactsResponse.GetArtifacts() {
 		if artifact.GetTypeId() == artifactTypeId {
 			artifactUri := artifact.GetUri()
@@ -66,7 +66,7 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 			modelHasBeenPushed := artifact.GetCustomProperties()[PushedCustomProperty].GetIntValue()
 
 			if artifactName != "" && artifactUri != "" && modelHasBeenPushed == 1 {
-				results = append(results, common.ServingModelArtifact{
+				results = append(results, common.Artifact{
 					Name:     artifactName,
 					Location: artifactUri,
 				})

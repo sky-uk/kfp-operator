@@ -242,10 +242,8 @@ spec:
                     name:
                       type: string
                     path:
-                      items:
-                        pattern: ^([^\[\]]+)(?:\[([^\[\]]+)\])?$
-                        type: string
-                      type: array
+                      pattern: ^([^\[\]]+)(?:\[([^\[\]]+)\])?$
+                      type: string
                   required:
                   - name
                   - path

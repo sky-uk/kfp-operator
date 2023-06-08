@@ -21,44 +21,53 @@ var OnChangeTypes = struct {
 }{
 	Pipeline: "pipeline",
 }
-const ArtifactPathPattern = `^([^\[\]]+)(?:\[([^\[\]]+)\])?$`
-// +kubebuilder:validation:Type=string
-// +kubebuilder:validation:Pattern=`^([^\[\]]+)(?:\[([^\[\]]+)\])?$`
+
 type ArtifactPath struct {
-	Path   string `json:"-" yaml:"-"`
-	Filter string `json:"-" yaml:"-"`
+	Component string `json:"-" yaml:"-"`
+	Artifact  string `json:"-" yaml:"-"`
 }
 
-func (ap ArtifactPath) String() (string, error) {
+func (ap *ArtifactPath) String() string {
+	return fmt.Sprintf("%s:%s", ap.Component, ap.Artifact)
+}
+
+const ArtifactPathPattern = `^([^\[\]:]+):([^\[\]:]+)(?:\[([^\[\]:]+)\])?$`
+// +kubebuilder:validation:Type=string
+// +kubebuilder:validation:Pattern=`^([^\[\]:]+):([^\[\]:]+)(?:\[([^\[\]:]+)\])?$`
+type ArtifactPathDefinition struct {
+	Path   ArtifactPath `json:"-" yaml:"-"`
+	Filter string       `json:"-" yaml:"-"`
+}
+
+func (ap ArtifactPathDefinition) String() (string, error) {
 	if ap.Filter == "" {
-		return ap.Path, nil
+		return ap.Path.String(), nil
 	}
 
-	if ap.Path == ""  {
-		return "", fmt.Errorf("artifact path provided without a path")
-	}
-
-	return fmt.Sprintf("%s[%s]", ap.Path, ap.Filter), nil
+	return fmt.Sprintf("%s[%s]", ap.Path.String(), ap.Filter), nil
 }
 
-func ArtifactPathFromString(path string) (artifactPath ArtifactPath, err error) {
+func ArtifactPathFromString(path string) (artifactPath ArtifactPathDefinition, err error) {
 	pathPattern := regexp.MustCompile(ArtifactPathPattern)
 	matches := pathPattern.FindStringSubmatch(path)
 
-	if len(matches) == 0 {
-		err = fmt.Errorf("ArtifactPath must match pattern %s", ArtifactPathPattern)
+	if len(matches) < 2 {
+		err = fmt.Errorf("ArtifactPathDefinition must match pattern %s", ArtifactPathPattern)
 	}
 
-	artifactPath.Path = matches[0]
+	artifactPath.Path = ArtifactPath{
+		Component: matches[0],
+		Artifact: matches[1],
+	}
 
-	if len(matches) > 1 {
+	if len(matches) > 2 {
 		artifactPath.Filter = matches[1]
 	}
 
 	return
 }
 
-func (ap ArtifactPath) MarshalText() ([]byte, error) {
+func (ap ArtifactPathDefinition) MarshalText() ([]byte, error) {
 	serialised, err := ap.String()
 	if err != nil {
 		return nil, err
@@ -67,7 +76,7 @@ func (ap ArtifactPath) MarshalText() ([]byte, error) {
 	return []byte(serialised), nil
 }
 
-func (ap *ArtifactPath) UnmarshalText(bytes []byte) error {
+func (ap *ArtifactPathDefinition) UnmarshalText(bytes []byte) error {
 	deserialised, err := ArtifactPathFromString(string(bytes))
 	*ap = deserialised
 
@@ -75,8 +84,8 @@ func (ap *ArtifactPath) UnmarshalText(bytes []byte) error {
 }
 
 type Artifact struct {
-	Name string       `json:"name"`
-	Path []ArtifactPath `json:"path"`
+	Name string                 `json:"name"`
+	Path ArtifactPathDefinition `json:"path"`
 }
 
 type RunConfigurationSpec struct {
