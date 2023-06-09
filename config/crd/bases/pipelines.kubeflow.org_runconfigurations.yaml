@@ -242,7 +242,7 @@ spec:
                     name:
                       type: string
                     path:
-                      pattern: ^([^\[\]]+)(?:\[([^\[\]]+)\])?$
+                      pattern: ^([^\[\]:]+):([^\[\]:]+)(?::(\d*))?(?:\[([^\[\]:]+)\])?$
                       type: string
                   required:
                   - name

@@ -156,7 +156,7 @@ func artifactsForJob(job *aiplatformpb.PipelineJob, artifactDefs []pipelinesv1.A
 		for outputName, output := range task.GetOutputs() {
 			for _, artifact := range output.GetArtifacts() {
 				for _, artifactDef := range artifactDefs {
-					if task.TaskName == artifactDef.Path.Path.Component && outputName == artifactDef.Path.Path.Artifact && artifact.Uri != "" {
+					if task.TaskName == artifactDef.Path.Locator.Component && outputName == artifactDef.Path.Locator.Artifact && artifact.Uri != "" {
 						if artifactDef.Path.Filter != "" {
 							evaluator, err := bexpr.CreateEvaluator(artifactDef.Path.Filter)
 

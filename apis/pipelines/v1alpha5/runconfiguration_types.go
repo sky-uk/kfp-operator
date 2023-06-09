@@ -1,11 +1,9 @@
 package v1alpha5
 
 import (
-	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"regexp"
 )
 
 type Triggers struct {
@@ -22,76 +20,9 @@ var OnChangeTypes = struct {
 	Pipeline: "pipeline",
 }
 
-type ArtifactPath struct {
-	Component string `json:"-" yaml:"-"`
-	Artifact  string `json:"-" yaml:"-"`
-	Index     int    `json:"-" yaml:"-"`
-}
-
-func (ap *ArtifactPath) String() string {
-	return fmt.Sprintf("%s:%s:%d", ap.Component, ap.Artifact, ap.Index)
-}
-
-const ArtifactPathPattern = `^([^\[\]:]+):([^\[\]:]+)(?:\[([^\[\]:]+)\])?$`
-// +kubebuilder:validation:Type=string
-// +kubebuilder:validation:Pattern=`^([^\[\]:]+):([^\[\]:]+)(?:\[([^\[\]:]+)\])?$`
-type ArtifactPathDefinition struct {
-	Path   ArtifactPath `json:"-" yaml:"-"`
-	Filter string       `json:"-" yaml:"-"`
-}
-
-func (ap ArtifactPathDefinition) String() (string, error) {
-	if ap.Filter == "" {
-		return ap.Path.String(), nil
-	}
-
-	return fmt.Sprintf("%s[%s]", ap.Path.String(), ap.Filter), nil
-}
-
-func ArtifactPathFromString(path string) (artifactPath ArtifactPathDefinition, err error) {
-	pathPattern := regexp.MustCompile(ArtifactPathPattern)
-	matches := pathPattern.FindStringSubmatch(path)
-
-	if len(matches) < 2 {
-		err = fmt.Errorf("ArtifactPathDefinition must match pattern %s", ArtifactPathPattern)
-	}
-
-	artifactPath.Path = ArtifactPath{
-		Component: matches[0],
-		Artifact: matches[1],
-	}
-
-	if len(matches) > 2 {
-		artifactPath.Filter = matches[1]
-	}
-
-	return
-}
-
-func (ap ArtifactPathDefinition) MarshalText() ([]byte, error) {
-	serialised, err := ap.String()
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(serialised), nil
-}
-
-func (ap *ArtifactPathDefinition) UnmarshalText(bytes []byte) error {
-	deserialised, err := ArtifactPathFromString(string(bytes))
-	*ap = deserialised
-
-	return err
-}
-
-type Artifact struct {
-	Name string                 `json:"name"`
-	Path ArtifactPathDefinition `json:"path"`
-}
-
 type RunConfigurationSpec struct {
-	Run      RunSpec  `json:"run,omitempty"`
-	Triggers Triggers `json:"triggers,omitempty"`
+	Run       RunSpec    `json:"run,omitempty"`
+	Triggers  Triggers   `json:"triggers,omitempty"`
 	Artifacts []Artifact `json:"artifacts,omitempty"`
 }
 

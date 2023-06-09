@@ -58,7 +58,7 @@ func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName str
 		}
 
 		for _, artifactDef := range artifactDefs {
-			if !strings.HasSuffix(artifactName, artifactDef.Path.Path.String()) {
+			if !strings.HasSuffix(artifactName, artifactDef.Path.Locator.String()) {
 				continue
 			}
 
