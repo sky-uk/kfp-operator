@@ -3,6 +3,7 @@ package kfp
 import (
 	"context"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"gopkg.in/yaml.v2"
 )
@@ -23,9 +24,10 @@ type GrpcKfpApi struct {
 }
 
 type ResourceReferences struct {
-	PipelineName         common.NamespacedName `yaml:"pipelineName"`
-	RunConfigurationName common.NamespacedName `yaml:"runConfigurationName"`
-	RunName              common.NamespacedName `yaml:"runName"`
+	PipelineName         common.NamespacedName  `yaml:"pipelineName"`
+	RunConfigurationName common.NamespacedName  `yaml:"runConfigurationName"`
+	RunName              common.NamespacedName  `yaml:"runName"`
+	Artifacts            []pipelinesv1.Artifact `yaml:"artifacts"`
 }
 
 func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) (ResourceReferences, error) {

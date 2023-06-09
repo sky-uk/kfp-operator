@@ -85,6 +85,10 @@ func getPipelineName(workflow *unstructured.Unstructured) (name string) {
 	return
 }
 
+type Component struct {
+
+}
+
 func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, stream generic.Eventing_StartEventSourceServer) error {
 	eventsourceConfig := KfpEventSourceConfig{}
 

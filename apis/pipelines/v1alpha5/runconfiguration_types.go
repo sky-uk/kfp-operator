@@ -25,10 +25,11 @@ var OnChangeTypes = struct {
 type ArtifactPath struct {
 	Component string `json:"-" yaml:"-"`
 	Artifact  string `json:"-" yaml:"-"`
+	Index     int    `json:"-" yaml:"-"`
 }
 
 func (ap *ArtifactPath) String() string {
-	return fmt.Sprintf("%s:%s", ap.Component, ap.Artifact)
+	return fmt.Sprintf("%s:%s:%d", ap.Component, ap.Artifact, ap.Index)
 }
 
 const ArtifactPathPattern = `^([^\[\]:]+):([^\[\]:]+)(?:\[([^\[\]:]+)\])?$`

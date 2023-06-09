@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-bexpr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	"gopkg.in/yaml.v2"
@@ -146,11 +147,7 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.Run
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
-	return artifactsForJob(job, []pipelinesv1.Artifact{{Name: "pushed_model", Path: pipelinesv1.ArtifactPathDefinition{
-		Path: pipelinesv1.ArtifactPath{
-			Component: "Pusher",
-			Artifact: "pushed_model",
-		}, Filter: "pushed == 1"}}})
+	return artifactsForJob(job, []pipelinesv1.Artifact{base.LegacyArtifactDefinition})
 }
 
 func artifactsForJob(job *aiplatformpb.PipelineJob, artifactDefs []pipelinesv1.Artifact) []common.Artifact {

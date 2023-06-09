@@ -126,6 +126,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 	runAsDescription, err := yaml.Marshal(ResourceReferences{
 		RunName: runDefinition.Name,
 		PipelineName: runDefinition.PipelineName,
+		Artifacts: runDefinition.Artifacts,
 	})
 	if err != nil {
 		return "", err
@@ -209,6 +210,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 	runScheduleAsDescription, err := yaml.Marshal(ResourceReferences{
 		PipelineName: runScheduleDefinition.PipelineName,
 		RunConfigurationName: runScheduleDefinition.RunConfigurationName,
+		Artifacts: runScheduleDefinition.Artifacts,
 	})
 	if err != nil {
 		return "", err
