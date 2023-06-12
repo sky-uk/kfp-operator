@@ -58,6 +58,9 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">serving-model&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">schedules&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
@@ -80,6 +83,10 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;tr>
 &lt;td>&lt;code>spec.run.experimentName&lt;/code>&lt;/td>
 &lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
+&lt;td>Exposed models that will be included in run completion event when a run for this RunConfiguration has succeeded. See &lt;a href="../run/#run-artifact-definition">Run Artifact Definition&lt;/a> for more information.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.run.runtimeParameters&lt;/code>&lt;/td>
@@ -107,6 +114,9 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">serving-model&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Note the usage of &lt;code>metadata.generateName&lt;/code> which tells Kubernetes to generate a new name based on the given prefix for every new resource.&lt;/p>
 &lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
@@ -128,6 +138,62 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;tr>
 &lt;td>&lt;code>spec.runtimeParameters&lt;/code>&lt;/td>
 &lt;td>Dictionary of runtime parameters as exposed by the pipeline.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
+&lt;td>Exposed artifacts that will be included in run completion event when this run has succeeded. See below for more information.&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h3 id="run-artifact-definition">Run Artifact Definition&lt;/h3>
+&lt;p>A pipeline run can expose what Artifacts to include in resulting run completion events.&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>name&lt;/code>&lt;/td>
+&lt;td>The name to be used in run completion events or references to identify this artifact.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>path&lt;/code>&lt;/td>
+&lt;td>Path of the artifact in the pipeline graph. See below for the syntax&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Artifact path Syntax: &lt;code>&amp;lt;COMPONENT&amp;gt;:&amp;lt;OUTPUT&amp;gt;:&amp;lt;INDEX&amp;gt;[&amp;lt;FILTER&amp;gt;]&lt;/code> with he following parts:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Part&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;th>Example&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>COMPONENT&lt;/td>
+&lt;td>The Pipeline component that produces the artifacts&lt;/td>
+&lt;td>Pusher&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>OUTPUT&lt;/td>
+&lt;td>The output artifact name of the component&lt;/td>
+&lt;td>pushed_model&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>INDEX&lt;/td>
+&lt;td>The artifact index, defaults to 0 as in most cases there will be only one artifact&lt;/td>
+&lt;td>0&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>FILTER&lt;/td>
+&lt;td>A boolean expression to apply to properties of the artifact, defaults to no filter&lt;/td>
+&lt;td>pushed == 1&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>

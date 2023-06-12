@@ -43,10 +43,21 @@ The specification of the events follows [CloudEvents](https://github.com/cloudev
         "name":"{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
         "location":"gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}"
       }
+    ],
+    "artifacts": [
+      {
+        "name":"serving-model",
+        "location":"gs://{{ ARTIFACT_LOCATION }}"
+      }
     ]
   }
 }
 ```
+
+> **_NOTE:_** currently, the event includes both `servingModelArtifacts` and `artifacts`:
+> 
+> `servingModelArtifacts` contain a list of all artifacts of type Pushed Model for the pipeline run. This field is deprecated and `artifacts` should be used instead, 
+> which are resolved according to [Run Artifact Definition](../resources/run/#run-artifact-definition)
 
 A sensor for the pipeline `penguin-pipeline` could look as follows:
 
