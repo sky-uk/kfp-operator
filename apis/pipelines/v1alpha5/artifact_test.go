@@ -16,8 +16,8 @@ var _ = Context("RunConfiguration", func() {
 		expectedArtifactPath := ArtifactPath{
 			Locator: ArtifactLocator{
 				Component: apis.RandomString(),
-				Artifact: apis.RandomString(),
-				Index: rand.Int(),
+				Artifact:  apis.RandomString(),
+				Index:     rand.Int(),
 			},
 			Filter: apis.RandomString(),
 		}

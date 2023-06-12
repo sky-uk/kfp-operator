@@ -17,6 +17,7 @@ func (ap *ArtifactLocator) String() string {
 }
 
 const ArtifactPathPattern = `^([^\[\]:]+):([^\[\]:]+)(?::(\d*))?(?:\[([^\[\]:]+)\])?$`
+
 // +kubebuilder:validation:Type=string
 // +kubebuilder:validation:Pattern=`^([^\[\]:]+):([^\[\]:]+)(?::(\d*))?(?:\[([^\[\]:]+)\])?$`
 type ArtifactPath struct {
@@ -44,7 +45,7 @@ func ArtifactPathFromString(path string) (artifactPath ArtifactPath, err error) 
 
 	artifactPath.Locator = ArtifactLocator{
 		Component: matches[1],
-		Artifact: matches[2],
+		Artifact:  matches[2],
 	}
 
 	if len(matches) > 3 && matches[3] != "" {

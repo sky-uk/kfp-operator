@@ -201,7 +201,7 @@ var _ = Context("Eventing Server", func() {
 			mockKfpApi := MockKfpApi{}
 
 			eventingServer := KfpEventingServer{
-				Logger: logr.Discard(),
+				Logger:        logr.Discard(),
 				MetadataStore: &mockMetadataStore,
 				KfpApi:        &mockKfpApi,
 			}

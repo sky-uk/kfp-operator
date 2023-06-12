@@ -1981,8 +1981,8 @@ func (x *GetArtifactsByIDResponse) GetArtifacts() []*Artifact {
 	return nil
 }
 
-// Request to retrieve Artifact using List options.
-// If option is not specified then all Artifact are returned.
+// Request to retrieve Artifacts using List options.
+// If option is not specified then all Artifacts are returned.
 type GetArtifactsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

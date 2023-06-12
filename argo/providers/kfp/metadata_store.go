@@ -92,13 +92,13 @@ func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]inter
 	out := map[string]interface{}{}
 
 	for k, v := range in {
-			switch interface{}(v.GetValue()).(type) {
-			case 	*ml_metadata.Value_IntValue:
-				out[k] = v.GetIntValue()
-			case 	*ml_metadata.Value_StringValue:
-				out[k] = v.GetStringValue()
-			case 	*ml_metadata.Value_DoubleValue:
-				out[k] = v.GetDoubleValue()
+		switch interface{}(v.GetValue()).(type) {
+		case *ml_metadata.Value_IntValue:
+			out[k] = v.GetIntValue()
+		case *ml_metadata.Value_StringValue:
+			out[k] = v.GetStringValue()
+		case *ml_metadata.Value_DoubleValue:
+			out[k] = v.GetDoubleValue()
 			//case 	ml_metadata.Value_StructValue:
 			//	out[k] = v.GetStructValue()
 		}

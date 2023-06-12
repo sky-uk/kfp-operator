@@ -226,7 +226,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					PipelineName:          resourceReferences.PipelineName,
 					RunConfigurationName:  resourceReferences.RunConfigurationName.NonEmptyPtr(),
 					RunName:               resourceReferences.RunName.NonEmptyPtr(),
-					RunId: runId,
+					RunId:                 runId,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
 				actualEvent := common.RunCompletionEvent{}
@@ -264,7 +264,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				expectedEvent := common.RunCompletionEvent{
 					Status:       common.RunCompletionStatuses.Succeeded,
 					PipelineName: common.NamespacedName{Name: pipelineName},
-					RunId: runId,
+					RunId:        runId,
 				}
 				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
@@ -301,7 +301,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				expectedEvent := common.RunCompletionEvent{
 					Status:       common.RunCompletionStatuses.Failed,
 					PipelineName: common.NamespacedName{Name: pipelineName},
-					RunId: runId,
+					RunId:        runId,
 				}
 				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
@@ -338,7 +338,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				expectedEvent := common.RunCompletionEvent{
 					Status:       common.RunCompletionStatuses.Succeeded,
 					PipelineName: common.NamespacedName{Name: pipelineName},
-					RunId: runId,
+					RunId:        runId,
 				}
 				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
@@ -391,8 +391,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 
 				expectedEvent := common.RunCompletionEvent{
 					Status:                common.RunCompletionStatuses.Succeeded,
-					PipelineName: 		   common.NamespacedName{Name: pipelineName},
-					RunId: 				   runId,
+					PipelineName:          common.NamespacedName{Name: pipelineName},
+					RunId:                 runId,
 					ServingModelArtifacts: servingModelArtifacts,
 				}
 				actualEvent := common.RunCompletionEvent{}

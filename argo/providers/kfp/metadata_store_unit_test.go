@@ -124,7 +124,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Uri:    &artifactLocation,
+								Uri: &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
 									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_IntValue{
@@ -152,7 +152,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Uri:    &artifactLocation,
+								Uri: &artifactLocation,
 							},
 						},
 					}, nil)
@@ -199,7 +199,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Uri:    &artifactLocation,
+								Uri: &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
 									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
@@ -209,7 +209,7 @@ var _ = Context("gRPC Metadata Store", func() {
 								},
 							},
 							{
-								Uri:    &artifactLocation,
+								Uri: &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
 									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
@@ -243,7 +243,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Uri:    &firstArtifactLocation,
+								Uri: &firstArtifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
 									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
@@ -258,7 +258,7 @@ var _ = Context("gRPC Metadata Store", func() {
 								},
 							},
 							{
-								Uri:    &secondArtifactLocation,
+								Uri: &secondArtifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
 									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
