@@ -236,21 +236,21 @@ spec:
             type: object
           spec:
             properties:
-              artifacts:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    path:
-                      pattern: ^([^\[\]:]+):([^\[\]:]+)(?::(\d*))?(?:\[([^\[\]:]+)\])?$
-                      type: string
-                  required:
-                  - name
-                  - path
-                  type: object
-                type: array
               run:
                 properties:
+                  artifacts:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        path:
+                          pattern: ^([^\[\]:]+):([^\[\]:]+)(?::(\d*))?(?:\[([^\[\]:]+)\])?$
+                          type: string
+                      required:
+                      - name
+                      - path
+                      type: object
+                    type: array
                   experimentName:
                     type: string
                   pipeline:

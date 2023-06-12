@@ -23,7 +23,6 @@ var OnChangeTypes = struct {
 type RunConfigurationSpec struct {
 	Run       RunSpec    `json:"run,omitempty"`
 	Triggers  Triggers   `json:"triggers,omitempty"`
-	Artifacts []Artifact `json:"artifacts,omitempty"`
 }
 
 type RunReference struct {
