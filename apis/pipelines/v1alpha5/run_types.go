@@ -12,7 +12,7 @@ type RunSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
-	Artifacts         []Artifact         `json:"artifacts,omitempty"`
+	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
 }
 
 func (r Run) ComputeHash() []byte {

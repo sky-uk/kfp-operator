@@ -26,8 +26,8 @@ type GrpcKfpApi struct {
 type ResourceReferences struct {
 	PipelineName         common.NamespacedName  `yaml:"pipelineName"`
 	RunConfigurationName common.NamespacedName  `yaml:"runConfigurationName"`
-	RunName              common.NamespacedName  `yaml:"runName"`
-	Artifacts            []pipelinesv1.Artifact `yaml:"artifacts"`
+	RunName              common.NamespacedName        `yaml:"runName"`
+	Artifacts            []pipelinesv1.OutputArtifact `yaml:"artifacts"`
 }
 
 func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) (ResourceReferences, error) {

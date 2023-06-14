@@ -11,7 +11,7 @@ import (
 	"math/rand"
 )
 
-var _ = Context("RunConfiguration", func() {
+var _ = Context("OutputArtifact", func() {
 	var _ = Describe("ArtifactPathFromString", func() {
 		expectedArtifactPath := ArtifactPath{
 			Locator: ArtifactLocator{

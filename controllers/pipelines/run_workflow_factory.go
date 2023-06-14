@@ -32,7 +32,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		PipelineVersion:   run.Status.ObservedPipelineVersion,
 		ExperimentName:    experimentName,
 		RuntimeParameters: NamedValuesToMap(run.Spec.RuntimeParameters),
-		Artifacts:          run.Spec.Artifacts,
+		Artifacts:         run.Spec.Artifacts,
 	}, nil
 }
 

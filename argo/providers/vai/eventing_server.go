@@ -147,34 +147,44 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.Run
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
-	return artifactsForJob(job, []pipelinesv1.Artifact{base.LegacyArtifactDefinition})
+	return artifactsForJob(job, []pipelinesv1.OutputArtifact{base.LegacyArtifactDefinition})
 }
 
-func artifactsForJob(job *aiplatformpb.PipelineJob, artifactDefs []pipelinesv1.Artifact) []common.Artifact {
+func artifactsForJob(job *aiplatformpb.PipelineJob, artifactDefs []pipelinesv1.OutputArtifact) []common.Artifact {
 	var servingModelArtifacts []common.Artifact
-	for _, task := range job.GetJobDetail().GetTaskDetails() {
-		for outputName, output := range task.GetOutputs() {
-			for _, artifact := range output.GetArtifacts() {
-				for _, artifactDef := range artifactDefs {
-					if task.TaskName == artifactDef.Path.Locator.Component && outputName == artifactDef.Path.Locator.Artifact && artifact.Uri != "" {
-						if artifactDef.Path.Filter != "" {
-							evaluator, err := bexpr.CreateEvaluator(artifactDef.Path.Filter)
+	for _, artifactDef := range artifactDefs {
+		for _, task := range job.GetJobDetail().GetTaskDetails() {
+			if task.TaskName != artifactDef.Path.Locator.Component {
+				continue
+			}
 
-							if err != nil {
-								continue
-							}
+			for outputName, output := range task.GetOutputs() {
+				if outputName != artifactDef.Path.Locator.Artifact {
+					continue
+				}
 
-							matched, err := evaluator.Evaluate(artifact.Metadata.AsMap())
-							if err != nil {
-								continue
-							}
-							if !matched {
-								continue
-							}
+				for _, artifact := range output.GetArtifacts() {
+					if artifact.Uri == "" {
+						continue
+					}
+
+					if artifactDef.Path.Filter != "" {
+						evaluator, err := bexpr.CreateEvaluator(artifactDef.Path.Filter)
+
+						if err != nil {
+							continue
 						}
 
-						servingModelArtifacts = append(servingModelArtifacts, common.Artifact{Name: artifactDef.Name, Location: artifact.Uri})
+						matched, err := evaluator.Evaluate(artifact.Metadata.AsMap())
+						if err != nil {
+							continue
+						}
+						if !matched {
+							continue
+						}
 					}
+
+					servingModelArtifacts = append(servingModelArtifacts, common.Artifact{Name: artifactDef.Name, Location: artifact.Uri})
 				}
 			}
 		}

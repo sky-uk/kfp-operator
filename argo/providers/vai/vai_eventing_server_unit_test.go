@@ -59,7 +59,7 @@ var _ = Context("VaiEventingServer", func() {
 	Describe("artifactsForJob", func() {
 		When("The job is missing the component", func() {
 			It("Produces no artifacts", func() {
-				artifactDefs := []pipelinesv1.Artifact{{
+				artifactDefs := []pipelinesv1.OutputArtifact{{
 					Name: common.RandomString(),
 					Path: pipelinesv1.ArtifactPath{
 						Locator: pipelinesv1.ArtifactLocator{
@@ -79,7 +79,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("The job has a matching component that misses the output", func() {
 			It("Produces no artifacts", func() {
 				componentName := common.RandomString()
-				artifactDefs := []pipelinesv1.Artifact{{
+				artifactDefs := []pipelinesv1.OutputArtifact{{
 					Name: common.RandomString(),
 					Path: pipelinesv1.ArtifactPath{
 						Locator: pipelinesv1.ArtifactLocator{
@@ -108,7 +108,7 @@ var _ = Context("VaiEventingServer", func() {
 				incorrectArtifact := artifact()
 				incorrectArtifact.Uri = ""
 
-				artifactDefs := []pipelinesv1.Artifact{{
+				artifactDefs := []pipelinesv1.OutputArtifact{{
 					Name: common.RandomString(),
 					Path: pipelinesv1.ArtifactPath{
 						Locator: pipelinesv1.ArtifactLocator{
@@ -144,7 +144,7 @@ var _ = Context("VaiEventingServer", func() {
 				incorrectArtifact := artifact()
 				incorrectArtifact.Metadata.Fields = nil
 
-				artifactDefs := []pipelinesv1.Artifact{{
+				artifactDefs := []pipelinesv1.OutputArtifact{{
 					Name: common.RandomString(),
 					Path: pipelinesv1.ArtifactPath{
 						Locator: pipelinesv1.ArtifactLocator{
@@ -179,7 +179,7 @@ var _ = Context("VaiEventingServer", func() {
 				componentName := common.RandomString()
 				outputName := common.RandomString()
 				artifactName := common.RandomString()
-				artifactDefs := []pipelinesv1.Artifact{{
+				artifactDefs := []pipelinesv1.OutputArtifact{{
 					Name: artifactName,
 					Path: pipelinesv1.ArtifactPath{
 						Locator: pipelinesv1.ArtifactLocator{
@@ -219,7 +219,7 @@ var _ = Context("VaiEventingServer", func() {
 				componentName := common.RandomString()
 				outputName := common.RandomString()
 				artifactName := common.RandomString()
-				artifactDefs := []pipelinesv1.Artifact{{
+				artifactDefs := []pipelinesv1.OutputArtifact{{
 					Name: artifactName,
 					Path: pipelinesv1.ArtifactPath{
 						Locator: pipelinesv1.ArtifactLocator{
@@ -334,7 +334,7 @@ var _ = Context("VaiEventingServer", func() {
 		runConfigurationName := common.RandomNamespacedName()
 		pipelineName := common.RandomNamespacedName()
 		pipelineRunName := common.RandomNamespacedName()
-		artifactDefs := []pipelinesv1.Artifact{{
+		artifactDefs := []pipelinesv1.OutputArtifact{{
 			Name: "an_artifact",
 			Path: pipelinesv1.ArtifactPath{
 				Locator: pipelinesv1.ArtifactLocator{

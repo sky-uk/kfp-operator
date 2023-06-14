@@ -20,7 +20,7 @@ const (
 
 type MetadataStore interface {
 	GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error)
-	GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.Artifact) ([]common.Artifact, error)
+	GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) ([]common.Artifact, error)
 }
 
 type GrpcMetadataStore struct {
@@ -28,10 +28,10 @@ type GrpcMetadataStore struct {
 }
 
 func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error) {
-	return gms.GetArtifacts(ctx, workflowName, []pipelinesv1.Artifact{base.LegacyArtifactDefinition})
+	return gms.GetArtifacts(ctx, workflowName, []pipelinesv1.OutputArtifact{base.LegacyArtifactDefinition})
 }
 
-func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.Artifact) ([]common.Artifact, error) {
+func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) ([]common.Artifact, error) {
 	pipelineRunTypeName := PipelineRunTypeName
 	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
 	if err != nil {
@@ -50,14 +50,14 @@ func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName str
 	}
 
 	results := make([]common.Artifact, 0)
-	for _, artifact := range artifactsResponse.GetArtifacts() {
-		artifactUri := artifact.GetUri()
-		artifactName := artifact.GetCustomProperties()[ArtifactNameCustomProperty].GetStringValue()
-		if artifactUri == "" {
-			continue
-		}
+	for _, artifactDef := range artifactDefs {
+		for _, artifact := range artifactsResponse.GetArtifacts() {
+			artifactUri := artifact.GetUri()
+			artifactName := artifact.GetCustomProperties()[ArtifactNameCustomProperty].GetStringValue()
+			if artifactUri == "" {
+				continue
+			}
 
-		for _, artifactDef := range artifactDefs {
 			if !strings.HasSuffix(artifactName, artifactDef.Path.Locator.String()) {
 				continue
 			}
@@ -69,6 +69,7 @@ func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName str
 				}
 
 				matched, err := evaluator.Evaluate(propertiesToPrimitiveMap(artifact.GetCustomProperties()))
+				// evaluator errors on missing properties
 				if err != nil {
 					continue
 				}

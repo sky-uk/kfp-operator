@@ -37,7 +37,6 @@ func ArtifactPathFromString(path string) (artifactPath ArtifactPath, err error) 
 	pathPattern := regexp.MustCompile(ArtifactPathPattern)
 	matches := pathPattern.FindStringSubmatch(path)
 
-	fmt.Println(matches)
 	if len(matches) < 3 {
 		err = fmt.Errorf("ArtifactPath must match pattern %s", ArtifactPathPattern)
 		return
@@ -81,7 +80,7 @@ func (ap *ArtifactPath) UnmarshalText(bytes []byte) error {
 	return err
 }
 
-type Artifact struct {
+type OutputArtifact struct {
 	Name string       `json:"name"`
 	Path ArtifactPath `json:"path"`
 }

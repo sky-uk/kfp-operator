@@ -32,8 +32,8 @@ type RunScheduleDefinition struct {
 	PipelineVersion      string                `yaml:"pipelineVersion"`
 	ExperimentName       string                `yaml:"experimentName"`
 	Schedule             string                `yaml:"schedule"`
-	RuntimeParameters    map[string]string     `yaml:"runtimeParameters"`
-	Artifacts            []pipelines.Artifact  `yaml:"artifacts,omitempty"`
+	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
+	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type RunDefinition struct {
@@ -42,8 +42,8 @@ type RunDefinition struct {
 	PipelineName      common.NamespacedName `yaml:"pipelineName"`
 	PipelineVersion   string                `yaml:"pipelineVersion"`
 	ExperimentName    string                `yaml:"experimentName"`
-	RuntimeParameters map[string]string     `yaml:"runtimeParameters"`
-	Artifacts         []pipelines.Artifact  `yaml:"artifacts,omitempty"`
+	RuntimeParameters map[string]string          `yaml:"runtimeParameters"`
+	Artifacts         []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type Output struct {

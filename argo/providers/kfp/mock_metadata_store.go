@@ -14,7 +14,7 @@ type MockMetadataStore struct {
 	err     error
 }
 
-func (mms *MockMetadataStore) GetArtifacts(_ context.Context, _ string, _ []pipelinesv1.Artifact) ([]common.Artifact, error) {
+func (mms *MockMetadataStore) GetArtifacts(_ context.Context, _ string, _ []pipelinesv1.OutputArtifact) ([]common.Artifact, error) {
 	return mms.results, mms.err
 }
 

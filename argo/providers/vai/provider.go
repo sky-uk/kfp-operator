@@ -53,8 +53,8 @@ type VAIRun struct {
 	RunId             string            `json:"runId"`
 	Labels            map[string]string `json:"labels,omitempty"`
 	PipelineUri       string            `json:"pipelineUri"`
-	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
-	Artifacts         []pipelines.Artifact  `json:"artifacts"`
+	RuntimeParameters map[string]string          `json:"runtimeParameters,omitempty"`
+	Artifacts         []pipelines.OutputArtifact `json:"artifacts"`
 }
 
 type RunIntent struct {
@@ -62,8 +62,8 @@ type RunIntent struct {
 	RunName              common.NamespacedName `json:"runName,omitempty"`
 	PipelineName         common.NamespacedName `json:"pipelineName"`
 	PipelineVersion      string                `json:"pipelineVersion"`
-	RuntimeParameters    map[string]string     `json:"runtimeParameters,omitempty"`
-	Artifacts            []pipelines.Artifact  `json:"artifacts"`
+	RuntimeParameters    map[string]string          `json:"runtimeParameters,omitempty"`
+	Artifacts            []pipelines.OutputArtifact `json:"artifacts"`
 }
 
 type VAIProviderConfig struct {
