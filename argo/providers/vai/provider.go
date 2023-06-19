@@ -35,7 +35,7 @@ var labels = struct {
 	RunConfigurationNamespace string
 	RunName                   string
 	RunNamespace              string
-	LegacyNamespace 		  string
+	LegacyNamespace           string
 	LegacyRunConfiguration    string
 }{
 	PipelineName:              "pipeline-name",
@@ -50,18 +50,18 @@ var labels = struct {
 }
 
 type VAIRun struct {
-	RunId             string            `json:"runId"`
-	Labels            map[string]string `json:"labels,omitempty"`
-	PipelineUri       string            `json:"pipelineUri"`
+	RunId             string                     `json:"runId"`
+	Labels            map[string]string          `json:"labels,omitempty"`
+	PipelineUri       string                     `json:"pipelineUri"`
 	RuntimeParameters map[string]string          `json:"runtimeParameters,omitempty"`
 	Artifacts         []pipelines.OutputArtifact `json:"artifacts"`
 }
 
 type RunIntent struct {
-	RunConfigurationName common.NamespacedName `json:"runConfigurationName,omitempty"`
-	RunName              common.NamespacedName `json:"runName,omitempty"`
-	PipelineName         common.NamespacedName `json:"pipelineName"`
-	PipelineVersion      string                `json:"pipelineVersion"`
+	RunConfigurationName common.NamespacedName      `json:"runConfigurationName,omitempty"`
+	RunName              common.NamespacedName      `json:"runName,omitempty"`
+	PipelineName         common.NamespacedName      `json:"pipelineName"`
+	PipelineVersion      string                     `json:"pipelineVersion"`
 	RuntimeParameters    map[string]string          `json:"runtimeParameters,omitempty"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts"`
 }

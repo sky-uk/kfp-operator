@@ -17,10 +17,16 @@ func artifact() *aiplatformpb.Artifact {
 	return &aiplatformpb.Artifact{
 		SchemaTitle: "tfx.PushedModel", // Legacy
 		DisplayName: "a-model",
-		Uri: "gs://some/where",
+		Uri:         "gs://some/where",
 		Metadata: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
-				"pushed":             structpb.NewNumberValue(1),
+				"x": structpb.NewStructValue(
+					&structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"y": structpb.NewNumberValue(1),
+						},
+					}),
+				"pushed":             structpb.NewNumberValue(1),                 // Legacy
 				"pushed_destination": structpb.NewStringValue("gs://some/where"), // Legacy
 			},
 		},
@@ -87,8 +93,8 @@ var _ = Context("VaiEventingServer", func() {
 					Path: pipelinesv1.ArtifactPath{
 						Locator: pipelinesv1.ArtifactLocator{
 							Component: componentName,
-							Artifact: outputName,
-							Index: 1,
+							Artifact:  outputName,
+							Index:     1,
 						},
 					},
 				}}
@@ -188,7 +194,7 @@ var _ = Context("VaiEventingServer", func() {
 						Locator: pipelinesv1.ArtifactLocator{
 							Component: componentName,
 							Artifact:  outputName,
-							Index: 0,
+							Index:     0,
 						},
 						Filter: "a == b",
 					},
@@ -224,7 +230,7 @@ var _ = Context("VaiEventingServer", func() {
 						Locator: pipelinesv1.ArtifactLocator{
 							Component: componentName,
 							Artifact:  outputName,
-							Index: 1,
+							Index:     1,
 						},
 					},
 				}}
@@ -265,9 +271,9 @@ var _ = Context("VaiEventingServer", func() {
 						Locator: pipelinesv1.ArtifactLocator{
 							Component: componentName,
 							Artifact:  outputName,
-							Index: 1,
+							Index:     1,
 						},
-						Filter: "pushed == 1",
+						Filter: "x.y == 1",
 					},
 				}}
 

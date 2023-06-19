@@ -14,6 +14,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/utils/pointer"
 )
 
@@ -60,10 +61,10 @@ var _ = Context("gRPC Metadata Store", func() {
 			Path: pipelinesv1.ArtifactPath{
 				Locator: pipelinesv1.ArtifactLocator{
 					Component: componentName,
-					Artifact: outputName,
-					Index: 1,
+					Artifact:  outputName,
+					Index:     1,
 				},
-				Filter: "pushed == 1",
+				Filter: "x.y == 1",
 			},
 		}}
 		artifactPath := fmt.Sprintf("%s:%s:1", componentName, outputName)
@@ -115,16 +116,16 @@ var _ = Context("gRPC Metadata Store", func() {
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Name:   pointer.String(common.RandomString()),
-								Uri:    &artifactLocation,
+								Name: pointer.String(common.RandomString()),
+								Uri:  &artifactLocation,
 							},
 							{
-								Name:   pointer.String(artifactPath),
-								Uri:    &artifactLocation,
+								Name: pointer.String(artifactPath),
+								Uri:  &artifactLocation,
 							},
 							{
-								Name:   pointer.String(artifactPath),
-								Uri:    &artifactLocation,
+								Name: pointer.String(artifactPath),
+								Uri:  &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
 									common.RandomString(): {
 										Value: &ml_metadata.Value_StringValue{
@@ -134,12 +135,16 @@ var _ = Context("gRPC Metadata Store", func() {
 								},
 							},
 							{
-								Name:   pointer.String(artifactPath),
-								Uri:    &artifactLocation,
+								Name: pointer.String(artifactPath),
+								Uri:  &artifactLocation,
 								CustomProperties: map[string]*ml_metadata.Value{
-									"pushed": {
-										Value: &ml_metadata.Value_IntValue{
-											IntValue: 1,
+									"x": {
+										Value: &ml_metadata.Value_StructValue{
+											StructValue: &structpb.Struct{
+												Fields: map[string]*structpb.Value{
+													"y": structpb.NewNumberValue(1),
+												},
+											},
 										},
 									},
 								},
@@ -151,7 +156,7 @@ var _ = Context("gRPC Metadata Store", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(ContainElements(
 					common.Artifact{
-						Name: artifactName,
+						Name:     artifactName,
 						Location: artifactLocation,
 					},
 				))

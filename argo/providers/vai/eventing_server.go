@@ -133,7 +133,7 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.Run
 	if legacyRunConfiguration, ok := job.Labels[labels.LegacyRunConfiguration]; ok {
 		// For compatability with resources created with v0.3.0 and older
 		runConfigurationName = common.NamespacedName{
-			Name:      legacyRunConfiguration,
+			Name: legacyRunConfiguration,
 		}
 	} else {
 		runConfigurationName = common.NamespacedName{

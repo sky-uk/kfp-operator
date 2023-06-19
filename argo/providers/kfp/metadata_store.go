@@ -149,8 +149,8 @@ func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]inter
 			out[k] = v.GetStringValue()
 		case *ml_metadata.Value_DoubleValue:
 			out[k] = v.GetDoubleValue()
-			//case 	ml_metadata.Value_StructValue:
-			//	out[k] = v.GetStructValue()
+		case *ml_metadata.Value_StructValue:
+			out[k] = v.GetStructValue().AsMap()
 		}
 	}
 

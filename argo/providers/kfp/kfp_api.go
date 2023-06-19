@@ -24,8 +24,8 @@ type GrpcKfpApi struct {
 }
 
 type ResourceReferences struct {
-	PipelineName         common.NamespacedName  `yaml:"pipelineName"`
-	RunConfigurationName common.NamespacedName  `yaml:"runConfigurationName"`
+	PipelineName         common.NamespacedName        `yaml:"pipelineName"`
+	RunConfigurationName common.NamespacedName        `yaml:"runConfigurationName"`
 	RunName              common.NamespacedName        `yaml:"runName"`
 	Artifacts            []pipelinesv1.OutputArtifact `yaml:"artifacts"`
 }
