@@ -6,12 +6,14 @@ import (
 	"github.com/hashicorp/go-bexpr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"strings"
 )
 
 const (
+	PushedModelArtifactType    = "PushedModel"
 	ArtifactNameCustomProperty = "name"
 	PushedCustomProperty       = "pushed"
 	PipelineRunTypeName        = "pipeline_run"
@@ -28,10 +30,21 @@ type GrpcMetadataStore struct {
 }
 
 func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error) {
-	return gms.GetArtifacts(ctx, workflowName, []pipelinesv1.OutputArtifact{base.LegacyArtifactDefinition})
-}
+	artifactTypeName := PushedModelArtifactType
+	typeResponse, err := gms.MetadataStoreServiceClient.GetArtifactType(ctx, &ml_metadata.GetArtifactTypeRequest{TypeName: &artifactTypeName})
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			return nil, nil
+		}
 
-func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) ([]common.Artifact, error) {
+		return nil, err
+	}
+
+	artifactTypeId := typeResponse.GetArtifactType().GetId()
+	if artifactTypeId == InvalidId {
+		return nil, fmt.Errorf("invalid artifact ID")
+	}
+
 	pipelineRunTypeName := PipelineRunTypeName
 	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
 	if err != nil {
@@ -50,24 +63,61 @@ func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName str
 	}
 
 	results := make([]common.Artifact, 0)
-	for _, artifactDef := range artifactDefs {
-		for _, artifact := range artifactsResponse.GetArtifacts() {
+	for _, artifact := range artifactsResponse.GetArtifacts() {
+		if artifact.GetTypeId() == artifactTypeId {
 			artifactUri := artifact.GetUri()
 			artifactName := artifact.GetCustomProperties()[ArtifactNameCustomProperty].GetStringValue()
+			modelHasBeenPushed := artifact.GetCustomProperties()[PushedCustomProperty].GetIntValue()
+
+			if artifactName != "" && artifactUri != "" && modelHasBeenPushed == 1 {
+				results = append(results, common.Artifact{
+					Name:     artifactName,
+					Location: artifactUri,
+				})
+			}
+		}
+	}
+
+	return results, nil
+}
+
+func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) (artifacts []common.Artifact, err error) {
+	pipelineRunTypeName := PipelineRunTypeName
+	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
+	if err != nil {
+		return nil, err
+	}
+	contextId := contextResponse.GetContext().GetId()
+	if contextId == InvalidId {
+		return nil, fmt.Errorf("invalid context ID")
+	}
+
+	artifactsResponse, err := gms.MetadataStoreServiceClient.GetArtifactsByContext(ctx, &ml_metadata.GetArtifactsByContextRequest{
+		ContextId: &contextId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, artifactDef := range artifactDefs {
+		var evaluator *bexpr.Evaluator
+		if artifactDef.Path.Filter != "" {
+			evaluator, err = bexpr.CreateEvaluator(artifactDef.Path.Filter)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		for _, artifact := range artifactsResponse.GetArtifacts() {
+			artifactUri := artifact.GetUri()
 			if artifactUri == "" {
 				continue
 			}
-
-			if !strings.HasSuffix(artifactName, artifactDef.Path.Locator.String()) {
+			if !strings.HasSuffix(artifact.GetName(), artifactDef.Path.Locator.String()) {
 				continue
 			}
 
-			if artifactDef.Path.Filter != "" {
-				evaluator, err := bexpr.CreateEvaluator(artifactDef.Path.Filter)
-				if err != nil {
-					return nil, err
-				}
-
+			if evaluator != nil {
 				matched, err := evaluator.Evaluate(propertiesToPrimitiveMap(artifact.GetCustomProperties()))
 				// evaluator errors on missing properties
 				if err != nil {
@@ -78,15 +128,14 @@ func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName str
 				}
 			}
 
-			results = append(results, common.Artifact{
-				Name:     artifactName,
+			artifacts = append(artifacts, common.Artifact{
+				Name:     artifactDef.Name,
 				Location: artifactUri,
 			})
 		}
-
 	}
 
-	return results, nil
+	return artifacts, nil
 }
 
 func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]interface{} {
