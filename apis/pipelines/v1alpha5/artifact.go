@@ -87,4 +87,3 @@ func (oa OutputArtifact) GetKey() string {
 func (oa OutputArtifact) GetValue() string {
 	return oa.Path.String()
 }
-

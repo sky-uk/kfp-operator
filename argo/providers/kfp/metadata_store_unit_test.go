@@ -9,6 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
@@ -108,21 +109,77 @@ var _ = Context("gRPC Metadata Store", func() {
 		})
 
 		When("GetArtifactsByContext returns artifacts", func() {
-			It("filters out all invalid artifacts", func() {
 				contextId := givenContextId()
 				artifactLocation := common.RandomString()
+				validProperties :=  map[string]*ml_metadata.Value{
+					"x": {
+						Value: &ml_metadata.Value_StructValue{
+							StructValue: &structpb.Struct{
+								Fields: map[string]*structpb.Value{
+									"y": structpb.NewNumberValue(1),
+								},
+							},
+						},
+					},
+				}
+
+			It("filters out artifacts that don't match the name", func() {
 				mockMetadataStoreServiceClient.EXPECT().
 					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
 								Name: pointer.String(common.RandomString()),
-								Uri:  &artifactLocation,
+								Uri:  pointer.String(apis.RandomString()),
+								CustomProperties: validProperties,
 							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+
+			It("filters out artifacts that doesn't have a URI", func() {
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
 							{
 								Name: pointer.String(artifactPath),
-								Uri:  &artifactLocation,
+								CustomProperties: validProperties,
 							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+
+			It("filters out artifacts that misses properties", func() {
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
+							{
+								Name: pointer.String(artifactPath),
+								Uri: pointer.String(artifactPath),
+							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+
+			It("filters out artifacts that has properties that don't match", func() {
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
 							{
 								Name: pointer.String(artifactPath),
 								Uri:  &artifactLocation,
@@ -134,20 +191,23 @@ var _ = Context("gRPC Metadata Store", func() {
 									},
 								},
 							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+
+			It("returns matching artifacts", func() {
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
 							{
 								Name: pointer.String(artifactPath),
 								Uri:  &artifactLocation,
-								CustomProperties: map[string]*ml_metadata.Value{
-									"x": {
-										Value: &ml_metadata.Value_StructValue{
-											StructValue: &structpb.Struct{
-												Fields: map[string]*structpb.Value{
-													"y": structpb.NewNumberValue(1),
-												},
-											},
-										},
-									},
-								},
+								CustomProperties: validProperties,
 							},
 						},
 					}, nil)

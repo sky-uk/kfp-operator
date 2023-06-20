@@ -2,7 +2,7 @@ package v1alpha5
 
 type RunConfigurationConversionRemainder struct {
 	OutputArtifactsConversionRemainder `json:",inline"`
-	Triggers Triggers `json:"triggers,omitempty"`
+	Triggers                           Triggers `json:"triggers,omitempty"`
 }
 
 func (rcr RunConfigurationConversionRemainder) Empty() bool {

@@ -114,8 +114,8 @@ func RandomRunSpec() RunSpec {
 			return OutputArtifact{Name: RandomString(), Path: ArtifactPath{
 				Locator: ArtifactLocator{
 					Component: RandomString(),
-					Artifact: RandomString(),
-					Index: rand.Int(),
+					Artifact:  RandomString(),
+					Index:     rand.Int(),
 				},
 				Filter: RandomString(),
 			}}
