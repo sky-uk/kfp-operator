@@ -109,21 +109,21 @@ var _ = Context("gRPC Metadata Store", func() {
 		})
 
 		When("GetArtifactsByContext returns artifacts", func() {
-				contextId := givenContextId()
-				artifactLocation := common.RandomString()
-				validProperties :=  map[string]*ml_metadata.Value{
-					"x": {
-						Value: &ml_metadata.Value_StructValue{
-							StructValue: &structpb.Struct{
-								Fields: map[string]*structpb.Value{
-									"y": structpb.NewNumberValue(1),
-								},
+			validProperties :=  map[string]*ml_metadata.Value{
+				"x": {
+					Value: &ml_metadata.Value_StructValue{
+						StructValue: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"y": structpb.NewNumberValue(1),
 							},
 						},
 					},
-				}
+				},
+			}
 
 			It("filters out artifacts that don't match the name", func() {
+				contextId := givenContextId()
+
 				mockMetadataStoreServiceClient.EXPECT().
 					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
 					Return(&ml_metadata.GetArtifactsByContextResponse{
@@ -142,6 +142,8 @@ var _ = Context("gRPC Metadata Store", func() {
 			})
 
 			It("filters out artifacts that doesn't have a URI", func() {
+				contextId := givenContextId()
+
 				mockMetadataStoreServiceClient.EXPECT().
 					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
 					Return(&ml_metadata.GetArtifactsByContextResponse{
@@ -159,6 +161,8 @@ var _ = Context("gRPC Metadata Store", func() {
 			})
 
 			It("filters out artifacts that misses properties", func() {
+				contextId := givenContextId()
+
 				mockMetadataStoreServiceClient.EXPECT().
 					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
 					Return(&ml_metadata.GetArtifactsByContextResponse{
@@ -176,13 +180,15 @@ var _ = Context("gRPC Metadata Store", func() {
 			})
 
 			It("filters out artifacts that has properties that don't match", func() {
+				contextId := givenContextId()
+
 				mockMetadataStoreServiceClient.EXPECT().
 					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
 								Name: pointer.String(artifactPath),
-								Uri:  &artifactLocation,
+								Uri:  pointer.String(common.RandomString()),
 								CustomProperties: map[string]*ml_metadata.Value{
 									common.RandomString(): {
 										Value: &ml_metadata.Value_StringValue{
@@ -200,6 +206,9 @@ var _ = Context("gRPC Metadata Store", func() {
 			})
 
 			It("returns matching artifacts", func() {
+				contextId := givenContextId()
+				artifactLocation := common.RandomString()
+
 				mockMetadataStoreServiceClient.EXPECT().
 					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
 					Return(&ml_metadata.GetArtifactsByContextResponse{
