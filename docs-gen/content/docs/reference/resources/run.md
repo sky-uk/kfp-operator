@@ -31,7 +31,7 @@ Note the usage of `metadata.generateName` which tells Kubernetes to generate a n
 | `spec.pipeline`          | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.                                             |
 | `spec.experimentName`    | The name of the corresponding experiment resource (optional - the `Default` Experiment as defined in the [Installation and Configuration section of the documentation](README.md#configuration) will be used if no `experimentName` is provided). |
 | `spec.runtimeParameters` | Dictionary of runtime parameters as exposed by the pipeline.                                                                                                                                                                                      |
-| `spec.run.artifacts[]`   | Exposed artifacts that will be included in run completion event when this run has succeeded. See below for more information.                                                                                                                      |
+| `spec.run.artifacts[]`   | Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.                                                                                                                      |
 
 ### Run Artifact Definition
 

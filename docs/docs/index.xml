@@ -575,7 +575,7 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
-&lt;td>Exposed models that will be included in run completion event when a run for this RunConfiguration has succeeded. See &lt;a href="../run/#run-artifact-definition">Run Artifact Definition&lt;/a> for more information.&lt;/td>
+&lt;td>Exposed output artifacts that will be included in run completion events when a run for this RunConfiguration has succeeded. See &lt;a href="../run/#run-artifact-definition">Run Artifact Definition&lt;/a> for more information.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.run.runtimeParameters&lt;/code>&lt;/td>
@@ -933,7 +933,7 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
-&lt;td>Exposed artifacts that will be included in run completion event when this run has succeeded. See below for more information.&lt;/td>
+&lt;td>Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
