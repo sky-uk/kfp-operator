@@ -16,8 +16,9 @@ func (rs RunSchedule) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(rs.Spec.Pipeline.String())
 	oh.WriteStringField(rs.Spec.ExperimentName)
+	pipelines.WriteKVListField(oh, rs.Spec.RuntimeParameters)
+	pipelines.WriteKVListField(oh, rs.Spec.Artifacts)
 	oh.WriteStringField(rs.Spec.Schedule)
-	oh.WriteNamedValueListField(rs.Spec.RuntimeParameters)
 	return oh.Sum()
 }
 

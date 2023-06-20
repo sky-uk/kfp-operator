@@ -25,12 +25,12 @@ type ArtifactPath struct {
 	Filter  string          `json:"-" yaml:"-"`
 }
 
-func (ap ArtifactPath) String() (string, error) {
+func (ap ArtifactPath) String() string {
 	if ap.Filter == "" {
-		return ap.Locator.String(), nil
+		return ap.Locator.String()
 	}
 
-	return fmt.Sprintf("%s[%s]", ap.Locator.String(), ap.Filter), nil
+	return fmt.Sprintf("%s[%s]", ap.Locator.String(), ap.Filter)
 }
 
 func ArtifactPathFromString(path string) (artifactPath ArtifactPath, err error) {
@@ -65,12 +65,7 @@ func ArtifactPathFromString(path string) (artifactPath ArtifactPath, err error) 
 }
 
 func (ap ArtifactPath) MarshalText() ([]byte, error) {
-	serialised, err := ap.String()
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(serialised), nil
+	return []byte(ap.String()), nil
 }
 
 func (ap *ArtifactPath) UnmarshalText(bytes []byte) error {
@@ -84,3 +79,12 @@ type OutputArtifact struct {
 	Name string       `json:"name"`
 	Path ArtifactPath `json:"path"`
 }
+
+func (oa OutputArtifact) GetKey() string {
+	return oa.Name
+}
+
+func (oa OutputArtifact) GetValue() string {
+	return oa.Path.String()
+}
+

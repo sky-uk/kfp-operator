@@ -19,7 +19,8 @@ func (r Run) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(r.Spec.Pipeline.String())
 	oh.WriteStringField(r.Spec.ExperimentName)
-	oh.WriteNamedValueListField(r.Spec.RuntimeParameters)
+	pipelines.WriteKVListField(oh, r.Spec.RuntimeParameters)
+	pipelines.WriteKVListField(oh, r.Spec.Artifacts)
 	oh.WriteStringField(r.Status.ObservedPipelineVersion)
 	return oh.Sum()
 }

@@ -1,6 +1,7 @@
 package v1alpha4
 
 import (
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
@@ -8,10 +9,16 @@ import (
 func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunSchedule)
 
+	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
+	if err := pipelines.RetrieveAndUnsetConversionAnnotations(src, &v1alpha5remainder); err != nil {
+		return err
+	}
+
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	dst.Spec.Schedule = src.Spec.Schedule
+	dst.Spec.Artifacts = v1alpha5remainder.Artifacts
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 
 	dst.Status.Version = src.Status.Version
@@ -26,9 +33,12 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunSchedule)
 
+	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
+
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
+	v1alpha5remainder.Artifacts = src.Spec.Artifacts
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Spec.Schedule = src.Spec.Schedule
 
@@ -38,5 +48,5 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.ProviderId.Provider = src.Status.ProviderId.Provider
 	dst.Status.ProviderId.Id = src.Status.ProviderId.Id
 
-	return nil
+	return pipelines.SetConversionAnnotations(dst, &v1alpha5remainder)
 }

@@ -19,6 +19,14 @@ type NamedValue struct {
 	Value string `json:"value"`
 }
 
+func (nv NamedValue) GetKey() string {
+	return nv.Name
+}
+
+func (nv NamedValue) GetValue() string {
+	return nv.Value
+}
+
 var ResourceAnnotations = struct {
 	Provider string
 }{

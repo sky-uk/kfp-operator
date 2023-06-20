@@ -1,6 +1,7 @@
 package v1alpha4
 
 import (
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
@@ -8,12 +9,18 @@ import (
 func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Run)
 
+	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
+	if err := pipelines.RetrieveAndUnsetConversionAnnotations(src, &v1alpha5remainder); err != nil {
+		return err
+	}
+
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
 		Version: src.Spec.Pipeline.Version,
 	}
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
+	dst.Spec.Artifacts = v1alpha5remainder.Artifacts
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Status.ProviderId = hub.ProviderAndId{
 		Provider: src.Status.ProviderId.Provider,
@@ -32,11 +39,14 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Run)
 
+	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
+
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
 		Version: src.Spec.Pipeline.Version,
 	}
+	v1alpha5remainder.Artifacts = src.Spec.Artifacts
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Status.ProviderId = ProviderAndId{
@@ -50,5 +60,5 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.CompletionState = CompletionState(src.Status.CompletionState)
 	dst.Status.MarkedCompletedAt = src.Status.MarkedCompletedAt
 
-	return nil
+	return pipelines.SetConversionAnnotations(dst, &v1alpha5remainder)
 }

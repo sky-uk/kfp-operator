@@ -9,7 +9,7 @@ import (
 func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunConfiguration)
 
-	v1alpha5remainder := hub.TriggerConversionRemainder{}
+	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
 	if err := pipelines.RetrieveAndUnsetConversionAnnotations(src, &v1alpha5remainder); err != nil {
 		return err
 	}
@@ -21,6 +21,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	if src.Spec.Schedule != "" {
 		dst.Spec.Triggers.Schedules = append([]string{src.Spec.Schedule}, dst.Spec.Triggers.Schedules...)
 	}
+	dst.Spec.Run.Artifacts = v1alpha5remainder.Artifacts
 	dst.Spec.Run.ExperimentName = src.Spec.ExperimentName
 
 	dst.Status = hub.RunConfigurationStatus{
@@ -36,7 +37,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
 
-	v1alpha5remainder := hub.TriggerConversionRemainder{}
+	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
 
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.RuntimeParameters = src.Spec.Run.RuntimeParameters
@@ -46,6 +47,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 		dst.Spec.Schedule = v1alpha5remainder.Triggers.Schedules[0]
 		v1alpha5remainder.Triggers.Schedules = v1alpha5remainder.Triggers.Schedules[1:]
 	}
+	v1alpha5remainder.Artifacts = src.Spec.Run.Artifacts
 	dst.Spec.ExperimentName = src.Spec.Run.ExperimentName
 
 	dst.Status = RunConfigurationStatus{
