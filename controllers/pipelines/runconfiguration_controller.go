@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
@@ -98,7 +99,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	newStatus.SynchronizationState = newSynchronizationState
 	newStatus.Provider = desiredProvider
 
-	if newStatus != runConfiguration.Status {
+	if !reflect.DeepEqual(newStatus, runConfiguration.Status) {
 		runConfiguration.Status = newStatus
 		if err := r.EC.Client.Status().Update(ctx, runConfiguration); err != nil {
 			return ctrl.Result{}, err

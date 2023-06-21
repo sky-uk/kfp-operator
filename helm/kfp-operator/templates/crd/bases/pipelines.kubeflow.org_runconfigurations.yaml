@@ -321,6 +321,18 @@ spec:
                     properties:
                       providerId:
                         type: string
+                      artifacts:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                          - location
+                          - name
+                          properties:
+                            name:
+                              type: string
+                            location:
+                              type: string
             type: object
         type: object
     served: true

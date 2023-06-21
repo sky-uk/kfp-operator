@@ -7,6 +7,7 @@ import (
 	"context"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -22,7 +23,7 @@ var (
 	testEnv       *envtest.Environment
 )
 
-func StatusUpdaterDecoupledSuite(t *testing.T) {
+func TestStatusUpdaterDecoupledSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Status Updater Decoupled Suite")
 }
@@ -136,6 +137,7 @@ var _ = Describe("Status Updater", Serial, func() {
 		var LastSucceededRunHasBeenUpdated = func() func(pipelinesv1.RunConfiguration, common.RunCompletionEvent, pipelinesv1.RunConfiguration) {
 			return func(oldRun pipelinesv1.RunConfiguration, event common.RunCompletionEvent, newRun pipelinesv1.RunConfiguration) {
 				Expect(newRun.Status.LatestRuns.Succeeded.ProviderId).To(Equal(event.RunId))
+				Expect(newRun.Status.LatestRuns.Succeeded.Artifacts).To(Equal(event.Artifacts))
 			}
 		}
 
@@ -151,10 +153,20 @@ var _ = Describe("Status Updater", Serial, func() {
 				runConfiguration := pipelinesv1.RandomRunConfiguration()
 				Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
-				runCompletionEvent := common.RunCompletionEvent{Status: status, RunConfigurationName: &common.NamespacedName{
-					Name:      runConfiguration.Name,
-					Namespace: runConfiguration.Namespace,
-				}, RunId: common.RandomString()}
+				runCompletionEvent := common.RunCompletionEvent{
+					Status: status,
+					RunConfigurationName: &common.NamespacedName{
+						Name:      runConfiguration.Name,
+						Namespace: runConfiguration.Namespace,
+					},
+					RunId: common.RandomString(),
+					Artifacts: apis.RandomList(func() common.Artifact {
+						return common.Artifact{
+							Name: common.RandomString(),
+							Location: common.RandomString(),
+						}
+					}),
+				}
 
 				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())
 

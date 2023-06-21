@@ -86,6 +86,7 @@ func (c *StatusUpdater) completeRunConfiguration(ctx context.Context, runComplet
 	}
 
 	runConfiguration.Status.LatestRuns.Succeeded.ProviderId = runCompletionEvent.RunId
+	runConfiguration.Status.LatestRuns.Succeeded.Artifacts = runCompletionEvent.Artifacts
 
 	if err := c.K8sClient.Status().Update(ctx, &runConfiguration); err != nil {
 		if errors.IsNotFound(err) {
