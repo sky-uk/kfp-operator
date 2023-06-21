@@ -22,8 +22,8 @@ func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(ps.Spec.Image)
 	oh.WriteStringField(ps.Spec.TfxComponents)
-	oh.WriteNamedValueListField(ps.Spec.Env)
-	oh.WriteNamedValueListField(ps.Spec.BeamArgs)
+	pipelines.WriteKVListField(oh, ps.Spec.Env)
+	pipelines.WriteKVListField(oh, ps.Spec.BeamArgs)
 	return oh.Sum()
 }
 

@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"crypto/sha1"
-	. "github.com/sky-uk/kfp-operator/apis"
 	"hash"
 	"sort"
 )
@@ -39,21 +38,27 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 	oh.WriteFieldSeparator()
 }
 
-func (oh ObjectHasher) WriteNamedValueListField(namedValues []NamedValue) {
-	sorted := make([]NamedValue, len(namedValues))
-	copy(sorted, namedValues)
+type KV interface {
+	GetKey() string
+	GetValue() string
+}
+
+// Has to be a function with parameter because Go does not support generic methods
+func WriteKVListField[T KV](oh ObjectHasher, kvs []T) {
+	sorted := make([]T, len(kvs))
+	copy(sorted, kvs)
 
 	sort.Slice(sorted, func(i, j int) bool {
-		if sorted[i].Name != sorted[j].Name {
-			return sorted[i].Name < sorted[j].Name
+		if sorted[i].GetKey() != sorted[j].GetKey() {
+			return sorted[i].GetKey() < sorted[j].GetKey()
 		} else {
-			return sorted[i].Value < sorted[j].Value
+			return sorted[i].GetValue() < sorted[j].GetValue()
 		}
 	})
 
 	for _, k := range sorted {
-		oh.WriteStringField(k.Name)
-		oh.WriteStringField(k.Value)
+		oh.WriteStringField(k.GetKey())
+		oh.WriteStringField(k.GetValue())
 	}
 
 	oh.WriteFieldSeparator()

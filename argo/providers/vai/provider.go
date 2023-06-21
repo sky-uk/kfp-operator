@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
@@ -34,7 +35,7 @@ var labels = struct {
 	RunConfigurationNamespace string
 	RunName                   string
 	RunNamespace              string
-	LegacyNamespace 		  string
+	LegacyNamespace           string
 	LegacyRunConfiguration    string
 }{
 	PipelineName:              "pipeline-name",
@@ -49,18 +50,20 @@ var labels = struct {
 }
 
 type VAIRun struct {
-	RunId             string            `json:"runId"`
-	Labels            map[string]string `json:"labels,omitempty"`
-	PipelineUri       string            `json:"pipelineUri"`
-	RuntimeParameters map[string]string `json:"runtimeParameters,omitempty"`
+	RunId             string                     `json:"runId"`
+	Labels            map[string]string          `json:"labels,omitempty"`
+	PipelineUri       string                     `json:"pipelineUri"`
+	RuntimeParameters map[string]string          `json:"runtimeParameters,omitempty"`
+	Artifacts         []pipelines.OutputArtifact `json:"artifacts,omitempty"`
 }
 
 type RunIntent struct {
-	RunConfigurationName common.NamespacedName `json:"runConfigurationName,omitempty"`
-	RunName              common.NamespacedName `json:"runName,omitempty"`
-	PipelineName         common.NamespacedName `json:"pipelineName"`
-	PipelineVersion      string                `json:"pipelineVersion"`
-	RuntimeParameters    map[string]string     `json:"runtimeParameters,omitempty"`
+	RunConfigurationName common.NamespacedName      `json:"runConfigurationName,omitempty"`
+	RunName              common.NamespacedName      `json:"runName,omitempty"`
+	PipelineName         common.NamespacedName      `json:"pipelineName"`
+	PipelineVersion      string                     `json:"pipelineVersion"`
+	RuntimeParameters    map[string]string          `json:"runtimeParameters,omitempty"`
+	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty"`
 }
 
 type VAIProviderConfig struct {
@@ -201,6 +204,7 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 		PipelineName:         runScheduleDefinition.PipelineName,
 		PipelineVersion:      runScheduleDefinition.PipelineVersion,
 		RuntimeParameters:    runScheduleDefinition.RuntimeParameters,
+		Artifacts:            runScheduleDefinition.Artifacts,
 	}
 
 	data, err := json.Marshal(runIntent)
@@ -226,6 +230,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		PipelineVersion:   runDefinition.PipelineVersion,
 		RuntimeParameters: runDefinition.RuntimeParameters,
 		RunName:           runDefinition.Name,
+		Artifacts:         runDefinition.Artifacts,
 	})
 }
 
@@ -343,6 +348,7 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName.Name, runIntent.PipelineVersion),
 		Labels:            runLabels,
 		RuntimeParameters: runIntent.RuntimeParameters,
+		Artifacts:         runIntent.Artifacts,
 	}
 
 	payload, err := json.Marshal(vaiRun)

@@ -35,7 +35,7 @@ func (rc RunSchedule) ComputeHash() []byte {
 	oh.WriteStringField(rc.Spec.Pipeline.String())
 	oh.WriteStringField(rc.Spec.ExperimentName)
 	oh.WriteStringField(rc.Spec.Schedule)
-	oh.WriteNamedValueListField(rc.Spec.RuntimeParameters)
+	pipelines.WriteKVListField(oh, rc.Spec.RuntimeParameters)
 	return oh.Sum()
 }
 

@@ -61,5 +61,5 @@ spec:
           parameters:
             - src:
                 dependencyName: run-completion
-                dataKey: body.data.servingModelArtifacts.0.location
+                dataKey: body.data.artifacts.0.location
               dest: data.servingModel

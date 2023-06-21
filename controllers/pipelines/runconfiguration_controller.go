@@ -290,6 +290,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 					},
 					RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
 					ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
+					Artifacts:         runConfiguration.Spec.Run.Artifacts,
 				},
 				Schedule: schedule,
 			},

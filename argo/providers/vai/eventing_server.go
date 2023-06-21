@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"github.com/go-logr/logr"
 	"github.com/googleapis/gax-go/v2"
+	"github.com/hashicorp/go-bexpr"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
@@ -53,7 +55,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			return
 		}
 
-		event := es.runCompletionEventForRun(stream.Context(), run.RunId)
+		event := es.runCompletionEventForRun(stream.Context(), run)
 		if event == nil {
 			m.Nack()
 			return
@@ -86,9 +88,9 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 	return nil
 }
 
-func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId string) *common.RunCompletionEvent {
+func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, run VAIRun) *common.RunCompletionEvent {
 	job, err := es.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
-		Name: es.ProviderConfig.pipelineJobName(runId),
+		Name: es.ProviderConfig.pipelineJobName(run.RunId),
 	})
 	if err != nil {
 		es.Logger.Error(err, "could not fetch pipeline job")
@@ -99,11 +101,11 @@ func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId
 		return nil
 	}
 
-	return toRunCompletionEvent(job, runId)
+	return toRunCompletionEvent(job, run)
 }
 
-func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.ServingModelArtifact {
-	var servingModelArtifacts []common.ServingModelArtifact
+func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
+	var servingModelArtifacts []common.Artifact
 	for _, task := range job.GetJobDetail().GetTaskDetails() {
 		for name, output := range task.GetOutputs() {
 			for _, artifact := range output.GetArtifacts() {
@@ -133,7 +135,7 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Serving
 					continue
 				}
 
-				servingModelArtifacts = append(servingModelArtifacts, common.ServingModelArtifact{Name: name, Location: pushedDestination})
+				servingModelArtifacts = append(servingModelArtifacts, common.Artifact{Name: name, Location: pushedDestination})
 			}
 		}
 	}
@@ -141,7 +143,58 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Serving
 	return servingModelArtifacts
 }
 
-func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.RunCompletionEvent {
+func artifactsForJob(job *aiplatformpb.PipelineJob, artifactDefs []pipelinesv1.OutputArtifact) (artifacts []common.Artifact) {
+	for _, artifactDef := range artifactDefs {
+		var evaluator *bexpr.Evaluator
+		var err error
+
+		if artifactDef.Path.Filter != "" {
+			evaluator, err = bexpr.CreateEvaluator(artifactDef.Path.Filter)
+			if err != nil {
+				continue
+			}
+		}
+
+		for _, task := range job.GetJobDetail().GetTaskDetails() {
+			if task.TaskName != artifactDef.Path.Locator.Component {
+				continue
+			}
+
+			for outputName, output := range task.GetOutputs() {
+				if outputName != artifactDef.Path.Locator.Artifact {
+					continue
+				}
+
+				if artifactDef.Path.Locator.Index >= len(output.Artifacts) {
+					continue
+				}
+
+				artifact := output.Artifacts[artifactDef.Path.Locator.Index]
+
+				if artifact.Uri == "" {
+					continue
+				}
+
+				if evaluator != nil {
+					matched, err := evaluator.Evaluate(artifact.Metadata.AsMap())
+					// evaluator errors on missing properties
+					if err != nil {
+						continue
+					}
+					if !matched {
+						continue
+					}
+				}
+
+				artifacts = append(artifacts, common.Artifact{Name: artifactDef.Name, Location: artifact.Uri})
+			}
+		}
+	}
+
+	return artifacts
+}
+
+func toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.RunCompletionEvent {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
@@ -158,7 +211,7 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.R
 	if legacyNamespace, ok := job.Labels[labels.LegacyNamespace]; ok {
 		// For compatability with resources created with v0.3.0 and older
 		runName = common.NamespacedName{
-			Name:      runId,
+			Name:      run.RunId,
 			Namespace: legacyNamespace,
 		}
 	} else {
@@ -170,7 +223,7 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.R
 	if legacyRunConfiguration, ok := job.Labels[labels.LegacyRunConfiguration]; ok {
 		// For compatability with resources created with v0.3.0 and older
 		runConfigurationName = common.NamespacedName{
-			Name:      legacyRunConfiguration,
+			Name: legacyRunConfiguration,
 		}
 	} else {
 		runConfigurationName = common.NamespacedName{
@@ -183,7 +236,8 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string) *common.R
 		PipelineName:          pipelineName,
 		RunConfigurationName:  runConfigurationName.NonEmptyPtr(),
 		RunName:               runName.NonEmptyPtr(),
-		RunId:                 runId,
+		RunId:                 run.RunId,
+		Artifacts:             artifactsForJob(job, run.Artifacts),
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 	}
 }

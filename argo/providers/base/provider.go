@@ -2,6 +2,7 @@ package base
 
 import (
 	"context"
+	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 )
@@ -31,7 +32,8 @@ type RunScheduleDefinition struct {
 	PipelineVersion      string                `yaml:"pipelineVersion"`
 	ExperimentName       string                `yaml:"experimentName"`
 	Schedule             string                `yaml:"schedule"`
-	RuntimeParameters    map[string]string     `yaml:"runtimeParameters"`
+	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
+	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type RunDefinition struct {
@@ -40,7 +42,8 @@ type RunDefinition struct {
 	PipelineName      common.NamespacedName `yaml:"pipelineName"`
 	PipelineVersion   string                `yaml:"pipelineVersion"`
 	ExperimentName    string                `yaml:"experimentName"`
-	RuntimeParameters map[string]string     `yaml:"runtimeParameters"`
+	RuntimeParameters map[string]string          `yaml:"runtimeParameters"`
+	Artifacts         []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type Output struct {

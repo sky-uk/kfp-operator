@@ -9,10 +9,14 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
+	"k8s.io/utils/pointer"
 )
 
 var _ = Context("gRPC Metadata Store", func() {
@@ -35,7 +39,201 @@ var _ = Context("gRPC Metadata Store", func() {
 		mockCtrl.Finish()
 	})
 
-	Describe("GetServingModelArtifact", func() {
+	var givenContextId = func() int64 {
+		contextId := common.RandomInt64()
+		typeName := PipelineRunTypeName
+		mockMetadataStoreServiceClient.EXPECT().
+			GetContextByTypeAndName(gomock.Any(), gomock.Eq(&ml_metadata.GetContextByTypeAndNameRequest{TypeName: &typeName, ContextName: &workflowName})).
+			Return(&ml_metadata.GetContextByTypeAndNameResponse{
+				Context: &ml_metadata.Context{
+					Id: &contextId,
+				},
+			}, nil)
+
+		return contextId
+	}
+
+	Describe("GetArtifacts", func() {
+		artifactName := common.RandomString()
+		componentName := common.RandomString()
+		outputName := common.RandomString()
+		artifactDefs := []pipelinesv1.OutputArtifact{{
+			Name: artifactName,
+			Path: pipelinesv1.ArtifactPath{
+				Locator: pipelinesv1.ArtifactLocator{
+					Component: componentName,
+					Artifact:  outputName,
+					Index:     1,
+				},
+				Filter: "x.y == 1",
+			},
+		}}
+		artifactPath := fmt.Sprintf("%s:%s:1", componentName, outputName)
+
+		When("GetContextByTypeAndName errors", func() {
+			It("Errors", func() {
+				typeName := PipelineRunTypeName
+				mockMetadataStoreServiceClient.EXPECT().
+					GetContextByTypeAndName(gomock.Any(), gomock.Eq(&ml_metadata.GetContextByTypeAndNameRequest{TypeName: &typeName, ContextName: &workflowName})).
+					Return(nil, fmt.Errorf("an error"))
+
+				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelinesv1.OutputArtifact{})
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		When("GetContextByTypeAndName returns an invalid context ID", func() {
+			It("Errors", func() {
+				typeName := PipelineRunTypeName
+				mockMetadataStoreServiceClient.EXPECT().
+					GetContextByTypeAndName(gomock.Any(), gomock.Eq(&ml_metadata.GetContextByTypeAndNameRequest{TypeName: &typeName, ContextName: &workflowName})).
+					Return(&ml_metadata.GetContextByTypeAndNameResponse{
+						Context: nil,
+					}, nil)
+
+				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelinesv1.OutputArtifact{})
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		When("GetArtifactsByContext errors", func() {
+			It("Errors", func() {
+				contextId := givenContextId()
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(nil, fmt.Errorf("an error"))
+
+				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelinesv1.OutputArtifact{})
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		When("GetArtifactsByContext returns artifacts", func() {
+			validProperties :=  map[string]*ml_metadata.Value{
+				"x": {
+					Value: &ml_metadata.Value_StructValue{
+						StructValue: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"y": structpb.NewNumberValue(1),
+							},
+						},
+					},
+				},
+			}
+
+			It("filters out artifacts that don't match the name", func() {
+				contextId := givenContextId()
+
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
+							{
+								Name: pointer.String(common.RandomString()),
+								Uri:  pointer.String(apis.RandomString()),
+								CustomProperties: validProperties,
+							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+
+			It("filters out artifacts that doesn't have a URI", func() {
+				contextId := givenContextId()
+
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
+							{
+								Name: pointer.String(artifactPath),
+								CustomProperties: validProperties,
+							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+
+			It("filters out artifacts that misses properties", func() {
+				contextId := givenContextId()
+
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
+							{
+								Name: pointer.String(artifactPath),
+								Uri: pointer.String(artifactPath),
+							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+
+			It("filters out artifacts that has properties that don't match", func() {
+				contextId := givenContextId()
+
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
+							{
+								Name: pointer.String(artifactPath),
+								Uri:  pointer.String(common.RandomString()),
+								CustomProperties: map[string]*ml_metadata.Value{
+									common.RandomString(): {
+										Value: &ml_metadata.Value_StringValue{
+											StringValue: common.RandomString(),
+										},
+									},
+								},
+							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(BeEmpty())
+			})
+
+			It("returns matching artifacts", func() {
+				contextId := givenContextId()
+				artifactLocation := common.RandomString()
+
+				mockMetadataStoreServiceClient.EXPECT().
+					GetArtifactsByContext(gomock.Any(), gomock.Eq(&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId})).
+					Return(&ml_metadata.GetArtifactsByContextResponse{
+						Artifacts: []*ml_metadata.Artifact{
+							{
+								Name: pointer.String(artifactPath),
+								Uri:  &artifactLocation,
+								CustomProperties: validProperties,
+							},
+						},
+					}, nil)
+
+				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(results).To(ContainElements(
+					common.Artifact{
+						Name:     artifactName,
+						Location: artifactLocation,
+					},
+				))
+			})
+		})
+	})
+
+	Describe("Legacy: GetServingModelArtifacts", func() {
 		var givenArtifactTypeIdId = func() int64 {
 			artifactId := common.RandomInt64()
 			typeName := PushedModelArtifactType
@@ -46,20 +244,6 @@ var _ = Context("gRPC Metadata Store", func() {
 				}, nil)
 
 			return artifactId
-		}
-
-		var givenContextId = func() int64 {
-			contextId := common.RandomInt64()
-			typeName := PipelineRunTypeName
-			mockMetadataStoreServiceClient.EXPECT().
-				GetContextByTypeAndName(gomock.Any(), gomock.Eq(&ml_metadata.GetContextByTypeAndNameRequest{TypeName: &typeName, ContextName: &workflowName})).
-				Return(&ml_metadata.GetContextByTypeAndNameResponse{
-					Context: &ml_metadata.Context{
-						Id: &contextId,
-					},
-				}, nil)
-
-			return contextId
 		}
 
 		When("GetArtifactType errors with NotFound", func() {
@@ -347,11 +531,11 @@ var _ = Context("gRPC Metadata Store", func() {
 				results, err := store.GetServingModelArtifact(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(ContainElements(
-					common.ServingModelArtifact{
+					common.Artifact{
 						Name:     "first-model",
 						Location: firstArtifactLocation,
 					},
-					common.ServingModelArtifact{
+					common.Artifact{
 						Name:     "second-model",
 						Location: secondArtifactLocation,
 					},

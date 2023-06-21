@@ -23,14 +23,4 @@ var _ = Context("Run Conversion", func() {
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})
-
-	var _ = Describe("ComputeVersion", func() {
-		Specify("Does not change between versions", func() {
-			src := hub.RandomRun()
-			dst := Run{}
-
-			Expect(dst.ConvertFrom(src)).To(Succeed())
-			Expect(src.ComputeVersion()).To(Equal(dst.ComputeVersion()))
-		})
-	})
 })
