@@ -289,6 +289,18 @@ spec:
                 properties:
                   succeeded:
                     properties:
+                      artifacts:
+                        items:
+                          properties:
+                            location:
+                              type: string
+                            name:
+                              type: string
+                          required:
+                          - location
+                          - name
+                          type: object
+                        type: array
                       providerId:
                         type: string
                     type: object

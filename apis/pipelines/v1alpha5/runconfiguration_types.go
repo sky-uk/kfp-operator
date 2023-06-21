@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -26,7 +27,8 @@ type RunConfigurationSpec struct {
 }
 
 type RunReference struct {
-	ProviderId string `json:"providerId,omitempty"`
+	ProviderId string            `json:"providerId,omitempty"`
+	Artifacts  []common.Artifact `json:"artifacts,omitempty"`
 }
 
 type LatestRuns struct {
