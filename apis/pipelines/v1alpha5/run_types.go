@@ -2,7 +2,6 @@ package v1alpha5
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -23,18 +22,6 @@ type ValueFrom struct {
 	RunConfigurationRef RunConfigurationRef `json:"runConfigurationRef"`
 }
 
-func (v RuntimeParameter) GetKey() string {
-	return v.Name
-}
-
-func (v RuntimeParameter) GetValue() string {
-	if v.Value != "" {
-		return v.Value
-	} else {
-		return v.ValueFrom.RunConfigurationRef.Name+v.ValueFrom.RunConfigurationRef.OutputArtifact
-	}
-}
-
 type RunSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
@@ -42,11 +29,30 @@ type RunSpec struct {
 	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
 }
 
+func WriteRunTimeParameters(oh pipelines.ObjectHasher, rts []RuntimeParameter) {
+	pipelines.WriteList(oh, rts, func(rt1, rt2 RuntimeParameter) bool {
+		if rt1.Name != rt2.Name {
+			return rt1.Name < rt2.Name
+		} else if rt1.Value != rt2.Value {
+			return rt1.Value < rt2.Value
+		} else if rt1.ValueFrom.RunConfigurationRef.Name != rt1.ValueFrom.RunConfigurationRef.Name {
+			return rt1.ValueFrom.RunConfigurationRef.Name < rt1.ValueFrom.RunConfigurationRef.Name
+		} else {
+			return rt1.ValueFrom.RunConfigurationRef.OutputArtifact < rt1.ValueFrom.RunConfigurationRef.OutputArtifact
+		}
+	}, func(oh pipelines.ObjectHasher, rt RuntimeParameter) {
+		oh.WriteStringField(rt.Name)
+		oh.WriteStringField(rt.Value)
+		oh.WriteStringField(rt.ValueFrom.RunConfigurationRef.Name)
+		oh.WriteStringField(rt.ValueFrom.RunConfigurationRef.OutputArtifact)
+	})
+}
+
 func (r Run) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(r.Spec.Pipeline.String())
 	oh.WriteStringField(r.Spec.ExperimentName)
-	pipelines.WriteKVListField(oh, r.Spec.RuntimeParameters)
+	WriteRunTimeParameters(oh, r.Spec.RuntimeParameters)
 	pipelines.WriteKVListField(oh, r.Spec.Artifacts)
 	oh.WriteStringField(r.Status.ObservedPipelineVersion)
 	return oh.Sum()
@@ -110,7 +116,7 @@ func (rc *Run) GetDependencies() map[string]RunReference {
 }
 
 func (rc *Run) GetRunConfigurations() []string {
-	return apis.Collect(rc.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+	return pipelines.Collect(rc.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
 		rc := rp.ValueFrom.RunConfigurationRef.Name
 		return rc, rc != ""
 	})

@@ -1,4 +1,4 @@
-package apis
+package pipelines
 
 func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	var diff []T
@@ -33,17 +33,6 @@ func Map[R, S any](rs []R, mapFn func(R) S) []S {
 
 	for i, r := range rs {
 		ss[i] = mapFn(r)
-	}
-
-	return ss
-}
-
-func ToMap[R any, K comparable, V any](rs []R, mapFn func(R) (K, V)) map[K]V {
-	ss := make(map[K]V, len(rs))
-
-	for _, r := range rs {
-		k, v := mapFn(r)
-		ss[k] = v
 	}
 
 	return ss

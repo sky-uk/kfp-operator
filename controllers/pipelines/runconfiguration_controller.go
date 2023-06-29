@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -169,9 +170,9 @@ func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, p
 		return
 	}
 
-	missingSchedules := apis.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
-	excessSchedules := apis.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
-	excessSchedulesNotMarkedForDeletion := apis.Filter(excessSchedules, func(schedule pipelinesv1.RunSchedule) bool {
+	missingSchedules := pipelines.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
+	excessSchedules := pipelines.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
+	excessSchedulesNotMarkedForDeletion := pipelines.Filter(excessSchedules, func(schedule pipelinesv1.RunSchedule) bool {
 		return schedule.DeletionTimestamp == nil
 	})
 
@@ -333,7 +334,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 						Name:    runConfiguration.Spec.Run.Pipeline.Name,
 						Version: runConfiguration.Status.ObservedPipelineVersion,
 					},
-					RuntimeParameters: apis.Map(runConfiguration.Spec.Run.RuntimeParameters, func(r pipelinesv1.RuntimeParameter) pipelinesv1.RuntimeParameter {
+					RuntimeParameters: pipelines.Map(runConfiguration.Spec.Run.RuntimeParameters, func(r pipelinesv1.RuntimeParameter) pipelinesv1.RuntimeParameter {
 						if r.Value != "" {
 							return r
 						} else {

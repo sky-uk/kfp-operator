@@ -100,43 +100,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
-	When("Completing the referenced run configuration", func() {
-		It("Sets the run configuration's dependency field", func() {
-			artifactName := apis.RandomString()
-			artifact := common.Artifact{
-				Name: artifactName,
-				Location: apis.RandomString(),
-			}
-
-			referencedRc := pipelinesv1.RandomRunConfiguration()
-			Expect(k8sClient.Create(ctx, referencedRc)).To(Succeed())
-
-			runConfiguration := pipelinesv1.RandomRunConfiguration()
-			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
-				{
-					ValueFrom: pipelinesv1.ValueFrom{
-						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
-							Name: referencedRc.Name,
-							OutputArtifact: artifactName,
-						},
-					},
-				},
-			}
-
-			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
-
-			referencedRc.Status.LatestRuns.Succeeded.Artifacts = []common.Artifact{artifact}
-			referencedRc.Status.LatestRuns.Succeeded.ProviderId = apis.RandomString()
-
-			Expect(k8sClient.Status().Update(ctx, referencedRc)).To(Succeed())
-
-			Expect(k8sClient.Get(ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.LatestRuns.Dependencies[referencedRc.Name].Artifacts).To(ContainElement(artifact))
-			})).Should(Succeed())
-		})
-	})
-
 	When("Updating the referenced pipeline with no version specified on the RC", func() {
 		It("triggers an update of the run configuration", func() {
 			pipeline := pipelinesv1.RandomPipeline()
@@ -240,6 +203,43 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Spec.Run.ExperimentName).To(Equal(newExperiment))
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Completing the referenced run configuration", func() {
+		It("Sets the run configuration's dependency field", func() {
+			artifactName := apis.RandomString()
+			artifact := common.Artifact{
+				Name: artifactName,
+				Location: apis.RandomString(),
+			}
+
+			referencedRc := pipelinesv1.RandomRunConfiguration()
+			Expect(k8sClient.Create(ctx, referencedRc)).To(Succeed())
+
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					ValueFrom: pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name: referencedRc.Name,
+							OutputArtifact: artifactName,
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			referencedRc.Status.LatestRuns.Succeeded.Artifacts = []common.Artifact{artifact}
+			referencedRc.Status.LatestRuns.Succeeded.ProviderId = apis.RandomString()
+
+			Expect(k8sClient.Status().Update(ctx, referencedRc)).To(Succeed())
+
+			Expect(k8sClient.Get(ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.LatestRuns.Dependencies[referencedRc.Name].Artifacts).To(ContainElement(artifact))
 			})).Should(Succeed())
 		})
 	})

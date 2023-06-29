@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -69,7 +70,7 @@ func (rc *RunConfiguration) SetDependency(name string, reference RunReference) {
 }
 
 func (rc *RunConfiguration) GetRunConfigurations() []string {
-	return apis.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+	return pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
 		rc := rp.ValueFrom.RunConfigurationRef.Name
 		return rc, rc != ""
 	})
