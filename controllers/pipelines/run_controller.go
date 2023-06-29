@@ -73,7 +73,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	for _, rc := range run.GetRunConfigurations() {
 		// Never change after being set
 		if run.Status.Dependencies[rc].ProviderId == "" {
-			if hasChanged, err := r.handleLatestRuns(ctx, rc, run); hasChanged || err != nil {
+			if hasChanged, err := r.handleDependentRun(ctx, rc, run); hasChanged || err != nil {
 				return ctrl.Result{}, err
 			}
 		}

@@ -27,6 +27,8 @@ func (rcr OutputArtifactsConversionRemainder) ConversionAnnotation() string {
 }
 
 func SplitRunTimeParameters(rts []RuntimeParameter) (namedValues []apis.NamedValue, valueFroms map[string]ValueFrom) {
+	valueFroms = make(map[string]ValueFrom)
+
 	for _, rt := range rts {
 		if rt.Value != "" {
 			namedValues = append(namedValues, apis.NamedValue{

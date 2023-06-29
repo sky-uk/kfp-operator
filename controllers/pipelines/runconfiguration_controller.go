@@ -92,7 +92,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	for _, rc := range runConfiguration.GetRunConfigurations() {
-		if hasChanged, err := r.handleLatestRuns(ctx, rc, runConfiguration); hasChanged || err != nil {
+		if hasChanged, err := r.handleDependentRun(ctx, rc, runConfiguration); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
 	}

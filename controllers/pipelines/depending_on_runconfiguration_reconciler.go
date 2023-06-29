@@ -30,7 +30,7 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 	EC K8sExecutionContext
 }
 
-func (dr DependingOnRunConfigurationReconciler[R]) handleLatestRuns(ctx context.Context, name string, resource R) (bool, error) {
+func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRun(ctx context.Context, name string, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
 	runConfiguration, err := dr.getIgnoreNotFound(ctx, types.NamespacedName{
