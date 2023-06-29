@@ -23,6 +23,8 @@ import (
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
+	DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]
+	EC K8sExecutionContext
 	Scheme *runtime.Scheme
 	Config config.Configuration
 }
@@ -32,6 +34,10 @@ func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Schem
 		DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
 			EC: ec,
 		},
+		DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]{
+			EC: ec,
+		},
+		ec,
 		scheme,
 		config,
 	}
@@ -78,6 +84,16 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		r.EC.Recorder.Event(runConfiguration, EventTypes.Warning, EventReasons.SyncFailed, message)
 
 		return ctrl.Result{}, r.EC.Client.Status().Update(ctx, runConfiguration)
+	}
+
+	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
+		return ctrl.Result{}, err
+	}
+
+	for _, rc := range runConfiguration.GetRunConfigurations() {
+		if hasChanged, err := r.handleLatestRuns(ctx, rc, runConfiguration); hasChanged || err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
@@ -153,9 +169,9 @@ func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, p
 		return
 	}
 
-	missingSchedules := sliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
-	excessSchedules := sliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
-	excessSchedulesNotMarkedForDeletion := filter(excessSchedules, func(schedule pipelinesv1.RunSchedule) bool {
+	missingSchedules := apis.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
+	excessSchedules := apis.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
+	excessSchedulesNotMarkedForDeletion := apis.Filter(excessSchedules, func(schedule pipelinesv1.RunSchedule) bool {
 		return schedule.DeletionTimestamp == nil
 	})
 
@@ -205,12 +221,40 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 	return requests
 }
 
+func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(runConfiguration client.Object) []reconcile.Request {
+	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
+	listOps := &client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
+		Namespace:     runConfiguration.GetNamespace(),
+	}
+
+	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, listOps)
+	if err != nil {
+		return []reconcile.Request{}
+	}
+
+	requests := make([]reconcile.Request, len(referencingRunConfigurations.Items))
+	for i, item := range referencingRunConfigurations.Items {
+		requests[i] = reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name:      item.GetName(),
+				Namespace: item.GetNamespace(),
+			},
+		}
+	}
+	return requests
+}
+
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	runConfiguration := &pipelinesv1.RunConfiguration{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(runConfiguration)
 
-	controllerBuilder, err := r.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForPipeline)
+	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForPipeline)
+	if err != nil {
+		return err
+	}
+	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForRunConfiguration)
 	if err != nil {
 		return err
 	}
@@ -289,7 +333,24 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 						Name:    runConfiguration.Spec.Run.Pipeline.Name,
 						Version: runConfiguration.Status.ObservedPipelineVersion,
 					},
-					RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
+					RuntimeParameters: apis.Map(runConfiguration.Spec.Run.RuntimeParameters, func(r pipelinesv1.RuntimeParameter) pipelinesv1.RuntimeParameter {
+						if r.Value != "" {
+							return r
+						} else {
+							for _, artifact := range runConfiguration.Status.LatestRuns.Dependencies[r.ValueFrom.RunConfigurationRef.Name].Artifacts {
+								if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
+									return pipelinesv1.RuntimeParameter{
+										Name: r.Name,
+										Value: artifact.Location,
+									}
+								}
+							}
+
+							return pipelinesv1.RuntimeParameter{
+								Name: r.Name,
+							}
+						}
+					}),
 					ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
 					Artifacts:         runConfiguration.Spec.Run.Artifacts,
 				},

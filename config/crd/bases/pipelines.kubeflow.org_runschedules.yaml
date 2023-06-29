@@ -132,13 +132,27 @@ spec:
               runtimeParameters:
                 items:
                   properties:
-                    name:
+                    Name:
                       type: string
                     value:
                       type: string
+                    valueFrom:
+                      properties:
+                        runConfigurationRef:
+                          properties:
+                            Name:
+                              type: string
+                            outputArtifact:
+                              type: string
+                          required:
+                          - Name
+                          - outputArtifact
+                          type: object
+                      required:
+                      - runConfigurationRef
+                      type: object
                   required:
-                  - name
-                  - value
+                  - Name
                   type: object
                 type: array
               schedule:

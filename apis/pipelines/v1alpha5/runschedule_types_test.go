@@ -6,7 +6,6 @@ package v1alpha5
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
 )
 
 var _ = Context("RunSchedule", func() {
@@ -46,14 +45,14 @@ var _ = Context("RunSchedule", func() {
 			rcs := RunSchedule{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.Spec.RuntimeParameters = []apis.NamedValue{
+			rcs.Spec.RuntimeParameters = []RuntimeParameter{
 				{Name: "a", Value: ""},
 			}
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			rcs.Spec.RuntimeParameters = []apis.NamedValue{
+			rcs.Spec.RuntimeParameters = []RuntimeParameter{
 				{Name: "b", Value: "notempty"},
 			}
 			hash3 := rcs.ComputeHash()

@@ -143,13 +143,27 @@ spec:
               runtimeParameters:
                 items:
                   properties:
-                    name:
+                    Name:
                       type: string
                     value:
                       type: string
+                    valueFrom:
+                      properties:
+                        runConfigurationRef:
+                          properties:
+                            Name:
+                              type: string
+                            outputArtifact:
+                              type: string
+                          required:
+                          - Name
+                          - outputArtifact
+                          type: object
+                      required:
+                      - runConfigurationRef
+                      type: object
                   required:
-                  - name
-                  - value
+                  - Name
                   type: object
                 type: array
             type: object
@@ -157,6 +171,25 @@ spec:
             properties:
               completionState:
                 type: string
+              dependencies:
+                additionalProperties:
+                  properties:
+                    artifacts:
+                      items:
+                        properties:
+                          location:
+                            type: string
+                          name:
+                            type: string
+                        required:
+                        - location
+                        - name
+                        type: object
+                      type: array
+                    providerId:
+                      type: string
+                  type: object
+                type: object
               markedCompletedAt:
                 format: date-time
                 type: string

@@ -32,7 +32,8 @@ type RunReference struct {
 }
 
 type LatestRuns struct {
-	Succeeded RunReference `json:"succeeded,omitempty"`
+	Succeeded RunReference               `json:"succeeded,omitempty"`
+	Dependencies map[string]RunReference `json:"dependencies,omitempty"`
 }
 
 type RunConfigurationStatus struct {
@@ -57,6 +58,29 @@ type RunConfiguration struct {
 
 	Spec   RunConfigurationSpec   `json:"spec,omitempty"`
 	Status RunConfigurationStatus `json:"status,omitempty"`
+}
+
+func (rc *RunConfiguration) SetDependency(name string, reference RunReference) {
+	if rc.Status.LatestRuns.Dependencies == nil {
+		rc.Status.LatestRuns.Dependencies = make(map[string]RunReference, 1)
+	}
+
+	rc.Status.LatestRuns.Dependencies[name] = reference
+}
+
+func (rc *RunConfiguration) GetRunConfigurations() []string {
+	return apis.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+		rc := rp.ValueFrom.RunConfigurationRef.Name
+		return rc, rc != ""
+	})
+}
+
+func (rc *RunConfiguration) GetDependencies() map[string]RunReference {
+	if rc.Status.LatestRuns.Dependencies != nil {
+		return rc.Status.LatestRuns.Dependencies
+	} else {
+		return make(map[string]RunReference, 1)
+	}
 }
 
 func (rc *RunConfiguration) GetProvider() string {

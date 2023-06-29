@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
@@ -24,6 +25,17 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		experimentName = runSchedule.Spec.ExperimentName
 	}
 
+	runtimeParameters := make(map[string]string)
+
+	for _, parameter := range runSchedule.Spec.RuntimeParameters {
+		if parameter.Value == "" {
+			return providers.RunScheduleDefinition{}, fmt.Errorf("runSchedules only supports Named/Value RuntimeParameters")
+
+		}
+
+		runtimeParameters[parameter.Name] = parameter.Value
+	}
+
 	return providers.RunScheduleDefinition{
 		Name:                 runSchedule.ObjectMeta.Name,
 		RunConfigurationName: runConfigurationNameForRunSchedule(runSchedule),
@@ -32,7 +44,7 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		PipelineVersion:      runSchedule.Spec.Pipeline.Version,
 		ExperimentName:       experimentName,
 		Schedule:             runSchedule.Spec.Schedule,
-		RuntimeParameters:    NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
+		RuntimeParameters:    runtimeParameters,
 		Artifacts:            runSchedule.Spec.RunSpec.Artifacts,
 	}, nil
 }

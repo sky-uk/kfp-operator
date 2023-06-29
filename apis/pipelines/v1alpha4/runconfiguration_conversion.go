@@ -15,7 +15,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Run.RuntimeParameters = src.Spec.RuntimeParameters
+	dst.Spec.Run.RuntimeParameters = hub.MergeRuntimeParameters(src.Spec.RuntimeParameters, v1alpha5remainder.ValueFromParameters)
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	dst.Spec.Triggers = v1alpha5remainder.Triggers
 	if src.Spec.Schedule != "" {
@@ -40,7 +40,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.RuntimeParameters = src.Spec.Run.RuntimeParameters
+	dst.Spec.RuntimeParameters, v1alpha5remainder.ValueFromParameters = hub.SplitRunTimeParameters(src.Spec.Run.RuntimeParameters)
 	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Run.Pipeline.Name, Version: src.Spec.Run.Pipeline.Version}
 	v1alpha5remainder.Triggers = src.Spec.Triggers
 	if len(src.Spec.Triggers.Schedules) > 0 {

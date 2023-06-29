@@ -8,10 +8,37 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+type RuntimeParameter struct {
+	Name      string    `json:"Name"`
+	Value     string    `json:"value,omitempty"`
+	ValueFrom ValueFrom `json:"valueFrom,omitempty"`
+}
+
+type RunConfigurationRef struct {
+	Name string           `json:"Name"`
+	OutputArtifact string `json:"outputArtifact"`
+}
+
+type ValueFrom struct {
+	RunConfigurationRef RunConfigurationRef `json:"runConfigurationRef"`
+}
+
+func (v RuntimeParameter) GetKey() string {
+	return v.Name
+}
+
+func (v RuntimeParameter) GetValue() string {
+	if v.Value != "" {
+		return v.Value
+	} else {
+		return v.ValueFrom.RunConfigurationRef.Name+v.ValueFrom.RunConfigurationRef.OutputArtifact
+	}
+}
+
 type RunSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
-	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
+	RuntimeParameters []RuntimeParameter     `json:"runtimeParameters,omitempty"`
 	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
 }
 
@@ -44,6 +71,7 @@ var CompletionStates = struct {
 type RunStatus struct {
 	Status                  `json:",inline"`
 	ObservedPipelineVersion string          `json:"observedPipelineVersion,omitempty"`
+	Dependencies            map[string]RunReference  `json:"dependencies,omitempty"`
 	CompletionState         CompletionState `json:"completionState,omitempty"`
 	MarkedCompletedAt       *metav1.Time    `json:"markedCompletedAt,omitempty"`
 }
@@ -63,6 +91,29 @@ type Run struct {
 
 	Spec   RunSpec   `json:"spec,omitempty"`
 	Status RunStatus `json:"status,omitempty"`
+}
+
+func (rc *Run) SetDependency(name string, reference RunReference) {
+	if rc.Status.Dependencies == nil {
+		rc.Status.Dependencies = make(map[string]RunReference, 1)
+	}
+
+	rc.Status.Dependencies[name] = reference
+}
+
+func (rc *Run) GetDependencies() map[string]RunReference {
+	if rc.Status.Dependencies != nil {
+		return rc.Status.Dependencies
+	} else {
+		return make(map[string]RunReference, 1)
+	}
+}
+
+func (rc *Run) GetRunConfigurations() []string {
+	return apis.Collect(rc.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+		rc := rp.ValueFrom.RunConfigurationRef.Name
+		return rc, rc != ""
+	})
 }
 
 func (r *Run) GetProvider() string {

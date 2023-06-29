@@ -1,7 +1,7 @@
 //go:build unit
 // +build unit
 
-package pipelines
+package apis
 
 import (
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -11,7 +11,7 @@ import (
 
 var _ = Context("Utils", func() {
 	DescribeTable("sliceDiff", func(as, bs, expected []int) {
-		Expect(sliceDiff(as, bs, func(a int, b int) bool {
+		Expect(SliceDiff(as, bs, func(a int, b int) bool {
 			return a == b
 		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
 	},
@@ -23,7 +23,7 @@ var _ = Context("Utils", func() {
 	)
 
 	DescribeTable("filter", func(as, expected []int) {
-		Expect(filter(as, func(a int) bool {
+		Expect(Filter(as, func(a int) bool {
 			return a%2 == 0
 		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
 	},

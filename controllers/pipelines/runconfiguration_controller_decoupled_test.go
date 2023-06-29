@@ -11,6 +11,7 @@ import (
 	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -95,6 +96,43 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
 				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Completing the referenced run configuration", func() {
+		It("Sets the run configuration's dependency field", func() {
+			artifactName := apis.RandomString()
+			artifact := common.Artifact{
+				Name: artifactName,
+				Location: apis.RandomString(),
+			}
+
+			referencedRc := pipelinesv1.RandomRunConfiguration()
+			Expect(k8sClient.Create(ctx, referencedRc)).To(Succeed())
+
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					ValueFrom: pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name: referencedRc.Name,
+							OutputArtifact: artifactName,
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			referencedRc.Status.LatestRuns.Succeeded.Artifacts = []common.Artifact{artifact}
+			referencedRc.Status.LatestRuns.Succeeded.ProviderId = apis.RandomString()
+
+			Expect(k8sClient.Status().Update(ctx, referencedRc)).To(Succeed())
+
+			Expect(k8sClient.Get(ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.LatestRuns.Dependencies[referencedRc.Name].Artifacts).To(ContainElement(artifact))
 			})).Should(Succeed())
 		})
 	})

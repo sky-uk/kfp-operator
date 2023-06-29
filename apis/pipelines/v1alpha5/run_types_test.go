@@ -6,7 +6,6 @@ package v1alpha5
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
 )
 
 var _ = Context("Run", func() {
@@ -46,14 +45,14 @@ var _ = Context("Run", func() {
 			run := Run{}
 			hash1 := run.ComputeHash()
 
-			run.Spec.RuntimeParameters = []apis.NamedValue{
+			run.Spec.RuntimeParameters = []RuntimeParameter{
 				{Name: "a", Value: ""},
 			}
 			hash2 := run.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			run.Spec.RuntimeParameters = []apis.NamedValue{
+			run.Spec.RuntimeParameters = []RuntimeParameter{
 				{Name: "b", Value: "notempty"},
 			}
 			hash3 := run.ComputeHash()
