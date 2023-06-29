@@ -33,7 +33,7 @@ type RunReference struct {
 }
 
 type LatestRuns struct {
-	Succeeded RunReference               `json:"succeeded,omitempty"`
+	Succeeded    RunReference            `json:"succeeded,omitempty"`
 	Dependencies map[string]RunReference `json:"dependencies,omitempty"`
 }
 

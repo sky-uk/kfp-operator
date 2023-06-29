@@ -211,7 +211,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		It("Sets the run configuration's dependency field", func() {
 			artifactName := apis.RandomString()
 			artifact := common.Artifact{
-				Name: artifactName,
+				Name:     artifactName,
 				Location: apis.RandomString(),
 			}
 
@@ -223,7 +223,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				{
 					ValueFrom: pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
-							Name: referencedRc.Name,
+							Name:           referencedRc.Name,
 							OutputArtifact: artifactName,
 						},
 					},

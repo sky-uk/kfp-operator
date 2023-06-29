@@ -107,13 +107,13 @@ func RandomRun() *Run {
 
 func RandomRunSpec() RunSpec {
 	return RunSpec{
-		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
-		ExperimentName:    RandomString(),
+		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		ExperimentName: RandomString(),
 		RuntimeParameters: RandomList(func() RuntimeParameter {
-				return RuntimeParameter{
-					Name:  RandomString(),
-					Value: RandomString(),
-				}
+			return RuntimeParameter{
+				Name:  RandomString(),
+				Value: RandomString(),
+			}
 		}),
 		Artifacts: RandomList(func() OutputArtifact {
 			return OutputArtifact{Name: RandomString(), Path: ArtifactPath{

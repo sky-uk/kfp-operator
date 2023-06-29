@@ -14,10 +14,9 @@ func (rcr RunConfigurationConversionRemainder) Empty() bool {
 }
 
 type OutputArtifactsConversionRemainder struct {
-	Artifacts []OutputArtifact `json:"artifacts,omitempty"`
+	Artifacts           []OutputArtifact     `json:"artifacts,omitempty"`
 	ValueFromParameters map[string]ValueFrom `json:"valueFromParameters,omitempty"`
 }
-
 
 func (rcr OutputArtifactsConversionRemainder) Empty() bool {
 	return len(rcr.Artifacts) == 0
@@ -31,7 +30,7 @@ func SplitRunTimeParameters(rts []RuntimeParameter) (namedValues []apis.NamedVal
 	for _, rt := range rts {
 		if rt.Value != "" {
 			namedValues = append(namedValues, apis.NamedValue{
-				Name: rt.Name,
+				Name:  rt.Name,
 				Value: rt.Value,
 			})
 		} else {
@@ -45,14 +44,14 @@ func SplitRunTimeParameters(rts []RuntimeParameter) (namedValues []apis.NamedVal
 func MergeRuntimeParameters(namedValues []apis.NamedValue, valueFroms map[string]ValueFrom) (rts []RuntimeParameter) {
 	for _, namedValue := range namedValues {
 		rts = append(rts, RuntimeParameter{
-			Name: namedValue.Name,
+			Name:  namedValue.Name,
 			Value: namedValue.Value,
 		})
 	}
 
 	for name, valueFrom := range valueFroms {
 		rts = append(rts, RuntimeParameter{
-			Name: name,
+			Name:      name,
 			ValueFrom: valueFrom,
 		})
 	}

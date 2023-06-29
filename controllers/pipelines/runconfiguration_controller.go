@@ -25,7 +25,7 @@ import (
 type RunConfigurationReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
 	DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]
-	EC K8sExecutionContext
+	EC     K8sExecutionContext
 	Scheme *runtime.Scheme
 	Config config.Configuration
 }
@@ -341,7 +341,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 							for _, artifact := range runConfiguration.Status.LatestRuns.Dependencies[r.ValueFrom.RunConfigurationRef.Name].Artifacts {
 								if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
 									return pipelinesv1.RuntimeParameter{
-										Name: r.Name,
+										Name:  r.Name,
 										Value: artifact.Location,
 									}
 								}
@@ -352,8 +352,8 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 							}
 						}
 					}),
-					ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
-					Artifacts:         runConfiguration.Spec.Run.Artifacts,
+					ExperimentName: runConfiguration.Spec.Run.ExperimentName,
+					Artifacts:      runConfiguration.Spec.Run.Artifacts,
 				},
 				Schedule: schedule,
 			},

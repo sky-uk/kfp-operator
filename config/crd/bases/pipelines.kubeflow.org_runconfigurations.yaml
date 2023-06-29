@@ -259,7 +259,7 @@ spec:
                   runtimeParameters:
                     items:
                       properties:
-                        Name:
+                        name:
                           type: string
                         value:
                           type: string
@@ -267,19 +267,19 @@ spec:
                           properties:
                             runConfigurationRef:
                               properties:
-                                Name:
+                                name:
                                   type: string
                                 outputArtifact:
                                   type: string
                               required:
-                              - Name
+                              - name
                               - outputArtifact
                               type: object
                           required:
                           - runConfigurationRef
                           type: object
                       required:
-                      - Name
+                      - name
                       type: object
                     type: array
                 type: object

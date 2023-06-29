@@ -168,7 +168,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 					Name: apis.RandomString(),
 					ValueFrom: pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
-							Name: runConfigurationName,
+							Name:           runConfigurationName,
 							OutputArtifact: apis.RandomString(),
 						},
 					},
@@ -197,7 +197,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 					Name: apis.RandomString(),
 					ValueFrom: pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
-							Name: referencedRc.Name,
+							Name:           referencedRc.Name,
 							OutputArtifact: apis.RandomString(),
 						},
 					},
@@ -233,7 +233,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 					Name: artifactName,
 					ValueFrom: pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
-							Name: referencedRc.Name,
+							Name:           referencedRc.Name,
 							OutputArtifact: apis.RandomString(),
 						},
 					},
@@ -258,7 +258,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			artifactName := apis.RandomString()
 			providerId := apis.RandomString()
 			artifact := common.Artifact{
-				Name: artifactName,
+				Name:     artifactName,
 				Location: apis.RandomString(),
 			}
 
@@ -275,7 +275,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 					Name: artifactName,
 					ValueFrom: pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
-							Name: referencedRc.Name,
+							Name:           referencedRc.Name,
 							OutputArtifact: apis.RandomString(),
 						},
 					},

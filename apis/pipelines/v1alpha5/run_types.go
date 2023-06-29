@@ -8,13 +8,13 @@ import (
 )
 
 type RuntimeParameter struct {
-	Name      string    `json:"Name"`
+	Name      string    `json:"name"`
 	Value     string    `json:"value,omitempty"`
 	ValueFrom ValueFrom `json:"valueFrom,omitempty"`
 }
 
 type RunConfigurationRef struct {
-	Name string           `json:"Name"`
+	Name           string `json:"name"`
 	OutputArtifact string `json:"outputArtifact"`
 }
 
@@ -25,7 +25,7 @@ type ValueFrom struct {
 type RunSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
-	RuntimeParameters []RuntimeParameter     `json:"runtimeParameters,omitempty"`
+	RuntimeParameters []RuntimeParameter `json:"runtimeParameters,omitempty"`
 	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
 }
 
@@ -76,10 +76,10 @@ var CompletionStates = struct {
 
 type RunStatus struct {
 	Status                  `json:",inline"`
-	ObservedPipelineVersion string          `json:"observedPipelineVersion,omitempty"`
-	Dependencies            map[string]RunReference  `json:"dependencies,omitempty"`
-	CompletionState         CompletionState `json:"completionState,omitempty"`
-	MarkedCompletedAt       *metav1.Time    `json:"markedCompletedAt,omitempty"`
+	ObservedPipelineVersion string                  `json:"observedPipelineVersion,omitempty"`
+	Dependencies            map[string]RunReference `json:"dependencies,omitempty"`
+	CompletionState         CompletionState         `json:"completionState,omitempty"`
+	MarkedCompletedAt       *metav1.Time            `json:"markedCompletedAt,omitempty"`
 }
 
 //+kubebuilder:object:root=true

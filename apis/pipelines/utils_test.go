@@ -46,11 +46,11 @@ var _ = Context("Utils", func() {
 
 	DescribeTable("Collect", func(as []int, expected []string) {
 		Expect(Collect(as, func(a int) (string, bool) {
-			 if a%2 == 0 {
+			if a%2 == 0 {
 				return strconv.Itoa(a), true
-			 }
+			}
 
-			 return "", false
+			return "", false
 		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
 	},
 		Entry("", []int{1, 2}, []string{"2"}),
