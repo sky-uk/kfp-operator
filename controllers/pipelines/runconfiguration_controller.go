@@ -91,7 +91,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	for _, rc := range runConfiguration.GetRunConfigurations() {
+	for _, rc := range runConfiguration.GetReferencedDependencies() {
 		if hasChanged, err := r.handleDependentRun(ctx, rc, runConfiguration); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}

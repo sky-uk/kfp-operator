@@ -61,7 +61,7 @@ type RunConfiguration struct {
 	Status RunConfigurationStatus `json:"status,omitempty"`
 }
 
-func (rc *RunConfiguration) SetDependency(name string, reference RunReference) {
+func (rc *RunConfiguration) SetDependencyRun(name string, reference RunReference) {
 	if rc.Status.LatestRuns.Dependencies == nil {
 		rc.Status.LatestRuns.Dependencies = make(map[string]RunReference, 1)
 	}
@@ -69,19 +69,16 @@ func (rc *RunConfiguration) SetDependency(name string, reference RunReference) {
 	rc.Status.LatestRuns.Dependencies[name] = reference
 }
 
-func (rc *RunConfiguration) GetRunConfigurations() []string {
+func (rc *RunConfiguration) GetReferencedDependencies() []string {
 	return pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
 		rc := rp.ValueFrom.RunConfigurationRef.Name
 		return rc, rc != ""
 	})
 }
 
-func (rc *RunConfiguration) GetDependencies() map[string]RunReference {
-	if rc.Status.LatestRuns.Dependencies != nil {
-		return rc.Status.LatestRuns.Dependencies
-	} else {
-		return make(map[string]RunReference, 1)
-	}
+func (rc *RunConfiguration) GetDependencyRun(name string) (RunReference, bool) {
+	ref, ok := rc.Status.LatestRuns.Dependencies[name]
+	return ref, ok
 }
 
 func (rc *RunConfiguration) GetProvider() string {

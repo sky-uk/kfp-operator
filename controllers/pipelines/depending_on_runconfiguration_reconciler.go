@@ -21,9 +21,9 @@ const (
 
 type DependingOnRunConfigurationResource interface {
 	client.Object
-	GetRunConfigurations() []string
-	GetDependencies() map[string]pipelinesv1.RunReference
-	SetDependency(string, pipelinesv1.RunReference)
+	GetReferencedDependencies() []string
+	GetDependencyRun(string) (pipelinesv1.RunReference, bool)
+	SetDependencyRun(string, pipelinesv1.RunReference)
 }
 
 type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource] struct {
@@ -41,8 +41,8 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRun(ctx contex
 		return false, err
 	}
 
-	if reference, ok := resource.GetDependencies()[name]; runConfiguration.Status.LatestRuns.Succeeded.ProviderId != "" && !ok || reference.ProviderId != runConfiguration.Status.LatestRuns.Succeeded.ProviderId {
-		resource.SetDependency(name, runConfiguration.Status.LatestRuns.Succeeded)
+	if reference, ok := resource.GetDependencyRun(name); runConfiguration.Status.LatestRuns.Succeeded.ProviderId != "" && !ok || reference.ProviderId != runConfiguration.Status.LatestRuns.Succeeded.ProviderId {
+		resource.SetDependencyRun(name, runConfiguration.Status.LatestRuns.Succeeded)
 		if err := dr.EC.Client.Status().Update(ctx, resource); err != nil {
 			logger.Error(err, "error updating resource with observed pipeline version")
 			return false, err
@@ -73,7 +73,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 
 func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, rcRefField, func(rawObj client.Object) []string {
-		return rawObj.(R).GetRunConfigurations()
+		return rawObj.(R).GetReferencedDependencies()
 	}); err != nil {
 		return nil, err
 	}

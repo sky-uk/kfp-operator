@@ -99,24 +99,21 @@ type Run struct {
 	Status RunStatus `json:"status,omitempty"`
 }
 
-func (rc *Run) SetDependency(name string, reference RunReference) {
-	if rc.Status.Dependencies == nil {
-		rc.Status.Dependencies = make(map[string]RunReference, 1)
+func (r *Run) SetDependencyRun(name string, reference RunReference) {
+	if r.Status.Dependencies == nil {
+		r.Status.Dependencies = make(map[string]RunReference, 1)
 	}
 
-	rc.Status.Dependencies[name] = reference
+	r.Status.Dependencies[name] = reference
 }
 
-func (rc *Run) GetDependencies() map[string]RunReference {
-	if rc.Status.Dependencies != nil {
-		return rc.Status.Dependencies
-	} else {
-		return make(map[string]RunReference, 1)
-	}
+func (r *Run) GetDependencyRun(name string) (RunReference, bool) {
+	ref, ok := r.Status.Dependencies[name]
+	return ref, ok
 }
 
-func (rc *Run) GetRunConfigurations() []string {
-	return pipelines.Collect(rc.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+func (r *Run) GetReferencedDependencies() []string {
+	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
 		rc := rp.ValueFrom.RunConfigurationRef.Name
 		return rc, rc != ""
 	})
