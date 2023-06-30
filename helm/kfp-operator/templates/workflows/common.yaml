@@ -19,6 +19,7 @@ spec:
       source: yq e '.{{`{{inputs.parameters.parameter}}`}}' '/providers-config/{{`{{workflow.parameters.provider-name}}`}}'
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
   - name: select-resource-image
     inputs:
       artifacts:
@@ -34,6 +35,7 @@ spec:
       source: yq e '.image' /resource-definition.yaml
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
   - name: delete
     inputs:
       parameters:
@@ -47,6 +49,7 @@ spec:
     podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
       volumeMounts:

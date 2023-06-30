@@ -115,6 +115,14 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;td>&lt;a href="https://argoproj.github.io/argo-workflows/fields/#ttlstrategy">TTL Strategy&lt;/a> used for all Argo Workflows&lt;/td>
 &lt;/tr>
 &lt;tr>
+&lt;td>&lt;code>manager.argo.stepTimeoutSeconds.default&lt;/code>&lt;/td>
+&lt;td>The maximum number of seconds that each non-compiler workflow step can run before being terminated - defaults to 300 (5m)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.argo.stepTimeoutSeconds.compile&lt;/code>&lt;/td>
+&lt;td>The maximum number of seconds that each compiler workflow step can run before being terminated - defaults to 1800 (60m)&lt;/td>
+&lt;/tr>
+&lt;tr>
 &lt;td>&lt;code>manager.argo.serviceAccount.name&lt;/code>&lt;/td>
 &lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s service account&lt;/a> used to run Argo workflows&lt;/td>
 &lt;/tr>

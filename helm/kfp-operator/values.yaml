@@ -35,6 +35,9 @@ manager:
     metadata: {}
     ttlStrategy:
       secondsAfterCompletion: 3600
+    stepTimeoutSeconds:
+      default: 300
+      compile: 1800
   monitoring:
     create: false
     rbacSecured: false

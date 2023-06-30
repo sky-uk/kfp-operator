@@ -23,6 +23,7 @@ spec:
           path: /tmp/provider-output.yaml
     podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
+    activeDeadlineSeconds: 300
     container:
       image: "{{inputs.parameters.provider-image}}"
       volumeMounts:
@@ -57,6 +58,7 @@ spec:
           path: /tmp/provider-output.yaml
     podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
+    activeDeadlineSeconds: 300
     container:
       image: "{{inputs.parameters.provider-image}}"
       volumeMounts:

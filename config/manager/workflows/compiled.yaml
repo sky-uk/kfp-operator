@@ -21,6 +21,7 @@ spec:
       - name: resource
         path: /tmp/resource.yaml
     metadata: {}
+    activeDeadlineSeconds: 1800
     container:
       command:
       - /shared/compile.sh
@@ -66,6 +67,7 @@ spec:
           path: /tmp/provider-output.yaml
     podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
+    activeDeadlineSeconds: 300
     container:
       image: "{{inputs.parameters.provider-image}}"
       volumeMounts:
@@ -105,6 +107,7 @@ spec:
           path: /tmp/provider-output.yaml
     podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
+    activeDeadlineSeconds: 300
     container:
       image: "{{inputs.parameters.provider-image}}"
       volumeMounts:
