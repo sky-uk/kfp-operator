@@ -566,20 +566,8 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>spec.run.pipeline&lt;/code>&lt;/td>
-&lt;td>The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will track the latest version of the specified pipeline.&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.run.experimentName&lt;/code>&lt;/td>
-&lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
-&lt;td>Exposed output artifacts that will be included in run completion events when a run for this RunConfiguration has succeeded. See &lt;a href="../run/#run-artifact-definition">Run Artifact Definition&lt;/a> for more information.&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.run.runtimeParameters&lt;/code>&lt;/td>
-&lt;td>Dictionary of runtime-time parameters as exposed by the pipeline.&lt;/td>
+&lt;td>&lt;code>spec.run&lt;/code>&lt;/td>
+&lt;td>Definition of any runs created under this run configuration. See &lt;a href="../run/#fields">Runs&lt;/a> for more details.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.triggers.schedules[]&lt;/code>&lt;/td>
@@ -906,6 +894,11 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">EXAMPLES&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">valueFrom&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurationRef&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-example-generator-runconfiguration&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">outputArtifact&lt;/span>: &lt;span style="color:#ae81ff">examples&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">serving-model&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
@@ -928,8 +921,8 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>spec.runtimeParameters&lt;/code>&lt;/td>
-&lt;td>Dictionary of runtime parameters as exposed by the pipeline.&lt;/td>
+&lt;td>&lt;code>spec.runtimeParameters[]&lt;/code>&lt;/td>
+&lt;td>Runtime parameters for the pipeline training run. See below for more information.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
@@ -937,6 +930,39 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
+&lt;h3 id="runtime-parameter-definition">Runtime Parameter Definition&lt;/h3>
+&lt;p>A pipeline run can be parameterised using RunTimeParameters.&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>name&lt;/code>&lt;/td>
+&lt;td>The name of the runtime parameter as referenced by the pipeline.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>value&lt;/code>&lt;/td>
+&lt;td>The value of the runtime parameter.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>valueFrom.runConfigurationRef&lt;/code>&lt;/td>
+&lt;td>If set, the value of this runtime parameter will be resolved from the output artifacts of the referenced runconfiguration and updated on change.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>valueFrom.runConfigurationRef.name&lt;/code>&lt;/td>
+&lt;td>The name of the runconfiguration to resolve.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>valueFrom.runConfigurationRef.outputArtifact&lt;/code>&lt;/td>
+&lt;td>The name of the outputArtifact to resolve.&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Note: either &lt;code>value&lt;/code> or &lt;code>valueFrom&lt;/code> must be defined.&lt;/p>
 &lt;h3 id="run-artifact-definition">Run Artifact Definition&lt;/h3>
 &lt;p>A pipeline run can expose what Artifacts to include in resulting run completion events.&lt;/p>
 &lt;table>
