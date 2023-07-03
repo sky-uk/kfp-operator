@@ -31,7 +31,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		if parameter.Value != "" {
 			runtimeParameters[parameter.Name] = parameter.Value
 		} else {
-			if dependentRun, ok := run.Status.Dependencies[parameter.ValueFrom.RunConfigurationRef.Name]; ok {
+			if dependentRun, ok := run.Status.Dependencies.RunConfigurations[parameter.ValueFrom.RunConfigurationRef.Name]; ok {
 				for _, artifact := range dependentRun.Artifacts {
 					if artifact.Name == parameter.Name {
 						runtimeParameters[parameter.Name] = artifact.Location

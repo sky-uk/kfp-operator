@@ -327,10 +327,10 @@ spec:
                 type: string
               synchronizationState:
                 type: string
-              latestRuns:
+              dependencies:
                 type: object
                 properties:
-                  dependencies:
+                  runConfigurations:
                     additionalProperties:
                       properties:
                         artifacts:
@@ -349,6 +349,9 @@ spec:
                           type: string
                       type: object
                     type: object
+              latestRuns:
+                type: object
+                properties:
                   succeeded:
                     type: object
                     properties:

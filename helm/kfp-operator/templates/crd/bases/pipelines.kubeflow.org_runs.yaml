@@ -189,24 +189,27 @@ spec:
               completionState:
                 type: string
               dependencies:
-                additionalProperties:
-                  properties:
-                    artifacts:
-                      items:
-                        properties:
-                          location:
-                            type: string
-                          name:
-                            type: string
-                        required:
-                          - location
-                          - name
-                        type: object
-                      type: array
-                    providerId:
-                      type: string
-                  type: object
                 type: object
+                properties:
+                  runConfigurations:
+                    additionalProperties:
+                      properties:
+                        artifacts:
+                          items:
+                            properties:
+                              location:
+                                type: string
+                              name:
+                                type: string
+                            required:
+                              - location
+                              - name
+                            type: object
+                          type: array
+                        providerId:
+                          type: string
+                      type: object
+                    type: object
               markedCompletedAt:
                 format: date-time
                 type: string

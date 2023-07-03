@@ -3,7 +3,6 @@ package v1alpha5
 import (
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -27,14 +26,8 @@ type RunConfigurationSpec struct {
 	Triggers Triggers `json:"triggers,omitempty"`
 }
 
-type RunReference struct {
-	ProviderId string            `json:"providerId,omitempty"`
-	Artifacts  []common.Artifact `json:"artifacts,omitempty"`
-}
-
 type LatestRuns struct {
-	Succeeded    RunReference            `json:"succeeded,omitempty"`
-	Dependencies map[string]RunReference `json:"dependencies,omitempty"`
+	Succeeded RunReference `json:"succeeded,omitempty"`
 }
 
 type RunConfigurationStatus struct {
@@ -43,6 +36,7 @@ type RunConfigurationStatus struct {
 	ObservedPipelineVersion  string                    `json:"observedPipelineVersion,omitempty"`
 	TriggeredPipelineVersion string                    `json:"triggeredPipelineVersion,omitempty"`
 	LatestRuns               LatestRuns                `json:"latestRuns,omitempty"`
+	Dependencies             Dependencies              `json:"dependencies,omitempty"`
 	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
 }
 
@@ -62,11 +56,11 @@ type RunConfiguration struct {
 }
 
 func (rc *RunConfiguration) SetDependencyRun(name string, reference RunReference) {
-	if rc.Status.LatestRuns.Dependencies == nil {
-		rc.Status.LatestRuns.Dependencies = make(map[string]RunReference, 1)
+	if rc.Status.Dependencies.RunConfigurations == nil {
+		rc.Status.Dependencies.RunConfigurations = make(map[string]RunReference, 1)
 	}
 
-	rc.Status.LatestRuns.Dependencies[name] = reference
+	rc.Status.Dependencies.RunConfigurations[name] = reference
 }
 
 func (rc *RunConfiguration) GetReferencedDependencies() []string {
@@ -77,7 +71,7 @@ func (rc *RunConfiguration) GetReferencedDependencies() []string {
 }
 
 func (rc *RunConfiguration) GetDependencyRun(name string) (RunReference, bool) {
-	ref, ok := rc.Status.LatestRuns.Dependencies[name]
+	ref, ok := rc.Status.Dependencies.RunConfigurations[name]
 	return ref, ok
 }
 

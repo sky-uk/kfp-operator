@@ -182,7 +182,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Failed))
-				g.Expect(run.Status.Dependencies[runConfigurationName].ProviderId).To(BeEmpty())
+				g.Expect(run.Status.Dependencies.RunConfigurations[runConfigurationName].ProviderId).To(BeEmpty())
 			})).Should(Succeed())
 		})
 	})
@@ -211,7 +211,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Failed))
-				g.Expect(run.Status.Dependencies[referencedRc.Name].ProviderId).To(BeEmpty())
+				g.Expect(run.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(BeEmpty())
 			})).Should(Succeed())
 		})
 	})
@@ -247,8 +247,8 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Failed))
-				g.Expect(run.Status.Dependencies[referencedRc.Name].ProviderId).To(Equal(providerId))
-				g.Expect(run.Status.Dependencies[referencedRc.Name].Artifacts).To(BeEmpty())
+				g.Expect(run.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(Equal(providerId))
+				g.Expect(run.Status.Dependencies.RunConfigurations[referencedRc.Name].Artifacts).To(BeEmpty())
 			})).Should(Succeed())
 		})
 	})
@@ -289,8 +289,8 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
-				g.Expect(run.Status.Dependencies[referencedRc.Name].ProviderId).To(Equal(providerId))
-				g.Expect(run.Status.Dependencies[referencedRc.Name].Artifacts).To(ContainElement(artifact))
+				g.Expect(run.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(Equal(providerId))
+				g.Expect(run.Status.Dependencies.RunConfigurations[referencedRc.Name].Artifacts).To(ContainElement(artifact))
 			})).Should(Succeed())
 		})
 	})

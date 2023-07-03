@@ -239,7 +239,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(k8sClient.Get(ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.LatestRuns.Dependencies[referencedRc.Name].Artifacts).To(ContainElement(artifact))
+				g.Expect(runConfiguration.Status.Dependencies.RunConfigurations[referencedRc.Name].Artifacts).To(ContainElement(artifact))
 			})).Should(Succeed())
 		})
 	})

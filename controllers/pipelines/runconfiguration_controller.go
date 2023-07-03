@@ -338,7 +338,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 						if r.Value != "" {
 							return r
 						} else {
-							for _, artifact := range runConfiguration.Status.LatestRuns.Dependencies[r.ValueFrom.RunConfigurationRef.Name].Artifacts {
+							for _, artifact := range runConfiguration.Status.Dependencies.RunConfigurations[r.ValueFrom.RunConfigurationRef.Name].Artifacts {
 								if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
 									return pipelinesv1.RuntimeParameter{
 										Name:  r.Name,

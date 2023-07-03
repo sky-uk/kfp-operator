@@ -3,6 +3,7 @@ package v1alpha5
 import (
 	"fmt"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -74,12 +75,21 @@ var CompletionStates = struct {
 	Failed:    "Failed",
 }
 
+type RunReference struct {
+	ProviderId string            `json:"providerId,omitempty"`
+	Artifacts  []common.Artifact `json:"artifacts,omitempty"`
+}
+
+type Dependencies struct {
+	RunConfigurations map[string]RunReference `json:"runConfigurations,omitempty"`
+}
+
 type RunStatus struct {
 	Status                  `json:",inline"`
-	ObservedPipelineVersion string                  `json:"observedPipelineVersion,omitempty"`
-	Dependencies            map[string]RunReference `json:"dependencies,omitempty"`
-	CompletionState         CompletionState         `json:"completionState,omitempty"`
-	MarkedCompletedAt       *metav1.Time            `json:"markedCompletedAt,omitempty"`
+	ObservedPipelineVersion string          `json:"observedPipelineVersion,omitempty"`
+	Dependencies            Dependencies    `json:"dependencies,omitempty"`
+	CompletionState         CompletionState `json:"completionState,omitempty"`
+	MarkedCompletedAt       *metav1.Time    `json:"markedCompletedAt,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -100,15 +110,15 @@ type Run struct {
 }
 
 func (r *Run) SetDependencyRun(name string, reference RunReference) {
-	if r.Status.Dependencies == nil {
-		r.Status.Dependencies = make(map[string]RunReference, 1)
+	if r.Status.Dependencies.RunConfigurations == nil {
+		r.Status.Dependencies.RunConfigurations = make(map[string]RunReference, 1)
 	}
 
-	r.Status.Dependencies[name] = reference
+	r.Status.Dependencies.RunConfigurations[name] = reference
 }
 
 func (r *Run) GetDependencyRun(name string) (RunReference, bool) {
-	ref, ok := r.Status.Dependencies[name]
+	ref, ok := r.Status.Dependencies.RunConfigurations[name]
 	return ref, ok
 }
 

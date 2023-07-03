@@ -299,9 +299,9 @@ spec:
             type: object
           status:
             properties:
-              latestRuns:
+              dependencies:
                 properties:
-                  dependencies:
+                  runConfigurations:
                     additionalProperties:
                       properties:
                         artifacts:
@@ -320,6 +320,9 @@ spec:
                           type: string
                       type: object
                     type: object
+                type: object
+              latestRuns:
+                properties:
                   succeeded:
                     properties:
                       artifacts:
