@@ -9,9 +9,9 @@ import (
 )
 
 type RuntimeParameter struct {
-	Name      string    `json:"name"`
-	Value     string    `json:"value,omitempty"`
-	ValueFrom ValueFrom `json:"valueFrom,omitempty"`
+	Name      string     `json:"name"`
+	Value     string     `json:"value,omitempty"`
+	ValueFrom *ValueFrom `json:"valueFrom,omitempty"`
 }
 
 type RunConfigurationRef struct {
@@ -31,22 +31,36 @@ type RunSpec struct {
 }
 
 func WriteRunTimeParameters(oh pipelines.ObjectHasher, rts []RuntimeParameter) {
-	pipelines.WriteList(oh, rts, func(rt1, rt2 RuntimeParameter) bool {
+	cmp := func(rt1, rt2 RuntimeParameter) bool {
 		if rt1.Name != rt2.Name {
 			return rt1.Name < rt2.Name
-		} else if rt1.Value != rt2.Value {
-			return rt1.Value < rt2.Value
-		} else if rt1.ValueFrom.RunConfigurationRef.Name != rt1.ValueFrom.RunConfigurationRef.Name {
-			return rt1.ValueFrom.RunConfigurationRef.Name < rt1.ValueFrom.RunConfigurationRef.Name
-		} else {
-			return rt1.ValueFrom.RunConfigurationRef.OutputArtifact < rt1.ValueFrom.RunConfigurationRef.OutputArtifact
 		}
-	}, func(oh pipelines.ObjectHasher, rt RuntimeParameter) {
+
+		if rt1.Value != rt2.Value {
+			return rt1.Value < rt2.Value
+		}
+
+		if rt1.ValueFrom == nil {
+			return rt2.ValueFrom != nil
+		}
+
+		if rt1.ValueFrom.RunConfigurationRef.Name != rt1.ValueFrom.RunConfigurationRef.Name {
+			return rt1.ValueFrom.RunConfigurationRef.Name < rt1.ValueFrom.RunConfigurationRef.Name
+		}
+
+		return rt1.ValueFrom.RunConfigurationRef.OutputArtifact < rt1.ValueFrom.RunConfigurationRef.OutputArtifact
+	}
+
+	write := func(oh pipelines.ObjectHasher, rt RuntimeParameter) {
 		oh.WriteStringField(rt.Name)
 		oh.WriteStringField(rt.Value)
-		oh.WriteStringField(rt.ValueFrom.RunConfigurationRef.Name)
-		oh.WriteStringField(rt.ValueFrom.RunConfigurationRef.OutputArtifact)
-	})
+		if rt.ValueFrom != nil {
+			oh.WriteStringField(rt.ValueFrom.RunConfigurationRef.Name)
+			oh.WriteStringField(rt.ValueFrom.RunConfigurationRef.OutputArtifact)
+		}
+	}
+
+	pipelines.WriteList(oh, rts, cmp, write)
 }
 
 func (r Run) ComputeHash() []byte {

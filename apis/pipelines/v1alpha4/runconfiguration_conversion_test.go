@@ -10,7 +10,7 @@ import (
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
-var _ = Context("RunConfiguration Conversion", func() {
+var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		Specify("converts empty Schedule into no triggers", func() {
 			src := RandomRunConfiguration()
@@ -31,12 +31,16 @@ var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunConfiguration()
+			hub.WithValueFrom(&src.Spec.Run)
 			intermediate := &RunConfiguration{}
 			dst := &hub.RunConfiguration{}
 
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
+			Expect(dst.Spec.Run.RuntimeParameters).To(ConsistOf(src.Spec.Run.RuntimeParameters))
+			dst.Spec.Run.RuntimeParameters = nil
+			src.Spec.Run.RuntimeParameters = nil
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})

@@ -105,6 +105,20 @@ func RandomRun() *Run {
 	}
 }
 
+func WithValueFrom(runSpec *RunSpec) {
+	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(func() RuntimeParameter {
+		return RuntimeParameter{
+			Name:  RandomString(),
+			ValueFrom: &ValueFrom{
+				RunConfigurationRef: RunConfigurationRef{
+					Name: RandomString(),
+					OutputArtifact: RandomString(),
+				},
+			},
+		}
+	})...)
+}
+
 func RandomRunSpec() RunSpec {
 	return RunSpec{
 		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},

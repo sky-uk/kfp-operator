@@ -37,6 +37,9 @@ var _ = Context("RunConfiguration Conversion", func() {
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
+			Expect(dst.Spec.Run.RuntimeParameters).To(ConsistOf(src.Spec.Run.RuntimeParameters))
+			dst.Spec.Run.RuntimeParameters = nil
+			src.Spec.Run.RuntimeParameters = nil
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})
