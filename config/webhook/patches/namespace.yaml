@@ -1,3 +1,6 @@
 - op: replace
   path: /webhooks/0/clientConfig/service/namespace
   value: kfp-operator-system
+- op: replace
+  path: /webhooks/1/clientConfig/service/namespace
+  value: kfp-operator-system

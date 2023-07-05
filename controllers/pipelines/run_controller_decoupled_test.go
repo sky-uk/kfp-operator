@@ -65,6 +65,25 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 		})
 	})
 
+	When("Creating an invalid run", func() {
+		It("errors", func() {
+			run := pipelinesv1.RandomRun()
+			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					Value: apis.RandomString(),
+					ValueFrom: &pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name: apis.RandomString(),
+							OutputArtifact: apis.RandomString(),
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, run)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
+		})
+	})
+
 	When("the completion state is set", func() {
 		It("sets MarkCompletedAt", func() {
 			runHelper := CreateSucceeded(pipelinesv1.RandomRun())
@@ -166,7 +185,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),
-					ValueFrom: pipelinesv1.ValueFrom{
+					ValueFrom: &pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
 							Name:           runConfigurationName,
 							OutputArtifact: apis.RandomString(),
@@ -195,7 +214,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),
-					ValueFrom: pipelinesv1.ValueFrom{
+					ValueFrom: &pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
 							Name:           referencedRc.Name,
 							OutputArtifact: apis.RandomString(),
@@ -231,7 +250,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: artifactName,
-					ValueFrom: pipelinesv1.ValueFrom{
+					ValueFrom: &pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
 							Name:           referencedRc.Name,
 							OutputArtifact: apis.RandomString(),
@@ -273,7 +292,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: artifactName,
-					ValueFrom: pipelinesv1.ValueFrom{
+					ValueFrom: &pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
 							Name:           referencedRc.Name,
 							OutputArtifact: apis.RandomString(),

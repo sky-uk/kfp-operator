@@ -138,8 +138,11 @@ func (r *Run) GetDependencyRun(name string) (RunReference, bool) {
 
 func (r *Run) GetReferencedDependencies() []string {
 	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
-		rc := rp.ValueFrom.RunConfigurationRef.Name
-		return rc, rc != ""
+		if rp.ValueFrom == nil {
+			return "", false
+		}
+
+		return rp.ValueFrom.RunConfigurationRef.Name, true
 	})
 }
 

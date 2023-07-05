@@ -60,7 +60,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	})
 
 	When("Deleted", func() {
-
 		It("cascades deletes", func() {
 			Skip("See https://github.com/kubernetes-sigs/controller-runtime/issues/1459. Keep test for documentation")
 			runConfiguration := createSucceededRcWithSchedule()
@@ -221,7 +220,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
-					ValueFrom: pipelinesv1.ValueFrom{
+					ValueFrom: &pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
 							Name:           referencedRc.Name,
 							OutputArtifact: artifactName,
@@ -286,6 +285,45 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(ownedSchedule.GetAnnotations()[apis.ResourceAnnotations.Provider]).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
+		})
+	})
+
+	When("Creating an invalid run configuration", func() {
+		It("errors", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					Value: apis.RandomString(),
+					ValueFrom: &pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name: apis.RandomString(),
+							OutputArtifact: apis.RandomString(),
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
+		})
+	})
+
+	When("Updating an invalid run configuration", func() {
+		It("errors", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					Value: apis.RandomString(),
+					ValueFrom: &pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name: apis.RandomString(),
+							OutputArtifact: apis.RandomString(),
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Update(ctx, runConfiguration)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
 		})
 	})
 })
