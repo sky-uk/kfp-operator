@@ -142,7 +142,10 @@ func (r *Run) GetReferencedDependencies() []string {
 			return "", false
 		}
 
-		return rp.ValueFrom.RunConfigurationRef.Name, true
+		rcName := rp.ValueFrom.RunConfigurationRef.Name
+		providerIdExists := r.Status.Dependencies.RunConfigurations[rcName].ProviderId == ""
+
+		return rcName, providerIdExists
 	})
 }
 

@@ -70,14 +70,9 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	desiredProvider := desiredProvider(run, r.Config)
 
-	for _, rc := range run.GetReferencedDependencies() {
-		// Never change after being set
-		if run.Status.Dependencies.RunConfigurations[rc].ProviderId == "" {
-			if hasChanged, err := r.handleDependentRun(ctx, rc, run); hasChanged || err != nil {
-				return ctrl.Result{}, err
-			}
+	if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
+			return ctrl.Result{}, err
 		}
-	}
 
 	// Never change after being set
 	if run.Status.ObservedPipelineVersion == "" {

@@ -91,15 +91,9 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	for _, rc := range runConfiguration.GetReferencedDependencies() {
-		if hasChanged, err := r.handleDependentRun(ctx, rc, runConfiguration); hasChanged || err != nil {
+	if hasChanged, err := r.handleDependentRuns(ctx, runConfiguration); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
-	}
-
-	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
-		return ctrl.Result{}, err
-	}
 
 	if runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.Triggers.OnChange != nil {
 		return ctrl.Result{}, r.syncWithRuns(ctx, desiredProvider, runConfiguration)

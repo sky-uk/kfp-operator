@@ -30,25 +30,27 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 	EC K8sExecutionContext
 }
 
-func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRun(ctx context.Context, name string, resource R) (bool, error) {
+func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
-	runConfiguration, err := dr.getIgnoreNotFound(ctx, types.NamespacedName{
-		Namespace: resource.GetNamespace(),
-		Name:      name,
-	})
-	if err != nil || runConfiguration == nil {
-		return false, err
-	}
-
-	if reference, ok := resource.GetDependencyRun(name); runConfiguration.Status.LatestRuns.Succeeded.ProviderId != "" && !ok || reference.ProviderId != runConfiguration.Status.LatestRuns.Succeeded.ProviderId {
-		resource.SetDependencyRun(name, runConfiguration.Status.LatestRuns.Succeeded)
-		if err := dr.EC.Client.Status().Update(ctx, resource); err != nil {
-			logger.Error(err, "error updating resource with observed pipeline version")
+	for _, rcName := range resource.GetReferencedDependencies() {
+		runConfiguration, err := dr.getIgnoreNotFound(ctx, types.NamespacedName{
+			Namespace: resource.GetNamespace(),
+			Name:      rcName,
+		})
+		if err != nil || runConfiguration == nil {
 			return false, err
 		}
 
-		return true, nil
+		if reference, ok := resource.GetDependencyRun(rcName); runConfiguration.Status.LatestRuns.Succeeded.ProviderId != "" && !ok || reference.ProviderId != runConfiguration.Status.LatestRuns.Succeeded.ProviderId {
+			resource.SetDependencyRun(rcName, runConfiguration.Status.LatestRuns.Succeeded)
+			if err := dr.EC.Client.Status().Update(ctx, resource); err != nil {
+				logger.Error(err, "error updating resource with observed pipeline version")
+				return false, err
+			}
+
+			return true, nil
+		}
 	}
 
 	return false, nil
