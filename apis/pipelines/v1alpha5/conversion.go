@@ -14,8 +14,8 @@ func (rcr RunConfigurationConversionRemainder) Empty() bool {
 }
 
 type RunConversionRemainder struct {
-	Artifacts           []OutputArtifact     `json:"artifacts,omitempty"`
-	ValueFromParameters []RuntimeParameter   `json:"valueFromParameters,omitempty"`
+	Artifacts           []OutputArtifact   `json:"artifacts,omitempty"`
+	ValueFromParameters []RuntimeParameter `json:"valueFromParameters,omitempty"`
 }
 
 func (rcr RunConversionRemainder) Empty() bool {

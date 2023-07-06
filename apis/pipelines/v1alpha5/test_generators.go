@@ -108,10 +108,10 @@ func RandomRun() *Run {
 func WithValueFrom(runSpec *RunSpec) {
 	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(func() RuntimeParameter {
 		return RuntimeParameter{
-			Name:  RandomString(),
+			Name: RandomString(),
 			ValueFrom: &ValueFrom{
 				RunConfigurationRef: RunConfigurationRef{
-					Name: RandomString(),
+					Name:           RandomString(),
 					OutputArtifact: RandomString(),
 				},
 			},

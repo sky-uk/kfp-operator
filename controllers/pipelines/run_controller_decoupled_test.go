@@ -73,7 +73,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 					Value: apis.RandomString(),
 					ValueFrom: &pipelinesv1.ValueFrom{
 						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
-							Name: apis.RandomString(),
+							Name:           apis.RandomString(),
 							OutputArtifact: apis.RandomString(),
 						},
 					},

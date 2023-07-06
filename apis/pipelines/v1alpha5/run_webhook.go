@@ -24,10 +24,10 @@ func (r *Run) ValidateCreate() error {
 		if rp.ValueFrom != nil && rp.Value != "" {
 			return apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
 				r.Name, field.ErrorList{
-				field.Invalid(
-					field.NewPath("spec").Child("runtimeParameters").Index(i),
-					rp,
-					"only one of value or valueFrom can be set"),
+					field.Invalid(
+						field.NewPath("spec").Child("runtimeParameters").Index(i),
+						rp,
+						"only one of value or valueFrom can be set"),
 				})
 		}
 	}
