@@ -31,6 +31,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunConfiguration()
+			hub.WithValueFrom(&src.Spec.Run)
 			intermediate := &RunConfiguration{}
 			dst := &hub.RunConfiguration{}
 

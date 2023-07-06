@@ -71,7 +71,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunConfiguration()
-
+			hub.WithValueFrom(&src.Spec.Run)
 			intermediate := &RunConfiguration{}
 			dst := &hub.RunConfiguration{}
 
@@ -82,9 +82,6 @@ var _ = Context("RunConfiguration Conversion", func() {
 			src.Spec.Run.RuntimeParameters = nil
 			dst.Spec.Run.RuntimeParameters = nil
 
-			Expect(dst.Spec.Run.RuntimeParameters).To(ConsistOf(src.Spec.Run.RuntimeParameters))
-			dst.Spec.Run.RuntimeParameters = nil
-			src.Spec.Run.RuntimeParameters = nil
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 

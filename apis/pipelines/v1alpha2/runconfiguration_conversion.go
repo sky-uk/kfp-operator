@@ -19,7 +19,8 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Run.RuntimeParameters = hub.MergeRuntimeParameters(append(v1alpha4.MapToNamedValues(src.Spec.RuntimeParameters), v1alpha3remainder.RuntimeParameters...), v1alpha5remainder.ValueFromParameters)
+	valueParameters := append(v1alpha4.MapToNamedValues(src.Spec.RuntimeParameters), v1alpha3remainder.RuntimeParameters...)
+	dst.Spec.Run.RuntimeParameters = hub.MergeRuntimeParameters(valueParameters, v1alpha5remainder.ValueFromParameters)
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	dst.Spec.Triggers = v1alpha5remainder.Triggers
 	if src.Spec.Schedule != "" {

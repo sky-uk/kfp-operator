@@ -30,37 +30,37 @@ type RunSpec struct {
 	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
 }
 
-func WriteRunTimeParameters(oh pipelines.ObjectHasher, rts []RuntimeParameter) {
-	cmp := func(rt1, rt2 RuntimeParameter) bool {
-		if rt1.Name != rt2.Name {
-			return rt1.Name < rt2.Name
-		}
-
-		if rt1.Value != rt2.Value {
-			return rt1.Value < rt2.Value
-		}
-
-		if rt1.ValueFrom == nil {
-			return rt2.ValueFrom != nil
-		}
-
-		if rt1.ValueFrom.RunConfigurationRef.Name != rt1.ValueFrom.RunConfigurationRef.Name {
-			return rt1.ValueFrom.RunConfigurationRef.Name < rt1.ValueFrom.RunConfigurationRef.Name
-		}
-
-		return rt1.ValueFrom.RunConfigurationRef.OutputArtifact < rt1.ValueFrom.RunConfigurationRef.OutputArtifact
+func cmpRuntimeParameters(rp1, rp2 RuntimeParameter) bool {
+	if rp1.Name != rp2.Name {
+		return rp1.Name < rp2.Name
 	}
 
-	write := func(oh pipelines.ObjectHasher, rt RuntimeParameter) {
-		oh.WriteStringField(rt.Name)
-		oh.WriteStringField(rt.Value)
-		if rt.ValueFrom != nil {
-			oh.WriteStringField(rt.ValueFrom.RunConfigurationRef.Name)
-			oh.WriteStringField(rt.ValueFrom.RunConfigurationRef.OutputArtifact)
-		}
+	if rp1.Value != rp2.Value {
+		return rp1.Value < rp2.Value
 	}
 
-	pipelines.WriteList(oh, rts, cmp, write)
+	if rp1.ValueFrom == nil {
+		return rp2.ValueFrom != nil
+	}
+
+	if rp1.ValueFrom.RunConfigurationRef.Name != rp2.ValueFrom.RunConfigurationRef.Name {
+		return rp1.ValueFrom.RunConfigurationRef.Name < rp2.ValueFrom.RunConfigurationRef.Name
+	}
+
+	return rp1.ValueFrom.RunConfigurationRef.OutputArtifact < rp2.ValueFrom.RunConfigurationRef.OutputArtifact
+}
+
+func writeRuntimeParameter(oh pipelines.ObjectHasher, rp RuntimeParameter) {
+	oh.WriteStringField(rp.Name)
+	oh.WriteStringField(rp.Value)
+	if rp.ValueFrom != nil {
+		oh.WriteStringField(rp.ValueFrom.RunConfigurationRef.Name)
+		oh.WriteStringField(rp.ValueFrom.RunConfigurationRef.OutputArtifact)
+	}
+}
+
+func WriteRunTimeParameters(oh pipelines.ObjectHasher, rps []RuntimeParameter) {
+	pipelines.WriteList(oh, rps, cmpRuntimeParameters, writeRuntimeParameter)
 }
 
 func (r Run) ComputeHash() []byte {
