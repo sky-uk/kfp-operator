@@ -86,7 +86,19 @@ func RandomRunSchedule() *RunSchedule {
 
 func RandomRunScheduleSpec() RunScheduleSpec {
 	return RunScheduleSpec{
-		RunSpec:  RandomRunSpec(),
+		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		ExperimentName: RandomString(),
+		RuntimeParameters: RandomNamedValues(),
+		Artifacts: RandomList(func() OutputArtifact {
+			return OutputArtifact{Name: RandomString(), Path: ArtifactPath{
+				Locator: ArtifactLocator{
+					Component: RandomString(),
+					Artifact:  RandomString(),
+					Index:     rand.Int(),
+				},
+				Filter: RandomString(),
+			}}
+		}),
 		Schedule: RandomString(),
 	}
 }

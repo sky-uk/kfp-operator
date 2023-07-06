@@ -44,8 +44,8 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		PipelineVersion:      runSchedule.Spec.Pipeline.Version,
 		ExperimentName:       experimentName,
 		Schedule:             runSchedule.Spec.Schedule,
-		RuntimeParameters:    runtimeParameters,
-		Artifacts:            runSchedule.Spec.RunSpec.Artifacts,
+		RuntimeParameters:    NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
+		Artifacts:            runSchedule.Spec.Artifacts,
 	}, nil
 }
 

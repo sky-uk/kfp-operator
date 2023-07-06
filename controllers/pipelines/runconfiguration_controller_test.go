@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -49,7 +50,9 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 			Expect(schedule.Namespace).To(Equal(runConfiguration.Namespace))
 			Expect(schedule.Spec.Pipeline.Name).To(Equal(runConfiguration.Spec.Run.Pipeline.Name))
 			Expect(schedule.Spec.Pipeline.Version).To(Equal(runConfiguration.Status.ObservedPipelineVersion))
-			Expect(schedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.Run.RuntimeParameters))
+			Expect(schedule.Spec.RuntimeParameters).To(Equal(pipelines.Map(runConfiguration.Spec.Run.RuntimeParameters, func(rp pipelinesv1.RuntimeParameter) apis.NamedValue {
+				return apis.NamedValue{Name: rp.Name, Value: rp.Value}
+			})))
 			Expect(schedule.Spec.ExperimentName).To(Equal(runConfiguration.Spec.Run.ExperimentName))
 			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[i]))
 			Expect(metav1.IsControlledBy(&schedule, runConfiguration)).To(BeTrue())

@@ -28,8 +28,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})).Should(Succeed())
 
 		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
-			g.Expect(ownedSchedule.Spec.Pipeline).To(Equal(runConfiguration.Spec.Run.Pipeline))
-			g.Expect(ownedSchedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.Run.RuntimeParameters))
+			//other fields tested in unit test
 			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[0]))
 			g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 		})).Should(Succeed())

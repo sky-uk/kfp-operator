@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,6 +29,26 @@ type RunSpec struct {
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []RuntimeParameter `json:"runtimeParameters,omitempty"`
 	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
+}
+
+func (runSpec RunSpec) ResolveRuntimeParameters(dependencies Dependencies) []apis.NamedValue {
+	return pipelines.Map(runSpec.RuntimeParameters, func(r RuntimeParameter) (namedValue apis.NamedValue) {
+		namedValue.Name = r.Name
+
+		if r.ValueFrom == nil {
+			namedValue.Value = r.Value
+			return
+		}
+
+		for _, artifact := range dependencies.RunConfigurations[r.ValueFrom.RunConfigurationRef.Name].Artifacts {
+			if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
+				namedValue.Value = artifact.Location
+				return
+			}
+		}
+
+		return
+	})
 }
 
 func cmpRuntimeParameters(rp1, rp2 RuntimeParameter) bool {

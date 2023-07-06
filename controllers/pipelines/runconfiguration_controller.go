@@ -323,32 +323,13 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 				Namespace:    runConfiguration.Namespace,
 			},
 			Spec: pipelinesv1.RunScheduleSpec{
-				RunSpec: pipelinesv1.RunSpec{
-					Pipeline: pipelinesv1.PipelineIdentifier{
-						Name:    runConfiguration.Spec.Run.Pipeline.Name,
-						Version: runConfiguration.Status.ObservedPipelineVersion,
-					},
-					RuntimeParameters: pipelines.Map(runConfiguration.Spec.Run.RuntimeParameters, func(r pipelinesv1.RuntimeParameter) pipelinesv1.RuntimeParameter {
-						if r.Value != "" {
-							return r
-						} else {
-							for _, artifact := range runConfiguration.Status.Dependencies.RunConfigurations[r.ValueFrom.RunConfigurationRef.Name].Artifacts {
-								if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
-									return pipelinesv1.RuntimeParameter{
-										Name:  r.Name,
-										Value: artifact.Location,
-									}
-								}
-							}
-
-							return pipelinesv1.RuntimeParameter{
-								Name: r.Name,
-							}
-						}
-					}),
-					ExperimentName: runConfiguration.Spec.Run.ExperimentName,
-					Artifacts:      runConfiguration.Spec.Run.Artifacts,
+				Pipeline: pipelinesv1.PipelineIdentifier{
+					Name:    runConfiguration.Spec.Run.Pipeline.Name,
+					Version: runConfiguration.Status.ObservedPipelineVersion,
 				},
+				RuntimeParameters: runConfiguration.Spec.Run.ResolveRuntimeParameters(runConfiguration.Status.Dependencies),
+				ExperimentName: runConfiguration.Spec.Run.ExperimentName,
+				Artifacts:      runConfiguration.Spec.Run.Artifacts,
 				Schedule: schedule,
 			},
 		}

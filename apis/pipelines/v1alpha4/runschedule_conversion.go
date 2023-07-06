@@ -15,7 +15,7 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.RuntimeParameters = hub.MergeRuntimeParameters(src.Spec.RuntimeParameters, v1alpha5remainder.ValueFromParameters)
+	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	dst.Spec.Schedule = src.Spec.Schedule
 	dst.Spec.Artifacts = v1alpha5remainder.Artifacts
@@ -36,7 +36,7 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.RuntimeParameters, v1alpha5remainder.ValueFromParameters = hub.SplitRunTimeParameters(src.Spec.RuntimeParameters)
+	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	v1alpha5remainder.Artifacts = src.Spec.Artifacts
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
