@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 var _ = Context("Run", func() {
@@ -186,11 +187,11 @@ var _ = Context("Run", func() {
 		Specify("the same object should result in the same hash", func() {
 			oh1 := pipelines.NewObjectHasher()
 			rp := RuntimeParameter{
-				Name: apis.RandomString(),
+				Name:  apis.RandomString(),
 				Value: apis.RandomString(),
 				ValueFrom: &ValueFrom{
 					RunConfigurationRef: RunConfigurationRef{
-						Name: apis.RandomString(),
+						Name:           apis.RandomString(),
 						OutputArtifact: apis.RandomString(),
 					},
 				},
@@ -201,6 +202,92 @@ var _ = Context("Run", func() {
 			writeRuntimeParameter(oh2, rp)
 
 			Expect(oh1.Sum()).To(Equal(oh2.Sum()))
+		})
+	})
+})
+var _ = Context("RunSpec", func() {
+	Describe("ResolveRuntimeParameters", func() {
+
+		Specify("no ValueFrom", func() {
+			expectedNamedValue := apis.RandomNamedValue()
+			rs := RunSpec{
+				RuntimeParameters: []RuntimeParameter{
+					{
+						Name:  expectedNamedValue.Name,
+						Value: expectedNamedValue.Value,
+					},
+				},
+			}
+
+			Expect(rs.ResolveRuntimeParameters(Dependencies{})).To(ConsistOf(expectedNamedValue))
+		})
+
+		//Specify("artifact not found in dependency", func() {
+		//	rs := RunSpec{
+		//		RuntimeParameters: []RuntimeParameter{
+		//			{
+		//				Name: expectedNamedValue.Name,
+		//				Value: expectedNamedValue.Value,
+		//			},
+		//		},
+		//	}
+		//
+		//	Expect(rs.ResolveRuntimeParameters(Dependencies{})).To(ConsistOf(expectedNamedValue))
+		//})
+
+		Specify("dependency not found", func() {
+			expectedNamedValue := apis.NamedValue{
+				Name: apis.RandomString(),
+			}
+			runConfigurationName := apis.RandomString()
+
+			rs := RunSpec{
+				RuntimeParameters: []RuntimeParameter{
+					{
+						Name: expectedNamedValue.Name,
+						ValueFrom: &ValueFrom{
+							RunConfigurationRef: RunConfigurationRef{
+								Name: runConfigurationName,
+							},
+						},
+					},
+				},
+			}
+
+			Expect(rs.ResolveRuntimeParameters(Dependencies{})).To(ConsistOf(expectedNamedValue))
+		})
+
+		Specify("ValueFrom", func() {
+			expectedNamedValue := apis.RandomNamedValue()
+			runConfigurationName := apis.RandomString()
+			artifact := apis.RandomString()
+
+			rs := RunSpec{
+				RuntimeParameters: []RuntimeParameter{
+					{
+						Name: expectedNamedValue.Name,
+						ValueFrom: &ValueFrom{
+							RunConfigurationRef: RunConfigurationRef{
+								Name:           runConfigurationName,
+								OutputArtifact: artifact,
+							},
+						},
+					},
+				},
+			}
+
+			Expect(rs.ResolveRuntimeParameters(Dependencies{
+				RunConfigurations: map[string]RunReference{
+					runConfigurationName: {
+						Artifacts: []common.Artifact{
+							{
+								Name:     artifact,
+								Location: expectedNamedValue.Value,
+							},
+						},
+					},
+				},
+			})).To(ConsistOf(expectedNamedValue))
 		})
 	})
 })

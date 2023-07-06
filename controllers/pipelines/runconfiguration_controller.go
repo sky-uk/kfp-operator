@@ -92,8 +92,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	if hasChanged, err := r.handleDependentRuns(ctx, runConfiguration); hasChanged || err != nil {
-			return ctrl.Result{}, err
-		}
+		return ctrl.Result{}, err
+	}
 
 	if runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.Triggers.OnChange != nil {
 		return ctrl.Result{}, r.syncWithRuns(ctx, desiredProvider, runConfiguration)
@@ -328,9 +328,9 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 					Version: runConfiguration.Status.ObservedPipelineVersion,
 				},
 				RuntimeParameters: runConfiguration.Spec.Run.ResolveRuntimeParameters(runConfiguration.Status.Dependencies),
-				ExperimentName: runConfiguration.Spec.Run.ExperimentName,
-				Artifacts:      runConfiguration.Spec.Run.Artifacts,
-				Schedule: schedule,
+				ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
+				Artifacts:         runConfiguration.Spec.Run.Artifacts,
+				Schedule:          schedule,
 			},
 		}
 		if err := controllerutil.SetControllerReference(runConfiguration, &runSchedule, r.Scheme); err != nil {

@@ -27,8 +27,6 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 
 	runtimeParameters := make(map[string]string)
 
-
-
 	for _, parameter := range run.Spec.RuntimeParameters {
 		if parameter.Value != "" {
 			runtimeParameters[parameter.Name] = parameter.Value

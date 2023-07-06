@@ -71,8 +71,8 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	desiredProvider := desiredProvider(run, r.Config)
 
 	if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
-			return ctrl.Result{}, err
-		}
+		return ctrl.Result{}, err
+	}
 
 	// Never change after being set
 	if run.Status.ObservedPipelineVersion == "" {
