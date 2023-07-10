@@ -1,7 +1,6 @@
 package pipelines
 
 import (
-	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
@@ -23,17 +22,6 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		experimentName = rcdc.Config.DefaultExperiment
 	} else {
 		experimentName = runSchedule.Spec.ExperimentName
-	}
-
-	runtimeParameters := make(map[string]string)
-
-	for _, parameter := range runSchedule.Spec.RuntimeParameters {
-		if parameter.Value == "" {
-			return providers.RunScheduleDefinition{}, fmt.Errorf("runSchedules only supports Named/Value RuntimeParameters")
-
-		}
-
-		runtimeParameters[parameter.Name] = parameter.Value
 	}
 
 	return providers.RunScheduleDefinition{

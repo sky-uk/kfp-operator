@@ -316,6 +316,11 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider st
 func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider string, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
 	var schedules []pipelinesv1.RunSchedule
 
+	runtimeParameters, err := runConfiguration.Spec.Run.ResolveRuntimeParameters(runConfiguration.Status.Dependencies)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, schedule := range runConfiguration.Spec.Triggers.Schedules {
 		runSchedule := pipelinesv1.RunSchedule{
 			ObjectMeta: metav1.ObjectMeta{
@@ -327,7 +332,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 					Name:    runConfiguration.Spec.Run.Pipeline.Name,
 					Version: runConfiguration.Status.ObservedPipelineVersion,
 				},
-				RuntimeParameters: runConfiguration.Spec.Run.ResolveRuntimeParameters(runConfiguration.Status.Dependencies),
+				RuntimeParameters: runtimeParameters,
 				ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
 				Artifacts:         runConfiguration.Spec.Run.Artifacts,
 				Schedule:          schedule,

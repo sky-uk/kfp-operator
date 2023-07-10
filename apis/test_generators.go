@@ -48,6 +48,7 @@ func RandomList[T any](gen func() T) []T {
 func RandomNamedValue() NamedValue {
 	return NamedValue{Name: RandomString(), Value: RandomString()}
 }
+
 func RandomNamedValues() []NamedValue {
 	return RandomList(RandomNamedValue)
 }

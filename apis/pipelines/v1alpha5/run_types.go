@@ -31,23 +31,29 @@ type RunSpec struct {
 	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
 }
 
-func (runSpec RunSpec) ResolveRuntimeParameters(dependencies Dependencies) []apis.NamedValue {
-	return pipelines.Map(runSpec.RuntimeParameters, func(r RuntimeParameter) (namedValue apis.NamedValue) {
-		namedValue.Name = r.Name
-
+func (runSpec RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
+	return pipelines.MapErr(runSpec.RuntimeParameters, func(r RuntimeParameter) (apis.NamedValue, error) {
 		if r.ValueFrom == nil {
-			namedValue.Value = r.Value
-			return
+			return apis.NamedValue{
+				Name:  r.Name,
+				Value: r.Value,
+			}, nil
 		}
 
-		for _, artifact := range dependencies.RunConfigurations[r.ValueFrom.RunConfigurationRef.Name].Artifacts {
-			if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
-				namedValue.Value = artifact.Location
-				return
+		if dependency, ok := dependencies.RunConfigurations[r.ValueFrom.RunConfigurationRef.Name]; ok {
+			for _, artifact := range dependency.Artifacts {
+				if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
+					return apis.NamedValue{
+						Name:  r.Name,
+						Value: artifact.Location,
+					}, nil
+				}
 			}
+
+			return apis.NamedValue{}, fmt.Errorf("artifact '%s' not found in dependency '%s'", r.ValueFrom.RunConfigurationRef.OutputArtifact, r.ValueFrom.RunConfigurationRef.Name)
 		}
 
-		return
+		return apis.NamedValue{}, fmt.Errorf("dependency '%s' not found", r.ValueFrom.RunConfigurationRef.Name)
 	})
 }
 
@@ -152,21 +158,25 @@ func (r *Run) SetDependencyRun(name string, reference RunReference) {
 	r.Status.Dependencies.RunConfigurations[name] = reference
 }
 
+func (r *Run) UnsetDependencyRun(name string) {
+	delete(r.Status.Dependencies.RunConfigurations, name)
+}
+
 func (r *Run) GetDependencyRun(name string) (RunReference, bool) {
 	ref, ok := r.Status.Dependencies.RunConfigurations[name]
 	return ref, ok
 }
 
-func (r *Run) GetReferencedDependencies() []string {
-	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+func (r *Run) GetReferencedDependencies() []RunConfigurationRef {
+	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
-			return "", false
+			return RunConfigurationRef{}, false
 		}
 
 		rcName := rp.ValueFrom.RunConfigurationRef.Name
 		providerIdExists := r.Status.Dependencies.RunConfigurations[rcName].ProviderId == ""
 
-		return rcName, providerIdExists
+		return rp.ValueFrom.RunConfigurationRef, providerIdExists
 	})
 }
 

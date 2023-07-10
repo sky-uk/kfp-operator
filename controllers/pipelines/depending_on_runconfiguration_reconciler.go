@@ -2,7 +2,9 @@ package pipelines
 
 import (
 	"context"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -21,9 +23,10 @@ const (
 
 type DependingOnRunConfigurationResource interface {
 	client.Object
-	GetReferencedDependencies() []string
+	GetReferencedDependencies() []pipelinesv1.RunConfigurationRef
 	GetDependencyRun(string) (pipelinesv1.RunReference, bool)
 	SetDependencyRun(string, pipelinesv1.RunReference)
+	UnsetDependencyRun(string)
 }
 
 type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource] struct {
@@ -33,27 +36,54 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
-	for _, rcName := range resource.GetReferencedDependencies() {
+	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedDependencies(), func(r pipelinesv1.RunConfigurationRef) (string, string) {
+		return r.Name, r.OutputArtifact
+	})
+
+	hasChanged := false
+
+	for dependencyName, artifactReferences := range artifactReferencesByDependency {
 		runConfiguration, err := dr.getIgnoreNotFound(ctx, types.NamespacedName{
 			Namespace: resource.GetNamespace(),
-			Name:      rcName,
+			Name:      dependencyName,
 		})
 		if err != nil || runConfiguration == nil {
-			return false, err
+			resource.UnsetDependencyRun(dependencyName)
+			hasChanged = true
+			continue
 		}
 
-		if reference, ok := resource.GetDependencyRun(rcName); runConfiguration.Status.LatestRuns.Succeeded.ProviderId != "" && !ok || reference.ProviderId != runConfiguration.Status.LatestRuns.Succeeded.ProviderId {
-			resource.SetDependencyRun(rcName, runConfiguration.Status.LatestRuns.Succeeded)
-			if err := dr.EC.Client.Status().Update(ctx, resource); err != nil {
-				logger.Error(err, "error updating resource with observed pipeline version")
-				return false, err
-			}
+		if reference, ok := resource.GetDependencyRun(dependencyName); ok && reference.ProviderId == runConfiguration.Status.LatestRuns.Succeeded.ProviderId {
+			continue
+		}
 
-			return true, nil
+		dependencyArtifacts := make([]common.Artifact, len(artifactReferences))
+
+		for i, artifactReference := range artifactReferences {
+			for _, artifact := range runConfiguration.Status.LatestRuns.Succeeded.Artifacts {
+				if artifactReference == artifact.Name {
+					dependencyArtifacts[i] = artifact
+					break
+				}
+			}
+		}
+
+		resource.SetDependencyRun(dependencyName, pipelinesv1.RunReference{
+			ProviderId: runConfiguration.Status.LatestRuns.Succeeded.ProviderId,
+			Artifacts:  dependencyArtifacts,
+		})
+
+		hasChanged = true
+	}
+
+	if hasChanged {
+		if err := dr.EC.Client.Status().Update(ctx, resource); err != nil {
+			logger.Error(err, "error updating resource with observed pipeline version")
+			return false, err
 		}
 	}
 
-	return false, nil
+	return hasChanged, nil
 }
 
 func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context.Context, key client.ObjectKey) (*pipelinesv1.RunConfiguration, error) {
@@ -75,7 +105,9 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 
 func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, rcRefField, func(rawObj client.Object) []string {
-		return rawObj.(R).GetReferencedDependencies()
+		return pipelines.Map(rawObj.(R).GetReferencedDependencies(), func(r pipelinesv1.RunConfigurationRef) string {
+			return r.Name
+		})
 	}); err != nil {
 		return nil, err
 	}

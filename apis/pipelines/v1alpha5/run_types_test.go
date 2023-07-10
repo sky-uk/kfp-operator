@@ -219,42 +219,52 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
-			Expect(rs.ResolveRuntimeParameters(Dependencies{})).To(ConsistOf(expectedNamedValue))
+			namedValues, err := rs.ResolveRuntimeParameters(Dependencies{})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(namedValues).To(ConsistOf(expectedNamedValue))
 		})
 
-		//Specify("artifact not found in dependency", func() {
-		//	rs := RunSpec{
-		//		RuntimeParameters: []RuntimeParameter{
-		//			{
-		//				Name: expectedNamedValue.Name,
-		//				Value: expectedNamedValue.Value,
-		//			},
-		//		},
-		//	}
-		//
-		//	Expect(rs.ResolveRuntimeParameters(Dependencies{})).To(ConsistOf(expectedNamedValue))
-		//})
-
-		Specify("dependency not found", func() {
-			expectedNamedValue := apis.NamedValue{
-				Name: apis.RandomString(),
-			}
+		Specify("artifact not found in dependency", func() {
 			runConfigurationName := apis.RandomString()
-
 			rs := RunSpec{
 				RuntimeParameters: []RuntimeParameter{
 					{
-						Name: expectedNamedValue.Name,
+						Name: apis.RandomString(),
 						ValueFrom: &ValueFrom{
 							RunConfigurationRef: RunConfigurationRef{
-								Name: runConfigurationName,
+								Name:           runConfigurationName,
+								OutputArtifact: apis.RandomString(),
 							},
 						},
 					},
 				},
 			}
 
-			Expect(rs.ResolveRuntimeParameters(Dependencies{})).To(ConsistOf(expectedNamedValue))
+			_, err := rs.ResolveRuntimeParameters(Dependencies{
+				RunConfigurations: map[string]RunReference{
+					runConfigurationName: {},
+				},
+			})
+
+			Expect(err).To(HaveOccurred())
+		})
+
+		Specify("dependency not found", func() {
+			rs := RunSpec{
+				RuntimeParameters: []RuntimeParameter{
+					{
+						Name: apis.RandomString(),
+						ValueFrom: &ValueFrom{
+							RunConfigurationRef: RunConfigurationRef{
+								Name: apis.RandomString(),
+							},
+						},
+					},
+				},
+			}
+
+			_, err := rs.ResolveRuntimeParameters(Dependencies{})
+			Expect(err).To(HaveOccurred())
 		})
 
 		Specify("ValueFrom", func() {
@@ -276,7 +286,7 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
-			Expect(rs.ResolveRuntimeParameters(Dependencies{
+			namedValues, err := rs.ResolveRuntimeParameters(Dependencies{
 				RunConfigurations: map[string]RunReference{
 					runConfigurationName: {
 						Artifacts: []common.Artifact{
@@ -287,7 +297,10 @@ var _ = Context("RunSpec", func() {
 						},
 					},
 				},
-			})).To(ConsistOf(expectedNamedValue))
+			})
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(namedValues).To(ConsistOf(expectedNamedValue))
 		})
 	})
 })

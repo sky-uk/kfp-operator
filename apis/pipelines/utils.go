@@ -38,6 +38,19 @@ func Map[R, S any](rs []R, mapFn func(R) S) []S {
 	return ss
 }
 
+func MapErr[R, S any](rs []R, mapFn func(R) (S, error)) (ss []S, err error) {
+	ss = make([]S, len(rs))
+
+	for i, r := range rs {
+		ss[i], err = mapFn(r)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 func Collect[R, S any](rs []R, mapFn func(R) (S, bool)) []S {
 	var ss []S
 
@@ -49,4 +62,15 @@ func Collect[R, S any](rs []R, mapFn func(R) (S, bool)) []S {
 	}
 
 	return ss
+}
+
+func GroupMap[R any, K comparable, V any](rs []R, groupFn func(R) (K, V)) map[K][]V {
+	vvs := make(map[K][]V)
+
+	for _, r := range rs {
+		k, v := groupFn(r)
+		vvs[k] = append(vvs[k], v)
+	}
+
+	return vvs
 }

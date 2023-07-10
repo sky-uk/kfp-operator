@@ -25,25 +25,10 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		return providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
 	}
 
-	runtimeParameters := make(map[string]string)
-
-	for _, parameter := range run.Spec.RuntimeParameters {
-		if parameter.Value != "" {
-			runtimeParameters[parameter.Name] = parameter.Value
-		} else {
-			if dependentRun, ok := run.Status.Dependencies.RunConfigurations[parameter.ValueFrom.RunConfigurationRef.Name]; ok {
-				for _, artifact := range dependentRun.Artifacts {
-					if artifact.Name == parameter.Name {
-						runtimeParameters[parameter.Name] = artifact.Location
-					}
-				}
-			}
-
-			if runtimeParameters[parameter.Name] == "" {
-				return providers.RunDefinition{}, fmt.Errorf("unknown runtime parameter %s could not be resolved", parameter.Name)
-			}
-
-		}
+	runtimeParameters, err := run.Spec.ResolveRuntimeParameters(run.Status.Dependencies)
+	if err != nil {
+		fmt.Println(err)
+		return providers.RunDefinition{}, err
 	}
 
 	return providers.RunDefinition{
@@ -52,7 +37,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		PipelineName:      common.NamespacedName{Name: run.Spec.Pipeline.Name, Namespace: run.Namespace},
 		PipelineVersion:   run.Status.ObservedPipelineVersion,
 		ExperimentName:    experimentName,
-		RuntimeParameters: runtimeParameters,
+		RuntimeParameters: NamedValuesToMap(runtimeParameters),
 		Artifacts:         run.Spec.Artifacts,
 	}, nil
 }
