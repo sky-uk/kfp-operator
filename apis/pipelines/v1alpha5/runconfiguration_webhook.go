@@ -24,7 +24,7 @@ func (r *RunConfiguration) validate() error {
 			return apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
 				r.Name, field.ErrorList{
 					field.Invalid(
-						field.NewPath("spec").Child("runtimeParameters").Index(i),
+						field.NewPath("spec").Child("run").Child("runtimeParameters").Index(i),
 						rp,
 						"only one of value or valueFrom can be set"),
 				})
