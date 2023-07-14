@@ -31,7 +31,7 @@ type RunSpec struct {
 	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
 }
 
-func (runSpec RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
+func (runSpec *RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
 	return pipelines.MapErr(runSpec.RuntimeParameters, func(r RuntimeParameter) (apis.NamedValue, error) {
 		if r.ValueFrom == nil {
 			return apis.NamedValue{
@@ -55,6 +55,11 @@ func (runSpec RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]ap
 
 		return apis.NamedValue{}, fmt.Errorf("dependency '%s' not found", r.ValueFrom.RunConfigurationRef.Name)
 	})
+}
+
+func (runSpec *RunSpec) HasUnmetDependencies(dependencies Dependencies) bool {
+	_, err := runSpec.ResolveRuntimeParameters(dependencies)
+	return err != nil
 }
 
 func cmpRuntimeParameters(rp1, rp2 RuntimeParameter) bool {
@@ -150,21 +155,15 @@ type Run struct {
 	Status RunStatus `json:"status,omitempty"`
 }
 
-func (r *Run) SetDependencyRun(name string, reference RunReference) {
+func (r *Run) SetDependencyRuns(references map[string]RunReference) {
+	r.Status.Dependencies.RunConfigurations = references
+}
+
+func (r *Run) GetDependencyRuns() map[string]RunReference {
 	if r.Status.Dependencies.RunConfigurations == nil {
-		r.Status.Dependencies.RunConfigurations = make(map[string]RunReference, 1)
+		return make(map[string]RunReference)
 	}
-
-	r.Status.Dependencies.RunConfigurations[name] = reference
-}
-
-func (r *Run) UnsetDependencyRun(name string) {
-	delete(r.Status.Dependencies.RunConfigurations, name)
-}
-
-func (r *Run) GetDependencyRun(name string) (RunReference, bool) {
-	ref, ok := r.Status.Dependencies.RunConfigurations[name]
-	return ref, ok
+	return r.Status.Dependencies.RunConfigurations
 }
 
 func (r *Run) GetReferencedDependencies() []RunConfigurationRef {
@@ -173,10 +172,7 @@ func (r *Run) GetReferencedDependencies() []RunConfigurationRef {
 			return RunConfigurationRef{}, false
 		}
 
-		rcName := rp.ValueFrom.RunConfigurationRef.Name
-		providerIdExists := r.Status.Dependencies.RunConfigurations[rcName].ProviderId == ""
-
-		return rp.ValueFrom.RunConfigurationRef, providerIdExists
+		return rp.ValueFrom.RunConfigurationRef, true
 	})
 }
 

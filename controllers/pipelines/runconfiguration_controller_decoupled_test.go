@@ -233,7 +233,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			oldState := runConfiguration.Status.SynchronizationState
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
 				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
-				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations).NotTo(HaveKey(runConfigurationName))
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].ProviderId).To(BeEmpty())
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].Artifacts).To(BeEmpty())
 			})).Should(Succeed())
 		})
 	})
@@ -261,7 +262,26 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			oldState := runConfiguration.Status.SynchronizationState
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
 				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
-				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations).NotTo(HaveKey(referencedRc.Name))
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(BeEmpty())
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].Artifacts).To(BeEmpty())
+			})).Should(Succeed())
+		})
+	})
+
+	When("A RunConfiguration reference has been removed", func() {
+		It("removes the dependency", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{}
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			excessDependency := apis.RandomString()
+			runConfiguration.SetDependencyRuns(map[string]pipelinesv1.RunReference{excessDependency: {}})
+			Expect(k8sClient.Status().Update(ctx, runConfiguration)).To(Succeed())
+
+			oldState := runConfiguration.Status.SynchronizationState
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations).NotTo(HaveKey(excessDependency))
 			})).Should(Succeed())
 		})
 	})

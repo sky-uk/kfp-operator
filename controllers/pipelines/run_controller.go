@@ -70,15 +70,17 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	desiredProvider := desiredProvider(run, r.Config)
 
-	if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
-		return ctrl.Result{}, err
-	}
-
 	// Never change after being set
-	if run.Status.ObservedPipelineVersion == "" {
+	if run.Status.ObservedPipelineVersion == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
+		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
+			return ctrl.Result{}, err
+		}
+
 		if hasChanged, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
+
+		return ctrl.Result{}, nil
 	}
 
 	commands := r.StateHandler.StateTransition(ctx, desiredProvider, run)
