@@ -57,12 +57,12 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 			continue
 		}
 
-		dependencyArtifacts := make([]common.Artifact, len(artifactReferences))
+		var dependencyArtifacts []common.Artifact
 
-		for i, artifactReference := range artifactReferences {
+		for _, artifactReference := range artifactReferences {
 			for _, artifact := range runConfiguration.Status.LatestRuns.Succeeded.Artifacts {
 				if artifactReference == artifact.Name {
-					dependencyArtifacts[i] = artifact
+					dependencyArtifacts = append(dependencyArtifacts, artifact)
 					break
 				}
 			}
