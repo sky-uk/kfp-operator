@@ -27,7 +27,6 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 
 	runtimeParameters, err := run.Spec.ResolveRuntimeParameters(run.Status.Dependencies)
 	if err != nil {
-		fmt.Println(err)
 		return providers.RunDefinition{}, err
 	}
 

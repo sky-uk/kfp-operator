@@ -4,6 +4,7 @@
 package pipelines
 
 import (
+	"errors"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -42,6 +43,27 @@ var _ = Context("Utils", func() {
 		Entry("", []int{1, 2}, []string{"1", "2"}),
 		Entry("", []int{2, 1}, []string{"2", "1"}),
 		Entry("", []int{}, []string{}),
+	)
+
+	DescribeTable("MapErr", func(as []int, expected []string, expectError bool) {
+		actual, err := MapErr(as, func(a int) (string, error) {
+			if a%2 == 0 {
+				return "", errors.New("an error")
+			}
+			return strconv.Itoa(a), nil
+		})
+		if expectError {
+			Expect(err).NotTo(BeNil())
+		} else {
+			Expect(err).To(BeNil())
+			Expect(actual).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+		}
+	},
+		Entry("", []int{1, 2}, nil, true),
+		Entry("", []int{2, 1}, nil, true),
+		Entry("", []int{1, 3}, []string{"1", "3"}, false),
+		Entry("", []int{3, 1}, []string{"3", "1"}, false),
+		Entry("", []int{}, []string{}, false),
 	)
 
 	DescribeTable("Collect", func(as []int, expected []string) {
