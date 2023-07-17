@@ -45,10 +45,12 @@ func RandomList[T any](gen func() T) []T {
 	return rList
 }
 
+func RandomNamedValue() NamedValue {
+	return NamedValue{Name: RandomString(), Value: RandomString()}
+}
+
 func RandomNamedValues() []NamedValue {
-	return RandomList(func() NamedValue {
-		return NamedValue{Name: RandomString(), Value: RandomString()}
-	})
+	return RandomList(RandomNamedValue)
 }
 
 func RandomSynchronizationState() SynchronizationState {

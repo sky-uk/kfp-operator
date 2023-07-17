@@ -2,14 +2,18 @@ package v1alpha5
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type RunScheduleSpec struct {
-	RunSpec  `json:",inline"`
-	Schedule string `json:"schedule,omitempty"`
+	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
+	ExperimentName    string             `json:"experimentName,omitempty"`
+	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
+	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
+	Schedule          string             `json:"schedule,omitempty"`
 }
 
 func (rs RunSchedule) ComputeHash() []byte {

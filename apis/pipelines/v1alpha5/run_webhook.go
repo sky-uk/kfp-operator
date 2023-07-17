@@ -15,11 +15,23 @@ func (r *Run) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1alpha5-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=update,versions=v1alpha5,name=vrun.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1alpha5-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=create;update,versions=v1alpha5,name=vrun.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Validator = &Run{}
 
 func (r *Run) ValidateCreate() error {
+	for i, rp := range r.Spec.RuntimeParameters {
+		if rp.ValueFrom != nil && rp.Value != "" {
+			return apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
+				r.Name, field.ErrorList{
+					field.Invalid(
+						field.NewPath("spec").Child("runtimeParameters").Index(i),
+						rp,
+						"only one of value or valueFrom can be set"),
+				})
+		}
+	}
+
 	return nil
 }
 

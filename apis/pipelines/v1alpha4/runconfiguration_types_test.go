@@ -9,7 +9,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 )
 
-var _ = Context("RunConfiguration", func() {
+var _ = Context("RunConfiguration", PropertyBased, func() {
 	var _ = Describe("ComputeHash", func() {
 
 		Specify("Pipeline should change the hash", func() {
@@ -71,7 +71,7 @@ var _ = Context("RunConfiguration", func() {
 			Expect(hash2).NotTo(Equal(hash3))
 		})
 
-		Specify("The original object should not change", PropertyBased, func() {
+		Specify("The original object should not change", func() {
 			rcs := RandomRunConfiguration()
 			expected := rcs.DeepCopy()
 			rcs.ComputeHash()

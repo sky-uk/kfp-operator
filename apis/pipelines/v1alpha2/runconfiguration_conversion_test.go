@@ -7,7 +7,6 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -19,7 +18,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 			dst := hub.RunConfiguration{}
 
 			Expect(src.ConvertTo(&dst)).To(Succeed())
-			Expect(dst.Spec.Run.RuntimeParameters).To(Equal([]apis.NamedValue{
+			Expect(dst.Spec.Run.RuntimeParameters).To(Equal([]hub.RuntimeParameter{
 				{Name: "a", Value: "b"},
 				{Name: "c", Value: "d"},
 			}))
@@ -29,7 +28,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("ConvertFrom", func() {
 		Specify("Converts RuntimeParameters to a map", func() {
 			src := hub.RunConfiguration{Spec: hub.RunConfigurationSpec{Run: hub.RunSpec{
-				RuntimeParameters: []apis.NamedValue{
+				RuntimeParameters: []hub.RuntimeParameter{
 					{Name: "a", Value: "b"},
 					{Name: "c", Value: "d"},
 				}}}}
@@ -41,7 +40,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 
 		Specify("Removes duplicates and adds remainder annotation when RuntimeParameters contains a duplicate NamedValue", func() {
 			src := hub.RunConfiguration{Spec: hub.RunConfigurationSpec{Run: hub.RunSpec{
-				RuntimeParameters: []apis.NamedValue{
+				RuntimeParameters: []hub.RuntimeParameter{
 					{Name: "a", Value: "b"},
 					{Name: "a", Value: "d"},
 				}}}}
@@ -72,7 +71,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunConfiguration()
-
+			hub.WithValueFrom(&src.Spec.Run)
 			intermediate := &RunConfiguration{}
 			dst := &hub.RunConfiguration{}
 
@@ -93,7 +92,7 @@ var _ = Context("RunConfiguration Conversion", func() {
 				},
 				Spec: hub.RunConfigurationSpec{
 					Run: hub.RunSpec{
-						RuntimeParameters: []apis.NamedValue{
+						RuntimeParameters: []hub.RuntimeParameter{
 							{Name: "a", Value: "b"},
 							{Name: "a", Value: "d"},
 						},

@@ -19,7 +19,7 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 		Name:    src.Spec.Pipeline.Name,
 		Version: src.Spec.Pipeline.Version,
 	}
-	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
+	dst.Spec.RuntimeParameters = hub.MergeRuntimeParameters(src.Spec.RuntimeParameters, v1alpha5remainder.ValueFromParameters)
 	dst.Spec.Artifacts = v1alpha5remainder.Artifacts
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Status.ProviderId = hub.ProviderAndId{
@@ -47,7 +47,7 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 		Version: src.Spec.Pipeline.Version,
 	}
 	v1alpha5remainder.Artifacts = src.Spec.Artifacts
-	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
+	dst.Spec.RuntimeParameters, v1alpha5remainder.ValueFromParameters = hub.SplitRunTimeParameters(src.Spec.RuntimeParameters)
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Status.ProviderId = ProviderAndId{
 		Provider: src.Status.ProviderId.Provider,

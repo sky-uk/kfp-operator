@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,6 +24,8 @@ import (
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
+	DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]
+	EC     K8sExecutionContext
 	Scheme *runtime.Scheme
 	Config config.Configuration
 }
@@ -32,6 +35,10 @@ func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Schem
 		DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
 			EC: ec,
 		},
+		DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]{
+			EC: ec,
+		},
+		ec,
 		scheme,
 		config,
 	}
@@ -81,6 +88,10 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	if hasChanged, err := r.handleObservedPipelineVersion(ctx, runConfiguration.Spec.Run.Pipeline, runConfiguration); hasChanged || err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if hasChanged, err := r.handleDependentRuns(ctx, runConfiguration); hasChanged || err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -153,9 +164,9 @@ func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, p
 		return
 	}
 
-	missingSchedules := sliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
-	excessSchedules := sliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
-	excessSchedulesNotMarkedForDeletion := filter(excessSchedules, func(schedule pipelinesv1.RunSchedule) bool {
+	missingSchedules := pipelines.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
+	excessSchedules := pipelines.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
+	excessSchedulesNotMarkedForDeletion := pipelines.Filter(excessSchedules, func(schedule pipelinesv1.RunSchedule) bool {
 		return schedule.DeletionTimestamp == nil
 	})
 
@@ -205,12 +216,40 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 	return requests
 }
 
+func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(runConfiguration client.Object) []reconcile.Request {
+	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
+	listOps := &client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
+		Namespace:     runConfiguration.GetNamespace(),
+	}
+
+	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, listOps)
+	if err != nil {
+		return []reconcile.Request{}
+	}
+
+	requests := make([]reconcile.Request, len(referencingRunConfigurations.Items))
+	for i, item := range referencingRunConfigurations.Items {
+		requests[i] = reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name:      item.GetName(),
+				Namespace: item.GetNamespace(),
+			},
+		}
+	}
+	return requests
+}
+
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	runConfiguration := &pipelinesv1.RunConfiguration{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(runConfiguration)
 
-	controllerBuilder, err := r.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForPipeline)
+	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForPipeline)
+	if err != nil {
+		return err
+	}
+	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForRunConfiguration)
 	if err != nil {
 		return err
 	}
@@ -277,6 +316,11 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider st
 func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider string, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
 	var schedules []pipelinesv1.RunSchedule
 
+	runtimeParameters, err := runConfiguration.Spec.Run.ResolveRuntimeParameters(runConfiguration.Status.Dependencies)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, schedule := range runConfiguration.Spec.Triggers.Schedules {
 		runSchedule := pipelinesv1.RunSchedule{
 			ObjectMeta: metav1.ObjectMeta{
@@ -284,16 +328,14 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 				Namespace:    runConfiguration.Namespace,
 			},
 			Spec: pipelinesv1.RunScheduleSpec{
-				RunSpec: pipelinesv1.RunSpec{
-					Pipeline: pipelinesv1.PipelineIdentifier{
-						Name:    runConfiguration.Spec.Run.Pipeline.Name,
-						Version: runConfiguration.Status.ObservedPipelineVersion,
-					},
-					RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
-					ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
-					Artifacts:         runConfiguration.Spec.Run.Artifacts,
+				Pipeline: pipelinesv1.PipelineIdentifier{
+					Name:    runConfiguration.Spec.Run.Pipeline.Name,
+					Version: runConfiguration.Status.ObservedPipelineVersion,
 				},
-				Schedule: schedule,
+				RuntimeParameters: runtimeParameters,
+				ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
+				Artifacts:         runConfiguration.Spec.Run.Artifacts,
+				Schedule:          schedule,
 			},
 		}
 		if err := controllerutil.SetControllerReference(runConfiguration, &runSchedule, r.Scheme); err != nil {

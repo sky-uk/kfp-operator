@@ -19,7 +19,8 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Run.RuntimeParameters = append(v1alpha4.MapToNamedValues(src.Spec.RuntimeParameters), v1alpha3remainder.RuntimeParameters...)
+	valueParameters := append(v1alpha4.MapToNamedValues(src.Spec.RuntimeParameters), v1alpha3remainder.RuntimeParameters...)
+	dst.Spec.Run.RuntimeParameters = hub.MergeRuntimeParameters(valueParameters, v1alpha5remainder.ValueFromParameters)
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{Name: src.Spec.Pipeline.Name, Version: src.Spec.Pipeline.Version}
 	dst.Spec.Triggers = v1alpha5remainder.Triggers
 	if src.Spec.Schedule != "" {
@@ -45,7 +46,9 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	v1alpha5remainder := hub.RunConfigurationConversionRemainder{}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.RuntimeParameters, v1alpha3remainder.RuntimeParameters = v1alpha4.NamedValuesToMap(src.Spec.Run.RuntimeParameters)
+	valueParameters, valueFromParameters := hub.SplitRunTimeParameters(src.Spec.Run.RuntimeParameters)
+	dst.Spec.RuntimeParameters, v1alpha3remainder.RuntimeParameters = v1alpha4.NamedValuesToMap(valueParameters)
+	v1alpha5remainder.ValueFromParameters = valueFromParameters
 	dst.Spec.Pipeline = PipelineIdentifier{Name: src.Spec.Run.Pipeline.Name, Version: src.Spec.Run.Pipeline.Version}
 	v1alpha5remainder.Triggers = src.Spec.Triggers
 	if len(src.Spec.Triggers.Schedules) > 0 {

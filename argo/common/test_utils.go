@@ -21,6 +21,10 @@ func RandomExceptOne() int64 {
 	}
 }
 
+func RandomArtifact() Artifact {
+	return Artifact{Name: RandomString(), Location: RandomString()}
+}
+
 func RandomNamespacedName() NamespacedName {
 	return NamespacedName{
 		Name:      RandomString(),

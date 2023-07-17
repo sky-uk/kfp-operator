@@ -45,20 +45,29 @@ type KV interface {
 
 // Has to be a function with parameter because Go does not support generic methods
 func WriteKVListField[T KV](oh ObjectHasher, kvs []T) {
-	sorted := make([]T, len(kvs))
-	copy(sorted, kvs)
+	WriteList(oh, kvs, func(kv1, kv2 T) bool {
+		if kv1.GetKey() != kv2.GetKey() {
+			return kv1.GetKey() < kv2.GetKey()
+		} else {
+			return kv1.GetValue() < kv2.GetValue()
+		}
+	}, func(oh ObjectHasher, kv T) {
+		oh.WriteStringField(kv.GetKey())
+		oh.WriteStringField(kv.GetValue())
+	})
+}
+
+// Has to be a function with parameter because Go does not support generic methods
+func WriteList[T any](oh ObjectHasher, ts []T, cmp func(t1, t2 T) bool, write func(oh ObjectHasher, t T)) {
+	sorted := make([]T, len(ts))
+	copy(sorted, ts)
 
 	sort.Slice(sorted, func(i, j int) bool {
-		if sorted[i].GetKey() != sorted[j].GetKey() {
-			return sorted[i].GetKey() < sorted[j].GetKey()
-		} else {
-			return sorted[i].GetValue() < sorted[j].GetValue()
-		}
+		return cmp(sorted[i], sorted[j])
 	})
 
 	for _, k := range sorted {
-		oh.WriteStringField(k.GetKey())
-		oh.WriteStringField(k.GetValue())
+		write(oh, k)
 	}
 
 	oh.WriteFieldSeparator()

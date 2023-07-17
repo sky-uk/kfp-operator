@@ -2,7 +2,7 @@ package v1alpha5
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -26,11 +26,6 @@ type RunConfigurationSpec struct {
 	Triggers Triggers `json:"triggers,omitempty"`
 }
 
-type RunReference struct {
-	ProviderId string            `json:"providerId,omitempty"`
-	Artifacts  []common.Artifact `json:"artifacts,omitempty"`
-}
-
 type LatestRuns struct {
 	Succeeded RunReference `json:"succeeded,omitempty"`
 }
@@ -41,6 +36,7 @@ type RunConfigurationStatus struct {
 	ObservedPipelineVersion  string                    `json:"observedPipelineVersion,omitempty"`
 	TriggeredPipelineVersion string                    `json:"triggeredPipelineVersion,omitempty"`
 	LatestRuns               LatestRuns                `json:"latestRuns,omitempty"`
+	Dependencies             Dependencies              `json:"dependencies,omitempty"`
 	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
 }
 
@@ -57,6 +53,27 @@ type RunConfiguration struct {
 
 	Spec   RunConfigurationSpec   `json:"spec,omitempty"`
 	Status RunConfigurationStatus `json:"status,omitempty"`
+}
+
+func (rc *RunConfiguration) SetDependencyRuns(references map[string]RunReference) {
+	rc.Status.Dependencies.RunConfigurations = references
+}
+
+func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
+	if rc.Status.Dependencies.RunConfigurations == nil {
+		return make(map[string]RunReference)
+	}
+	return rc.Status.Dependencies.RunConfigurations
+}
+
+func (rc *RunConfiguration) GetReferencedDependencies() []RunConfigurationRef {
+	return pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
+		if rp.ValueFrom == nil {
+			return RunConfigurationRef{}, false
+		}
+
+		return rp.ValueFrom.RunConfigurationRef, true
+	})
 }
 
 func (rc *RunConfiguration) GetProvider() string {

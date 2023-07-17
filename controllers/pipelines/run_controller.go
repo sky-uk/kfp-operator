@@ -20,6 +20,7 @@ type RunReconciler struct {
 	EC K8sExecutionContext
 	StateHandler[*pipelinesv1.Run]
 	DependingOnPipelineReconciler[*pipelinesv1.Run]
+	DependingOnRunConfigurationReconciler[*pipelinesv1.Run]
 	ResourceReconciler[*pipelinesv1.Run]
 }
 
@@ -31,6 +32,9 @@ func NewRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowReposit
 		},
 		EC: ec,
 		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.Run]{
+			EC: ec,
+		},
+		DependingOnRunConfigurationReconciler: DependingOnRunConfigurationReconciler[*pipelinesv1.Run]{
 			EC: ec,
 		},
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.Run]{
@@ -67,10 +71,16 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	desiredProvider := desiredProvider(run, r.Config)
 
 	// Never change after being set
-	if run.Status.ObservedPipelineVersion == "" {
+	if run.Status.ObservedPipelineVersion == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
+		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
+			return ctrl.Result{}, err
+		}
+
 		if hasChanged, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
+
+		return ctrl.Result{}, nil
 	}
 
 	commands := r.StateHandler.StateTransition(ctx, desiredProvider, run)
@@ -141,6 +151,30 @@ func (r *RunReconciler) reconciliationRequestsForPipeline(pipeline client.Object
 	return requests
 }
 
+func (r *RunReconciler) reconciliationRequestsForRunconfigurations(runConfiguration client.Object) []reconcile.Request {
+	referencingRuns := &pipelinesv1.RunList{}
+	listOps := &client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
+		Namespace:     runConfiguration.GetNamespace(),
+	}
+
+	err := r.EC.Client.Cached.List(context.TODO(), referencingRuns, listOps)
+	if err != nil {
+		return []reconcile.Request{}
+	}
+
+	requests := make([]reconcile.Request, len(referencingRuns.Items))
+	for i, item := range referencingRuns.Items {
+		requests[i] = reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name:      item.GetName(),
+				Namespace: item.GetNamespace(),
+			},
+		}
+	}
+	return requests
+}
+
 func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	run := &pipelinesv1.Run{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
@@ -148,6 +182,10 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, run)
 	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForPipeline)
+	if err != nil {
+		return err
+	}
+	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForRunconfigurations)
 	if err != nil {
 		return err
 	}

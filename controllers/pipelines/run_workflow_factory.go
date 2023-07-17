@@ -25,13 +25,18 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		return providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
 	}
 
+	runtimeParameters, err := run.Spec.ResolveRuntimeParameters(run.Status.Dependencies)
+	if err != nil {
+		return providers.RunDefinition{}, err
+	}
+
 	return providers.RunDefinition{
 		Name:              common.NamespacedName{Name: run.Name, Namespace: run.Namespace},
 		Version:           run.ComputeVersion(),
 		PipelineName:      common.NamespacedName{Name: run.Spec.Pipeline.Name, Namespace: run.Namespace},
 		PipelineVersion:   run.Status.ObservedPipelineVersion,
 		ExperimentName:    experimentName,
-		RuntimeParameters: NamedValuesToMap(run.Spec.RuntimeParameters),
+		RuntimeParameters: NamedValuesToMap(runtimeParameters),
 		Artifacts:         run.Spec.Artifacts,
 	}, nil
 }

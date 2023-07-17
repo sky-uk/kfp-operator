@@ -10,7 +10,7 @@ import (
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
-var _ = Context("RunSchedule Conversion", func() {
+var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunSchedule()

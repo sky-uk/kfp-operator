@@ -33,7 +33,7 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		ExperimentName:       experimentName,
 		Schedule:             runSchedule.Spec.Schedule,
 		RuntimeParameters:    NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
-		Artifacts:            runSchedule.Spec.RunSpec.Artifacts,
+		Artifacts:            runSchedule.Spec.Artifacts,
 	}, nil
 }
 

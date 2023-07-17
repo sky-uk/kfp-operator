@@ -11,6 +11,7 @@ import (
 	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -21,14 +22,13 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		runConfiguration.Spec.Triggers = pipelinesv1.RandomScheduleTrigger()
 		Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
-		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
-			g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Updating))
+			g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 		})).Should(Succeed())
 
 		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
-			g.Expect(ownedSchedule.Spec.Pipeline).To(Equal(runConfiguration.Spec.Run.Pipeline))
-			g.Expect(ownedSchedule.Spec.RuntimeParameters).To(Equal(runConfiguration.Spec.Run.RuntimeParameters))
+			//other fields tested in unit test
 			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[0]))
 			g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 		})).Should(Succeed())
@@ -50,16 +50,15 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		runConfiguration.Spec.Triggers.Schedules = nil
 		Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
 
-		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Updating))
-			g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Updating))
+			g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 		})).Should(Succeed())
 
 		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 	})
 
 	When("Deleted", func() {
-
 		It("cascades deletes", func() {
 			Skip("See https://github.com/kubernetes-sigs/controller-runtime/issues/1459. Keep test for documentation")
 			runConfiguration := createSucceededRcWithSchedule()
@@ -93,8 +92,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
 	})
@@ -114,8 +113,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
 			})
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
 			})).Should(Succeed())
 		})
 
@@ -155,8 +154,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Triggers = pipelinesv1.RandomOnChangeTrigger()
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 			}))
 			ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
 			Expect(err).NotTo(HaveOccurred())
@@ -199,9 +198,118 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Run.ExperimentName = newExperiment
 			Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Spec.Run.ExperimentName).To(Equal(newExperiment))
-				g.Expect(runConfiguration.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Spec.Run.ExperimentName).To(Equal(newExperiment))
+				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
+			})).Should(Succeed())
+		})
+	})
+
+	When("A referenced RunConfiguration does not exist", func() {
+		It("unsets the dependency", func() {
+			runConfigurationName := apis.RandomString()
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					ValueFrom: &pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name:           runConfigurationName,
+							OutputArtifact: apis.RandomString(),
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+			runConfiguration.Status.Dependencies.RunConfigurations = map[string]pipelinesv1.RunReference{
+				runConfigurationName: {
+					ProviderId: apis.RandomString(),
+					Artifacts:  []common.Artifact{common.RandomArtifact()},
+				},
+			}
+
+			Expect(k8sClient.Status().Update(ctx, runConfiguration)).To(Succeed())
+
+			oldState := runConfiguration.Status.SynchronizationState
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].ProviderId).To(BeEmpty())
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].Artifacts).To(BeEmpty())
+			})).Should(Succeed())
+		})
+	})
+
+	When("A referenced RunConfiguration has succeeded but misses the outputArtifact", func() {
+		It("unsets the dependency", func() {
+			referencedRc := createRcWithLatestRun(pipelinesv1.RunReference{
+				ProviderId: apis.RandomString(),
+			})
+
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					ValueFrom: &pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name:           referencedRc.Name,
+							OutputArtifact: apis.RandomString(),
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			oldState := runConfiguration.Status.SynchronizationState
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(BeEmpty())
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].Artifacts).To(BeEmpty())
+			})).Should(Succeed())
+		})
+	})
+
+	When("A RunConfiguration reference has been removed", func() {
+		It("removes the dependency", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{}
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			excessDependency := apis.RandomString()
+			runConfiguration.SetDependencyRuns(map[string]pipelinesv1.RunReference{excessDependency: {}})
+			Expect(k8sClient.Status().Update(ctx, runConfiguration)).To(Succeed())
+
+			oldState := runConfiguration.Status.SynchronizationState
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations).NotTo(HaveKey(excessDependency))
+			})).Should(Succeed())
+		})
+	})
+
+	When("Completing the referenced run configuration", func() {
+		It("Sets the run configuration's dependency field", func() {
+			referencedRc := createRcWithLatestRun(pipelinesv1.RunReference{
+				ProviderId: apis.RandomString(),
+				Artifacts:  []common.Artifact{common.RandomArtifact()},
+			})
+
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					ValueFrom: &pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name:           referencedRc.Name,
+							OutputArtifact: referencedRc.Status.LatestRuns.Succeeded.Artifacts[0].Name,
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			Expect(k8sClient.Get(ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
 			})).Should(Succeed())
 		})
 	})
@@ -212,8 +320,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.Provider).To(Equal(testConfig.DefaultProvider))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 		})
 
@@ -241,13 +349,52 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			metav1.SetMetaDataAnnotation(&runConfiguration.ObjectMeta, apis.ResourceAnnotations.Provider, apis.RandomString())
 			Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, configuration *pipelinesv1.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Failed))
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Failed))
 			})).Should(Succeed())
 
 			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(ownedSchedule.GetAnnotations()[apis.ResourceAnnotations.Provider]).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
+		})
+	})
+
+	When("Creating an invalid run configuration", func() {
+		It("errors", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					Value: apis.RandomString(),
+					ValueFrom: &pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name:           apis.RandomString(),
+							OutputArtifact: apis.RandomString(),
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
+		})
+	})
+
+	When("Updating an invalid run configuration", func() {
+		It("errors", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+				{
+					Value: apis.RandomString(),
+					ValueFrom: &pipelinesv1.ValueFrom{
+						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+							Name:           apis.RandomString(),
+							OutputArtifact: apis.RandomString(),
+						},
+					},
+				},
+			}
+
+			Expect(k8sClient.Update(ctx, runConfiguration)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
 		})
 	})
 })

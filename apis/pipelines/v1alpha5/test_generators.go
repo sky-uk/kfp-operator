@@ -86,7 +86,19 @@ func RandomRunSchedule() *RunSchedule {
 
 func RandomRunScheduleSpec() RunScheduleSpec {
 	return RunScheduleSpec{
-		RunSpec:  RandomRunSpec(),
+		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		ExperimentName:    RandomString(),
+		RuntimeParameters: RandomNamedValues(),
+		Artifacts: RandomList(func() OutputArtifact {
+			return OutputArtifact{Name: RandomString(), Path: ArtifactPath{
+				Locator: ArtifactLocator{
+					Component: RandomString(),
+					Artifact:  RandomString(),
+					Index:     rand.Int(),
+				},
+				Filter: RandomString(),
+			}}
+		}),
 		Schedule: RandomString(),
 	}
 }
@@ -105,11 +117,30 @@ func RandomRun() *Run {
 	}
 }
 
+func WithValueFrom(runSpec *RunSpec) {
+	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(func() RuntimeParameter {
+		return RuntimeParameter{
+			Name: RandomString(),
+			ValueFrom: &ValueFrom{
+				RunConfigurationRef: RunConfigurationRef{
+					Name:           RandomString(),
+					OutputArtifact: RandomString(),
+				},
+			},
+		}
+	})...)
+}
+
 func RandomRunSpec() RunSpec {
 	return RunSpec{
-		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
-		ExperimentName:    RandomString(),
-		RuntimeParameters: RandomNamedValues(),
+		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		ExperimentName: RandomString(),
+		RuntimeParameters: RandomList(func() RuntimeParameter {
+			return RuntimeParameter{
+				Name:  RandomString(),
+				Value: RandomString(),
+			}
+		}),
 		Artifacts: RandomList(func() OutputArtifact {
 			return OutputArtifact{Name: RandomString(), Path: ArtifactPath{
 				Locator: ArtifactLocator{
