@@ -18,6 +18,16 @@ func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	return diff
 }
 
+func Exists[T any](ts []T, predicate func(T) bool) bool {
+	for _, t := range ts {
+		if predicate(t) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func Filter[T any](ts []T, filter func(T) bool) (filtered []T) {
 	for _, t := range ts {
 		if filter(t) {

@@ -8,8 +8,9 @@ import (
 )
 
 type Triggers struct {
-	Schedules []string       `json:"schedules,omitempty"`
-	OnChange  []OnChangeType `json:"onChange,omitempty"`
+	Schedules         []string       `json:"schedules,omitempty"`
+	OnChange          []OnChangeType `json:"onChange,omitempty"`
+	RunConfigurations []string       `json:"runConfigurations,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=pipeline
@@ -26,6 +27,14 @@ type RunConfigurationSpec struct {
 	Triggers Triggers `json:"triggers,omitempty"`
 }
 
+type TriggeredRunReference struct {
+	ProviderId string `json:"providerId,omitempty"`
+}
+
+type TriggersStatus struct {
+	RunConfigurations map[string]TriggeredRunReference `json:"runConfigurations,omitempty"`
+}
+
 type LatestRuns struct {
 	Succeeded RunReference `json:"succeeded,omitempty"`
 }
@@ -37,6 +46,7 @@ type RunConfigurationStatus struct {
 	TriggeredPipelineVersion string                    `json:"triggeredPipelineVersion,omitempty"`
 	LatestRuns               LatestRuns                `json:"latestRuns,omitempty"`
 	Dependencies             Dependencies              `json:"dependencies,omitempty"`
+	Triggers                 TriggersStatus            `json:"triggers,omitempty"`
 	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
 }
 
@@ -67,13 +77,21 @@ func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
 }
 
 func (rc *RunConfiguration) GetReferencedDependencies() []RunConfigurationRef {
-	return pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
+	referencedFromParameters := pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}
 
 		return rp.ValueFrom.RunConfigurationRef, true
 	})
+
+	referencedFromTriggers := pipelines.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string) RunConfigurationRef {
+		return RunConfigurationRef{
+			Name: rcName,
+		}
+	})
+
+	return append(referencedFromParameters, referencedFromTriggers...)
 }
 
 func (rc *RunConfiguration) GetProvider() string {

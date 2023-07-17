@@ -312,6 +312,10 @@ spec:
                     items:
                       type: string
                     type: array
+                  runConfigurations:
+                    type: array
+                    items:
+                      type: string
                 type: object
             type: object
           status:
@@ -369,6 +373,16 @@ spec:
                               type: string
                             location:
                               type: string
+              triggers:
+                type: object
+                properties:
+                  runConfigurations:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        providerId:
+                          type: string
             type: object
         type: object
     served: true

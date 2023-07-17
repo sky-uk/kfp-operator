@@ -311,6 +311,62 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
 			})).Should(Succeed())
 		})
+
+		It("RC trigger creates a run when the referenced RC has finished", func() {
+			referencedRc := createRcWithLatestRun(pipelinesv1.RunReference{
+				ProviderId: apis.RandomString(),
+			})
+
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
+				RunConfigurations: []string{
+					referencedRc.Name,
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(Equal(referencedRc.Status.LatestRuns.Succeeded.ProviderId))
+			})).Should(Succeed())
+
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.Triggers.RunConfigurations[referencedRc.Name].ProviderId).To(Equal(referencedRc.Status.LatestRuns.Succeeded.ProviderId))
+			})).Should(Succeed())
+
+			Eventually(func(g Gomega) {
+				ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(ownedRuns).To(HaveLen(1))
+			}).Should(Succeed())
+		})
+	})
+
+	When("Removing a dependency trigger", func() {
+		It("Removes a previously set triggers field", func() {
+			referencedRc := createRcWithLatestRun(pipelinesv1.RunReference{
+				ProviderId: apis.RandomString(),
+			})
+
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
+				RunConfigurations: []string{
+					referencedRc.Name,
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).NotTo(HaveKey(referencedRc.Name))
+			})).Should(Succeed())
+
+			runConfiguration.Spec.Triggers.RunConfigurations = nil
+			Expect(k8sClient.Update(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).NotTo(HaveKey(referencedRc.Name))
+			})).Should(Succeed())
+		})
 	})
 
 	When("setting the provider", func() {

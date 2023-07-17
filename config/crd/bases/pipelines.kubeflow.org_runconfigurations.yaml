@@ -291,6 +291,10 @@ spec:
                       - pipeline
                       type: string
                     type: array
+                  runConfigurations:
+                    items:
+                      type: string
+                    type: array
                   schedules:
                     items:
                       type: string
@@ -352,6 +356,16 @@ spec:
                 type: string
               triggeredPipelineVersion:
                 type: string
+              triggers:
+                properties:
+                  runConfigurations:
+                    additionalProperties:
+                      properties:
+                        providerId:
+                          type: string
+                      type: object
+                    type: object
+                type: object
             type: object
         type: object
     served: true
