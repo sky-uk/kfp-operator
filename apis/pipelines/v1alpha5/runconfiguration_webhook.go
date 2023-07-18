@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -18,11 +19,27 @@ func (rc *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 var _ webhook.Validator = &RunConfiguration{}
 
-func (r *RunConfiguration) validate() error {
-	for i, rp := range r.Spec.Run.RuntimeParameters {
+func (rc *RunConfiguration) validateUniqueStructures() error {
+	uniqueScheduled := pipelines.Unique(rc.Spec.Triggers.Schedules)
+	if len(rc.Spec.Triggers.Schedules) > len(uniqueScheduled) {
+		return apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(),
+			rc.Name, field.ErrorList{field.Duplicate(field.NewPath("spec").Key("triggers").Key("schedules"), rc.Spec.Triggers.Schedules)})
+	}
+
+	uniqueOnChangeTriggers := pipelines.Unique(rc.Spec.Triggers.OnChange)
+	if len(rc.Spec.Triggers.OnChange) > len(uniqueOnChangeTriggers) {
+		return apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(),
+			rc.Name, field.ErrorList{field.Duplicate(field.NewPath("spec").Key("triggers").Key("onChange"), rc.Spec.Triggers.OnChange)})
+	}
+
+	return nil
+}
+
+func (rc *RunConfiguration) validateRuntimeParameters() error {
+	for i, rp := range rc.Spec.Run.RuntimeParameters {
 		if rp.ValueFrom != nil && rp.Value != "" {
-			return apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
-				r.Name, field.ErrorList{
+			return apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(),
+				rc.Name, field.ErrorList{
 					field.Invalid(
 						field.NewPath("spec").Child("run").Child("runtimeParameters").Index(i),
 						rp,
@@ -34,14 +51,22 @@ func (r *RunConfiguration) validate() error {
 	return nil
 }
 
-func (r *RunConfiguration) ValidateCreate() error {
-	return r.validate()
+func (rc *RunConfiguration) validate() error {
+	if err := rc.validateRuntimeParameters(); err != nil {
+		return err
+	}
+
+	return rc.validateUniqueStructures()
 }
 
-func (r *RunConfiguration) ValidateUpdate(_ runtime.Object) error {
-	return r.validate()
+func (rc *RunConfiguration) ValidateCreate() error {
+	return rc.validate()
 }
 
-func (r *RunConfiguration) ValidateDelete() error {
+func (rc *RunConfiguration) ValidateUpdate(_ runtime.Object) error {
+	return rc.validate()
+}
+
+func (rc *RunConfiguration) ValidateDelete() error {
 	return nil
 }

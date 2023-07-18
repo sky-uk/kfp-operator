@@ -74,3 +74,21 @@ func GroupMap[R any, K comparable, V any](rs []R, groupFn func(R) (K, V)) map[K]
 
 	return vvs
 }
+
+func Unique[R comparable](in []R) (out []R) {
+	for _, i := range in {
+		found := false
+		for _, o := range out {
+			if i == o {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			out = append(out, i)
+		}
+	}
+
+	return
+}

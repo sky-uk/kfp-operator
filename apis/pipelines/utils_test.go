@@ -91,4 +91,13 @@ var _ = Context("Utils", func() {
 		Entry("", []int{11, 12}, map[string][]int{"1": {1, 2}}),
 		Entry("", []int{}, map[string][]int{}),
 	)
+
+	DescribeTable("Unique", func(as []int, expected []int) {
+		Expect(Unique(as)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", []int{1, 1, 2}, []int{1, 2}),
+		Entry("", []int{1, 2, 2}, []int{1, 2}),
+		Entry("", []int{1, 1, 1}, []int{1}),
+		Entry("", []int{}, []int{}),
+	)
 })
