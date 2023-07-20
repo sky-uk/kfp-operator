@@ -115,123 +115,42 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;td>&lt;a href="https://argoproj.github.io/argo-workflows/fields/#ttlstrategy">TTL Strategy&lt;/a> used for all Argo Workflows&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.argo.stepTimeoutSeconds.default&lt;/code>&lt;/td>
-&lt;td>The maximum number of seconds that each non-compiler workflow step can run before being terminated - defaults to 300 (5m)&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>manager.argo.stepTimeoutSeconds.compile&lt;/code>&lt;/td>
-&lt;td>The maximum number of seconds that each compiler workflow step can run before being terminated - defaults to 1800 (60m)&lt;/td>
+&lt;td>Timeout in seconds for compiler steps - defaults to 1800 (30m)&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.argo.serviceAccount.name&lt;/code>&lt;/td>
-&lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s service account&lt;/a> used to run Argo workflows&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.argo.serviceAccount.create&lt;/code>&lt;/td>
-&lt;td>Create the Argo Workflows service account (or assume it has been created externally)&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.argo.serviceAccount.metadata&lt;/code>&lt;/td>
-&lt;td>Optional Argo Workflows service account default metadata&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.metadata&lt;/code>&lt;/td>
-&lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the manager&amp;rsquo;s pods&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.rbac.create&lt;/code>&lt;/td>
-&lt;td>Create roles and rolebindings for the operator&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.serviceAccount.name&lt;/code>&lt;/td>
-&lt;td>Manager service account&amp;rsquo;s name&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.serviceAccount.create&lt;/code>&lt;/td>
-&lt;td>Create the manager&amp;rsquo;s service account or expect it to be created externally&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.replicas&lt;/code>&lt;/td>
-&lt;td>Number of replicas for the manager deployment&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.resources&lt;/code>&lt;/td>
-&lt;td>Manager resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.configuration&lt;/code>&lt;/td>
-&lt;td>Manager configuration as defined in &lt;a href="../../reference/configuration">Configuration&lt;/a> (note that you can omit &lt;code>compilerImage&lt;/code> and &lt;code>kfpSdkImage&lt;/code> when specifying &lt;code>containerRegistry&lt;/code> as default values will be applied)&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.monitoring.create&lt;/code>&lt;/td>
-&lt;td>Create the manager&amp;rsquo;s monitoring resources&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.monitoring.rbacSecured&lt;/code>&lt;/td>
-&lt;td>Enable addtional RBAC-based security&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.monitoring.serviceMonitor.create&lt;/code>&lt;/td>
-&lt;td>Create a ServiceMonitor for the &lt;a href="https://github.com/prometheus-operator/prometheus-operator">Prometheus Operator&lt;/a>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.monitoring.serviceMonitor.endpointConfiguration&lt;/code>&lt;/td>
-&lt;td>Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided)&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.multiversion.enabled&lt;/code>&lt;/td>
-&lt;td>Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.webhookCertificates.provider&lt;/code>&lt;/td>
-&lt;td>K8s conversion webhook TLS certificate provider - choose &lt;code>cert-manager&lt;/code> for Helm to deploy certificates if cert-manager is available or &lt;code>custom&lt;/code> otherwise (see below)&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.webhookCertificates.secretName&lt;/code>&lt;/td>
-&lt;td>Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.webhookCertificates.caBundle&lt;/code>&lt;/td>
-&lt;td>CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.provider.type&lt;/code>&lt;/td>
-&lt;td>Provider type (&lt;code>kfp&lt;/code> for Kubeflow Pipelines or &lt;code>vai&lt;/code> for Vertex AI Pipelines)&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.provider.configuration&lt;/code>&lt;/td>
-&lt;td>Configuration block for the specific provider (see &lt;a href="../../reference/configuration#provider-configuration">Provider Configuration&lt;/a>), automatically mounted as a file&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>logging.verbosity&lt;/code>&lt;/td>
-&lt;td>Logging verbosity for all components - see the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.metadata&lt;/code>&lt;/td>
-&lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the eventsource server&amp;rsquo;s pods&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.rbac.create&lt;/code>&lt;/td>
-&lt;td>Create roles and rolebindings for the eventsource server&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.serviceAccount.name&lt;/code>&lt;/td>
-&lt;td>Eventsource server&amp;rsquo;s service account&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.serviceAccount.create&lt;/code>&lt;/td>
-&lt;td>Create the eventsource server&amp;rsquo;s service account or expect it to be created externally&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.resources&lt;/code>&lt;/td>
-&lt;td>Eventsource server resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>providers&lt;/code>&lt;/td>
-&lt;td>Dictionary of providers (see below)&lt;/td>
+&lt;td>&lt;code>manager.argo.stepTimeoutSeconds.default&lt;/code>&lt;/td>
+&lt;td>Default &lt;a href="https://argoproj.github.io/argo-workflows/walk-through/timeouts/">timeout in seconds&lt;/a> for workflow steps - defaults to 300 (5m)&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
+&lt;p>| &lt;code>manager.argo.serviceAccount.name&lt;/code> | The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s service account&lt;/a> used to run Argo workflows |
+| &lt;code>manager.argo.serviceAccount.create&lt;/code> | Create the Argo Workflows service account (or assume it has been created externally) |
+| &lt;code>manager.argo.serviceAccount.metadata&lt;/code> | Optional Argo Workflows service account default metadata |
+| &lt;code>manager.metadata&lt;/code> | &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the manager&amp;rsquo;s pods |
+| &lt;code>manager.rbac.create&lt;/code> | Create roles and rolebindings for the operator |
+| &lt;code>manager.serviceAccount.name&lt;/code> | Manager service account&amp;rsquo;s name |
+| &lt;code>manager.serviceAccount.create&lt;/code> | Create the manager&amp;rsquo;s service account or expect it to be created externally |
+| &lt;code>manager.replicas&lt;/code> | Number of replicas for the manager deployment |
+| &lt;code>manager.resources&lt;/code> | Manager resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a> |
+| &lt;code>manager.configuration&lt;/code> | Manager configuration as defined in &lt;a href="../../reference/configuration">Configuration&lt;/a> (note that you can omit &lt;code>compilerImage&lt;/code> and &lt;code>kfpSdkImage&lt;/code> when specifying &lt;code>containerRegistry&lt;/code> as default values will be applied) |
+| &lt;code>manager.monitoring.create&lt;/code> | Create the manager&amp;rsquo;s monitoring resources |
+| &lt;code>manager.monitoring.rbacSecured&lt;/code> | Enable addtional RBAC-based security |
+| &lt;code>manager.monitoring.serviceMonitor.create&lt;/code> | Create a ServiceMonitor for the &lt;a href="https://github.com/prometheus-operator/prometheus-operator">Prometheus Operator&lt;/a> |
+| &lt;code>manager.monitoring.serviceMonitor.endpointConfiguration&lt;/code> | Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided) |
+| &lt;code>manager.multiversion.enabled&lt;/code> | Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation |
+| &lt;code>manager.webhookCertificates.provider&lt;/code> | K8s conversion webhook TLS certificate provider - choose &lt;code>cert-manager&lt;/code> for Helm to deploy certificates if cert-manager is available or &lt;code>custom&lt;/code> otherwise (see below) |
+| &lt;code>manager.webhookCertificates.secretName&lt;/code> | Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the &lt;code>custom&lt;/code> provider is chosen |
+| &lt;code>manager.webhookCertificates.caBundle&lt;/code> | CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate, required if the &lt;code>custom&lt;/code> provider is chosen |
+| &lt;code>manager.provider.type&lt;/code> | Provider type (&lt;code>kfp&lt;/code> for Kubeflow Pipelines or &lt;code>vai&lt;/code> for Vertex AI Pipelines) |
+| &lt;code>manager.provider.configuration&lt;/code> | Configuration block for the specific provider (see &lt;a href="../../reference/configuration#provider-configuration">Provider Configuration&lt;/a>), automatically mounted as a file |
+| &lt;code>logging.verbosity&lt;/code> | Logging verbosity for all components - see the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values |
+| &lt;code>eventsourceServer.metadata&lt;/code> | &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the eventsource server&amp;rsquo;s pods |
+| &lt;code>eventsourceServer.rbac.create&lt;/code> | Create roles and rolebindings for the eventsource server |
+| &lt;code>eventsourceServer.serviceAccount.name&lt;/code> | Eventsource server&amp;rsquo;s service account |
+| &lt;code>eventsourceServer.serviceAccount.create&lt;/code> | Create the eventsource server&amp;rsquo;s service account or expect it to be created externally |
+| &lt;code>eventsourceServer.resources&lt;/code> | Eventsource server resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a> |
+| &lt;code>providers&lt;/code> | Dictionary of providers (see below) |&lt;/p>
 &lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
 ">test configuration&lt;/a>&lt;/p>
 &lt;h3 id="providers">Providers&lt;/h3>
