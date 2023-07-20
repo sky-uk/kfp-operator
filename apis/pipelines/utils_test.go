@@ -66,6 +66,14 @@ var _ = Context("Utils", func() {
 		Entry("", []int{2, 1}, nil, false),
 	)
 
+	DescribeTable("Flatten", func(as [][]int, expected []int) {
+		Expect(Flatten(as...)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", [][]int{}, []int{}),
+		Entry("", [][]int{{}, {}}, []int{}),
+		Entry("", [][]int{{1, 2}, {3, 4}}, []int{1, 2, 3, 4}),
+	)
+
 	DescribeTable("Collect", func(as []int, expected []string) {
 		Expect(Collect(as, func(a int) (string, bool) {
 			if a%2 == 0 {
@@ -90,5 +98,15 @@ var _ = Context("Utils", func() {
 		Entry("", []int{23, 11, 12}, map[string][]int{"1": {1, 2}, "2": {3}}),
 		Entry("", []int{11, 12}, map[string][]int{"1": {1, 2}}),
 		Entry("", []int{}, map[string][]int{}),
+	)
+
+	DescribeTable("Duplicates", func(as []int, expected []int) {
+		Expect(Duplicates(as)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", []int{1, 1, 2}, []int{1}),
+		Entry("", []int{1, 2, 2}, []int{2}),
+		Entry("", []int{1, 1, 1}, []int{1}),
+		Entry("", []int{1, 2, 3}, []int{}),
+		Entry("", []int{}, []int{}),
 	)
 })
