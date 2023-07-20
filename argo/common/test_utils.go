@@ -1,5 +1,4 @@
 //go:build unit || decoupled || integration
-// +build unit decoupled integration
 
 package common
 

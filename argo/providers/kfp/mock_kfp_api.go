@@ -1,5 +1,4 @@
 //go:build decoupled || unit
-// +build decoupled unit
 
 package kfp
 
