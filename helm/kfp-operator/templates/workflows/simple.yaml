@@ -24,6 +24,7 @@ spec:
     podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
       volumeMounts:
@@ -60,6 +61,7 @@ spec:
     podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
       volumeMounts:

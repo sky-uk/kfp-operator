@@ -18,6 +18,7 @@ spec:
       image: mikefarah/yq:4.27.5
       source: yq e '.{{inputs.parameters.parameter}}' '/providers-config/{{workflow.parameters.provider-name}}'
     metadata: {}
+    activeDeadlineSeconds: 300
   - name: select-resource-image
     inputs:
       artifacts:
@@ -32,6 +33,7 @@ spec:
       image: mikefarah/yq:4.27.5
       source: yq e '.image' /resource-definition.yaml
     metadata: {}
+    activeDeadlineSeconds: 300
   - name: delete
     inputs:
       parameters:
@@ -44,6 +46,7 @@ spec:
           path: /tmp/provider-output.yaml
     podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
     metadata: {}
+    activeDeadlineSeconds: 300
     container:
       image: "{{inputs.parameters.provider-image}}"
       volumeMounts:
