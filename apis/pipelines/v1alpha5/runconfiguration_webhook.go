@@ -19,44 +19,43 @@ func (rc *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 var _ webhook.Validator = &RunConfiguration{}
 
-func (rc *RunConfiguration) validateUniqueStructures() error {
-	uniqueScheduled := pipelines.Unique(rc.Spec.Triggers.Schedules)
-	if len(rc.Spec.Triggers.Schedules) > len(uniqueScheduled) {
-		return apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(),
-			rc.Name, field.ErrorList{field.Duplicate(field.NewPath("spec").Key("triggers").Key("schedules"), rc.Spec.Triggers.Schedules)})
-	}
+func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) {
+	duplicateSchedules := pipelines.Duplicates(rc.Spec.Triggers.Schedules)
+	schedulePath := field.NewPath("spec").Key("triggers").Key("schedules")
+	errors = append(errors, pipelines.Map(duplicateSchedules, func(schedule string) *field.Error {
+		return field.Duplicate(schedulePath, schedule)
+	})...)
 
-	uniqueOnChangeTriggers := pipelines.Unique(rc.Spec.Triggers.OnChange)
-	if len(rc.Spec.Triggers.OnChange) > len(uniqueOnChangeTriggers) {
-		return apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(),
-			rc.Name, field.ErrorList{field.Duplicate(field.NewPath("spec").Key("triggers").Key("onChange"), rc.Spec.Triggers.OnChange)})
-	}
+	duplicateOnChangeTriggers := pipelines.Duplicates(rc.Spec.Triggers.OnChange)
+	onChangePath := field.NewPath("spec").Key("triggers").Key("onChange")
+	errors = append(errors, pipelines.Map(duplicateOnChangeTriggers, func(onChange OnChangeType) *field.Error {
+		return field.Duplicate(onChangePath, onChange)
+	})...)
 
-	return nil
+	return
 }
 
-func (rc *RunConfiguration) validateRuntimeParameters() error {
+func (rc *RunConfiguration) validateRuntimeParameters() (errors field.ErrorList) {
+	runtimeParametersPath := field.NewPath("spec").Child("run").Child("runtimeParameters")
 	for i, rp := range rc.Spec.Run.RuntimeParameters {
 		if rp.ValueFrom != nil && rp.Value != "" {
-			return apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(),
-				rc.Name, field.ErrorList{
-					field.Invalid(
-						field.NewPath("spec").Child("run").Child("runtimeParameters").Index(i),
-						rp,
-						"only one of value or valueFrom can be set"),
-				})
+			errors = append(errors,
+				field.Invalid(runtimeParametersPath.Index(i), rp, "only one of value or valueFrom can be set"),
+			)
 		}
 	}
 
-	return nil
+	return
 }
 
 func (rc *RunConfiguration) validate() error {
-	if err := rc.validateRuntimeParameters(); err != nil {
-		return err
+	errors := pipelines.Flatten(rc.validateRuntimeParameters(), rc.validateUniqueStructures())
+
+	if len(errors) > 0 {
+		return apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(), rc.Name, errors)
 	}
 
-	return rc.validateUniqueStructures()
+	return nil
 }
 
 func (rc *RunConfiguration) ValidateCreate() error {

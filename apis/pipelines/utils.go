@@ -51,6 +51,14 @@ func MapErr[R, S any](rs []R, mapFn func(R) (S, error)) (ss []S, err error) {
 	return
 }
 
+func Flatten[R any](rrs ...[]R) (out []R) {
+	for _, rs := range rrs {
+		out = append(out, rs...)
+	}
+
+	return
+}
+
 func Collect[R, S any](rs []R, mapFn func(R) (S, bool)) []S {
 	var ss []S
 
@@ -75,18 +83,20 @@ func GroupMap[R any, K comparable, V any](rs []R, groupFn func(R) (K, V)) map[K]
 	return vvs
 }
 
-func Unique[R comparable](in []R) (out []R) {
+func Duplicates[R comparable](in []R) (out []R) {
+	duplicatesInOutput := make(map[R]bool)
+
 	for _, i := range in {
-		found := false
-		for _, o := range out {
-			if i == o {
-				found = true
-				break
-			}
+		inOutput, duplicate := duplicatesInOutput[i]
+		if inOutput {
+			continue
 		}
 
-		if !found {
+		if duplicate {
 			out = append(out, i)
+			duplicatesInOutput[i] = true
+		} else {
+			duplicatesInOutput[i] = false
 		}
 	}
 
