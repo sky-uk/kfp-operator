@@ -166,7 +166,7 @@ func (r *Run) GetDependencyRuns() map[string]RunReference {
 	return r.Status.Dependencies.RunConfigurations
 }
 
-func (r *Run) GetReferencedDependencies() []RunConfigurationRef {
+func (r *Run) GetReferencedRCs() []RunConfigurationRef {
 	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
 			return RunConfigurationRef{}, false

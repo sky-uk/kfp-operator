@@ -3,6 +3,7 @@ package pipelines
 import (
 	"context"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -187,6 +188,14 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForRunconfigurations)
 	if err != nil {
+		return err
+	}
+
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), run, rcRefField, func(rawObj client.Object) []string {
+		return pipelines.Map(rawObj.(*pipelinesv1.Run).GetReferencedRCs(), func(r pipelinesv1.RunConfigurationRef) string {
+			return r.Name
+		})
+	}); err != nil {
 		return err
 	}
 

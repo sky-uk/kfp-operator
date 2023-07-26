@@ -11,12 +11,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"reflect"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
@@ -147,12 +143,9 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 		return err
 	}
 
-	runExists := false
-	for _, run := range runs {
-		if string(run.ComputeHash()) == string(desiredRun.ComputeHash()) {
-			runExists = true
-		}
-	}
+	runExists := pipelines.Exists(runs, func(run pipelinesv1.Run) bool {
+		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
+	})
 
 	if !runExists {
 		if err := r.EC.Client.Create(ctx, desiredRun); err != nil {
@@ -238,30 +231,31 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 	return requests
 }
 
-func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(field string) func(runConfiguration client.Object) []reconcile.Request {
-	return func(runConfiguration client.Object) []reconcile.Request {
-		referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
-		listOps := &client.ListOptions{
-			FieldSelector: fields.OneTermEqualSelector(field, runConfiguration.GetName()),
-			Namespace:     runConfiguration.GetNamespace(),
-		}
-
-		err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, listOps)
-		if err != nil {
-			return []reconcile.Request{}
-		}
-
-		requests := make([]reconcile.Request, len(referencingRunConfigurations.Items))
-		for i, item := range referencingRunConfigurations.Items {
-			requests[i] = reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Name:      item.GetName(),
-					Namespace: item.GetNamespace(),
-				},
-			}
-		}
-		return requests
+func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(runConfiguration client.Object) []reconcile.Request {
+	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
+	rcRefListOps := &client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
+		Namespace:     runConfiguration.GetNamespace(),
 	}
+	rcTriggersListOps := &client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector(rcTriggersField, runConfiguration.GetName()),
+		Namespace:     runConfiguration.GetNamespace(),
+	}
+
+	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, rcRefListOps, rcTriggersListOps)
+	if err != nil {
+		return []reconcile.Request{}
+	}
+	requests := make([]reconcile.Request, len(referencingRunConfigurations.Items))
+	for i, item := range referencingRunConfigurations.Items {
+		requests[i] = reconcile.Request{
+			NamespacedName: types.NamespacedName{
+				Name:      item.GetName(),
+				Namespace: item.GetNamespace(),
+			},
+		}
+	}
+	return requests
 }
 
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -273,8 +267,16 @@ func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err != nil {
 		return err
 	}
-	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForRunConfiguration(rcRefField))
+	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForRunConfiguration)
 	if err != nil {
+		return err
+	}
+
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), runConfiguration, rcRefField, func(rawObj client.Object) []string {
+		return pipelines.Map(rawObj.(*pipelinesv1.RunConfiguration).GetRCRuntimeParameters(), func(r pipelinesv1.RunConfigurationRef) string {
+			return r.Name
+		})
+	}); err != nil {
 		return err
 	}
 
@@ -284,11 +286,7 @@ func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	return controllerBuilder.Owns(&pipelinesv1.RunSchedule{}).Watches(
-		&source.Kind{Type: &pipelinesv1.RunConfiguration{}},
-		handler.EnqueueRequestsFromMapFunc(r.reconciliationRequestsForRunConfiguration(rcTriggersField)),
-		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
-	).Complete(r)
+	return controllerBuilder.Owns(&pipelinesv1.RunSchedule{}).Complete(r)
 }
 
 func findOwnedRunSchedules(ctx context.Context, cli client.Reader, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {

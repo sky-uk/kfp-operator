@@ -24,7 +24,7 @@ const (
 
 type DependingOnRunConfigurationResource interface {
 	client.Object
-	GetReferencedDependencies() []pipelinesv1.RunConfigurationRef
+	GetReferencedRCs() []pipelinesv1.RunConfigurationRef
 	GetDependencyRuns() map[string]pipelinesv1.RunReference
 	SetDependencyRuns(map[string]pipelinesv1.RunReference)
 }
@@ -36,7 +36,7 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
-	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedDependencies(), func(r pipelinesv1.RunConfigurationRef) (string, string) {
+	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedRCs(), func(r pipelinesv1.RunConfigurationRef) (string, string) {
 		return r.Name, r.OutputArtifact
 	})
 
@@ -104,15 +104,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 	return runConfiguration, nil
 }
 
-func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, rcRefField, func(rawObj client.Object) []string {
-		return pipelines.Map(rawObj.(R).GetReferencedDependencies(), func(r pipelinesv1.RunConfigurationRef) string {
-			return r.Name
-		})
-	}); err != nil {
-		return nil, err
-	}
-
+func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(_ ctrl.Manager, controllerBuilder *builder.Builder, _ client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
 	return controllerBuilder.Watches(
 		&source.Kind{Type: &pipelinesv1.RunConfiguration{}},
 		handler.EnqueueRequestsFromMapFunc(reconciliationRequestsForPipeline),
