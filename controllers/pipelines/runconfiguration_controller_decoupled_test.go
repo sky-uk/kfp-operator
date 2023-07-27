@@ -357,7 +357,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
-				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).NotTo(HaveKey(referencedRc.Name))
+				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).To(HaveKey(referencedRc.Name))
 			})).Should(Succeed())
 
 			runConfiguration.Spec.Triggers.RunConfigurations = nil

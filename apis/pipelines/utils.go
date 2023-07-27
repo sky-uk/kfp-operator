@@ -112,3 +112,14 @@ func Duplicates[R comparable](in []R) (out []R) {
 
 	return
 }
+
+func ToMap[K comparable, V, W any](vs []V, mapFn func(V) (K, W)) map[K]W {
+	kws := make(map[K]W)
+
+	for _, v := range vs {
+		k, w := mapFn(v)
+		kws[k] = w
+	}
+
+	return kws
+}

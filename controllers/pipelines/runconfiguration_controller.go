@@ -99,13 +99,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	hasUntriggeredPipelineDependency := runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.Triggers.OnChange != nil
-	hasUntriggeredRcDependency := pipelines.Exists(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) bool {
-		return runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId == "" || runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId != runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId
-	})
-
-	if hasUntriggeredPipelineDependency || hasUntriggeredRcDependency {
-		return ctrl.Result{}, r.syncWithRuns(ctx, desiredProvider, runConfiguration)
+	if hasChanged, err := r.syncWithRuns(ctx, desiredProvider, runConfiguration); hasChanged || err != nil {
+		return ctrl.Result{}, err
 	}
 
 	newStatus := runConfiguration.Status
@@ -132,7 +127,16 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
+func (r *RunConfigurationReconciler) triggerUntriggeredRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
+	hasUntriggeredPipelineDependency := runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.Triggers.OnChange != nil
+	hasUntriggeredRcDependency := pipelines.Exists(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) bool {
+		return runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId == "" || runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId != runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId
+	})
+
+	if !hasUntriggeredRcDependency && !hasUntriggeredPipelineDependency {
+		return nil
+	}
+
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
 		return err
@@ -147,23 +151,32 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
 	})
 
-	if !runExists {
-		if err := r.EC.Client.Create(ctx, desiredRun); err != nil {
-			return err
-		}
+	if runExists {
+		return nil
 	}
+
+	return r.EC.Client.Create(ctx, desiredRun)
+}
+
+func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (bool, error) {
+	if err := r.triggerUntriggeredRuns(ctx, provider, runConfiguration); err != nil {
+		return false, err
+	}
+
+	oldStatus := runConfiguration.Status
 
 	runConfiguration.Status.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
-	for _, rcName := range runConfiguration.Spec.Triggers.RunConfigurations {
-		if runConfiguration.Status.Triggers.RunConfigurations == nil {
-			runConfiguration.Status.Triggers.RunConfigurations = make(map[string]pipelinesv1.TriggeredRunReference)
-		}
-		triggeredRc := runConfiguration.Status.Triggers.RunConfigurations[rcName]
-		triggeredRc.ProviderId = runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId
-		runConfiguration.Status.Triggers.RunConfigurations[rcName] = triggeredRc
+	runConfiguration.Status.Triggers.RunConfigurations = pipelines.ToMap(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) (string, pipelinesv1.TriggeredRunReference) {
+		triggeredRun := pipelinesv1.TriggeredRunReference{ProviderId: runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId}
+		return rcName, triggeredRun
+	})
+
+	hasChanged := reflect.DeepEqual(oldStatus, runConfiguration.Status)
+	if hasChanged {
+		return hasChanged, r.EC.Client.Status().Update(ctx, runConfiguration)
 	}
 
-	return r.EC.Client.Status().Update(ctx, runConfiguration)
+	return false, nil
 }
 
 func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (state apis.SynchronizationState, err error) {

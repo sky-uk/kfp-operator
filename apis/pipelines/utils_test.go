@@ -120,4 +120,18 @@ var _ = Context("Utils", func() {
 		Entry("", []int{1, 2, 3}, []int{}),
 		Entry("", []int{}, []int{}),
 	)
+
+	type TestMapping struct {
+		Key   string
+		Value int
+	}
+	DescribeTable("ToMap", func(kvs []TestMapping, expected map[string]int) {
+		Expect(ToMap(kvs, func(a TestMapping) (string, int) {
+			return a.Key, a.Value
+		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", []TestMapping{}, map[string]int{}),
+		Entry("", []TestMapping{{"1", 1}, {"2", 2}}, map[string]int{"1": 1, "2": 2}),
+		Entry("", []TestMapping{{"1", 1}, {"1", 3}, {"2", 2}}, map[string]int{"1": 3, "2": 2}),
+	)
 })
