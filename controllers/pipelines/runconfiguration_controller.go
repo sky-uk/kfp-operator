@@ -128,12 +128,12 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 }
 
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
-	hasUntriggeredPipelineDependency := runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.Triggers.OnChange != nil
-	hasUntriggeredRcDependency := pipelines.Exists(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) bool {
-		return runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId == "" || runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId != runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId
+	pipelineDependencyAlreadyTriggered := runConfiguration.Spec.Triggers.OnChange == nil || runConfiguration.Status.ObservedPipelineVersion == runConfiguration.Status.TriggeredPipelineVersion
+	rcDependenciesAlreadyTriggered := pipelines.Forall(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) bool {
+		return runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId == "" || runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId == runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId
 	})
 
-	if !hasUntriggeredRcDependency && !hasUntriggeredPipelineDependency {
+	if pipelineDependencyAlreadyTriggered && rcDependenciesAlreadyTriggered {
 		return nil
 	}
 

@@ -28,6 +28,16 @@ func Exists[T any](ts []T, predicate func(T) bool) bool {
 	return false
 }
 
+func Forall[T any](ts []T, predicate func(T) bool) bool {
+	for _, t := range ts {
+		if !predicate(t) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func Filter[T any](ts []T, filter func(T) bool) (filtered []T) {
 	for _, t := range ts {
 		if filter(t) {

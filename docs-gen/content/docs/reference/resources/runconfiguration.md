@@ -27,7 +27,7 @@ spec:
     onChange:
     - pipeline
     runConfigurations:
-    - 
+    - dependency-rc
 ```
 
 A Run Configuration can have one of more triggers that determine when the next training run will be started.

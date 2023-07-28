@@ -67,7 +67,7 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">onChange&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">pipeline&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurations&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> -
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">dependency-rc&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A Run Configuration can have one of more triggers that determine when the next training run will be started.&lt;/p>
 &lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
