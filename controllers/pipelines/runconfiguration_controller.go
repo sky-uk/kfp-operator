@@ -21,10 +21,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-const (
-	rcTriggersField = ".spec.triggers.runConfigurations"
-)
-
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
@@ -250,12 +246,8 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(r
 		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
 		Namespace:     runConfiguration.GetNamespace(),
 	}
-	rcTriggersListOps := &client.ListOptions{
-		FieldSelector: fields.OneTermEqualSelector(rcTriggersField, runConfiguration.GetName()),
-		Namespace:     runConfiguration.GetNamespace(),
-	}
 
-	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, rcRefListOps, rcTriggersListOps)
+	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, rcRefListOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
@@ -282,20 +274,6 @@ func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, runConfiguration, r.reconciliationRequestsForRunConfiguration)
 	if err != nil {
-		return err
-	}
-
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), runConfiguration, rcRefField, func(rawObj client.Object) []string {
-		return pipelines.Map(rawObj.(*pipelinesv1.RunConfiguration).GetRCRuntimeParameters(), func(r pipelinesv1.RunConfigurationRef) string {
-			return r.Name
-		})
-	}); err != nil {
-		return err
-	}
-
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), runConfiguration, rcTriggersField, func(rawObj client.Object) []string {
-		return rawObj.(*pipelinesv1.RunConfiguration).Spec.Triggers.RunConfigurations
-	}); err != nil {
 		return err
 	}
 

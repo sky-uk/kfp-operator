@@ -166,13 +166,23 @@ func (r *Run) GetDependencyRuns() map[string]RunReference {
 	return r.Status.Dependencies.RunConfigurations
 }
 
-func (r *Run) GetReferencedRCs() []RunConfigurationRef {
+func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
 	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}
 
 		return rp.ValueFrom.RunConfigurationRef, true
+	})
+}
+
+func (r *Run) GetReferencedRCs() []string {
+	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+		if rp.ValueFrom == nil {
+			return "", false
+		}
+
+		return rp.ValueFrom.RunConfigurationRef.Name, true
 	})
 }
 

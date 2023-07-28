@@ -76,7 +76,7 @@ func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
 	return rc.Status.Dependencies.RunConfigurations
 }
 
-func (rc *RunConfiguration) GetRCRuntimeParameters() []RunConfigurationRef {
+func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
 	return pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
 			return RunConfigurationRef{}, false
@@ -86,16 +86,16 @@ func (rc *RunConfiguration) GetRCRuntimeParameters() []RunConfigurationRef {
 	})
 }
 
-func (rc *RunConfiguration) GetTriggeringRCs() []RunConfigurationRef {
-	return pipelines.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string) RunConfigurationRef {
-		return RunConfigurationRef{
-			Name: rcName,
-		}
+func (rc *RunConfiguration) GetReferencedRCs() []string {
+	triggeringRcs := pipelines.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string) string {
+		return rcName
 	})
-}
 
-func (rc *RunConfiguration) GetReferencedRCs() []RunConfigurationRef {
-	return append(rc.GetRCRuntimeParameters(), rc.GetTriggeringRCs()...)
+	parameterRcs := pipelines.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef) string {
+		return r.Name
+	})
+
+	return pipelines.Unique(append(parameterRcs, triggeringRcs...))
 }
 
 func (rc *RunConfiguration) GetProvider() string {
