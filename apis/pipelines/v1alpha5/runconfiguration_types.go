@@ -5,6 +5,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 )
 
 type Triggers struct {
@@ -33,6 +34,14 @@ type TriggeredRunReference struct {
 
 type TriggersStatus struct {
 	RunConfigurations map[string]TriggeredRunReference `json:"runConfigurations,omitempty"`
+}
+
+func (ts TriggersStatus) Equals(other TriggersStatus) bool {
+	if len(ts.RunConfigurations) == 0 && len(other.RunConfigurations) == 0 {
+		return true
+	}
+
+	return reflect.DeepEqual(ts, other)
 }
 
 type LatestRuns struct {

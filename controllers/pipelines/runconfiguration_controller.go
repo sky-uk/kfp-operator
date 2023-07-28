@@ -167,12 +167,11 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 		return rcName, triggeredRun
 	})
 
-	hasChanged := reflect.DeepEqual(oldStatus, runConfiguration.Status)
-	if hasChanged {
-		return hasChanged, r.EC.Client.Status().Update(ctx, runConfiguration)
+	if runConfiguration.Status.Triggers.Equals(oldStatus.Triggers) && runConfiguration.Status.TriggeredPipelineVersion == oldStatus.TriggeredPipelineVersion {
+		return false, nil
 	}
 
-	return false, nil
+	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
 func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (state apis.SynchronizationState, err error) {
