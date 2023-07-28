@@ -1,5 +1,4 @@
 //go:build decoupled || integration
-// +build decoupled integration
 
 package pipelines
 

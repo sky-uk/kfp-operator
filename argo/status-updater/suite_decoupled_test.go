@@ -1,5 +1,4 @@
 //go:build decoupled
-// +build decoupled
 
 package status_updater
 

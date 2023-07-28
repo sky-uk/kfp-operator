@@ -1,5 +1,4 @@
 //go:build integration || decoupled || unit
-// +build integration decoupled unit
 
 package apis
 
