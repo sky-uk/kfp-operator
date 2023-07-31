@@ -95,8 +95,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	if runConfiguration.Status.ObservedPipelineVersion != runConfiguration.Status.TriggeredPipelineVersion && runConfiguration.Spec.Triggers.OnChange != nil {
-		return ctrl.Result{}, r.syncWithRuns(ctx, desiredProvider, runConfiguration)
+	if hasChanged, err := r.syncWithRuns(ctx, desiredProvider, runConfiguration); hasChanged || err != nil {
+		return ctrl.Result{}, err
 	}
 
 	newStatus := runConfiguration.Status
@@ -123,7 +123,16 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	return ctrl.Result{}, nil
 }
 
-func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
+func (r *RunConfigurationReconciler) triggerUntriggeredRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
+	pipelineDependencyAlreadyTriggered := runConfiguration.Spec.Triggers.OnChange == nil || runConfiguration.Status.ObservedPipelineVersion == runConfiguration.Status.TriggeredPipelineVersion
+	rcDependenciesAlreadyTriggered := pipelines.Forall(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) bool {
+		return runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId == "" || runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId == runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId
+	})
+
+	if pipelineDependencyAlreadyTriggered && rcDependenciesAlreadyTriggered {
+		return nil
+	}
+
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
 		return err
@@ -134,21 +143,35 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 		return err
 	}
 
-	runExists := false
-	for _, run := range runs {
-		if string(run.ComputeHash()) == string(desiredRun.ComputeHash()) {
-			runExists = true
-		}
+	runExists := pipelines.Exists(runs, func(run pipelinesv1.Run) bool {
+		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
+	})
+
+	if runExists {
+		return nil
 	}
 
-	if !runExists {
-		if err := r.EC.Client.Create(ctx, desiredRun); err != nil {
-			return err
-		}
+	return r.EC.Client.Create(ctx, desiredRun)
+}
+
+func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (bool, error) {
+	if err := r.triggerUntriggeredRuns(ctx, provider, runConfiguration); err != nil {
+		return false, err
 	}
+
+	oldStatus := runConfiguration.Status
 
 	runConfiguration.Status.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
-	return r.EC.Client.Status().Update(ctx, runConfiguration)
+	runConfiguration.Status.Triggers.RunConfigurations = pipelines.ToMap(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) (string, pipelinesv1.TriggeredRunReference) {
+		triggeredRun := pipelinesv1.TriggeredRunReference{ProviderId: runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId}
+		return rcName, triggeredRun
+	})
+
+	if runConfiguration.Status.Triggers.Equals(oldStatus.Triggers) && runConfiguration.Status.TriggeredPipelineVersion == oldStatus.TriggeredPipelineVersion {
+		return false, nil
+	}
+
+	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
 func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (state apis.SynchronizationState, err error) {
@@ -218,16 +241,15 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 
 func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(runConfiguration client.Object) []reconcile.Request {
 	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
-	listOps := &client.ListOptions{
+	rcRefListOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
 		Namespace:     runConfiguration.GetNamespace(),
 	}
 
-	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, listOps)
+	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, rcRefListOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
-
 	requests := make([]reconcile.Request, len(referencingRunConfigurations.Items))
 	for i, item := range referencingRunConfigurations.Items {
 		requests[i] = reconcile.Request{

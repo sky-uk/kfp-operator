@@ -23,6 +23,32 @@ var _ = Context("Utils", func() {
 		Entry("", []int{}, []int{1}, []int{}),
 	)
 
+	DescribeTable("Exists", func(as []int, expected bool) {
+		Expect(Exists(as, func(a int) bool {
+			return a%2 == 0
+		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", []int{}, false),
+		Entry("", []int{2}, true),
+		Entry("", []int{1}, false),
+		Entry("", []int{1, 2}, true),
+		Entry("", []int{2, 1}, true),
+		Entry("", []int{1, 3}, false),
+	)
+
+	DescribeTable("Forall", func(as []int, expected bool) {
+		Expect(Forall(as, func(a int) bool {
+			return a%2 == 0
+		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", []int{}, true),
+		Entry("", []int{1}, false),
+		Entry("", []int{2}, true),
+		Entry("", []int{1, 2}, false),
+		Entry("", []int{2, 1}, false),
+		Entry("", []int{2, 4}, true),
+	)
+
 	DescribeTable("Filter", func(as, expected []int) {
 		Expect(Filter(as, func(a int) bool {
 			return a%2 == 0
@@ -107,5 +133,29 @@ var _ = Context("Utils", func() {
 		Entry("", []int{1, 1, 1}, []int{1}),
 		Entry("", []int{1, 2, 3}, []int{}),
 		Entry("", []int{}, []int{}),
+	)
+
+	DescribeTable("Unique", func(as []int, expected []int) {
+		Expect(Unique(as)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", []int{}, []int{}),
+		Entry("", []int{1, 1, 2}, []int{1, 2}),
+		Entry("", []int{1, 2, 2}, []int{1, 2}),
+		Entry("", []int{1, 1, 1}, []int{1}),
+		Entry("", []int{1, 2, 3}, []int{1, 2, 3}),
+	)
+
+	type TestMapping struct {
+		Key   string
+		Value int
+	}
+	DescribeTable("ToMap", func(kvs []TestMapping, expected map[string]int) {
+		Expect(ToMap(kvs, func(a TestMapping) (string, int) {
+			return a.Key, a.Value
+		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", []TestMapping{}, map[string]int{}),
+		Entry("", []TestMapping{{"1", 1}, {"2", 2}}, map[string]int{"1": 1, "2": 2}),
+		Entry("", []TestMapping{{"1", 1}, {"1", 3}, {"2", 2}}, map[string]int{"1": 3, "2": 2}),
 	)
 })

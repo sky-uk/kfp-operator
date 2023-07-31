@@ -19,12 +19,13 @@ import (
 )
 
 const (
-	rcRefField = ".spec.runtimeParameters.valueFrom.runConfigurationRef.name"
+	rcRefField = ".referencedRunConfigurations"
 )
 
 type DependingOnRunConfigurationResource interface {
 	client.Object
-	GetReferencedDependencies() []pipelinesv1.RunConfigurationRef
+	GetReferencedRCs() []string
+	GetReferencedRCArtifacts() []pipelinesv1.RunConfigurationRef
 	GetDependencyRuns() map[string]pipelinesv1.RunReference
 	SetDependencyRuns(map[string]pipelinesv1.RunReference)
 }
@@ -36,9 +37,14 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
-	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedDependencies(), func(r pipelinesv1.RunConfigurationRef) (string, string) {
+	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelinesv1.RunConfigurationRef) (string, string) {
 		return r.Name, r.OutputArtifact
 	})
+	for _, rc := range resource.GetReferencedRCs() {
+		if _, ok := artifactReferencesByDependency[rc]; !ok {
+			artifactReferencesByDependency[rc] = nil
+		}
+	}
 
 	dependencies := make(map[string]pipelinesv1.RunReference)
 
@@ -104,11 +110,9 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 	return runConfiguration, nil
 }
 
-func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, rcRefField, func(rawObj client.Object) []string {
-		return pipelines.Map(rawObj.(R).GetReferencedDependencies(), func(r pipelinesv1.RunConfigurationRef) string {
-			return r.Name
-		})
+func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, resource client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, rcRefField, func(rawObj client.Object) []string {
+		return rawObj.(R).GetReferencedRCs()
 	}); err != nil {
 		return nil, err
 	}

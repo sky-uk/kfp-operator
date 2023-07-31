@@ -18,6 +18,26 @@ func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	return diff
 }
 
+func Exists[T any](ts []T, predicate func(T) bool) bool {
+	for _, t := range ts {
+		if predicate(t) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func Forall[T any](ts []T, predicate func(T) bool) bool {
+	for _, t := range ts {
+		if !predicate(t) {
+			return false
+		}
+	}
+
+	return true
+}
+
 func Filter[T any](ts []T, filter func(T) bool) (filtered []T) {
 	for _, t := range ts {
 		if filter(t) {
@@ -101,4 +121,29 @@ func Duplicates[R comparable](in []R) (out []R) {
 	}
 
 	return
+}
+
+func Unique[R comparable](in []R) (out []R) {
+	unique := make(map[R]bool)
+
+	for _, i := range in {
+		if _, ok := unique[i]; ok {
+			continue
+		}
+		out = append(out, i)
+		unique[i] = true
+	}
+
+	return
+}
+
+func ToMap[K comparable, V, W any](vs []V, mapFn func(V) (K, W)) map[K]W {
+	kws := make(map[K]W)
+
+	for _, v := range vs {
+		k, w := mapFn(v)
+		kws[k] = w
+	}
+
+	return kws
 }

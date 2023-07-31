@@ -66,6 +66,8 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">onChange&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">pipeline&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurations&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">dependency-rc&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A Run Configuration can have one of more triggers that determine when the next training run will be started.&lt;/p>
 &lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
@@ -87,6 +89,10 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;tr>
 &lt;td>&lt;code>spec.triggers.onChange[]&lt;/code>&lt;/td>
 &lt;td>Resource attributes that execute training runs. Currently, only &lt;code>pipeline&lt;/code> is supported, triggering when the referenced pipeline changes.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>spec.triggers.runConfigurations[]&lt;/code>&lt;/td>
+&lt;td>RunConfigurations to watch for completion - a run for this RunConfiguration will start every time any of the listed dependencies has finished a run successfully.&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>

@@ -5,11 +5,13 @@ import (
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
 )
 
 type Triggers struct {
-	Schedules []string       `json:"schedules,omitempty"`
-	OnChange  []OnChangeType `json:"onChange,omitempty"`
+	Schedules         []string       `json:"schedules,omitempty"`
+	OnChange          []OnChangeType `json:"onChange,omitempty"`
+	RunConfigurations []string       `json:"runConfigurations,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=pipeline
@@ -26,6 +28,22 @@ type RunConfigurationSpec struct {
 	Triggers Triggers `json:"triggers,omitempty"`
 }
 
+type TriggeredRunReference struct {
+	ProviderId string `json:"providerId,omitempty"`
+}
+
+type TriggersStatus struct {
+	RunConfigurations map[string]TriggeredRunReference `json:"runConfigurations,omitempty"`
+}
+
+func (ts TriggersStatus) Equals(other TriggersStatus) bool {
+	if len(ts.RunConfigurations) == 0 && len(other.RunConfigurations) == 0 {
+		return true
+	}
+
+	return reflect.DeepEqual(ts, other)
+}
+
 type LatestRuns struct {
 	Succeeded RunReference `json:"succeeded,omitempty"`
 }
@@ -37,6 +55,7 @@ type RunConfigurationStatus struct {
 	TriggeredPipelineVersion string                    `json:"triggeredPipelineVersion,omitempty"`
 	LatestRuns               LatestRuns                `json:"latestRuns,omitempty"`
 	Dependencies             Dependencies              `json:"dependencies,omitempty"`
+	Triggers                 TriggersStatus            `json:"triggers,omitempty"`
 	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
 }
 
@@ -66,7 +85,7 @@ func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
 	return rc.Status.Dependencies.RunConfigurations
 }
 
-func (rc *RunConfiguration) GetReferencedDependencies() []RunConfigurationRef {
+func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
 	return pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
 			return RunConfigurationRef{}, false
@@ -74,6 +93,18 @@ func (rc *RunConfiguration) GetReferencedDependencies() []RunConfigurationRef {
 
 		return rp.ValueFrom.RunConfigurationRef, true
 	})
+}
+
+func (rc *RunConfiguration) GetReferencedRCs() []string {
+	triggeringRcs := pipelines.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string) string {
+		return rcName
+	})
+
+	parameterRcs := pipelines.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef) string {
+		return r.Name
+	})
+
+	return pipelines.Unique(append(parameterRcs, triggeringRcs...))
 }
 
 func (rc *RunConfiguration) GetProvider() string {
