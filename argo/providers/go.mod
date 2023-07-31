@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/argo/providers
 
-go 1.18
+go 1.20
 
 require (
 	cloud.google.com/go/aiplatform v1.26.0

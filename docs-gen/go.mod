@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator
 
-go 1.17
+go 1.20
 
 require (
 	github.com/google/docsy v0.2.0 // indirect
