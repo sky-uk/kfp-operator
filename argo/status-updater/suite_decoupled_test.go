@@ -4,6 +4,7 @@ package status_updater
 
 import (
 	"context"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -136,7 +137,7 @@ var _ = Describe("Status Updater", Serial, func() {
 		var LastSucceededRunHasBeenUpdated = func() func(pipelinesv1.RunConfiguration, common.RunCompletionEvent, pipelinesv1.RunConfiguration) {
 			return func(oldRun pipelinesv1.RunConfiguration, event common.RunCompletionEvent, newRun pipelinesv1.RunConfiguration) {
 				Expect(newRun.Status.LatestRuns.Succeeded.ProviderId).To(Equal(event.RunId))
-				Expect(newRun.Status.LatestRuns.Succeeded.Artifacts).To(Equal(event.Artifacts))
+				Expect(newRun.Status.LatestRuns.Succeeded.Artifacts).To(BeComparableTo(event.Artifacts, cmpopts.EquateEmpty()))
 			}
 		}
 
