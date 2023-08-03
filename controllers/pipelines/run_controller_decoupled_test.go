@@ -327,7 +327,12 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 func createRcWithLatestRun(succeeded pipelinesv1.RunReference) *pipelinesv1.RunConfiguration {
 	referencedRc := pipelinesv1.RandomRunConfiguration()
+	referencedRc.Spec.Triggers = pipelinesv1.Triggers{}
 	Expect(k8sClient.Create(ctx, referencedRc)).To(Succeed())
+	Eventually(func(g Gomega) {
+		g.Expect(k8sClient.Get(ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
+		g.Expect(referencedRc.Status.SynchronizationState).To(Equal(apis.Succeeded))
+	}).Should(Succeed())
 	referencedRc.Status.LatestRuns.Succeeded = succeeded
 	Expect(k8sClient.Status().Update(ctx, referencedRc)).To(Succeed())
 
