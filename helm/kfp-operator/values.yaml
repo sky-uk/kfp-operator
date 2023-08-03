@@ -10,6 +10,7 @@ containerRegistry: "ghcr.io/kfp-operator"
 namespace:
   create: true
   name: "kfp-operator-system"
+  metadata: {}
 
 manager:
   metadata: {}
