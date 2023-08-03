@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/argo/status-updater
 
-go 1.18
+go 1.20
 
 require k8s.io/client-go v0.26.1
 
