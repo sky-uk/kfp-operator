@@ -504,7 +504,7 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.triggers.onChange[]&lt;/code>&lt;/td>
-&lt;td>Resource attributes that execute training runs. Currently, only &lt;code>pipeline&lt;/code> is supported, triggering when the referenced pipeline changes.&lt;/td>
+&lt;td>Resource attributes that execute training runs. &lt;code>pipeline&lt;/code> triggers when the referenced pipeline changes. &lt;code>runSpec&lt;/code> triggers when this resource&amp;rsquo;s spec.run field has changed.&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>spec.triggers.runConfigurations[]&lt;/code>&lt;/td>
