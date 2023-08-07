@@ -28,6 +28,12 @@ func Exists[T any](ts []T, predicate func(T) bool) bool {
 	return false
 }
 
+func Contains[T comparable](ts []T, elem T) bool {
+	return Exists(ts, func(t T) bool {
+		return t == elem
+	})
+}
+
 func Forall[T any](ts []T, predicate func(T) bool) bool {
 	for _, t := range ts {
 		if !predicate(t) {

@@ -14,13 +14,15 @@ type Triggers struct {
 	RunConfigurations []string       `json:"runConfigurations,omitempty"`
 }
 
-// +kubebuilder:validation:Enum=pipeline
+// +kubebuilder:validation:Enum=pipeline;runSpec
 type OnChangeType string
 
 var OnChangeTypes = struct {
 	Pipeline OnChangeType
+	RunSpec  OnChangeType
 }{
 	Pipeline: "pipeline",
+	RunSpec:  "runSpec",
 }
 
 type RunConfigurationSpec struct {
@@ -32,8 +34,13 @@ type TriggeredRunReference struct {
 	ProviderId string `json:"providerId,omitempty"`
 }
 
+type RunSpecTriggerStatus struct {
+	Version string `json:"version,omitempty"`
+}
+
 type TriggersStatus struct {
 	RunConfigurations map[string]TriggeredRunReference `json:"runConfigurations,omitempty"`
+	RunSpec           RunSpecTriggerStatus             `json:"runSpec,omitempty"`
 }
 
 func (ts TriggersStatus) Equals(other TriggersStatus) bool {

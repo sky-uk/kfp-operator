@@ -124,12 +124,13 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 }
 
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
-	pipelineDependencyAlreadyTriggered := runConfiguration.Spec.Triggers.OnChange == nil || runConfiguration.Status.ObservedPipelineVersion == runConfiguration.Status.TriggeredPipelineVersion
+	pipelineDependencyAlreadyTriggered := !pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelinesv1.OnChangeTypes.Pipeline) || runConfiguration.Status.ObservedPipelineVersion == runConfiguration.Status.TriggeredPipelineVersion
+	runSpecAlreadyTriggered := !pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelinesv1.OnChangeTypes.RunSpec) || runConfiguration.Status.Triggers.RunSpec.Version == runConfiguration.Spec.Run.ComputeVersion()
 	rcDependenciesAlreadyTriggered := pipelines.Forall(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) bool {
 		return runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId == "" || runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId == runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId
 	})
 
-	if pipelineDependencyAlreadyTriggered && rcDependenciesAlreadyTriggered {
+	if pipelineDependencyAlreadyTriggered && runSpecAlreadyTriggered && rcDependenciesAlreadyTriggered {
 		return nil
 	}
 
@@ -162,6 +163,7 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 	oldStatus := runConfiguration.Status
 
 	runConfiguration.Status.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
+	runConfiguration.Status.Triggers.RunSpec.Version = runConfiguration.Spec.Run.ComputeVersion()
 	runConfiguration.Status.Triggers.RunConfigurations = pipelines.ToMap(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) (string, pipelinesv1.TriggeredRunReference) {
 		triggeredRun := pipelinesv1.TriggeredRunReference{ProviderId: runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId}
 		return rcName, triggeredRun
