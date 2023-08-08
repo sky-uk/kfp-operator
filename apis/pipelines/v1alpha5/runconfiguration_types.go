@@ -44,11 +44,15 @@ type TriggersStatus struct {
 }
 
 func (ts TriggersStatus) Equals(other TriggersStatus) bool {
+	if ts.RunSpec.Version != other.RunSpec.Version {
+		return false
+	}
+
 	if len(ts.RunConfigurations) == 0 && len(other.RunConfigurations) == 0 {
 		return true
 	}
 
-	return reflect.DeepEqual(ts, other)
+	return reflect.DeepEqual(ts.RunConfigurations, other.RunConfigurations)
 }
 
 type LatestRuns struct {

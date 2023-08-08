@@ -59,3 +59,50 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 		}
 	})
 })
+
+var _ = Context("updateRcTriggers", PropertyBased, func() {
+	It("sets the pipeline trigger status", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{
+			pipelinesv1.OnChangeTypes.Pipeline,
+		}
+		runConfiguration.Status.ObservedPipelineVersion = apis.RandomString()
+		rcr := RunConfigurationReconciler{}
+		Expect(rcr.updateRcTriggers(*runConfiguration).TriggeredPipelineVersion).To(Equal(runConfiguration.Status.ObservedPipelineVersion))
+	})
+
+	It("sets the runSpec trigger status", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{
+			pipelinesv1.OnChangeTypes.RunSpec,
+		}
+		rcr := RunConfigurationReconciler{}
+		Expect(rcr.updateRcTriggers(*runConfiguration).Triggers.RunSpec.Version).To(Equal(runConfiguration.Spec.Run.ComputeVersion()))
+	})
+
+	It("sets the runConfigurations trigger status", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration.Spec.Triggers.RunConfigurations = apis.RandomList(apis.RandomString)
+		runConfiguration.Status.Dependencies.RunConfigurations = make(map[string]pipelinesv1.RunReference)
+		for _, rc := range runConfiguration.Spec.Triggers.RunConfigurations {
+			runConfiguration.Status.Dependencies.RunConfigurations[rc] = pipelinesv1.RunReference{
+				ProviderId: apis.RandomString(),
+			}
+		}
+		rcr := RunConfigurationReconciler{}
+		updatedStatus := rcr.updateRcTriggers(*runConfiguration)
+		for _, rc := range runConfiguration.Spec.Triggers.RunConfigurations {
+			Expect(updatedStatus.Triggers.RunConfigurations[rc].ProviderId).To(Equal(runConfiguration.Status.Dependencies.RunConfigurations[rc].ProviderId))
+		}
+		Expect(updatedStatus.Triggers.RunConfigurations).To(HaveLen(len(runConfiguration.Spec.Triggers.RunConfigurations)))
+	})
+
+	It("retains other fields", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		rcr := RunConfigurationReconciler{}
+		updatedStatus := rcr.updateRcTriggers(*runConfiguration)
+		updatedStatus.Triggers = runConfiguration.Status.Triggers
+		updatedStatus.TriggeredPipelineVersion = runConfiguration.Status.TriggeredPipelineVersion
+		Expect(updatedStatus).To(Equal(runConfiguration.Status))
+	})
+})
