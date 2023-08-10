@@ -1,0 +1,15 @@
+runconfiguration:
+  yaml:
+apiVersion: pipelines.kubeflow.org/v1alpha5
+kind: RunConfiguration
+metadata:
+    name: penguin-pipeline-examples-run
+spec:
+    run:
+      pipeline: penguin-pipeline-examples
+      artifacts:
+      - name: examples
+        path: CsvExampleGen:examples
+    triggers:
+      schedules:
+      - '0 * * * *'

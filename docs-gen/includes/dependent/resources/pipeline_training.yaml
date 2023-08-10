@@ -1,0 +1,7 @@
+apiVersion: pipelines.kubeflow.org/v1alpha5
+kind: Pipeline
+metadata:
+  name: penguin-pipeline-ensembled
+  spec:
+    image: kfp-quickstart-ensembled:v1
+  tfxComponents: pipeline.create_components
