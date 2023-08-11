@@ -195,9 +195,14 @@ docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/providers docker-push
 
-##@ Website
+##@ Docs
 website:
 	$(MAKE) -C docs-gen
+
+docker-push-quickstart:
+	$(MAKE) -C docs-gen/includes/quickstart docker-push
+
+##@ Package
 
 package-all: docker-build docker-build-argo helm-package website
 
@@ -207,4 +212,4 @@ publish-all: docker-push docker-push-argo helm-publish
 
 prBuild: test-all package-all git-status-check
 
-cdBuild: prBuild publish-all
+cdBuild: prBuild publish-all docker-push-quickstart
