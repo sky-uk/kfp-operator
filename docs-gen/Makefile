@@ -7,6 +7,9 @@ build: clean
 	    sed -i.bak "s/background-image:url(/background-image:url(\/$(URL_PATH)/g" ../docs/index.html && rm ../docs/index.html.bak; \
       fi
 
+quickstart:
+	$(MAKE) -C includes/quickstart docker-build
+
 clean:
 	rm -rf ../docs/
 
