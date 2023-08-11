@@ -369,6 +369,31 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
+	When("RunSpec changes", func() {
+		It("onChange trigger creates a run when run template has changed", func() {
+			runConfiguration := pipelinesv1.RandomRunConfiguration()
+			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
+				OnChange: []pipelinesv1.OnChangeType{
+					pipelinesv1.OnChangeTypes.RunSpec,
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			})).Should(Succeed())
+
+			runConfiguration.Spec.Run = pipelinesv1.RandomRunSpec()
+
+			Eventually(func(g Gomega) {
+				ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(ownedRuns).To(HaveLen(1))
+			}).Should(Succeed())
+		})
+	})
+
 	When("setting the provider", func() {
 		It("stores the provider in the status", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()

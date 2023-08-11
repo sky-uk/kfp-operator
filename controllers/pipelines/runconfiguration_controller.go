@@ -124,15 +124,6 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 }
 
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) error {
-	pipelineDependencyAlreadyTriggered := runConfiguration.Spec.Triggers.OnChange == nil || runConfiguration.Status.ObservedPipelineVersion == runConfiguration.Status.TriggeredPipelineVersion
-	rcDependenciesAlreadyTriggered := pipelines.Forall(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) bool {
-		return runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId == "" || runConfiguration.Status.Triggers.RunConfigurations[rcName].ProviderId == runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId
-	})
-
-	if pipelineDependencyAlreadyTriggered && rcDependenciesAlreadyTriggered {
-		return nil
-	}
-
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
 		return err
@@ -154,21 +145,35 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(ctx context.Context,
 	return r.EC.Client.Create(ctx, desiredRun)
 }
 
-func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (bool, error) {
-	if err := r.triggerUntriggeredRuns(ctx, provider, runConfiguration); err != nil {
-		return false, err
+func (r *RunConfigurationReconciler) updateRcTriggers(runConfiguration pipelinesv1.RunConfiguration) pipelinesv1.RunConfigurationStatus {
+	newStatus := runConfiguration.Status
+
+	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelinesv1.OnChangeTypes.Pipeline) {
+		newStatus.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
 	}
 
-	oldStatus := runConfiguration.Status
+	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelinesv1.OnChangeTypes.RunSpec) {
+		newStatus.Triggers.RunSpec.Version = runConfiguration.Spec.Run.ComputeVersion()
+	}
 
-	runConfiguration.Status.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
-	runConfiguration.Status.Triggers.RunConfigurations = pipelines.ToMap(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) (string, pipelinesv1.TriggeredRunReference) {
+	newStatus.Triggers.RunConfigurations = pipelines.ToMap(runConfiguration.Spec.Triggers.RunConfigurations, func(rcName string) (string, pipelinesv1.TriggeredRunReference) {
 		triggeredRun := pipelinesv1.TriggeredRunReference{ProviderId: runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId}
 		return rcName, triggeredRun
 	})
 
+	return newStatus
+}
+
+func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (bool, error) {
+	oldStatus := runConfiguration.Status
+	runConfiguration.Status = r.updateRcTriggers(*runConfiguration)
+
 	if runConfiguration.Status.Triggers.Equals(oldStatus.Triggers) && runConfiguration.Status.TriggeredPipelineVersion == oldStatus.TriggeredPipelineVersion {
 		return false, nil
+	}
+
+	if err := r.triggerUntriggeredRuns(ctx, provider, runConfiguration); err != nil {
+		return false, err
 	}
 
 	return true, r.EC.Client.Status().Update(ctx, runConfiguration)

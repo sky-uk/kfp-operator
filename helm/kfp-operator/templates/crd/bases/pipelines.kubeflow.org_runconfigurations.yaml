@@ -306,6 +306,7 @@ spec:
                     items:
                       enum:
                         - pipeline
+                        - runSpec
                       type: string
                     type: array
                   schedules:
@@ -376,6 +377,11 @@ spec:
               triggers:
                 type: object
                 properties:
+                  runSpec:
+                    type: object
+                    properties:
+                      version:
+                        type: string
                   runConfigurations:
                     type: object
                     additionalProperties:
