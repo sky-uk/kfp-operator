@@ -3,6 +3,7 @@
 package apis
 
 import (
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 
 	"github.com/thanhpk/randstr"
@@ -50,6 +51,14 @@ func RandomNamedValue() NamedValue {
 
 func RandomNamedValues() []NamedValue {
 	return RandomList(RandomNamedValue)
+}
+
+func RandomOf[T any](ts []T) T {
+	return ts[rand.Intn(len(ts))]
+}
+
+func RandomConditionStatus() v1.ConditionStatus {
+	return RandomOf([]v1.ConditionStatus{v1.ConditionTrue, v1.ConditionFalse, v1.ConditionUnknown})
 }
 
 func RandomSynchronizationState() SynchronizationState {

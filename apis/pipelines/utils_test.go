@@ -168,4 +168,12 @@ var _ = Context("Utils", func() {
 		Entry("", []TestMapping{{"1", 1}, {"2", 2}}, map[string]int{"1": 1, "2": 2}),
 		Entry("", []TestMapping{{"1", 1}, {"1", 3}, {"2", 2}}, map[string]int{"1": 3, "2": 2}),
 	)
+
+	DescribeTable("Values", func(kvs map[string]int, expected []int) {
+		Expect(Values(kvs)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", map[string]int{}, []int{}),
+		Entry("", map[string]int{"1": 1, "2": 2}, []int{1, 2}),
+		Entry("", map[string]int{"1": 1, "2": 1}, []int{1, 1}),
+	)
 })

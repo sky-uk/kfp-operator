@@ -153,3 +153,13 @@ func ToMap[K comparable, V, W any](vs []V, mapFn func(V) (K, W)) map[K]W {
 
 	return kws
 }
+
+func Values[K comparable, V any](kvs map[K]V) []V {
+	vs := make([]V, 0, len(kvs))
+
+	for _, v := range kvs {
+		vs = append(vs, v)
+	}
+
+	return vs
+}
