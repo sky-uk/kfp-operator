@@ -13,6 +13,9 @@ else
 docker-push: docker-build ## Push container image
 	$(foreach host,$(CONTAINER_REGISTRY_HOSTS) $(OSS_CONTAINER_REGISTRY_HOSTS),$(call docker-push-to-registry,$(host)))
 define docker-push-to-registry
+	docker tag ${IMG} $(1)/${IMG}$(NEWLINE)
+	docker push $(1)/${IMG}$(NEWLINE)
+
 	docker tag ${IMG}:${VERSION} $(1)/${IMG}:${VERSION}$(NEWLINE)
 	docker push $(1)/${IMG}:${VERSION}$(NEWLINE)
 endef
