@@ -13,21 +13,23 @@ import (
 )
 
 var _ = Context("aggregateState", func() {
-	DescribeTable("calculates based on sub states", func(subStates []apis.SynchronizationState, expected apis.SynchronizationState) {
+	DescribeTable("calculates based on sub states", func(subStates []apis.SynchronizationState, expectedState apis.SynchronizationState, expectedMessage string) {
 		runSchedules := make([]pipelinesv1.RunSchedule, len(subStates))
 		for i, state := range subStates {
-			runSchedules[i] = pipelinesv1.RunSchedule{Status: pipelinesv1.Status{SynchronizationState: state}}
+			runSchedules[i] = pipelinesv1.RunSchedule{Status: pipelinesv1.Status{SynchronizationState: state, Conditions: []metav1.Condition{{Type: pipelinesv1.ConditionTypes.SynchronizationSucceeded, Message: string(state)}}}}
 		}
 
-		Expect(aggregateState(runSchedules)).To(Equal(expected))
+		state, message := aggregateState(runSchedules)
+		Expect(state).To(Equal(expectedState))
+		Expect(message).To(Equal(expectedMessage))
 	},
-		Entry(nil, []apis.SynchronizationState{}, apis.Succeeded),
-		Entry(nil, []apis.SynchronizationState{apis.Failed, apis.Succeeded}, apis.Failed),
-		Entry(nil, []apis.SynchronizationState{apis.Updating, apis.Failed}, apis.Updating),
-		Entry(nil, []apis.SynchronizationState{apis.Deleting, apis.Failed}, apis.Updating),
-		Entry(nil, []apis.SynchronizationState{apis.Deleted, apis.Failed}, apis.Updating),
-		Entry(nil, []apis.SynchronizationState{"", apis.Failed}, apis.Updating),
-		Entry(nil, []apis.SynchronizationState{apis.Succeeded}, apis.Succeeded),
+		Entry(nil, []apis.SynchronizationState{}, apis.Succeeded, ""),
+		Entry(nil, []apis.SynchronizationState{apis.Failed, apis.Succeeded}, apis.Failed, "Failed"),
+		Entry(nil, []apis.SynchronizationState{apis.Updating, apis.Failed}, apis.Updating, ""),
+		Entry(nil, []apis.SynchronizationState{apis.Deleting, apis.Failed}, apis.Updating, ""),
+		Entry(nil, []apis.SynchronizationState{apis.Deleted, apis.Failed}, apis.Updating, ""),
+		Entry(nil, []apis.SynchronizationState{"", apis.Failed}, apis.Updating, ""),
+		Entry(nil, []apis.SynchronizationState{apis.Succeeded}, apis.Succeeded, ""),
 	)
 })
 

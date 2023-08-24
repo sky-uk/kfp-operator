@@ -20,6 +20,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Creating))
+				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(pipeline.Status.ObservedGeneration).To(Equal(pipeline.GetGeneration()))
 			})).Should(Succeed())
 
@@ -30,6 +31,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(pipeline.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
@@ -39,6 +41,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Updating))
+				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 			})).Should(Succeed())
 
 			Eventually(pipelineHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
@@ -48,6 +51,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(pipeline.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
@@ -55,6 +59,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Deleting))
+				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Deleting))
 			})).Should(Succeed())
 
 			Eventually(pipelineHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {

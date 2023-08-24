@@ -55,26 +55,46 @@ func (pid *ProviderAndId) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
+func ConditionStatusForSynchronizationState(state apis.SynchronizationState) v1.ConditionStatus {
+	switch state {
+	case apis.Succeeded, apis.Deleted:
+		return v1.ConditionTrue
+	case apis.Failed:
+		return v1.ConditionFalse
+	default:
+		return v1.ConditionUnknown
+	}
+}
+
+type Conditions []v1.Condition
+
+func (conditions Conditions) SynchronizationSucceeded() v1.Condition {
+	return conditions.ToMap()[ConditionTypes.SynchronizationSucceeded]
+}
+
+func (conditions Conditions) ToMap() map[string]v1.Condition {
+	return pipelines.ToMap(conditions, func(condition v1.Condition) (string, v1.Condition) {
+		return condition.Type, condition
+	})
+}
+
+func (conditions Conditions) MergeIntoConditions(condition v1.Condition) Conditions {
+	conditionsAsMap := conditions.ToMap()
+
+	existingCondition := conditionsAsMap[condition.Type]
+
+	if existingCondition.Reason != condition.Reason || existingCondition.Status != condition.Status || existingCondition.ObservedGeneration != condition.ObservedGeneration {
+		conditionsAsMap[condition.Type] = condition
+	}
+
+	return pipelines.Values(conditionsAsMap)
+}
+
 // +kubebuilder:object:generate=true
 type Status struct {
 	ProviderId           ProviderAndId             `json:"providerId,omitempty"`
 	SynchronizationState apis.SynchronizationState `json:"synchronizationState,omitempty"`
 	Version              string                    `json:"version,omitempty"`
 	ObservedGeneration   int64                     `json:"observedGeneration,omitempty"`
-	Conditions           []v1.Condition            `json:"conditions,omitempty"`
-}
-
-func (st Status) WithCondition(condition v1.Condition) Status {
-	conditionsAsMap := pipelines.ToMap(st.Conditions, func(condition v1.Condition) (string, v1.Condition) {
-		return condition.Type, condition
-	})
-
-	existingCondition := conditionsAsMap[condition.Type]
-
-	if existingCondition.Reason != condition.Reason || existingCondition.Status != condition.Status || existingCondition.ObservedGeneration != condition.ObservedGeneration {
-		conditionsAsMap[condition.Type] = condition
-		st.Conditions = pipelines.Values(conditionsAsMap)
-	}
-
-	return st
+	Conditions           Conditions                `json:"conditions,omitempty"`
 }

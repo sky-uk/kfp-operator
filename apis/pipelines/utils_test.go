@@ -170,7 +170,7 @@ var _ = Context("Utils", func() {
 	)
 
 	DescribeTable("Values", func(kvs map[string]int, expected []int) {
-		Expect(Values(kvs)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+		Expect(Values(kvs)).To(ConsistOf(expected))
 	},
 		Entry("", map[string]int{}, []int{}),
 		Entry("", map[string]int{"1": 1, "2": 2}, []int{1, 2}),

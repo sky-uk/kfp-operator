@@ -146,26 +146,17 @@ func eventReason(sps SetStatus) string {
 	}
 }
 
-func conditionStatus(state apis.SynchronizationState) v1.ConditionStatus {
-	switch state {
-	case apis.Succeeded, apis.Deleted:
-		return v1.ConditionTrue
-	case apis.Failed:
-		return v1.ConditionFalse
-	default:
-		return v1.ConditionUnknown
-	}
-}
-
 func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
-	return sps.Status.WithCondition(v1.Condition{
+	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(v1.Condition{
 		LastTransitionTime: v1.Now(),
 		Message:            sps.Message,
 		ObservedGeneration: sps.Status.ObservedGeneration,
 		Type:               pipelinesv1.ConditionTypes.SynchronizationSucceeded,
-		Status:             conditionStatus(sps.Status.SynchronizationState),
+		Status:             pipelinesv1.ConditionStatusForSynchronizationState(sps.Status.SynchronizationState),
 		Reason:             string(sps.Status.SynchronizationState),
 	})
+
+	return sps.Status
 }
 
 func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {

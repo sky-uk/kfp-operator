@@ -10,14 +10,12 @@ import (
 	"math/rand"
 )
 
-var _ = Context("Status", func() {
-	var _ = Describe("WithCondition", func() {
+var _ = Context("Conditions", func() {
+	var _ = Describe("MergeIntoConditions", func() {
 		Specify("Overrides an existing condition if the reason has changed", func() {
-			status := Status{
-				Conditions: []v1.Condition{
-					{
-						Reason: apis.RandomString(),
-					},
+			conditions := Conditions{
+				{
+					Reason: apis.RandomString(),
 				},
 			}
 
@@ -25,15 +23,13 @@ var _ = Context("Status", func() {
 				Reason: apis.RandomString(),
 			}
 
-			Expect(status.WithCondition(newCondition).Conditions).To(ConsistOf(newCondition))
+			Expect(conditions.MergeIntoConditions(newCondition)).To(ConsistOf(newCondition))
 		})
 
 		Specify("Overrides an existing condition if the status has changed", func() {
-			status := Status{
-				Conditions: []v1.Condition{
-					{
-						Status: v1.ConditionStatus(apis.RandomString()),
-					},
+			conditions := Conditions{
+				{
+					Status: v1.ConditionStatus(apis.RandomString()),
 				},
 			}
 
@@ -41,15 +37,13 @@ var _ = Context("Status", func() {
 				Status: apis.RandomConditionStatus(),
 			}
 
-			Expect(status.WithCondition(newCondition).Conditions).To(ConsistOf(newCondition))
+			Expect(conditions.MergeIntoConditions(newCondition)).To(ConsistOf(newCondition))
 		})
 
 		Specify("Overrides an existing condition if the observedGeneration has changed", func() {
-			status := Status{
-				Conditions: []v1.Condition{
-					{
-						ObservedGeneration: rand.Int63(),
-					},
+			conditions := Conditions{
+				{
+					ObservedGeneration: rand.Int63(),
 				},
 			}
 
@@ -57,7 +51,7 @@ var _ = Context("Status", func() {
 				ObservedGeneration: rand.Int63(),
 			}
 
-			Expect(status.WithCondition(newCondition).Conditions).To(ConsistOf(newCondition))
+			Expect(conditions.MergeIntoConditions(newCondition)).To(ConsistOf(newCondition))
 		})
 
 		Specify("Keeps existing condition if neither the reason nor the status nor the observedGeneration have changed", func() {
@@ -68,10 +62,8 @@ var _ = Context("Status", func() {
 				LastTransitionTime: v1.Now(),
 			}
 
-			status := Status{
-				Conditions: []v1.Condition{
-					oldCondition,
-				},
+			conditions := Conditions{
+				oldCondition,
 			}
 
 			newCondition := v1.Condition{
@@ -82,25 +74,32 @@ var _ = Context("Status", func() {
 				Message:            apis.RandomString(),
 			}
 
-			Expect(status.WithCondition(newCondition).Conditions).To(ConsistOf(oldCondition))
+			Expect(conditions.MergeIntoConditions(newCondition)).To(ConsistOf(oldCondition))
 		})
 
 		Specify("Keeps other conditions unchanged", func() {
-			oldConditions := apis.RandomList(func() v1.Condition {
+			oldConditions := Conditions(apis.RandomList(func() v1.Condition {
 				return v1.Condition{
 					Type: apis.RandomString(),
 				}
-			})
-
-			status := Status{
-				Conditions: oldConditions,
-			}
+			}))
 
 			newCondition := v1.Condition{
 				Type: apis.RandomString(),
 			}
 
-			Expect(status.WithCondition(newCondition).Conditions).To(ContainElements(oldConditions))
+			Expect(oldConditions.MergeIntoConditions(newCondition)).To(ContainElements(oldConditions))
 		})
+	})
+	var _ = Describe("ConditionStatusForSynchronizationState", func() {
+		DescribeTable("Converts SynchronizationState to ConditionStatus", func(state apis.SynchronizationState, status v1.ConditionStatus) {
+			Expect(ConditionStatusForSynchronizationState(state)).To(Equal(status))
+		},
+			Entry("", apis.Succeeded, v1.ConditionTrue),
+			Entry("", apis.Deleted, v1.ConditionTrue),
+			Entry("", apis.Failed, v1.ConditionFalse),
+			Entry("", apis.Updating, v1.ConditionUnknown),
+			Entry("", apis.SynchronizationState(""), v1.ConditionUnknown),
+			Entry("", apis.Deleting, v1.ConditionUnknown))
 	})
 })

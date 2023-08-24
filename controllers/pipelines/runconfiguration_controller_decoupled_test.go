@@ -23,6 +23,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
 			g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Updating))
+			g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 			g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 		})).Should(Succeed())
 
@@ -39,6 +40,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(func(g Gomega) {
 			g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
 			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			g.Expect(runConfiguration.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 			g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 		}).Should(Succeed())
 	})
@@ -51,6 +53,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
 			g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 			g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 		})).Should(Succeed())
 
