@@ -7,6 +7,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/controllers"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -112,6 +113,7 @@ func (sps *SetStatus) WithProviderId(providerId pipelinesv1.ProviderAndId) *SetS
 
 func (sps *SetStatus) WithMessage(message string) *SetStatus {
 	sps.Message = message
+
 	return sps
 }
 
@@ -144,11 +146,24 @@ func eventReason(sps SetStatus) string {
 	}
 }
 
+func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
+	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(metav1.Condition{
+		LastTransitionTime: metav1.Now(),
+		Message:            sps.Message,
+		ObservedGeneration: sps.Status.ObservedGeneration,
+		Type:               pipelinesv1.ConditionTypes.SynchronizationSucceeded,
+		Status:             pipelinesv1.ConditionStatusForSynchronizationState(sps.Status.SynchronizationState),
+		Reason:             string(sps.Status.SynchronizationState),
+	})
+
+	return sps.Status
+}
+
 func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, resource.GetStatus(), LogKeys.NewStatus, sps.Status)
 
-	resource.SetStatus(sps.Status)
+	resource.SetStatus(sps.statusWithCondition())
 
 	err := ec.Client.Status().Update(ctx, resource)
 

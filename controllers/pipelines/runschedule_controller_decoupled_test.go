@@ -20,6 +20,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
+				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(runSchedule.Status.ObservedGeneration).To(Equal(runSchedule.GetGeneration()))
 			})).Should(Succeed())
 
@@ -30,6 +31,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(runSchedule.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
@@ -39,6 +41,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Updating))
+				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 			})).Should(Succeed())
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
@@ -48,6 +51,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(runSchedule.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
 			})).Should(Succeed())
 
@@ -55,6 +59,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Deleting))
+				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Deleting))
 			})).Should(Succeed())
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {

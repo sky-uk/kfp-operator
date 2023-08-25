@@ -10,7 +10,7 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("PipelineDefinition", func() {
@@ -18,7 +18,7 @@ var _ = Describe("PipelineDefinition", func() {
 	Specify("Some fields are copied from Pipeline resource", func() {
 		wf := PipelineDefinitionCreator{}
 		pipeline := &pipelinesv1.Pipeline{
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name: "pipelineName",
 			},
 			Spec: pipelinesv1.PipelineSpec{
@@ -45,7 +45,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 		}
 		pipeline := &pipelinesv1.Pipeline{
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name: "pipelineName",
 			},
 		}
@@ -79,7 +79,7 @@ var _ = Describe("PipelineDefinition", func() {
 		}
 
 		pipeline := &pipelinesv1.Pipeline{
-			ObjectMeta: v1.ObjectMeta{
+			ObjectMeta: metav1.ObjectMeta{
 				Name: "pipelineName",
 			},
 		}

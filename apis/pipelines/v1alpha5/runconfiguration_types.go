@@ -68,6 +68,7 @@ type RunConfigurationStatus struct {
 	Dependencies             Dependencies              `json:"dependencies,omitempty"`
 	Triggers                 TriggersStatus            `json:"triggers,omitempty"`
 	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
+	Conditions               Conditions                `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true
