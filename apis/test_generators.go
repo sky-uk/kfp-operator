@@ -3,7 +3,7 @@
 package apis
 
 import (
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 
 	"github.com/thanhpk/randstr"
@@ -57,8 +57,8 @@ func RandomOf[T any](ts []T) T {
 	return ts[rand.Intn(len(ts))]
 }
 
-func RandomConditionStatus() v1.ConditionStatus {
-	return RandomOf([]v1.ConditionStatus{v1.ConditionTrue, v1.ConditionFalse, v1.ConditionUnknown})
+func RandomConditionStatus() metav1.ConditionStatus {
+	return RandomOf([]metav1.ConditionStatus{metav1.ConditionTrue, metav1.ConditionFalse, metav1.ConditionUnknown})
 }
 
 func RandomSynchronizationState() SynchronizationState {

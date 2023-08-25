@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 )
 
@@ -164,7 +164,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 })
 
 var _ = Describe("statusWithCondition", func() {
-	DescribeTable("sets the condition of the status", func(state apis.SynchronizationState, expectedStatus v1.ConditionStatus) {
+	DescribeTable("sets the condition of the status", func(state apis.SynchronizationState, expectedStatus metav1.ConditionStatus) {
 		setStatus := NewSetStatus().WithMessage(apis.RandomString()).WithSynchronizationState(state)
 		setStatus.Status.ObservedGeneration = rand.Int63()
 		conditions := setStatus.statusWithCondition().Conditions
@@ -174,11 +174,11 @@ var _ = Describe("statusWithCondition", func() {
 		Expect(conditions[0].Type).To(Equal(pipelinesv1.ConditionTypes.SynchronizationSucceeded))
 		Expect(conditions[0].ObservedGeneration).To(Equal(setStatus.Status.ObservedGeneration))
 	},
-		Entry("Creating", apis.Creating, v1.ConditionUnknown),
-		Entry("Succeeded", apis.Succeeded, v1.ConditionTrue),
-		Entry("Updating", apis.Updating, v1.ConditionUnknown),
-		Entry("Deleting", apis.Deleting, v1.ConditionUnknown),
-		Entry("Deleted", apis.Deleted, v1.ConditionTrue),
-		Entry("Failed", apis.Failed, v1.ConditionFalse),
+		Entry("Creating", apis.Creating, metav1.ConditionUnknown),
+		Entry("Succeeded", apis.Succeeded, metav1.ConditionTrue),
+		Entry("Updating", apis.Updating, metav1.ConditionUnknown),
+		Entry("Deleting", apis.Deleting, metav1.ConditionUnknown),
+		Entry("Deleted", apis.Deleted, metav1.ConditionTrue),
+		Entry("Failed", apis.Failed, metav1.ConditionFalse),
 	)
 })

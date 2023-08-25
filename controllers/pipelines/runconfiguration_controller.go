@@ -99,14 +99,10 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	runConfiguration.Status.ObservedGeneration = runConfiguration.GetGeneration()
-
-	newStatus, err := r.syncWithRunSchedules(ctx, desiredProvider, runConfiguration)
+	newStatus, err := r.syncStatus(ctx, desiredProvider, runConfiguration)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-
-	newStatus.Provider = desiredProvider
 
 	if !reflect.DeepEqual(newStatus, runConfiguration.Status) {
 		runConfiguration.Status = newStatus
@@ -177,8 +173,10 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
-func (r *RunConfigurationReconciler) syncWithRunSchedules(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (status pipelinesv1.RunConfigurationStatus, err error) {
+func (r *RunConfigurationReconciler) syncStatus(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (status pipelinesv1.RunConfigurationStatus, err error) {
 	status = runConfiguration.Status
+	status.ObservedGeneration = runConfiguration.GetGeneration()
+	status.Provider = provider
 
 	desiredSchedules, err := r.constructRunSchedulesForTriggers(provider, runConfiguration)
 	if err != nil {
@@ -390,7 +388,7 @@ func aggregateState(dependencies []pipelinesv1.RunSchedule) (aggState apis.Synch
 	for _, dependency := range dependencies {
 		if dependency.Status.SynchronizationState == apis.Failed {
 			aggState = apis.Failed
-			message = dependency.Status.Conditions.ToMap()[pipelinesv1.ConditionTypes.SynchronizationSucceeded].Message
+			message = dependency.Status.Conditions.SynchronizationSucceeded().Message
 		} else if dependency.Status.SynchronizationState != apis.Succeeded {
 			aggState = apis.Updating
 			message = ""

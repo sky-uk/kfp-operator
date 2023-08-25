@@ -7,7 +7,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/controllers"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -147,8 +147,8 @@ func eventReason(sps SetStatus) string {
 }
 
 func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
-	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(v1.Condition{
-		LastTransitionTime: v1.Now(),
+	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(metav1.Condition{
+		LastTransitionTime: metav1.Now(),
 		Message:            sps.Message,
 		ObservedGeneration: sps.Status.ObservedGeneration,
 		Type:               pipelinesv1.ConditionTypes.SynchronizationSucceeded,

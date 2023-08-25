@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Context("Pipeline Conversion", func() {
@@ -97,7 +97,7 @@ var _ = Context("Pipeline Conversion", func() {
 
 		Specify("Duplicate entries are preserved on the roundtrip", func() {
 			src := hub.Pipeline{
-				ObjectMeta: v1.ObjectMeta{
+				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{},
 				},
 				Spec: hub.PipelineSpec{

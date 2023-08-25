@@ -15,7 +15,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/dynamic"
@@ -60,11 +60,11 @@ func startClient(ctx context.Context) (generic.Eventing_StartEventSourceClient, 
 }
 
 func deleteAllWorkflows(ctx context.Context) error {
-	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).DeleteCollection(ctx, v1.DeleteOptions{}, v1.ListOptions{})
+	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{})
 }
 
 func workflowLabel(ctx context.Context, name string, key string) (string, error) {
-	resource, err := k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Get(ctx, name, v1.GetOptions{})
+	resource, err := k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +73,7 @@ func workflowLabel(ctx context.Context, name string, key string) (string, error)
 }
 
 func updateLabel(ctx context.Context, name string, key string, value string) (*unstructured.Unstructured, error) {
-	resource, err := k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Get(ctx, name, v1.GetOptions{})
+	resource, err := k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func updateLabel(ctx context.Context, name string, key string, value string) (*u
 	updatedLabels[key] = value
 	resource.SetLabels(updatedLabels)
 
-	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Update(ctx, resource, v1.UpdateOptions{})
+	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Update(ctx, resource, metav1.UpdateOptions{})
 }
 
 func updatePhase(ctx context.Context, name string, phase argo.WorkflowPhase) (*unstructured.Unstructured, error) {
@@ -105,7 +105,7 @@ func createWorkflowInPhase(ctx context.Context, pipelineName string, runId strin
 		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
 	})
 
-	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Create(ctx, &workflow, v1.CreateOptions{})
+	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Create(ctx, &workflow, metav1.CreateOptions{})
 }
 
 func createAndTriggerPhaseUpdate(ctx context.Context, pipelineName string, runId string, from argo.WorkflowPhase, to argo.WorkflowPhase) (*unstructured.Unstructured, error) {

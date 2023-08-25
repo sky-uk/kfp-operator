@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 )
 
@@ -55,30 +55,30 @@ func (pid *ProviderAndId) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func ConditionStatusForSynchronizationState(state apis.SynchronizationState) v1.ConditionStatus {
+func ConditionStatusForSynchronizationState(state apis.SynchronizationState) metav1.ConditionStatus {
 	switch state {
 	case apis.Succeeded, apis.Deleted:
-		return v1.ConditionTrue
+		return metav1.ConditionTrue
 	case apis.Failed:
-		return v1.ConditionFalse
+		return metav1.ConditionFalse
 	default:
-		return v1.ConditionUnknown
+		return metav1.ConditionUnknown
 	}
 }
 
-type Conditions []v1.Condition
+type Conditions []metav1.Condition
 
-func (conditions Conditions) SynchronizationSucceeded() v1.Condition {
+func (conditions Conditions) SynchronizationSucceeded() metav1.Condition {
 	return conditions.ToMap()[ConditionTypes.SynchronizationSucceeded]
 }
 
-func (conditions Conditions) ToMap() map[string]v1.Condition {
-	return pipelines.ToMap(conditions, func(condition v1.Condition) (string, v1.Condition) {
+func (conditions Conditions) ToMap() map[string]metav1.Condition {
+	return pipelines.ToMap(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
 		return condition.Type, condition
 	})
 }
 
-func (conditions Conditions) MergeIntoConditions(condition v1.Condition) Conditions {
+func (conditions Conditions) MergeIntoConditions(condition metav1.Condition) Conditions {
 	conditionsAsMap := conditions.ToMap()
 
 	existingCondition := conditionsAsMap[condition.Type]
