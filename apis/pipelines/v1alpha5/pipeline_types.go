@@ -87,7 +87,7 @@ type PipelineList struct {
 }
 
 // +kubebuilder:validation:Type=string
-// +kubebuilder:validation:Pattern:=`^[\w-]+(?::[\w-]+)?$`
+// +kubebuilder:validation:Pattern:=`^[\w\-]+(?::[\w\-_.]+)?$`
 type PipelineIdentifier struct {
 	Name    string `json:"-"`
 	Version string `json:"-"`

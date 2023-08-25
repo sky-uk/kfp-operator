@@ -127,7 +127,7 @@ spec:
               experimentName:
                 type: string
               pipeline:
-                pattern: ^[\w-]+(?::[\w-]+)?$
+                pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                 type: string
               runtimeParameters:
                 items:
