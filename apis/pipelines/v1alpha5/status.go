@@ -11,7 +11,7 @@ import (
 var ConditionTypes = struct {
 	SynchronizationSucceeded string
 }{
-	SynchronizationSucceeded: "SynchronizationSucceeded",
+	SynchronizationSucceeded: "Synchronized",
 }
 
 // +kubebuilder:validation:Type=string
