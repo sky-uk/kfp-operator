@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -71,7 +71,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	desiredProvider := desiredProvider(run, r.Config)
 
 	// Never change after being set
-	if run.Status.ObservedPipelineVersion == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
+	if run.Status.Dependencies.Pipeline.Version == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
 		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}

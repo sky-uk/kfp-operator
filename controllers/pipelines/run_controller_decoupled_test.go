@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	v1 "k8s.io/api/core/v1"
@@ -125,7 +125,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
-				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+				g.Expect(run.Status.Dependencies.Pipeline.Version).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
 	})
@@ -141,7 +141,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
-				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipeline.Status.Version))
+				g.Expect(run.Status.Dependencies.Pipeline.Version).To(Equal(pipeline.Status.Version))
 			})).Should(Succeed())
 		})
 	})
@@ -159,7 +159,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
-				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipeline.Status.Version))
+				g.Expect(run.Status.Dependencies.Pipeline.Version).To(Equal(pipeline.Status.Version))
 			})).Should(Succeed())
 		})
 	})

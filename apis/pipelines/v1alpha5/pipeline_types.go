@@ -45,7 +45,6 @@ func (ps Pipeline) ComputeVersion() string {
 //+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`

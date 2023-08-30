@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -136,7 +136,7 @@ func (r *RunConfigurationReconciler) updateRcTriggers(runConfiguration pipelines
 	newStatus := runConfiguration.Status
 
 	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelinesv1.OnChangeTypes.Pipeline) {
-		newStatus.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
+		newStatus.Triggers.Pipeline.Version = runConfiguration.Status.Dependencies.Pipeline.Version
 	}
 
 	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelinesv1.OnChangeTypes.RunSpec) {
@@ -155,7 +155,7 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 	oldStatus := runConfiguration.Status
 	runConfiguration.Status = r.updateRcTriggers(*runConfiguration)
 
-	if runConfiguration.Status.Triggers.Equals(oldStatus.Triggers) && runConfiguration.Status.TriggeredPipelineVersion == oldStatus.TriggeredPipelineVersion {
+	if runConfiguration.Status.Triggers.Equals(oldStatus.Triggers) && runConfiguration.Status.Triggers.Pipeline.Version == oldStatus.Triggers.Pipeline.Version {
 		return false, nil
 	}
 
@@ -325,7 +325,7 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider st
 		Spec: pipelinesv1.RunSpec{
 			Pipeline: pipelinesv1.PipelineIdentifier{
 				Name:    runConfiguration.Spec.Run.Pipeline.Name,
-				Version: runConfiguration.Status.ObservedPipelineVersion,
+				Version: runConfiguration.Status.Dependencies.Pipeline.Version,
 			},
 			RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
 			ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
@@ -357,7 +357,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 			Spec: pipelinesv1.RunScheduleSpec{
 				Pipeline: pipelinesv1.PipelineIdentifier{
 					Name:    runConfiguration.Spec.Run.Pipeline.Name,
-					Version: runConfiguration.Status.ObservedPipelineVersion,
+					Version: runConfiguration.Status.Dependencies.Pipeline.Version,
 				},
 				RuntimeParameters: runtimeParameters,
 				ExperimentName:    runConfiguration.Spec.Run.ExperimentName,

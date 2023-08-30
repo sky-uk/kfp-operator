@@ -15,8 +15,6 @@ func (rc *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1alpha5-runconfiguration,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runconfigurations,verbs=create;update,versions=v1alpha5,name=vrunconfiguration.kb.io,admissionReviewVersions=v1
-
 var _ webhook.Validator = &RunConfiguration{}
 
 func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) {

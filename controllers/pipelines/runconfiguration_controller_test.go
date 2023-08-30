@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -50,7 +50,7 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 		for i, schedule := range runSchedules {
 			Expect(schedule.Namespace).To(Equal(runConfiguration.Namespace))
 			Expect(schedule.Spec.Pipeline.Name).To(Equal(runConfiguration.Spec.Run.Pipeline.Name))
-			Expect(schedule.Spec.Pipeline.Version).To(Equal(runConfiguration.Status.ObservedPipelineVersion))
+			Expect(schedule.Spec.Pipeline.Version).To(Equal(runConfiguration.Status.Dependencies.Pipeline.Version))
 			Expect(schedule.Spec.RuntimeParameters).To(Equal(pipelines.Map(runConfiguration.Spec.Run.RuntimeParameters, func(rp pipelinesv1.RuntimeParameter) apis.NamedValue {
 				return apis.NamedValue{Name: rp.Name, Value: rp.Value}
 			})))
@@ -68,9 +68,9 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{
 			pipelinesv1.OnChangeTypes.Pipeline,
 		}
-		runConfiguration.Status.ObservedPipelineVersion = apis.RandomString()
+		runConfiguration.Status.Dependencies.Pipeline.Version = apis.RandomString()
 		rcr := RunConfigurationReconciler{}
-		Expect(rcr.updateRcTriggers(*runConfiguration).TriggeredPipelineVersion).To(Equal(runConfiguration.Status.ObservedPipelineVersion))
+		Expect(rcr.updateRcTriggers(*runConfiguration).Triggers.Pipeline.Version).To(Equal(runConfiguration.Status.Dependencies.Pipeline.Version))
 	})
 
 	It("sets the runSpec trigger status", func() {
@@ -104,7 +104,7 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 		rcr := RunConfigurationReconciler{}
 		updatedStatus := rcr.updateRcTriggers(*runConfiguration)
 		updatedStatus.Triggers = runConfiguration.Status.Triggers
-		updatedStatus.TriggeredPipelineVersion = runConfiguration.Status.TriggeredPipelineVersion
+		updatedStatus.Triggers.Pipeline.Version = runConfiguration.Status.Triggers.Pipeline.Version
 		Expect(updatedStatus).To(Equal(runConfiguration.Status))
 	})
 })

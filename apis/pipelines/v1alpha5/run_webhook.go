@@ -15,8 +15,6 @@ func (r *Run) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1alpha5-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=create;update,versions=v1alpha5,name=vrun.kb.io,admissionReviewVersions=v1
-
 var _ webhook.Validator = &Run{}
 
 func (r *Run) ValidateCreate() error {
