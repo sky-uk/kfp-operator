@@ -51,7 +51,7 @@ docker push kfp-dependent-examples:v1
 docker push kfp-dependent-training:v1
 ```
 
-## 2. Create a Pipeline Resources
+## 2. Create Pipeline Resources
 
 Create `pipeline_examples.yaml`:
 

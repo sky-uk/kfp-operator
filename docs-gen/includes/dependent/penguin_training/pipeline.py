@@ -15,7 +15,7 @@ def create_components() -> List[BaseNode]:
         ptype = Text
     )
 
-    # imports data into the pipeline
+    # Imports the artifact referenced by the runtime parameter
     examples = ImportExampleGen(
         input_base = examples_location_param,
         input_config=example_gen_pb2.Input(
