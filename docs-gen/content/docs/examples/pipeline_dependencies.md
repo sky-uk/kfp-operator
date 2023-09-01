@@ -3,15 +3,17 @@ title: "Pipeline Dependencies"
 weight: 2
 ---
 
-Pipeline Dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:
+Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:
 - The data of an earlier step changes at a lower frequency than the data for subsequent steps
-- Outputs of an earlier steps could be shared between pipelines to avoid re-processing the same data
+- Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data
 
 In this example, we break up the dependent example into two pipelines:
 - The *Examples Pipeline* has a single pipeline step that imports the CSV example and outputs it as an artifact
 - The *Training Pipeline* references the previously produces example and trains the model 
 
 ![ensembling.svg](/images/ensembling.svg)
+
+The examples for this tutorial can be found on [GitHub]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/dependent).
 
 ## 1. Build the Pipelines
 

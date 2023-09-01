@@ -5,6 +5,8 @@ weight: 1
 
 This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
 
+The examples for this tutorial can be found on [GitHub]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/quickstart).
+
 ## 1. Build the Pipeline
 
 We use the same pipeline as the [TFX example](https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple) with a few modifications.
