@@ -1,5 +1,3 @@
-runconfiguration:
-  yaml:
 apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: RunConfiguration
 metadata:
