@@ -105,7 +105,7 @@ func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, run V
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
-	var servingModelArtifacts []common.Artifact
+	servingModelArtifacts := []common.Artifact{}
 	for _, task := range job.GetJobDetail().GetTaskDetails() {
 		for name, output := range task.GetOutputs() {
 			for _, artifact := range output.GetArtifacts() {
