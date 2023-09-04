@@ -323,7 +323,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(BeEmpty())
+				})).To(Equal([]common.Artifact{}))
 			})
 		})
 
@@ -346,7 +346,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(BeEmpty())
+				})).To(Equal([]common.Artifact{}))
 			})
 		})
 
@@ -369,7 +369,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(BeEmpty())
+				})).To(Equal([]common.Artifact{}))
 			})
 		})
 
@@ -392,7 +392,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(BeEmpty())
+				})).To(Equal([]common.Artifact{}))
 			})
 		})
 
@@ -415,7 +415,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(BeEmpty())
+				})).To(Equal([]common.Artifact{}))
 			})
 		})
 
@@ -438,7 +438,7 @@ var _ = Context("VaiEventingServer", func() {
 							},
 						},
 					},
-				})).To(BeEmpty())
+				})).To(Equal([]common.Artifact{}))
 			})
 		})
 
