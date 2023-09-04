@@ -1,16 +1,16 @@
 apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: RunConfiguration
 metadata:
-  name: penguin-pipeline-ensembled-run
+  name: penguin-pipeline-training-rc
 spec:
   run:
-    pipeline: penguin-pipeline-ensembled
+    pipeline: penguin-pipeline-training
     runtimeParameters:
     - name: examples_location
       valueFrom:
         runConfigurationRef:
-          name: penguin-pipeline-examples
+          name: penguin-pipeline-examples-rc
           outputArtifact: examples
   triggers:
     runConfigurations:
-      - penguin-pipeline-examples
+      - penguin-pipeline-examples-rc

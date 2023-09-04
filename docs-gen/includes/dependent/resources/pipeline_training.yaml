@@ -1,7 +1,7 @@
 apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: Pipeline
 metadata:
-  name: penguin-pipeline-ensembled
+  name: penguin-pipeline-training
 spec:
-  image: kfp-quickstart-ensembled:v1
+  image: kfp-dependent-training:v1
   tfxComponents: pipeline.create_components

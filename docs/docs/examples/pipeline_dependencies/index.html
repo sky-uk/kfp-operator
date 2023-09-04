@@ -36,12 +36,12 @@ The data of an earlier step changes at a lower frequency than the data for subse
 </span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
 </span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-examples</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>image</span>: <span style=color:#ae81ff>kfp-quickstart-examples:v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>image</span>: <span style=color:#ae81ff>kfp-dependent-examples:v1</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>tfxComponents</span>: <span style=color:#ae81ff>pipeline.create_components</span>
 </span></span></code></pre></div><p>Create <code>runconfiguration_examples.yaml</code> which schedules the pipeline to be trained at regular intervals and specifies the output artifacts that it exposes.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1alpha5</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>RunConfiguration</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-examples-run</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-examples-rc</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
 </span></span><span style=display:flex><span>  <span style=color:#f92672>run</span>:
 </span></span><span style=display:flex><span>    <span style=color:#f92672>pipeline</span>: <span style=color:#ae81ff>penguin-pipeline-examples</span>
@@ -112,26 +112,26 @@ The data of an earlier step changes at a lower frequency than the data for subse
 <code>pipeline_training.yaml</code> has not changed from the original example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1alpha5</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Pipeline</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-ensembled</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-training</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>image</span>: <span style=color:#ae81ff>kfp-quickstart-ensembled:v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>image</span>: <span style=color:#ae81ff>kfp-dependent-training:v1</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>tfxComponents</span>: <span style=color:#ae81ff>pipeline.create_components</span>
 </span></span></code></pre></div><p><code>runconfiguration_training.yaml</code> has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1alpha5</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>RunConfiguration</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-ensembled-run</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-training-rc</span>
 </span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
 </span></span><span style=display:flex><span>  <span style=color:#f92672>run</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>pipeline</span>: <span style=color:#ae81ff>penguin-pipeline-ensembled</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>pipeline</span>: <span style=color:#ae81ff>penguin-pipeline-training</span>
 </span></span><span style=display:flex><span>    <span style=color:#f92672>runtimeParameters</span>:
 </span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>examples_location</span>
 </span></span><span style=display:flex><span>      <span style=color:#f92672>valueFrom</span>:
 </span></span><span style=display:flex><span>        <span style=color:#f92672>runConfigurationRef</span>:
-</span></span><span style=display:flex><span>          <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-examples</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-examples-rc</span>
 </span></span><span style=display:flex><span>          <span style=color:#f92672>outputArtifact</span>: <span style=color:#ae81ff>examples</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>triggers</span>:
 </span></span><span style=display:flex><span>    <span style=color:#f92672>runConfigurations</span>:
-</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>penguin-pipeline-examples</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>penguin-pipeline-examples-rc</span>
 </span></span></code></pre></div><p>Apply the resources as follows:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f resources/pipeline_training.yaml
 </span></span><span style=display:flex><span>kubectl apply -f resources/runconfiguration_training.yaml
 </span></span></code></pre></div></div></main></div></div><footer class="bg-dark py-5 row d-print-none"><div class="container-fluid mx-sm-5"><div class=row><div class="col-6 col-sm-4 text-xs-center order-sm-2"></div><div class="col-6 col-sm-4 text-right text-xs-center order-sm-3"></div><div class="col-12 col-sm-4 text-center py-2 order-sm-2"></div></div></div></footer></div><script src=https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js integrity=sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN crossorigin=anonymous></script>
