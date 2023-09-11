@@ -148,10 +148,10 @@ type Dependencies struct {
 }
 
 type RunStatus struct {
-	Status                  `json:",inline"`
-	Dependencies            Dependencies    `json:"dependencies,omitempty"`
-	CompletionState         CompletionState `json:"completionState,omitempty"`
-	MarkedCompletedAt       *metav1.Time    `json:"markedCompletedAt,omitempty"`
+	Status            `json:",inline"`
+	Dependencies      Dependencies    `json:"dependencies,omitempty"`
+	CompletionState   CompletionState `json:"completionState,omitempty"`
+	MarkedCompletedAt *metav1.Time    `json:"markedCompletedAt,omitempty"`
 }
 
 //+kubebuilder:object:root=true

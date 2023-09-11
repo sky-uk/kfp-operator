@@ -61,13 +61,13 @@ type LatestRuns struct {
 }
 
 type RunConfigurationStatus struct {
-	SynchronizationState     apis.SynchronizationState `json:"synchronizationState,omitempty"`
-	Provider                 string                    `json:"provider,omitempty"`
-	LatestRuns               LatestRuns                `json:"latestRuns,omitempty"`
-	Dependencies             Dependencies              `json:"dependencies,omitempty"`
-	Triggers                 TriggersStatus            `json:"triggers,omitempty"`
-	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
-	Conditions               Conditions                `json:"conditions,omitempty"`
+	SynchronizationState apis.SynchronizationState `json:"synchronizationState,omitempty"`
+	Provider             string                    `json:"provider,omitempty"`
+	LatestRuns           LatestRuns                `json:"latestRuns,omitempty"`
+	Dependencies         Dependencies              `json:"dependencies,omitempty"`
+	Triggers             TriggersStatus            `json:"triggers,omitempty"`
+	ObservedGeneration   int64                     `json:"observedGeneration,omitempty"`
+	Conditions           Conditions                `json:"conditions,omitempty"`
 }
 
 //+kubebuilder:object:root=true

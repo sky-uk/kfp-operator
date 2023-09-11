@@ -163,3 +163,13 @@ func Values[K comparable, V any](kvs map[K]V) []V {
 
 	return vs
 }
+
+func MapValues[K comparable, V any, U any](kvs map[K]V, mapFn func(V) U) map[K]U {
+	kus := make(map[K]U, len(kvs))
+
+	for k, v := range kvs {
+		kus[k] = mapFn(v)
+	}
+
+	return kus
+}

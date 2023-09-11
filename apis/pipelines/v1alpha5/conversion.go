@@ -1,55 +1,93 @@
 package v1alpha5
 
-import (
-	"github.com/sky-uk/kfp-operator/apis"
-)
+import hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 
-type RunConfigurationConversionRemainder struct {
-	RunConversionRemainder `json:",inline"`
-	Triggers               Triggers `json:"triggers,omitempty"`
-}
+func convertToRuntimeParameter(srt RuntimeParameter) hub.RuntimeParameter {
+	drt := hub.RuntimeParameter{
+		Name:  srt.Name,
+		Value: srt.Value,
+	}
 
-func (rcr RunConfigurationConversionRemainder) Empty() bool {
-	return len(rcr.Triggers.Schedules) == 0 && len(rcr.Triggers.OnChange) == 0 && rcr.RunConversionRemainder.Empty()
-}
-
-type RunConversionRemainder struct {
-	Artifacts           []OutputArtifact   `json:"artifacts,omitempty"`
-	ValueFromParameters []RuntimeParameter `json:"valueFromParameters,omitempty"`
-}
-
-func (rcr RunConversionRemainder) Empty() bool {
-	return len(rcr.Artifacts) == 0 && len(rcr.ValueFromParameters) == 0
-}
-
-func (rcr RunConversionRemainder) ConversionAnnotation() string {
-	return GroupVersion.Version + "." + GroupVersion.Group + "/conversions.remainder"
-}
-
-func SplitRunTimeParameters(rts []RuntimeParameter) (namedValues []apis.NamedValue, valueFroms []RuntimeParameter) {
-	for _, rt := range rts {
-		if rt.ValueFrom != nil {
-			valueFroms = append(valueFroms, rt)
-		} else {
-			namedValues = append(namedValues, apis.NamedValue{
-				Name:  rt.Name,
-				Value: rt.Value,
-			})
+	if srt.ValueFrom != nil {
+		drt.ValueFrom = &hub.ValueFrom{
+			RunConfigurationRef: hub.RunConfigurationRef{
+				Name:           srt.ValueFrom.RunConfigurationRef.Name,
+				OutputArtifact: srt.ValueFrom.RunConfigurationRef.OutputArtifact,
+			},
 		}
 	}
 
-	return
+	return drt
 }
 
-func MergeRuntimeParameters(namedValues []apis.NamedValue, valueFroms []RuntimeParameter) (rts []RuntimeParameter) {
-	for _, namedValue := range namedValues {
-		rts = append(rts, RuntimeParameter{
-			Name:  namedValue.Name,
-			Value: namedValue.Value,
-		})
+func convertFromRuntimeParameter(srt hub.RuntimeParameter) RuntimeParameter {
+	drt := RuntimeParameter{
+		Name:  srt.Name,
+		Value: srt.Value,
 	}
 
-	rts = append(rts, valueFroms...)
+	if srt.ValueFrom != nil {
+		drt.ValueFrom = &ValueFrom{
+			RunConfigurationRef: RunConfigurationRef{
+				Name:           srt.ValueFrom.RunConfigurationRef.Name,
+				OutputArtifact: srt.ValueFrom.RunConfigurationRef.OutputArtifact,
+			},
+		}
+	}
 
-	return
+	return drt
+}
+
+func convertToOutputArtifact(sa OutputArtifact) hub.OutputArtifact {
+	return hub.OutputArtifact{
+		Name: sa.Name,
+		Path: hub.ArtifactPath{
+			Locator: hub.ArtifactLocator{
+				Component: sa.Path.Locator.Component,
+				Artifact:  sa.Path.Locator.Artifact,
+				Index:     sa.Path.Locator.Index,
+			},
+			Filter: sa.Path.Filter,
+		},
+	}
+}
+
+func convertFromOutputArtifact(sa hub.OutputArtifact) OutputArtifact {
+	return OutputArtifact{
+		Name: sa.Name,
+		Path: ArtifactPath{
+			Locator: ArtifactLocator{
+				Component: sa.Path.Locator.Component,
+				Artifact:  sa.Path.Locator.Artifact,
+				Index:     sa.Path.Locator.Index,
+			},
+			Filter: sa.Path.Filter,
+		},
+	}
+}
+
+func convertToRunReference(r RunReference) hub.RunReference {
+	return hub.RunReference{
+		ProviderId: r.ProviderId,
+		Artifacts:  r.Artifacts,
+	}
+}
+
+func convertFromRunReference(r hub.RunReference) RunReference {
+	return RunReference{
+		ProviderId: r.ProviderId,
+		Artifacts:  r.Artifacts,
+	}
+}
+
+func convertToTriggeredRunReference(r TriggeredRunReference) hub.TriggeredRunReference {
+	return hub.TriggeredRunReference{
+		ProviderId: r.ProviderId,
+	}
+}
+
+func convertFromTriggeredRunReference(r hub.TriggeredRunReference) TriggeredRunReference {
+	return TriggeredRunReference{
+		ProviderId: r.ProviderId,
+	}
 }

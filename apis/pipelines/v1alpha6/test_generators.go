@@ -115,7 +115,7 @@ func RandomRun() *Run {
 					Version: RandomString(),
 				},
 			},
-			Status:                  RandomStatus(),
+			Status: RandomStatus(),
 		},
 	}
 }
