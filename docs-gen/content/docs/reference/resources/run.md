@@ -7,7 +7,7 @@ The Run resource represents the lifecycle of a one-off run.
 One-off pipeline training runs can be configured using this resource as follows:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1alpha6
 kind: Run
 metadata:
   generateName: penguin-pipeline-run-

@@ -256,7 +256,7 @@ spec:
     subresources:
       status: {}
   - additionalPrinterColumns:
-    - jsonPath: .status.conditions[?(@.name == 'SynchronizationSucceeded')].status
+    - jsonPath: .status.conditions[?(@.type == 'Synchronized')].reason
       name: SynchronizationState
       type: string
     - jsonPath: .status.provider
