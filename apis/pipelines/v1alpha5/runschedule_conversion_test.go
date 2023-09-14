@@ -22,4 +22,14 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})
+
+	var _ = Describe("ComputeVersion", func() {
+		Specify("Does not change between versions", func() {
+			src := hub.RandomRunSchedule()
+			dst := RunSchedule{}
+
+			Expect(dst.ConvertFrom(src)).To(Succeed())
+			Expect(src.ComputeVersion()).To(Equal(dst.ComputeVersion()))
+		})
+	})
 })

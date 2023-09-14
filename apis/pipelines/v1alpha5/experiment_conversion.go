@@ -9,14 +9,14 @@ func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Experiment)
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Description = src.Spec.Description
+
+	dst.Spec = src.Spec
+
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
-	dst.Status.ProviderId = hub.ProviderAndId{
-		Provider: src.Status.ProviderId.Provider,
-		Id:       src.Status.ProviderId.Id,
-	}
+	dst.Status.ProviderId = src.Status.ProviderId
 	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
 	dst.Status.Version = src.Status.Version
+	dst.Status.Conditions = src.Status.Conditions
 
 	return nil
 }
@@ -25,14 +25,14 @@ func (dst *Experiment) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Experiment)
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Description = src.Spec.Description
+
+	dst.Spec = src.Spec
+
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
-	dst.Status.ProviderId = ProviderAndId{
-		Provider: src.Status.ProviderId.Provider,
-		Id:       src.Status.ProviderId.Id,
-	}
+	dst.Status.ProviderId = src.Status.ProviderId
 	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
 	dst.Status.Version = src.Status.Version
+	dst.Status.Conditions = src.Status.Conditions
 
 	return nil
 }

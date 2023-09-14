@@ -3,13 +3,9 @@ package v1alpha5
 import (
 	"fmt"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
-
-type ExperimentSpec struct {
-	Description string `json:"description,omitempty"`
-}
 
 func (es Experiment) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
@@ -34,31 +30,8 @@ type Experiment struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ExperimentSpec `json:"spec,omitempty"`
-	Status Status         `json:"status,omitempty"`
-}
-
-func (e *Experiment) GetProvider() string {
-	return e.Status.ProviderId.Provider
-}
-
-func (e *Experiment) GetStatus() Status {
-	return e.Status
-}
-
-func (e *Experiment) SetStatus(status Status) {
-	e.Status = status
-}
-
-func (e Experiment) GetNamespacedName() types.NamespacedName {
-	return types.NamespacedName{
-		Name:      e.Name,
-		Namespace: e.Namespace,
-	}
-}
-
-func (e Experiment) GetKind() string {
-	return "experiment"
+	Spec   hub.ExperimentSpec `json:"spec,omitempty"`
+	Status Status             `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -32,6 +32,25 @@ func RandomPipelineSpec() PipelineSpec {
 	}
 }
 
+func RandomDependencies() Dependencies {
+	return Dependencies{
+		Pipeline: PipelineReference{
+			Version: RandomString(),
+		},
+		RunConfigurations: RandomMap(func() RunReference {
+			return RunReference{
+				ProviderId: RandomString(),
+				Artifacts: RandomList(func() common.Artifact {
+					return common.Artifact{
+						Name:     RandomString(),
+						Location: RandomString(),
+					}
+				}),
+			}
+		}),
+	}
+}
+
 func RandomRunConfiguration() *RunConfiguration {
 	return &RunConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
@@ -41,6 +60,8 @@ func RandomRunConfiguration() *RunConfiguration {
 		Spec: RandomRunConfigurationSpec(),
 		Status: RunConfigurationStatus{
 			SynchronizationState: RandomSynchronizationState(),
+			Conditions:           RandomList(RandomCondition),
+			Dependencies:         RandomDependencies(),
 		},
 	}
 }
@@ -110,12 +131,8 @@ func RandomRun() *Run {
 		},
 		Spec: RandomRunSpec(),
 		Status: RunStatus{
-			Dependencies: Dependencies{
-				Pipeline: PipelineReference{
-					Version: RandomString(),
-				},
-			},
-			Status: RandomStatus(),
+			Dependencies: RandomDependencies(),
+			Status:       RandomStatus(),
 		},
 	}
 }
@@ -175,8 +192,10 @@ func RandomExperimentSpec() ExperimentSpec {
 }
 
 func RandomStatus() Status {
+	synchronizationState := RandomSynchronizationState()
 	return Status{
-		SynchronizationState: RandomSynchronizationState(),
+		SynchronizationState: synchronizationState,
+		Conditions:           RandomList(RandomCondition),
 		Version:              RandomString(),
 		ProviderId: ProviderAndId{
 			Provider: RandomString(),
@@ -234,5 +253,21 @@ func RandomResource() *TestResource {
 		NamespacedName:  RandomNamespacedName(),
 		Kind:            RandomString(),
 		ComputedVersion: RandomShortHash(),
+	}
+}
+
+func RandomOf[T any](ts []T) T {
+	return ts[rand.Intn(len(ts))]
+}
+
+func RandomConditionStatus() metav1.ConditionStatus {
+	return RandomOf([]metav1.ConditionStatus{metav1.ConditionTrue, metav1.ConditionFalse, metav1.ConditionUnknown})
+}
+
+func RandomCondition() metav1.Condition {
+	return metav1.Condition{
+		Reason:  RandomString(),
+		Status:  RandomConditionStatus(),
+		Message: RandomString(),
 	}
 }

@@ -2,113 +2,10 @@ package v1alpha5
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
-
-type RuntimeParameter struct {
-	Name      string     `json:"name"`
-	Value     string     `json:"value,omitempty"`
-	ValueFrom *ValueFrom `json:"valueFrom,omitempty"`
-}
-
-type RunConfigurationRef struct {
-	Name           string `json:"name"`
-	OutputArtifact string `json:"outputArtifact"`
-}
-
-type ValueFrom struct {
-	RunConfigurationRef RunConfigurationRef `json:"runConfigurationRef"`
-}
-
-type RunSpec struct {
-	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
-	ExperimentName    string             `json:"experimentName,omitempty"`
-	RuntimeParameters []RuntimeParameter `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
-}
-
-func (runSpec *RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
-	return pipelines.MapErr(runSpec.RuntimeParameters, func(r RuntimeParameter) (apis.NamedValue, error) {
-		if r.ValueFrom == nil {
-			return apis.NamedValue{
-				Name:  r.Name,
-				Value: r.Value,
-			}, nil
-		}
-
-		if dependency, ok := dependencies.RunConfigurations[r.ValueFrom.RunConfigurationRef.Name]; ok {
-			for _, artifact := range dependency.Artifacts {
-				if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
-					return apis.NamedValue{
-						Name:  r.Name,
-						Value: artifact.Location,
-					}, nil
-				}
-			}
-
-			return apis.NamedValue{}, fmt.Errorf("artifact '%s' not found in dependency '%s'", r.ValueFrom.RunConfigurationRef.OutputArtifact, r.ValueFrom.RunConfigurationRef.Name)
-		}
-
-		return apis.NamedValue{}, fmt.Errorf("dependency '%s' not found", r.ValueFrom.RunConfigurationRef.Name)
-	})
-}
-
-func (runSpec *RunSpec) HasUnmetDependencies(dependencies Dependencies) bool {
-	_, err := runSpec.ResolveRuntimeParameters(dependencies)
-	return err != nil
-}
-
-func cmpRuntimeParameters(rp1, rp2 RuntimeParameter) bool {
-	if rp1.Name != rp2.Name {
-		return rp1.Name < rp2.Name
-	}
-
-	if rp1.Value != rp2.Value {
-		return rp1.Value < rp2.Value
-	}
-
-	if rp1.ValueFrom == nil {
-		return rp2.ValueFrom != nil
-	}
-
-	if rp1.ValueFrom.RunConfigurationRef.Name != rp2.ValueFrom.RunConfigurationRef.Name {
-		return rp1.ValueFrom.RunConfigurationRef.Name < rp2.ValueFrom.RunConfigurationRef.Name
-	}
-
-	return rp1.ValueFrom.RunConfigurationRef.OutputArtifact < rp2.ValueFrom.RunConfigurationRef.OutputArtifact
-}
-
-func writeRuntimeParameter(oh pipelines.ObjectHasher, rp RuntimeParameter) {
-	oh.WriteStringField(rp.Name)
-	oh.WriteStringField(rp.Value)
-	if rp.ValueFrom != nil {
-		oh.WriteStringField(rp.ValueFrom.RunConfigurationRef.Name)
-		oh.WriteStringField(rp.ValueFrom.RunConfigurationRef.OutputArtifact)
-	}
-}
-
-func WriteRunTimeParameters(oh pipelines.ObjectHasher, rps []RuntimeParameter) {
-	pipelines.WriteList(oh, rps, cmpRuntimeParameters, writeRuntimeParameter)
-}
-
-func (rs RunSpec) WriteRunSpec(oh pipelines.ObjectHasher) {
-	oh.WriteStringField(rs.Pipeline.String())
-	oh.WriteStringField(rs.ExperimentName)
-	WriteRunTimeParameters(oh, rs.RuntimeParameters)
-	pipelines.WriteKVListField(oh, rs.Artifacts)
-}
-
-func (rs RunSpec) ComputeVersion() string {
-	oh := pipelines.NewObjectHasher()
-	rs.WriteRunSpec(oh)
-	hash := oh.Sum()[0:3]
-
-	return fmt.Sprintf("%x", hash)
-}
 
 func (r Run) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
@@ -133,13 +30,8 @@ var CompletionStates = struct {
 	Failed:    "Failed",
 }
 
-type RunReference struct {
-	ProviderId string            `json:"providerId,omitempty"`
-	Artifacts  []common.Artifact `json:"artifacts,omitempty"`
-}
-
 type Dependencies struct {
-	RunConfigurations map[string]RunReference `json:"runConfigurations,omitempty"`
+	RunConfigurations map[string]hub.RunReference `json:"runConfigurations,omitempty"`
 }
 
 type RunStatus struct {
@@ -162,74 +54,8 @@ type Run struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RunSpec   `json:"spec,omitempty"`
-	Status RunStatus `json:"status,omitempty"`
-}
-
-func (r *Run) SetDependencyRuns(references map[string]RunReference) {
-	r.Status.Dependencies.RunConfigurations = references
-}
-
-func (r *Run) GetDependencyRuns() map[string]RunReference {
-	if r.Status.Dependencies.RunConfigurations == nil {
-		return make(map[string]RunReference)
-	}
-	return r.Status.Dependencies.RunConfigurations
-}
-
-func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
-		if rp.ValueFrom == nil {
-			return RunConfigurationRef{}, false
-		}
-
-		return rp.ValueFrom.RunConfigurationRef, true
-	})
-}
-
-func (r *Run) GetReferencedRCs() []string {
-	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
-		if rp.ValueFrom == nil {
-			return "", false
-		}
-
-		return rp.ValueFrom.RunConfigurationRef.Name, true
-	})
-}
-
-func (r *Run) GetProvider() string {
-	return r.Status.ProviderId.Provider
-}
-
-func (r *Run) GetPipeline() PipelineIdentifier {
-	return r.Spec.Pipeline
-}
-
-func (r *Run) GetObservedPipelineVersion() string {
-	return r.Status.ObservedPipelineVersion
-}
-
-func (r *Run) SetObservedPipelineVersion(newVersion string) {
-	r.Status.ObservedPipelineVersion = newVersion
-}
-
-func (r *Run) GetStatus() Status {
-	return r.Status.Status
-}
-
-func (r *Run) SetStatus(status Status) {
-	r.Status.Status = status
-}
-
-func (r *Run) GetNamespacedName() types.NamespacedName {
-	return types.NamespacedName{
-		Name:      r.Name,
-		Namespace: r.Namespace,
-	}
-}
-
-func (r *Run) GetKind() string {
-	return "run"
+	Spec   hub.RunSpec `json:"spec,omitempty"`
+	Status RunStatus   `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

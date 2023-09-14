@@ -2,19 +2,10 @@ package v1alpha5
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 )
-
-type RunScheduleSpec struct {
-	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
-	ExperimentName    string             `json:"experimentName,omitempty"`
-	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
-	Schedule          string             `json:"schedule,omitempty"`
-}
 
 func (rs RunSchedule) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
@@ -43,35 +34,8 @@ type RunSchedule struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RunScheduleSpec `json:"spec,omitempty"`
-	Status Status          `json:"status,omitempty"`
-}
-
-func (rs *RunSchedule) GetProvider() string {
-	return rs.Status.ProviderId.Provider
-}
-
-func (rs *RunSchedule) GetPipeline() PipelineIdentifier {
-	return rs.Spec.Pipeline
-}
-
-func (rs *RunSchedule) GetStatus() Status {
-	return rs.Status
-}
-
-func (rs *RunSchedule) SetStatus(status Status) {
-	rs.Status = status
-}
-
-func (rs *RunSchedule) GetNamespacedName() types.NamespacedName {
-	return types.NamespacedName{
-		Name:      rs.Name,
-		Namespace: rs.Namespace,
-	}
-}
-
-func (rs *RunSchedule) GetKind() string {
-	return "runschedule"
+	Spec   hub.RunScheduleSpec `json:"spec,omitempty"`
+	Status Status              `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
