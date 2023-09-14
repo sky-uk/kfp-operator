@@ -10,21 +10,8 @@ import (
 )
 
 var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
-	var _ = Describe("Roundtrip forward", func() {
+	var _ = Describe("Roundtrip", func() {
 		Specify("converts empty Schedule into no triggers", func() {
-			src := RandomRunConfiguration()
-			intermediate := &hub.RunConfiguration{}
-			dst := &RunConfiguration{}
-
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
-		})
-	})
-
-	var _ = Describe("Roundtrip backward", func() {
-		Specify("converts to and from the same object", func() {
 			src := hub.RandomRunConfiguration()
 			hub.WithValueFrom(&src.Spec.Run)
 			intermediate := &RunConfiguration{}

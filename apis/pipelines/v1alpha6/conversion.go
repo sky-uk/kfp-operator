@@ -1,9 +1,5 @@
 package v1alpha6
 
-import (
-	"github.com/sky-uk/kfp-operator/apis"
-)
-
 type RunConfigurationConversionRemainder struct {
 	RunConversionRemainder `json:",inline"`
 	Triggers               Triggers `json:"triggers,omitempty"`
@@ -24,32 +20,4 @@ func (rcr RunConversionRemainder) Empty() bool {
 
 func (rcr RunConversionRemainder) ConversionAnnotation() string {
 	return GroupVersion.Version + "." + GroupVersion.Group + "/conversions.remainder"
-}
-
-func SplitRunTimeParameters(rts []RuntimeParameter) (namedValues []apis.NamedValue, valueFroms []RuntimeParameter) {
-	for _, rt := range rts {
-		if rt.ValueFrom != nil {
-			valueFroms = append(valueFroms, rt)
-		} else {
-			namedValues = append(namedValues, apis.NamedValue{
-				Name:  rt.Name,
-				Value: rt.Value,
-			})
-		}
-	}
-
-	return
-}
-
-func MergeRuntimeParameters(namedValues []apis.NamedValue, valueFroms []RuntimeParameter) (rts []RuntimeParameter) {
-	for _, namedValue := range namedValues {
-		rts = append(rts, RuntimeParameter{
-			Name:  namedValue.Name,
-			Value: namedValue.Value,
-		})
-	}
-
-	rts = append(rts, valueFroms...)
-
-	return
 }
