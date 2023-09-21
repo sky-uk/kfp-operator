@@ -57,6 +57,8 @@ metadata:
 spec:
   template:
     serviceAccountName: {{ include "kfp-operator.fullname" . }}-status-updater-submitter
+    metadata:
+      {{- $.Values.manager.argo.metadata | toYaml | nindent 6 }}
   dependencies:
   - eventName: {{ include "kfp-operator.fullname" $ }}-events
     eventSourceName: {{ include "kfp-operator.fullname" $ }}-events
