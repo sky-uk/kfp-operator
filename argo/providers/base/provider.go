@@ -40,6 +40,7 @@ type RunDefinition struct {
 	Name              common.NamespacedName `yaml:"name"`
 	Version           string                `yaml:"version"`
 	PipelineName      common.NamespacedName `yaml:"pipelineName"`
+	RunConfigurationName      common.NamespacedName `yaml:"runConfigurationName"`
 	PipelineVersion   string                `yaml:"pipelineVersion"`
 	ExperimentName    string                `yaml:"experimentName"`
 	RuntimeParameters map[string]string          `yaml:"runtimeParameters"`

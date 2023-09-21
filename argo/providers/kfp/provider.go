@@ -125,6 +125,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 	// needed to write metadata of the job as no other field is possible
 	runAsDescription, err := yaml.Marshal(ResourceReferences{
 		RunName:      runDefinition.Name,
+		RunConfigurationName: runDefinition.RunConfigurationName,
 		PipelineName: runDefinition.PipelineName,
 		Artifacts:    runDefinition.Artifacts,
 	})

@@ -230,6 +230,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		PipelineVersion:   runDefinition.PipelineVersion,
 		RuntimeParameters: runDefinition.RuntimeParameters,
 		RunName:           runDefinition.Name,
+		RunConfigurationName: runDefinition.RunConfigurationName,
 		Artifacts:         runDefinition.Artifacts,
 	})
 }
@@ -314,6 +315,18 @@ func (vaip VAIProvider) DeleteExperiment(_ context.Context, _ VAIProviderConfig,
 	return errors.New("not implemented")
 }
 
+func generateRunId(runIntent RunIntent) string {
+	if !runIntent.RunConfigurationName.Empty() {
+		return fmt.Sprintf("%s-%s", runIntent.RunConfigurationName.Name, uuid.New().String())
+	}
+
+	if !runIntent.RunName.Empty() {
+		return fmt.Sprintf(runIntent.RunName.Name)
+	}
+
+	return fmt.Sprintf("%s", uuid.New().String())
+}
+
 func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProviderConfig, runIntent RunIntent) (string, error) {
 	pubsubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
 	if err != nil {
@@ -329,22 +342,18 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 		labels.PipelineVersion:   runIntent.PipelineVersion,
 	}
 
-	var runId string
-
-	if !runIntent.RunName.Empty() {
-		runId = fmt.Sprintf(runIntent.RunName.Name)
-		runLabels[labels.RunName] = runIntent.RunName.Name
-		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
-	} else if !runIntent.RunConfigurationName.Empty() {
-		runId = fmt.Sprintf("%s-%s", runIntent.RunConfigurationName.Name, uuid.New().String())
+	if !runIntent.RunConfigurationName.Empty() {
 		runLabels[labels.RunConfigurationName] = runIntent.RunConfigurationName.Name
 		runLabels[labels.RunConfigurationNamespace] = runIntent.RunConfigurationName.Namespace
-	} else {
-		runId = fmt.Sprintf("%s", uuid.New().String())
+	}
+
+	if !runIntent.RunName.Empty() {
+		runLabels[labels.RunName] = runIntent.RunName.Name
+		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
 	}
 
 	vaiRun := VAIRun{
-		RunId:             runId,
+		RunId:             generateRunId(runIntent),
 		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName.Name, runIntent.PipelineVersion),
 		Labels:            runLabels,
 		RuntimeParameters: runIntent.RuntimeParameters,
@@ -362,7 +371,7 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 		return "", err
 	}
 
-	return runId, nil
+	return vaiRun.RunId, nil
 }
 
 func (vaip VAIProvider) specFromTemplateUri(ctx context.Context, providerConfig VAIProviderConfig, job *aiplatformpb.PipelineJob) error {

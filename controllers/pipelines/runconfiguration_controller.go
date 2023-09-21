@@ -21,6 +21,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+var RunConfigurationConstants = struct {
+	RunConfigurationNameLabelKey string
+}{
+	RunConfigurationNameLabelKey: apis.Group + "/runconfiguration.name",
+}
+
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
@@ -328,6 +334,9 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider st
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: runConfiguration.Name + "-",
 			Namespace:    runConfiguration.Namespace,
+			Labels: map[string]string{
+				RunConfigurationConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
+			},
 		},
 		Spec: pipelinesv1.RunSpec{
 			Pipeline: pipelinesv1.PipelineIdentifier{
