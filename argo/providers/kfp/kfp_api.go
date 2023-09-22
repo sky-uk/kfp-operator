@@ -3,7 +3,7 @@ package kfp
 import (
 	"context"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"gopkg.in/yaml.v2"
 )

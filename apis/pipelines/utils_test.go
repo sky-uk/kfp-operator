@@ -176,4 +176,13 @@ var _ = Context("Utils", func() {
 		Entry("", map[string]int{"1": 1, "2": 2}, []int{1, 2}),
 		Entry("", map[string]int{"1": 1, "2": 1}, []int{1, 1}),
 	)
+
+	DescribeTable("MapValues", func(kvs map[string]int, expected map[string]string) {
+		Expect(MapValues(kvs, func(v int) string {
+			return strconv.Itoa(v * 2)
+		})).To(Equal(expected))
+	},
+		Entry("", map[string]int{}, map[string]string{}),
+		Entry("", map[string]int{"1": 1, "2": 2}, map[string]string{"1": "2", "2": "4"}),
+	)
 })

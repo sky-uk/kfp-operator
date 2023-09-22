@@ -3,7 +3,6 @@
 package apis
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 
 	"github.com/thanhpk/randstr"
@@ -22,12 +21,12 @@ func RandomString() string {
 	return randstr.String(rand.Intn(15) + 5)
 }
 
-func RandomMap() map[string]string {
+func RandomMap[V any](randomValue func() V) map[string]V {
 	size := rand.Intn(5)
 
-	rMap := make(map[string]string, size)
+	rMap := make(map[string]V, size)
 	for i := 1; i <= size; i++ {
-		rMap[RandomString()] = RandomString()
+		rMap[RandomString()] = randomValue()
 	}
 
 	return rMap
@@ -51,14 +50,6 @@ func RandomNamedValue() NamedValue {
 
 func RandomNamedValues() []NamedValue {
 	return RandomList(RandomNamedValue)
-}
-
-func RandomOf[T any](ts []T) T {
-	return ts[rand.Intn(len(ts))]
-}
-
-func RandomConditionStatus() metav1.ConditionStatus {
-	return RandomOf([]metav1.ConditionStatus{metav1.ConditionTrue, metav1.ConditionFalse, metav1.ConditionUnknown})
 }
 
 func RandomSynchronizationState() SynchronizationState {

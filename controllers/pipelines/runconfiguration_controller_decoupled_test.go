@@ -9,10 +9,9 @@ import (
 	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
@@ -71,21 +70,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 	})
 
-	When("Migrating from v1alpha4", func() {
-		It("Releases previously acquired resources", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration()
-			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
-			controllerutil.AddFinalizer(runConfiguration, finalizerName)
-			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
-
-			Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
-
-			Eventually(func(g Gomega) {
-				g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).NotTo(Succeed())
-			}).Should(Succeed())
-		})
-	})
-
 	When("Creating an RC with a fixed pipeline version", func() {
 		It("sets the ObservedPipelineVersion to the fixed version", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
@@ -95,7 +79,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
-				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+				g.Expect(fetchedRc.Status.Dependencies.Pipeline.Version).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
 	})
@@ -107,7 +91,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
-			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
+			runConfiguration.Status.Dependencies.Pipeline.Version = pipeline.ComputeVersion()
 
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
@@ -116,7 +100,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
-				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
+				g.Expect(fetchedRc.Status.Dependencies.Pipeline.Version).To(Equal(pipeline.ComputeVersion()))
 			})).Should(Succeed())
 		})
 
@@ -182,7 +166,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
 
 			runConfiguration.Spec.Run.Pipeline = fixedIdentifier
-			runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
+			runConfiguration.Status.Dependencies.Pipeline.Version = pipeline.ComputeVersion()
 
 			pipelineHelper := CreateSucceeded(pipeline)
 
@@ -202,7 +186,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
 				g.Expect(fetchedRc.Spec.Run.ExperimentName).To(Equal(newExperiment))
-				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
+				g.Expect(fetchedRc.Status.Dependencies.Pipeline.Version).To(Equal(fixedIdentifier.Version))
 			})).Should(Succeed())
 		})
 	})

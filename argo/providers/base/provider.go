@@ -2,7 +2,7 @@ package base
 
 import (
 	"context"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 )

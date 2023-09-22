@@ -11,7 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
