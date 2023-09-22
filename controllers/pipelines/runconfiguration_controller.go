@@ -330,6 +330,9 @@ func findOwnedRuns(ctx context.Context, cli client.Reader, runConfiguration *pip
 }
 
 func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider string, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Run, error) {
+	spec := runConfiguration.Spec.Run
+	spec.Pipeline.Version = runConfiguration.Status.ObservedPipelineVersion
+
 	run := pipelinesv1.Run{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: runConfiguration.Name + "-",
@@ -338,14 +341,7 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider st
 				RunConfigurationConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
 			},
 		},
-		Spec: pipelinesv1.RunSpec{
-			Pipeline: pipelinesv1.PipelineIdentifier{
-				Name:    runConfiguration.Spec.Run.Pipeline.Name,
-				Version: runConfiguration.Status.ObservedPipelineVersion,
-			},
-			RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
-			ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
-		},
+		Spec: spec,
 	}
 
 	if err := controllerutil.SetControllerReference(runConfiguration, &run, r.Scheme); err != nil {
