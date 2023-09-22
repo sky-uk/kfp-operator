@@ -108,7 +108,7 @@ var _ = Context("gRPC Metadata Store", func() {
 		})
 
 		When("GetArtifactsByContext returns artifacts", func() {
-			validProperties :=  map[string]*ml_metadata.Value{
+			validProperties := map[string]*ml_metadata.Value{
 				"x": {
 					Value: &ml_metadata.Value_StructValue{
 						StructValue: &structpb.Struct{
@@ -128,8 +128,8 @@ var _ = Context("gRPC Metadata Store", func() {
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Name: pointer.String(common.RandomString()),
-								Uri:  pointer.String(apis.RandomString()),
+								Name:             pointer.String(common.RandomString()),
+								Uri:              pointer.String(apis.RandomString()),
 								CustomProperties: validProperties,
 							},
 						},
@@ -148,7 +148,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Name: pointer.String(artifactPath),
+								Name:             pointer.String(artifactPath),
 								CustomProperties: validProperties,
 							},
 						},
@@ -168,7 +168,7 @@ var _ = Context("gRPC Metadata Store", func() {
 						Artifacts: []*ml_metadata.Artifact{
 							{
 								Name: pointer.String(artifactPath),
-								Uri: pointer.String(artifactPath),
+								Uri:  pointer.String(artifactPath),
 							},
 						},
 					}, nil)
@@ -213,8 +213,8 @@ var _ = Context("gRPC Metadata Store", func() {
 					Return(&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Name: pointer.String(artifactPath),
-								Uri:  &artifactLocation,
+								Name:             pointer.String(artifactPath),
+								Uri:              &artifactLocation,
 								CustomProperties: validProperties,
 							},
 						},

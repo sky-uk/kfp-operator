@@ -25,26 +25,26 @@ type ExperimentDefinition struct {
 }
 
 type RunScheduleDefinition struct {
-	Name                 string                `yaml:"name"`
-	RunConfigurationName common.NamespacedName `yaml:"runConfigurationName"`
-	Version              string                `yaml:"version"`
-	PipelineName         common.NamespacedName `yaml:"pipelineName"`
-	PipelineVersion      string                `yaml:"pipelineVersion"`
-	ExperimentName       string                `yaml:"experimentName"`
-	Schedule             string                `yaml:"schedule"`
+	Name                 string                     `yaml:"name"`
+	Version              string                     `yaml:"version"`
+	PipelineName         common.NamespacedName      `yaml:"pipelineName"`
+	PipelineVersion      string                     `yaml:"pipelineVersion"`
+	RunConfigurationName common.NamespacedName      `yaml:"runConfigurationName"`
+	ExperimentName       string                     `yaml:"experimentName"`
+	Schedule             string                     `yaml:"schedule"`
 	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
 	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type RunDefinition struct {
-	Name              common.NamespacedName `yaml:"name"`
-	Version           string                `yaml:"version"`
-	PipelineName      common.NamespacedName `yaml:"pipelineName"`
-	RunConfigurationName      common.NamespacedName `yaml:"runConfigurationName"`
-	PipelineVersion   string                `yaml:"pipelineVersion"`
-	ExperimentName    string                `yaml:"experimentName"`
-	RuntimeParameters map[string]string          `yaml:"runtimeParameters"`
-	Artifacts         []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
+	Name                 common.NamespacedName      `yaml:"name"`
+	Version              string                     `yaml:"version"`
+	PipelineName         common.NamespacedName      `yaml:"pipelineName"`
+	PipelineVersion      string                     `yaml:"pipelineVersion"`
+	RunConfigurationName common.NamespacedName      `yaml:"runConfigurationName"`
+	ExperimentName       string                     `yaml:"experimentName"`
+	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
+	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type Output struct {

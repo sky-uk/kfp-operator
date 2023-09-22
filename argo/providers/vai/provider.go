@@ -226,12 +226,12 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
 	return vaip.EnqueueRun(ctx, providerConfig, RunIntent{
-		PipelineName:      runDefinition.PipelineName,
-		PipelineVersion:   runDefinition.PipelineVersion,
-		RuntimeParameters: runDefinition.RuntimeParameters,
-		RunName:           runDefinition.Name,
+		PipelineName:         runDefinition.PipelineName,
+		PipelineVersion:      runDefinition.PipelineVersion,
+		RuntimeParameters:    runDefinition.RuntimeParameters,
+		RunName:              runDefinition.Name,
 		RunConfigurationName: runDefinition.RunConfigurationName,
-		Artifacts:         runDefinition.Artifacts,
+		Artifacts:            runDefinition.Artifacts,
 	})
 }
 
