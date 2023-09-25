@@ -60,6 +60,23 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 	})
 
+	It("succeeds without creating resources if dependencies are not met", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration.Spec.Triggers = pipelinesv1.RandomScheduleTrigger()
+		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{pipelinesv1.OnChangeTypes.RunSpec}
+		runConfiguration.Spec.Run.RuntimeParameters = apis.RandomList(pipelinesv1.RandomRunConfigurationRefRuntimeParameter)
+		Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
+			g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+		})).Should(Succeed())
+
+		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
+		Eventually(hasNoRuns(runConfiguration)).Should(Succeed())
+	})
+
 	When("Deleted", func() {
 		It("cascades deletes", func() {
 			Skip("See https://github.com/kubernetes-sigs/controller-runtime/issues/1459. Keep test for documentation")
@@ -522,6 +539,14 @@ func matchRuns(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gome
 		for _, ownedRun := range ownedRuns {
 			matcher(g, &ownedRun)
 		}
+	}
+}
+
+func hasNoRuns(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
+	return func(g Gomega) {
+		ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(ownedRuns).To(BeEmpty())
 	}
 }
 

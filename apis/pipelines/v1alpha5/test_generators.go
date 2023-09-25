@@ -116,18 +116,20 @@ func RandomRun() *Run {
 	}
 }
 
-func WithValueFrom(runSpec *RunSpec) {
-	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(func() RuntimeParameter {
-		return RuntimeParameter{
-			Name: RandomString(),
-			ValueFrom: &ValueFrom{
-				RunConfigurationRef: RunConfigurationRef{
-					Name:           RandomString(),
-					OutputArtifact: RandomString(),
-				},
+func RandomRunConfigurationRefRuntimeParameter() RuntimeParameter {
+	return RuntimeParameter{
+		Name: RandomString(),
+		ValueFrom: &ValueFrom{
+			RunConfigurationRef: RunConfigurationRef{
+				Name:           RandomString(),
+				OutputArtifact: RandomString(),
 			},
-		}
-	})...)
+		},
+	}
+}
+
+func WithValueFrom(runSpec *RunSpec) {
+	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(RandomRunConfigurationRefRuntimeParameter)...)
 }
 
 func RandomRunSpec() RunSpec {
