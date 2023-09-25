@@ -64,7 +64,10 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
 		runConfiguration.Spec.Triggers = pipelinesv1.RandomScheduleTrigger()
 		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{pipelinesv1.OnChangeTypes.RunSpec}
-		runConfiguration.Spec.Run.RuntimeParameters = apis.RandomList(pipelinesv1.RandomRunConfigurationRefRuntimeParameter)
+		runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+			pipelinesv1.RandomRunConfigurationRefRuntimeParameter(),
+		}
+
 		Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
 		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
