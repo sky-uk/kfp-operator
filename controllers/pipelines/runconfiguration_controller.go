@@ -21,6 +21,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+var RunConfigurationConstants = struct {
+	RunConfigurationNameLabelKey string
+}{
+	RunConfigurationNameLabelKey: apis.Group + "/runconfiguration.name",
+}
+
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
@@ -324,19 +330,18 @@ func findOwnedRuns(ctx context.Context, cli client.Reader, runConfiguration *pip
 }
 
 func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider string, runConfiguration *pipelinesv1.RunConfiguration) (*pipelinesv1.Run, error) {
+	spec := runConfiguration.Spec.Run
+	spec.Pipeline.Version = runConfiguration.Status.ObservedPipelineVersion
+
 	run := pipelinesv1.Run{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: runConfiguration.Name + "-",
 			Namespace:    runConfiguration.Namespace,
-		},
-		Spec: pipelinesv1.RunSpec{
-			Pipeline: pipelinesv1.PipelineIdentifier{
-				Name:    runConfiguration.Spec.Run.Pipeline.Name,
-				Version: runConfiguration.Status.ObservedPipelineVersion,
+			Labels: map[string]string{
+				RunConfigurationConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
 			},
-			RuntimeParameters: runConfiguration.Spec.Run.RuntimeParameters,
-			ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
 		},
+		Spec: spec,
 	}
 
 	if err := controllerutil.SetControllerReference(runConfiguration, &run, r.Scheme); err != nil {

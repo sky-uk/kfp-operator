@@ -30,7 +30,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		return providers.RunDefinition{}, err
 	}
 
-	return providers.RunDefinition{
+	runDefinition := providers.RunDefinition{
 		Name:              common.NamespacedName{Name: run.Name, Namespace: run.Namespace},
 		Version:           run.ComputeVersion(),
 		PipelineName:      common.NamespacedName{Name: run.Spec.Pipeline.Name, Namespace: run.Namespace},
@@ -38,7 +38,13 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		ExperimentName:    experimentName,
 		RuntimeParameters: NamedValuesToMap(runtimeParameters),
 		Artifacts:         run.Spec.Artifacts,
-	}, nil
+	}
+
+	if runConfigurationName, ok := run.Labels[RunConfigurationConstants.RunConfigurationNameLabelKey]; ok {
+		runDefinition.RunConfigurationName = common.NamespacedName{Name: runConfigurationName, Namespace: run.Namespace}
+	}
+
+	return runDefinition, nil
 }
 
 func RunWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {

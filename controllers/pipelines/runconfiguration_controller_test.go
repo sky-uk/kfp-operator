@@ -33,6 +33,24 @@ var _ = Context("aggregateState", func() {
 	)
 })
 
+var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
+	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
+	rcr := RunConfigurationReconciler{
+		Scheme: scheme.Scheme,
+	}
+
+	It("propagates the runconfiguration's name", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(apis.RandomString)}
+		provider := apis.RandomString()
+
+		run, err := rcr.constructRunForRunConfiguration(provider, runConfiguration)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(run.GetLabels()[RunConfigurationConstants.RunConfigurationNameLabelKey]).To(Equal(runConfiguration.GetName()))
+	})
+})
+
 var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
 	rcr := RunConfigurationReconciler{
