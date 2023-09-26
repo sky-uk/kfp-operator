@@ -252,9 +252,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(k8sClient.Status().Update(ctx, runConfiguration)).To(Succeed())
 
-			oldState := runConfiguration.Status.SynchronizationState
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
-				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
+				g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(fetchedRc.Generation))
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].ProviderId).To(BeEmpty())
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].Artifacts).To(BeEmpty())
 			})).Should(Succeed())
@@ -381,6 +380,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
 				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).To(HaveKey(referencedRc.Name))
+				g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(fetchedRc.Generation))
 			})).Should(Succeed())
 
 			runConfiguration.Spec.Triggers.RunConfigurations = nil
