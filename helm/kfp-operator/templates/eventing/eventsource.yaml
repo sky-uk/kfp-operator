@@ -27,7 +27,7 @@ spec:
     eventSourceName: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-events
     name: "{{ $providerName }}-events"
     transform:
-      jq: .body = (.body | @base64d | fromjson)
+      jq: .body = (.body | @base64d)
 {{- end }}
   triggers:
 {{- range $providerName, $providerBlock := .Values.providers }}
