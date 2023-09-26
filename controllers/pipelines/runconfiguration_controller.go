@@ -102,23 +102,25 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	var newStatus pipelinesv1.RunConfigurationStatus
+	state := apis.Succeeded
+	message := ""
 
 	if resolvedParameters, err := runConfiguration.Spec.Run.ResolveRuntimeParameters(runConfiguration.Status.Dependencies); err == nil {
 		if hasChanged, err := r.syncWithRuns(ctx, desiredProvider, runConfiguration); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
 
-		newStatus, err = r.syncStatus(ctx, desiredProvider, runConfiguration, resolvedParameters)
+		state, message, err = r.syncStatus(ctx, desiredProvider, runConfiguration, resolvedParameters)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-	} else {
-		newStatus = runConfiguration.Status
-		newStatus.SetSynchronizationState(apis.Succeeded, "")
 	}
 
+	newStatus = runConfiguration.Status
 	newStatus.ObservedGeneration = runConfiguration.GetGeneration()
 	newStatus.Provider = desiredProvider
+
+	newStatus.SetSynchronizationState(state, message)
 
 	if !reflect.DeepEqual(newStatus, runConfiguration.Status) {
 		runConfiguration.Status = newStatus
@@ -189,9 +191,7 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
-func (r *RunConfigurationReconciler) syncStatus(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration, resolvedParameters []apis.NamedValue) (status pipelinesv1.RunConfigurationStatus, err error) {
-	status = runConfiguration.Status
-
+func (r *RunConfigurationReconciler) syncStatus(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration, resolvedParameters []apis.NamedValue) (state apis.SynchronizationState, message string, err error) {
 	desiredSchedules, err := r.constructRunSchedulesForTriggers(provider, runConfiguration, resolvedParameters)
 	if err != nil {
 		return
@@ -226,8 +226,7 @@ func (r *RunConfigurationReconciler) syncStatus(ctx context.Context, provider st
 		return
 	}
 
-	state, message := aggregateState(dependentSchedules)
-	status.SetSynchronizationState(state, message)
+	state, message = aggregateState(dependentSchedules)
 
 	return
 }
