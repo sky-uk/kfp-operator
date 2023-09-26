@@ -101,14 +101,26 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	if hasChanged, err := r.syncWithRuns(ctx, desiredProvider, runConfiguration); hasChanged || err != nil {
-		return ctrl.Result{}, err
+	var newStatus pipelinesv1.RunConfigurationStatus
+	state := apis.Succeeded
+	message := ""
+
+	if resolvedParameters, err := runConfiguration.Spec.Run.ResolveRuntimeParameters(runConfiguration.Status.Dependencies); err == nil {
+		if hasChanged, err := r.syncWithRuns(ctx, desiredProvider, runConfiguration); hasChanged || err != nil {
+			return ctrl.Result{}, err
+		}
+
+		state, message, err = r.syncStatus(ctx, desiredProvider, runConfiguration, resolvedParameters)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
-	newStatus, err := r.syncStatus(ctx, desiredProvider, runConfiguration)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
+	newStatus = runConfiguration.Status
+	newStatus.ObservedGeneration = runConfiguration.GetGeneration()
+	newStatus.Provider = desiredProvider
+
+	newStatus.SetSynchronizationState(state, message)
 
 	if !reflect.DeepEqual(newStatus, runConfiguration.Status) {
 		runConfiguration.Status = newStatus
@@ -179,12 +191,8 @@ func (r *RunConfigurationReconciler) syncWithRuns(ctx context.Context, provider 
 	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
-func (r *RunConfigurationReconciler) syncStatus(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration) (status pipelinesv1.RunConfigurationStatus, err error) {
-	status = runConfiguration.Status
-	status.ObservedGeneration = runConfiguration.GetGeneration()
-	status.Provider = provider
-
-	desiredSchedules, err := r.constructRunSchedulesForTriggers(provider, runConfiguration)
+func (r *RunConfigurationReconciler) syncStatus(ctx context.Context, provider string, runConfiguration *pipelinesv1.RunConfiguration, resolvedParameters []apis.NamedValue) (state apis.SynchronizationState, message string, err error) {
+	desiredSchedules, err := r.constructRunSchedulesForTriggers(provider, runConfiguration, resolvedParameters)
 	if err != nil {
 		return
 	}
@@ -218,17 +226,7 @@ func (r *RunConfigurationReconciler) syncStatus(ctx context.Context, provider st
 		return
 	}
 
-	state, message := aggregateState(dependentSchedules)
-	status.SynchronizationState = state
-	condition := metav1.Condition{
-		Type:               pipelinesv1.ConditionTypes.SynchronizationSucceeded,
-		Message:            message,
-		ObservedGeneration: status.ObservedGeneration,
-		Reason:             string(state),
-		LastTransitionTime: metav1.Now(),
-		Status:             pipelinesv1.ConditionStatusForSynchronizationState(state),
-	}
-	status.Conditions = status.Conditions.MergeIntoConditions(condition)
+	state, message = aggregateState(dependentSchedules)
 
 	return
 }
@@ -352,13 +350,8 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(provider st
 	return &run, nil
 }
 
-func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider string, runConfiguration *pipelinesv1.RunConfiguration) ([]pipelinesv1.RunSchedule, error) {
+func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider string, runConfiguration *pipelinesv1.RunConfiguration, resolvedParameters []apis.NamedValue) ([]pipelinesv1.RunSchedule, error) {
 	var schedules []pipelinesv1.RunSchedule
-
-	runtimeParameters, err := runConfiguration.Spec.Run.ResolveRuntimeParameters(runConfiguration.Status.Dependencies)
-	if err != nil {
-		return nil, err
-	}
 
 	for _, schedule := range runConfiguration.Spec.Triggers.Schedules {
 		runSchedule := pipelinesv1.RunSchedule{
@@ -371,7 +364,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(provider s
 					Name:    runConfiguration.Spec.Run.Pipeline.Name,
 					Version: runConfiguration.Status.ObservedPipelineVersion,
 				},
-				RuntimeParameters: runtimeParameters,
+				RuntimeParameters: resolvedParameters,
 				ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
 				Artifacts:         runConfiguration.Spec.Run.Artifacts,
 				Schedule:          schedule,

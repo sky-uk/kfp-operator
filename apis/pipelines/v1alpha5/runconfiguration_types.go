@@ -71,6 +71,19 @@ type RunConfigurationStatus struct {
 	Conditions               Conditions                `json:"conditions,omitempty"`
 }
 
+func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.SynchronizationState, message string) {
+	rcs.SynchronizationState = state
+	condition := metav1.Condition{
+		Type:               ConditionTypes.SynchronizationSucceeded,
+		Message:            message,
+		ObservedGeneration: rcs.ObservedGeneration,
+		Reason:             string(state),
+		LastTransitionTime: metav1.Now(),
+		Status:             ConditionStatusForSynchronizationState(state),
+	}
+	rcs.Conditions = rcs.Conditions.MergeIntoConditions(condition)
+}
+
 //+kubebuilder:object:root=true
 //+kubebuilder:resource:shortName="mlrc"
 //+kubebuilder:subresource:status

@@ -110,25 +110,25 @@ var _ = BeforeEach(func() {
 	allRuns := &pipelinesv1.RunList{}
 	Expect(k8sClient.List(ctx, allRuns)).To(Succeed())
 	for _, r := range allRuns.Items {
-		Expect(k8sClient.Delete(ctx, &r)).To(Succeed())
+		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &r))).To(Succeed())
 	}
 
 	allRunSchedules := &pipelinesv1.RunScheduleList{}
 	Expect(k8sClient.List(ctx, allRunSchedules)).To(Succeed())
 	for _, r := range allRunSchedules.Items {
-		Expect(k8sClient.Delete(ctx, &r)).To(Succeed())
+		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &r))).To(Succeed())
 	}
 
 	allRcs := &pipelinesv1.RunConfigurationList{}
 	Expect(k8sClient.List(ctx, allRcs)).To(Succeed())
 	for _, r := range allRcs.Items {
-		Expect(k8sClient.Delete(ctx, &r)).To(Succeed())
+		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &r))).To(Succeed())
 	}
 
 	allPipelines := &pipelinesv1.PipelineList{}
 	Expect(k8sClient.List(ctx, allPipelines)).To(Succeed())
 	for _, r := range allPipelines.Items {
-		Expect(k8sClient.Delete(ctx, &r)).To(Succeed())
+		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &r))).To(Succeed())
 	}
 })
 

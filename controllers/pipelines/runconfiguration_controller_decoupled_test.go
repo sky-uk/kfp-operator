@@ -60,6 +60,26 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 	})
 
+	It("succeeds without creating resources if dependencies are not met", func() {
+		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration.Spec.Triggers = pipelinesv1.RandomScheduleTrigger()
+		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{pipelinesv1.OnChangeTypes.RunSpec}
+		runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+			pipelinesv1.RandomRunConfigurationRefRuntimeParameter(),
+		}
+
+		Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
+
+		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Succeeded))
+			g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
+			g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
+		})).Should(Succeed())
+
+		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
+		Eventually(hasNoRuns(runConfiguration)).Should(Succeed())
+	})
+
 	When("Deleted", func() {
 		It("cascades deletes", func() {
 			Skip("See https://github.com/kubernetes-sigs/controller-runtime/issues/1459. Keep test for documentation")
@@ -232,9 +252,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(k8sClient.Status().Update(ctx, runConfiguration)).To(Succeed())
 
-			oldState := runConfiguration.Status.SynchronizationState
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
-				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
+				g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(fetchedRc.Generation))
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].ProviderId).To(BeEmpty())
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].Artifacts).To(BeEmpty())
 			})).Should(Succeed())
@@ -361,6 +380,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
 				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).To(HaveKey(referencedRc.Name))
+				g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(fetchedRc.Generation))
 			})).Should(Succeed())
 
 			runConfiguration.Spec.Triggers.RunConfigurations = nil
@@ -522,6 +542,14 @@ func matchRuns(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gome
 		for _, ownedRun := range ownedRuns {
 			matcher(g, &ownedRun)
 		}
+	}
+}
+
+func hasNoRuns(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
+	return func(g Gomega) {
+		ownedRuns, err := findOwnedRuns(ctx, k8sClient, runConfiguration)
+		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(ownedRuns).To(BeEmpty())
 	}
 }
 

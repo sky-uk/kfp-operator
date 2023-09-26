@@ -334,6 +334,7 @@ func createRcWithLatestRun(succeeded pipelinesv1.RunReference) *pipelinesv1.RunC
 	Expect(k8sClient.Create(ctx, referencedRc)).To(Succeed())
 	Eventually(func(g Gomega) {
 		g.Expect(k8sClient.Get(ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
+		g.Expect(referencedRc.Status.ObservedGeneration).To(Equal(referencedRc.Generation))
 		g.Expect(referencedRc.Status.SynchronizationState).To(Equal(apis.Succeeded))
 	}).Should(Succeed())
 	referencedRc.Status.LatestRuns.Succeeded = succeeded
