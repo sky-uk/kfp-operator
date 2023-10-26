@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
+	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/urfave/cli"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"

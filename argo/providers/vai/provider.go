@@ -14,7 +14,7 @@ import (
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
-	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
+	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"

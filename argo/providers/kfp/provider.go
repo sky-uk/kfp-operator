@@ -14,7 +14,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_model"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
-	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
+	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
