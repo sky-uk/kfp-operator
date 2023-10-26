@@ -6,7 +6,7 @@ define get-proto
 	[ -d "$(1)@$(2)" ] || { \
 		git clone --no-checkout --branch $(2) --single-branch https://$(1) $(1)@$(2) && \
 		cd $(1)@$(2) && \
-		git sparse-checkout set *.proto && \
+		git sparse-checkout set --no-cone *.proto && \
 		git checkout tags/$(2) -b master; \
 	}
 endef

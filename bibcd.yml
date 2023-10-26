@@ -2,6 +2,10 @@ version: 1
 context: mlops
 triggering: master-and-prs
 
+defaultNodes:
+  cdBuild: m-asdf
+  prBuild: m-asdf
+
 modules:
   root:
     directory: /
