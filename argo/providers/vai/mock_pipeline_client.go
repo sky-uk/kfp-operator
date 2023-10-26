@@ -8,9 +8,9 @@ import (
 	context "context"
 	reflect "reflect"
 
+	aiplatformpb "cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	gomock "github.com/golang/mock/gomock"
 	gax "github.com/googleapis/gax-go/v2"
-	aiplatform "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 )
 
 // MockPipelineJobClient is a mock of PipelineJobClient interface.
@@ -37,14 +37,14 @@ func (m *MockPipelineJobClient) EXPECT() *MockPipelineJobClientMockRecorder {
 }
 
 // GetPipelineJob mocks base method.
-func (m *MockPipelineJobClient) GetPipelineJob(arg0 context.Context, arg1 *aiplatform.GetPipelineJobRequest, arg2 ...gax.CallOption) (*aiplatform.PipelineJob, error) {
+func (m *MockPipelineJobClient) GetPipelineJob(arg0 context.Context, arg1 *aiplatformpb.GetPipelineJobRequest, arg2 ...gax.CallOption) (*aiplatformpb.PipelineJob, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0, arg1}
 	for _, a := range arg2 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "GetPipelineJob", varargs...)
-	ret0, _ := ret[0].(*aiplatform.PipelineJob)
+	ret0, _ := ret[0].(*aiplatformpb.PipelineJob)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
