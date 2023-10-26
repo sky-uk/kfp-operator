@@ -2,9 +2,9 @@ package base
 
 import (
 	"context"
+	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/argoproj/argo-events/eventsources/sources/generic"
 )
 
 type PipelineDefinition struct {

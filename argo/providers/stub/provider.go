@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type StubProviderConfig struct {
