@@ -4,12 +4,12 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
+	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-logr/logr"
 	"github.com/googleapis/gax-go/v2"
 	"github.com/hashicorp/go-bexpr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/providers/base/generic"
 	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	"gopkg.in/yaml.v2"
 )
