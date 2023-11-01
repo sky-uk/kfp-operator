@@ -18,7 +18,7 @@ It requires a valid configuration file similar to [pipeline_conf.yaml](acceptanc
 ```bash
 PIPELINE_CONFIG=$(cat acceptance/pipeline_conf.yaml)
 export PYTHONPATH="$PYTHONPATH:$(pwd)/../docs/quickstart/penguin_pipeline"
-poetry run python compiler/compiler.py --pipeline_config "${PIPELINE_CONFIG}" --output_file out.yaml
+poetry run python kfp_compiler/compiler.py --pipeline_config "${PIPELINE_CONFIG}" --output_file out.yaml
 ```
 
 ## Run tests
