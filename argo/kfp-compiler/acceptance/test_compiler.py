@@ -24,7 +24,7 @@ def test_cli_v1():
         assert os.stat(output_file_path).st_size != 0
 
         f = open(output_file_path, "r")
-        workflow = yaml.load(f.read())
+        workflow = yaml.safe_load(f.read())
         assert workflow['kind'] == 'Workflow'
 
 def test_cli_v2():
@@ -37,7 +37,7 @@ def test_cli_v2():
         assert os.stat(output_file_path).st_size != 0
 
         f = open(output_file_path, "r")
-        pipeline = yaml.load(f.read())
+        pipeline = yaml.safe_load(f.read())
         assert pipeline['pipelineSpec']['schemaVersion'] == '2.0.0'
 
 
