@@ -5,6 +5,7 @@ all: build
 ##@ Development
 
 test: build
+	poetry shell
 	poetry run pytest
 
 PENGUIN_STAGING := $(shell mktemp -d)
