@@ -31,6 +31,7 @@ integration-test: docker-build penguin-310 penguin-39
 ##@ Build
 
 build:
+    poetry self:update 1.4.0
 	pip install poetry-dynamic-versioning --quiet
 	poetry install
 	poetry build
