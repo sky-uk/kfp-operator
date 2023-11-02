@@ -31,7 +31,10 @@ integration-test: docker-build penguin-310 penguin-39
 ##@ Build
 
 build:
+	python -V
 	pip install poetry-dynamic-versioning --quiet
+	poetry config virtualenvs.create false
+	python -V
 	poetry install
 	poetry build
 
