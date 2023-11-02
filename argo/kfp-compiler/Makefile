@@ -25,6 +25,8 @@ integration-test: docker-build penguin-310 penguin-39
 	docker run -v $(TMP):/shared kfp-operator-argo-kfp-compiler /shared
 	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /tmp/pipeline.yaml --pipeline_config /shared/pipeline_config.json --execution_mode v1
 	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /tmp/pipeline.yaml --pipeline_config /shared/pipeline_config.json  --execution_mode v1
+	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /tmp/pipeline.yaml --pipeline_config /shared/pipeline_config.json --execution_mode v2
+	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /tmp/pipeline.yaml --pipeline_config /shared/pipeline_config.json  --execution_mode v2
 
 ##@ Build
 
