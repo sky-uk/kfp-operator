@@ -5,7 +5,6 @@ all: build
 ##@ Development
 
 test: build
-	poetry shell
 	poetry run pytest
 
 PENGUIN_STAGING := $(shell mktemp -d)
@@ -34,6 +33,7 @@ integration-test: docker-build penguin-310 penguin-39
 build:
     poetry self:update 1.4.0
 	pip install poetry-dynamic-versioning --quiet
+	poetry config virtualenvs.create false
 	poetry install
 	poetry build
 
