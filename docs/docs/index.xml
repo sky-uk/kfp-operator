@@ -1,4 +1,5 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Documentation</title><link>https://sky-uk.github.io/kfp-operator/docs/</link><description>Recent content in Documentation on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Configuration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/configuration/</guid><description>
+&lt;h2 id="manager-configuration">Manager Configuration&lt;/h2>
 &lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
 &lt;table>
 &lt;thead>
@@ -47,6 +48,42 @@
 &lt;/tbody>
 &lt;/table>
 &lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
+&lt;h2 id="eventing-configuration">Eventing Configuration&lt;/h2>
+&lt;p>The operator&amp;rsquo;s eventing system can be configured as follows:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter Name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.metadata&lt;/code>&lt;/td>
+&lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the eventsource server&amp;rsquo;s pods&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.rbac.create&lt;/code>&lt;/td>
+&lt;td>Create roles and rolebindings for the eventsource server&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.serviceAccount.name&lt;/code>&lt;/td>
+&lt;td>Eventsource server&amp;rsquo;s service account&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the eventsource server&amp;rsquo;s service account or expect it to be created externally&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.resources&lt;/code>&lt;/td>
+&lt;td>Eventsource server resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>publicEventbus.externalUrl&lt;/code>&lt;/td>
+&lt;td>Don&amp;rsquo;t create a public eventbus and publish events to the configured NATs Eventbus URL instead&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
 &lt;h2 id="provider-configurations">Provider Configurations&lt;/h2>
 &lt;p>The provider configurations are specific to the implementation. The operator supports the following out of the box.&lt;/p>
 &lt;h3 id="common">Common&lt;/h3>
@@ -680,35 +717,100 @@ In this example we are updating a serving component with the location of the new
 &lt;td>&lt;code>manager.argo.stepTimeoutSeconds.default&lt;/code>&lt;/td>
 &lt;td>Default &lt;a href="https://argoproj.github.io/argo-workflows/walk-through/timeouts/">timeout in seconds&lt;/a> for workflow steps - defaults to 300 (5m)&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.argo.serviceAccount.name&lt;/code>&lt;/td>
+&lt;td>The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s service account&lt;/a> used to run Argo workflows&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.argo.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the Argo Workflows service account (or assume it has been created externally)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.argo.serviceAccount.metadata&lt;/code>&lt;/td>
+&lt;td>Optional Argo Workflows service account default metadata&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.metadata&lt;/code>&lt;/td>
+&lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the manager&amp;rsquo;s pods&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.rbac.create&lt;/code>&lt;/td>
+&lt;td>Create roles and rolebindings for the operator&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.serviceAccount.name&lt;/code>&lt;/td>
+&lt;td>Manager service account&amp;rsquo;s name&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the manager&amp;rsquo;s service account or expect it to be created externally&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.replicas&lt;/code>&lt;/td>
+&lt;td>Number of replicas for the manager deployment&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.resources&lt;/code>&lt;/td>
+&lt;td>Manager resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.configuration&lt;/code>&lt;/td>
+&lt;td>Manager configuration as defined in &lt;a href="../../reference/configuration#manager-configuration">Configuration&lt;/a> (note that you can omit &lt;code>compilerImage&lt;/code> and &lt;code>kfpSdkImage&lt;/code> when specifying &lt;code>containerRegistry&lt;/code> as default values will be applied)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.monitoring.create&lt;/code>&lt;/td>
+&lt;td>Create the manager&amp;rsquo;s monitoring resources&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.monitoring.rbacSecured&lt;/code>&lt;/td>
+&lt;td>Enable addtional RBAC-based security&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.monitoring.serviceMonitor.create&lt;/code>&lt;/td>
+&lt;td>Create a ServiceMonitor for the &lt;a href="https://github.com/prometheus-operator/prometheus-operator">Prometheus Operator&lt;/a>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.monitoring.serviceMonitor.endpointConfiguration&lt;/code>&lt;/td>
+&lt;td>Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.multiversion.enabled&lt;/code>&lt;/td>
+&lt;td>Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.webhookCertificates.provider&lt;/code>&lt;/td>
+&lt;td>K8s conversion webhook TLS certificate provider - choose &lt;code>cert-manager&lt;/code> for Helm to deploy certificates if cert-manager is available or &lt;code>custom&lt;/code> otherwise (see below)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.webhookCertificates.secretName&lt;/code>&lt;/td>
+&lt;td>Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.webhookCertificates.caBundle&lt;/code>&lt;/td>
+&lt;td>CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.provider.type&lt;/code>&lt;/td>
+&lt;td>Provider type (&lt;code>kfp&lt;/code> for Kubeflow Pipelines or &lt;code>vai&lt;/code> for Vertex AI Pipelines)&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>manager.provider.configuration&lt;/code>&lt;/td>
+&lt;td>Configuration block for the specific provider (see &lt;a href="../../reference/configuration#provider-configuration">Provider Configuration&lt;/a>), automatically mounted as a file&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>logging.verbosity&lt;/code>&lt;/td>
+&lt;td>Logging verbosity for all components - see the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventing&lt;/code>&lt;/td>
+&lt;td>Configuration block for the operator&amp;rsquo;s &lt;a href="../../reference/run-completion">eventing support&lt;/a>. See &lt;a href="../../reference/configuration#eventing-configuration">eventing configuration&lt;/a> for available options.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>providers&lt;/code>&lt;/td>
+&lt;td>Dictionary of providers (see below)&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
-&lt;p>| &lt;code>manager.argo.serviceAccount.name&lt;/code> | The &lt;a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/">k8s service account&lt;/a> used to run Argo workflows |
-| &lt;code>manager.argo.serviceAccount.create&lt;/code> | Create the Argo Workflows service account (or assume it has been created externally) |
-| &lt;code>manager.argo.serviceAccount.metadata&lt;/code> | Optional Argo Workflows service account default metadata |
-| &lt;code>manager.metadata&lt;/code> | &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the manager&amp;rsquo;s pods |
-| &lt;code>manager.rbac.create&lt;/code> | Create roles and rolebindings for the operator |
-| &lt;code>manager.serviceAccount.name&lt;/code> | Manager service account&amp;rsquo;s name |
-| &lt;code>manager.serviceAccount.create&lt;/code> | Create the manager&amp;rsquo;s service account or expect it to be created externally |
-| &lt;code>manager.replicas&lt;/code> | Number of replicas for the manager deployment |
-| &lt;code>manager.resources&lt;/code> | Manager resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a> |
-| &lt;code>manager.configuration&lt;/code> | Manager configuration as defined in &lt;a href="../../reference/configuration">Configuration&lt;/a> (note that you can omit &lt;code>compilerImage&lt;/code> and &lt;code>kfpSdkImage&lt;/code> when specifying &lt;code>containerRegistry&lt;/code> as default values will be applied) |
-| &lt;code>manager.monitoring.create&lt;/code> | Create the manager&amp;rsquo;s monitoring resources |
-| &lt;code>manager.monitoring.rbacSecured&lt;/code> | Enable addtional RBAC-based security |
-| &lt;code>manager.monitoring.serviceMonitor.create&lt;/code> | Create a ServiceMonitor for the &lt;a href="https://github.com/prometheus-operator/prometheus-operator">Prometheus Operator&lt;/a> |
-| &lt;code>manager.monitoring.serviceMonitor.endpointConfiguration&lt;/code> | Additional configuration to be used in the service monitor endpoint (path, port and scheme are provided) |
-| &lt;code>manager.multiversion.enabled&lt;/code> | Enable multiversion API. Should be used in production to allow version migration, disable for simplified installation |
-| &lt;code>manager.webhookCertificates.provider&lt;/code> | K8s conversion webhook TLS certificate provider - choose &lt;code>cert-manager&lt;/code> for Helm to deploy certificates if cert-manager is available or &lt;code>custom&lt;/code> otherwise (see below) |
-| &lt;code>manager.webhookCertificates.secretName&lt;/code> | Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the &lt;code>custom&lt;/code> provider is chosen |
-| &lt;code>manager.webhookCertificates.caBundle&lt;/code> | CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate, required if the &lt;code>custom&lt;/code> provider is chosen |
-| &lt;code>manager.provider.type&lt;/code> | Provider type (&lt;code>kfp&lt;/code> for Kubeflow Pipelines or &lt;code>vai&lt;/code> for Vertex AI Pipelines) |
-| &lt;code>manager.provider.configuration&lt;/code> | Configuration block for the specific provider (see &lt;a href="../../reference/configuration#provider-configuration">Provider Configuration&lt;/a>), automatically mounted as a file |
-| &lt;code>logging.verbosity&lt;/code> | Logging verbosity for all components - see the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values |
-| &lt;code>eventsourceServer.metadata&lt;/code> | &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the eventsource server&amp;rsquo;s pods |
-| &lt;code>eventsourceServer.rbac.create&lt;/code> | Create roles and rolebindings for the eventsource server |
-| &lt;code>eventsourceServer.serviceAccount.name&lt;/code> | Eventsource server&amp;rsquo;s service account |
-| &lt;code>eventsourceServer.serviceAccount.create&lt;/code> | Create the eventsource server&amp;rsquo;s service account or expect it to be created externally |
-| &lt;code>eventsourceServer.resources&lt;/code> | Eventsource server resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a> |
-| &lt;code>providers&lt;/code> | Dictionary of providers (see below) |&lt;/p>
 &lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
 ">test configuration&lt;/a>&lt;/p>
 &lt;h3 id="providers">Providers&lt;/h3>
@@ -1109,8 +1211,14 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;p>The KFP-Operator tracks the completion of the created run in the &lt;code>CompletionState&lt;/code> of the resource&amp;rsquo;s status.
 The operator will clean up completed runs automatically based on the configured TTL. See &lt;a href="../../configuration">Configuration&lt;/a> for more information.&lt;/p></description></item><item><title>Docs: Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.png" alt="Model Serving">&lt;/p>
-&lt;p>The KFP-Operator Events system provides a &lt;a href="https://nats.io/">NATS Event bus&lt;/a> in the operator namespace to consume events from.
-To use it, users can create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows:&lt;/p>
+&lt;p>The KFP-Operator Events system provides run completion events that services can subscribe to.
+To use it, you have the following options:&lt;/p>
+&lt;ul>
+&lt;li>Let the operator provide a &lt;a href="https://nats.io/">NATS Event bus&lt;/a> in its namespace (default)&lt;/li>
+&lt;li>Install a custom Eventbus and &lt;a href="../configuration#eventing-configuration">configure the operator&lt;/a> to publish events there&lt;/li>
+&lt;/ul>
+&lt;p>Then, to use it, users can create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows.
+Note that the examples assume that the provided eventbus is used.&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventSource&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:

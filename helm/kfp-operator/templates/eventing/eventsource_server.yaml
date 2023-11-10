@@ -15,7 +15,7 @@ spec:
   replicas: 1
   template:
     metadata:
-      {{- (deepCopy $.Values.eventsourceServer.metadata | merge (dict "labels" ($labels | fromYaml))) | toYaml | nindent 6 }}
+      {{- (deepCopy $.Values.eventing.eventsourceServer.metadata | merge (dict "labels" ($labels | fromYaml))) | toYaml | nindent 6 }}
     spec:
       securityContext:
         runAsNonRoot: true
@@ -32,7 +32,7 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
           resources:
-            {{- $.Values.eventsourceServer.resources | toYaml | nindent 12 }}
+            {{- $.Values.eventing.eventsourceServer.resources | toYaml | nindent 12 }}
           ports:
           - name: grpc
             containerPort: 50051
@@ -60,7 +60,7 @@ spec:
     {{- $labels | nindent 4 }}
   ports:
     - name: grpc
-      port: {{ $.Values.eventsourceServer.port }}
+      port: {{ $.Values.eventing.eventsourceServer.port }}
       protocol: TCP
       targetPort: grpc
 {{ end }}
