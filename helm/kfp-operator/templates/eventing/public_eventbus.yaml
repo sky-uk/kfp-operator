@@ -1,4 +1,4 @@
-{{- if gt (len .Values.providers) 0 }}
+{{- if and (gt (len .Values.providers) 0) .Values.eventsourceServer.publicEventbus.create }}
 apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:

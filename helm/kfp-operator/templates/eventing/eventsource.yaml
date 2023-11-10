@@ -1,3 +1,4 @@
+{{- if or .Values.eventsourceServer.publicEventbus.create .Values.eventsourceServer.publicEventbus.url }}
 {{- range $providerName, $providerBlock := .Values.providers }}
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -62,6 +63,7 @@ spec:
             dataKey: body
             dependencyName: "{{ $providerName }}-events"
         subject: events
-        url: eventbus-kfp-operator-events-stan-svc:4222
+        url: {{ $.Values.eventsourceServer.publicEventbus.url | default "eventbus-kfp-operator-events-stan-svc:4222" }}
 {{- end }}
+{{- end -}}
 {{- end -}}
