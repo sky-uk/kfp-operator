@@ -69,3 +69,4 @@ eventing:
         memory: 200Mi
   publicEventbus:
     externalUrl: ""
+    subject: "events"
