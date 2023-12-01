@@ -82,6 +82,10 @@
 &lt;td>&lt;code>publicEventbus.externalUrl&lt;/code>&lt;/td>
 &lt;td>Don&amp;rsquo;t create a public eventbus and publish events to the configured NATs Eventbus URL instead&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>publicEventbus.subject&lt;/code>&lt;/td>
+&lt;td>Topic name to use within eventbus for run-completion events, defaults to &lt;code>events&lt;/code>&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;h2 id="provider-configurations">Provider Configurations&lt;/h2>
