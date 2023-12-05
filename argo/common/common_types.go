@@ -19,7 +19,7 @@ func (nsn NamespacedName) String() (string, error) {
 		return nsn.Name, nil
 	}
 
-	if nsn.Name == ""  {
+	if nsn.Name == "" {
 		return "", fmt.Errorf("namespace provided without a name")
 	}
 

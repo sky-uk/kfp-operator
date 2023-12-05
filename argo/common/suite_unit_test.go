@@ -126,36 +126,63 @@ var _ = Context("NamespacedNameFromString", Serial, func() {
 })
 
 var _ = Context("RunCompletionEvent.String", func() {
-	It("dereferences pointers to String", func() {
-		artList := []Artifact{
-			{
-				Name:     "ArtifactName",
-				Location: "ArtifactLocation",
-			},
-		}
+	artList := []Artifact{
+		{
+			Name:     "ArtifactName",
+			Location: "ArtifactLocation",
+		},
+	}
+	fixedEvent := RunCompletionEvent{
+		PipelineName: NamespacedName{
+			Name:      "PipelineNameName",
+			Namespace: "PipelineNameNamespace",
+		},
+		RunName: &NamespacedName{
+			Name:      "RunNameName",
+			Namespace: "RunNameNamespace",
+		},
+		RunConfigurationName: &NamespacedName{
+			Name:      "RunConfigurationNameName",
+			Namespace: "RunConfigurationNameNamespace",
+		},
+		RunId:                 "RunId",
+		ServingModelArtifacts: artList,
+		Artifacts:             artList,
+	}
 
-		fixedEvent := RunCompletionEvent{
-			PipelineName: NamespacedName{
-				Name:      "PipelineNameName",
-				Namespace: "PipelineNameNamespace",
-			},
-			RunName: &NamespacedName{
-				Name:      "RunNameName",
-				Namespace: "RunNameNamespace",
-			},
-			RunConfigurationName: &NamespacedName{
-				Name:      "RunConfigurationNameName",
-				Namespace: "RunConfigurationNameNamespace",
-			},
-			RunId:                 "RunId",
-			ServingModelArtifacts: artList,
-			Artifacts:             artList,
-		}
-
+	It("returns a string representation including all fields", func() {
 		Expect(fmt.Sprintf("%+v", fixedEvent)).To(
 			Equal(
-				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:{Name:RunConfigurationNameName " +
-					"Namespace:RunConfigurationNameNamespace} RunName:{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
+					"Namespace:RunConfigurationNameNamespace} RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
+					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
+			),
+		)
+	})
+
+	It("returns a string representation handling nil RunConfigurationName", func() {
+		missingRunConfigName := fixedEvent
+		missingRunConfigName.RunConfigurationName = nil
+
+		Expect(fmt.Sprintf("%+v", missingRunConfigName)).To(
+			Equal(
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:<nil> " +
+					"RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
+					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
+			),
+		)
+	})
+
+	It("returns a string representation handling nil RunName", func() {
+		missingRunName := fixedEvent
+		missingRunName.RunName = nil
+
+		Expect(fmt.Sprintf("%+v", missingRunName)).To(
+			Equal(
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
+					"Namespace:RunConfigurationNameNamespace} RunName:<nil> RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
 					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
 			),
