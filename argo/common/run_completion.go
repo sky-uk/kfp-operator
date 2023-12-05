@@ -32,5 +32,5 @@ type RunCompletionEvent struct {
 
 func (sre RunCompletionEvent) String() string {
 	return fmt.Sprintf("{Status:%s PipelineName:%+v RunConfigurationName:%+v RunName:%+v RunId:%s ServingModelArtifacts:%+v Artifacts:%+v}",
-		sre.Status, sre.PipelineName, *sre.RunConfigurationName, *sre.RunName, sre.RunId, sre.ServingModelArtifacts, sre.Artifacts)
+		sre.Status, sre.PipelineName, sre.RunConfigurationName, sre.RunName, sre.RunId, sre.ServingModelArtifacts, sre.Artifacts)
 }
