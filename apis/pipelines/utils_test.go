@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"strconv"
+	"strings"
 )
 
 var _ = Context("Utils", func() {
@@ -107,6 +108,38 @@ var _ = Context("Utils", func() {
 		Entry("", [][]int{}, []int{}),
 		Entry("", [][]int{{}, {}}, []int{}),
 		Entry("", [][]int{{1, 2}, {3, 4}}, []int{1, 2, 3, 4}),
+	)
+
+	DescribeTable("FlatMap", func(as []string, expected []string) {
+		Expect(FlatMap(as, func(a string) []string {
+			return strings.Split(a, " ")
+		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", []string{}, []string{}),
+		Entry("", []string{"1 2", "3 4"}, []string{"1", "2", "3", "4"}),
+		Entry("", []string{"3 4", "1 2"}, []string{"3", "4", "1", "2"}),
+	)
+
+	DescribeTable("FlatMapErr", func(as []string, expected []string, expectSuccess bool) {
+		actual, err := FlatMapErr(as, func(a string) ([]string, error) {
+			if a == "err" {
+				return nil, errors.New("an error")
+			}
+			return strings.Split(a, " "), nil
+		})
+
+		if expectSuccess {
+			Expect(err).To(BeNil())
+			Expect(actual).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+		} else {
+			Expect(err).NotTo(BeNil())
+		}
+	},
+		Entry("", []string{}, []string{}, true),
+		Entry("", []string{"1 2", "3 4"}, []string{"1", "2", "3", "4"}, true),
+		Entry("", []string{"1 2", "err"}, nil, false),
+		Entry("", []string{"3 4", "1 2"}, []string{"3", "4", "1", "2"}, true),
+		Entry("", []string{"err", "1 2"}, nil, false),
 	)
 
 	DescribeTable("Collect", func(as []int, expected []string) {
