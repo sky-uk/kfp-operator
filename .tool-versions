@@ -1,5 +1,5 @@
 python 3.10.12
-poetry 1.5.1
+poetry 1.7.1
 protoc 21.12
 hugo extended_0.101.0
 golang 1.20
