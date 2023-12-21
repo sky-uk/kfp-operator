@@ -4,6 +4,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"testing"
@@ -23,7 +24,7 @@ var _ = Context("Marshal NamespacedName", Serial, func() {
 		It("custom marshaller is called", func() {
 			serialised, err := json.Marshal(namespacedName)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(serialised)).To(Equal(`"`+namespace+"/"+name+`"`))
+			Expect(string(serialised)).To(Equal(`"` + namespace + "/" + name + `"`))
 			deserialised := NamespacedName{}
 			Expect(json.Unmarshal(serialised, &deserialised)).To(Succeed())
 			Expect(deserialised).To(Equal(namespacedName))
@@ -34,7 +35,7 @@ var _ = Context("Marshal NamespacedName", Serial, func() {
 		It("custom marshaller is called", func() {
 			serialised, err := json.Marshal(&namespacedName)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(string(serialised)).To(Equal(`"`+namespace+"/"+name+`"`))
+			Expect(string(serialised)).To(Equal(`"` + namespace + "/" + name + `"`))
 			deserialised := NamespacedName{}
 			Expect(json.Unmarshal(serialised, &deserialised)).To(Succeed())
 			Expect(deserialised).To(Equal(namespacedName))
@@ -50,7 +51,7 @@ var _ = Context("NamespacedName.String", Serial, func() {
 		It("serialises into a '/' separated string", func() {
 			serialised, err := NamespacedName{Namespace: namespace, Name: name}.String()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(serialised).To(Equal(namespace+"/"+name))
+			Expect(serialised).To(Equal(namespace + "/" + name))
 		})
 	})
 
@@ -84,7 +85,7 @@ var _ = Context("NamespacedNameFromString", Serial, func() {
 
 	When("single `/` with fields", func() {
 		It("deserialises into NamespacedName", func() {
-			deserialised, err := NamespacedNameFromString(namespace+"/"+name)
+			deserialised, err := NamespacedNameFromString(namespace + "/" + name)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deserialised).To(Equal(NamespacedName{Namespace: namespace, Name: name}))
 		})
@@ -92,16 +93,16 @@ var _ = Context("NamespacedNameFromString", Serial, func() {
 
 	When("single `/` without fields", func() {
 		It("errors", func() {
-			_, err := NamespacedNameFromString("/"+name)
+			_, err := NamespacedNameFromString("/" + name)
 			Expect(err).To(HaveOccurred())
-			_, err = NamespacedNameFromString(namespace+"/")
+			_, err = NamespacedNameFromString(namespace + "/")
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	When("multiple `/`", func() {
 		It("deserialises into NamespacedName", func() {
-			_, err := NamespacedNameFromString(namespace+"/"+name+"/"+RandomString())
+			_, err := NamespacedNameFromString(namespace + "/" + name + "/" + RandomString())
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -120,5 +121,71 @@ var _ = Context("NamespacedNameFromString", Serial, func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(deserialised).To(Equal(NamespacedName{}))
 		})
+	})
+
+})
+
+var _ = Context("RunCompletionEvent.String", func() {
+	artList := []Artifact{
+		{
+			Name:     "ArtifactName",
+			Location: "ArtifactLocation",
+		},
+	}
+	fixedEvent := RunCompletionEvent{
+		PipelineName: NamespacedName{
+			Name:      "PipelineNameName",
+			Namespace: "PipelineNameNamespace",
+		},
+		RunName: &NamespacedName{
+			Name:      "RunNameName",
+			Namespace: "RunNameNamespace",
+		},
+		RunConfigurationName: &NamespacedName{
+			Name:      "RunConfigurationNameName",
+			Namespace: "RunConfigurationNameNamespace",
+		},
+		RunId:                 "RunId",
+		ServingModelArtifacts: artList,
+		Artifacts:             artList,
+	}
+
+	It("returns a string representation including all fields", func() {
+		Expect(fmt.Sprintf("%+v", fixedEvent)).To(
+			Equal(
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
+					"Namespace:RunConfigurationNameNamespace} RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
+					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
+			),
+		)
+	})
+
+	It("returns a string representation handling nil RunConfigurationName", func() {
+		missingRunConfigName := fixedEvent
+		missingRunConfigName.RunConfigurationName = nil
+
+		Expect(fmt.Sprintf("%+v", missingRunConfigName)).To(
+			Equal(
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:<nil> " +
+					"RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
+					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
+			),
+		)
+	})
+
+	It("returns a string representation handling nil RunName", func() {
+		missingRunName := fixedEvent
+		missingRunName.RunName = nil
+
+		Expect(fmt.Sprintf("%+v", missingRunName)).To(
+			Equal(
+				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
+					"Namespace:RunConfigurationNameNamespace} RunName:<nil> RunId:RunId " +
+					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
+			),
+		)
 	})
 })

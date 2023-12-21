@@ -1,4 +1,5 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Reference</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/</link><description>Recent content in Reference on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Configuration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/configuration/</guid><description>
+&lt;h2 id="manager-configuration">Manager Configuration&lt;/h2>
 &lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
 &lt;table>
 &lt;thead>
@@ -47,6 +48,46 @@
 &lt;/tbody>
 &lt;/table>
 &lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
+&lt;h2 id="eventing-configuration">Eventing Configuration&lt;/h2>
+&lt;p>The operator&amp;rsquo;s eventing system can be configured as follows:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter Name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.metadata&lt;/code>&lt;/td>
+&lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the eventsource server&amp;rsquo;s pods&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.rbac.create&lt;/code>&lt;/td>
+&lt;td>Create roles and rolebindings for the eventsource server&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.serviceAccount.name&lt;/code>&lt;/td>
+&lt;td>Eventsource server&amp;rsquo;s service account&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.serviceAccount.create&lt;/code>&lt;/td>
+&lt;td>Create the eventsource server&amp;rsquo;s service account or expect it to be created externally&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>eventsourceServer.resources&lt;/code>&lt;/td>
+&lt;td>Eventsource server resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>publicEventbus.externalUrl&lt;/code>&lt;/td>
+&lt;td>Don&amp;rsquo;t create a public eventbus and publish events to the configured NATs Eventbus URL instead&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>publicEventbus.subject&lt;/code>&lt;/td>
+&lt;td>Topic name to use within eventbus for run-completion events, defaults to &lt;code>events&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
 &lt;h2 id="provider-configurations">Provider Configurations&lt;/h2>
 &lt;p>The provider configurations are specific to the implementation. The operator supports the following out of the box.&lt;/p>
 &lt;h3 id="common">Common&lt;/h3>
@@ -249,8 +290,14 @@ We suggest an exponential backoff with min and max backoff set to at least 10 se
 &lt;/tbody>
 &lt;/table></description></item><item><title>Docs: Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.png" alt="Model Serving">&lt;/p>
-&lt;p>The KFP-Operator Events system provides a &lt;a href="https://nats.io/">NATS Event bus&lt;/a> in the operator namespace to consume events from.
-To use it, users can create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows:&lt;/p>
+&lt;p>The KFP-Operator Events system provides run completion events that services can subscribe to.
+To use it, you have the following options:&lt;/p>
+&lt;ul>
+&lt;li>Let the operator provide a &lt;a href="https://nats.io/">NATS Event bus&lt;/a> in its namespace (default)&lt;/li>
+&lt;li>Install a custom Eventbus and &lt;a href="../configuration#eventing-configuration">configure the operator&lt;/a> to publish events there&lt;/li>
+&lt;/ul>
+&lt;p>Then, to use it, users can create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows.
+Note that the examples assume that the provided eventbus is used.&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventSource&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:

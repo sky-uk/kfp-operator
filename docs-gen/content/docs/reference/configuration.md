@@ -3,6 +3,8 @@ title: "Configuration"
 weight: 1
 ---
 
+## Manager Configuration
+
 The Kubeflow Pipelines operator can be configured with the following parameters:
 
 | Parameter name      | Description                                                                                                                                                                                                                        | Example                                                |
@@ -16,6 +18,20 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | `runCompletionTTL`  | Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)                      | `10m`                                                  |
 
 An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml).
+
+## Eventing Configuration
+
+The operator's eventing system can be configured as follows:
+
+| Parameter Name                            | Description                                                                                                                                         |
+|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `eventsourceServer.metadata`              | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the eventsource server's pods |
+| `eventsourceServer.rbac.create`           | Create roles and rolebindings for the eventsource server                                                                                            |
+| `eventsourceServer.serviceAccount.name`   | Eventsource server's service account                                                                                                                |
+| `eventsourceServer.serviceAccount.create` | Create the eventsource server's service account or expect it to be created externally                                                               |
+| `eventsourceServer.resources`             | Eventsource server resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources)   |
+| `publicEventbus.externalUrl`              | Don't create a public eventbus and publish events to the configured NATs Eventbus URL instead                                                       |
+| `publicEventbus.subject`                  | Topic name to use within eventbus for run-completion events, defaults to `events`                                                                   |
 
 ## Provider Configurations
 

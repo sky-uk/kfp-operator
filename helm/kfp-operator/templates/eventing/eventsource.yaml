@@ -61,7 +61,7 @@ spec:
             useRawData: true
             dataKey: body
             dependencyName: "{{ $providerName }}-events"
-        subject: events
-        url: eventbus-kfp-operator-events-stan-svc:4222
+        subject: {{ $.Values.eventing.publicEventbus.subject }}
+        url: {{ $.Values.eventing.publicEventbus.externalUrl | default "eventbus-kfp-operator-events-stan-svc:4222" }}
 {{- end }}
 {{- end -}}
