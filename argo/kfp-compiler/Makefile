@@ -32,10 +32,8 @@ integration-test: docker-build penguin-310 penguin-39
 
 build:
 	poetry env use /home/jenkins/.asdf/installs/python/3.10.12/bin/python
-	python -V
 	pip install poetry-dynamic-versioning --quiet
 	poetry config virtualenvs.create false
-	python -V
 	poetry install
 	poetry build
 
