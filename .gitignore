@@ -18,7 +18,7 @@ dist/
 # VS Code
 /.vscode/
 .bloop/
-project/metals.sbt
+.metals/
 
 # Idea
 .idea/
