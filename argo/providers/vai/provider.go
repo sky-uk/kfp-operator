@@ -327,19 +327,11 @@ func generateRunId(runIntent RunIntent) string {
 	return fmt.Sprintf("%s", uuid.New().String())
 }
 
-func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProviderConfig, runIntent RunIntent) (string, error) {
-	pubsubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
-	if err != nil {
-		return "", err
-	}
-
-	topic := pubsubClient.Topic(providerConfig.RunsTopic)
-	defer topic.Stop()
-
+func runLabelsFrom(runIntent RunIntent) map[string]string {
 	runLabels := map[string]string{
 		labels.PipelineName:      runIntent.PipelineName.Name,
 		labels.PipelineNamespace: runIntent.PipelineName.Namespace,
-		labels.PipelineVersion:   runIntent.PipelineVersion,
+		labels.PipelineVersion:   strings.ReplaceAll(runIntent.PipelineVersion, ".", "-"),
 	}
 
 	if !runIntent.RunConfigurationName.Empty() {
@@ -352,10 +344,22 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
 	}
 
+	return runLabels
+}
+
+func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProviderConfig, runIntent RunIntent) (string, error) {
+	pubsubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
+	if err != nil {
+		return "", err
+	}
+
+	topic := pubsubClient.Topic(providerConfig.RunsTopic)
+	defer topic.Stop()
+
 	vaiRun := VAIRun{
 		RunId:             generateRunId(runIntent),
 		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName.Name, runIntent.PipelineVersion),
-		Labels:            runLabels,
+		Labels:            runLabelsFrom(runIntent),
 		RuntimeParameters: runIntent.RuntimeParameters,
 		Artifacts:         runIntent.Artifacts,
 	}
