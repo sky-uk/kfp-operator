@@ -46,8 +46,8 @@ spec:
         jitter: 0.2
         steps: 5
       jsonBody: true
-      subject: events
-      url: nats://eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc.{{ include "kfp-operator.argoNamespace" . }}.svc:4222
+      subject: kfp-operator-events
+      url: nats://eventbus-default-stan-svc:4222
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Sensor
@@ -62,7 +62,7 @@ spec:
   dependencies:
   - eventName: {{ include "kfp-operator.fullname" $ }}-events
     eventSourceName: {{ include "kfp-operator.fullname" $ }}-events
-    name: events
+    name: kfp-operator-events
   triggers:
   - template:
       name: complete-run
@@ -83,7 +83,7 @@ spec:
                 name: {{ include "kfp-operator.fullname" $ }}-complete-run
         parameters:
         - src:
-            dependencyName: events
+            dependencyName: kfp-operator-events
             dataKey: body.data
           dest: spec.arguments.parameters.0.value
 {{- end }}
