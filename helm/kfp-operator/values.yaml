@@ -67,6 +67,11 @@ eventing:
       requests:
         cpu: 100m
         memory: 200Mi
-  publicEventbus:
-    externalUrl: ""
-    subject: "events"
+  eventbuses:
+    external:
+      subject: "events"
+      url: "eventbus-kfp-operator-events-stan-svc:4222"
+      create: false
+    internal:
+      subject: "kfp-operator-events"
+      url: "eventbus-default-stan-svc:4222"

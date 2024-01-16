@@ -30,10 +30,12 @@ spec:
       jq: .body = (.body | @base64d | fromjson)
 {{- end }}
   triggers:
-{{- range $providerName, $providerBlock := .Values.providers }}
+
+{{- range $eventbusName, $eventbus := .Values.eventing.eventbuses }}
+{{- range $providerName, $providerBlock := $.Values.providers }}
   - template:
       conditions: "{{ $providerName }}-events"
-      name: "publish-{{ $providerName }}-external"
+      name: "publish-{{ $providerName }}-{{ $eventbusName }}"
       nats:
         payload:
         - dest: specversion
@@ -61,41 +63,8 @@ spec:
             useRawData: true
             dataKey: body
             dependencyName: "{{ $providerName }}-events"
-        subject: {{ $.Values.eventing.publicEventbus.subject }}
-        url: {{ $.Values.eventing.publicEventbus.externalUrl | default "eventbus-kfp-operator-events-stan-svc:4222" }}
+        subject: {{ $eventbus.subject }}
+        url: {{ $eventbus.url }}
 {{- end }}
-{{- range $providerName, $providerBlock := .Values.providers }}
-  - template:
-      conditions: "{{ $providerName }}-events"
-      name: "publish-{{ $providerName }}-local"
-      nats:
-        payload:
-          - dest: specversion
-            src:
-              value: "1.0"
-              dependencyName: "{{ $providerName }}-events"
-          - dest: id
-            src:
-              contextKey: id
-              dependencyName: "{{ $providerName }}-events"
-          - dest: source
-            src:
-              value: "{{ $providerName }}"
-              dependencyName: "{{ $providerName }}-events"
-          - dest: type
-            src:
-              value: "org.kubeflow.pipelines.run-completion"
-              dependencyName: "{{ $providerName }}-events"
-          - dest: datacontenttype
-            src:
-              value: "application/json"
-              dependencyName: "{{ $providerName }}-events"
-          - dest: data
-            src:
-              useRawData: true
-              dataKey: body
-              dependencyName: "{{ $providerName }}-events"
-        subject: kfp-operator-events
-        url: "eventbus-default-stan-svc:4222"
 {{- end }}
 {{- end -}}
