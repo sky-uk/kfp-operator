@@ -31,7 +31,6 @@ The operator's eventing system can be configured as follows:
 | `eventsourceServer.serviceAccount.create` | Create the eventsource server's service account or expect it to be created externally                                                               |
 | `eventsourceServer.resources`             | Eventsource server resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources)   |
 | `publicEventbus.externalUrl`              | Don't create a public eventbus and publish events to the configured NATs Eventbus URL instead                                                       |
-| `publicEventbus.subject`                  | Topic name to use within eventbus for run-completion events, defaults to `events`                                                                   |
 
 ## Provider Configurations
 
