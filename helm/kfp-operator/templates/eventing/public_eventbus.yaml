@@ -1,4 +1,4 @@
-{{- if and (gt (len .Values.providers) 0) (not .Values.eventing.publicEventbus.externalUrl) }}
+{{- if gt (len .Values.providers) 0 }}
 apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:

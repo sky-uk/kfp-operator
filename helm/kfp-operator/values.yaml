@@ -55,17 +55,14 @@ providers: {}
 logging:
   verbosity: # info
 
-eventing:
-  eventsourceServer:
-    create: false
-    metadata: {}
-    port: 8080
-    resources:
-      limits:
-        cpu: 100m
-        memory: 300Mi
-      requests:
-        cpu: 100m
-        memory: 200Mi
-  publicEventbus:
-    externalUrl: ""
+eventsourceServer:
+  create: false
+  metadata: {}
+  port: 8080
+  resources:
+    limits:
+      cpu: 100m
+      memory: 300Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi

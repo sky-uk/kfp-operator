@@ -5,13 +5,8 @@ weight: 3
 
 ![Model Serving](/images/run-completion.png)
 
-The KFP-Operator Events system provides run completion events that services can subscribe to.
-To use it, you have the following options:
-- Let the operator provide a [NATS Event bus](https://nats.io/) in its namespace (default)
-- Install a custom Eventbus and [configure the operator](../configuration#eventing-configuration) to publish events there
-
-Then, to use it, users can create an Argo-Events [NATS Eventsource](https://argoproj.github.io/argo-events/eventsources/setup/nats/) as follows.
-Note that the examples assume that the provided eventbus is used.
+The KFP-Operator Events system provides a [NATS Event bus](https://nats.io/) in the operator namespace to consume events from. 
+To use it, users can create an Argo-Events [NATS Eventsource](https://argoproj.github.io/argo-events/eventsources/setup/nats/) as follows:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
