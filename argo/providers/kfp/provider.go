@@ -24,7 +24,8 @@ import (
 )
 
 type KfpProviderConfig struct {
-	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
+	Name string `yaml:"name"`
+	RestKfpApiUrl string `yaml:"restKfpApiUrl,omitempty"`
 	GrpcMetadataStoreAddress string `yaml:"grpcMetadataStoreAddress,omitempty"`
 	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
 }
@@ -389,6 +390,7 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpPr
 	}
 
 	return &KfpEventingServer{
+		ProviderConfig: providerConfig,
 		K8sClient:     k8sClient,
 		Logger:        common.LoggerFromContext(ctx),
 		MetadataStore: metadataStore,

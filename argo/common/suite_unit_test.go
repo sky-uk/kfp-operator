@@ -148,6 +148,7 @@ var _ = Context("RunCompletionEvent.String", func() {
 		RunId:                 "RunId",
 		ServingModelArtifacts: artList,
 		Artifacts:             artList,
+		Provider: "Provider",
 	}
 
 	It("returns a string representation including all fields", func() {
@@ -156,7 +157,8 @@ var _ = Context("RunCompletionEvent.String", func() {
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
 					"Namespace:RunConfigurationNameNamespace} RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
+					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"Provider:Provider}",
 			),
 		)
 	})
@@ -170,7 +172,8 @@ var _ = Context("RunCompletionEvent.String", func() {
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:<nil> " +
 					"RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
+					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"Provider:Provider}",
 			),
 		)
 	})
@@ -184,7 +187,8 @@ var _ = Context("RunCompletionEvent.String", func() {
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
 					"Namespace:RunConfigurationNameNamespace} RunName:<nil> RunId:RunId " +
 					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}]}",
+					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"Provider:Provider}",
 			),
 		)
 	})

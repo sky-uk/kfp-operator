@@ -67,7 +67,8 @@ type RunIntent struct {
 }
 
 type VAIProviderConfig struct {
-	VaiProject                  string `yaml:"vaiProject"`
+	Name       string `yaml:"name"`
+	VaiProject string `yaml:"vaiProject"`
 	VaiLocation                 string `yaml:"vaiLocation"`
 	VaiJobServiceAccount        string `yaml:"vaiJobServiceAccount"`
 	GcsEndpoint                 string `yaml:"gcsEndpoint"`
