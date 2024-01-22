@@ -24,8 +24,8 @@ import (
 )
 
 type KfpProviderConfig struct {
-	Name string `yaml:"name"`
-	RestKfpApiUrl string `yaml:"restKfpApiUrl,omitempty"`
+	Name                     string `yaml:"name"`
+	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
 	GrpcMetadataStoreAddress string `yaml:"grpcMetadataStoreAddress,omitempty"`
 	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
 }

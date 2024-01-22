@@ -36,6 +36,7 @@ The specification of the events follows [CloudEvents](https://github.com/cloudev
   "type": "org.kubeflow.pipelines.run-completion",
   "datacontenttype": "application/json",
   "data": {
+    "provider": "{{ PROVIDER_NAME }}",
     "status": "succeeded|failed",
     "pipelineName":"{{ PIPELINE_NAME }}",
     "servingModelArtifacts": [

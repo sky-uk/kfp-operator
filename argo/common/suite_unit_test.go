@@ -148,7 +148,7 @@ var _ = Context("RunCompletionEvent.String", func() {
 		RunId:                 "RunId",
 		ServingModelArtifacts: artList,
 		Artifacts:             artList,
-		Provider: "Provider",
+		Provider:              "Provider",
 	}
 
 	It("returns a string representation including all fields", func() {

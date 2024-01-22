@@ -99,18 +99,18 @@ var _ = Context("VaiEventingServer", func() {
 				},
 			},
 		}, VAIRun{RunId: pipelineRunName.Name})).To(Equal(&common.RunCompletionEvent{
-			RunConfigurationName: runConfigurationName.NonEmptyPtr(),
-			PipelineName:         pipelineName,
-			RunName:              pipelineRunName.NonEmptyPtr(),
-			RunId:                pipelineRunName.Name,
-			Status:               status,
+			RunConfigurationName:  runConfigurationName.NonEmptyPtr(),
+			PipelineName:          pipelineName,
+			RunName:               pipelineRunName.NonEmptyPtr(),
+			RunId:                 pipelineRunName.Name,
+			Status:                status,
 			ServingModelArtifacts: []common.Artifact{
 				{
 					Name:     "a-model",
 					Location: "gs://some/where",
 				},
 			},
-			Provider: eventingServer.ProviderConfig.Name,
+			Provider:              eventingServer.ProviderConfig.Name,
 		}))
 	},
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED, common.RunCompletionStatuses.Succeeded),

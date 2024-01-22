@@ -239,7 +239,7 @@ func (es *VaiEventingServer) toRunCompletionEvent(job *aiplatformpb.PipelineJob,
 		RunId:                 run.RunId,
 		Artifacts:             artifactsForJob(job, run.Artifacts),
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
-		Provider: es.ProviderConfig.Name,
+		Provider:              es.ProviderConfig.Name,
 	}
 }
 

@@ -44,8 +44,8 @@ type KfpEventSourceConfig struct {
 }
 
 type KfpEventingServer struct {
-	ProviderConfig KfpProviderConfig
 	generic.UnimplementedEventingServer
+	ProviderConfig KfpProviderConfig
 	K8sClient      dynamic.Interface
 	MetadataStore  MetadataStore
 	KfpApi         KfpApi
