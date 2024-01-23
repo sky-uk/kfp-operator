@@ -46,6 +46,9 @@ var _ = Context("VaiEventingServer", func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		mockPipelineJobClient = NewMockPipelineJobClient(mockCtrl)
 		eventingServer = VaiEventingServer{
+			ProviderConfig: VAIProviderConfig{
+				Name: common.RandomString(),
+			},
 			PipelineJobClient: mockPipelineJobClient,
 			Logger:            logr.Discard(),
 		}
@@ -56,7 +59,7 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEvent for job that has not completed", func(state aiplatformpb.PipelineState) {
-		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state}, VAIRun{RunId: common.RandomString()})).To(BeNil())
+		Expect(eventingServer.toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state}, VAIRun{RunId: common.RandomString()})).To(BeNil())
 	},
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_UNSPECIFIED),
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_QUEUED),
@@ -64,6 +67,55 @@ var _ = Context("VaiEventingServer", func() {
 		Entry("Running", aiplatformpb.PipelineState_PIPELINE_STATE_RUNNING),
 		Entry("Cancelling", aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLING),
 		Entry("Paused", aiplatformpb.PipelineState_PIPELINE_STATE_PAUSED),
+	)
+
+	DescribeTable("toRunCompletionEvent for job that has completed", func(pipelineState aiplatformpb.PipelineState, status common.RunCompletionStatus) {
+		runConfigurationName := common.RandomNamespacedName()
+		pipelineName := common.RandomNamespacedName()
+		pipelineRunName := common.RandomNamespacedName()
+
+		Expect(eventingServer.toRunCompletionEvent(&aiplatformpb.PipelineJob{
+			Name: pipelineRunName.Name,
+			Labels: map[string]string{
+				labels.RunConfigurationName:      runConfigurationName.Name,
+				labels.RunConfigurationNamespace: runConfigurationName.Namespace,
+				labels.PipelineName:              pipelineName.Name,
+				labels.PipelineNamespace:         pipelineName.Namespace,
+				labels.RunName:                   pipelineRunName.Name,
+				labels.RunNamespace:              pipelineRunName.Namespace,
+			},
+			State: pipelineState,
+			JobDetail: &aiplatformpb.PipelineJobDetail{
+				TaskDetails: []*aiplatformpb.PipelineTaskDetail{
+					{
+						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
+							"a-model": {
+								Artifacts: []*aiplatformpb.Artifact{
+									artifact(),
+								},
+							},
+						},
+					},
+				},
+			},
+		}, VAIRun{RunId: pipelineRunName.Name})).To(Equal(&common.RunCompletionEvent{
+			RunConfigurationName:  runConfigurationName.NonEmptyPtr(),
+			PipelineName:          pipelineName,
+			RunName:               pipelineRunName.NonEmptyPtr(),
+			RunId:                 pipelineRunName.Name,
+			Status:                status,
+			ServingModelArtifacts: []common.Artifact{
+				{
+					Name:     "a-model",
+					Location: "gs://some/where",
+				},
+			},
+			Provider:              eventingServer.ProviderConfig.Name,
+		}))
+	},
+		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED, common.RunCompletionStatuses.Succeeded),
+		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_FAILED, common.RunCompletionStatuses.Failed),
+		Entry("Pending", aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLED, common.RunCompletionStatuses.Failed),
 	)
 
 	Describe("artifactsForJob", func() {
@@ -531,54 +583,6 @@ var _ = Context("VaiEventingServer", func() {
 			})
 		})
 	})
-
-	DescribeTable("toRunCompletionEvent for job that has completed", func(pipelineState aiplatformpb.PipelineState, status common.RunCompletionStatus) {
-		runConfigurationName := common.RandomNamespacedName()
-		pipelineName := common.RandomNamespacedName()
-		pipelineRunName := common.RandomNamespacedName()
-
-		Expect(toRunCompletionEvent(&aiplatformpb.PipelineJob{
-			Name: pipelineRunName.Name,
-			Labels: map[string]string{
-				labels.RunConfigurationName:      runConfigurationName.Name,
-				labels.RunConfigurationNamespace: runConfigurationName.Namespace,
-				labels.PipelineName:              pipelineName.Name,
-				labels.PipelineNamespace:         pipelineName.Namespace,
-				labels.RunName:                   pipelineRunName.Name,
-				labels.RunNamespace:              pipelineRunName.Namespace,
-			},
-			State: pipelineState,
-			JobDetail: &aiplatformpb.PipelineJobDetail{
-				TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-					{
-						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-							"a-model": {
-								Artifacts: []*aiplatformpb.Artifact{
-									artifact(),
-								},
-							},
-						},
-					},
-				},
-			},
-		}, VAIRun{RunId: pipelineRunName.Name})).To(Equal(&common.RunCompletionEvent{
-			RunConfigurationName: runConfigurationName.NonEmptyPtr(),
-			PipelineName:         pipelineName,
-			RunName:              pipelineRunName.NonEmptyPtr(),
-			RunId:                pipelineRunName.Name,
-			Status:               status,
-			ServingModelArtifacts: []common.Artifact{
-				{
-					Name:     "a-model",
-					Location: "gs://some/where",
-				},
-			},
-		}))
-	},
-		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED, common.RunCompletionStatuses.Succeeded),
-		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_FAILED, common.RunCompletionStatuses.Failed),
-		Entry("Pending", aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLED, common.RunCompletionStatuses.Failed),
-	)
 
 	Describe("runCompletionEventForRun", func() {
 		When("GetPipelineJob errors", func() {
