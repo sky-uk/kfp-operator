@@ -24,8 +24,8 @@ roleRef:
   name: {{ include "kfp-operator.fullname" . }}-workflow-executor
 subjects:
 {{- range $providerName, $providerBlock := .Values.providers }}
-- kind: ServiceAccount
-  name: {{ $providerBlock.serviceAccount.name }}
-  namespace: {{ include "kfp-operator.argoNamespace" $ }}
+  - kind: ServiceAccount
+    name: {{ $providerBlock.serviceAccount.name }}
+    namespace: {{ include "kfp-operator.argoNamespace" $ }}
 {{- end -}}
 {{- end -}}

@@ -5,13 +5,17 @@ import (
 	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-logr/logr"
 	"github.com/googleapis/gax-go/v2"
 	"github.com/hashicorp/go-bexpr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -27,6 +31,7 @@ type PipelineJobClient interface {
 
 type VaiEventingServer struct {
 	generic.UnimplementedEventingServer
+	base.K8sApi
 	ProviderConfig    VAIProviderConfig
 	Logger            logr.Logger
 	RunsSubscription  *pubsub.Subscription
@@ -47,16 +52,45 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 	es.Logger.Info("starting stream", "eventsource", eventsourceConfig)
 
 	err := es.RunsSubscription.Receive(stream.Context(), func(ctx context.Context, m *pubsub.Message) {
-		run := VAIRun{}
-		err := json.Unmarshal(m.Data, &run)
+		logEntry := VAILogEntry{}
+		err := json.Unmarshal(m.Data, &logEntry)
 		if err != nil {
 			es.Logger.Error(err, "failed to unmarshal Pub/Sub message")
 			m.Nack()
 			return
 		}
+		println(fmt.Sprintf("LOG ENTRY=%+v", logEntry))
+		println(fmt.Sprintf("DATA=%s", string(m.Data)))
+
+		gvr, namespacedName, err := gvrAndNamespacedNameForRunLabels(logEntry.Labels)
+		if err != nil {
+			es.Logger.Error(err, "failed to extract GVR from labels")
+			m.Nack()
+			return
+		}
+
+		artifactDefs, err := es.GetRunArtifactDefinitions(ctx, namespacedName, gvr)
+		if err != nil {
+			es.Logger.Error(err, fmt.Sprintf("failed to lookup run/runconfiguration %s", gvr.Resource))
+			m.Nack()
+			return
+		}
+
+		pipelineJobId, ok := logEntry.Resource.Labels["pipeline_job_id"]
+		if !ok {
+			es.Logger.Error(err, fmt.Sprintf("logEntry did not contain pipeline_job_id %+v", logEntry))
+			m.Nack()
+			return
+		}
+		run := VAIRun{
+			Labels:    logEntry.Labels,
+			RunId:     pipelineJobId,
+			Artifacts: artifactDefs,
+		}
 
 		event := es.runCompletionEventForRun(stream.Context(), run)
 		if event == nil {
+			es.Logger.Error(err, fmt.Sprintf("failed to convert to run completion event %+v", run))
 			m.Nack()
 			return
 		}
@@ -97,7 +131,7 @@ func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, run V
 		return nil
 	}
 	if job == nil {
-		es.Logger.Info("pipeline job not found")
+		es.Logger.Error(nil, "expected pipeline job not found", "run-id", run.RunId)
 		return nil
 	}
 
@@ -194,10 +228,25 @@ func artifactsForJob(job *aiplatformpb.PipelineJob, artifactDefs []pipelinesv1.O
 	return artifacts
 }
 
+func gvrAndNamespacedNameForRunLabels(runLabels map[string]string) (schema.GroupVersionResource, types.NamespacedName, error) {
+	runConfigurationName, ok := runLabels[labels.RunConfigurationName]
+	if ok {
+		return base.RunConfigurationGVR, types.NamespacedName{Name: runConfigurationName, Namespace: runLabels[labels.RunConfigurationNamespace]}, nil
+	}
+
+	runName, ok := runLabels[labels.RunName]
+	if ok {
+		return base.RunGVR, types.NamespacedName{Name: runName, Namespace: runLabels[labels.RunNamespace]}, nil
+	}
+
+	return schema.GroupVersionResource{}, types.NamespacedName{}, fmt.Errorf("neither %s or %s provided in labels", labels.RunConfigurationName, labels.RunName)
+}
+
 func (es *VaiEventingServer) toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.RunCompletionEvent {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
+		es.Logger.Error(nil, "expected pipeline job to have finished", "run-id", run.RunId)
 		return nil
 	}
 

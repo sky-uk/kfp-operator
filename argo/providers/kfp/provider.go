@@ -19,7 +19,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gopkg.in/yaml.v2"
-	"k8s.io/client-go/dynamic"
 	"os"
 )
 
@@ -341,15 +340,6 @@ func (kfpp KfpProvider) DeleteExperiment(ctx context.Context, providerConfig Kfp
 	return err
 }
 
-func createK8sClient() (dynamic.Interface, error) {
-	k8sConfig, err := common.K8sClientConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	return dynamic.NewForConfig(k8sConfig)
-}
-
 func ConnectToMetadataStore(address string) (*GrpcMetadataStore, error) {
 	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -374,7 +364,7 @@ func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
 }
 
 func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpProviderConfig) (generic.EventingServer, error) {
-	k8sClient, err := createK8sClient()
+	k8sClient, err := CreateK8sClient()
 	if err != nil {
 		return nil, err
 	}
@@ -391,9 +381,9 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpPr
 
 	return &KfpEventingServer{
 		ProviderConfig: providerConfig,
-		K8sClient:     k8sClient,
-		Logger:        common.LoggerFromContext(ctx),
-		MetadataStore: metadataStore,
-		KfpApi:        kfpApi,
+		K8sClient:      k8sClient,
+		Logger:         common.LoggerFromContext(ctx),
+		MetadataStore:  metadataStore,
+		KfpApi:         kfpApi,
 	}, nil
 }
