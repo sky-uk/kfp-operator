@@ -1,6 +1,7 @@
 package vai
 
 import (
+	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
@@ -10,7 +11,6 @@ import (
 	"github.com/hashicorp/go-bexpr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	"gopkg.in/yaml.v2"
 )
 
@@ -101,7 +101,7 @@ func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, run V
 		return nil
 	}
 
-	return toRunCompletionEvent(job, run)
+	return es.toRunCompletionEvent(job, run)
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
@@ -194,7 +194,7 @@ func artifactsForJob(job *aiplatformpb.PipelineJob, artifactDefs []pipelinesv1.O
 	return artifacts
 }
 
-func toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.RunCompletionEvent {
+func (es *VaiEventingServer) toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.RunCompletionEvent {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
@@ -239,6 +239,7 @@ func toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.Run
 		RunId:                 run.RunId,
 		Artifacts:             artifactsForJob(job, run.Artifacts),
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
+		Provider:              es.ProviderConfig.Name,
 	}
 }
 

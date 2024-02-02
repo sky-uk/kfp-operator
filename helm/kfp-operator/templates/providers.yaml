@@ -6,6 +6,7 @@ metadata:
 data:
 {{- range $providerName, $providerBlock := .Values.providers }}
   {{ $providerName }}: |
+    name: {{ $providerName }}
     image: {{ include "kfp-operator.providerImage" (merge (dict "Provider" $providerBlock) $ ) }}
     executionMode: {{ if eq $providerBlock.type "kfp" }}v1{{ else }}v2{{ end }}
     serviceAccount: {{ $providerBlock.serviceAccount.name }}

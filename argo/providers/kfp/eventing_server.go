@@ -45,10 +45,11 @@ type KfpEventSourceConfig struct {
 
 type KfpEventingServer struct {
 	generic.UnimplementedEventingServer
-	K8sClient     dynamic.Interface
-	MetadataStore MetadataStore
-	KfpApi        KfpApi
-	Logger        logr.Logger
+	ProviderConfig KfpProviderConfig
+	K8sClient      dynamic.Interface
+	MetadataStore  MetadataStore
+	KfpApi         KfpApi
+	Logger         logr.Logger
 }
 
 type PipelineSpec struct {

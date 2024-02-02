@@ -3,6 +3,7 @@ package vai
 import (
 	"bytes"
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
+	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/scheduler/apiv1"
 	"cloud.google.com/go/storage"
@@ -17,7 +18,6 @@ import (
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	aiplatformpb "google.golang.org/genproto/googleapis/cloud/aiplatform/v1"
 	schedulerpb "google.golang.org/genproto/googleapis/cloud/scheduler/v1"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -67,6 +67,7 @@ type RunIntent struct {
 }
 
 type VAIProviderConfig struct {
+	Name                        string `yaml:"name"`
 	VaiProject                  string `yaml:"vaiProject"`
 	VaiLocation                 string `yaml:"vaiLocation"`
 	VaiJobServiceAccount        string `yaml:"vaiJobServiceAccount"`
