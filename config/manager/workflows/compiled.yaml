@@ -9,7 +9,6 @@ spec:
     inputs:
       parameters:
       - name: resource-image
-      - name: execution-mode
       artifacts:
       - name: resource-definition
         raw:
@@ -37,8 +36,8 @@ spec:
       - /tmp/resource.yaml
       - --{{workflow.parameters.resource-kind}}_config
       - /resource-definition.yaml
-      - --execution_mode
-      - "{{inputs.parameters.execution-mode}}"
+      - --provider_config
+      - /providers-config/{{workflow.parameters.provider-name}}
     volumes:
     - name: shared
     initContainers:
@@ -172,14 +171,6 @@ spec:
           parameters:
           - name: parameter
             value: serviceAccount
-    - - name: select-execution-mode
-        templateRef:
-          name: kfp-operator-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: parameter
-            value: executionMode
     - - name: select-resource-image
         templateRef:
           name: kfp-operator-common-steps
@@ -192,8 +183,6 @@ spec:
           parameters:
           - name: resource-image
             value: '{{steps.select-resource-image.outputs.result}}'
-          - name: execution-mode
-            value: '{{steps.select-execution-mode.outputs.result}}'
     - - name: provider
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -252,14 +241,6 @@ spec:
           parameters:
           - name: parameter
             value: serviceAccount
-    - - name: select-execution-mode
-        templateRef:
-          name: kfp-operator-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: parameter
-            value: executionMode
     - - name: select-resource-image
         templateRef:
           name: kfp-operator-common-steps
@@ -272,8 +253,6 @@ spec:
           parameters:
           - name: resource-image
             value: '{{steps.select-resource-image.outputs.result}}'
-          - name: execution-mode
-            value: '{{steps.select-execution-mode.outputs.result}}'
     - - name: provider
         templateRef:
           name: kfp-operator-compiled-workflow-steps

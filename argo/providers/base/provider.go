@@ -8,8 +8,6 @@ import (
 )
 
 type PipelineDefinition struct {
-	RootLocation    string              `yaml:"rootLocation"`
-	ServingLocation string              `yaml:"servingLocation"`
 	Name            string              `yaml:"name"`
 	Version         string              `yaml:"version"`
 	Image           string              `yaml:"image"`

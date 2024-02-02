@@ -70,35 +70,48 @@ def load_fn(tfx_components, env={}):
 
 @click.command()
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
+@click.option('--provider_config', help='Provider configuration in yaml format', required=True)
 @click.option('--output_file', help='Output file path', required=True)
-@click.option('--execution_mode', type=click.Choice(['v1', 'v2']), help='KFP Execution mode', required=True)
-def compile(pipeline_config, output_file, execution_mode):
+def compile(pipeline_config, provider_config, output_file):
     """Compiles TFX components into a Kubeflow Pipelines pipeline definition"""
-    with open(pipeline_config, "r") as stream:
-        config = yaml.safe_load(stream)
+    with open(pipeline_config, "r") as pipeline_stream, open(provider_config, "r") as provider_stream:
+        pipeline_config_contents = yaml.safe_load(pipeline_stream)
+        provider_config_contents = yaml.safe_load(provider_stream)
 
-        click.secho(f'Compiling with config: {config}', fg='green')
+        click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ', fg='green')
 
-        components = load_fn(config['tfxComponents'], config.get('env', {}))()
-        expanded_components = expand_components_with_pusher(components, config['servingLocation'])
+        pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents, provider_config_contents)
+        beam_args = {**provider_config_contents['defaultBeamArgs'], **pipeline_config_contents.get('beamArgs', {}),
+                     'temp_location': [temp_location]}
 
-        compile_fn = compile_v1 if execution_mode == 'v1' else compile_v2
+        components = load_fn(pipeline_config_contents['tfxComponents'], provider_config_contents.get('env', {}))()
+        expanded_components = expand_components_with_pusher(components, serving_model_directory)
 
-        compile_fn(config, output_file).run(
+        compile_fn = compile_v1 if provider_config_contents['executionMode'] == 'v1' else compile_v2
+
+        compile_fn(pipeline_config_contents, output_file).run(
             pipeline.Pipeline(
-                pipeline_name=config['name'],
-                pipeline_root=config['rootLocation'],
+                pipeline_name=pipeline_config_contents['name'],
+                pipeline_root=pipeline_root,
                 components=expanded_components,
                 enable_cache=False,
                 metadata_connection_config=None,
-                beam_pipeline_args=dict_to_cli_args(config.get('beamArgs', {}))
+                beam_pipeline_args=dict_to_cli_args(beam_args)
             )
         )
 
         click.secho(f'{output_file} written', fg='green')
 
 
-def compile_v1(config: str, output_filename: str):
+def pipeline_paths_for_config(pipeline_config, provider_config):
+    pipeline_root = provider_config['pipelineRootStorage'] + '/' + pipeline_config['name']
+    serving_model_directory = pipeline_root + "/serving"
+    temp_location = pipeline_root + "/tmp"
+
+    return pipeline_root, serving_model_directory, temp_location
+
+
+def compile_v1(config: dict, output_filename: str):
     metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
 
     runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
@@ -112,7 +125,7 @@ def compile_v1(config: str, output_filename: str):
     )
 
 
-def compile_v2(config: str, output_filename: str):
+def compile_v2(config: dict, output_filename: str):
     runner_config = kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
         display_name=config['name'],
         default_image=config['image']
