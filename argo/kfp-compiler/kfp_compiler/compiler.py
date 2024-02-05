@@ -81,13 +81,14 @@ def compile(pipeline_config, provider_config, output_file):
         click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ', fg='green')
 
         pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents, provider_config_contents)
-        beam_args = {**provider_config_contents['defaultBeamArgs'], **pipeline_config_contents.get('beamArgs', {}),
-                     'temp_location': [temp_location]}
+        beam_args = merge_multimap(pipeline_config_contents.get('beamArgs', {}), provider_config_contents.get('defaultBeamArgs', {}))
 
         components = load_fn(pipeline_config_contents['tfxComponents'], provider_config_contents.get('env', {}))()
         expanded_components = expand_components_with_pusher(components, serving_model_directory)
 
         compile_fn = compile_v1 if provider_config_contents['executionMode'] == 'v1' else compile_v2
+        beam_cli_args = dict_to_cli_args(beam_args)
+        beam_cli_args.append(f"--temp_location={temp_location}")
 
         compile_fn(pipeline_config_contents, output_file).run(
             pipeline.Pipeline(
@@ -96,19 +97,11 @@ def compile(pipeline_config, provider_config, output_file):
                 components=expanded_components,
                 enable_cache=False,
                 metadata_connection_config=None,
-                beam_pipeline_args=dict_to_cli_args(beam_args)
+                beam_pipeline_args=beam_cli_args
             )
         )
 
         click.secho(f'{output_file} written', fg='green')
-
-
-def pipeline_paths_for_config(pipeline_config, provider_config):
-    pipeline_root = provider_config['pipelineRootStorage'] + '/' + pipeline_config['name']
-    serving_model_directory = pipeline_root + "/serving"
-    temp_location = pipeline_root + "/tmp"
-
-    return pipeline_root, serving_model_directory, temp_location
 
 
 def compile_v1(config: dict, output_filename: str):
@@ -135,6 +128,23 @@ def compile_v2(config: dict, output_filename: str):
         config=runner_config,
         output_filename=output_filename
     )
+
+
+def pipeline_paths_for_config(pipeline_config, provider_config):
+    pipeline_root = provider_config['pipelineRootStorage'] + '/' + pipeline_config['name']
+    return pipeline_root, pipeline_root + "/serving", pipeline_root + "/tmp"
+
+
+def merge_multimap(multimap1, multimap2):
+    merged_multimap = dict(multimap1)
+
+    for key, value in multimap2.items():
+        if key not in merged_multimap:
+            merged_multimap[key] = value
+        else:
+            merged_multimap[key].extend(value)
+
+    return merged_multimap
 
 
 def dict_to_cli_args(beam_args):
