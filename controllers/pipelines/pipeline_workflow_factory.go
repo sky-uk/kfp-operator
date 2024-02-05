@@ -10,7 +10,6 @@ type PipelineDefinitionCreator struct {
 	Config config.Configuration
 }
 
-// TODO: Join paths properly (path.Join or filepath.Join don't work with URLs)
 func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pipeline) (providers.PipelineDefinition, error) {
 	return providers.PipelineDefinition{
 		Name:          pipeline.ObjectMeta.Name,
