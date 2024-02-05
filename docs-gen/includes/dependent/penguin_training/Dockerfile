@@ -1,5 +1,5 @@
 # TFX build
-FROM tensorflow/tfx:1.2.0
+FROM tensorflow/tfx:1.13.0
 
 WORKDIR /pipeline
 COPY ./*.py ./
