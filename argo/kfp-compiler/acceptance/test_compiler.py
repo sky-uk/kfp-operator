@@ -10,12 +10,15 @@ import pytest
 runner = CliRunner()
 config_file_path = 'acceptance/pipeline_conf.yaml'
 
+
 def provider_config_file_path(execution_mode):
     return f'acceptance/provider_conf_{execution_mode}.yaml'
+
 
 @pytest.fixture(scope="session", autouse=True)
 def setup():
     sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "..", "docs-gen", "includes", "quickstart", "penguin_pipeline"))
+
 
 def test_cli_v1():
     with TemporaryDirectory() as tmp_dir:
@@ -29,6 +32,7 @@ def test_cli_v1():
         f = open(output_file_path, "r")
         workflow = yaml.safe_load(f.read())
         assert workflow['kind'] == 'Workflow'
+
 
 def test_cli_v2():
     with TemporaryDirectory() as tmp_dir:

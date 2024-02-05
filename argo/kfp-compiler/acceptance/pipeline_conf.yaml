@@ -3,4 +3,6 @@ image: test-pipeline
 tfxComponents: pipeline.create_components
 env:
   foo: bar
-beamArgs: {}
+beamArgs:
+  anArg:
+  - aValue

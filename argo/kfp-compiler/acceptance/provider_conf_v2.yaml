@@ -1,4 +1,5 @@
 executionMode: v2
 defaultBeamArgs:
-  project: gcp_project
+  project:
+  - gcp_project
 pipelineRootStorage: pipeline_root
