@@ -10,11 +10,6 @@
 &lt;/thead>
 &lt;tbody>
 &lt;tr>
-&lt;td>&lt;code>defaultBeamArgs&lt;/code>&lt;/td>
-&lt;td>Default Beam arguments to which the pipeline-defined ones will be added&lt;/td>
-&lt;td>&lt;!-- raw HTML omitted -->- name: project&lt;!-- raw HTML omitted --> value: my-gcp-project&lt;!-- raw HTML omitted -->&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>defaultExperiment&lt;/code>&lt;/td>
 &lt;td>Default Experiment name to be used for creating pipeline runs&lt;/td>
 &lt;td>&lt;code>Default&lt;/code>&lt;/td>
@@ -28,11 +23,6 @@
 &lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
 &lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
 &lt;td>&lt;code>true&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>pipelineStorage&lt;/code>&lt;/td>
-&lt;td>The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
-&lt;td>&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
@@ -73,6 +63,16 @@
 &lt;td>&lt;code>serviceAccount&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/td>
 &lt;td>Service Account name to be used for all provider-specific operations (see respective provider)&lt;/td>
 &lt;td>&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>defaultBeamArgs&lt;/code>&lt;/td>
+&lt;td>Default Beam arguments to which the pipeline-defined ones will be added&lt;/td>
+&lt;td>&lt;!-- raw HTML omitted -->- name: project&lt;!-- raw HTML omitted --> value: my-gcp-project&lt;!-- raw HTML omitted -->&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>pipelineRootStorage&lt;/code>&lt;/td>
+&lt;td>The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
+&lt;td>&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
