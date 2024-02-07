@@ -748,26 +748,12 @@ spec:
             type: object
           spec:
             properties:
-              defaultBeamArgs:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                  required:
-                  - name
-                  - value
-                  type: object
-                type: array
               defaultExperiment:
                 type: string
               defaultProvider:
                 type: string
               multiversion:
                 type: boolean
-              pipelineStorage:
-                type: string
               runCompletionTTL:
                 type: string
               workflowNamespace:

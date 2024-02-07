@@ -3,19 +3,18 @@ package base
 import (
 	"context"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
+	"github.com/sky-uk/kfp-operator/apis"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type PipelineDefinition struct {
-	RootLocation    string              `yaml:"rootLocation"`
-	ServingLocation string              `yaml:"servingLocation"`
-	Name            string              `yaml:"name"`
-	Version         string              `yaml:"version"`
-	Image           string              `yaml:"image"`
-	TfxComponents   string              `yaml:"tfxComponents"`
-	Env             map[string]string   `yaml:"env"`
-	BeamArgs        map[string][]string `yaml:"beamArgs"`
+	Name          string            `yaml:"name"`
+	Version       string            `yaml:"version"`
+	Image         string            `yaml:"image"`
+	TfxComponents string            `yaml:"tfxComponents"`
+	Env           []apis.NamedValue `yaml:"env"`
+	BeamArgs      []apis.NamedValue `yaml:"beamArgs"`
 }
 
 type ExperimentDefinition struct {

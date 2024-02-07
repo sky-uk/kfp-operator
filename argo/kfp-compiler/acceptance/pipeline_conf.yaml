@@ -1,10 +1,9 @@
-rootLocation: pipeline_root
-servingLocation: serving
 name: test
 image: test-pipeline
 tfxComponents: pipeline.create_components
 env:
-  foo: bar
+- name: foo
+  value: bar
 beamArgs:
-  project: gcp_project
-  temp_location: /tmp
+- name: anArg
+  value:  aValue

@@ -1,14 +1,11 @@
 package v1alpha5
 
 import (
-	"github.com/sky-uk/kfp-operator/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	cfg "sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
 )
 
 type Configuration struct {
-	PipelineStorage string `json:"pipelineStorage,omitempty"`
-
 	DefaultProvider string `json:"defaultProvider,omitempty"`
 
 	WorkflowTemplatePrefix string `json:"workflowTemplatePrefix,omitempty"`
@@ -16,8 +13,6 @@ type Configuration struct {
 	WorkflowNamespace string `json:"workflowNamespace,omitempty"`
 
 	Multiversion bool `json:"multiversion,omitempty"`
-
-	DefaultBeamArgs []apis.NamedValue `json:"defaultBeamArgs,omitempty"`
 
 	DefaultExperiment string `json:"defaultExperiment,omitempty"`
 

@@ -3,18 +3,24 @@ import os
 import sys
 import pytest
 
+
 def components_fn():
     return os.environ
 
+
 def test_load_fn():
-    env = {
-        'a': 'aVal',
-        'b': 'bVal'
-    }
+    env = [
+        {'name': 'a', 'value': 'aVal'},
+        {'name': 'a', 'value': 'overriddenVal'},
+        {'name': 'b', 'value': 'bVal'},
+    ]
     
     sys.path.append(os.path.dirname(__file__))
     result = compiler.load_fn('test_module_loader.components_fn', env)()
-    assert env.items() <= result.items()
+
+    assert result['a'] == 'overriddenVal'
+    assert result['b'] == 'bVal'
+
 
 def test_load_fn_invalid_fn():
     with pytest.raises(Exception) as e_info:

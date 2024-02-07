@@ -1,0 +1,5 @@
+executionMode: v1
+defaultBeamArgs:
+- name: project
+  value: gcp_project
+pipelineRootStorage: pipeline_root
