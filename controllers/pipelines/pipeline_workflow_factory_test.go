@@ -42,6 +42,7 @@ var _ = Describe("PipelineDefinition", func() {
 		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
 		Expect(compilerConfig.TfxComponents).To(Equal("pipelineTfxComponents"))
 		Expect(compilerConfig.Env).To(Equal(expectedEnv))
+		Expect(compilerConfig.BeamArgs).To(Equal(expectedBeamArgs))
 	})
 
 	It("Creates a valid YAML", func() {
