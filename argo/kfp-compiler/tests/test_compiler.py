@@ -1,18 +1,17 @@
 from kfp_compiler import compiler
 
 
-def test_dict_to_cli_args():
-    args = {
-        'a': ['aVal'],
-        'b': ['bVal'],
-        'c': ['cVal1', 'cVal2'],
-    }
+def test_name_values_to_cli_args():
+    name_values = [
+        {"name": "aName", "value": "aValue"},
+        {"name": "aName", "value": "aValue2"},
+        {"name": "anotherName", "value": "anotherValue"}
+    ]
 
-    assert compiler.dict_to_cli_args(args) == [
-        '--a=aVal',
-        '--b=bVal',
-        '--c=cVal1',
-        '--c=cVal2',
+    assert compiler.name_values_to_cli_args(name_values) == [
+        '--aName=aValue',
+        '--aName=aValue2',
+        '--anotherName=anotherValue',
     ]
 
 
@@ -25,12 +24,3 @@ def test_pipeline_paths_for_config():
     assert pipeline_root == "pipeline_root/pipeline"
     assert serving_model_directory == "pipeline_root/pipeline/serving"
     assert temp_directory == "pipeline_root/pipeline/tmp"
-
-
-def test_merge_multimap():
-    multimap1 = {'someArgName1': ['someArgValue1']}
-    multimap2 = {'defaultArgName1': ['defaultArgValue1'], 'someArgName1': ['someArgValue2']}
-
-    merged = compiler.merge_multimap(multimap1, multimap2)
-
-    assert merged == {'someArgName1': ['someArgValue1', 'someArgValue2'], 'defaultArgName1': ['defaultArgValue1']}

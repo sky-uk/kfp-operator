@@ -10,7 +10,7 @@ from tfx.components import Pusher, Trainer
 from tfx.proto import pusher_pb2
 
 
-def expand_components_with_pusher(tfx_components, serving_model_directory):
+def expand_components_with_pusher(tfx_components: list, serving_model_directory: str):
     if not any(isinstance(component, Pusher) for component in tfx_components):
 
         click.secho(
@@ -57,9 +57,9 @@ def expand_components_with_pusher(tfx_components, serving_model_directory):
         return tfx_components
 
 
-def load_fn(tfx_components, env={}):
-    for key, value in env.items():
-        os.environ[key] = value
+def load_fn(tfx_components: str, env: list):
+    for name_value in env:
+        os.environ[name_value['name']] = name_value['value']
 
     (module_name, fn_name) = tfx_components.rsplit('.', 1)
     module = importlib.import_module(module_name)
@@ -72,7 +72,7 @@ def load_fn(tfx_components, env={}):
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
 @click.option('--provider_config', help='Provider configuration in yaml format', required=True)
 @click.option('--output_file', help='Output file path', required=True)
-def compile(pipeline_config, provider_config, output_file):
+def compile(pipeline_config: str, provider_config: str, output_file: str):
     """Compiles TFX components into a Kubeflow Pipelines pipeline definition"""
     with open(pipeline_config, "r") as pipeline_stream, open(provider_config, "r") as provider_stream:
         pipeline_config_contents = yaml.safe_load(pipeline_stream)
@@ -81,14 +81,16 @@ def compile(pipeline_config, provider_config, output_file):
         click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ', fg='green')
 
         pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents, provider_config_contents)
-        beam_args = merge_multimap(pipeline_config_contents.get('beamArgs', {}), provider_config_contents.get('defaultBeamArgs', {}))
 
-        components = load_fn(pipeline_config_contents['tfxComponents'], provider_config_contents.get('env', {}))()
+        beam_args = provider_config_contents.get('defaultBeamArgs', [])
+        beam_args.extend(pipeline_config_contents.get('beamArgs', []))
+        beam_cli_args = name_values_to_cli_args(beam_args)
+        beam_cli_args.append(f"--temp_location={temp_location}")
+
+        components = load_fn(pipeline_config_contents['tfxComponents'], pipeline_config_contents.get('env', []))()
         expanded_components = expand_components_with_pusher(components, serving_model_directory)
 
         compile_fn = compile_v1 if provider_config_contents['executionMode'] == 'v1' else compile_v2
-        beam_cli_args = dict_to_cli_args(beam_args)
-        beam_cli_args.append(f"--temp_location={temp_location}")
 
         compile_fn(pipeline_config_contents, output_file).run(
             pipeline.Pipeline(
@@ -130,30 +132,18 @@ def compile_v2(config: dict, output_filename: str):
     )
 
 
-def pipeline_paths_for_config(pipeline_config, provider_config):
+def pipeline_paths_for_config(pipeline_config: dict, provider_config: dict):
     pipeline_root = provider_config['pipelineRootStorage'] + '/' + pipeline_config['name']
     return pipeline_root, pipeline_root + "/serving", pipeline_root + "/tmp"
 
 
-def merge_multimap(multimap1, multimap2):
-    merged_multimap = dict(multimap1)
+def name_values_to_cli_args(name_values: list):
+    cli_args = []
 
-    for key, value in multimap2.items():
-        if key not in merged_multimap:
-            merged_multimap[key] = value
-        else:
-            merged_multimap[key].extend(value)
+    for name_value in name_values:
+        cli_args.append(f'--{name_value["name"]}={name_value["value"]}')
 
-    return merged_multimap
-
-
-def dict_to_cli_args(beam_args):
-    beam_cli_args = []
-    for k, v in beam_args.items():
-        for vv in v:
-            beam_cli_args.append(f'--{k}={vv}')
-
-    return beam_cli_args
+    return cli_args
 
 
 def main():

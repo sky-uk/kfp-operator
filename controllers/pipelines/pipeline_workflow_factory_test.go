@@ -16,6 +16,14 @@ var _ = Describe("PipelineDefinition", func() {
 
 	Specify("Some fields are copied from Pipeline resource", func() {
 		wf := PipelineDefinitionCreator{}
+
+		expectedEnv := []apis.NamedValue{
+			{Name: "ea", Value: "b"},
+		}
+		expectedBeamArgs := []apis.NamedValue{
+			{Name: "a", Value: "b"},
+		}
+
 		pipeline := &pipelinesv1.Pipeline{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "pipelineName",
@@ -23,9 +31,8 @@ var _ = Describe("PipelineDefinition", func() {
 			Spec: pipelinesv1.PipelineSpec{
 				Image:         "pipelineImage",
 				TfxComponents: "pipelineTfxComponents",
-				Env: []apis.NamedValue{
-					{Name: "ea", Value: "b"},
-				},
+				Env:           expectedEnv,
+				BeamArgs:      expectedBeamArgs,
 			},
 		}
 
@@ -34,22 +41,7 @@ var _ = Describe("PipelineDefinition", func() {
 		Expect(compilerConfig.Name).To(Equal("pipelineName"))
 		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
 		Expect(compilerConfig.TfxComponents).To(Equal("pipelineTfxComponents"))
-		Expect(compilerConfig.Env["ea"]).To(Equal("b"))
-	})
-
-	Specify("Original BeamArgs are copied", func() {
-		wf := PipelineDefinitionCreator{}
-		pipeline := &pipelinesv1.Pipeline{
-			Spec: pipelinesv1.PipelineSpec{
-				BeamArgs: []apis.NamedValue{
-					{Name: "a", Value: "b"},
-				},
-			},
-		}
-
-		compilerConfig, _ := wf.pipelineDefinition(pipeline)
-
-		Expect(compilerConfig.BeamArgs["a"]).To(Equal([]string{"b"}))
+		Expect(compilerConfig.Env).To(Equal(expectedEnv))
 	})
 
 	It("Creates a valid YAML", func() {
@@ -57,11 +49,11 @@ var _ = Describe("PipelineDefinition", func() {
 			Name:          "pipelineName",
 			Image:         "pipelineImage",
 			TfxComponents: "pipelineTfxComponents",
-			Env: map[string]string{
-				"ea": "eb",
+			Env: []apis.NamedValue{
+				{Name: "ea", Value: "eb"},
 			},
-			BeamArgs: map[string][]string{
-				"ba": {"bb"},
+			BeamArgs: []apis.NamedValue{
+				{Name: "ba", Value: "bb"},
 			},
 		}
 
@@ -74,9 +66,15 @@ var _ = Describe("PipelineDefinition", func() {
 		Expect(m["name"]).To(Equal("pipelineName"))
 		Expect(m["image"]).To(Equal("pipelineImage"))
 		Expect(m["tfxComponents"]).To(Equal("pipelineTfxComponents"))
-		env := m["env"].(map[interface{}]interface{})
-		Expect(env["ea"]).To(Equal("eb"))
-		beamArgs := m["beamArgs"].(map[interface{}]interface{})
-		Expect(beamArgs["ba"]).To(Equal([]interface{}{"bb"}))
+		env := m["env"].([]interface{})
+		Expect(env[0]).To(Equal(map[interface{}]interface{}{
+			"name":  "ea",
+			"value": "eb",
+		}))
+		beamArgs := m["beamArgs"].([]interface{})
+		Expect(beamArgs[0]).To(Equal(map[interface{}]interface{}{
+			"name":  "ba",
+			"value": "bb",
+		}))
 	})
 })

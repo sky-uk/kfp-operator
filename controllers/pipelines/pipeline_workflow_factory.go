@@ -16,8 +16,8 @@ func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pi
 		Version:       pipeline.ComputeVersion(),
 		Image:         pipeline.Spec.Image,
 		TfxComponents: pipeline.Spec.TfxComponents,
-		Env:           NamedValuesToMap(pipeline.Spec.Env),
-		BeamArgs:      NamedValuesToMultiMap(pipeline.Spec.BeamArgs),
+		Env:           pipeline.Spec.Env,
+		BeamArgs:      pipeline.Spec.BeamArgs,
 	}, nil
 }
 
