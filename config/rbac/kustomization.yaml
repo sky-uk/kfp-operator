@@ -19,5 +19,6 @@ resources:
 # resource editor and viewer
 - pipeline_editor_role.yaml
 - pipeline_viewer_role.yaml
+- run_viewer_role.yaml
 - runconfiguration_editor_role.yaml
 - runconfiguration_viewer_role.yaml
