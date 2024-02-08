@@ -38,3 +38,6 @@ canonifyURLs = true
   github_subdir = "docs-gen"
   github_branch = "master"
   github_project_repo = "https://github.com/sky-uk/kfp-operator"
+
+[security.exec]
+  osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|HOME|ASDF_DIR)$']
