@@ -12,58 +12,56 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
-	"reflect"
 )
 
 var RunGVR = pipelinesv1.GroupVersion.WithResource("runs")
 var RunConfigurationGVR = pipelinesv1.GroupVersion.WithResource("runconfigurations")
 
-type FlattenedArtifact map[string]interface{}
-
-func artifactsForFields(obj *unstructured.Unstructured, fields ...string) ([]pipelinesv1.OutputArtifact, error) {
-	println(fmt.Sprintf("UNSTRUCTURED=%+v", obj))
-	println(fmt.Sprintf("FIELDS=%+v", fields))
-
+func artifactsForFields(ctx context.Context, obj *unstructured.Unstructured, fields ...string) ([]pipelinesv1.OutputArtifact, error) {
+	logger := common.LoggerFromContext(ctx)
 	artifactsField, hasArtifacts, err := unstructured.NestedSlice(obj.Object, fields...)
 	if err != nil || !hasArtifacts {
-		println(fmt.Sprintf("Failed to get artifacts out of unstructured %s", err))
+		logger.Error(err, "Failed to get artifacts out of unstructured")
 		return nil, err
 	}
-	println(fmt.Sprintf("artifactsField=%+v", artifactsField))
 
 	return pipelines.MapErr(artifactsField, func(fa interface{}) (pipelinesv1.OutputArtifact, error) {
-		fmt.Println(fa)
-		fmt.Println(reflect.TypeOf(fa))
-		fmt.Println(fa.(map[string]interface{}))
-		flattenedArtifact, ok := fa.(map[string]interface{})
+		unstructuredArtifact, ok := fa.(map[string]interface{})
 		if !ok {
-			println("Failed to cast")
-			return pipelinesv1.OutputArtifact{}, errors.New("artifacts malformed")
+			err = errors.New("artifacts malformed")
+			logger.Error(err, "Failed to cast")
+			return pipelinesv1.OutputArtifact{}, err
 		}
-		println(fmt.Sprintf("flattenedArtifacts=%+v", flattenedArtifact))
-		path, err := pipelinesv1.ArtifactPathFromString(flattenedArtifact["path"].(string))
+
+		pathStr, ok := unstructuredArtifact["path"].(string)
+		if !ok {
+			err = errors.New("path in artifact is malformed")
+			logger.Error(err, "Failed to cast")
+			return pipelinesv1.OutputArtifact{}, err
+		}
+		path, err := pipelinesv1.ArtifactPathFromString(pathStr)
 		if err != nil {
-			println(fmt.Sprintf("Failed to extract from map %s", err))
+			logger.Error(err, fmt.Sprintf("Failed to process path %+v", pathStr))
 			return pipelinesv1.OutputArtifact{}, err
 		}
 
 		return pipelinesv1.OutputArtifact{
-			Name: flattenedArtifact["name"].(string),
+			Name: unstructuredArtifact["name"].(string),
 			Path: path,
 		}, nil
 	})
 }
 
-func artifactsForUnstructured(obj *unstructured.Unstructured, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error) {
+func artifactsForUnstructured(ctx context.Context, obj *unstructured.Unstructured, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error) {
 	if gvr == RunGVR {
-		return artifactsForFields(obj, "spec", "artifacts")
+		return artifactsForFields(ctx, obj, "spec", "artifacts")
 	}
 
 	if gvr == RunConfigurationGVR {
-		return artifactsForFields(obj, "spec", "run", "artifacts")
+		return artifactsForFields(ctx, obj, "spec", "run", "artifacts")
 	}
 
-	return nil, errors.New("unknown resource")
+	return nil, errors.New("unhandled resource, only runs and runconfigurations expected")
 }
 
 func CreateK8sClient() (dynamic.Interface, error) {
@@ -83,8 +81,9 @@ func (k8a K8sApi) GetRunArtifactDefinitions(ctx context.Context, namespacedName 
 	obj, err := k8a.K8sClient.Resource(gvr).Namespace(namespacedName.Namespace).Get(ctx, namespacedName.Name, metav1.GetOptions{})
 
 	if err != nil {
+		common.LoggerFromContext(ctx).Error(err, fmt.Sprintf("Failed to retrieve resource %+v", gvr))
 		return nil, err
 	}
 
-	return artifactsForUnstructured(obj, gvr)
+	return artifactsForUnstructured(ctx, obj, gvr)
 }

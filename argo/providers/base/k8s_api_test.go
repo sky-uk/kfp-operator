@@ -3,48 +3,61 @@
 package base
 
 import (
-	"fmt"
+	"context"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var _ = Context("K8sApi", func() {
+	ctx := logr.NewContext(context.Background(), logr.Discard())
+
 	Describe("artifactsForUnstructured", func() {
+		unstructuredArtifacts := make([]interface{}, 2)
+		name1 := "somename"
+		name2 := "someothername"
+		path1Str := "Pusher:pushed_model:0[pushed == 1]"
+		path2Str := "Pusher:pushed_model:1[pushed == 2]"
+
+		unstructuredArtifacts[0] = map[string]interface{}{
+			"name": name1,
+			"path": path1Str,
+		}
+		unstructuredArtifacts[1] = map[string]interface{}{
+			"name": name2,
+			"path": path2Str,
+		}
+
+		expectedArtifacts := make([]v1alpha5.OutputArtifact, 2)
+		path1, err := v1alpha5.ArtifactPathFromString(path1Str)
+		Expect(err).NotTo(HaveOccurred())
+		path2, err := v1alpha5.ArtifactPathFromString(path2Str)
+		Expect(err).NotTo(HaveOccurred())
+		expectedArtifacts[0] = v1alpha5.OutputArtifact{
+			Name: name1,
+			Path: path1,
+		}
+		expectedArtifacts[1] = v1alpha5.OutputArtifact{
+			Name: name2,
+			Path: path2,
+		}
+
 		When("a run has artifacts", func() {
 			It("returns the artifacts", func() {
-				expectedArtifacts := make([]map[string]string, 2)
-				expectedArtifacts[0] = map[string]string{
-					"name": "somename",
-					"path": "Pusher:pushed_model:0[pushed == 1]",
-				}
-				expectedArtifacts[1] = map[string]string{
-					"name": "someother",
-					"path": "Pusher:pushed_model:1[pushed == 2]",
-				}
-
 				obj := &unstructured.Unstructured{
 					Object: map[string]interface{}{
 						"spec": map[string]interface{}{
-							"artifacts": expectedArtifacts,
+							"artifacts": unstructuredArtifacts,
 						},
 					},
 				}
 
-				artifactsField, hasArtifacts, err := unstructured.NestedFieldNoCopy(obj.Object, "spec", "artifacts")
-				Expect(err).NotTo(HaveOccurred())
-				Expect(hasArtifacts).To(BeTrue())
-				println(fmt.Sprintf("artifactsField:%+v", artifactsField))
+				artifacts, err := artifactsForUnstructured(ctx, obj, RunGVR)
 
-				flattenedArtifacts := artifactsField.([]map[string]string)
-				println(fmt.Sprintf("FLATTENED:%+v", flattenedArtifacts))
-				//println(fmt.Sprintf("OK:%+v", ok))
-				Expect(true).To(BeFalse())
-
-				artifacts, err := artifactsForUnstructured(obj, RunGVR)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(artifacts).To(Equal(expectedArtifacts))
 			})
@@ -58,7 +71,7 @@ var _ = Context("K8sApi", func() {
 					},
 				}
 
-				artifacts, err := artifactsForUnstructured(obj, RunGVR)
+				artifacts, err := artifactsForUnstructured(ctx, obj, RunGVR)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(artifacts).To(BeEmpty())
 			})
@@ -74,26 +87,24 @@ var _ = Context("K8sApi", func() {
 					},
 				}
 
-				_, err := artifactsForUnstructured(obj, RunGVR)
+				_, err := artifactsForUnstructured(ctx, obj, RunGVR)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		When("a run configuration has artifacts", func() {
 			It("returns the artifacts", func() {
-				expectedArtifacts := apis.RandomList(pipelinesv1.RandomOutputArtifact)
-
 				obj := &unstructured.Unstructured{
 					Object: map[string]interface{}{
 						"spec": map[string]interface{}{
 							"run": map[string]interface{}{
-								"artifacts": expectedArtifacts,
+								"artifacts": unstructuredArtifacts,
 							},
 						},
 					},
 				}
 
-				artifacts, err := artifactsForUnstructured(obj, RunConfigurationGVR)
+				artifacts, err := artifactsForUnstructured(ctx, obj, RunConfigurationGVR)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(artifacts).To(Equal(expectedArtifacts))
 			})
@@ -107,7 +118,7 @@ var _ = Context("K8sApi", func() {
 					},
 				}
 
-				artifacts, err := artifactsForUnstructured(obj, RunConfigurationGVR)
+				artifacts, err := artifactsForUnstructured(ctx, obj, RunConfigurationGVR)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(artifacts).To(BeEmpty())
 			})
@@ -125,7 +136,7 @@ var _ = Context("K8sApi", func() {
 					},
 				}
 
-				_, err := artifactsForUnstructured(obj, RunConfigurationGVR)
+				_, err := artifactsForUnstructured(ctx, obj, RunConfigurationGVR)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -136,7 +147,7 @@ var _ = Context("K8sApi", func() {
 					Object: map[string]interface{}{},
 				}
 
-				_, err := artifactsForUnstructured(obj, schema.GroupVersionResource{Group: apis.RandomString(), Version: apis.RandomString(), Resource: apis.RandomString()})
+				_, err := artifactsForUnstructured(ctx, obj, schema.GroupVersionResource{Group: apis.RandomString(), Version: apis.RandomString(), Resource: apis.RandomString()})
 				Expect(err).To(HaveOccurred())
 			})
 		})

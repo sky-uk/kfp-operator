@@ -59,8 +59,6 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			m.Nack()
 			return
 		}
-		println(fmt.Sprintf("LOG ENTRY=%+v", logEntry))
-		println(fmt.Sprintf("DATA=%s", string(m.Data)))
 
 		gvr, namespacedName, err := gvrAndNamespacedNameForRunLabels(logEntry.Labels)
 		if err != nil {
