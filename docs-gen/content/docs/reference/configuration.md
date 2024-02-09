@@ -46,17 +46,15 @@ KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/compone
 
 ![Vertex AI Provider](/images/vai-provider.png)
 
-| Parameter name                   | Description                                                   | Example                                                           |
-|----------------------------------|---------------------------------------------------------------|-------------------------------------------------------------------|
-| `pipelineBucket`                 | GCS bucket where to store the compiled pipeline               | `kfp-operator-pipelines`                                          |
-| `vaiProject`                     | Vertex AI GCP project name                                    | `kfp-operator-vertex-ai`                                          |
-| `vaiLocation`                    | Vertex AI GCP project location                                | `europe-west2`                                                    |
-| `vaiJobServiceAccount`           | Vertex AI GCP service account to run pipeline jobs            | `kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com` |
-| `runIntentsTopic`                | Pub/Sub topic name to publish run intents                     | `kfp-operator-run-intents`                                        |
-| `enqueuerRunIntentsSubscription` | Subscription on the run intents topic                         | `kfp-operator-runs-enqueuer`                                      |
-| `runsTopic`                      | Pub/Sub topic name to publish runs                            | `kfp-operator-runs`                                               |
-| `submitterRunsSubscription`      | Subscription on the runs topic for the pipeline job submitter | `kfp-operator-runs-submitter`                                     |
-| `eventsourceRunsSubscription`    | Subscription to runs topic for the eventsource server         | `kfp-operator-runs-eventsource`                                   |
+| Parameter name                          | Description                                                   | Example                                                           |
+|-----------------------------------------|---------------------------------------------------------------|-------------------------------------------------------------------|
+| `pipelineBucket`                        | GCS bucket where to store the compiled pipeline               | `kfp-operator-pipelines`                                          |
+| `vaiProject`                            | Vertex AI GCP project name                                    | `kfp-operator-vertex-ai`                                          |
+| `vaiLocation`                           | Vertex AI GCP project location                                | `europe-west2`                                                    |
+| `vaiJobServiceAccount`                  | Vertex AI GCP service account to run pipeline jobs            | `kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com` |
+| `runsTopic`                             | Pub/Sub topic name to publish runs                            | `kfp-operator-runs`                                               |
+| `submitterRunsSubscription`             | Subscription on the runs topic for the pipeline job submitter | `kfp-operator-runs-submitter`                                     |
+| `eventsourcePipelineEventsSubscription` | Subscription to runs topic for the eventsource server         | `kfp-operator-runs-eventsource`                                   |
 
 #### GCP Project Setup
 
@@ -66,15 +64,20 @@ The following GCP APIs need to be enabled in the configured `vaiProject`:
 - Cloud Storage
 - Cloud Scheduler
 
+A [Vertex AI log](https://cloud.google.com/vertex-ai/docs/pipelines/logging) sink needs to be created that:
+- captures pipeline state changes as
+  ```resource.type="aiplatform.googleapis.com/PipelineJob"
+     jsonPayload.state="PIPELINE_STATE_SUCCEEDED" OR "PIPELINE_STATE_FAILED" OR "PIPELINE_STATE_CANCELLED"```
+- writes state changes to Pub/Sub on to a Pipeline Events topic (see below for required subscription)
+
 Pub/Sub topics and subscriptions need to be created for:
-- Run Intents
-  - Topic: `runIntentsTopic`
-  - Subscriptions: `enqueuerRunIntentsSubscription`
 - Runs
   - Topic: `runsTopic`
   - Subscriptions:`submitterRunsSubscription`, `eventsourceRunsSubscription`<sup>*</sup>
+- Pipeline Events
+  - Subscription: `eventsourcePipelineEventsSubscription`
 
-It is important to configure the retry policy for the `eventsourceRunsSubscription` subscription according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
+It is important to configure the retry policy for the `eventsourcePipelineEventsSubscription` subscription according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
 We suggest an exponential backoff with min and max backoff set to at least 10 seconds each, resulting in a fixed 10 seconds wait between polls.
 
 GCS pipeline storage bucket `provider.configuration.pipelineBucket` needs to be created

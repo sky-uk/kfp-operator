@@ -142,16 +142,6 @@
 &lt;td>&lt;code>kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>runIntentsTopic&lt;/code>&lt;/td>
-&lt;td>Pub/Sub topic name to publish run intents&lt;/td>
-&lt;td>&lt;code>kfp-operator-run-intents&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>enqueuerRunIntentsSubscription&lt;/code>&lt;/td>
-&lt;td>Subscription on the run intents topic&lt;/td>
-&lt;td>&lt;code>kfp-operator-runs-enqueuer&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>runsTopic&lt;/code>&lt;/td>
 &lt;td>Pub/Sub topic name to publish runs&lt;/td>
 &lt;td>&lt;code>kfp-operator-runs&lt;/code>&lt;/td>
@@ -162,7 +152,7 @@
 &lt;td>&lt;code>kfp-operator-runs-submitter&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>eventsourceRunsSubscription&lt;/code>&lt;/td>
+&lt;td>&lt;code>eventsourcePipelineEventsSubscription&lt;/code>&lt;/td>
 &lt;td>Subscription to runs topic for the eventsource server&lt;/td>
 &lt;td>&lt;code>kfp-operator-runs-eventsource&lt;/code>&lt;/td>
 &lt;/tr>
@@ -176,22 +166,28 @@
 &lt;li>Cloud Storage&lt;/li>
 &lt;li>Cloud Scheduler&lt;/li>
 &lt;/ul>
+&lt;p>A &lt;a href="https://cloud.google.com/vertex-ai/docs/pipelines/logging">Vertex AI log&lt;/a> sink needs to be created that:&lt;/p>
+&lt;ul>
+&lt;li>captures pipeline state changes as
+&lt;pre tabindex="0">&lt;code class="language-resource.type="aiplatform.googleapis.com/PipelineJob"" data-lang="resource.type="aiplatform.googleapis.com/PipelineJob""> jsonPayload.state=&amp;#34;PIPELINE_STATE_SUCCEEDED&amp;#34; OR &amp;#34;PIPELINE_STATE_FAILED&amp;#34; OR &amp;#34;PIPELINE_STATE_CANCELLED&amp;#34;```
+&lt;/code>&lt;/pre>&lt;/li>
+&lt;li>writes state changes to Pub/Sub on to a Pipeline Events topic (see below for required subscription)&lt;/li>
+&lt;/ul>
 &lt;p>Pub/Sub topics and subscriptions need to be created for:&lt;/p>
 &lt;ul>
-&lt;li>Run Intents
-&lt;ul>
-&lt;li>Topic: &lt;code>runIntentsTopic&lt;/code>&lt;/li>
-&lt;li>Subscriptions: &lt;code>enqueuerRunIntentsSubscription&lt;/code>&lt;/li>
-&lt;/ul>
-&lt;/li>
 &lt;li>Runs
 &lt;ul>
 &lt;li>Topic: &lt;code>runsTopic&lt;/code>&lt;/li>
 &lt;li>Subscriptions:&lt;code>submitterRunsSubscription&lt;/code>, &lt;code>eventsourceRunsSubscription&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/li>
 &lt;/ul>
 &lt;/li>
+&lt;li>Pipeline Events
+&lt;ul>
+&lt;li>Subscription: &lt;code>eventsourcePipelineEventsSubscription&lt;/code>&lt;/li>
 &lt;/ul>
-&lt;p>It is important to configure the retry policy for the &lt;code>eventsourceRunsSubscription&lt;/code> subscription according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
+&lt;/li>
+&lt;/ul>
+&lt;p>It is important to configure the retry policy for the &lt;code>eventsourcePipelineEventsSubscription&lt;/code> subscription according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
 We suggest an exponential backoff with min and max backoff set to at least 10 seconds each, resulting in a fixed 10 seconds wait between polls.&lt;/p>
 &lt;p>GCS pipeline storage bucket &lt;code>provider.configuration.pipelineBucket&lt;/code> needs to be created&lt;/p>
 &lt;p>The configured &lt;code>serviceAccount&lt;/code> needs to have &lt;a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">workload identity&lt;/a> enabled and be granted the following permissions:&lt;/p>
