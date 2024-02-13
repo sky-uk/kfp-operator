@@ -17,6 +17,21 @@ import (
 var RunGVR = pipelinesv1.GroupVersion.WithResource("runs")
 var RunConfigurationGVR = pipelinesv1.GroupVersion.WithResource("runconfigurations")
 
+func artifactNamePathAsString(unstructuredArtifact map[string]interface{}) (string, string, error) {
+	nameStr, ok := unstructuredArtifact["name"].(string)
+	if !ok {
+		err := errors.New("name in artifact is malformed")
+		return "", "", err
+	}
+	pathStr, ok := unstructuredArtifact["path"].(string)
+	if !ok {
+		err := errors.New("path in artifact is malformed")
+		return "", "", err
+	}
+
+	return nameStr, pathStr, nil
+}
+
 func artifactsForFields(ctx context.Context, obj *unstructured.Unstructured, fields ...string) ([]pipelinesv1.OutputArtifact, error) {
 	logger := common.LoggerFromContext(ctx)
 	artifactsField, hasArtifacts, err := unstructured.NestedSlice(obj.Object, fields...)
@@ -33,10 +48,9 @@ func artifactsForFields(ctx context.Context, obj *unstructured.Unstructured, fie
 			return pipelinesv1.OutputArtifact{}, err
 		}
 
-		pathStr, ok := unstructuredArtifact["path"].(string)
-		if !ok {
-			err = errors.New("path in artifact is malformed")
-			logger.Error(err, "Failed to cast")
+		nameStr, pathStr, err := artifactNamePathAsString(unstructuredArtifact)
+		if err != nil {
+			logger.Error(err, "Failed to extract data from unstructured artifact")
 			return pipelinesv1.OutputArtifact{}, err
 		}
 		path, err := pipelinesv1.ArtifactPathFromString(pathStr)
@@ -46,7 +60,7 @@ func artifactsForFields(ctx context.Context, obj *unstructured.Unstructured, fie
 		}
 
 		return pipelinesv1.OutputArtifact{
-			Name: unstructuredArtifact["name"].(string),
+			Name: nameStr,
 			Path: path,
 		}, nil
 	})

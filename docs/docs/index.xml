@@ -153,8 +153,8 @@
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>eventsourcePipelineEventsSubscription&lt;/code>&lt;/td>
-&lt;td>Subscription to runs topic for the eventsource server&lt;/td>
-&lt;td>&lt;code>kfp-operator-runs-eventsource&lt;/code>&lt;/td>
+&lt;td>Subscription for the eventsource to use which subscribes to the Vertex AI pipeline events log sink topic (see below)&lt;/td>
+&lt;td>&lt;code>kfp-operator-vai-run-events-eventsource&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
@@ -187,7 +187,7 @@
 &lt;/ul>
 &lt;/li>
 &lt;/ul>
-&lt;p>It is important to configure the retry policy for the &lt;code>eventsourcePipelineEventsSubscription&lt;/code> subscription according to your needs. This determines the polling frequency at which the eventsource service will check if each run has finished.
+&lt;p>It is important to configure the retry policy for the &lt;code>eventsourcePipelineEventsSubscription&lt;/code> subscription according to your needs. This determines the retry frequency of the eventsource server to query the Vertex AI API in case of errors.
 We suggest an exponential backoff with min and max backoff set to at least 10 seconds each, resulting in a fixed 10 seconds wait between polls.&lt;/p>
 &lt;p>GCS pipeline storage bucket &lt;code>provider.configuration.pipelineBucket&lt;/code> needs to be created&lt;/p>
 &lt;p>The configured &lt;code>serviceAccount&lt;/code> needs to have &lt;a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">workload identity&lt;/a> enabled and be granted the following permissions:&lt;/p>
