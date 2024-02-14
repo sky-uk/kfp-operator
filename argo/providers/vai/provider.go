@@ -49,6 +49,15 @@ var labels = struct {
 	LegacyRunConfiguration:    "run-configuration",
 }
 
+type VAIResource struct {
+	Labels map[string]string `json:"labels"`
+}
+
+type VAILogEntry struct {
+	Labels   map[string]string `json:"labels"`
+	Resource VAIResource       `json:"resource"`
+}
+
 type VAIRun struct {
 	RunId             string                     `json:"runId"`
 	Labels            map[string]string          `json:"labels,omitempty"`
@@ -67,15 +76,15 @@ type RunIntent struct {
 }
 
 type VAIProviderConfig struct {
-	Name                        string `yaml:"name"`
-	VaiProject                  string `yaml:"vaiProject"`
-	VaiLocation                 string `yaml:"vaiLocation"`
-	VaiJobServiceAccount        string `yaml:"vaiJobServiceAccount"`
-	GcsEndpoint                 string `yaml:"gcsEndpoint"`
-	PipelineBucket              string `yaml:"pipelineBucket"`
-	RunIntentsTopic             string `yaml:"runIntentsTopic"`
-	RunsTopic                   string `yaml:"runsTopic"`
-	EventsourceRunsSubscription string `yaml:"eventsourceRunsSubscription"`
+	Name                                  string `yaml:"name"`
+	VaiProject                            string `yaml:"vaiProject"`
+	VaiLocation                           string `yaml:"vaiLocation"`
+	VaiJobServiceAccount                  string `yaml:"vaiJobServiceAccount"`
+	GcsEndpoint                           string `yaml:"gcsEndpoint"`
+	PipelineBucket                        string `yaml:"pipelineBucket"`
+	RunIntentsTopic                       string `yaml:"runIntentsTopic"`
+	RunsTopic                             string `yaml:"runsTopic"`
+	EventsourcePipelineEventsSubscription string `yaml:"eventsourcePipelineEventsSubscription"`
 }
 
 func (vaipc VAIProviderConfig) vaiEndpoint() string {
@@ -474,11 +483,16 @@ func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProvide
 }
 
 func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIProviderConfig) (generic.EventingServer, error) {
+	k8sClient, err := CreateK8sClient()
+	if err != nil {
+		return nil, err
+	}
+
 	pubSubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
 	if err != nil {
 		return nil, err
 	}
-	runsSubscription := pubSubClient.Subscription(providerConfig.EventsourceRunsSubscription)
+	runsSubscription := pubSubClient.Subscription(providerConfig.EventsourcePipelineEventsSubscription)
 
 	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
@@ -486,6 +500,7 @@ func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIPr
 	}
 
 	return &VaiEventingServer{
+		K8sApi:            K8sApi{K8sClient: k8sClient},
 		ProviderConfig:    providerConfig,
 		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,

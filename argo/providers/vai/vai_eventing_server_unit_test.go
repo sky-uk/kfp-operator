@@ -12,7 +12,10 @@ import (
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"google.golang.org/protobuf/types/known/structpb"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func artifact() *aiplatformpb.Artifact {
@@ -99,18 +102,18 @@ var _ = Context("VaiEventingServer", func() {
 				},
 			},
 		}, VAIRun{RunId: pipelineRunName.Name})).To(Equal(&common.RunCompletionEvent{
-			RunConfigurationName:  runConfigurationName.NonEmptyPtr(),
-			PipelineName:          pipelineName,
-			RunName:               pipelineRunName.NonEmptyPtr(),
-			RunId:                 pipelineRunName.Name,
-			Status:                status,
+			RunConfigurationName: runConfigurationName.NonEmptyPtr(),
+			PipelineName:         pipelineName,
+			RunName:              pipelineRunName.NonEmptyPtr(),
+			RunId:                pipelineRunName.Name,
+			Status:               status,
 			ServingModelArtifacts: []common.Artifact{
 				{
 					Name:     "a-model",
 					Location: "gs://some/where",
 				},
 			},
-			Provider:              eventingServer.ProviderConfig.Name,
+			Provider: eventingServer.ProviderConfig.Name,
 		}))
 	},
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED, common.RunCompletionStatuses.Succeeded),
@@ -611,4 +614,22 @@ var _ = Context("VaiEventingServer", func() {
 			})
 		})
 	})
+
+	DescribeTable("gvrForRunLabels", func(labels map[string]string, expectedGvr *schema.GroupVersionResource, expectedNamespacedName *types.NamespacedName) {
+		gvr, namespacedName, err := gvrAndNamespacedNameForRunLabels(labels)
+
+		if expectedGvr == nil {
+			Expect(err).To(HaveOccurred())
+		} else {
+			Expect(err).NotTo(HaveOccurred())
+			Expect(gvr).To(Equal(*expectedGvr))
+			Expect(namespacedName).To(Equal(*expectedNamespacedName))
+		}
+
+	},
+		Entry(nil, map[string]string{labels.RunConfigurationName: "rc"}, &base.RunConfigurationGVR, &types.NamespacedName{Name: "rc"}),
+		Entry(nil, map[string]string{labels.RunConfigurationName: "rc", labels.RunConfigurationNamespace: "rcNamespace"}, &base.RunConfigurationGVR, &types.NamespacedName{Name: "rc", Namespace: "rcNamespace"}),
+		Entry(nil, map[string]string{labels.RunConfigurationName: "run"}, &base.RunConfigurationGVR, &types.NamespacedName{Name: "run"}),
+		Entry(nil, map[string]string{labels.RunConfigurationName: "run", labels.RunConfigurationNamespace: "runNamespace"}, &base.RunConfigurationGVR, &types.NamespacedName{Name: "run", Namespace: "runNamespace"}),
+		Entry(nil, map[string]string{}, nil, nil))
 })
