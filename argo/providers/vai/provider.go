@@ -5,7 +5,7 @@ import (
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"cloud.google.com/go/pubsub"
-	"cloud.google.com/go/scheduler/apiv1"
+	scheduler "cloud.google.com/go/scheduler/apiv1"
 	"cloud.google.com/go/storage"
 	"context"
 	"encoding/json"
@@ -203,10 +203,14 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
-func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*schedulerpb.Job, error) {
-	schedule, err := ParseCron(runScheduleDefinition.Schedule)
-	if err != nil {
-		return nil, err
+func (vaip VAIProvider) buildVaiScheduleRequest(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.Schedule_CreatePipelineJobRequest, error) {
+	parameters := make(map[string]*aiplatformpb.Value, len(runScheduleDefinition.RuntimeParameters))
+	for name, value := range runScheduleDefinition.RuntimeParameters {
+		parameters[name] = &aiplatformpb.Value{
+			Value: &aiplatformpb.Value_StringValue{
+				StringValue: value,
+			},
+		}
 	}
 
 	runIntent := RunIntent{
@@ -217,20 +221,46 @@ func (vaip VAIProvider) createSchedulerJobPb(providerConfig VAIProviderConfig, r
 		Artifacts:            runScheduleDefinition.Artifacts,
 	}
 
-	data, err := json.Marshal(runIntent)
+	// TODO migrate to non deprecated `ParameterValues` rather than `Parameters` below
+	pipelineJob := &aiplatformpb.PipelineJob{
+		Labels:         runLabelsFrom(runIntent),
+		TemplateUri:    providerConfig.pipelineUri(runIntent.PipelineName.Name, runIntent.PipelineVersion),
+		ServiceAccount: providerConfig.VaiJobServiceAccount,
+		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+			Parameters: parameters,
+		},
+	}
+
+	err := vaip.specFromTemplateUri(ctx, providerConfig, pipelineJob)
 	if err != nil {
 		return nil, err
 	}
 
-	return &schedulerpb.Job{
-		Name:     providerConfig.schedulerJobName(fmt.Sprintf("rc-%s", runScheduleDefinition.Name)),
-		Schedule: schedule.PrintStandard(),
-		Target: &schedulerpb.Job_PubsubTarget{
-			PubsubTarget: &schedulerpb.PubsubTarget{
-				TopicName: providerConfig.runIntentsTopicFullName(),
-				Data:      data,
-			},
+	return &aiplatformpb.Schedule_CreatePipelineJobRequest{
+		CreatePipelineJobRequest: &aiplatformpb.CreatePipelineJobRequest{
+			Parent:      providerConfig.parent(),
+			PipelineJob: pipelineJob,
 		},
+	}, nil
+}
+
+func (vaip VAIProvider) buildVaiSchedule(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.Schedule, error) {
+	cron, err := ParseCron(runScheduleDefinition.Schedule)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := vaip.buildVaiScheduleRequest(ctx, providerConfig, runScheduleDefinition)
+	if err != nil {
+		return nil, err
+	}
+
+	return &aiplatformpb.Schedule{
+		TimeSpecification:     &aiplatformpb.Schedule_Cron{Cron: cron.PrintStandard()},
+		Request:               request,
+		DisplayName:           fmt.Sprintf("rc-%s", runScheduleDefinition.Name),
+		MaxConcurrentRunCount: 3, // TODO configurable.
+		AllowQueueing:         true,
 	}, nil
 }
 
@@ -250,59 +280,64 @@ func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ stri
 }
 
 func (vaip VAIProvider) CreateRunSchedule(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (string, error) {
-	client, err := scheduler.NewCloudSchedulerClient(ctx)
+	pipelineClient, err := aiplatform.NewScheduleClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
+	if err != nil {
+		return "", err
+	}
+	defer pipelineClient.Close()
+
+	schedule, err := vaip.buildVaiSchedule(ctx, providerConfig, runScheduleDefinition)
 	if err != nil {
 		return "", err
 	}
 
-	jobPb, err := vaip.createSchedulerJobPb(providerConfig, runScheduleDefinition)
-	if err != nil {
-		return "", err
-	}
-
-	job, err := client.CreateJob(ctx, &schedulerpb.CreateJobRequest{
-		Parent: providerConfig.parent(),
-		Job:    jobPb,
+	createdSchedule, err := pipelineClient.CreateSchedule(ctx, &aiplatformpb.CreateScheduleRequest{
+		Parent:   providerConfig.parent(),
+		Schedule: schedule,
 	})
-
 	if err != nil {
 		return "", err
 	}
 
-	return job.Name, nil
+	return createdSchedule.Name, nil
 }
 
 func (vaip VAIProvider) UpdateRunSchedule(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, providerId string) (string, error) {
-	client, err := scheduler.NewCloudSchedulerClient(ctx)
+	if isLegacySchedule(providerConfig, providerId) {
+		err := vaip.DeleteLegacyRunSchedule(ctx, providerConfig, providerId)
+		if err != nil {
+			return "", err
+		}
+		return vaip.CreateRunSchedule(ctx, providerConfig, runScheduleDefinition)
+	}
+
+	pipelineClient, err := aiplatform.NewScheduleClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
+	if err != nil {
+		return "", err
+	}
+	defer pipelineClient.Close()
+
+	schedule, err := vaip.buildVaiSchedule(ctx, providerConfig, runScheduleDefinition)
 	if err != nil {
 		return "", err
 	}
 
-	jobPb, err := vaip.createSchedulerJobPb(providerConfig, runScheduleDefinition)
-	if err != nil {
-		return "", err
-	}
-
-	jobPb.Name = providerId
-
-	job, err := client.UpdateJob(ctx, &schedulerpb.UpdateJobRequest{
-		Job: jobPb,
+	updateSchedule, err := pipelineClient.UpdateSchedule(ctx, &aiplatformpb.UpdateScheduleRequest{
+		Schedule: schedule,
 		UpdateMask: &fieldmaskpb.FieldMask{
 			Paths: []string{
 				"schedule",
-				"pubsub_target.data",
 			},
 		},
 	})
-
 	if err != nil {
 		return "", err
 	}
 
-	return job.Name, nil
+	return updateSchedule.Name, nil
 }
 
-func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, _ VAIProviderConfig, providerId string) error {
+func (vaip VAIProvider) DeleteLegacyRunSchedule(ctx context.Context, _ VAIProviderConfig, providerId string) error {
 	client, err := scheduler.NewCloudSchedulerClient(ctx)
 	if err != nil {
 		return err
@@ -311,6 +346,31 @@ func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, _ VAIProviderConf
 	return client.DeleteJob(ctx, &schedulerpb.DeleteJobRequest{
 		Name: providerId,
 	})
+}
+
+func isLegacySchedule(providerConfig VAIProviderConfig, providerId string) bool {
+	return strings.HasPrefix(providerId, fmt.Sprintf("%s/%s", providerConfig.parent(), "jobs"))
+}
+
+func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, providerConfig VAIProviderConfig, providerId string) error {
+	if isLegacySchedule(providerConfig, providerId) {
+		return vaip.DeleteLegacyRunSchedule(ctx, providerConfig, providerId)
+	}
+
+	pipelineClient, err := aiplatform.NewScheduleClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
+	if err != nil {
+		return err
+	}
+	defer pipelineClient.Close()
+
+	deleteSchedule, err := pipelineClient.DeleteSchedule(ctx, &aiplatformpb.DeleteScheduleRequest{
+		Name: providerId,
+	})
+	if err != nil {
+		return err
+	}
+
+	return deleteSchedule.Wait(ctx)
 }
 
 func (vaip VAIProvider) CreateExperiment(_ context.Context, _ VAIProviderConfig, _ ExperimentDefinition) (string, error) {
