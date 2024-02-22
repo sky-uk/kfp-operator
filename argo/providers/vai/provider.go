@@ -249,7 +249,7 @@ func buildPipelineJob(ctx context.Context, providerConfig VAIProviderConfig, run
 }
 
 func (vaip VAIProvider) buildCreatePipelineJobRequest(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.Schedule_CreatePipelineJobRequest, error) {
-	pipelineJob, err := buildPipelineJob(ctx, providerConfig, runScheduleDefinition, vaip.specFromTemplateUri)
+	pipelineJob, err := buildPipelineJob(ctx, providerConfig, runScheduleDefinition, vaip.enrichJobWithSpecFromTemplateUri)
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +475,7 @@ func extractBucketAndObjectFromGCSPath(gcsPath string) (string, string, error) {
 	return matched[1], matched[2], nil
 }
 
-func (vaip VAIProvider) specFromTemplateUri(ctx context.Context, providerConfig VAIProviderConfig, job *aiplatformpb.PipelineJob) error {
+func (vaip VAIProvider) enrichJobWithSpecFromTemplateUri(ctx context.Context, providerConfig VAIProviderConfig, job *aiplatformpb.PipelineJob) error {
 	gcsClient, err := vaip.gcsClient(ctx, providerConfig)
 	raw := map[string]interface{}{}
 
@@ -549,7 +549,7 @@ func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProvide
 		},
 	}
 
-	err = vaip.specFromTemplateUri(ctx, providerConfig, pipelineJob)
+	err = vaip.enrichJobWithSpecFromTemplateUri(ctx, providerConfig, pipelineJob)
 	if err != nil {
 		return err
 	}
