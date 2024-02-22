@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/google/uuid"
+	pipelines_util "github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
@@ -221,13 +222,14 @@ func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ stri
 
 func buildPipelineJob(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, mutatePipelineJob func(context.Context, VAIProviderConfig, *aiplatformpb.PipelineJob) error) (*aiplatformpb.PipelineJob, error) {
 	parameters := make(map[string]*aiplatformpb.Value, len(runScheduleDefinition.RuntimeParameters))
-	for name, value := range runScheduleDefinition.RuntimeParameters {
-		parameters[name] = &aiplatformpb.Value{
+
+	parameters = pipelines_util.MapValues(runScheduleDefinition.RuntimeParameters, func(value string) *aiplatformpb.Value {
+		return &aiplatformpb.Value{
 			Value: &aiplatformpb.Value_StringValue{
 				StringValue: value,
 			},
 		}
-	}
+	})
 
 	// TODO migrate to non deprecated `ParameterValues` rather than `Parameters` below
 	pipelineJob := &aiplatformpb.PipelineJob{
