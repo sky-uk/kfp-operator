@@ -171,8 +171,7 @@ func MapValues[K comparable, V, W any](vs map[K]V, mapValueFn func(V) W) map[K]W
 	kws := make(map[K]W)
 
 	for name, value := range vs {
-		w := mapValueFn(value)
-		kws[name] = w
+		kws[name] = mapValueFn(value)
 	}
 
 	return kws

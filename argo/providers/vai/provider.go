@@ -76,59 +76,16 @@ type RunIntent struct {
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty"`
 }
 
-type VAIProviderConfig struct {
-	Name                                  string `yaml:"name"`
-	VaiProject                            string `yaml:"vaiProject"`
-	VaiLocation                           string `yaml:"vaiLocation"`
-	VaiJobServiceAccount                  string `yaml:"vaiJobServiceAccount"`
-	GcsEndpoint                           string `yaml:"gcsEndpoint"`
-	PipelineBucket                        string `yaml:"pipelineBucket"`
-	RunIntentsTopic                       string `yaml:"runIntentsTopic"`
-	RunsTopic                             string `yaml:"runsTopic"`
-	EventsourcePipelineEventsSubscription string `yaml:"eventsourcePipelineEventsSubscription"`
-	MaxConcurrentRunCount                 int    `yaml:"maxConcurrentRunCount"`
+func extractBucketAndObjectFromGCSPath(gcsPath string) (string, string, error) {
+	r := regexp.MustCompile(`gs://([^/]+)/(.+)`)
+	matched := r.FindStringSubmatch(gcsPath)
+	if len(matched) != 3 {
+		return "", "", errors.New(fmt.Sprintf("invalid gs URI [%s]", gcsPath))
+	}
+	return matched[1], matched[2], nil
 }
 
-func (vaipc VAIProviderConfig) vaiEndpoint() string {
-	return fmt.Sprintf("%s-aiplatform.googleapis.com:443", vaipc.VaiLocation)
-}
-
-func (vaipc VAIProviderConfig) parent() string {
-	return fmt.Sprintf(`projects/%s/locations/%s`, vaipc.VaiProject, vaipc.VaiLocation)
-}
-
-func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
-	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
-}
-
-func (vaipc VAIProviderConfig) schedulerJobName(name string) string {
-	return fmt.Sprintf("%s/jobs/%s", vaipc.parent(), name)
-}
-
-func (vaipc VAIProviderConfig) runIntentsTopicFullName() string {
-	return vaipc.topicFullName(vaipc.RunIntentsTopic)
-}
-
-func (vaipc VAIProviderConfig) topicFullName(topicName string) string {
-	return fmt.Sprintf("projects/%s/topics/%s", vaipc.VaiProject, topicName)
-}
-
-func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName string, pipelineVersion string) string {
-	return fmt.Sprintf("%s/%s", pipelineName, pipelineVersion)
-}
-
-func (vaipc VAIProviderConfig) gcsUri(bucket string, pathSegments ...string) string {
-	return fmt.Sprintf("gs://%s/%s", bucket, strings.Join(pathSegments, "/"))
-}
-
-func (vaipc VAIProviderConfig) pipelineUri(pipelineName string, pipelineVersion string) string {
-	return vaipc.gcsUri(vaipc.PipelineBucket, vaipc.pipelineStorageObject(pipelineName, pipelineVersion))
-}
-
-type VAIProvider struct {
-}
-
-func (vaip VAIProvider) gcsClient(ctx context.Context, providerConfig VAIProviderConfig) (*storage.Client, error) {
+func gcsClient(ctx context.Context, providerConfig VAIProviderConfig) (*storage.Client, error) {
 	var client *storage.Client
 	var err error
 	if providerConfig.GcsEndpoint != "" {
@@ -140,6 +97,62 @@ func (vaip VAIProvider) gcsClient(ctx context.Context, providerConfig VAIProvide
 	return client, err
 }
 
+func enrichJobWithSpecFromTemplateUri(ctx context.Context, providerConfig VAIProviderConfig, job *aiplatformpb.PipelineJob) error {
+	gcsClient, err := gcsClient(ctx, providerConfig)
+	if err != nil {
+		return err
+	}
+
+	raw := map[string]interface{}{}
+
+	gcsBucket, gcsPath, err := extractBucketAndObjectFromGCSPath(job.TemplateUri)
+	if err != nil {
+		return err
+	}
+
+	reader, err := gcsClient.Bucket(gcsBucket).Object(gcsPath).NewReader(ctx)
+	if err != nil {
+		return err
+	}
+
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(reader)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(buf.Bytes(), &raw)
+	if err != nil {
+		return err
+	}
+
+	pipelineSpec, err := structpb.NewStruct(raw["pipelineSpec"].(map[string]interface{}))
+	if err != nil {
+		return err
+	}
+	job.PipelineSpec = pipelineSpec
+
+	displayName := raw["displayName"].(string)
+	job.DisplayName = displayName
+
+	labels := raw["labels"].(map[string]interface{})
+	if job.Labels == nil {
+		job.Labels = map[string]string{}
+	}
+	for k, v := range labels {
+		job.Labels[k] = v.(string)
+	}
+
+	gcsOutputDirectory := raw["runtimeConfig"].(map[string]interface{})["gcsOutputDirectory"].(string)
+
+	job.RuntimeConfig.GcsOutputDirectory = gcsOutputDirectory
+
+	return nil
+}
+
+type VAIProvider struct {
+}
+
 func (vaip VAIProvider) CreatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, pipelineFile string) (string, error) {
 	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, pipelineDefinition.Name, pipelineFile); err != nil {
 		return "", err
@@ -149,7 +162,7 @@ func (vaip VAIProvider) CreatePipeline(ctx context.Context, providerConfig VAIPr
 }
 
 func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
-	client, err := vaip.gcsClient(ctx, providerConfig)
+	client, err := gcsClient(ctx, providerConfig)
 	if err != nil {
 		return id, err
 	}
@@ -179,7 +192,7 @@ func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIPr
 }
 
 func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIProviderConfig, id string) error {
-	client, err := vaip.gcsClient(ctx, providerConfig)
+	client, err := gcsClient(ctx, providerConfig)
 	if err != nil {
 		return err
 	}
@@ -189,7 +202,7 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	it := client.Bucket(providerConfig.PipelineBucket).Objects(ctx, query)
 	for {
 		attrs, err := it.Next()
-		if err == iterator.Done {
+		if errors.Is(err, iterator.Done) {
 			break
 		}
 		if err != nil {
@@ -206,21 +219,23 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 }
 
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
-	return vaip.EnqueueRun(ctx, providerConfig, RunIntent{
-		PipelineName:         runDefinition.PipelineName,
-		PipelineVersion:      runDefinition.PipelineVersion,
-		RuntimeParameters:    runDefinition.RuntimeParameters,
-		RunName:              runDefinition.Name,
-		RunConfigurationName: runDefinition.RunConfigurationName,
-		Artifacts:            runDefinition.Artifacts,
-	})
+	runId := runDefinition.Name.Name
+	run := VAIRun{
+		RunId:             runId,
+		Labels:            runLabelsFromRunDefinition(runDefinition),
+		PipelineUri:       providerConfig.pipelineUri(runDefinition.PipelineName.Name, runDefinition.PipelineVersion),
+		RuntimeParameters: runDefinition.RuntimeParameters,
+		Artifacts:         runDefinition.Artifacts,
+	}
+
+	return runId, vaip.SubmitRun(ctx, providerConfig, run)
 }
 
 func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ string) error {
 	return nil
 }
 
-func buildPipelineJob(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, mutatePipelineJob func(context.Context, VAIProviderConfig, *aiplatformpb.PipelineJob) error) (*aiplatformpb.PipelineJob, error) {
+func (vaip VAIProvider) buildPipelineJob(providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.PipelineJob, error) {
 	parameters := make(map[string]*aiplatformpb.Value, len(runScheduleDefinition.RuntimeParameters))
 
 	parameters = pipelines_util.MapValues(runScheduleDefinition.RuntimeParameters, func(value string) *aiplatformpb.Value {
@@ -241,45 +256,40 @@ func buildPipelineJob(ctx context.Context, providerConfig VAIProviderConfig, run
 		},
 	}
 
-	if err := mutatePipelineJob(ctx, providerConfig, pipelineJob); err != nil {
-		return nil, err
-	}
-
 	return pipelineJob, nil
 }
 
-func (vaip VAIProvider) buildCreatePipelineJobRequest(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.Schedule_CreatePipelineJobRequest, error) {
-	pipelineJob, err := buildPipelineJob(ctx, providerConfig, runScheduleDefinition, vaip.enrichJobWithSpecFromTemplateUri)
-	if err != nil {
-		return nil, err
-	}
-
-	return &aiplatformpb.Schedule_CreatePipelineJobRequest{
-		CreatePipelineJobRequest: &aiplatformpb.CreatePipelineJobRequest{
-			Parent:      providerConfig.parent(),
-			PipelineJob: pipelineJob,
-		},
-	}, nil
-}
-
-func (vaip VAIProvider) buildVaiSchedule(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, buildPipelineJob func(context.Context, VAIProviderConfig, RunScheduleDefinition) (*aiplatformpb.Schedule_CreatePipelineJobRequest, error)) (*aiplatformpb.Schedule, error) {
+func (vaip VAIProvider) buildVaiScheduleFromPipelineJob(providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, pipelineJob *aiplatformpb.PipelineJob) (*aiplatformpb.Schedule, error) {
 	cron, err := ParseCron(runScheduleDefinition.Schedule)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := buildPipelineJob(ctx, providerConfig, runScheduleDefinition)
+	return &aiplatformpb.Schedule{
+		TimeSpecification: &aiplatformpb.Schedule_Cron{Cron: cron.PrintStandard()},
+		Request: &aiplatformpb.Schedule_CreatePipelineJobRequest{
+			CreatePipelineJobRequest: &aiplatformpb.CreatePipelineJobRequest{
+				Parent:      providerConfig.parent(),
+				PipelineJob: pipelineJob,
+			},
+		},
+		DisplayName:           fmt.Sprintf("rc-%s", runScheduleDefinition.Name),
+		MaxConcurrentRunCount: providerConfig.getMaxConcurrentRunCount(),
+		AllowQueueing:         true,
+	}, nil
+}
+
+func (vaip VAIProvider) buildAndEnrichPipelineJob(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.PipelineJob, error) {
+	pipelineJob, err := vaip.buildPipelineJob(providerConfig, runScheduleDefinition)
 	if err != nil {
 		return nil, err
 	}
 
-	return &aiplatformpb.Schedule{
-		TimeSpecification:     &aiplatformpb.Schedule_Cron{Cron: cron.PrintStandard()},
-		Request:               request,
-		DisplayName:           fmt.Sprintf("rc-%s", runScheduleDefinition.Name),
-		MaxConcurrentRunCount: int64(providerConfig.MaxConcurrentRunCount),
-		AllowQueueing:         true,
-	}, nil
+	if err := enrichJobWithSpecFromTemplateUri(ctx, providerConfig, pipelineJob); err != nil {
+		return nil, err
+	}
+
+	return pipelineJob, nil
 }
 
 func (vaip VAIProvider) CreateRunSchedule(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (string, error) {
@@ -289,7 +299,12 @@ func (vaip VAIProvider) CreateRunSchedule(ctx context.Context, providerConfig VA
 	}
 	defer pipelineClient.Close()
 
-	schedule, err := vaip.buildVaiSchedule(ctx, providerConfig, runScheduleDefinition, vaip.buildCreatePipelineJobRequest)
+	pipelineJob, err := vaip.buildAndEnrichPipelineJob(ctx, providerConfig, runScheduleDefinition)
+	if err != nil {
+		return "", err
+	}
+
+	schedule, err := vaip.buildVaiScheduleFromPipelineJob(providerConfig, runScheduleDefinition, pipelineJob)
 	if err != nil {
 		return "", err
 	}
@@ -320,7 +335,12 @@ func (vaip VAIProvider) UpdateRunSchedule(ctx context.Context, providerConfig VA
 	}
 	defer pipelineClient.Close()
 
-	schedule, err := vaip.buildVaiSchedule(ctx, providerConfig, runScheduleDefinition, vaip.buildCreatePipelineJobRequest)
+	pipelineJob, err := vaip.buildAndEnrichPipelineJob(ctx, providerConfig, runScheduleDefinition)
+	if err != nil {
+		return "", err
+	}
+
+	schedule, err := vaip.buildVaiScheduleFromPipelineJob(providerConfig, runScheduleDefinition, pipelineJob)
 	if err != nil {
 		return "", err
 	}
@@ -340,14 +360,14 @@ func (vaip VAIProvider) UpdateRunSchedule(ctx context.Context, providerConfig VA
 	return updateSchedule.Name, nil
 }
 
-func (vaip VAIProvider) DeleteLegacyRunSchedule(ctx context.Context, _ VAIProviderConfig, providerId string) error {
+func (vaip VAIProvider) DeleteLegacyRunSchedule(ctx context.Context, _ VAIProviderConfig, scheduleId string) error {
 	client, err := scheduler.NewCloudSchedulerClient(ctx)
 	if err != nil {
 		return err
 	}
 
 	return client.DeleteJob(ctx, &schedulerpb.DeleteJobRequest{
-		Name: providerId,
+		Name: scheduleId,
 	})
 }
 
@@ -419,17 +439,17 @@ func runLabelsFromSchedule(runScheduleDefinition RunScheduleDefinition) map[stri
 	return runLabels
 }
 
-func runLabelsFromRun(runIntent RunIntent) map[string]string {
-	runLabels := runLabelsFromPipeline(runIntent.PipelineName, runIntent.PipelineVersion)
+func runLabelsFromRunDefinition(runDefinition RunDefinition) map[string]string {
+	runLabels := runLabelsFromPipeline(runDefinition.PipelineName, runDefinition.PipelineVersion)
 
-	if !runIntent.RunConfigurationName.Empty() {
-		runLabels[labels.RunConfigurationName] = runIntent.RunConfigurationName.Name
-		runLabels[labels.RunConfigurationNamespace] = runIntent.RunConfigurationName.Namespace
+	if !runDefinition.RunConfigurationName.Empty() {
+		runLabels[labels.RunConfigurationName] = runDefinition.RunConfigurationName.Name
+		runLabels[labels.RunConfigurationNamespace] = runDefinition.RunConfigurationName.Namespace
 	}
 
-	if !runIntent.RunName.Empty() {
-		runLabels[labels.RunName] = runIntent.RunName.Name
-		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
+	if !runDefinition.Name.Empty() {
+		runLabels[labels.RunName] = runDefinition.Name.Name
+		runLabels[labels.RunNamespace] = runDefinition.Name.Namespace
 	}
 
 	return runLabels
@@ -444,10 +464,22 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	topic := pubsubClient.Topic(providerConfig.RunsTopic)
 	defer topic.Stop()
 
+	runLabels := runLabelsFromPipeline(runIntent.PipelineName, runIntent.PipelineVersion)
+
+	if !runIntent.RunConfigurationName.Empty() {
+		runLabels[labels.RunConfigurationName] = runIntent.RunConfigurationName.Name
+		runLabels[labels.RunConfigurationNamespace] = runIntent.RunConfigurationName.Namespace
+	}
+
+	if !runIntent.RunName.Empty() {
+		runLabels[labels.RunName] = runIntent.RunName.Name
+		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
+	}
+
 	vaiRun := VAIRun{
 		RunId:             generateRunId(runIntent),
 		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName.Name, runIntent.PipelineVersion),
-		Labels:            runLabelsFromRun(runIntent),
+		Labels:            runLabels,
 		RuntimeParameters: runIntent.RuntimeParameters,
 		Artifacts:         runIntent.Artifacts,
 	}
@@ -464,64 +496,6 @@ func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProvid
 	}
 
 	return vaiRun.RunId, nil
-}
-
-func extractBucketAndObjectFromGCSPath(gcsPath string) (string, string, error) {
-	r := regexp.MustCompile(`gs://([^/]+)/(.+)`)
-	matched := r.FindStringSubmatch(gcsPath)
-	if len(matched) < 3 {
-		return "", "", errors.New(fmt.Sprintf("invalid gs URI %s", gcsPath))
-	}
-	return matched[1], matched[2], nil
-}
-
-func (vaip VAIProvider) enrichJobWithSpecFromTemplateUri(ctx context.Context, providerConfig VAIProviderConfig, job *aiplatformpb.PipelineJob) error {
-	gcsClient, err := vaip.gcsClient(ctx, providerConfig)
-	raw := map[string]interface{}{}
-
-	gcsBucket, gcsPath, err := extractBucketAndObjectFromGCSPath(job.TemplateUri)
-	if err != nil {
-		return err
-	}
-
-	reader, err := gcsClient.Bucket(gcsBucket).Object(gcsPath).NewReader(ctx)
-	if err != nil {
-		return err
-	}
-
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(reader)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(buf.Bytes(), &raw)
-	if err != nil {
-		return err
-	}
-
-	pipelineSpec, err := structpb.NewStruct(raw["pipelineSpec"].(map[string]interface{}))
-	if err != nil {
-		return err
-	}
-	job.PipelineSpec = pipelineSpec
-
-	displayName := raw["displayName"].(string)
-	job.DisplayName = displayName
-
-	labels := raw["labels"].(map[string]interface{})
-	if job.Labels == nil {
-		job.Labels = map[string]string{}
-	}
-	for k, v := range labels {
-		job.Labels[k] = v.(string)
-	}
-
-	gcsOutputDirectory := raw["runtimeConfig"].(map[string]interface{})["gcsOutputDirectory"].(string)
-
-	job.RuntimeConfig.GcsOutputDirectory = gcsOutputDirectory
-
-	return nil
 }
 
 func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProviderConfig, vaiRun VAIRun) error {
@@ -549,7 +523,7 @@ func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProvide
 		},
 	}
 
-	err = vaip.enrichJobWithSpecFromTemplateUri(ctx, providerConfig, pipelineJob)
+	err = enrichJobWithSpecFromTemplateUri(ctx, providerConfig, pipelineJob)
 	if err != nil {
 		return err
 	}

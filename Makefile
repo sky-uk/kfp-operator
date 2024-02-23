@@ -192,7 +192,7 @@ docker-build-argo:
 
 docker-push-argo:
 	$(MAKE) -C argo/status-updater docker-push
-	#$(MAKE) -C argo/kfp-compiler docker-push
+	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/providers docker-push
 
 ##@ Docs

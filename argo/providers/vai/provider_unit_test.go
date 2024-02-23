@@ -4,19 +4,21 @@ package vai
 
 import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"context"
 	"errors"
 	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
-func randomBasicRunIntent() RunIntent {
-	return RunIntent{
-		PipelineName:    common.RandomNamespacedName(),
-		PipelineVersion: common.RandomString(),
+func randomBasicRunDefinition() RunDefinition {
+	return RunDefinition{
+		Name:                 common.RandomNamespacedName(),
+		PipelineName:         common.RandomNamespacedName(),
+		PipelineVersion:      common.RandomString(),
+		RunConfigurationName: common.RandomNamespacedName(),
 	}
 }
 
@@ -34,14 +36,31 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 
 func randomVAIProviderConfig() VAIProviderConfig {
 	return VAIProviderConfig{
-		PipelineBucket: common.RandomString(),
-		VaiProject:     common.RandomString(),
-		VaiLocation:    common.RandomString(),
+		PipelineBucket:        common.RandomString(),
+		VaiProject:            common.RandomString(),
+		VaiLocation:           common.RandomString(),
+		MaxConcurrentRunCount: common.RandomInt64(),
 	}
 }
 
 var _ = Context("VAI Provider", func() {
-	ctx := context.Background()
+
+	DescribeTable("extractBucketAndObjectFromGCSPath", func(in string, expectedBucket string, expectedPath string, expectedErr error) {
+		actualBucket, actualPath, actualError := extractBucketAndObjectFromGCSPath(in)
+		Expect(actualBucket).To(Equal(expectedBucket))
+		Expect(actualPath).To(Equal(expectedPath))
+		if expectedErr != nil {
+			Expect(actualError).To(Equal(expectedErr))
+		} else {
+			Expect(actualError).ToNot(HaveOccurred())
+		}
+	}, Entry("", "", "", "", errors.New("invalid gs URI []")),
+		Entry("", "not valid", "", "", errors.New("invalid gs URI [not valid]")),
+		Entry("", "gs://", "", "", errors.New("invalid gs URI [gs://]")),
+		Entry("", "gs://bucket", "", "", errors.New("invalid gs URI [gs://bucket]")),
+		Entry("", "gs://bucket/path", "bucket", "path", nil),
+		Entry("", "gs://bucket/path/still-path/more", "bucket", "path/still-path/more", nil),
+	)
 
 	Describe("runLabelsFromSchedule", func() {
 		It("generates run labels without RunConfigurationName or RunName", func() {
@@ -71,10 +90,10 @@ var _ = Context("VAI Provider", func() {
 		})
 
 		It("replaces fullstops with dashes in pipelineVersion", func() {
-			input := randomBasicRunIntent()
+			input := randomBasicRunDefinition()
 			input.PipelineVersion = "0.4.0"
 
-			runLabels := runLabelsFromRun(input)
+			runLabels := runLabelsFromRunDefinition(input)
 
 			Expect(runLabels[labels.PipelineVersion]).To(Equal("0-4-0"))
 		})
@@ -82,75 +101,51 @@ var _ = Context("VAI Provider", func() {
 
 	Describe("runLabelsFromRun", func() {
 		It("generates run labels with RunName", func() {
-			input := randomBasicRunIntent()
-			input.RunName = common.RandomNamespacedName()
+			input := randomBasicRunDefinition()
+			input.RunConfigurationName = common.NamespacedName{}
 
-			runLabels := runLabelsFromRun(input)
+			runLabels := runLabelsFromRunDefinition(input)
 
-			Expect(runLabels[labels.RunName]).To(Equal(input.RunName.Name))
-			Expect(runLabels[labels.RunNamespace]).To(Equal(input.RunName.Namespace))
+			Expect(runLabels[labels.RunName]).To(Equal(input.Name.Name))
+			Expect(runLabels[labels.RunNamespace]).To(Equal(input.Name.Namespace))
 			Expect(runLabels).NotTo(HaveKey(labels.RunConfigurationName))
 			Expect(runLabels).NotTo(HaveKey(labels.RunConfigurationNamespace))
 		})
 
 		It("generates run labels with RunConfigurationName and RunName", func() {
-			input := randomBasicRunIntent()
-			input.RunConfigurationName = common.RandomNamespacedName()
-			input.RunName = common.RandomNamespacedName()
+			input := randomBasicRunDefinition()
 
-			runLabels := runLabelsFromRun(input)
+			runLabels := runLabelsFromRunDefinition(input)
 
 			Expect(runLabels[labels.RunConfigurationName]).To(Equal(input.RunConfigurationName.Name))
 			Expect(runLabels[labels.RunConfigurationNamespace]).To(Equal(input.RunConfigurationName.Namespace))
-			Expect(runLabels[labels.RunName]).To(Equal(input.RunName.Name))
-			Expect(runLabels[labels.RunNamespace]).To(Equal(input.RunName.Namespace))
+			Expect(runLabels[labels.RunName]).To(Equal(input.Name.Name))
+			Expect(runLabels[labels.RunNamespace]).To(Equal(input.Name.Namespace))
 		})
 
 		It("replaces fullstops with dashes in pipelineVersion", func() {
-			input := randomBasicRunIntent()
+			input := randomBasicRunDefinition()
 			input.PipelineVersion = "0.4.0"
 
-			runLabels := runLabelsFromRun(input)
+			runLabels := runLabelsFromRunDefinition(input)
 
 			Expect(runLabels[labels.PipelineVersion]).To(Equal("0-4-0"))
 		})
 	})
 
-	Describe("isLegacySchedule", func() {
-		It("return true for a cloud scheduler job", func() {
-			providerConfig := VAIProviderConfig{
-				VaiProject:  common.RandomString(),
-				VaiLocation: common.RandomString(),
-			}
+	providerConfig := randomVAIProviderConfig()
+	DescribeTable("isLegacySchedule", func(scheduleId string, expected types.GomegaMatcher) {
+		Expect(isLegacySchedule(providerConfig, scheduleId)).To(expected)
+	},
+		Entry("", fmt.Sprintf("projects/%s/locations/%s/jobs/%s", providerConfig.VaiProject, providerConfig.VaiLocation, common.RandomString()), BeTrue()),
+		Entry("", fmt.Sprintf("projects/%s/locations/%s/schedules/%s", providerConfig.VaiProject, providerConfig.VaiLocation, common.RandomString()), BeFalse()),
+		Entry("", common.RandomString(), BeFalse()),
+	)
 
-			legacyScheduleId := fmt.Sprintf("projects/%s/locations/%s/jobs/%s", providerConfig.VaiProject, providerConfig.VaiLocation, common.RandomString())
-
-			Expect(isLegacySchedule(providerConfig, legacyScheduleId)).To(BeTrue())
-		})
-
-		It("return false for a vai scheduler job", func() {
-			providerConfig := VAIProviderConfig{
-				VaiProject:  common.RandomString(),
-				VaiLocation: common.RandomString(),
-			}
-
-			scheduleId := fmt.Sprintf("projects/%s/locations/%s/schedules/%s", providerConfig.VaiProject, providerConfig.VaiLocation, common.RandomString())
-
-			Expect(isLegacySchedule(providerConfig, scheduleId)).To(BeFalse())
-		})
-	})
+	vaiProvider := VAIProvider{}
 
 	Describe("buildVaiSchedule", func() {
-		vaiProvider := VAIProvider{}
-		dummyPipelineJobRequest := &aiplatformpb.Schedule_CreatePipelineJobRequest{}
-
-		stubBuildPipelineJob := func(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.Schedule_CreatePipelineJobRequest, error) {
-			return dummyPipelineJobRequest, nil
-		}
-
-		failBuildPipelineJob := func(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.Schedule_CreatePipelineJobRequest, error) {
-			return nil, errors.New("failed to create pipeline job request object")
-		}
+		emptyPipelineJob := aiplatformpb.PipelineJob{}
 
 		It("returns schedule with fields all set as expected", func() {
 			providerConfig := randomVAIProviderConfig()
@@ -159,11 +154,10 @@ var _ = Context("VAI Provider", func() {
 			expectedCron := "1 2 * 1 2"
 			runScheduleDefinition.Schedule = expectedCron
 
-			schedule, err := vaiProvider.buildVaiSchedule(ctx, providerConfig, runScheduleDefinition, stubBuildPipelineJob)
+			schedule, err := vaiProvider.buildVaiScheduleFromPipelineJob(providerConfig, runScheduleDefinition, &emptyPipelineJob)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(schedule.TimeSpecification).To(Equal(&aiplatformpb.Schedule_Cron{Cron: expectedCron}))
-			Expect(schedule.Request).To(Equal(dummyPipelineJobRequest))
-			Expect(schedule.MaxConcurrentRunCount).To(Equal(int64(providerConfig.MaxConcurrentRunCount)))
+			Expect(schedule.MaxConcurrentRunCount).To(Equal(providerConfig.getMaxConcurrentRunCount()))
 			Expect(schedule.DisplayName).To(HavePrefix("rc-"))
 		})
 
@@ -174,29 +168,12 @@ var _ = Context("VAI Provider", func() {
 			expectedCron := "invalid cron"
 			runScheduleDefinition.Schedule = expectedCron
 
-			_, err := vaiProvider.buildVaiSchedule(ctx, providerConfig, runScheduleDefinition, stubBuildPipelineJob)
-			Expect(err).To(HaveOccurred())
-		})
-
-		It("returns error if building pipeline job fails", func() {
-			providerConfig := randomVAIProviderConfig()
-			runScheduleDefinition := randomRunScheduleDefinition()
-
-			_, err := vaiProvider.buildVaiSchedule(ctx, providerConfig, runScheduleDefinition, failBuildPipelineJob)
+			_, err := vaiProvider.buildVaiScheduleFromPipelineJob(providerConfig, runScheduleDefinition, &emptyPipelineJob)
 			Expect(err).To(HaveOccurred())
 		})
 	})
 
 	Describe("buildPipelineJob", func() {
-		newJobName := "new pipeline job name"
-		mutateJob := func(ctx context.Context, config VAIProviderConfig, pipelineJob *aiplatformpb.PipelineJob) error {
-			pipelineJob.Name = newJobName
-			return nil
-		}
-
-		failMutateJob := func(ctx context.Context, config VAIProviderConfig, pipelineJob *aiplatformpb.PipelineJob) error {
-			return errors.New("failed to mutate job")
-		}
 
 		It("should populate runtime config from run schedule parameters", func() {
 			providerConfig := randomVAIProviderConfig()
@@ -208,18 +185,24 @@ var _ = Context("VAI Provider", func() {
 			}
 			runScheduleDefinition.RuntimeParameters = inputParams
 
-			job, err := buildPipelineJob(ctx, providerConfig, runScheduleDefinition, mutateJob)
+			job, err := vaiProvider.buildPipelineJob(providerConfig, runScheduleDefinition)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(job.Name).To(Equal(newJobName))
 			Expect(len(job.RuntimeConfig.Parameters)).To(Equal(3))
-		})
-
-		It("returns error on failing to mutate job", func() {
-			providerConfig := randomVAIProviderConfig()
-			runScheduleDefinition := randomRunScheduleDefinition()
-
-			_, err := buildPipelineJob(ctx, providerConfig, runScheduleDefinition, failMutateJob)
-			Expect(err).To(HaveOccurred())
+			Expect(job.RuntimeConfig.Parameters["name1"]).To(Equal(&aiplatformpb.Value{
+				Value: &aiplatformpb.Value_StringValue{
+					StringValue: "value1",
+				},
+			}))
+			Expect(job.RuntimeConfig.Parameters["name2"]).To(Equal(&aiplatformpb.Value{
+				Value: &aiplatformpb.Value_StringValue{
+					StringValue: "value2",
+				},
+			}))
+			Expect(job.RuntimeConfig.Parameters["name3"]).To(Equal(&aiplatformpb.Value{
+				Value: &aiplatformpb.Value_StringValue{
+					StringValue: "value3",
+				},
+			}))
 		})
 	})
 })

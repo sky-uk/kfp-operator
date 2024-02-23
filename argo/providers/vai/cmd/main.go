@@ -9,6 +9,7 @@ import (
 func main() {
 	app := NewProviderApp[vai.VAIProviderConfig]()
 	provider := vai.VAIProvider{}
+
 	app.Run(provider, cli.Command{
 		Name: "vai-run",
 		Subcommands: []cli.Command{
