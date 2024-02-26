@@ -274,7 +274,7 @@ func (vaip VAIProvider) buildVaiScheduleFromPipelineJob(providerConfig VAIProvid
 			},
 		},
 		DisplayName:           fmt.Sprintf("rc-%s", runScheduleDefinition.Name),
-		MaxConcurrentRunCount: providerConfig.getMaxConcurrentRunCount(),
+		MaxConcurrentRunCount: providerConfig.getMaxConcurrentRunCountOrDefault(),
 		AllowQueueing:         true,
 	}, nil
 }

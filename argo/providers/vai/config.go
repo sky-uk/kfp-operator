@@ -54,7 +54,7 @@ func (vaipc VAIProviderConfig) pipelineUri(pipelineName string, pipelineVersion 
 	return vaipc.gcsUri(vaipc.PipelineBucket, vaipc.pipelineStorageObject(pipelineName, pipelineVersion))
 }
 
-func (vaipc VAIProviderConfig) getMaxConcurrentRunCount() int64 {
+func (vaipc VAIProviderConfig) getMaxConcurrentRunCountOrDefault() int64 {
 	const DefaultMaxConcurrentRunCount = 10
 	if vaipc.MaxConcurrentRunCount <= 0 {
 		return DefaultMaxConcurrentRunCount

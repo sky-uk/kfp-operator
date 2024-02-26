@@ -157,7 +157,7 @@ var _ = Context("VAI Provider", func() {
 			schedule, err := vaiProvider.buildVaiScheduleFromPipelineJob(providerConfig, runScheduleDefinition, &emptyPipelineJob)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(schedule.TimeSpecification).To(Equal(&aiplatformpb.Schedule_Cron{Cron: expectedCron}))
-			Expect(schedule.MaxConcurrentRunCount).To(Equal(providerConfig.getMaxConcurrentRunCount()))
+			Expect(schedule.MaxConcurrentRunCount).To(Equal(providerConfig.getMaxConcurrentRunCountOrDefault()))
 			Expect(schedule.DisplayName).To(HavePrefix("rc-"))
 		})
 
