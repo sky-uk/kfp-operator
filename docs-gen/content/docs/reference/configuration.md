@@ -94,6 +94,10 @@ The configured `serviceAccount` needs to have [workload identity](https://cloud.
   - `projects.subscriptions.pull` from the configured `enqueuerRunIntentsSubscription`, `submitterRunsSubscription` and `eventsourceRunsSubscription`<sup>*</sup> subscriptions
   - `aiplatform.pipelineJobs.create`
   - `aiplatform.pipelineJobs.get`<sup>*</sup>
+  - `aiplatform.schedules.get`
+  - `aiplatform.schedules.create`
+  - `aiplatform.schedules.delete`
+  - `aiplatform.schedules.update`
   - `iam.serviceAccounts.actAs` the configured `vaiJobServiceAccount` Vertex AI Job Runner
 
 <sup>*</sup> fields only needed if the operator is installed with [eventing support](../../getting-started/overview/#eventing-support)
