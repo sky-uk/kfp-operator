@@ -246,7 +246,7 @@ func (vaip VAIProvider) buildPipelineJob(providerConfig VAIProviderConfig, runSc
 		}
 	})
 
-	// TODO migrate to non deprecated `ParameterValues` rather than `Parameters` below
+	// Note: unable to migrate from `Parameters` to `ParameterValues` at this point as `PipelineJob.pipeline_spec.schema_version` used by TFX is 2.0.0 see deprecated comment
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromSchedule(runScheduleDefinition),
 		TemplateUri:    providerConfig.pipelineUri(runScheduleDefinition.PipelineName.Name, runScheduleDefinition.PipelineVersion),
