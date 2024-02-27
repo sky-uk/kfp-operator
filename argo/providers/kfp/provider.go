@@ -380,8 +380,8 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpPr
 	}
 
 	return &KfpEventingServer{
+		K8sApi:         NewK8sApi(k8sClient),
 		ProviderConfig: providerConfig,
-		K8sClient:      k8sClient,
 		Logger:         common.LoggerFromContext(ctx),
 		MetadataStore:  metadataStore,
 		KfpApi:         kfpApi,

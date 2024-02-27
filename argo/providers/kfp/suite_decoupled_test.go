@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -172,7 +173,7 @@ var _ = BeforeSuite(func() {
 	server = grpc.NewServer()
 
 	generic.RegisterEventingServer(server, &KfpEventingServer{
-		K8sClient:     k8sClient,
+		K8sApi:        base.NewK8sApi(k8sClient),
 		Logger:        logr.Discard(),
 		MetadataStore: &mockMetadataStore,
 		KfpApi:        &mockKfpApi,

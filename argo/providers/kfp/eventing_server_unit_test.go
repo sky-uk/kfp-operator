@@ -11,7 +11,11 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/dynamic/fake"
 )
 
 func setWorkflowPhase(workflow *unstructured.Unstructured, phase argo.WorkflowPhase) {
@@ -32,6 +36,14 @@ func setPipelineNameInSpec(workflow *unstructured.Unstructured, pipelineName str
 	workflow.SetAnnotations(map[string]string{
 		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
 	})
+}
+
+type MockK8sGetResource struct{}
+
+func (mock MockK8sGetResource) GetNamespaceResource(_ dynamic.Interface, gvr schema.GroupVersionResource, namespace string) dynamic.ResourceInterface {
+	println(fmt.Sprintf("HELLLLLLLLOOOOOOO %+v %s", gvr, namespace))
+	fakeMe := &fake.FakeDynamicClient{}
+	return fakeMe.Resource(gvr)
 }
 
 var _ = Context("Eventing Server", func() {
@@ -241,9 +253,12 @@ var _ = Context("Eventing Server", func() {
 		mockKfpApi := MockKfpApi{}
 
 		eventingServer := KfpEventingServer{
-			Logger:        logr.Discard(),
+			K8sApi: base.K8sApi{
+				K8sGetResource: MockK8sGetResource{},
+			},
 			MetadataStore: &mockMetadataStore,
 			KfpApi:        &mockKfpApi,
+			Logger:        logr.Discard(),
 		}
 
 		artifacts := mockMetadataStore.returnArtifactForPipeline()

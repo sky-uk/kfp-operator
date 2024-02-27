@@ -3,12 +3,14 @@ package kfp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -16,7 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/tools/cache"
@@ -45,8 +46,8 @@ type KfpEventSourceConfig struct {
 
 type KfpEventingServer struct {
 	generic.UnimplementedEventingServer
+	base.K8sApi
 	ProviderConfig KfpProviderConfig
-	K8sClient      dynamic.Interface
 	MetadataStore  MetadataStore
 	KfpApi         KfpApi
 	Logger         logr.Logger
@@ -158,7 +159,8 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 		patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-		_, err = es.K8sClient.Resource(argoWorkflowsGvr).Namespace(workflow.GetNamespace()).Patch(ctx, workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+
+		_, err = es.GetNamespaceResource(es.K8sClient, argoWorkflowsGvr, workflow.GetNamespace()).Patch(ctx, workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 		if err != nil {
 			es.Logger.Error(err, "failed to patch resource")
 			return
@@ -169,6 +171,19 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 	sharedInformer.Run(ctx.Done())
 
 	return nil
+}
+
+func gvrAndNamespacedNameForResourceReferences(runResourceReferences ResourceReferences) (schema.GroupVersionResource, types.NamespacedName, error) {
+
+	if !runResourceReferences.RunConfigurationName.Empty() {
+		return base.RunConfigurationGVR, types.NamespacedName{Name: runResourceReferences.RunConfigurationName.Name, Namespace: runResourceReferences.RunConfigurationName.Namespace}, nil
+	}
+
+	if !runResourceReferences.RunName.Empty() {
+		return base.RunGVR, types.NamespacedName{Name: runResourceReferences.RunName.Name, Namespace: runResourceReferences.RunName.Namespace}, nil
+	}
+
+	return schema.GroupVersionResource{}, types.NamespacedName{}, errors.New("neither RunConfigurationName or RunName provided in resource reference")
 }
 
 func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEvent, error) {
@@ -204,6 +219,26 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 		resourceReferences.PipelineName.Name = pipelineName
 	}
 
+	gvr, namespacedName, err := gvrAndNamespacedNameForResourceReferences(resourceReferences)
+	if err != nil {
+		es.Logger.Error(err, "failed to get gvr and namespace from resource references")
+		return nil, err
+	}
+
+	artifactDefs, err := es.GetRunArtifactDefinitions(ctx, namespacedName, gvr)
+	if err != nil {
+		es.Logger.Error(err, "failed to retrieve artifacts from resource definition")
+		return nil, err
+	}
+
+	// TODO dont want to do this I dont think as internally getting model artifacts again.
+	// TODO also want to refactor as GetArtifacts here and vai version very similar.
+	artifacts, err := es.MetadataStore.GetArtifacts(ctx, workflowName, artifactDefs)
+	if err != nil {
+		es.Logger.Error(err, "failed to retrieve artifacts")
+		return nil, err
+	}
+
 	return &common.RunCompletionEvent{
 		Status:                status,
 		PipelineName:          resourceReferences.PipelineName,
@@ -211,6 +246,7 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 		RunName:               resourceReferences.RunName.NonEmptyPtr(),
 		RunId:                 runId,
 		ServingModelArtifacts: modelArtifacts,
+		Artifacts:             artifacts,
 	}, nil
 }
 

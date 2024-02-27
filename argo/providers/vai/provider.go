@@ -560,7 +560,7 @@ func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIPr
 	}
 
 	return &VaiEventingServer{
-		K8sApi:            K8sApi{K8sClient: k8sClient},
+		K8sApi:            NewK8sApi(k8sClient),
 		ProviderConfig:    providerConfig,
 		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,
