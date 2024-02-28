@@ -4,6 +4,7 @@ package pipelines
 
 import (
 	"errors"
+	"fmt"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -200,6 +201,16 @@ var _ = Context("Utils", func() {
 		Entry("", []TestMapping{}, map[string]int{}),
 		Entry("", []TestMapping{{"1", 1}, {"2", 2}}, map[string]int{"1": 1, "2": 2}),
 		Entry("", []TestMapping{{"1", 1}, {"1", 3}, {"2", 2}}, map[string]int{"1": 3, "2": 2}),
+	)
+
+	DescribeTable("MapValues", func(imv map[string]int, expected map[string]string) {
+		Expect(MapValues(imv, func(a int) string {
+			return fmt.Sprintf("output-%d", a)
+		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
+	},
+		Entry("", map[string]int{}, map[string]string{}),
+		Entry("", nil, map[string]string{}),
+		Entry("", map[string]int{"key1": 1, "key2": 2, "key3": 3}, map[string]string{"key1": "output-1", "key2": "output-2", "key3": "output-3"}),
 	)
 
 	DescribeTable("Values", func(kvs map[string]int, expected []int) {

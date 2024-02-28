@@ -156,6 +156,11 @@
 &lt;td>Subscription for the eventsource to use which subscribes to the Vertex AI pipeline events log sink topic (see below)&lt;/td>
 &lt;td>&lt;code>kfp-operator-vai-run-events-eventsource&lt;/code>&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>maxConcurrentRunCount&lt;/code>&lt;/td>
+&lt;td>Maximum number of runs that can be started concurrently per schedule, defaults to 10&lt;/td>
+&lt;td>&lt;code>3&lt;/code>&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;h4 id="gcp-project-setup">GCP Project Setup&lt;/h4>
@@ -195,13 +200,17 @@ We suggest an exponential backoff with min and max backoff set to at least 10 se
 &lt;li>&lt;code>storage.objects.create&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
 &lt;li>&lt;code>storage.objects.get&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
 &lt;li>&lt;code>storage.objects.delete&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
-&lt;li>&lt;code>cloudscheduler.jobs.create&lt;/code>&lt;/li>
-&lt;li>&lt;code>cloudscheduler.jobs.update&lt;/code>&lt;/li>
-&lt;li>&lt;code>cloudscheduler.jobs.delete&lt;/code>&lt;/li>
-&lt;li>&lt;code>projects.topics.publish&lt;/code> to the configured &lt;code>runs&lt;/code> and &lt;code>runIntentsTopic&lt;/code> topic&lt;/li>
+&lt;li>deprecated - &lt;code>cloudscheduler.jobs.create&lt;/code>&lt;/li>
+&lt;li>deprecated - &lt;code>cloudscheduler.jobs.update&lt;/code>&lt;/li>
+&lt;li>deprecated - &lt;code>cloudscheduler.jobs.delete&lt;/code>&lt;/li>
+&lt;li>deprecated - &lt;code>projects.topics.publish&lt;/code> to the configured &lt;code>runs&lt;/code> and &lt;code>runIntentsTopic&lt;/code> topic&lt;/li>
 &lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured &lt;code>enqueuerRunIntentsSubscription&lt;/code>, &lt;code>submitterRunsSubscription&lt;/code> and &lt;code>eventsourceRunsSubscription&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> subscriptions&lt;/li>
 &lt;li>&lt;code>aiplatform.pipelineJobs.create&lt;/code>&lt;/li>
 &lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/li>
+&lt;li>&lt;code>aiplatform.schedules.get&lt;/code>&lt;/li>
+&lt;li>&lt;code>aiplatform.schedules.create&lt;/code>&lt;/li>
+&lt;li>&lt;code>aiplatform.schedules.delete&lt;/code>&lt;/li>
+&lt;li>&lt;code>aiplatform.schedules.update&lt;/code>&lt;/li>
 &lt;li>&lt;code>iam.serviceAccounts.actAs&lt;/code> the configured &lt;code>vaiJobServiceAccount&lt;/code> Vertex AI Job Runner&lt;/li>
 &lt;/ul>
 &lt;p>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> fields only needed if the operator is installed with &lt;a href="../../getting-started/overview/#eventing-support">eventing support&lt;/a>&lt;/p></description></item><item><title>Docs: Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>
