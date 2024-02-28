@@ -158,7 +158,7 @@
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>maxConcurrentRunCount&lt;/code>&lt;/td>
-&lt;td>Maximum number of runs that can be started concurrently per schedule. If not set is defaulted to 10&lt;/td>
+&lt;td>Maximum number of runs that can be started concurrently per schedule, defaults to 10&lt;/td>
 &lt;td>&lt;code>3&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
@@ -203,7 +203,7 @@ We suggest an exponential backoff with min and max backoff set to at least 10 se
 &lt;li>deprecated - &lt;code>cloudscheduler.jobs.create&lt;/code>&lt;/li>
 &lt;li>deprecated - &lt;code>cloudscheduler.jobs.update&lt;/code>&lt;/li>
 &lt;li>deprecated - &lt;code>cloudscheduler.jobs.delete&lt;/code>&lt;/li>
-&lt;li>&lt;code>projects.topics.publish&lt;/code> to the configured &lt;code>runs&lt;/code> and &lt;code>runIntentsTopic&lt;/code> topic&lt;/li>
+&lt;li>deprecated - &lt;code>projects.topics.publish&lt;/code> to the configured &lt;code>runs&lt;/code> and &lt;code>runIntentsTopic&lt;/code> topic&lt;/li>
 &lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured &lt;code>enqueuerRunIntentsSubscription&lt;/code>, &lt;code>submitterRunsSubscription&lt;/code> and &lt;code>eventsourceRunsSubscription&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> subscriptions&lt;/li>
 &lt;li>&lt;code>aiplatform.pipelineJobs.create&lt;/code>&lt;/li>
 &lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/li>
