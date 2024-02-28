@@ -208,7 +208,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				stream, err := startClient(ctx)
 				pipelineName := common.RandomString()
 				runId := common.RandomString()
-				servingModelArtifacts := mockMetadataStore.returnArtifactForPipeline()
+				servingModelArtifacts := mockMetadataStore.setAndReturnServingArtifact()
 				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
 
 				Expect(err).NotTo(HaveOccurred())
@@ -379,7 +379,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				_, err = stream.Recv()
 				Expect(err).To(HaveOccurred())
 
-				servingModelArtifacts := mockMetadataStore.returnArtifactForPipeline()
+				servingModelArtifacts := mockMetadataStore.setAndReturnServingArtifact()
 
 				stream, err = startClient(ctx)
 				Expect(err).NotTo(HaveOccurred())

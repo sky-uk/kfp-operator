@@ -45,25 +45,13 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 		return nil, fmt.Errorf("invalid artifact ID")
 	}
 
-	pipelineRunTypeName := PipelineRunTypeName
-	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
-	if err != nil {
-		return nil, err
-	}
-	contextId := contextResponse.GetContext().GetId()
-	if contextId == InvalidId {
-		return nil, fmt.Errorf("invalid context ID")
-	}
-
-	artifactsResponse, err := gms.MetadataStoreServiceClient.GetArtifactsByContext(ctx, &ml_metadata.GetArtifactsByContextRequest{
-		ContextId: &contextId,
-	})
+	contextArtifacts, err := gms.getAllArtifactsByContext(ctx, workflowName)
 	if err != nil {
 		return nil, err
 	}
 
 	results := make([]common.Artifact, 0)
-	for _, artifact := range artifactsResponse.GetArtifacts() {
+	for _, artifact := range contextArtifacts {
 		if artifact.GetTypeId() == artifactTypeId {
 			artifactUri := artifact.GetUri()
 			artifactName := artifact.GetCustomProperties()[ArtifactNameCustomProperty].GetStringValue()
@@ -81,7 +69,7 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 	return results, nil
 }
 
-func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) (artifacts []common.Artifact, err error) {
+func (gms *GrpcMetadataStore) getAllArtifactsByContext(ctx context.Context, workflowName string) ([]*ml_metadata.Artifact, error) {
 	pipelineRunTypeName := PipelineRunTypeName
 	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
 	if err != nil {
@@ -98,6 +86,14 @@ func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName str
 	if err != nil {
 		return nil, err
 	}
+	return artifactsResponse.GetArtifacts(), nil
+}
+
+func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) (artifacts []common.Artifact, err error) {
+	contextArtifacts, err := gms.getAllArtifactsByContext(ctx, workflowName)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, artifactDef := range artifactDefs {
 		var evaluator *bexpr.Evaluator
@@ -108,7 +104,7 @@ func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName str
 			}
 		}
 
-		for _, artifact := range artifactsResponse.GetArtifacts() {
+		for _, artifact := range contextArtifacts {
 			artifactUri := artifact.GetUri()
 			if artifactUri == "" {
 				continue

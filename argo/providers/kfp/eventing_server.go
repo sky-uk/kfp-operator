@@ -115,7 +115,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 			String(),
 	}
 
-	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(es.K8sClient, 0, eventsourceConfig.KfpNamespace, func(listOptions *metav1.ListOptions) {
+	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(es.GetUnderlyingClient(), 0, eventsourceConfig.KfpNamespace, func(listOptions *metav1.ListOptions) {
 		*listOptions = kfpWorkflowListOptions
 	})
 
@@ -159,8 +159,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 		patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-
-		_, err = es.GetNamespaceResource(es.K8sClient, argoWorkflowsGvr, workflow.GetNamespace()).Patch(ctx, workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+		_, err = es.GetUnderlyingClient().Resource(argoWorkflowsGvr).Namespace(workflow.GetNamespace()).Patch(ctx, workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 		if err != nil {
 			es.Logger.Error(err, "failed to patch resource")
 			return
@@ -231,8 +230,6 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 		return nil, err
 	}
 
-	// TODO dont want to do this I dont think as internally getting model artifacts again.
-	// TODO also want to refactor as GetArtifacts here and vai version very similar.
 	artifacts, err := es.MetadataStore.GetArtifacts(ctx, workflowName, artifactDefs)
 	if err != nil {
 		es.Logger.Error(err, "failed to retrieve artifacts")

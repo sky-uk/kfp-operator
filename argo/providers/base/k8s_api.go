@@ -87,30 +87,31 @@ func CreateK8sClient() (dynamic.Interface, error) {
 	return dynamic.NewForConfig(k8sConfig)
 }
 
-type K8sGetResource interface {
-	GetNamespaceResource(K8sClient dynamic.Interface, gvr schema.GroupVersionResource, namespace string) dynamic.ResourceInterface
+type ResourceAccess interface {
+	GetUnderlyingClient() dynamic.Interface
+	GetRunArtifactDefinitions(ctx context.Context, namespacedName types.NamespacedName, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error)
 }
-
-type K8sGetResourceImpl struct{}
 
 type K8sApi struct {
-	K8sGetResource
-	K8sClient dynamic.Interface
+	ResourceAccess
 }
 
-func NewK8sApi(K8sClient dynamic.Interface) K8sApi {
+func NewK8sApi(k8sClient dynamic.Interface) K8sApi {
 	return K8sApi{
-		K8sClient:      K8sClient,
-		K8sGetResource: K8sGetResourceImpl{},
+		ResourceAccess: K8sResourceAccessImpl{
+			k8sClient: k8sClient,
+		},
 	}
 }
 
-func (k8a K8sGetResourceImpl) GetNamespaceResource(K8sClient dynamic.Interface, gvr schema.GroupVersionResource, namespace string) dynamic.ResourceInterface {
-	return K8sClient.Resource(gvr).Namespace(namespace)
+type K8sResourceAccessImpl struct{ k8sClient dynamic.Interface }
+
+func (k8r K8sResourceAccessImpl) GetUnderlyingClient() dynamic.Interface {
+	return k8r.k8sClient
 }
 
-func (k8a K8sApi) GetRunArtifactDefinitions(ctx context.Context, namespacedName types.NamespacedName, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error) {
-	obj, err := k8a.GetNamespaceResource(k8a.K8sClient, gvr, namespacedName.Namespace).Get(ctx, namespacedName.Name, metav1.GetOptions{})
+func (k8r K8sResourceAccessImpl) GetRunArtifactDefinitions(ctx context.Context, namespacedName types.NamespacedName, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error) {
+	obj, err := k8r.k8sClient.Resource(gvr).Namespace(namespacedName.Namespace).Get(ctx, namespacedName.Name, metav1.GetOptions{})
 
 	if err != nil {
 		common.LoggerFromContext(ctx).Error(err, fmt.Sprintf("Failed to retrieve resource %+v", gvr))
