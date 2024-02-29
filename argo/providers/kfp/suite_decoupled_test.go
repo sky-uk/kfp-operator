@@ -28,11 +28,12 @@ import (
 )
 
 var (
-	mockMetadataStore MockMetadataStore
-	mockKfpApi        MockKfpApi
-	server            *grpc.Server
-	k8sClient         dynamic.Interface
-	clientConn        *grpc.ClientConn
+	mockMetadataStore     MockMetadataStore
+	mockKfpApi            MockKfpApi
+	mockResourceReference MockK8sResources
+	server                *grpc.Server
+	k8sClient             dynamic.Interface
+	clientConn            *grpc.ClientConn
 )
 
 const (
@@ -170,10 +171,15 @@ var _ = BeforeSuite(func() {
 
 	mockMetadataStore = MockMetadataStore{}
 	mockKfpApi = MockKfpApi{}
+	resourceRef := &ResourceReferences{}
+	mockResourceReference = MockK8sResources{resourceReferences: resourceRef, k8sClient: &k8sClient}
+
 	server = grpc.NewServer()
 
 	generic.RegisterEventingServer(server, &KfpEventingServer{
-		K8sApi:        base.NewK8sApi(k8sClient),
+		K8sApi: base.K8sApi{
+			ResourceAccess: mockResourceReference,
+		},
 		Logger:        logr.Discard(),
 		MetadataStore: &mockMetadataStore,
 		KfpApi:        &mockKfpApi,
@@ -206,14 +212,19 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		It("Triggers an event with serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
-				pipelineName := common.RandomString()
+				Expect(err).NotTo(HaveOccurred())
+
 				runId := common.RandomString()
 				servingModelArtifacts := mockMetadataStore.setAndReturnServingArtifact()
+				artifacts := mockMetadataStore.setAndReturnArtifacts()
+
 				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				mockResourceReference.resourceReferences.RunName = resourceReferences.RunName
+				mockResourceReference.resourceReferences.RunConfigurationName = resourceReferences.RunConfigurationName
 
 				Expect(err).NotTo(HaveOccurred())
 
-				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
+				workflow, err := createAndTriggerPhaseUpdate(ctx, resourceReferences.PipelineName.Name, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
 
 				event, err := stream.Recv()
@@ -228,6 +239,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunName:               resourceReferences.RunName.NonEmptyPtr(),
 					RunId:                 runId,
 					ServingModelArtifacts: servingModelArtifacts,
+					Artifacts:             artifacts,
 				}
 				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
@@ -248,12 +260,14 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		It("Triggers an event without a serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
-				pipelineName := common.RandomString()
+				Expect(err).NotTo(HaveOccurred())
 				runId := common.RandomString()
 
-				Expect(err).NotTo(HaveOccurred())
+				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				mockResourceReference.resourceReferences.RunName = resourceReferences.RunName
+				mockResourceReference.resourceReferences.RunConfigurationName = resourceReferences.RunConfigurationName
 
-				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
+				workflow, err := createAndTriggerPhaseUpdate(ctx, resourceReferences.PipelineName.Name, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
 
 				event, err := stream.Recv()
@@ -262,9 +276,11 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
 				expectedEvent := common.RunCompletionEvent{
-					Status:       common.RunCompletionStatuses.Succeeded,
-					PipelineName: common.NamespacedName{Name: pipelineName},
-					RunId:        runId,
+					Status:               common.RunCompletionStatuses.Succeeded,
+					PipelineName:         resourceReferences.PipelineName,
+					RunId:                runId,
+					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
+					RunName:              resourceReferences.RunName.NonEmptyPtr(),
 				}
 				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
@@ -285,12 +301,14 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		It("Triggers an event", func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
-				pipelineName := common.RandomString()
+				Expect(err).NotTo(HaveOccurred())
 				runId := common.RandomString()
 
-				Expect(err).NotTo(HaveOccurred())
+				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				mockResourceReference.resourceReferences.RunName = resourceReferences.RunName
+				mockResourceReference.resourceReferences.RunConfigurationName = resourceReferences.RunConfigurationName
 
-				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowFailed)
+				workflow, err := createAndTriggerPhaseUpdate(ctx, resourceReferences.PipelineName.Name, runId, argo.WorkflowRunning, argo.WorkflowFailed)
 				Expect(err).NotTo(HaveOccurred())
 
 				event, err := stream.Recv()
@@ -299,9 +317,11 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
 				expectedEvent := common.RunCompletionEvent{
-					Status:       common.RunCompletionStatuses.Failed,
-					PipelineName: common.NamespacedName{Name: pipelineName},
-					RunId:        runId,
+					Status:               common.RunCompletionStatuses.Failed,
+					PipelineName:         resourceReferences.PipelineName,
+					RunId:                runId,
+					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
+					RunName:              resourceReferences.RunName.NonEmptyPtr(),
 				}
 				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
@@ -321,10 +341,13 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run finishes before the stream is started", func() {
 		It("Catches up and triggers an event", func() {
 			WithTestContext(func(ctx context.Context) {
-				pipelineName := common.RandomString()
 				runId := common.RandomString()
 
-				_, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
+				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				mockResourceReference.resourceReferences.RunName = resourceReferences.RunName
+				mockResourceReference.resourceReferences.RunConfigurationName = resourceReferences.RunConfigurationName
+
+				_, err := createAndTriggerPhaseUpdate(ctx, resourceReferences.PipelineName.Name, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
 
 				stream, err := startClient(ctx)
@@ -336,9 +359,11 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				Expect(event.Name).To(Equal(common.RunCompletionEventName))
 
 				expectedEvent := common.RunCompletionEvent{
-					Status:       common.RunCompletionStatuses.Succeeded,
-					PipelineName: common.NamespacedName{Name: pipelineName},
-					RunId:        runId,
+					Status:               common.RunCompletionStatuses.Succeeded,
+					PipelineName:         resourceReferences.PipelineName,
+					RunId:                runId,
+					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
+					RunName:              resourceReferences.RunName.NonEmptyPtr(),
 				}
 				actualEvent := common.RunCompletionEvent{}
 				err = json.Unmarshal(event.Payload, &actualEvent)
@@ -353,6 +378,10 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 			WithTestContext(func(ctx context.Context) {
 				stream, err := startClient(ctx)
 				Expect(err).NotTo(HaveOccurred())
+
+				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				mockResourceReference.resourceReferences.RunName = resourceReferences.RunName
+				mockResourceReference.resourceReferences.RunConfigurationName = resourceReferences.RunConfigurationName
 
 				_, err = createAndTriggerPhaseUpdate(ctx, common.RandomString(), common.RandomString(), argo.WorkflowPending, argo.WorkflowRunning)
 				Expect(err).NotTo(HaveOccurred())
@@ -381,6 +410,10 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 
 				servingModelArtifacts := mockMetadataStore.setAndReturnServingArtifact()
 
+				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				mockResourceReference.resourceReferences.RunName = resourceReferences.RunName
+				mockResourceReference.resourceReferences.RunConfigurationName = resourceReferences.RunConfigurationName
+
 				stream, err = startClient(ctx)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -391,8 +424,10 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 
 				expectedEvent := common.RunCompletionEvent{
 					Status:                common.RunCompletionStatuses.Succeeded,
-					PipelineName:          common.NamespacedName{Name: pipelineName},
+					PipelineName:          resourceReferences.PipelineName,
 					RunId:                 runId,
+					RunConfigurationName:  resourceReferences.RunConfigurationName.NonEmptyPtr(),
+					RunName:               resourceReferences.RunName.NonEmptyPtr(),
 					ServingModelArtifacts: servingModelArtifacts,
 				}
 				actualEvent := common.RunCompletionEvent{}
@@ -421,6 +456,8 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				Expect(err).To(HaveOccurred())
 
 				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				mockResourceReference.resourceReferences.RunName = resourceReferences.RunName
+				mockResourceReference.resourceReferences.RunConfigurationName = resourceReferences.RunConfigurationName
 
 				stream, err = startClient(ctx)
 				Expect(err).NotTo(HaveOccurred())

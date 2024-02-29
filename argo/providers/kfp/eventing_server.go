@@ -128,11 +128,11 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 	handlerFuncs.UpdateFunc = func(oldObj, newObj interface{}) {
 		es.Logger.V(2).Info("detected update event")
 
-		workflow := newObj.(*unstructured.Unstructured)
-
-		runCompletionEvent, err := es.eventForWorkflow(ctx, workflow)
+		unstructuredWorkflow := newObj.(*unstructured.Unstructured)
+		runCompletionEvent, err := es.eventForWorkflow(ctx, unstructuredWorkflow)
 
 		if err != nil {
+			es.Logger.Error(err, "failed to produce eventForWorkflow")
 			cancel() //force client to disconnect
 			return
 		}
@@ -159,7 +159,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 		patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-		_, err = es.GetUnderlyingClient().Resource(argoWorkflowsGvr).Namespace(workflow.GetNamespace()).Patch(ctx, workflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+		_, err = es.GetUnderlyingClient().Resource(argoWorkflowsGvr).Namespace(unstructuredWorkflow.GetNamespace()).Patch(ctx, unstructuredWorkflow.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 		if err != nil {
 			es.Logger.Error(err, "failed to patch resource")
 			return

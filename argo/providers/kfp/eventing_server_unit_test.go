@@ -10,13 +10,9 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/dynamic"
 )
 
 func setWorkflowPhase(workflow *unstructured.Unstructured, phase argo.WorkflowPhase) {
@@ -251,7 +247,7 @@ var _ = Context("Eventing Server", func() {
 
 		eventingServer := KfpEventingServer{
 			K8sApi: base.K8sApi{
-				ResourceAccess: MockK8sResources{resourceReferences: resourceReferences},
+				ResourceAccess: MockK8sResources{resourceReferences: &resourceReferences},
 			},
 			MetadataStore: &mockMetadataStore,
 			KfpApi:        &mockKfpApi,
@@ -272,18 +268,3 @@ var _ = Context("Eventing Server", func() {
 		Entry("workflow errored", argo.WorkflowError),
 	)
 })
-
-type MockK8sResources struct {
-	resourceReferences ResourceReferences
-}
-
-func (mock MockK8sResources) GetUnderlyingClient() dynamic.Interface {
-	panic("not expected to be called in test")
-}
-
-func (mock MockK8sResources) GetRunArtifactDefinitions(_ context.Context, namespacedName types.NamespacedName, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error) {
-	Expect(namespacedName.Name).To(Equal(mock.resourceReferences.RunConfigurationName.Name))
-	Expect(namespacedName.Namespace).To(Equal(mock.resourceReferences.RunConfigurationName.Namespace))
-	Expect(gvr).To(Equal(base.RunConfigurationGVR))
-	return nil, nil
-}
