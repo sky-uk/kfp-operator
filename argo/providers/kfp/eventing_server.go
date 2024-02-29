@@ -133,7 +133,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		if err != nil {
 			es.Logger.Error(err, "failed to produce eventForWorkflow")
-			cancel() //force client to disconnect
+			cancel() //force client to disconnect // TODO remove
 			return
 		}
 
@@ -186,6 +186,7 @@ func gvrAndNamespacedNameForResourceReferences(runResourceReferences ResourceRef
 }
 
 func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEvent, error) {
+	println("CALL IN eventForWorkflow")
 	status, hasFinished := runCompletionStatus(workflow)
 	if !hasFinished {
 		es.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
@@ -218,20 +219,30 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 		resourceReferences.PipelineName.Name = pipelineName
 	}
 
+	println("About to gvrAndNamespacedNameForResourceReferences")
 	gvr, namespacedName, err := gvrAndNamespacedNameForResourceReferences(resourceReferences)
 	if err != nil {
+		println("ERROR ERROR")
+		println(err.Error())
 		es.Logger.Error(err, "failed to get gvr and namespace from resource references")
 		return nil, err
 	}
+	println(fmt.Sprintf("GVR + Namespace - %+v %+v", gvr, namespacedName))
 
 	artifactDefs, err := es.GetRunArtifactDefinitions(ctx, namespacedName, gvr)
 	if err != nil {
+		println("ERROR ERROR")
+		println(err.Error())
 		es.Logger.Error(err, "failed to retrieve artifacts from resource definition")
 		return nil, err
 	}
+	println(fmt.Sprintf("artifactDefs - %+v", artifactDefs))
 
 	artifacts, err := es.MetadataStore.GetArtifacts(ctx, workflowName, artifactDefs)
+	println(fmt.Sprintf("artifacts - %+v", artifacts))
 	if err != nil {
+		println("ERROR ERROR")
+		println(err.Error())
 		es.Logger.Error(err, "failed to retrieve artifacts")
 		return nil, err
 	}

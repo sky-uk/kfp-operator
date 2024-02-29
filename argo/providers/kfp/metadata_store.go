@@ -91,6 +91,8 @@ func (gms *GrpcMetadataStore) getAllArtifactsByContext(ctx context.Context, work
 
 func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) (artifacts []common.Artifact, err error) {
 	contextArtifacts, err := gms.getAllArtifactsByContext(ctx, workflowName)
+	println("contextArtifacts")
+	println(fmt.Sprintf("BADGER %+v", contextArtifacts))
 	if err != nil {
 		return nil, err
 	}
