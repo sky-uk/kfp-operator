@@ -5,10 +5,8 @@ package vai
 import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"errors"
-	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
@@ -132,15 +130,6 @@ var _ = Context("VAI Provider", func() {
 			Expect(runLabels[labels.PipelineVersion]).To(Equal("0-4-0"))
 		})
 	})
-
-	providerConfig := randomVAIProviderConfig()
-	DescribeTable("isLegacySchedule", func(scheduleId string, expected types.GomegaMatcher) {
-		Expect(isLegacySchedule(providerConfig, scheduleId)).To(expected)
-	},
-		Entry("", fmt.Sprintf("projects/%s/locations/%s/jobs/%s", providerConfig.VaiProject, providerConfig.VaiLocation, common.RandomString()), BeTrue()),
-		Entry("", fmt.Sprintf("projects/%s/locations/%s/schedules/%s", providerConfig.VaiProject, providerConfig.VaiLocation, common.RandomString()), BeFalse()),
-		Entry("", common.RandomString(), BeFalse()),
-	)
 
 	vaiProvider := VAIProvider{}
 

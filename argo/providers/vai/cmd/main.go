@@ -14,25 +14,6 @@ func main() {
 		Name: "vai-run",
 		Subcommands: []cli.Command{
 			{
-				Name: "enqueue",
-				Flags: []cli.Flag{cli.StringFlag{
-					Name:     "run-intent",
-					Required: true,
-				}},
-				Action: func(c *cli.Context) error {
-					providerConfig, err := app.LoadProviderConfig(c)
-					if err != nil {
-						return err
-					}
-					runIntent, err := LoadJsonFromFile[vai.RunIntent](c.String("run-intent"))
-					if err != nil {
-						return err
-					}
-					_, err = provider.EnqueueRun(app.Context, providerConfig, runIntent)
-					return err
-				},
-			},
-			{
 				Name: "submit",
 				Flags: []cli.Flag{cli.StringFlag{
 					Name:     "run",

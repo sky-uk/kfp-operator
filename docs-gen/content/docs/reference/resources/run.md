@@ -61,7 +61,7 @@ A pipeline run can expose what Artifacts to include in resulting run completion 
 | `name`   | The name to be used in run completion events or references to identify this artifact. |
 | `path`   | Path of the artifact in the pipeline graph. See below for the syntax                  |
 
-Artifact path Syntax: `<COMPONENT>:<OUTPUT>:<INDEX>[<FILTER>]` with he following parts:
+Artifact path Syntax: `<COMPONENT>:<OUTPUT>:<INDEX>[<FILTER>]` with the following parts:
 
 | Part      | Description                                                                        | Example      |
 |-----------|------------------------------------------------------------------------------------|--------------|

@@ -52,8 +52,6 @@ KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/compone
 | `vaiProject`                            | Vertex AI GCP project name                                                                                           | `kfp-operator-vertex-ai`                                          |
 | `vaiLocation`                           | Vertex AI GCP project location                                                                                       | `europe-west2`                                                    |
 | `vaiJobServiceAccount`                  | Vertex AI GCP service account to run pipeline jobs                                                                   | `kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com` |
-| `runsTopic`                             | Pub/Sub topic name to publish runs                                                                                   | `kfp-operator-runs`                                               |
-| `submitterRunsSubscription`             | Subscription on the runs topic for the pipeline job submitter                                                        | `kfp-operator-runs-submitter`                                     |
 | `eventsourcePipelineEventsSubscription` | Subscription for the eventsource to use which subscribes to the Vertex AI pipeline events log sink topic (see below) | `kfp-operator-vai-run-events-eventsource`                         |
 | `maxConcurrentRunCount`                 | Maximum number of runs that can be started concurrently per schedule, defaults to 10                                 | `3`                                                               |
 
@@ -87,10 +85,6 @@ The configured `serviceAccount` needs to have [workload identity](https://cloud.
   - `storage.objects.create` on the configured `pipelineBucket`
   - `storage.objects.get` on the configured `pipelineBucket`
   - `storage.objects.delete` on the configured `pipelineBucket`
-  - deprecated - `cloudscheduler.jobs.create`
-  - deprecated - `cloudscheduler.jobs.update`
-  - deprecated - `cloudscheduler.jobs.delete`
-  - deprecated - `projects.topics.publish` to the configured `runs` and `runIntentsTopic` topic
   - `projects.subscriptions.pull` from the configured `enqueuerRunIntentsSubscription`, `submitterRunsSubscription` and `eventsourceRunsSubscription`<sup>*</sup> subscriptions
   - `aiplatform.pipelineJobs.create`
   - `aiplatform.pipelineJobs.get`<sup>*</sup>
