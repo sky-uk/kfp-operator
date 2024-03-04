@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -240,17 +241,23 @@ var _ = Context("Eventing Server", func() {
 		mockMetadataStore := MockMetadataStore{}
 		mockKfpApi := MockKfpApi{}
 
+		servingArtifacts := mockMetadataStore.setAndReturnServingArtifact()
+		artifacts := mockMetadataStore.setAndReturnArtifacts()
+		resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+
 		eventingServer := KfpEventingServer{
-			Logger:        logr.Discard(),
+			K8sApi: base.K8sApi{
+				ResourceAccess: MockK8sResources{resourceReferences: &resourceReferences},
+			},
 			MetadataStore: &mockMetadataStore,
 			KfpApi:        &mockKfpApi,
+			Logger:        logr.Discard(),
 		}
 
-		artifacts := mockMetadataStore.returnArtifactForPipeline()
-		resourceReferences := mockKfpApi.returnResourceReferencesForRun()
 		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 
-		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
+		Expect(event.ServingModelArtifacts).To(Equal(servingArtifacts))
+		Expect(event.Artifacts).To(Equal(artifacts))
 		Expect(*event.RunConfigurationName).To(Equal(resourceReferences.RunConfigurationName))
 		Expect(*event.RunName).To(Equal(resourceReferences.RunName))
 		Expect(event.Provider).To(Equal(eventingServer.ProviderConfig.Name))
