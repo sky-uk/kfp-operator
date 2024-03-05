@@ -5,7 +5,6 @@ go 1.20
 require (
 	cloud.google.com/go/aiplatform v1.48.0
 	cloud.google.com/go/pubsub v1.33.0
-	cloud.google.com/go/scheduler v1.10.1
 	cloud.google.com/go/storage v1.30.1
 	github.com/argoproj/argo-events v1.8.1
 	github.com/argoproj/argo-workflows/v3 v3.3.9
@@ -13,7 +12,6 @@ require (
 	github.com/go-openapi/runtime v0.25.0
 	github.com/go-openapi/strfmt v0.21.3
 	github.com/golang/mock v1.6.0
-	github.com/google/uuid v1.3.0
 	github.com/googleapis/gax-go/v2 v2.12.0
 	github.com/hashicorp/go-bexpr v0.1.13
 	github.com/kubeflow/pipelines v0.0.0-20220721222832-061905b6df39
@@ -24,7 +22,6 @@ require (
 	github.com/urfave/cli v1.22.10
 	go.uber.org/zap v1.24.0
 	google.golang.org/api v0.136.0
-	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -73,6 +70,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/s2a-go v0.1.4 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.5 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -139,6 +137,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230803162519-f966b187b2e5 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
