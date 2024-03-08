@@ -70,9 +70,6 @@ A [Vertex AI log](https://cloud.google.com/vertex-ai/docs/pipelines/logging) sin
 - writes state changes to Pub/Sub on to a Pipeline Events topic (see below for required subscription)
 
 Pub/Sub topics and subscriptions need to be created for:
-- Runs
-  - Topic: `runsTopic`
-  - Subscriptions:`submitterRunsSubscription`, `eventsourceRunsSubscription`<sup>*</sup>
 - Pipeline Events
   - Subscription: `eventsourcePipelineEventsSubscription`
 
@@ -85,7 +82,7 @@ The configured `serviceAccount` needs to have [workload identity](https://cloud.
   - `storage.objects.create` on the configured `pipelineBucket`
   - `storage.objects.get` on the configured `pipelineBucket`
   - `storage.objects.delete` on the configured `pipelineBucket`
-  - `projects.subscriptions.pull` from the configured `enqueuerRunIntentsSubscription`, `submitterRunsSubscription` and `eventsourceRunsSubscription`<sup>*</sup> subscriptions
+  - `projects.subscriptions.pull` from the configured `eventsourcePipelineEventsSubscription`<sup>*</sup> subscription
   - `aiplatform.pipelineJobs.create`
   - `aiplatform.pipelineJobs.get`<sup>*</sup>
   - `aiplatform.schedules.get`
