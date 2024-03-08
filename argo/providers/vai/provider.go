@@ -217,7 +217,47 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		Artifacts:         runDefinition.Artifacts,
 	}
 
-	return runId, vaip.SubmitRun(ctx, providerConfig, run)
+	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
+	if err != nil {
+		return "", err
+	}
+	defer pipelineClient.Close()
+
+	parameters := make(map[string]*aiplatformpb.Value, len(run.RuntimeParameters))
+	for name, value := range run.RuntimeParameters {
+		parameters[name] = &aiplatformpb.Value{
+			Value: &aiplatformpb.Value_StringValue{
+				StringValue: value,
+			},
+		}
+	}
+
+	pipelineJob := &aiplatformpb.PipelineJob{
+		Labels:         run.Labels,
+		TemplateUri:    run.PipelineUri,
+		ServiceAccount: providerConfig.VaiJobServiceAccount,
+		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+			Parameters: parameters,
+		},
+	}
+
+	err = enrichJobWithSpecFromTemplateUri(ctx, providerConfig, pipelineJob)
+	if err != nil {
+		return "", err
+	}
+
+	req := &aiplatformpb.CreatePipelineJobRequest{
+		Parent:        providerConfig.parent(),
+		PipelineJobId: run.RunId,
+		PipelineJob:   pipelineJob,
+	}
+
+	_, err = pipelineClient.CreatePipelineJob(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return runId, nil
 }
 
 func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ string) error {
