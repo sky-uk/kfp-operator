@@ -142,16 +142,6 @@
 &lt;td>&lt;code>kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>runsTopic&lt;/code>&lt;/td>
-&lt;td>Pub/Sub topic name to publish runs&lt;/td>
-&lt;td>&lt;code>kfp-operator-runs&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>submitterRunsSubscription&lt;/code>&lt;/td>
-&lt;td>Subscription on the runs topic for the pipeline job submitter&lt;/td>
-&lt;td>&lt;code>kfp-operator-runs-submitter&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
 &lt;td>&lt;code>eventsourcePipelineEventsSubscription&lt;/code>&lt;/td>
 &lt;td>Subscription for the eventsource to use which subscribes to the Vertex AI pipeline events log sink topic (see below)&lt;/td>
 &lt;td>&lt;code>kfp-operator-vai-run-events-eventsource&lt;/code>&lt;/td>
@@ -200,10 +190,6 @@ We suggest an exponential backoff with min and max backoff set to at least 10 se
 &lt;li>&lt;code>storage.objects.create&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
 &lt;li>&lt;code>storage.objects.get&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
 &lt;li>&lt;code>storage.objects.delete&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
-&lt;li>deprecated - &lt;code>cloudscheduler.jobs.create&lt;/code>&lt;/li>
-&lt;li>deprecated - &lt;code>cloudscheduler.jobs.update&lt;/code>&lt;/li>
-&lt;li>deprecated - &lt;code>cloudscheduler.jobs.delete&lt;/code>&lt;/li>
-&lt;li>deprecated - &lt;code>projects.topics.publish&lt;/code> to the configured &lt;code>runs&lt;/code> and &lt;code>runIntentsTopic&lt;/code> topic&lt;/li>
 &lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured &lt;code>enqueuerRunIntentsSubscription&lt;/code>, &lt;code>submitterRunsSubscription&lt;/code> and &lt;code>eventsourceRunsSubscription&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> subscriptions&lt;/li>
 &lt;li>&lt;code>aiplatform.pipelineJobs.create&lt;/code>&lt;/li>
 &lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/li>
