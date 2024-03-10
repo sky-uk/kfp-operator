@@ -28,14 +28,6 @@ func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
 	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
 }
 
-func (vaipc VAIProviderConfig) schedulerJobName(name string) string {
-	return fmt.Sprintf("%s/jobs/%s", vaipc.parent(), name)
-}
-
-func (vaipc VAIProviderConfig) topicFullName(topicName string) string {
-	return fmt.Sprintf("projects/%s/topics/%s", vaipc.VaiProject, topicName)
-}
-
 func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName string, pipelineVersion string) string {
 	return fmt.Sprintf("%s/%s", pipelineName, pipelineVersion)
 }
