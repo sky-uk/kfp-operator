@@ -197,7 +197,7 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
-&lt;p>Artifact path Syntax: &lt;code>&amp;lt;COMPONENT&amp;gt;:&amp;lt;OUTPUT&amp;gt;:&amp;lt;INDEX&amp;gt;[&amp;lt;FILTER&amp;gt;]&lt;/code> with he following parts:&lt;/p>
+&lt;p>Artifact path Syntax: &lt;code>&amp;lt;COMPONENT&amp;gt;:&amp;lt;OUTPUT&amp;gt;:&amp;lt;INDEX&amp;gt;[&amp;lt;FILTER&amp;gt;]&lt;/code> with the following parts:&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>

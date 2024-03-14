@@ -5,21 +5,17 @@ import (
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"cloud.google.com/go/pubsub"
-	scheduler "cloud.google.com/go/scheduler/apiv1"
 	"cloud.google.com/go/storage"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
-	"github.com/google/uuid"
 	pipelines_util "github.com/sky-uk/kfp-operator/apis/pipelines"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	schedulerpb "google.golang.org/genproto/googleapis/cloud/scheduler/v1"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"io"
@@ -36,8 +32,6 @@ var labels = struct {
 	RunConfigurationNamespace string
 	RunName                   string
 	RunNamespace              string
-	LegacyNamespace           string
-	LegacyRunConfiguration    string
 }{
 	PipelineName:              "pipeline-name",
 	PipelineNamespace:         "pipeline-namespace",
@@ -46,8 +40,6 @@ var labels = struct {
 	RunConfigurationNamespace: "runconfiguration-namespace",
 	RunName:                   "run-name",
 	RunNamespace:              "run-namespace",
-	LegacyNamespace:           "namespace",
-	LegacyRunConfiguration:    "run-configuration",
 }
 
 type VAIResource struct {
@@ -57,23 +49,6 @@ type VAIResource struct {
 type VAILogEntry struct {
 	Labels   map[string]string `json:"labels"`
 	Resource VAIResource       `json:"resource"`
-}
-
-type VAIRun struct {
-	RunId             string                     `json:"runId"`
-	Labels            map[string]string          `json:"labels,omitempty"`
-	PipelineUri       string                     `json:"pipelineUri"`
-	RuntimeParameters map[string]string          `json:"runtimeParameters,omitempty"`
-	Artifacts         []pipelines.OutputArtifact `json:"artifacts,omitempty"`
-}
-
-type RunIntent struct {
-	RunConfigurationName common.NamespacedName      `json:"runConfigurationName,omitempty"`
-	RunName              common.NamespacedName      `json:"runName,omitempty"`
-	PipelineName         common.NamespacedName      `json:"pipelineName"`
-	PipelineVersion      string                     `json:"pipelineVersion"`
-	RuntimeParameters    map[string]string          `json:"runtimeParameters,omitempty"`
-	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty"`
 }
 
 func extractBucketAndObjectFromGCSPath(gcsPath string) (string, string, error) {
@@ -220,15 +195,48 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
 	runId := runDefinition.Name.Name
-	run := VAIRun{
-		RunId:             runId,
-		Labels:            runLabelsFromRunDefinition(runDefinition),
-		PipelineUri:       providerConfig.pipelineUri(runDefinition.PipelineName.Name, runDefinition.PipelineVersion),
-		RuntimeParameters: runDefinition.RuntimeParameters,
-		Artifacts:         runDefinition.Artifacts,
+
+	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
+	if err != nil {
+		return "", err
+	}
+	defer pipelineClient.Close()
+
+	parameters := make(map[string]*aiplatformpb.Value, len(runDefinition.RuntimeParameters))
+	for name, value := range runDefinition.RuntimeParameters {
+		parameters[name] = &aiplatformpb.Value{
+			Value: &aiplatformpb.Value_StringValue{
+				StringValue: value,
+			},
+		}
 	}
 
-	return runId, vaip.SubmitRun(ctx, providerConfig, run)
+	pipelineJob := &aiplatformpb.PipelineJob{
+		Labels:         runLabelsFromRunDefinition(runDefinition),
+		TemplateUri:    providerConfig.pipelineUri(runDefinition.PipelineName.Name, runDefinition.PipelineVersion),
+		ServiceAccount: providerConfig.VaiJobServiceAccount,
+		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+			Parameters: parameters,
+		},
+	}
+
+	err = enrichJobWithSpecFromTemplateUri(ctx, providerConfig, pipelineJob)
+	if err != nil {
+		return "", err
+	}
+
+	req := &aiplatformpb.CreatePipelineJobRequest{
+		Parent:        providerConfig.parent(),
+		PipelineJobId: runId,
+		PipelineJob:   pipelineJob,
+	}
+
+	_, err = pipelineClient.CreatePipelineJob(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return runId, nil
 }
 
 func (vaip VAIProvider) DeleteRun(_ context.Context, _ VAIProviderConfig, _ string) error {
@@ -321,14 +329,6 @@ func (vaip VAIProvider) CreateRunSchedule(ctx context.Context, providerConfig VA
 }
 
 func (vaip VAIProvider) UpdateRunSchedule(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, scheduleId string) (string, error) {
-	if isLegacySchedule(providerConfig, scheduleId) {
-		err := vaip.DeleteLegacyRunSchedule(ctx, providerConfig, scheduleId)
-		if err != nil {
-			return "", err
-		}
-		return vaip.CreateRunSchedule(ctx, providerConfig, runScheduleDefinition)
-	}
-
 	pipelineClient, err := aiplatform.NewScheduleClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
 		return "", err
@@ -360,22 +360,7 @@ func (vaip VAIProvider) UpdateRunSchedule(ctx context.Context, providerConfig VA
 	return updateSchedule.Name, nil
 }
 
-func (vaip VAIProvider) DeleteLegacyRunSchedule(ctx context.Context, _ VAIProviderConfig, scheduleId string) error {
-	client, err := scheduler.NewCloudSchedulerClient(ctx)
-	if err != nil {
-		return err
-	}
-
-	return client.DeleteJob(ctx, &schedulerpb.DeleteJobRequest{
-		Name: scheduleId,
-	})
-}
-
 func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, providerConfig VAIProviderConfig, scheduleId string) error {
-	if isLegacySchedule(providerConfig, scheduleId) {
-		return vaip.DeleteLegacyRunSchedule(ctx, providerConfig, scheduleId)
-	}
-
 	pipelineClient, err := aiplatform.NewScheduleClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
 		return err
@@ -392,10 +377,6 @@ func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, providerConfig VA
 	return deleteSchedule.Wait(ctx)
 }
 
-func isLegacySchedule(providerConfig VAIProviderConfig, scheduleId string) bool {
-	return strings.HasPrefix(scheduleId, fmt.Sprintf("%s/%s", providerConfig.parent(), "jobs/"))
-}
-
 func (vaip VAIProvider) CreateExperiment(_ context.Context, _ VAIProviderConfig, _ ExperimentDefinition) (string, error) {
 	return "", errors.New("not implemented")
 }
@@ -406,18 +387,6 @@ func (vaip VAIProvider) UpdateExperiment(_ context.Context, _ VAIProviderConfig,
 
 func (vaip VAIProvider) DeleteExperiment(_ context.Context, _ VAIProviderConfig, _ string) error {
 	return errors.New("not implemented")
-}
-
-func generateRunId(runIntent RunIntent) string {
-	if !runIntent.RunConfigurationName.Empty() {
-		return fmt.Sprintf("%s-%s", runIntent.RunConfigurationName.Name, uuid.New().String())
-	}
-
-	if !runIntent.RunName.Empty() {
-		return fmt.Sprintf(runIntent.RunName.Name)
-	}
-
-	return fmt.Sprintf("%s", uuid.New().String())
 }
 
 func runLabelsFromPipeline(pipelineName common.NamespacedName, pipelineVersion string) map[string]string {
@@ -453,93 +422,6 @@ func runLabelsFromRunDefinition(runDefinition RunDefinition) map[string]string {
 	}
 
 	return runLabels
-}
-
-func (vaip VAIProvider) EnqueueRun(ctx context.Context, providerConfig VAIProviderConfig, runIntent RunIntent) (string, error) {
-	pubsubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
-	if err != nil {
-		return "", err
-	}
-
-	topic := pubsubClient.Topic(providerConfig.RunsTopic)
-	defer topic.Stop()
-
-	runLabels := runLabelsFromPipeline(runIntent.PipelineName, runIntent.PipelineVersion)
-
-	if !runIntent.RunConfigurationName.Empty() {
-		runLabels[labels.RunConfigurationName] = runIntent.RunConfigurationName.Name
-		runLabels[labels.RunConfigurationNamespace] = runIntent.RunConfigurationName.Namespace
-	}
-
-	if !runIntent.RunName.Empty() {
-		runLabels[labels.RunName] = runIntent.RunName.Name
-		runLabels[labels.RunNamespace] = runIntent.RunName.Namespace
-	}
-
-	vaiRun := VAIRun{
-		RunId:             generateRunId(runIntent),
-		PipelineUri:       providerConfig.pipelineUri(runIntent.PipelineName.Name, runIntent.PipelineVersion),
-		Labels:            runLabels,
-		RuntimeParameters: runIntent.RuntimeParameters,
-		Artifacts:         runIntent.Artifacts,
-	}
-
-	payload, err := json.Marshal(vaiRun)
-	if err != nil {
-		return "", err
-	}
-
-	_, err = topic.Publish(ctx, &pubsub.Message{Data: payload}).Get(ctx)
-
-	if err != nil {
-		return "", err
-	}
-
-	return vaiRun.RunId, nil
-}
-
-func (vaip VAIProvider) SubmitRun(ctx context.Context, providerConfig VAIProviderConfig, vaiRun VAIRun) error {
-	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
-	if err != nil {
-		return err
-	}
-	defer pipelineClient.Close()
-
-	parameters := make(map[string]*aiplatformpb.Value, len(vaiRun.RuntimeParameters))
-	for name, value := range vaiRun.RuntimeParameters {
-		parameters[name] = &aiplatformpb.Value{
-			Value: &aiplatformpb.Value_StringValue{
-				StringValue: value,
-			},
-		}
-	}
-
-	pipelineJob := &aiplatformpb.PipelineJob{
-		Labels:         vaiRun.Labels,
-		TemplateUri:    vaiRun.PipelineUri,
-		ServiceAccount: providerConfig.VaiJobServiceAccount,
-		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
-			Parameters: parameters,
-		},
-	}
-
-	err = enrichJobWithSpecFromTemplateUri(ctx, providerConfig, pipelineJob)
-	if err != nil {
-		return err
-	}
-
-	req := &aiplatformpb.CreatePipelineJobRequest{
-		Parent:        providerConfig.parent(),
-		PipelineJobId: vaiRun.RunId,
-		PipelineJob:   pipelineJob,
-	}
-
-	_, err = pipelineClient.CreatePipelineJob(ctx, req)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIProviderConfig) (generic.EventingServer, error) {

@@ -62,7 +62,7 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEvent for job that has not completed", func(state aiplatformpb.PipelineState) {
-		Expect(eventingServer.toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state}, VAIRun{RunId: common.RandomString()})).To(BeNil())
+		Expect(eventingServer.toRunCompletionEvent(&aiplatformpb.PipelineJob{State: state}, common.RandomString(), nil)).To(BeNil())
 	},
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_UNSPECIFIED),
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_QUEUED),
@@ -101,7 +101,7 @@ var _ = Context("VaiEventingServer", func() {
 					},
 				},
 			},
-		}, VAIRun{RunId: pipelineRunName.Name})).To(Equal(&common.RunCompletionEvent{
+		}, pipelineRunName.Name, nil)).To(Equal(&common.RunCompletionEvent{
 			RunConfigurationName: runConfigurationName.NonEmptyPtr(),
 			PipelineName:         pipelineName,
 			RunName:              pipelineRunName.NonEmptyPtr(),
@@ -591,7 +591,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("an error"))
-				event := eventingServer.runCompletionEventForRun(context.Background(), VAIRun{RunId: common.RandomString()})
+				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString(), nil)
 				Expect(event).To(BeNil())
 			})
 		})
@@ -599,7 +599,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob return no result", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, nil)
-				event := eventingServer.runCompletionEventForRun(context.Background(), VAIRun{RunId: common.RandomString()})
+				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString(), nil)
 				Expect(event).To(BeNil())
 			})
 		})
@@ -609,7 +609,7 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
 					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
 				}, nil)
-				event := eventingServer.runCompletionEventForRun(context.Background(), VAIRun{RunId: common.RandomString()})
+				event := eventingServer.runCompletionEventForRun(context.Background(), common.RandomString(), nil)
 				Expect(event).NotTo(BeNil())
 			})
 		})

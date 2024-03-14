@@ -12,8 +12,6 @@ type VAIProviderConfig struct {
 	VaiJobServiceAccount                  string `yaml:"vaiJobServiceAccount"`
 	GcsEndpoint                           string `yaml:"gcsEndpoint"`
 	PipelineBucket                        string `yaml:"pipelineBucket"`
-	RunIntentsTopic                       string `yaml:"runIntentsTopic"`
-	RunsTopic                             string `yaml:"runsTopic"`
 	EventsourcePipelineEventsSubscription string `yaml:"eventsourcePipelineEventsSubscription"`
 	MaxConcurrentRunCount                 int64  `yaml:"maxConcurrentRunCount"`
 }
@@ -28,18 +26,6 @@ func (vaipc VAIProviderConfig) parent() string {
 
 func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
 	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
-}
-
-func (vaipc VAIProviderConfig) schedulerJobName(name string) string {
-	return fmt.Sprintf("%s/jobs/%s", vaipc.parent(), name)
-}
-
-func (vaipc VAIProviderConfig) runIntentsTopicFullName() string {
-	return vaipc.topicFullName(vaipc.RunIntentsTopic)
-}
-
-func (vaipc VAIProviderConfig) topicFullName(topicName string) string {
-	return fmt.Sprintf("projects/%s/topics/%s", vaipc.VaiProject, topicName)
 }
 
 func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName string, pipelineVersion string) string {

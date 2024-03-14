@@ -80,15 +80,10 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			m.Nack()
 			return
 		}
-		run := VAIRun{
-			Labels:    logEntry.Labels,
-			RunId:     pipelineJobId,
-			Artifacts: artifactDefs,
-		}
 
-		event := es.runCompletionEventForRun(stream.Context(), run)
+		event := es.runCompletionEventForRun(stream.Context(), pipelineJobId, artifactDefs)
 		if event == nil {
-			es.Logger.Error(err, fmt.Sprintf("failed to convert to run completion event %+v", run))
+			es.Logger.Error(err, fmt.Sprintf("failed to convert to run completion event %s, %+v", pipelineJobId, artifactDefs))
 			m.Nack()
 			return
 		}
@@ -120,20 +115,20 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 	return nil
 }
 
-func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, run VAIRun) *common.RunCompletionEvent {
+func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId string, artifacts []pipelinesv1.OutputArtifact) *common.RunCompletionEvent {
 	job, err := es.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
-		Name: es.ProviderConfig.pipelineJobName(run.RunId),
+		Name: es.ProviderConfig.pipelineJobName(runId),
 	})
 	if err != nil {
 		es.Logger.Error(err, "could not fetch pipeline job")
 		return nil
 	}
 	if job == nil {
-		es.Logger.Error(nil, "expected pipeline job not found", "run-id", run.RunId)
+		es.Logger.Error(nil, "expected pipeline job not found", "run-id", runId)
 		return nil
 	}
 
-	return es.toRunCompletionEvent(job, run)
+	return es.toRunCompletionEvent(job, runId, artifacts)
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
@@ -240,42 +235,29 @@ func gvrAndNamespacedNameForRunLabels(runLabels map[string]string) (schema.Group
 	return schema.GroupVersionResource{}, types.NamespacedName{}, fmt.Errorf("neither %s or %s provided in labels", labels.RunConfigurationName, labels.RunName)
 }
 
-func (es *VaiEventingServer) toRunCompletionEvent(job *aiplatformpb.PipelineJob, run VAIRun) *common.RunCompletionEvent {
+func (es *VaiEventingServer) toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string, artifacts []pipelinesv1.OutputArtifact) *common.RunCompletionEvent {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
-		es.Logger.Error(nil, "expected pipeline job to have finished", "run-id", run.RunId)
+		es.Logger.Error(nil, "expected pipeline job to have finished", "run-id", runId)
 		return nil
 	}
 
-	var runName, runConfigurationName, pipelineName common.NamespacedName
+	var pipelineName common.NamespacedName
 
 	pipelineName.Name = job.Labels[labels.PipelineName]
 	if pipelineNamespace, ok := job.Labels[labels.PipelineNamespace]; ok {
 		pipelineName.Namespace = pipelineNamespace
 	}
 
-	if legacyNamespace, ok := job.Labels[labels.LegacyNamespace]; ok {
-		// For compatability with resources created with v0.3.0 and older
-		runName = common.NamespacedName{
-			Name:      run.RunId,
-			Namespace: legacyNamespace,
-		}
-	} else {
-		runName = common.NamespacedName{
-			Name:      job.Labels[labels.RunName],
-			Namespace: job.Labels[labels.RunNamespace]}
+	runName := common.NamespacedName{
+		Name:      job.Labels[labels.RunName],
+		Namespace: job.Labels[labels.RunNamespace],
 	}
 
-	if legacyRunConfiguration, ok := job.Labels[labels.LegacyRunConfiguration]; ok {
-		// For compatability with resources created with v0.3.0 and older
-		runConfigurationName = common.NamespacedName{
-			Name: legacyRunConfiguration,
-		}
-	} else {
-		runConfigurationName = common.NamespacedName{
-			Name:      job.Labels[labels.RunConfigurationName],
-			Namespace: job.Labels[labels.RunConfigurationNamespace]}
+	runConfigurationName := common.NamespacedName{
+		Name:      job.Labels[labels.RunConfigurationName],
+		Namespace: job.Labels[labels.RunConfigurationNamespace],
 	}
 
 	return &common.RunCompletionEvent{
@@ -283,8 +265,8 @@ func (es *VaiEventingServer) toRunCompletionEvent(job *aiplatformpb.PipelineJob,
 		PipelineName:          pipelineName,
 		RunConfigurationName:  runConfigurationName.NonEmptyPtr(),
 		RunName:               runName.NonEmptyPtr(),
-		RunId:                 run.RunId,
-		Artifacts:             artifactsForJob(job, run.Artifacts),
+		RunId:                 runId,
+		Artifacts:             artifactsForJob(job, artifacts),
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 		Provider:              es.ProviderConfig.Name,
 	}
