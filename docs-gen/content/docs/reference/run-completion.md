@@ -16,11 +16,6 @@ metadata:
 spec:
   nats:
     run-completion:
-      connectionBackoff:
-        duration: 10s
-        factor: 2
-        jitter: 0.2
-        steps: 5
       jsonBody: true
       subject: events
       url: nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222

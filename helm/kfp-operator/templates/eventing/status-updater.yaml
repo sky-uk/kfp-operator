@@ -41,9 +41,9 @@ spec:
   nats:
     {{ include "kfp-operator.fullname" $ }}-events:
       connectionBackoff:
-        duration: 10s
-        factor: 2
-        jitter: 0.2
+        duration: 1s
+        factor: 1.0
+        jitter: 1
         steps: 5
       jsonBody: true
       subject: events
