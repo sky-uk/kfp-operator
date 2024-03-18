@@ -37,13 +37,13 @@ make docker-build docker-build-argo
 Push to the container registry:
 
 ```sh
-CONTAINER_REGISTRY_HOSTS=<YOUR_CONTAINER_REGISTRY> make docker-push docker-push-argo
+CONTAINER_REPOSITORIES=<YOUR_CONTAINER_REPOSITORY> make docker-push docker-push-argo
 ```
 
 For example, to push to Google Artifact Registry:
 
 ```sh
-CONTAINER_REGISTRY_HOSTS=europe-docker.pkg.dev/<PROJECT_NAME>/images make docker-push docker-push-argo
+CONTAINER_REPOSITORIES=europe-docker.pkg.dev/<PROJECT_NAME>/images make docker-push docker-push-argo
 ```
 
 ### Building and publishing the Helm chart
