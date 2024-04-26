@@ -2,6 +2,7 @@ package vai
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"strings"
 )
 
@@ -28,7 +29,7 @@ func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
 	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
 }
 
-func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName string, pipelineVersion string) string {
+func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName common.NamespacedName, pipelineVersion string) string {
 	return fmt.Sprintf("%s/%s", pipelineName, pipelineVersion)
 }
 
@@ -36,7 +37,7 @@ func (vaipc VAIProviderConfig) gcsUri(bucket string, pathSegments ...string) str
 	return fmt.Sprintf("gs://%s/%s", bucket, strings.Join(pathSegments, "/"))
 }
 
-func (vaipc VAIProviderConfig) pipelineUri(pipelineName string, pipelineVersion string) string {
+func (vaipc VAIProviderConfig) pipelineUri(pipelineName common.NamespacedName, pipelineVersion string) string {
 	return vaipc.gcsUri(vaipc.PipelineBucket, vaipc.pipelineStorageObject(pipelineName, pipelineVersion))
 }
 

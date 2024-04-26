@@ -9,12 +9,12 @@ import (
 )
 
 type PipelineDefinition struct {
-	Name          string            `yaml:"name"`
-	Version       string            `yaml:"version"`
-	Image         string            `yaml:"image"`
-	TfxComponents string            `yaml:"tfxComponents"`
-	Env           []apis.NamedValue `yaml:"env"`
-	BeamArgs      []apis.NamedValue `yaml:"beamArgs"`
+	Name          common.NamespacedName `yaml:"name"`
+	Version       string                `yaml:"version"`
+	Image         string                `yaml:"image"`
+	TfxComponents string                `yaml:"tfxComponents"`
+	Env           []apis.NamedValue     `yaml:"env"`
+	BeamArgs      []apis.NamedValue     `yaml:"beamArgs"`
 }
 
 type ExperimentDefinition struct {

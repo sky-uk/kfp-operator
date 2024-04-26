@@ -129,41 +129,45 @@ type VAIProvider struct {
 }
 
 func (vaip VAIProvider) CreatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, pipelineFile string) (string, error) {
-	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, pipelineDefinition.Name, pipelineFile); err != nil {
+	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, "", pipelineFile); err != nil {
 		return "", err
 	}
 
-	return pipelineDefinition.Name, nil
+	return pipelineDefinition.Name.String()
 }
 
-func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
+func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, _ string, pipelineFile string) (string, error) {
+	pipelineId, err := pipelineDefinition.Name.String()
+	if err != nil {
+		return "", err
+	}
 	client, err := gcsClient(ctx, providerConfig)
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
 	reader, err := os.Open(pipelineFile)
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
-	writer := client.Bucket(providerConfig.PipelineBucket).Object(providerConfig.pipelineStorageObject(id, pipelineDefinition.Version)).NewWriter(ctx)
+	writer := client.Bucket(providerConfig.PipelineBucket).Object(providerConfig.pipelineStorageObject(pipelineDefinition.Name, pipelineDefinition.Version)).NewWriter(ctx)
 	_, err = io.Copy(writer, reader)
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
 	err = reader.Close()
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
-	return id, nil
+	return pipelineId, nil
 }
 
 func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIProviderConfig, id string) error {
@@ -193,8 +197,12 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
+func generateNamespacedName(namespace string, name string) string {
+	return fmt.Sprintf("%s-%s", namespace, name)
+}
+
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
-	runId := runDefinition.Name.Name
+	runId := generateNamespacedName(runDefinition.Name.Namespace, runDefinition.Name.Name)
 
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
@@ -213,7 +221,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromRunDefinition(runDefinition),
-		TemplateUri:    providerConfig.pipelineUri(runDefinition.PipelineName.Name, runDefinition.PipelineVersion),
+		TemplateUri:    providerConfig.pipelineUri(runDefinition.PipelineName, runDefinition.PipelineVersion),
 		ServiceAccount: providerConfig.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: parameters,
@@ -226,9 +234,9 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 	}
 
 	req := &aiplatformpb.CreatePipelineJobRequest{
-		Parent:        providerConfig.parent(),
-		PipelineJobId: runId,
-		PipelineJob:   pipelineJob,
+		Parent: providerConfig.parent(),
+		//PipelineJobId: runId,
+		PipelineJob: pipelineJob,
 	}
 
 	_, err = pipelineClient.CreatePipelineJob(ctx, req)
@@ -257,7 +265,7 @@ func (vaip VAIProvider) buildPipelineJob(providerConfig VAIProviderConfig, runSc
 	// Note: unable to migrate from `Parameters` to `ParameterValues` at this point as `PipelineJob.pipeline_spec.schema_version` used by TFX is 2.0.0 see deprecated comment
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromSchedule(runScheduleDefinition),
-		TemplateUri:    providerConfig.pipelineUri(runScheduleDefinition.PipelineName.Name, runScheduleDefinition.PipelineVersion),
+		TemplateUri:    providerConfig.pipelineUri(runScheduleDefinition.PipelineName, runScheduleDefinition.PipelineVersion),
 		ServiceAccount: providerConfig.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: parameters,

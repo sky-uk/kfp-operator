@@ -67,6 +67,8 @@ def load_fn(tfx_components: str, env: list):
 
     return fn
 
+def parseNamespacedPipelineName(namespacedName: str) -> str:
+    return namespacedName.replace("/", "-")
 
 @click.command()
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
@@ -94,7 +96,7 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
 
         compile_fn(pipeline_config_contents, output_file).run(
             pipeline.Pipeline(
-                pipeline_name=pipeline_config_contents['name'],
+                pipeline_name=parseNamespacedPipelineName(pipeline_config_contents['name']),
                 pipeline_root=pipeline_root,
                 components=expanded_components,
                 enable_cache=False,
@@ -132,8 +134,11 @@ def compile_v2(config: dict, output_filename: str):
     )
 
 
+def nameFromNamespacedName(namespacedName: str) -> str:
+    return ""
+
 def pipeline_paths_for_config(pipeline_config: dict, provider_config: dict):
-    pipeline_root = provider_config['pipelineRootStorage'] + '/' + pipeline_config['name']
+    pipeline_root = provider_config['pipelineRootStorage'] + '/' + nameFromNamespacedName(pipeline_config['name'])  # nbcu-disco-prod-003-kfp-operator-vai-for-you-pipelinestorage/for-you
     return pipeline_root, pipeline_root + "/serving", pipeline_root + "/tmp"
 
 

@@ -43,7 +43,7 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 	}
 
 	result, err := pipelineUploadService.UploadPipeline(&pipeline_upload_service.UploadPipelineParams{
-		Name:       &pipelineDefinition.Name,
+		Name:       &pipelineDefinition.Name.Name,
 		Uploadfile: runtime.NamedReader(pipelineFileName, reader),
 		Context:    ctx,
 	}, nil)
