@@ -67,8 +67,10 @@ def load_fn(tfx_components: str, env: list):
 
     return fn
 
-def parseNamespacedPipelineName(namespacedName: str) -> str:
-    return namespacedName.replace("/", "-")
+
+def parse_namespaced_pipeline_name(namespaced_name: str) -> str:
+    return namespaced_name.replace("/", "-")
+
 
 @click.command()
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
@@ -80,9 +82,11 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         pipeline_config_contents = yaml.safe_load(pipeline_stream)
         provider_config_contents = yaml.safe_load(provider_stream)
 
-        click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ', fg='green')
+        click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ',
+                    fg='green')
 
-        pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents, provider_config_contents)
+        pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents,
+                                                                                          provider_config_contents)
 
         beam_args = provider_config_contents.get('defaultBeamArgs', [])
         beam_args.extend(pipeline_config_contents.get('beamArgs', []))
@@ -96,7 +100,7 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
 
         compile_fn(pipeline_config_contents, output_file).run(
             pipeline.Pipeline(
-                pipeline_name=parseNamespacedPipelineName(pipeline_config_contents['name']),
+                pipeline_name=parse_namespaced_pipeline_name(pipeline_config_contents['name']),
                 pipeline_root=pipeline_root,
                 components=expanded_components,
                 enable_cache=False,
@@ -134,11 +138,13 @@ def compile_v2(config: dict, output_filename: str):
     )
 
 
-def nameFromNamespacedName(namespacedName: str) -> str:
-    return ""
+def name_from_namespaced_name(namespaced_name: str) -> str:
+    separator_index = namespaced_name.find("/")
+    return namespaced_name[separator_index + 1:]
+
 
 def pipeline_paths_for_config(pipeline_config: dict, provider_config: dict):
-    pipeline_root = provider_config['pipelineRootStorage'] + '/' + nameFromNamespacedName(pipeline_config['name'])  # nbcu-disco-prod-003-kfp-operator-vai-for-you-pipelinestorage/for-you
+    pipeline_root = provider_config['pipelineRootStorage'] + '/' + name_from_namespaced_name(pipeline_config['name'])
     return pipeline_root, pipeline_root + "/serving", pipeline_root + "/tmp"
 
 

@@ -1,0 +1,9 @@
+name: namespace/test
+image: test-pipeline
+tfxComponents: pipeline.create_components
+env:
+- name: foo
+  value: bar
+beamArgs:
+- name: anArg
+  value:  aValue
