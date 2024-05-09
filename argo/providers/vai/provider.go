@@ -90,6 +90,8 @@ func enrichJobWithSpecFromTemplateUri(ctx context.Context, providerConfig VAIPro
 		return err
 	}
 
+	// TODO COULD PUT NASTY HACK HERE
+
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(reader)
 	if err != nil {
@@ -202,13 +204,32 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
-func generateNamespacedName(namespace string, name string) string {
-	return fmt.Sprintf("%s-%s", namespace, name)
+func ExtractFromMap[T any](targetMap map[string]any, fieldName string) (T, error) {
+	result, ok := targetMap[fieldName].(T)
+	if !ok {
+		err := errors.New("Failed extracting field " + fieldName + "from a given map")
+		var emptyResult T
+		return emptyResult, err
+	}
+	return result, nil
+}
+
+func retrieveRunIdFromSpec(pipelineSpec map[string]any) (string, error) {
+
+	pipelineInfo, err := ExtractFromMap[map[string]any](pipelineSpec, "pipelineInfo")
+	if err != nil {
+		return "", err
+	}
+	runId, err := ExtractFromMap[string](pipelineInfo, "name")
+	if err != nil {
+		return "", err
+	}
+
+	return runId, nil
 }
 
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
-	runId := generateNamespacedName(runDefinition.Name.Namespace, runDefinition.Name.Name)
-
+	logger := common.LoggerFromContext(ctx)
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
 		return "", err
@@ -242,10 +263,17 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		return "", err
 	}
 
+	// get spec from job which has just been mutated above to get the run id from "pipelineInfo/name"
+	runId, err := retrieveRunIdFromSpec(pipelineJob.PipelineSpec.AsMap())
+	if err != nil {
+		logger.Error(err, err.Error())
+		return "", err
+	}
+
 	req := &aiplatformpb.CreatePipelineJobRequest{
-		Parent: providerConfig.parent(),
-		//PipelineJobId: runId,
-		PipelineJob: pipelineJob,
+		Parent:        providerConfig.parent(),
+		PipelineJobId: runId,
+		PipelineJob:   pipelineJob,
 	}
 
 	_, err = pipelineClient.CreatePipelineJob(ctx, req)

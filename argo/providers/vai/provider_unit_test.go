@@ -194,4 +194,55 @@ var _ = Context("VAI Provider", func() {
 			}))
 		})
 	})
+
+	Describe("ExtractFromMap", func() {
+		It("should extract a value from a map for any given type if it exists", func() {
+			testMap := map[string]any{
+				"stringField": "someString",
+				"intField":    1,
+				"mapField": map[string]int{
+					"nestedField": 2,
+				},
+			}
+
+			stringField, stringFieldErr := ExtractFromMap[string](testMap, "stringField")
+			intField, intFieldErr := ExtractFromMap[int](testMap, "intField")
+			mapField, mapFieldErr := ExtractFromMap[map[string]int](testMap, "mapField")
+			_, missingFieldErr := ExtractFromMap[string](testMap, "missingField")
+			_, wrongTypeError := ExtractFromMap[int](testMap, "mapField")
+
+			Expect(stringField).To(Equal("someString"))
+			Expect(stringFieldErr).ToNot(HaveOccurred())
+			Expect(intField).To(Equal(1))
+			Expect(intFieldErr).ToNot(HaveOccurred())
+			Expect(mapField).To(Equal(map[string]int{
+				"nestedField": 2,
+			}))
+			Expect(mapFieldErr).ToNot(HaveOccurred())
+			Expect(missingFieldErr).To(HaveOccurred())
+			Expect(wrongTypeError).To(HaveOccurred())
+		})
+	})
+
+	Describe("retrieveRunIdFromSpec", func() {
+		It("should extract a runId from a given pipelineSpec", func() {
+			pipelineName := "pipelineName"
+			pipelineSpec := map[string]any{
+				"pipelineInfo": map[string]any{
+					"name": pipelineName,
+				},
+			}
+			result, err := retrieveRunIdFromSpec(pipelineSpec)
+
+			Expect(result).To(Equal(pipelineName))
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should error if pipeline spec is missing a required field", func() {
+			pipelineSpec := map[string]any{}
+			_, err := retrieveRunIdFromSpec(pipelineSpec)
+
+			Expect(err).To(HaveOccurred())
+		})
+	})
 })
