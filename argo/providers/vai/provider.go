@@ -90,7 +90,7 @@ func enrichJobWithSpecFromTemplateUri(ctx context.Context, providerConfig VAIPro
 		return err
 	}
 
-	// TODO COULD PUT NASTY HACK HERE
+	// TODO Still need to sort migration of pipeline definitions.
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(reader)
@@ -214,7 +214,7 @@ func ExtractFromMap[T any](targetMap map[string]any, fieldName string) (T, error
 	return result, nil
 }
 
-func retrieveRunIdFromSpec(pipelineSpec map[string]any) (string, error) {
+func extractPipelineNameFromSpec(pipelineSpec map[string]any) (string, error) {
 
 	pipelineInfo, err := ExtractFromMap[map[string]any](pipelineSpec, "pipelineInfo")
 	if err != nil {
@@ -230,6 +230,8 @@ func retrieveRunIdFromSpec(pipelineSpec map[string]any) (string, error) {
 
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
 	logger := common.LoggerFromContext(ctx)
+	logger.Info(fmt.Sprintf("Creating run with name: [%s] version: [%s]", runDefinition.Name.Name, runDefinition.Version))
+
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
 		return "", err
@@ -264,7 +266,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 	}
 
 	// get spec from job which has just been mutated above to get the run id from "pipelineInfo/name"
-	runId, err := retrieveRunIdFromSpec(pipelineJob.PipelineSpec.AsMap())
+	runId, err := extractPipelineNameFromSpec(pipelineJob.PipelineSpec.AsMap())
 	if err != nil {
 		logger.Error(err, err.Error())
 		return "", err
@@ -272,7 +274,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 
 	req := &aiplatformpb.CreatePipelineJobRequest{
 		Parent:        providerConfig.parent(),
-		PipelineJobId: runId,
+		PipelineJobId: fmt.Sprintf("%s-%s", runId, runDefinition.Version),
 		PipelineJob:   pipelineJob,
 	}
 

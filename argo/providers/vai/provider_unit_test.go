@@ -224,7 +224,7 @@ var _ = Context("VAI Provider", func() {
 		})
 	})
 
-	Describe("retrieveRunIdFromSpec", func() {
+	Describe("extractPipelineNameFromSpec", func() {
 		It("should extract a runId from a given pipelineSpec", func() {
 			pipelineName := "pipelineName"
 			pipelineSpec := map[string]any{
@@ -232,7 +232,7 @@ var _ = Context("VAI Provider", func() {
 					"name": pipelineName,
 				},
 			}
-			result, err := retrieveRunIdFromSpec(pipelineSpec)
+			result, err := extractPipelineNameFromSpec(pipelineSpec)
 
 			Expect(result).To(Equal(pipelineName))
 			Expect(err).ToNot(HaveOccurred())
@@ -240,7 +240,7 @@ var _ = Context("VAI Provider", func() {
 
 		It("should error if pipeline spec is missing a required field", func() {
 			pipelineSpec := map[string]any{}
-			_, err := retrieveRunIdFromSpec(pipelineSpec)
+			_, err := extractPipelineNameFromSpec(pipelineSpec)
 
 			Expect(err).To(HaveOccurred())
 		})
