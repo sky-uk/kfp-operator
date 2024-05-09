@@ -151,7 +151,12 @@ func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIPr
 		return pipelineId, err
 	}
 
-	writer := client.Bucket(providerConfig.PipelineBucket).Object(providerConfig.pipelineStorageObject(pipelineDefinition.Name, pipelineDefinition.Version)).NewWriter(ctx)
+	storageObject, err := providerConfig.pipelineStorageObject(pipelineDefinition.Name, pipelineDefinition.Version)
+	if err != nil {
+		return pipelineId, err
+	}
+	writer := client.Bucket(providerConfig.PipelineBucket).Object(storageObject).NewWriter(ctx)
+
 	_, err = io.Copy(writer, reader)
 	if err != nil {
 		return pipelineId, err
@@ -219,9 +224,13 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		}
 	}
 
+	templateUri, err := providerConfig.pipelineUri(runDefinition.PipelineName, runDefinition.PipelineVersion)
+	if err != nil {
+		return "", err
+	}
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromRunDefinition(runDefinition),
-		TemplateUri:    providerConfig.pipelineUri(runDefinition.PipelineName, runDefinition.PipelineVersion),
+		TemplateUri:    templateUri,
 		ServiceAccount: providerConfig.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: parameters,
@@ -263,9 +272,13 @@ func (vaip VAIProvider) buildPipelineJob(providerConfig VAIProviderConfig, runSc
 	})
 
 	// Note: unable to migrate from `Parameters` to `ParameterValues` at this point as `PipelineJob.pipeline_spec.schema_version` used by TFX is 2.0.0 see deprecated comment
+	templateUri, err := providerConfig.pipelineUri(runScheduleDefinition.PipelineName, runScheduleDefinition.PipelineVersion)
+	if err != nil {
+		return nil, err
+	}
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromSchedule(runScheduleDefinition),
-		TemplateUri:    providerConfig.pipelineUri(runScheduleDefinition.PipelineName, runScheduleDefinition.PipelineVersion),
+		TemplateUri:    templateUri,
 		ServiceAccount: providerConfig.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: parameters,
