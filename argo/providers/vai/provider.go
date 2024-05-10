@@ -90,8 +90,6 @@ func enrichJobWithSpecFromTemplateUri(ctx context.Context, providerConfig VAIPro
 		return err
 	}
 
-	// TODO Still need to sort migration of pipeline definitions.
-
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(reader)
 	if err != nil {
@@ -238,7 +236,6 @@ func extractRunNameSuffix(pipelineName string) (string, error) {
 
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
 	logger := common.LoggerFromContext(ctx)
-	logger.Info(fmt.Sprintf("Creating run with name: [%s] version: [%s]", runDefinition.Name.Name, runDefinition.Version))
 
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
@@ -273,7 +270,6 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		return "", err
 	}
 
-	// get spec from job which has just been mutated above to get the run id from "pipelineInfo/name"
 	runId, err := extractPipelineNameFromSpec(pipelineJob.PipelineSpec.AsMap())
 	if err != nil {
 		logger.Error(err, err.Error())

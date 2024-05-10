@@ -25,7 +25,9 @@ import (
 )
 
 const (
-	TestTimeout = 120
+	TestTimeout   = 120
+	TestNamespace = "argo"
+	TestProvider  = "stub"
 )
 
 var (
@@ -52,12 +54,13 @@ var _ = BeforeEach(func() {
 	k8sClient.Delete(ctx, &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kfp-operator-integration-tests-providers",
-			Namespace: "argo",
+			Namespace: TestNamespace,
 		}})
 })
 
 func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R) base.Output {
 	providerConfig := stub.StubProviderConfig{
+		Namespace:     TestNamespace,
 		StubbedOutput: stubbedOutput,
 		ExpectedInput: stub.ExpectedInput{
 			Id: resource.GetStatus().ProviderId.Id,
@@ -77,10 +80,10 @@ func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R)
 	Expect(k8sClient.Create(ctx, &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kfp-operator-integration-tests-providers",
-			Namespace: "argo",
+			Namespace: TestNamespace,
 		},
 		Data: map[string]string{
-			"stub": fmt.Sprintf("%s\nserviceAccount: default\nimage: kfp-operator-stub-provider\nexecutionMode: none", configYaml),
+			TestProvider: fmt.Sprintf("%s\nserviceAccount: default\nimage: kfp-operator-stub-provider\nexecutionMode: none", configYaml),
 		},
 	})).To(Succeed())
 
@@ -115,7 +118,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	}
 
 	expectedOutput := setUp(testCtx.Resource)
-	workflow, err := constructWorkflow("stub", testCtx.Resource)
+	workflow, err := constructWorkflow(TestProvider, testCtx.Resource)
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
@@ -131,9 +134,9 @@ func AssertWorkflow[R pipelinesv1.Resource](
 }
 
 func withIntegrationTestFields[T pipelinesv1.Resource](resource T) T {
-	resource.SetNamespace("argo")
+	resource.SetNamespace(TestNamespace)
 	resourceStatus := resource.GetStatus()
-	resourceStatus.ProviderId.Provider = "stub"
+	resourceStatus.ProviderId.Provider = TestProvider
 	resource.SetStatus(resourceStatus)
 
 	return resource

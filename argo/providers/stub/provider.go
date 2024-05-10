@@ -10,6 +10,7 @@ import (
 )
 
 type StubProviderConfig struct {
+	Namespace     string        `yaml:"namespace"`
 	StubbedOutput base.Output   `yaml:"expectedOutput"`
 	ExpectedInput ExpectedInput `yaml:"expectedInput"`
 }
@@ -80,11 +81,11 @@ func (s StubProvider) DeleteRun(_ context.Context, providerConfig StubProviderCo
 }
 
 func (s StubProvider) CreateRunSchedule(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunScheduleDefinition) (string, error) {
-	return verifyCreateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name}, resourceDefinition.Version})
+	return verifyCreateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name, Namespace: providerConfig.Namespace}, resourceDefinition.Version})
 }
 
 func (s StubProvider) UpdateRunSchedule(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunScheduleDefinition, id string) (string, error) {
-	return verifyUpdateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name}, resourceDefinition.Version}, id)
+	return verifyUpdateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name, Namespace: providerConfig.Namespace}, resourceDefinition.Version}, id)
 }
 
 func (s StubProvider) DeleteRunSchedule(_ context.Context, providerConfig StubProviderConfig, id string) error {
@@ -92,11 +93,11 @@ func (s StubProvider) DeleteRunSchedule(_ context.Context, providerConfig StubPr
 }
 
 func (s StubProvider) CreateExperiment(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.ExperimentDefinition) (string, error) {
-	return verifyCreateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name}, resourceDefinition.Version})
+	return verifyCreateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name, Namespace: providerConfig.Namespace}, resourceDefinition.Version})
 }
 
 func (s StubProvider) UpdateExperiment(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.ExperimentDefinition, id string) (string, error) {
-	return verifyUpdateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name}, resourceDefinition.Version}, id)
+	return verifyUpdateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name, Namespace: providerConfig.Namespace}, resourceDefinition.Version}, id)
 }
 
 func (s StubProvider) DeleteExperiment(_ context.Context, providerConfig StubProviderConfig, id string) error {
