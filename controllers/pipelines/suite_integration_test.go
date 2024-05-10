@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/stub"
 	"github.com/sky-uk/kfp-operator/external"
@@ -61,7 +62,10 @@ func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R)
 		ExpectedInput: stub.ExpectedInput{
 			Id: resource.GetStatus().ProviderId.Id,
 			ResourceDefinition: stub.ResourceDefinition{
-				Name:    resource.GetName(),
+				Name: common.NamespacedName{
+					Name:      resource.GetName(),
+					Namespace: resource.GetNamespace(),
+				},
 				Version: resource.ComputeVersion(),
 			},
 		},

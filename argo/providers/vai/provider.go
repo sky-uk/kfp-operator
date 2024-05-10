@@ -228,6 +228,14 @@ func extractPipelineNameFromSpec(pipelineSpec map[string]any) (string, error) {
 	return runId, nil
 }
 
+func extractRunNameSuffix(pipelineName string) (string, error) {
+	index := strings.LastIndex(pipelineName, "-")
+	if index == -1 {
+		return "", fmt.Errorf("unable to extract suffix from pipelineName: %s", pipelineName)
+	}
+	return pipelineName[index+1:], nil
+}
+
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
 	logger := common.LoggerFromContext(ctx)
 	logger.Info(fmt.Sprintf("Creating run with name: [%s] version: [%s]", runDefinition.Name.Name, runDefinition.Version))

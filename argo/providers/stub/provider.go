@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
@@ -14,8 +15,8 @@ type StubProviderConfig struct {
 }
 
 type ResourceDefinition struct {
-	Name    string `yaml:"name"`
-	Version string `yaml:"version"`
+	Name    common.NamespacedName `yaml:"name"`
+	Version string                `yaml:"version"`
 }
 
 type ExpectedInput struct {
@@ -71,7 +72,7 @@ func (s StubProvider) DeletePipeline(_ context.Context, providerConfig StubProvi
 }
 
 func (s StubProvider) CreateRun(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunDefinition) (string, error) {
-	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name.Name, resourceDefinition.Version})
+	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
 }
 
 func (s StubProvider) DeleteRun(_ context.Context, providerConfig StubProviderConfig, id string) error {
@@ -79,11 +80,11 @@ func (s StubProvider) DeleteRun(_ context.Context, providerConfig StubProviderCo
 }
 
 func (s StubProvider) CreateRunSchedule(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunScheduleDefinition) (string, error) {
-	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
+	return verifyCreateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name}, resourceDefinition.Version})
 }
 
 func (s StubProvider) UpdateRunSchedule(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunScheduleDefinition, id string) (string, error) {
-	return verifyUpdateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version}, id)
+	return verifyUpdateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name}, resourceDefinition.Version}, id)
 }
 
 func (s StubProvider) DeleteRunSchedule(_ context.Context, providerConfig StubProviderConfig, id string) error {
@@ -91,11 +92,11 @@ func (s StubProvider) DeleteRunSchedule(_ context.Context, providerConfig StubPr
 }
 
 func (s StubProvider) CreateExperiment(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.ExperimentDefinition) (string, error) {
-	return verifyCreateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version})
+	return verifyCreateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name}, resourceDefinition.Version})
 }
 
 func (s StubProvider) UpdateExperiment(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.ExperimentDefinition, id string) (string, error) {
-	return verifyUpdateCall(providerConfig, ResourceDefinition{resourceDefinition.Name, resourceDefinition.Version}, id)
+	return verifyUpdateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name}, resourceDefinition.Version}, id)
 }
 
 func (s StubProvider) DeleteExperiment(_ context.Context, providerConfig StubProviderConfig, id string) error {

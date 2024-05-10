@@ -245,4 +245,19 @@ var _ = Context("VAI Provider", func() {
 			Expect(err).To(HaveOccurred())
 		})
 	})
+
+	DescribeTable("extractRunNameSuffix", func(pipelineName string, expected string) {
+		suffix, err := extractRunNameSuffix(pipelineName)
+		if expected == "" {
+			Expect(err).To(HaveOccurred())
+		} else {
+			Expect(suffix).To(Equal(expected))
+		}
+
+	},
+		Entry("", "pipeline-name", "name"),
+		Entry("", "still-pipeline-name", "name"),
+		Entry("", "pipeline", ""),
+		Entry("", "", ""),
+	)
 })
