@@ -209,7 +209,7 @@ var _ = Context("VAI Provider", func() {
 			intField, intFieldErr := ExtractFromMap[int](testMap, "intField")
 			mapField, mapFieldErr := ExtractFromMap[map[string]int](testMap, "mapField")
 			_, missingFieldErr := ExtractFromMap[string](testMap, "missingField")
-			_, wrongTypeError := ExtractFromMap[int](testMap, "mapField")
+			_, wrongTypeErr := ExtractFromMap[int](testMap, "mapField")
 
 			Expect(stringField).To(Equal("someString"))
 			Expect(stringFieldErr).ToNot(HaveOccurred())
@@ -220,7 +220,7 @@ var _ = Context("VAI Provider", func() {
 			}))
 			Expect(mapFieldErr).ToNot(HaveOccurred())
 			Expect(missingFieldErr).To(HaveOccurred())
-			Expect(wrongTypeError).To(HaveOccurred())
+			Expect(wrongTypeErr).To(HaveOccurred())
 		})
 	})
 

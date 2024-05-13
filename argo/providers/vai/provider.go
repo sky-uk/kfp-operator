@@ -202,14 +202,12 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
-func ExtractFromMap[T any](targetMap map[string]any, fieldName string) (T, error) {
+func ExtractFromMap[T any](targetMap map[string]any, fieldName string) (result T, err error) {
 	result, ok := targetMap[fieldName].(T)
 	if !ok {
-		err := errors.New("Failed extracting field " + fieldName + "from a given map")
-		var emptyResult T
-		return emptyResult, err
+		err = fmt.Errorf("failed extracting field %s of type %T from the given map", fieldName, result)
 	}
-	return result, nil
+	return result, err
 }
 
 func extractPipelineNameFromSpec(pipelineSpec map[string]any) (string, error) {
