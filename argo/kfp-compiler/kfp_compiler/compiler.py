@@ -68,7 +68,7 @@ def load_fn(tfx_components: str, env: list):
     return fn
 
 
-def parse_namespaced_pipeline_name(namespaced_name: str) -> str:
+def sanitise_namespaced_pipeline_name(namespaced_name: str) -> str:
     return namespaced_name.replace("/", "-")
 
 
@@ -100,7 +100,7 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
 
         compile_fn(pipeline_config_contents, output_file).run(
             pipeline.Pipeline(
-                pipeline_name=parse_namespaced_pipeline_name(pipeline_config_contents['name']),
+                pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
                 pipeline_root=pipeline_root,
                 components=expanded_components,
                 enable_cache=False,
@@ -138,13 +138,8 @@ def compile_v2(config: dict, output_filename: str):
     )
 
 
-def name_from_namespaced_name(namespaced_name: str) -> str:
-    separator_index = namespaced_name.find("/")
-    return namespaced_name[separator_index + 1:]
-
-
 def pipeline_paths_for_config(pipeline_config: dict, provider_config: dict):
-    pipeline_root = provider_config['pipelineRootStorage'] + '/' + name_from_namespaced_name(pipeline_config['name'])
+    pipeline_root = provider_config['pipelineRootStorage'] + '/' + pipeline_config['name']
     return pipeline_root, pipeline_root + "/serving", pipeline_root + "/tmp"
 
 

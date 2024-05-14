@@ -6,4 +6,4 @@ env:
   value: bar
 beamArgs:
 - name: anArg
-  value:  aValue
+  value: aValue
