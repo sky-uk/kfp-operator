@@ -234,7 +234,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 				Parameters: jobParameters,
 			},
 			Description:    string(runScheduleAsDescription),
-			Name:           runScheduleDefinition.Name,
+			Name:           runScheduleDefinition.Name.Name,
 			MaxConcurrency: 1,
 			Enabled:        true,
 			NoCatchup:      true,

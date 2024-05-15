@@ -81,11 +81,11 @@ func (s StubProvider) DeleteRun(_ context.Context, providerConfig StubProviderCo
 }
 
 func (s StubProvider) CreateRunSchedule(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunScheduleDefinition) (string, error) {
-	return verifyCreateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name, Namespace: providerConfig.Namespace}, resourceDefinition.Version})
+	return verifyCreateCall(providerConfig, ResourceDefinition{Name: resourceDefinition.Name, Version: resourceDefinition.Version})
 }
 
 func (s StubProvider) UpdateRunSchedule(_ context.Context, providerConfig StubProviderConfig, resourceDefinition base.RunScheduleDefinition, id string) (string, error) {
-	return verifyUpdateCall(providerConfig, ResourceDefinition{common.NamespacedName{Name: resourceDefinition.Name, Namespace: providerConfig.Namespace}, resourceDefinition.Version}, id)
+	return verifyUpdateCall(providerConfig, ResourceDefinition{Name: resourceDefinition.Name, Version: resourceDefinition.Version}, id)
 }
 
 func (s StubProvider) DeleteRunSchedule(_ context.Context, providerConfig StubProviderConfig, id string) error {

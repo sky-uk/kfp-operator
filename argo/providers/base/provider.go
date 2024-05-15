@@ -24,7 +24,7 @@ type ExperimentDefinition struct {
 }
 
 type RunScheduleDefinition struct {
-	Name                 string                     `yaml:"name"`
+	Name                 common.NamespacedName      `yaml:"name"`
 	Version              string                     `yaml:"version"`
 	PipelineName         common.NamespacedName      `yaml:"pipelineName"`
 	PipelineVersion      string                     `yaml:"pipelineVersion"`

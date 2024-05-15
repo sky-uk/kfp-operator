@@ -22,7 +22,7 @@ func randomBasicRunDefinition() RunDefinition {
 
 func randomRunScheduleDefinition() RunScheduleDefinition {
 	return RunScheduleDefinition{
-		Name:                 common.RandomString(),
+		Name:                 common.RandomNamespacedName(),
 		Version:              common.RandomString(),
 		PipelineName:         common.RandomNamespacedName(),
 		PipelineVersion:      common.RandomString(),
