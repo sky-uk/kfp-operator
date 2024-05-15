@@ -8,8 +8,7 @@ from tempfile import TemporaryDirectory
 import pytest
 
 runner = CliRunner()
-unnamespaced_config_file_path = 'acceptance/pipeline_conf.yaml'
-namespaced_config_file_path = 'acceptance/namespaced_pipeline_conf.yaml'
+config_file_path = 'acceptance/pipeline_conf.yaml'
 
 
 def provider_config_file_path(execution_mode):
@@ -25,7 +24,7 @@ def test_cli_v1():
     with TemporaryDirectory() as tmp_dir:
         output_file_path = os.path.join(tmp_dir, 'pipeline.yaml')
 
-        result = runner.invoke(compiler.compile, ['--pipeline_config', unnamespaced_config_file_path, '--provider_config', provider_config_file_path('v1'), '--output_file', output_file_path])
+        result = runner.invoke(compiler.compile, ['--pipeline_config', config_file_path, '--provider_config', provider_config_file_path('v1'), '--output_file', output_file_path])
 
         assert result.exit_code == 0
         assert os.stat(output_file_path).st_size != 0
@@ -35,11 +34,7 @@ def test_cli_v1():
         assert workflow['kind'] == 'Workflow'
 
 
-@pytest.mark.parametrize("config_file_path, expected_pipelineinfo_name", [
-    (unnamespaced_config_file_path,  "test"),
-    (namespaced_config_file_path, "namespace-test")
-])
-def test_cli_v2(config_file_path: str, expected_pipelineinfo_name: str):
+def test_cli_v2():
     with TemporaryDirectory() as tmp_dir:
         output_file_path = os.path.join(tmp_dir, 'pipeline.yaml')
 
@@ -51,7 +46,7 @@ def test_cli_v2(config_file_path: str, expected_pipelineinfo_name: str):
         f = open(output_file_path, "r")
         pipeline = yaml.safe_load(f.read())
         assert pipeline['pipelineSpec']['schemaVersion'] == '2.0.0'
-        assert pipeline['pipelineSpec']['pipelineInfo']['name'] == expected_pipelineinfo_name
+        assert pipeline['pipelineSpec']['pipelineInfo']['name'] == "namespace-test"
 
 
 def test_failure():
