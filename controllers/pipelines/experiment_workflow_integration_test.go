@@ -17,7 +17,11 @@ var _ = Context("Resource Workflows", Serial, func() {
 	})
 
 	var newExperiment = func() *pipelinesv1.Experiment {
-		return withIntegrationTestFields(pipelinesv1.RandomExperiment())
+		resource := pipelinesv1.RandomExperiment()
+		resourceStatus := resource.GetStatus()
+		resourceStatus.ProviderId.Provider = TestProvider
+		resource.SetStatus(resourceStatus)
+		return resource
 	}
 
 	DescribeTable("Experiment Workflows", AssertWorkflow[*pipelinesv1.Experiment],

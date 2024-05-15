@@ -60,7 +60,6 @@ var _ = BeforeEach(func() {
 
 func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R) base.Output {
 	providerConfig := stub.StubProviderConfig{
-		Namespace:     TestNamespace,
 		StubbedOutput: stubbedOutput,
 		ExpectedInput: stub.ExpectedInput{
 			Id: resource.GetStatus().ProviderId.Id,
