@@ -202,38 +202,30 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
-func ExtractFromMap[T any](targetMap map[string]any, fieldName string) (result T, err error) {
-	result, ok := targetMap[fieldName].(T)
+func extractFromStruct(pbStruct *structpb.Struct, fieldName string) (value *structpb.Value, err error) {
+	value, ok := pbStruct.Fields[fieldName]
 	if !ok {
-		err = fmt.Errorf("failed extracting field %s of type %T from the given map", fieldName, result)
+		err = fmt.Errorf("failed extracting field %s from the given struct", fieldName)
 	}
-	return result, err
+	return value, err
 }
 
-func extractPipelineNameFromSpec(pipelineSpec map[string]any) (string, error) {
-
-	pipelineInfo, err := ExtractFromMap[map[string]any](pipelineSpec, "pipelineInfo")
+func extractPipelineNameFromPipelineSpec(ctx context.Context, pipelineSpec *structpb.Struct) (string, error) {
+	logger := common.LoggerFromContext(ctx)
+	pipelineInfo, err := extractFromStruct(pipelineSpec, "pipelineInfo")
 	if err != nil {
+		logger.Error(err, "Failed to extract pipelineInfo from pipeline spec")
 		return "", err
 	}
-	runId, err := ExtractFromMap[string](pipelineInfo, "name")
+	pipelineInfoName, err := extractFromStruct(pipelineInfo.GetStructValue(), "name")
 	if err != nil {
+		logger.Error(err, "Failed to extract name from pipelineInfo")
 		return "", err
 	}
-
-	return runId, nil
-}
-
-func extractRunNameSuffix(pipelineName string) (string, error) {
-	index := strings.LastIndex(pipelineName, "-")
-	if index == -1 {
-		return "", fmt.Errorf("unable to extract suffix from pipelineName: %s", pipelineName)
-	}
-	return pipelineName[index+1:], nil
+	return pipelineInfoName.GetStringValue(), nil
 }
 
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
-	logger := common.LoggerFromContext(ctx)
 
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
@@ -268,9 +260,8 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		return "", err
 	}
 
-	runId, err := extractPipelineNameFromSpec(pipelineJob.PipelineSpec.AsMap())
+	runId, err := extractPipelineNameFromPipelineSpec(ctx, pipelineJob.PipelineSpec)
 	if err != nil {
-		logger.Error(err, err.Error())
 		return "", err
 	}
 
