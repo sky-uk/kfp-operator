@@ -68,6 +68,10 @@ def load_fn(tfx_components: str, env: list):
     return fn
 
 
+def sanitise_namespaced_pipeline_name(namespaced_name: str) -> str:
+    return namespaced_name.replace("/", "-")
+
+
 @click.command()
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
 @click.option('--provider_config', help='Provider configuration in yaml format', required=True)
@@ -78,9 +82,11 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         pipeline_config_contents = yaml.safe_load(pipeline_stream)
         provider_config_contents = yaml.safe_load(provider_stream)
 
-        click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ', fg='green')
+        click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ',
+                    fg='green')
 
-        pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents, provider_config_contents)
+        pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents,
+                                                                                          provider_config_contents)
 
         beam_args = provider_config_contents.get('defaultBeamArgs', [])
         beam_args.extend(pipeline_config_contents.get('beamArgs', []))
@@ -94,7 +100,7 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
 
         compile_fn(pipeline_config_contents, output_file).run(
             pipeline.Pipeline(
-                pipeline_name=pipeline_config_contents['name'],
+                pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
                 pipeline_root=pipeline_root,
                 components=expanded_components,
                 enable_cache=False,

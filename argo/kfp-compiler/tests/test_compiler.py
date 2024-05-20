@@ -24,3 +24,10 @@ def test_pipeline_paths_for_config():
     assert pipeline_root == "pipeline_root/pipeline"
     assert serving_model_directory == "pipeline_root/pipeline/serving"
     assert temp_directory == "pipeline_root/pipeline/tmp"
+
+
+def test_sanitise_namespaced_pipeline_name():
+    assert compiler.sanitise_namespaced_pipeline_name("pipeline-name") == "pipeline-name"
+    assert compiler.sanitise_namespaced_pipeline_name("/pipeline-name") == "-pipeline-name"
+    assert compiler.sanitise_namespaced_pipeline_name("mlops/pipeline-name") == "mlops-pipeline-name"
+    assert compiler.sanitise_namespaced_pipeline_name("") == ""

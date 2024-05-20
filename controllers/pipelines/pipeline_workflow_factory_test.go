@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,7 +27,8 @@ var _ = Describe("PipelineDefinition", func() {
 
 		pipeline := &pipelinesv1.Pipeline{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "pipelineName",
+				Name:      "pipelineName",
+				Namespace: "pipelineNamespace",
 			},
 			Spec: pipelinesv1.PipelineSpec{
 				Image:         "pipelineImage",
@@ -38,7 +40,10 @@ var _ = Describe("PipelineDefinition", func() {
 
 		compilerConfig, _ := wf.pipelineDefinition(pipeline)
 
-		Expect(compilerConfig.Name).To(Equal("pipelineName"))
+		Expect(compilerConfig.Name).To(Equal(common.NamespacedName{
+			Name:      "pipelineName",
+			Namespace: "pipelineNamespace",
+		}))
 		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
 		Expect(compilerConfig.TfxComponents).To(Equal("pipelineTfxComponents"))
 		Expect(compilerConfig.Env).To(Equal(expectedEnv))
@@ -47,7 +52,10 @@ var _ = Describe("PipelineDefinition", func() {
 
 	It("Creates a valid YAML", func() {
 		config := providers.PipelineDefinition{
-			Name:          "pipelineName",
+			Name: common.NamespacedName{
+				Name:      "pipelineName",
+				Namespace: "pipelineNamespace",
+			},
 			Image:         "pipelineImage",
 			TfxComponents: "pipelineTfxComponents",
 			Env: []apis.NamedValue{
@@ -64,7 +72,7 @@ var _ = Describe("PipelineDefinition", func() {
 		m := make(map[interface{}]interface{})
 		yaml.Unmarshal(configYaml, m)
 
-		Expect(m["name"]).To(Equal("pipelineName"))
+		Expect(m["name"]).To(Equal("pipelineNamespace/pipelineName"))
 		Expect(m["image"]).To(Equal("pipelineImage"))
 		Expect(m["tfxComponents"]).To(Equal("pipelineTfxComponents"))
 		env := m["env"].([]interface{})

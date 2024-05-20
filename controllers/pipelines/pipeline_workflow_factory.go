@@ -3,6 +3,7 @@ package pipelines
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
@@ -12,7 +13,7 @@ type PipelineDefinitionCreator struct {
 
 func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pipeline) (providers.PipelineDefinition, error) {
 	return providers.PipelineDefinition{
-		Name:          pipeline.ObjectMeta.Name,
+		Name:          common.NamespacedName{Name: pipeline.ObjectMeta.Name, Namespace: pipeline.ObjectMeta.Namespace},
 		Version:       pipeline.ComputeVersion(),
 		Image:         pipeline.Spec.Image,
 		TfxComponents: pipeline.Spec.TfxComponents,

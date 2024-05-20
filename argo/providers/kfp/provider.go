@@ -43,7 +43,7 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 	}
 
 	result, err := pipelineUploadService.UploadPipeline(&pipeline_upload_service.UploadPipelineParams{
-		Name:       &pipelineDefinition.Name,
+		Name:       &pipelineDefinition.Name.Name,
 		Uploadfile: runtime.NamedReader(pipelineFileName, reader),
 		Context:    ctx,
 	}, nil)
@@ -234,7 +234,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 				Parameters: jobParameters,
 			},
 			Description:    string(runScheduleAsDescription),
-			Name:           runScheduleDefinition.Name,
+			Name:           runScheduleDefinition.Name.Name,
 			MaxConcurrency: 1,
 			Enabled:        true,
 			NoCatchup:      true,

@@ -2,7 +2,7 @@ package vai
 
 import (
 	"fmt"
-	"strings"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type VAIProviderConfig struct {
@@ -28,16 +28,20 @@ func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
 	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
 }
 
-func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName string, pipelineVersion string) string {
-	return fmt.Sprintf("%s/%s", pipelineName, pipelineVersion)
+func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName common.NamespacedName, pipelineVersion string) (string, error) {
+	namespaceName, err := pipelineName.String()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/%s", namespaceName, pipelineVersion), nil
 }
 
-func (vaipc VAIProviderConfig) gcsUri(bucket string, pathSegments ...string) string {
-	return fmt.Sprintf("gs://%s/%s", bucket, strings.Join(pathSegments, "/"))
-}
-
-func (vaipc VAIProviderConfig) pipelineUri(pipelineName string, pipelineVersion string) string {
-	return vaipc.gcsUri(vaipc.PipelineBucket, vaipc.pipelineStorageObject(pipelineName, pipelineVersion))
+func (vaipc VAIProviderConfig) pipelineUri(pipelineName common.NamespacedName, pipelineVersion string) (string, error) {
+	pipelineUri, err := vaipc.pipelineStorageObject(pipelineName, pipelineVersion)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("gs://%s/%s", vaipc.PipelineBucket, pipelineUri), nil
 }
 
 func (vaipc VAIProviderConfig) getMaxConcurrentRunCountOrDefault() int64 {

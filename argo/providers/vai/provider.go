@@ -129,41 +129,50 @@ type VAIProvider struct {
 }
 
 func (vaip VAIProvider) CreatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, pipelineFile string) (string, error) {
-	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, pipelineDefinition.Name, pipelineFile); err != nil {
+	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, "", pipelineFile); err != nil {
 		return "", err
 	}
 
-	return pipelineDefinition.Name, nil
+	return pipelineDefinition.Name.String()
 }
 
-func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
+func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, _ string, pipelineFile string) (string, error) {
+	pipelineId, err := pipelineDefinition.Name.String()
+	if err != nil {
+		return "", err
+	}
 	client, err := gcsClient(ctx, providerConfig)
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
 	reader, err := os.Open(pipelineFile)
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
-	writer := client.Bucket(providerConfig.PipelineBucket).Object(providerConfig.pipelineStorageObject(id, pipelineDefinition.Version)).NewWriter(ctx)
+	storageObject, err := providerConfig.pipelineStorageObject(pipelineDefinition.Name, pipelineDefinition.Version)
+	if err != nil {
+		return pipelineId, err
+	}
+	writer := client.Bucket(providerConfig.PipelineBucket).Object(storageObject).NewWriter(ctx)
+
 	_, err = io.Copy(writer, reader)
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
 	err = reader.Close()
 	if err != nil {
-		return id, err
+		return pipelineId, err
 	}
 
-	return id, nil
+	return pipelineId, nil
 }
 
 func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIProviderConfig, id string) error {
@@ -193,8 +202,30 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
+func extractFromStruct(pbStruct *structpb.Struct, fieldName string) (value *structpb.Value, err error) {
+	value, ok := pbStruct.Fields[fieldName]
+	if !ok {
+		err = fmt.Errorf("failed extracting field %s from the given struct", fieldName)
+	}
+	return value, err
+}
+
+func extractPipelineNameFromPipelineSpec(ctx context.Context, pipelineSpec *structpb.Struct) (string, error) {
+	logger := common.LoggerFromContext(ctx)
+	pipelineInfo, err := extractFromStruct(pipelineSpec, "pipelineInfo")
+	if err != nil {
+		logger.Error(err, "Failed to extract pipelineInfo from pipeline spec")
+		return "", err
+	}
+	pipelineInfoName, err := extractFromStruct(pipelineInfo.GetStructValue(), "name")
+	if err != nil {
+		logger.Error(err, "Failed to extract name from pipelineInfo")
+		return "", err
+	}
+	return pipelineInfoName.GetStringValue(), nil
+}
+
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
-	runId := runDefinition.Name.Name
 
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
@@ -211,9 +242,13 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		}
 	}
 
+	templateUri, err := providerConfig.pipelineUri(runDefinition.PipelineName, runDefinition.PipelineVersion)
+	if err != nil {
+		return "", err
+	}
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromRunDefinition(runDefinition),
-		TemplateUri:    providerConfig.pipelineUri(runDefinition.PipelineName.Name, runDefinition.PipelineVersion),
+		TemplateUri:    templateUri,
 		ServiceAccount: providerConfig.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: parameters,
@@ -225,9 +260,14 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 		return "", err
 	}
 
+	runId, err := extractPipelineNameFromPipelineSpec(ctx, pipelineJob.PipelineSpec)
+	if err != nil {
+		return "", err
+	}
+
 	req := &aiplatformpb.CreatePipelineJobRequest{
 		Parent:        providerConfig.parent(),
-		PipelineJobId: runId,
+		PipelineJobId: fmt.Sprintf("%s-%s", runId, runDefinition.Version),
 		PipelineJob:   pipelineJob,
 	}
 
@@ -255,9 +295,13 @@ func (vaip VAIProvider) buildPipelineJob(providerConfig VAIProviderConfig, runSc
 	})
 
 	// Note: unable to migrate from `Parameters` to `ParameterValues` at this point as `PipelineJob.pipeline_spec.schema_version` used by TFX is 2.0.0 see deprecated comment
+	templateUri, err := providerConfig.pipelineUri(runScheduleDefinition.PipelineName, runScheduleDefinition.PipelineVersion)
+	if err != nil {
+		return nil, err
+	}
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromSchedule(runScheduleDefinition),
-		TemplateUri:    providerConfig.pipelineUri(runScheduleDefinition.PipelineName.Name, runScheduleDefinition.PipelineVersion),
+		TemplateUri:    templateUri,
 		ServiceAccount: providerConfig.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: parameters,
@@ -281,7 +325,7 @@ func (vaip VAIProvider) buildVaiScheduleFromPipelineJob(providerConfig VAIProvid
 				PipelineJob: pipelineJob,
 			},
 		},
-		DisplayName:           fmt.Sprintf("rc-%s", runScheduleDefinition.Name),
+		DisplayName:           fmt.Sprintf("rc-%s-%s", runScheduleDefinition.Name.Namespace, runScheduleDefinition.Name.Name),
 		MaxConcurrentRunCount: providerConfig.getMaxConcurrentRunCountOrDefault(),
 		AllowQueueing:         true,
 	}, nil
