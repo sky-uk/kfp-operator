@@ -129,7 +129,8 @@ def compile_v1(config: dict, output_filename: str):
 def compile_v2(config: dict, output_filename: str):
     runner_config = kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
         display_name=config['name'],
-        default_image=config['image']
+        default_image=config['image'],
+        use_pipeline_spec_2_1=True
     )
 
     return kubeflow_dag_runner.KubeflowV2DagRunner(
