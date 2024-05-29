@@ -52,8 +52,8 @@ type Output struct {
 }
 
 type Provider[Config any] interface {
-	CreatePipeline(ctx context.Context, providerConfig Config, pipelineDefinition PipelineDefinition, pipelineFile string) (string, error)
-	UpdatePipeline(ctx context.Context, providerConfig Config, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error)
+	CreatePipeline(ctx context.Context, providerConfig Config, pipelineDefinition PipelineDefinition, pipelineFilePath string) (string, error)
+	UpdatePipeline(ctx context.Context, providerConfig Config, pipelineDefinition PipelineDefinition, id string, pipelineFilePath string) (string, error)
 	DeletePipeline(ctx context.Context, providerConfig Config, id string) error
 
 	CreateRun(ctx context.Context, providerConfig Config, runConfigurationDefinition RunDefinition) (string, error)

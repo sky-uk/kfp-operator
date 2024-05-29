@@ -131,7 +131,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Name:  "create",
 					Flags: []cli.Flag{pipelineDefinitionFlag, pipelineFileFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
+						pipelineFilePath := c.String(ProviderConstants.PipelineFileParameter)
 						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
@@ -141,7 +141,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 							return err
 						}
 
-						id, err := provider.CreatePipeline(providerApp.Context, providerConfig, pipelineDefinition, pipelineFile)
+						id, err := provider.CreatePipeline(providerApp.Context, providerConfig, pipelineDefinition, pipelineFilePath)
 
 						logResult(providerApp.Context, "pipeline", "create", "", id, err)
 
@@ -153,7 +153,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Flags: []cli.Flag{pipelineDefinitionFlag, pipelineFileFlag, pipelineIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
-						pipelineFile := c.String(ProviderConstants.PipelineFileParameter)
+						pipelineFilePath := c.String(ProviderConstants.PipelineFileParameter)
 						providerConfig, err := providerApp.LoadProviderConfig(c)
 						if err != nil {
 							return err
@@ -163,7 +163,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 							return err
 						}
 
-						updatedId, err := provider.UpdatePipeline(providerApp.Context, providerConfig, pipelineDefinition, id, pipelineFile)
+						updatedId, err := provider.UpdatePipeline(providerApp.Context, providerConfig, pipelineDefinition, id, pipelineFilePath)
 
 						logResult(providerApp.Context, "pipeline", "update", id, updatedId, err)
 
