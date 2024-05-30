@@ -2,7 +2,6 @@ package kfp
 
 import (
 	"context"
-	"fmt"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-openapi/runtime"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
@@ -32,10 +31,6 @@ type KfpProviderConfig struct {
 
 type KfpProvider struct{}
 
-func sanitiseNamespacedName(namespacedName common.NamespacedName) (string, error) {
-	return namespacedName.SeparatedString("-")
-}
-
 func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFilePath string) (string, error) {
 	reader, err := os.Open(pipelineFilePath)
 	if err != nil {
@@ -47,7 +42,7 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 		return "", err
 	}
 
-	pipelineName, err := sanitiseNamespacedName(pipelineDefinition.Name)
+	pipelineName, err := SanitiseNamespacedName(pipelineDefinition.Name)
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +100,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 		return "", err
 	}
 
-	pipelineName, err := sanitiseNamespacedName(runDefinition.PipelineName)
+	pipelineName, err := SanitiseNamespacedName(runDefinition.PipelineName)
 	if err != nil {
 		return "", err
 	}
@@ -148,13 +143,10 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 		return "", err
 	}
 
-	runDefinitionName, err := sanitiseNamespacedName(runDefinition.Name)
+	runDefinitionName, err := SanitiseNamespacedName(runDefinition.Name)
 	if err != nil {
 		return "", err
 	}
-	logger := common.LoggerFromContext(ctx)
-	logger.Info(fmt.Sprintf("Run Definition pipeline name = [%s]", pipelineName))
-	logger.Info(fmt.Sprintf("Run Definition name = [%s]", pipelineName))
 
 	runResult, err := runService.CreateRun(&run_service.CreateRunParams{
 		Body: &run_model.APIRun{
@@ -208,7 +200,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 		return "", err
 	}
 
-	pipelineName, err := sanitiseNamespacedName(runScheduleDefinition.PipelineName)
+	pipelineName, err := SanitiseNamespacedName(runScheduleDefinition.PipelineName)
 	if err != nil {
 		return "", err
 	}
@@ -255,7 +247,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 		jobParameters = append(jobParameters, &job_model.APIParameter{Name: name, Value: value})
 	}
 
-	jobName, err := sanitiseNamespacedName(runScheduleDefinition.Name)
+	jobName, err := SanitiseNamespacedName(runScheduleDefinition.Name)
 	if err != nil {
 		return "", err
 	}
@@ -337,9 +329,11 @@ func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig Kfp
 		return "", err
 	}
 
+	experimentName, err := SanitiseNamespacedName(experimentDefinition.Name)
+
 	result, err := experimentService.CreateExperiment(&experiment_service.CreateExperimentParams{
 		Body: &experiment_model.APIExperiment{
-			Name:        experimentDefinition.Name,
+			Name:        experimentName,
 			Description: experimentDefinition.Description,
 		},
 		Context: ctx,

@@ -25,6 +25,7 @@ func (nsn NamespacedName) SeparatedString(separator string) (string, error) {
 
 	return strings.Join([]string{nsn.Namespace, nsn.Name}, separator), nil
 }
+
 func (nsn NamespacedName) String() (string, error) {
 	return nsn.SeparatedString("/")
 }

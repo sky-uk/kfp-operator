@@ -29,7 +29,7 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 		PipelineName:         common.RandomNamespacedName(),
 		PipelineVersion:      common.RandomString(),
 		RunConfigurationName: common.RandomNamespacedName(),
-		ExperimentName:       common.RandomString(),
+		ExperimentName:       common.RandomNamespacedName(),
 		Schedule:             "1 1 0 0 0",
 	}
 }
