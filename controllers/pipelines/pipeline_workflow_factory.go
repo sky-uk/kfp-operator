@@ -13,7 +13,7 @@ type PipelineDefinitionCreator struct {
 
 func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pipeline) (providers.PipelineDefinition, error) {
 	return providers.PipelineDefinition{
-		Name:          common.NamespacedName{Name: pipeline.ObjectMeta.Name, Namespace: pipeline.ObjectMeta.Namespace},
+		Name:          common.NamespacedName{Namespace: pipeline.ObjectMeta.Namespace, Name: pipeline.ObjectMeta.Name},
 		Version:       pipeline.ComputeVersion(),
 		Image:         pipeline.Spec.Image,
 		TfxComponents: pipeline.Spec.TfxComponents,

@@ -14,7 +14,7 @@ func (nsn NamespacedName) Empty() bool {
 	return nsn.Name == "" && nsn.Namespace == ""
 }
 
-func (nsn NamespacedName) String() (string, error) {
+func (nsn NamespacedName) SeparatedString(separator string) (string, error) {
 	if nsn.Namespace == "" {
 		return nsn.Name, nil
 	}
@@ -23,7 +23,11 @@ func (nsn NamespacedName) String() (string, error) {
 		return "", fmt.Errorf("namespace provided without a name")
 	}
 
-	return strings.Join([]string{nsn.Namespace, nsn.Name}, "/"), nil
+	return strings.Join([]string{nsn.Namespace, nsn.Name}, separator), nil
+}
+
+func (nsn NamespacedName) String() (string, error) {
+	return nsn.SeparatedString("/")
 }
 
 func NamespacedNameFromString(namespacedName string) (NamespacedName, error) {

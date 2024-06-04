@@ -14,6 +14,8 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client/run_service"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"net/url"
 )
 
@@ -109,7 +111,12 @@ func NewExperimentService(providerConfig KfpProviderConfig) (*ExperimentService,
 	}).ExperimentService}, nil
 }
 
-func (es *ExperimentService) ExperimentIdByName(ctx context.Context, experimentName string) (string, error) {
+func (es *ExperimentService) ExperimentIdByName(ctx context.Context, experimentNamespacedName common.NamespacedName) (string, error) {
+	experimentName, err := ResourceNameFromNamespacedName(experimentNamespacedName)
+	if err != nil {
+		return "", err
+	}
+
 	experimentResult, err := es.ListExperiment(&experiment_service.ListExperimentParams{
 		Filter:  byNameFilter(experimentName),
 		Context: ctx,
@@ -117,6 +124,7 @@ func (es *ExperimentService) ExperimentIdByName(ctx context.Context, experimentN
 	if err != nil {
 		return "", err
 	}
+
 	numExperiments := len(experimentResult.Payload.Experiments)
 	if numExperiments != 1 {
 		return "", fmt.Errorf("found %d experiments, expected exactly one", numExperiments)

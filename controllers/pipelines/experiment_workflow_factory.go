@@ -3,6 +3,7 @@ package pipelines
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
@@ -12,7 +13,7 @@ type ExperimentDefinitionCreator struct {
 
 func (edc ExperimentDefinitionCreator) experimentDefinition(experiment *pipelinesv1.Experiment) (providers.ExperimentDefinition, error) {
 	return providers.ExperimentDefinition{
-		Name:        experiment.ObjectMeta.Name,
+		Name:        common.NamespacedName{Namespace: experiment.ObjectMeta.Namespace, Name: experiment.ObjectMeta.Name},
 		Version:     experiment.ComputeVersion(),
 		Description: experiment.Spec.Description,
 	}, nil

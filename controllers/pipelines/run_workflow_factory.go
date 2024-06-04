@@ -31,17 +31,17 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 	}
 
 	runDefinition := providers.RunDefinition{
-		Name:              common.NamespacedName{Name: run.Name, Namespace: run.Namespace},
+		Name:              common.NamespacedName{Namespace: run.Namespace, Name: run.Name},
 		Version:           run.ComputeVersion(),
-		PipelineName:      common.NamespacedName{Name: run.Spec.Pipeline.Name, Namespace: run.Namespace},
+		PipelineName:      common.NamespacedName{Namespace: run.Namespace, Name: run.Spec.Pipeline.Name},
 		PipelineVersion:   run.Status.ObservedPipelineVersion,
-		ExperimentName:    experimentName,
+		ExperimentName:    common.NamespacedName{Namespace: run.Namespace, Name: experimentName},
 		RuntimeParameters: NamedValuesToMap(runtimeParameters),
 		Artifacts:         run.Spec.Artifacts,
 	}
 
 	if runConfigurationName, ok := run.Labels[RunConfigurationConstants.RunConfigurationNameLabelKey]; ok {
-		runDefinition.RunConfigurationName = common.NamespacedName{Name: runConfigurationName, Namespace: run.Namespace}
+		runDefinition.RunConfigurationName = common.NamespacedName{Namespace: run.Namespace, Name: runConfigurationName}
 	}
 
 	return runDefinition, nil

@@ -31,8 +31,8 @@ type KfpProviderConfig struct {
 
 type KfpProvider struct{}
 
-func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFileName string) (string, error) {
-	reader, err := os.Open(pipelineFileName)
+func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, pipelineFilePath string) (string, error) {
+	reader, err := os.Open(pipelineFilePath)
 	if err != nil {
 		return "", err
 	}
@@ -42,20 +42,25 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 		return "", err
 	}
 
+	pipelineName, err := ResourceNameFromNamespacedName(pipelineDefinition.Name)
+	if err != nil {
+		return "", err
+	}
+
 	result, err := pipelineUploadService.UploadPipeline(&pipeline_upload_service.UploadPipelineParams{
-		Name:       &pipelineDefinition.Name.Name,
-		Uploadfile: runtime.NamedReader(pipelineFileName, reader),
+		Name:       &pipelineName,
+		Uploadfile: runtime.NamedReader(pipelineFilePath, reader),
 		Context:    ctx,
 	}, nil)
 	if err != nil {
 		return "", err
 	}
 
-	return kfpp.UpdatePipeline(ctx, providerConfig, pipelineDefinition, result.Payload.ID, pipelineFileName)
+	return kfpp.UpdatePipeline(ctx, providerConfig, pipelineDefinition, result.Payload.ID, pipelineFilePath)
 }
 
-func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFile string) (string, error) {
-	reader, err := os.Open(pipelineFile)
+func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpProviderConfig, pipelineDefinition PipelineDefinition, id string, pipelineFilePath string) (string, error) {
+	reader, err := os.Open(pipelineFilePath)
 	if err != nil {
 		return id, err
 	}
@@ -67,7 +72,7 @@ func (kfpp KfpProvider) UpdatePipeline(ctx context.Context, providerConfig KfpPr
 
 	_, err = pipelineUploadService.UploadPipelineVersion(&pipeline_upload_service.UploadPipelineVersionParams{
 		Name:       &pipelineDefinition.Version,
-		Uploadfile: runtime.NamedReader(pipelineFile, reader),
+		Uploadfile: runtime.NamedReader(pipelineFilePath, reader),
 		Pipelineid: &id,
 		Context:    ctx,
 	}, nil)
@@ -95,7 +100,12 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 		return "", err
 	}
 
-	pipelineId, err := pipelineService.PipelineIdForName(ctx, runDefinition.PipelineName.Name)
+	pipelineName, err := ResourceNameFromNamespacedName(runDefinition.PipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineId, err := pipelineService.PipelineIdForName(ctx, pipelineName)
 	if err != nil {
 		return "", err
 	}
@@ -133,9 +143,14 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 		return "", err
 	}
 
+	runDefinitionName, err := ResourceNameFromNamespacedName(runDefinition.Name)
+	if err != nil {
+		return "", err
+	}
+
 	runResult, err := runService.CreateRun(&run_service.CreateRunParams{
 		Body: &run_model.APIRun{
-			Name: runDefinition.Name.Name,
+			Name: runDefinitionName,
 			PipelineSpec: &run_model.APIPipelineSpec{
 				PipelineID: pipelineId,
 				Parameters: jobParameters,
@@ -185,7 +200,12 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 		return "", err
 	}
 
-	pipelineId, err := pipelineService.PipelineIdForName(ctx, runScheduleDefinition.PipelineName.Name)
+	pipelineName, err := ResourceNameFromNamespacedName(runScheduleDefinition.PipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineId, err := pipelineService.PipelineIdForName(ctx, pipelineName)
 	if err != nil {
 		return "", err
 	}
@@ -227,6 +247,11 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 		jobParameters = append(jobParameters, &job_model.APIParameter{Name: name, Value: value})
 	}
 
+	jobName, err := ResourceNameFromNamespacedName(runScheduleDefinition.Name)
+	if err != nil {
+		return "", err
+	}
+
 	jobResult, err := jobService.CreateJob(&job_service.CreateJobParams{
 		Body: &job_model.APIJob{
 			PipelineSpec: &job_model.APIPipelineSpec{
@@ -234,7 +259,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 				Parameters: jobParameters,
 			},
 			Description:    string(runScheduleAsDescription),
-			Name:           runScheduleDefinition.Name.Name,
+			Name:           jobName,
 			MaxConcurrency: 1,
 			Enabled:        true,
 			NoCatchup:      true,
@@ -304,9 +329,11 @@ func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig Kfp
 		return "", err
 	}
 
+	experimentName, err := ResourceNameFromNamespacedName(experimentDefinition.Name)
+
 	result, err := experimentService.CreateExperiment(&experiment_service.CreateExperimentParams{
 		Body: &experiment_model.APIExperiment{
-			Name:        experimentDefinition.Name,
+			Name:        experimentName,
 			Description: experimentDefinition.Description,
 		},
 		Context: ctx,

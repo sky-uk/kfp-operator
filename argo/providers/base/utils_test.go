@@ -5,6 +5,7 @@ package base
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 var _ = Context("cron parser", func() {
@@ -29,6 +30,24 @@ var _ = Context("cron parser", func() {
 
 	_ = Describe("should not parse when too many fields are present", func() {
 		_, err := ParseCron("* * * * * * *")
+		Expect(err).To(HaveOccurred())
+	})
+})
+
+var _ = Context("ResourceNameFromNamespacedName", func() {
+	_ = Describe("should return string separated with hyphens", func() {
+		result, err := ResourceNameFromNamespacedName(common.NamespacedName{
+			Namespace: "my-namespace",
+			Name:      "my-name",
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(result).To(Equal("my-namespace-my-name"))
+	})
+
+	_ = Describe("should return error when namespace only set", func() {
+		_, err := ResourceNameFromNamespacedName(common.NamespacedName{
+			Namespace: "my-namespace",
+		})
 		Expect(err).To(HaveOccurred())
 	})
 })

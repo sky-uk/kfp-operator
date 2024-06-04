@@ -128,15 +128,15 @@ func enrichJobWithSpecFromTemplateUri(ctx context.Context, providerConfig VAIPro
 type VAIProvider struct {
 }
 
-func (vaip VAIProvider) CreatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, pipelineFile string) (string, error) {
-	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, "", pipelineFile); err != nil {
+func (vaip VAIProvider) CreatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, pipelineFilePath string) (string, error) {
+	if _, err := vaip.UpdatePipeline(ctx, providerConfig, pipelineDefinition, "", pipelineFilePath); err != nil {
 		return "", err
 	}
 
 	return pipelineDefinition.Name.String()
 }
 
-func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, _ string, pipelineFile string) (string, error) {
+func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIProviderConfig, pipelineDefinition PipelineDefinition, _ string, pipelineFilePath string) (string, error) {
 	pipelineId, err := pipelineDefinition.Name.String()
 	if err != nil {
 		return "", err
@@ -146,7 +146,7 @@ func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIPr
 		return pipelineId, err
 	}
 
-	reader, err := os.Open(pipelineFile)
+	reader, err := os.Open(pipelineFilePath)
 	if err != nil {
 		return pipelineId, err
 	}

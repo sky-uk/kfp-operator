@@ -30,7 +30,7 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		Version:              runSchedule.ComputeVersion(),
 		PipelineName:         common.NamespacedName{Name: runSchedule.Spec.Pipeline.Name, Namespace: runSchedule.Namespace},
 		PipelineVersion:      runSchedule.Spec.Pipeline.Version,
-		ExperimentName:       experimentName,
+		ExperimentName:       common.NamespacedName{Name: experimentName, Namespace: runSchedule.Namespace},
 		Schedule:             runSchedule.Spec.Schedule,
 		RuntimeParameters:    NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
 		Artifacts:            runSchedule.Spec.Artifacts,
