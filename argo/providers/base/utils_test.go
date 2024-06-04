@@ -34,9 +34,9 @@ var _ = Context("cron parser", func() {
 	})
 })
 
-var _ = Context("SanitiseNamespacedName", func() {
+var _ = Context("ResourceNameFromNamespacedName", func() {
 	_ = Describe("should return string separated with hyphens", func() {
-		result, err := SanitiseNamespacedName(common.NamespacedName{
+		result, err := ResourceNameFromNamespacedName(common.NamespacedName{
 			Namespace: "my-namespace",
 			Name:      "my-name",
 		})
@@ -45,7 +45,7 @@ var _ = Context("SanitiseNamespacedName", func() {
 	})
 
 	_ = Describe("should return error when namespace only set", func() {
-		_, err := SanitiseNamespacedName(common.NamespacedName{
+		_, err := ResourceNameFromNamespacedName(common.NamespacedName{
 			Namespace: "my-namespace",
 		})
 		Expect(err).To(HaveOccurred())

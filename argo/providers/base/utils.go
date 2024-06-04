@@ -46,6 +46,6 @@ func ParseCron(schedule string) (CronSchedule, error) {
 	}
 }
 
-func SanitiseNamespacedName(namespacedName common.NamespacedName) (string, error) {
+func ResourceNameFromNamespacedName(namespacedName common.NamespacedName) (string, error) {
 	return namespacedName.SeparatedString("-")
 }

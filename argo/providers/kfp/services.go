@@ -112,7 +112,7 @@ func NewExperimentService(providerConfig KfpProviderConfig) (*ExperimentService,
 }
 
 func (es *ExperimentService) ExperimentIdByName(ctx context.Context, experimentNamespacedName common.NamespacedName) (string, error) {
-	experimentName, err := SanitiseNamespacedName(experimentNamespacedName)
+	experimentName, err := ResourceNameFromNamespacedName(experimentNamespacedName)
 	if err != nil {
 		return "", err
 	}

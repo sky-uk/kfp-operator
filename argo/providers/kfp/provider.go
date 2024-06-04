@@ -42,7 +42,7 @@ func (kfpp KfpProvider) CreatePipeline(ctx context.Context, providerConfig KfpPr
 		return "", err
 	}
 
-	pipelineName, err := SanitiseNamespacedName(pipelineDefinition.Name)
+	pipelineName, err := ResourceNameFromNamespacedName(pipelineDefinition.Name)
 	if err != nil {
 		return "", err
 	}
@@ -100,7 +100,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 		return "", err
 	}
 
-	pipelineName, err := SanitiseNamespacedName(runDefinition.PipelineName)
+	pipelineName, err := ResourceNameFromNamespacedName(runDefinition.PipelineName)
 	if err != nil {
 		return "", err
 	}
@@ -143,7 +143,7 @@ func (kfpp KfpProvider) CreateRun(ctx context.Context, providerConfig KfpProvide
 		return "", err
 	}
 
-	runDefinitionName, err := SanitiseNamespacedName(runDefinition.Name)
+	runDefinitionName, err := ResourceNameFromNamespacedName(runDefinition.Name)
 	if err != nil {
 		return "", err
 	}
@@ -200,7 +200,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 		return "", err
 	}
 
-	pipelineName, err := SanitiseNamespacedName(runScheduleDefinition.PipelineName)
+	pipelineName, err := ResourceNameFromNamespacedName(runScheduleDefinition.PipelineName)
 	if err != nil {
 		return "", err
 	}
@@ -247,7 +247,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 		jobParameters = append(jobParameters, &job_model.APIParameter{Name: name, Value: value})
 	}
 
-	jobName, err := SanitiseNamespacedName(runScheduleDefinition.Name)
+	jobName, err := ResourceNameFromNamespacedName(runScheduleDefinition.Name)
 	if err != nil {
 		return "", err
 	}
@@ -329,7 +329,7 @@ func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig Kfp
 		return "", err
 	}
 
-	experimentName, err := SanitiseNamespacedName(experimentDefinition.Name)
+	experimentName, err := ResourceNameFromNamespacedName(experimentDefinition.Name)
 
 	result, err := experimentService.CreateExperiment(&experiment_service.CreateExperimentParams{
 		Body: &experiment_model.APIExperiment{
