@@ -19,7 +19,7 @@ COPY dist/*-${WHEEL_VERSION}-*.whl /
 RUN pip install /*-${WHEEL_VERSION}-*.whl --target=/kfp-compiler && \
     rm /*-${WHEEL_VERSION}-*.whl
 
-FROM alpine:3.14.2
+FROM alpine:3.20.1
 
 WORKDIR /
 COPY --from=PYTHON38 /kfp-compiler kfp-compiler/py3.8
