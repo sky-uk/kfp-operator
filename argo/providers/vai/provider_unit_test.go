@@ -10,6 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -250,6 +252,23 @@ var _ = Context("VAI Provider", func() {
 
 			_, err = extractPipelineNameFromPipelineSpec(ctx, pbStruct)
 			Expect(err).To(HaveOccurred())
+		})
+	})
+
+	Describe("handleScheduleNotFound", func() {
+		It("should ignore NotFound status", func() {
+			notFoundError := status.Error(codes.NotFound, "I can't find what you are looking for")
+			Expect(handleScheduleNotFound(notFoundError)).To(BeNil())
+		})
+
+		It("should return any other grpc status error", func() {
+			abortError := status.Error(codes.Aborted, "Abort, Abort")
+			Expect(handleScheduleNotFound(abortError)).To(Equal(abortError))
+		})
+
+		It("should return any other error", func() {
+			otherError := errors.New("panic")
+			Expect(handleScheduleNotFound(otherError)).To(Equal(otherError))
 		})
 	})
 })

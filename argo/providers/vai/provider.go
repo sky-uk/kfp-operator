@@ -418,14 +418,18 @@ func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, providerConfig VA
 		Name: scheduleId,
 	})
 	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil
-		} else {
-			return err
-		}
+		return handleScheduleNotFound(err)
 	}
 
-	return deleteSchedule.Wait(ctx)
+	return handleScheduleNotFound(deleteSchedule.Wait(ctx))
+}
+
+func handleScheduleNotFound(err error) error {
+	if status.Code(err) == codes.NotFound {
+		return nil
+	} else {
+		return err
+	}
 }
 
 func (vaip VAIProvider) CreateExperiment(_ context.Context, _ VAIProviderConfig, _ ExperimentDefinition) (string, error) {
