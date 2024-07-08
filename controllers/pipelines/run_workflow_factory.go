@@ -13,12 +13,11 @@ type RunDefinitionCreator struct {
 }
 
 func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.RunDefinition, error) {
-	var experimentName string
-
+	var experimentName common.NamespacedName
 	if run.Spec.ExperimentName == "" {
-		experimentName = rdc.Config.DefaultExperiment
+		experimentName = common.NamespacedName{Name: rdc.Config.DefaultExperiment}
 	} else {
-		experimentName = run.Spec.ExperimentName
+		experimentName = common.NamespacedName{Name: run.Spec.ExperimentName, Namespace: run.Namespace}
 	}
 
 	if run.Status.ObservedPipelineVersion == "" {
@@ -35,7 +34,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		Version:           run.ComputeVersion(),
 		PipelineName:      common.NamespacedName{Namespace: run.Namespace, Name: run.Spec.Pipeline.Name},
 		PipelineVersion:   run.Status.ObservedPipelineVersion,
-		ExperimentName:    common.NamespacedName{Namespace: run.Namespace, Name: experimentName},
+		ExperimentName:    experimentName,
 		RuntimeParameters: NamedValuesToMap(runtimeParameters),
 		Artifacts:         run.Spec.Artifacts,
 	}

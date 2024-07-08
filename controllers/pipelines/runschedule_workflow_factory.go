@@ -16,12 +16,11 @@ type RunScheduleDefinitionCreator struct {
 }
 
 func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipelinesv1.RunSchedule) (providers.RunScheduleDefinition, error) {
-	var experimentName string
-
+	var experimentName common.NamespacedName
 	if runSchedule.Spec.ExperimentName == "" {
-		experimentName = rcdc.Config.DefaultExperiment
+		experimentName = common.NamespacedName{Name: rcdc.Config.DefaultExperiment}
 	} else {
-		experimentName = runSchedule.Spec.ExperimentName
+		experimentName = common.NamespacedName{Name: runSchedule.Spec.ExperimentName, Namespace: runSchedule.Namespace}
 	}
 
 	return providers.RunScheduleDefinition{
@@ -30,7 +29,7 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		Version:              runSchedule.ComputeVersion(),
 		PipelineName:         common.NamespacedName{Name: runSchedule.Spec.Pipeline.Name, Namespace: runSchedule.Namespace},
 		PipelineVersion:      runSchedule.Spec.Pipeline.Version,
-		ExperimentName:       common.NamespacedName{Name: experimentName, Namespace: runSchedule.Namespace},
+		ExperimentName:       experimentName,
 		Schedule:             runSchedule.Spec.Schedule,
 		RuntimeParameters:    NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
 		Artifacts:            runSchedule.Spec.Artifacts,
