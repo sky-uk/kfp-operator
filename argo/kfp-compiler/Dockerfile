@@ -29,4 +29,5 @@ ADD resources/compile.sh kfp-compiler/compile.sh
 
 ADD resources/entrypoint.sh entrypoint.sh
 
+USER 65534:65534
 ENTRYPOINT ["/entrypoint.sh"]
