@@ -427,9 +427,8 @@ func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, providerConfig VA
 func handleScheduleNotFound(err error) error {
 	if status.Code(err) == codes.NotFound {
 		return nil
-	} else {
-		return err
 	}
+	return err
 }
 
 func (vaip VAIProvider) CreateExperiment(_ context.Context, _ VAIProviderConfig, _ ExperimentDefinition) (string, error) {
