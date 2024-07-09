@@ -93,9 +93,9 @@ func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpPr
 	}, nil)
 
 	if err != nil {
-		var errorResult *pipeline_service.DeletePipelineDefault
-		if errors.As(err, &errorResult) && errorResult.Payload.Code == kfpApiConstants.KfpResourceNotFoundCode {
-			err = nil
+		var deletePipelineError *pipeline_service.DeletePipelineDefault
+		if errors.As(err, &deletePipelineError) {
+			return ignoreNotFound(err, deletePipelineError.Payload.Code)
 		}
 	}
 
@@ -322,9 +322,9 @@ func (kfpp KfpProvider) DeleteRunSchedule(ctx context.Context, providerConfig Kf
 	}, nil)
 
 	if err != nil {
-		var errorResult *job_service.DeleteJobDefault
-		if errors.As(err, &errorResult) && errorResult.Payload.Code == kfpApiConstants.KfpResourceNotFoundCode {
-			err = nil
+		var deleteJobError *job_service.DeleteJobDefault
+		if errors.As(err, &deleteJobError) {
+			return ignoreNotFound(err, deleteJobError.Payload.Code)
 		}
 	}
 
@@ -421,4 +421,11 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpPr
 		MetadataStore:  metadataStore,
 		KfpApi:         kfpApi,
 	}, nil
+}
+
+func ignoreNotFound(err error, code int32) error {
+	if code == kfpApiConstants.KfpResourceNotFoundCode {
+		return nil
+	}
+	return err
 }
