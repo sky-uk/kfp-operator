@@ -255,20 +255,20 @@ var _ = Context("VAI Provider", func() {
 		})
 	})
 
-	Describe("handleScheduleNotFound", func() {
+	Describe("ignoreNotFound", func() {
 		It("should ignore NotFound status", func() {
 			notFoundError := status.Error(codes.NotFound, "I can't find what you are looking for")
-			Expect(handleScheduleNotFound(notFoundError)).To(BeNil())
+			Expect(ignoreNotFound(notFoundError)).To(BeNil())
 		})
 
 		It("should return any other grpc status error", func() {
 			abortError := status.Error(codes.Aborted, "Abort, Abort")
-			Expect(handleScheduleNotFound(abortError)).To(Equal(abortError))
+			Expect(ignoreNotFound(abortError)).To(Equal(abortError))
 		})
 
 		It("should return any other error", func() {
 			otherError := errors.New("panic")
-			Expect(handleScheduleNotFound(otherError)).To(Equal(otherError))
+			Expect(ignoreNotFound(otherError)).To(Equal(otherError))
 		})
 	})
 })
