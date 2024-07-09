@@ -2,26 +2,29 @@ package vai
 
 import (
 	"bytes"
-	aiplatform "cloud.google.com/go/aiplatform/apiv1"
-	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"cloud.google.com/go/pubsub"
-	"cloud.google.com/go/storage"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"regexp"
+	"strings"
+
+	aiplatform "cloud.google.com/go/aiplatform/apiv1"
+	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
+	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/storage"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	pipelines_util "github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/structpb"
-	"io"
-	"os"
-	"regexp"
-	"strings"
 )
 
 var labels = struct {
@@ -415,10 +418,17 @@ func (vaip VAIProvider) DeleteRunSchedule(ctx context.Context, providerConfig VA
 		Name: scheduleId,
 	})
 	if err != nil {
-		return err
+		return handleScheduleNotFound(err)
 	}
 
-	return deleteSchedule.Wait(ctx)
+	return handleScheduleNotFound(deleteSchedule.Wait(ctx))
+}
+
+func handleScheduleNotFound(err error) error {
+	if status.Code(err) == codes.NotFound {
+		return nil
+	}
+	return err
 }
 
 func (vaip VAIProvider) CreateExperiment(_ context.Context, _ VAIProviderConfig, _ ExperimentDefinition) (string, error) {
