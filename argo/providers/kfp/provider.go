@@ -2,6 +2,7 @@ package kfp
 
 import (
 	"context"
+	"errors"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-openapi/runtime"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
@@ -90,6 +91,13 @@ func (kfpp KfpProvider) DeletePipeline(ctx context.Context, providerConfig KfpPr
 		ID:      id,
 		Context: ctx,
 	}, nil)
+
+	if err != nil {
+		var deletePipelineError *pipeline_service.DeletePipelineDefault
+		if errors.As(err, &deletePipelineError) {
+			return ignoreNotFound(err, deletePipelineError.Payload.Code)
+		}
+	}
 
 	return err
 }
@@ -314,13 +322,13 @@ func (kfpp KfpProvider) DeleteRunSchedule(ctx context.Context, providerConfig Kf
 	}, nil)
 
 	if err != nil {
-		errorResult := err.(*job_service.DeleteJobDefault)
-		if errorResult.Payload.Code != kfpApiConstants.KfpResourceNotFoundCode {
-			return err
+		var deleteJobError *job_service.DeleteJobDefault
+		if errors.As(err, &deleteJobError) {
+			return ignoreNotFound(err, deleteJobError.Payload.Code)
 		}
 	}
 
-	return nil
+	return err
 }
 
 func (kfpp KfpProvider) CreateExperiment(ctx context.Context, providerConfig KfpProviderConfig, experimentDefinition ExperimentDefinition) (string, error) {
@@ -413,4 +421,11 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpPr
 		MetadataStore:  metadataStore,
 		KfpApi:         kfpApi,
 	}, nil
+}
+
+func ignoreNotFound(err error, code int32) error {
+	if code == kfpApiConstants.KfpResourceNotFoundCode {
+		return nil
+	}
+	return err
 }
