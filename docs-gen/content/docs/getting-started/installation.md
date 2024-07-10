@@ -105,3 +105,89 @@ providers:
     configuration:
       ...
 ```
+
+When using a provider, you should create the necessary `ServiceAccount` and `RoleBinding` resources required for the providers being used. 
+An example configuration is provided below for reference:
+
+```yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kfp-operator-kfp-service-account
+  namespace: kfp-namespace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kfp-operator-kfp-runconfiguration-viewer-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kfp-operator-runconfiguration-viewer-role
+subjects:
+- kind: ServiceAccount
+  name: kfp-operator-kfp-service-account
+  namespace: kfp-namespace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kfp-operator-kfp-run-viewer-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kfp-operator-run-viewer-role
+subjects:
+- kind: ServiceAccount
+  name: kfp-operator-kfp-service-account
+  namespace: kfp-namespace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kfp-operator-provider-workflow-executor
+  namespace: kfp-namespace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kfp-operator-workflow-executor
+subjects:
+- kind: ServiceAccount
+  name: kfp-operator-kfp-service-account
+  namespace: kfp-namespace
+```
+
+If using the `KubeFlowProvider` you will also need a `ClusterRole` for permission to interact with argo workflows for the 
+eventing system.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kfp-operator-kfp-eventsource-server-role
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kfp-operator-kfp-eventsource-server-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kfp-operator-kfp-eventsource-server-role
+subjects:
+- kind: ServiceAccount
+  name:  kfp-operator-kfp-service-account
+  namespace:  kfp-operator-namespace
+```
