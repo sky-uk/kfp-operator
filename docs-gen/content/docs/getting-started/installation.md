@@ -27,6 +27,9 @@ Install the latest version of the operator
 helm install oci://ghcr.io/kfp-operator/kfp-operator -f values.yaml
 ```
 
+You will need to configure service accounts and roles required by your chosen `Provider`, [see here for reference]({{< ref "#provider-rbac" >}} "Provider RBAC Reference").
+
+
 ## Configuration Values
 
 Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/values.yaml" >}}) are:
@@ -106,7 +109,7 @@ providers:
       ...
 ```
 
-#### Role-based access control (RBAC) for providers
+## Role-based access control (RBAC) for providers {#provider-rbac}
 When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used. 
 An example configuration is provided below for reference:
 
