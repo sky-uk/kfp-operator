@@ -106,7 +106,8 @@ providers:
       ...
 ```
 
-When using a provider, you should create the necessary `ServiceAccount` and `RoleBinding` resources required for the providers being used. 
+#### Role-based access control (RBAC) for providers
+When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used. 
 An example configuration is provided below for reference:
 
 ```yaml
@@ -158,8 +159,10 @@ subjects:
   namespace: kfp-namespace
 ```
 
-If using the `KubeFlowProvider` you will also need a `ClusterRole` for permission to interact with argo workflows for the 
-eventing system.
+##### KubeFlow completion eventing required RBACs
+If using the `KubeFlowProvider` you will also need a `ClusterRole` for permission to interact with argo workflows for the
+[eventing system]({{< ref "/run-completion" >}} "Run Completion Events").
+
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
