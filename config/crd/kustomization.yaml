@@ -8,6 +8,7 @@ resources:
 - bases/pipelines.kubeflow.org_runconfigurations.yaml
 - bases/pipelines.kubeflow.org_runschedules.yaml
 - bases/pipelines.kubeflow.org_experiments.yaml
+- bases/pipelines.kubeflow.org_providers.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

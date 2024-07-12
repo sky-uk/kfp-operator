@@ -58,10 +58,9 @@ spec:
                 type: string
               parameters:
                 additionalProperties:
-                  type: string
+                  x-kubernetes-preserve-unknown-fields: true
                 type: object
               pipelineRootStorage:
-                pattern: ^[a-z]+:\/\/[a-z0-9\-_\/\.]+$
                 type: string
               serviceAccount:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
