@@ -21,7 +21,5 @@ manager:
     enabled: true
   webhookCertificates:
     provider: cert-manager
-providers: {}
-
-eventsourceServer:
-  create: false
+statusFeedback:
+  enabled: false

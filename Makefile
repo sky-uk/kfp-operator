@@ -134,8 +134,9 @@ kustomize: ## Download kustomize locally if necessary.
 
 ##@ Package
 
-helm-package: helm-cmd helm-test
+helm-package: helm-cmd helm-test helm-provider-test
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
+	$(HELM) package helm/provider --version $(VERSION) --app-version $(VERSION) -d dist
 
 helm-install: helm-package values.yaml
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
@@ -145,6 +146,18 @@ helm-uninstall:
 
 helm-upgrade: helm-package values.yaml
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
+
+# NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
+helm-install-provider: helm-package
+	$(HELM) install -f $(NAME).yaml provider-$(NAME) dist/provider-$(VERSION).tgz
+
+# NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
+helm-uninstall-provider:
+	$(HELM) uninstall provider-$(NAME)
+
+# NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
+helm-upgrade-provider: helm-package
+	$(HELM) upgrade -f $(NAME).yaml provider-$(NAME) dist/provider-$(VERSION).tgz
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
 helm-publish:
@@ -161,8 +174,10 @@ define helm-upload
 @echo "Publishing Helm chart to $(1)"
 @if [[ "$(1)" == "oci://"* ]]; then \
 	helm push dist/kfp-operator-$(VERSION).tgz $(1)/kfp-operator; \
+	helm push dist/provider-$(VERSION).tgz $(1)/provider; \
 else \
 	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1); \
+	curl --fail --netrc-file $(NETRC_FILE) -T dist/provider-$(VERSION).tgz $(1); \
 fi
 $(NEWLINE)
 endef
@@ -180,6 +195,10 @@ helm-test: manifests helm-cmd kustomize yq dyff
 	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
 	rm -rf $(TMP)
+
+helm-provider-test: helm-cmd
+	$(eval TMP := $(shell mktemp -d))
+	$(HELM) template helm/provider -f helm/provider/test/values.yaml > $(TMP)/helm
 
 ##@ Containers
 
