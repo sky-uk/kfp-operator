@@ -27,6 +27,9 @@ Install the latest version of the operator
 helm install oci://ghcr.io/kfp-operator/kfp-operator -f values.yaml
 ```
 
+You will need to configure service accounts and roles required by your chosen `Provider`, [see here for reference]({{< ref "#provider-rbac" >}} "Provider RBAC Reference").
+
+
 ## Configuration Values
 
 Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/values.yaml" >}}) are:
@@ -104,4 +107,93 @@ providers:
           iam.gke.io/gcp-service-account: kfp-operator-vai@my-project.iam.gserviceaccount.com
     configuration:
       ...
+```
+
+## Role-based access control (RBAC) for providers {#provider-rbac}
+When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used. 
+An example configuration is provided below for reference:
+
+```yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kfp-operator-kfp-service-account
+  namespace: kfp-namespace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kfp-operator-kfp-runconfiguration-viewer-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kfp-operator-runconfiguration-viewer-role
+subjects:
+- kind: ServiceAccount
+  name: kfp-operator-kfp-service-account
+  namespace: kfp-namespace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kfp-operator-kfp-run-viewer-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kfp-operator-run-viewer-role
+subjects:
+- kind: ServiceAccount
+  name: kfp-operator-kfp-service-account
+  namespace: kfp-namespace
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kfp-operator-provider-workflow-executor
+  namespace: kfp-namespace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kfp-operator-workflow-executor
+subjects:
+- kind: ServiceAccount
+  name: kfp-operator-kfp-service-account
+  namespace: kfp-namespace
+```
+
+##### KubeFlow completion eventing required RBACs
+If using the `KubeFlowProvider` you will also need a `ClusterRole` for permission to interact with argo workflows for the
+[eventing system]({{< ref "/run-completion" >}} "Run Completion Events").
+
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kfp-operator-kfp-eventsource-server-role
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kfp-operator-kfp-eventsource-server-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kfp-operator-kfp-eventsource-server-role
+subjects:
+- kind: ServiceAccount
+  name:  kfp-operator-kfp-service-account
+  namespace:  kfp-operator-namespace
 ```
