@@ -133,22 +133,25 @@ kustomize: ## Download kustomize locally if necessary.
 	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
 ##@ Package
-
-helm-package: helm-cmd helm-test helm-provider-test
+helm-package-operator: helm-cmd helm-test
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
+
+helm-package-provider: helm-cmd helm-provider-test
 	$(HELM) package helm/provider --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-install: helm-package values.yaml
+helm-package: helm-package-operator helm-package-provider
+
+helm-install-operator: helm-package-operator values.yaml
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
-helm-uninstall:
+helm-uninstall-operator:
 	$(HELM) uninstall kfp-operator
 
-helm-upgrade: helm-package values.yaml
+helm-upgrade-operator: helm-package-operator values.yaml
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 # NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
-helm-install-provider: helm-package
+helm-install-provider: helm-package-provider
 	$(HELM) install -f $(NAME).yaml provider-$(NAME) dist/provider-$(VERSION).tgz
 
 # NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
@@ -156,7 +159,7 @@ helm-uninstall-provider:
 	$(HELM) uninstall provider-$(NAME)
 
 # NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
-helm-upgrade-provider: helm-package
+helm-upgrade-provider: helm-package-provider
 	$(HELM) upgrade -f $(NAME).yaml provider-$(NAME) dist/provider-$(VERSION).tgz
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
