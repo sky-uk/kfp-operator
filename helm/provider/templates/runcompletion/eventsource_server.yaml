@@ -1,6 +1,5 @@
 {{- $providerName := .Values.provider.name }}
 {{- $labels := include "kfp-operator-provider.eventsourceServer.labels" $ }}
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -44,7 +43,7 @@ spec:
       volumes:
       - name: provider-config
         configMap:
-          name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-provider
+          name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-config
       serviceAccountName: {{ .Values.provider.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
 ---
