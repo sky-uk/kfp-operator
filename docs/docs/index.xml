@@ -244,7 +244,7 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;p>The Kubeflow Pipelines operator can optionally be installed with &lt;a href="https://argoproj.github.io/argo-events/">Argo-Events&lt;/a> eventsources which lets users react to events.&lt;/p>
 &lt;p>Currently, we support the following eventsources:&lt;/p>
 &lt;ul>
-&lt;li>&lt;a href="../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
+&lt;li>&lt;a href="../../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
 &lt;/ul>
 &lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
 &lt;p>To do.&lt;/p></description></item><item><title>Docs: Pipeline</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</guid><description>
@@ -599,7 +599,9 @@ In this example we are updating a serving component with the location of the new
 &lt;li>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events 1.7.4+&lt;/a> installed cluster-wide (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
 &lt;li>The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the &lt;a href="../../reference/configuration/#provider-configuration">respective configuration section&lt;/a> before proceeding.&lt;/li>
 &lt;/ul>
-&lt;h2 id="build-and-install">Build and Install&lt;/h2>
+&lt;h2 id="kfp-operator">KFP-Operator&lt;/h2>
+&lt;p>To get a working installation you will need to install both the KFP-Operator and at least one provider (&lt;a href="#providers" title="Providers">see below&lt;/a>)&lt;/p>
+&lt;h3 id="build-and-install">Build and Install&lt;/h3>
 &lt;p>Create basic &lt;code>values.yaml&lt;/code> with the following content:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">fullnameOverride&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">manager&lt;/span>:
@@ -607,18 +609,10 @@ In this example we are updating a serving component with the location of the new
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>: &lt;span style="color:#ae81ff">pipeline-runner&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">defaultExperiment&lt;/span>: &lt;span style="color:#ae81ff">Default&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipelineStorage&lt;/span>: {&lt;span style="color:#ae81ff">STORAGE_LOCATION}&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kfpNamespace&lt;/span>: &lt;span style="color:#ae81ff">kubeflow&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">restKfpApiUrl&lt;/span>: &lt;span style="color:#ae81ff">http://ml-pipeline.kubeflow:8888&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">grpcKfpApiAddress&lt;/span>: &lt;span style="color:#ae81ff">ml-pipeline.kubeflow:8887&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">grpcMetadataStoreAddress&lt;/span>: &lt;span style="color:#ae81ff">metadata-grpc-service.kubeflow:8080&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Install the latest version of the operator&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>helm install oci://ghcr.io/kfp-operator/kfp-operator -f values.yaml
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>You will need to configure service accounts and roles required by your chosen &lt;code>Provider&lt;/code>, &lt;a href="#provider-rbac" title="Provider RBAC Reference">see here for reference&lt;/a>.&lt;/p>
-&lt;h2 id="configuration-values">Configuration Values&lt;/h2>
+&lt;h3 id="configuration-values">Configuration Values&lt;/h3>
 &lt;p>Valid configuration options to override the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/values.yaml
 ">Default &lt;code>values.yaml&lt;/code>&lt;/a> are:&lt;/p>
 &lt;table>
@@ -746,35 +740,37 @@ In this example we are updating a serving component with the location of the new
 &lt;td>Logging verbosity for all components - see the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation&lt;/a> for valid values&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>eventsourceServer.metadata&lt;/code>&lt;/td>
-&lt;td>&lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata&lt;/a> for the eventsource server&amp;rsquo;s pods&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.rbac.create&lt;/code>&lt;/td>
-&lt;td>Create roles and rolebindings for the eventsource server&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.serviceAccount.name&lt;/code>&lt;/td>
-&lt;td>Eventsource server&amp;rsquo;s service account&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.serviceAccount.create&lt;/code>&lt;/td>
-&lt;td>Create the eventsource server&amp;rsquo;s service account or expect it to be created externally&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourceServer.resources&lt;/code>&lt;/td>
-&lt;td>Eventsource server resources as per &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation&lt;/a>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>providers&lt;/code>&lt;/td>
-&lt;td>Dictionary of providers (see below)&lt;/td>
+&lt;td>&lt;code>statusFeedback.enabled&lt;/code>&lt;/td>
+&lt;td>Whether run completion eventing and status update feedback loop should be installed - defaults to &lt;code>false&lt;/code>&lt;/td>
 &lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
 ">test configuration&lt;/a>&lt;/p>
-&lt;h3 id="providers">Providers&lt;/h3>
-&lt;p>The &lt;code>providers&lt;/code> block contains a dictionary of provider names to provider configurations:&lt;/p>
+&lt;h2 id="providers">Providers&lt;/h2>
+&lt;p>Supported providers currently are Kubeflow Pipelines and Vertex AI. Install one or more by following these instructions.&lt;/p>
+&lt;h3 id="build-and-install-1">Build and Install&lt;/h3>
+&lt;p>Create basic &lt;code>kfp.yaml&lt;/code> value file with the following content:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">provider&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp-provider&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">executionMode&lt;/span>: &lt;span style="color:#ae81ff">v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">create&lt;/span>: &lt;span style="color:#66d9ef">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kfpNamespace&lt;/span>: &lt;span style="color:#ae81ff">kubeflow&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">restKfpApiUrl&lt;/span>: &lt;span style="color:#ae81ff">http://ml-pipeline.kubeflow:8888&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">grpcMetadataStoreAddress&lt;/span>: &lt;span style="color:#ae81ff">metadata-grpc-service.kubeflow:8080&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">grpcKfpApiAddress&lt;/span>: &lt;span style="color:#ae81ff">ml-pipeline.kubeflow:8887&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">defaultBeamArgs&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">project&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#ae81ff">${DATAFLOW_PROJECT}&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipelineRootStorage&lt;/span>: &lt;span style="color:#ae81ff">${PIPELINE_STORAGE}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Install the latest version of the provider&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sh" data-lang="sh">&lt;span style="display:flex;">&lt;span>helm install oci://ghcr.io/kfp-operator/provider -f kfp.yaml
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="configuration">Configuration&lt;/h3>
+&lt;p>The &lt;code>provider&lt;/code> block contains provider configurations:&lt;/p>
 &lt;table>
 &lt;thead>
 &lt;tr>
@@ -783,6 +779,10 @@ In this example we are updating a serving component with the location of the new
 &lt;/tr>
 &lt;/thead>
 &lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>name&lt;/code>&lt;/td>
+&lt;td>Name given to this provider&lt;/td>
+&lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>type&lt;/code>&lt;/td>
 &lt;td>Provider type (&lt;code>kfp&lt;/code> or &lt;code>vai&lt;/code>)&lt;/td>
@@ -806,23 +806,13 @@ In this example we are updating a serving component with the location of the new
 &lt;/tbody>
 &lt;/table>
 &lt;p>Example:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">providers&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kfp&lt;/span>:
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">provider&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp-provider&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">executionMode&lt;/span>: &lt;span style="color:#ae81ff">v1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">create&lt;/span>: &lt;span style="color:#66d9ef">false&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#ae81ff">...&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">vai&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">vai&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">create&lt;/span>: &lt;span style="color:#66d9ef">true&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">annotations&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">iam.gke.io/gcp-service-account&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-vai@my-project.iam.gserviceaccount.com&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">configuration&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#ae81ff">...&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="provider-rbac">Role-based access control (RBAC) for providers&lt;/h2>
 &lt;p>When using a provider, you should create the necessary &lt;code>ServiceAccount&lt;/code>, &lt;code>RoleBinding&lt;/code> and &lt;code>ClusterRoleBinding&lt;/code> resources required for the providers being used.

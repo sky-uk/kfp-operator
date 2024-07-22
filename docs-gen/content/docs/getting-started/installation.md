@@ -13,7 +13,11 @@ This guide assumes you are familiar with [Helm](https://helm.sh/).
 - [Argo-Events 1.7.4+](https://argoproj.github.io/argo-events/installation/) installed cluster-wide (see [configuration](../../reference/configuration)).
 - The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the [respective configuration section](../../reference/configuration/#provider-configuration) before proceeding.
 
-## Build and Install
+## KFP-Operator
+
+To get a working installation you will need to install both the KFP-Operator and at least one provider ([see below]({{< ref "#providers" >}} "Providers"))
+
+### Build and Install
 
 Create basic `values.yaml` with the following content:
 
@@ -29,8 +33,7 @@ helm install oci://ghcr.io/kfp-operator/kfp-operator -f values.yaml
 
 You will need to configure service accounts and roles required by your chosen `Provider`, [see here for reference]({{< ref "#provider-rbac" >}} "Provider RBAC Reference").
 
-
-## Configuration Values
+### Configuration Values
 
 Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/values.yaml" >}}) are:
 
@@ -65,21 +68,35 @@ Valid configuration options to override the [Default `values.yaml`]({{< ghblob "
 | `manager.provider.type`                                   | Provider type (`kfp` for Kubeflow Pipelines or `vai` for Vertex AI Pipelines)                                                                                                                                       |
 | `manager.provider.configuration`                          | Configuration block for the specific provider (see [Provider Configuration](../../reference/configuration#provider-configuration)), automatically mounted as a file                                                 |
 | `logging.verbosity`                                       | Logging verbosity for all components - see the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values                                                    |
-| `eventsourceServer.metadata`                              | [Object Metadata](https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta) for the eventsource server's pods                                                                 |
-| `eventsourceServer.rbac.create`                           | Create roles and rolebindings for the eventsource server                                                                                                                                                            |
-| `eventsourceServer.serviceAccount.name`                   | Eventsource server's service account                                                                                                                                                                                |
-| `eventsourceServer.serviceAccount.create`                 | Create the eventsource server's service account or expect it to be created externally                                                                                                                               |
-| `eventsourceServer.resources`                             | Eventsource server resources as per [k8s documentation](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources)                                                                   |
-| `providers`                                               | Dictionary of providers (see below)                                                                                                                                                                                 |
+| `statusFeedback.enabled`                                  | Whether run completion eventing and status update feedback loop should be installed - defaults to `false`                                                                                                           |
 
 Examples for these values can be found in the [test configuration]({{< ghblob "/helm/kfp-operator/test/values.yaml" >}})
 
-### Providers
+## Providers
 
-The `providers` block contains a dictionary of provider names to provider configurations:
+Supported providers currently are Kubeflow Pipelines and Vertex AI. Install one or more by following these instructions.
+
+### Build and Install
+
+Create basic `kfp.yaml` value file with the following content:
+
+```yaml
+{{% readfile file="includes/quickstart/resources/kfp.yaml" %}}
+```
+
+Install the latest version of the provider
+
+```sh
+helm install oci://ghcr.io/kfp-operator/provider -f kfp.yaml
+```
+
+### Configuration
+
+The `provider` block contains provider configurations:
 
 | Parameter name            | Description                                                                                                                                                 |
 |---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `name`                    | Name given to this provider                                                                                                                                 |
 | `type`                    | Provider type (`kfp` or `vai`)                                                                                                                              |
 | `serviceAccount.name`     | Name of the service account to run provider-specific operations                                                                                             |
 | `serviceAccount.create`   | Create the service account (or assume it has been created externally)                                                                                       |
@@ -89,23 +106,13 @@ The `providers` block contains a dictionary of provider names to provider config
 Example:
 
 ```yaml
-providers:
-  kfp:
-    type: kfp
-    serviceAccount:
-      name: kfp-operator-kfp
-      create: false
-    configuration:
-      ...
-  vai:
-    type: vai
-    serviceAccount: 
-      name: kfp-operator-kfp
-      create: true
-      metadata:
-        annotations:
-          iam.gke.io/gcp-service-account: kfp-operator-vai@my-project.iam.gserviceaccount.com
-    configuration:
+provider:
+  name: kfp-provider
+  type: kfp
+  executionMode: v1
+  serviceAccount:
+    name: kfp-operator-kfp
+    create: false
       ...
 ```
 

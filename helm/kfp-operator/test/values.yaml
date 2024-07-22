@@ -3,11 +3,6 @@ containerRegistry: ""
 manager:
   argo:
     containerDefaults: {}
-  configuration:
-    pipelineStorage: ${PIPELINE_STORAGE}
-    defaultBeamArgs:
-    - name: project
-      value: ${DATAFLOW_PROJECT}
   monitoring:
     create: true
     rbacSecured: true
