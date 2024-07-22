@@ -42,4 +42,4 @@ spec:
                 dataKey: body
                 dependencyName: events
           subject: events
-          url: eventbus-{{ include "kfp-operator-provider.resource-prefix" $ }}-events-stan-svc:4222
+          url: eventbus-{{ .Values.kfpOperator.fullname }}-events-stan-svc:4222

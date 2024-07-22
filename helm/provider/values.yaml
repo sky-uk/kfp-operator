@@ -6,8 +6,11 @@ containerRegistry: "ghcr.io/provider"
 
 namespace:
   create: true
-  name: "kfp-operator-system"
+  name: kfp-operator-system
   metadata: {}
+
+kfpOperator:
+  fullname: kfp-operator
 
 provider: {}
 
