@@ -11,7 +11,6 @@ This guide assumes you are familiar with [Helm](https://helm.sh/).
 
 - [Argo 3.1.6-3.3](https://argoproj.github.io/argo-workflows/installation/) installed cluster-wide or into the namespace where the operator's workflows run (see [configuration](../../reference/configuration)).
 - [Argo-Events 1.7.4+](https://argoproj.github.io/argo-events/installation/) installed cluster-wide (see [configuration](../../reference/configuration)).
-- The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the [respective configuration section](../../reference/configuration/#provider-configuration) before proceeding.
 
 ## KFP-Operator
 
@@ -74,7 +73,11 @@ Examples for these values can be found in the [test configuration]({{< ghblob "/
 
 ## Providers
 
-Supported providers currently are Kubeflow Pipelines and Vertex AI. Install one or more by following these instructions.
+Supported providers are:
+- Kubeflow Pipelines
+- Vertex AI
+
+Install one or more by following these instructions. Please refer to the [respective configuration section](../../reference/configuration/#provider-configuration) before proceeding.
 
 ### Build and Install
 

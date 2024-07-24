@@ -59,7 +59,6 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;ul>
 &lt;li>&lt;a href="https://argoproj.github.io/argo-workflows/installation/">Argo 3.1.6-3.3&lt;/a> installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
 &lt;li>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events 1.7.4+&lt;/a> installed cluster-wide (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
-&lt;li>The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the &lt;a href="../../reference/configuration/#provider-configuration">respective configuration section&lt;/a> before proceeding.&lt;/li>
 &lt;/ul>
 &lt;h2 id="kfp-operator">KFP-Operator&lt;/h2>
 &lt;p>To get a working installation you will need to install both the KFP-Operator and at least one provider (&lt;a href="#providers" title="Providers">see below&lt;/a>)&lt;/p>
@@ -210,7 +209,12 @@ A provider is a runtime environment for managing and executing ML pipelines and 
 &lt;p>Examples for these values can be found in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
 ">test configuration&lt;/a>&lt;/p>
 &lt;h2 id="providers">Providers&lt;/h2>
-&lt;p>Supported providers currently are Kubeflow Pipelines and Vertex AI. Install one or more by following these instructions.&lt;/p>
+&lt;p>Supported providers are:&lt;/p>
+&lt;ul>
+&lt;li>Kubeflow Pipelines&lt;/li>
+&lt;li>Vertex AI&lt;/li>
+&lt;/ul>
+&lt;p>Install one or more by following these instructions. Please refer to the &lt;a href="../../reference/configuration/#provider-configuration">respective configuration section&lt;/a> before proceeding.&lt;/p>
 &lt;h3 id="build-and-install-1">Build and Install&lt;/h3>
 &lt;p>Create basic &lt;code>kfp.yaml&lt;/code> value file with the following content:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">provider&lt;/span>:

@@ -79,7 +79,7 @@ test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test
 
-test-all: test helm-test test-argo
+test-all: test helm-test-operator helm-test-provider test-argo
 
 integration-test-all: integration-test
 	$(MAKE) -C argo/kfp-compiler integration-test
@@ -133,10 +133,10 @@ kustomize: ## Download kustomize locally if necessary.
 	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
 ##@ Package
-helm-package-operator: helm-cmd helm-test
+helm-package-operator: helm-cmd helm-test-operator
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-package-provider: helm-cmd helm-provider-test
+helm-package-provider: helm-cmd helm-test-provider
 	$(HELM) package helm/provider --version $(VERSION) --app-version $(VERSION) -d dist
 
 helm-package: helm-package-operator helm-package-provider
@@ -187,7 +187,7 @@ endef
 endif
 
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
-helm-test: manifests helm-cmd kustomize yq dyff
+helm-test-operator: manifests helm-cmd kustomize yq dyff
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
@@ -199,7 +199,7 @@ helm-test: manifests helm-cmd kustomize yq dyff
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
 	rm -rf $(TMP)
 
-helm-provider-test: helm-cmd
+helm-test-provider: helm-cmd
 	$(eval TMP := $(shell mktemp -d))
 	$(HELM) template helm/provider -f helm/provider/test/values.yaml > $(TMP)/helm
 
