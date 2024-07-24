@@ -2,9 +2,11 @@
 name = "quickstart"
 version = "0.1.0"
 description = ""
-authors = ["Hephaestus Team <DL-Discovery-Hephaestus@sky.uk>"]
+authors = []
 
 [tool.poetry.dependencies]
 python = "3.10.12"
 tfx = "1.14.0"
 shapely = "<2"
+kfp = "1.8.22"
+setuptools = "~=70.0"
