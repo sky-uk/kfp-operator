@@ -7,3 +7,4 @@ authors = ["Hephaestus Team <DL-Discovery-Hephaestus@sky.uk>"]
 [tool.poetry.dependencies]
 python = "3.10.12"
 tfx = "1.14.0"
+shapely = "<2"
