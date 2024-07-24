@@ -48,7 +48,7 @@ The Kubeflow Pipelines operator can optionally be installed with [Argo-Events](h
 
 Currently, we support the following eventsources:
 
-- [Run Completion Eventsource](../reference/run-completion)
+- [Run Completion Eventsource](../../reference/run-completion)
 
 ## Architecture Overview
 

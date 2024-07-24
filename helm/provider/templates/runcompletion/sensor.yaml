@@ -1,0 +1,45 @@
+{{- $providerName := .Values.provider.name }}
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-publish-events
+  namespace: {{ include "kfp-operator-provider.namespace" . }}
+spec:
+  dependencies:
+    - eventName: events
+      eventSourceName: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-events
+      name: events
+      transform:
+        jq: .body = (.body | @base64d | fromjson)
+  triggers:
+    - template:
+        name: "publish"
+        nats:
+          payload:
+            - dest: specversion
+              src:
+                value: "1.0"
+                dependencyName: events
+            - dest: id
+              src:
+                contextKey: id
+                dependencyName: events
+            - dest: source
+              src:
+                value: "{{ $providerName }}"
+                dependencyName: events
+            - dest: type
+              src:
+                value: "org.kubeflow.pipelines.run-completion"
+                dependencyName: events
+            - dest: datacontenttype
+              src:
+                value: "application/json"
+                dependencyName: events
+            - dest: data
+              src:
+                useRawData: true
+                dataKey: body
+                dependencyName: events
+          subject: events
+          url: eventbus-{{ .Values.kfpOperator.fullname }}-events-stan-svc:4222

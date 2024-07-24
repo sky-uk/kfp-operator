@@ -1,0 +1,15 @@
+{{- $providerName := .Values.provider.name }}
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-events
+  namespace: {{ include "kfp-operator-provider.namespace" $ }}
+spec:
+  generic:
+    events:
+      insecure: true
+      url: '{{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-eventsource-server:{{ $.Values.eventsourceServer.port }}'
+      {{- if not (empty .Values.provider.configuration) }}
+      config: |-
+        {{- .Values.provider.configuration | toYaml | nindent 8 }}
+      {{- end }}

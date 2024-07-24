@@ -1,6 +1,5 @@
 resources:
 - manager.yaml
-- providers.yaml
 - workflows/common.yaml
 - workflows/compiled.yaml
 - workflows/rbac.yaml
