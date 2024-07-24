@@ -13,14 +13,12 @@ data:
     {{- if not (empty .Values.provider.configuration) -}}
     {{- .Values.provider.configuration | toYaml | nindent 4 }}
     {{- end }}
-
-{{- range $providerName, $providerBlock := .Values.providers }}
 ---
 apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: Provider
 metadata:
   name: {{ $providerName }}
-  namespace: {{ default $.Values.namespace.name $providerBlock.namespace }}
+  namespace: {{ include "kfp-operator-provider.namespace" . }}
 spec:
   image: {{ include "kfp-operator-provider.image" $ }}
   executionMode: {{ .Values.provider.executionMode }}
@@ -31,4 +29,3 @@ spec:
   parameters:
     {{- $providerParams := omit .Values.provider.configuration "defaultBeamArgs" "pipelineRootStorage" -}}
     {{- $providerParams | toYaml | nindent 4 }}
-{{- end -}}
