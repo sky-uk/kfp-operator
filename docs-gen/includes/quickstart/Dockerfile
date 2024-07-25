@@ -20,6 +20,7 @@ ENV VIRTUAL_ENV=/.venv \
 WORKDIR /pipeline
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=builder /data /data
 
 COPY penguin_pipeline/*.py ./
 
