@@ -6,10 +6,12 @@ import (
 	"fmt"
 	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"math/rand"
+	"time"
 )
 
 func RandomPipeline() *Pipeline {
@@ -29,6 +31,53 @@ func RandomPipelineSpec() PipelineSpec {
 		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
 		Env:           RandomNamedValues(),
 		BeamArgs:      RandomNamedValues(),
+	}
+}
+
+func RandomProvider() *Provider {
+	return &Provider{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandomLowercaseString(),
+			Namespace: "default",
+		},
+		Spec:   RandomProviderSpec(),
+		Status: RandomProviderStatus(),
+	}
+}
+
+func RandomProviderSpec() ProviderSpec {
+	randomParameters := make(map[string]*apiextensionsv1.JSON)
+	for key, value := range RandomMap() {
+		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(value)}
+	}
+
+	return ProviderSpec{
+		Image:               fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
+		ExecutionMode:       RandomLowercaseString(),
+		ServiceAccount:      RandomLowercaseString(),
+		DefaultBeamArgs:     RandomNamedValues(),
+		PipelineRootStorage: RandomLowercaseString(),
+		Parameters:          randomParameters,
+	}
+}
+
+func RandomProviderStatus() ProviderStatus {
+	return ProviderStatus{Conditions: RandomConditions()}
+}
+
+func RandomConditions() Conditions {
+	return RandomList[metav1.Condition](RandomCondition)
+}
+
+func RandomCondition() metav1.Condition {
+	return metav1.Condition{
+		Type:               RandomLowercaseString(),
+		Status:             RandomConditionStatus(),
+		ObservedGeneration: common.RandomInt64(),
+		LastTransitionTime: metav1.Time{Time: time.Now()},
+		Reason:             RandomLowercaseString(),
+		Message:            RandomLowercaseString(),
 	}
 }
 
