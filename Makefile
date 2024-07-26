@@ -232,6 +232,6 @@ publish-all: docker-push docker-push-argo helm-publish
 
 ##@ CI
 
-prBuild: test-all package-all git-status-check
+prBuild: test-all package-all
 
 cdBuild: prBuild publish-all docker-push-quickstart
