@@ -4,24 +4,21 @@ package pipelines
 
 import (
 	"context"
-	"fmt"
+	"testing"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
-	"github.com/sky-uk/kfp-operator/argo/providers/stub"
 	"github.com/sky-uk/kfp-operator/external"
-	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"testing"
 )
 
 const (
@@ -59,34 +56,7 @@ var _ = BeforeEach(func() {
 })
 
 func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R) base.Output {
-	providerConfig := stub.StubProviderConfig{
-		StubbedOutput: stubbedOutput,
-		ExpectedInput: stub.ExpectedInput{
-			Id: resource.GetStatus().ProviderId.Id,
-			ResourceDefinition: stub.ResourceDefinition{
-				Name: common.NamespacedName{
-					Name:      resource.GetName(),
-					Namespace: resource.GetNamespace(),
-				},
-				Version: resource.ComputeVersion(),
-			},
-		},
-	}
-
-	configYaml, err := yaml.Marshal(providerConfig)
-	Expect(err).NotTo(HaveOccurred())
-
-	Expect(k8sClient.Create(ctx, &v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kfp-operator-integration-tests-providers",
-			Namespace: TestNamespace,
-		},
-		Data: map[string]string{
-			TestProvider: fmt.Sprintf("%s\nserviceAccount: default\nimage: kfp-operator-stub-provider\nexecutionMode: none", configYaml),
-		},
-	})).To(Succeed())
-
-	return providerConfig.StubbedOutput
+	return stubbedOutput
 }
 
 func StubWithIdAndError[R pipelinesv1.Resource](resource R) base.Output {

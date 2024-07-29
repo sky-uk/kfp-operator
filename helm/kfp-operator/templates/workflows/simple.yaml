@@ -88,6 +88,7 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-simple
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+// TODO REMOVE THIS AND INSTEAD PASS AS A PARAM
   volumes:
   - name: providers-config
     {{- if and (.Values.providers) (gt (len .Values.providers) 0) }}
@@ -152,6 +153,7 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-simple
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+// TODO REMOVE THIS AND INSTEAD PASS AS A PARAM
   volumes:
   - name: providers-config
     {{- if and (.Values.providers) (gt (len .Values.providers) 0) }}
