@@ -16,6 +16,11 @@ spec:
         raw:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
+      - name: provider-config
+        path: /provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -27,14 +32,11 @@ spec:
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
+      - /provider-config
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - create
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition
@@ -53,6 +55,11 @@ spec:
         raw:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
+      - name: provider-config
+        path: /provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -64,14 +71,11 @@ spec:
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
+      - /providers-config
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - update
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition
@@ -88,32 +92,25 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-simple
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
-// TODO REMOVE THIS AND INSTEAD PASS AS A PARAM
-  volumes:
-  - name: providers-config
-    {{- if and (.Values.providers) (gt (len .Values.providers) 0) }}
-    projected:
-      sources:
-    {{- range $providerName := .Values.providers }}
-        - configMap:
-            name: provider-{{ $providerName }}-config
-            optional: true
-    {{- end }}
-    {{- else }}
-    configMap:
-      name: {{ include "kfp-operator.fullname" . }}-providers
-    {{- end }}
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
+    - name: provider-config
     - name: resource-kind
     - name: resource-definition
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
   - name: main
+    inputs:
+      artifacts:
+      - name: provider-config
+        path: /provider-config.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -153,26 +150,10 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-simple
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
-// TODO REMOVE THIS AND INSTEAD PASS AS A PARAM
-  volumes:
-  - name: providers-config
-    {{- if and (.Values.providers) (gt (len .Values.providers) 0) }}
-    projected:
-      sources:
-    {{- range $providerName := .Values.providers }}
-        - configMap:
-            name: provider-{{ $providerName }}-config
-            optional: true
-    {{- end }}
-    {{- else }}
-    configMap:
-      name: {{ include "kfp-operator.fullname" . }}-providers
-    {{- end }}
-  ttlStrategy:
-    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-name
+    - name: provider-config
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
