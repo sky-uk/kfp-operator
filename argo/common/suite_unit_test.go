@@ -193,3 +193,47 @@ var _ = Context("RunCompletionEvent.String", func() {
 		)
 	})
 })
+
+var _ = Context("RunCompletionEvent.Validate", func() {
+	validEvent := RunCompletionEvent{
+		Status: "succeeded",
+		PipelineName: NamespacedName{
+			Name:      "Name",
+			Namespace: "Namespace",
+		},
+		RunConfigurationName: &NamespacedName{
+			Name:      "Name",
+			Namespace: "Namespace",
+		},
+		RunName: &NamespacedName{
+			Name:      "Name",
+			Namespace: "Namespace",
+		},
+		RunId:    "RunId",
+		Provider: "Provider",
+	}
+
+	It("returns an error when Status is missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.Status = ""
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returns an error when PipelineName is missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.PipelineName = NamespacedName{}
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returns an error when Provider is missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.Provider = ""
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returns an error when RunId is missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunId = ""
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+})
