@@ -22,9 +22,10 @@ import (
 )
 
 const (
-	TestTimeout   = 120
-	TestNamespace = "argo"
-	TestProvider  = "stub"
+	TestTimeout        = 120
+	TestNamespace      = "argo"
+	TestProvider       = "stub"
+	TestProviderConfig = `{"stub": "stub"}` // TODO: Update this to be real json
 )
 
 var (
@@ -87,7 +88,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	}
 
 	expectedOutput := setUp(testCtx.Resource)
-	workflow, err := constructWorkflow(TestProvider, testCtx.Resource)
+	workflow, err := constructWorkflow(TestProviderConfig, testCtx.Resource)
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient.Create(ctx, workflow)).To(Succeed())

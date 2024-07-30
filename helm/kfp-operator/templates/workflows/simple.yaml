@@ -18,7 +18,7 @@ spec:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
       - name: provider-config
-        path: /provider-config.yaml
+        path: /provider-config.json
         raw:
           data: |
             {{`{{workflow.parameters.provider-config}}`}}
@@ -37,7 +37,7 @@ spec:
       - /provider
       args:
       - --provider-config
-      - /provider-config.yaml
+      - /provider-config.json
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - create
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition
@@ -98,7 +98,6 @@ spec:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
-    - name: provider-name
     - name: provider-config
     - name: resource-kind
     - name: resource-definition
@@ -118,16 +117,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: select-provider-sa
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-simple-workflow-steps
@@ -149,7 +152,6 @@ metadata:
 spec:
   arguments:
     parameters:
-    - name: provider-name
     - name: provider-config
     - name: resource-kind
     - name: resource-id
@@ -169,16 +171,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: select-provider-sa
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-simple-workflow-steps

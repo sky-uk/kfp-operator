@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"fmt"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
@@ -25,7 +26,7 @@ var WorkflowConstants = struct {
 	OwnerNameLabelKey:               apis.Group + "/owner.name",
 	OwnerNamespaceLabelKey:          apis.Group + "/owner.namespace",
 	ConstructionFailedError:         "error constructing workflow",
-	ProviderNameParameterName:       "provider-name",
+	ProviderNameParameterName:       "provider-config",
 	ProviderOutputParameterName:     "provider-output",
 	ResourceKindParameterName:       "resource-kind",
 	ResourceDefinitionParameterName: "resource-definition",
