@@ -2,7 +2,7 @@
 name = "quickstart"
 version = "0.1.0"
 description = ""
-authors = ["Hephaestus Team <DL-Discovery-Hephaestus@sky.uk>"]
+authors = []
 
 [tool.poetry.dependencies]
 python = "3.10.12"
