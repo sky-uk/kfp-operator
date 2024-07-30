@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -24,10 +25,10 @@ var RunCompletionStatuses = struct {
 
 type RunCompletionEvent struct {
 	Status       RunCompletionStatus `json:"status" validate:"required"`
-	PipelineName NamespacedName      `json:"pipelineName" validate:"required"`
+	PipelineName NamespacedName      `json:"pipelineName" validate:"pipelineName"`
 	// Optionally render structs until https://github.com/golang/go/issues/11939 is addressed
-	RunConfigurationName  *NamespacedName `json:"runConfigurationName,omitempty"`
-	RunName               *NamespacedName `json:"runName,omitempty"`
+	RunConfigurationName  *NamespacedName `json:"runConfigurationName" validate:"required_without=RunName"`
+	RunName               *NamespacedName `json:"runName" validate:"required_without=RunConfigurationName"`
 	RunId                 string          `json:"runId" validate:"required"`
 	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
 	Artifacts             []Artifact      `json:"artifacts,omitempty"`
@@ -41,5 +42,15 @@ func (sre RunCompletionEvent) String() string {
 
 func (sre RunCompletionEvent) Validate() error {
 	validate := validator.New()
+	validate.RegisterValidation("pipelineName", pipelineNameValidator)
 	return validate.Struct(sre)
+}
+
+func pipelineNameValidator(fl validator.FieldLevel) bool {
+	nn, ok := fl.Field().Interface().(NamespacedName)
+	if !ok {
+		return false
+	}
+
+	return nn.Name != "" && nn.Namespace != ""
 }

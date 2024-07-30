@@ -5,9 +5,10 @@ package common
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 func TestCommonUnitSuite(t *testing.T) {
@@ -234,6 +235,32 @@ var _ = Context("RunCompletionEvent.Validate", func() {
 	It("returns an error when RunId is missing", func() {
 		invalidEvent := validEvent
 		invalidEvent.RunId = ""
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returnes an error when both RunConfigurationName and RunName are missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunConfigurationName = nil
+		invalidEvent.RunName = nil
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("is valid when RunConfigurationName is missing and RunName is provided", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunConfigurationName = nil
+		Expect(invalidEvent.Validate()).To(Succeed())
+	})
+
+	It("is valid when RunName is missing and RunConfigurationName is provided", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunName = nil
+		Expect(invalidEvent.Validate()).To(Succeed())
+	})
+
+	It("returns an error when RunName and RunConfigurationName are missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunName = nil
+		invalidEvent.RunConfigurationName = nil
 		Expect(invalidEvent.Validate()).To(Not(Succeed()))
 	})
 })
