@@ -36,7 +36,7 @@ spec:
       - /provider
       args:
       - --provider-config
-      - /provider-config
+      - /provider-config.yaml
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - create
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition
@@ -49,6 +49,7 @@ spec:
       parameters:
       - name: provider-image
       - name: provider-sa
+      - name: provider-config
       artifacts:
       - name: resource-definition
         path: /resource-definition.yaml
@@ -75,7 +76,7 @@ spec:
       - /provider
       args:
       - --provider-config
-      - /providers-config
+      - /providers-config.yaml
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - update
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition
@@ -104,13 +105,6 @@ spec:
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
   - name: main
-    inputs:
-      artifacts:
-      - name: provider-config
-        path: /provider-config.yaml
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -143,6 +137,8 @@ spec:
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           - name: provider-sa
             value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -160,7 +156,6 @@ spec:
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
-  - name: main
     outputs:
       parameters:
       - name: provider-output
@@ -193,3 +188,5 @@ spec:
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           - name: provider-sa
             value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
