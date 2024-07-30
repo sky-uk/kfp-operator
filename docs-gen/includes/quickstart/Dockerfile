@@ -3,25 +3,36 @@ FROM python:3.10.12 as builder
 RUN mkdir /data
 RUN wget https://raw.githubusercontent.com/tensorflow/tfx/master/tfx/examples/penguin/data/labelled/penguins_processed.csv -P /data
 
-RUN pip install poetry==1.7.1
+# RUN pip install poetry==1.7.1
 
-COPY pyproject.toml .
-COPY poetry.lock .
+# COPY pyproject.toml .
+# COPY poetry.lock .
 
-RUN poetry config virtualenvs.create true
-RUN poetry config virtualenvs.in-project true
-RUN poetry install
+# RUN poetry config virtualenvs.create true
+# RUN poetry config virtualenvs.in-project true
+# RUN poetry install
 
 FROM python:3.10.12-slim as runtime
 
-ENV VIRTUAL_ENV=/.venv \
-    PATH="/.venv/bin:$PATH"
+# ENV VIRTUAL_ENV=/.venv \
+#     PATH="/.venv/bin:$PATH"
+
+
+ARG WHEEL_VERSION
+
+COPY dist/*-${WHEEL_VERSION}-*.whl /
+
+RUN pip install poetry==1.7.1
+COPY pyproject.toml .
+# COPY poetry.lock .
+
+RUN poetry add /*-${WHEEL_VERSION}-*.whl && rm /*-${WHEEL_VERSION}-*.whl
+
+# COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=builder /data /data
 
 WORKDIR /pipeline
 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-COPY --from=builder /data /data
-
-COPY penguin_pipeline/*.py ./
+COPY quickstart/*.py ./
 
 ENV PYTHONPATH="/pipeline:${PYTHONPATH}"
