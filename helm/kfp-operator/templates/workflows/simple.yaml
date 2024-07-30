@@ -10,6 +10,7 @@ spec:
       parameters:
       - name: provider-image
       - name: provider-sa
+      - name: provider-config
       artifacts:
       - name: resource-definition
         path: /resource-definition.yaml
