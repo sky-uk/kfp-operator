@@ -28,8 +28,6 @@ spec:
       image: "{{`{{inputs.parameters.resource-image}}`}}"
       name: resource
       volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       - mountPath: /shared
         name: shared
       args:
@@ -54,7 +52,13 @@ spec:
       parameters:
       - name: provider-image
       - name: provider-sa
+      - name: provider-config
       artifacts:
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
       - name: resource
         path: /resource.yaml
       - name: resource-definition
@@ -73,14 +77,11 @@ spec:
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
+      - /provider-config.json
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - create
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition
@@ -93,6 +94,11 @@ spec:
   - name: update
     inputs:
       artifacts:
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
       - name: resource
         path: /resource.yaml
       - name: resource-definition
@@ -115,14 +121,11 @@ spec:
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
+      - /provider-config.json
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - update
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition
@@ -141,25 +144,11 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-create-compiled
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
-  volumes:
-  - name: providers-config
-    {{- if and (.Values.providers) (gt (len .Values.providers) 0) }}
-    projected:
-      sources:
-    {{- range $providerName := .Values.providers }}
-        - configMap:
-            name: provider-{{ $providerName }}-config
-            optional: true
-    {{- end }}
-    {{- else }}
-    configMap:
-      name: {{ include "kfp-operator.fullname" . }}-providers
-    {{- end }}
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
-    - name: provider-name
+    - name: provider-config
     - name: resource-kind
     - name: resource-definition
   entrypoint: main
@@ -178,16 +167,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: select-provider-sa
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: select-resource-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
@@ -213,6 +206,8 @@ spec:
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           - name: provider-sa
             value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -220,25 +215,11 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-compiled
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
-  volumes:
-  - name: providers-config
-    {{- if and (.Values.providers) (gt (len .Values.providers) 0) }}
-    projected:
-      sources:
-    {{- range $providerName := .Values.providers }}
-        - configMap:
-            name: provider-{{ $providerName }}-config
-            optional: true
-    {{- end }}
-    {{- else }}
-    configMap:
-      name: {{ include "kfp-operator.fullname" . }}-providers
-    {{- end }}
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
-    - name: provider-name
+    - name: provider-config
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
@@ -258,16 +239,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: select-provider-sa
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: select-resource-image
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
@@ -295,3 +280,5 @@ spec:
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           - name: provider-sa
             value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'

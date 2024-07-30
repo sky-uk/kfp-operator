@@ -8,15 +8,19 @@ spec:
   - name: select-provider-parameter
     inputs:
       parameters:
-      - name: parameter
+      - name: field
+      - name: provider-config
+      artifacts:
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     script:
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - ash
       image: mikefarah/yq:4.27.5
-      source: yq e '.{{`{{inputs.parameters.parameter}}`}}' '/providers-config/{{`{{workflow.parameters.provider-name}}`}}'
+      source: yq e '.{{`{{inputs.parameters.field}}`}}' '/provider-config.json'
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
@@ -41,6 +45,7 @@ spec:
       parameters:
       - name: provider-image
       - name: provider-sa
+      - name: provider-config
     outputs:
       parameters:
       - name: provider-output
@@ -52,14 +57,17 @@ spec:
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
+      artifacts:
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
       command:
       - /provider
       args:
       - --provider-config
-      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
+      - /provider-config.json
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - delete
       - --{{`{{workflow.parameters.resource-kind}}`}}-id
@@ -74,25 +82,11 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-delete
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
-  volumes:
-  - name: providers-config
-    {{- if and (.Values.providers) (gt (len .Values.providers) 0) }}
-    projected:
-      sources:
-    {{- range $providerName := .Values.providers }}
-      - configMap:
-          name: provider-{{ $providerName }}-config
-          optional: true
-    {{- end }}
-    {{- else }}
-    configMap:
-      name: {{ include "kfp-operator.fullname" . }}-providers
-    {{- end }}
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
-    - name: provider-name
+    - name: provider-config
     - name: resource-kind
     - name: resource-id
   entrypoint: main
@@ -111,16 +105,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: select-provider-sa
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
@@ -131,3 +129,5 @@ spec:
             value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
           - name: provider-sa
             value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'

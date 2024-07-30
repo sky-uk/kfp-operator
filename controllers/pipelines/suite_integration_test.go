@@ -26,9 +26,10 @@ import (
 )
 
 const (
-	TestTimeout   = 120
-	TestNamespace = "argo"
-	TestProvider  = "stub"
+	TestTimeout        = 120
+	TestNamespace      = "argo"
+	TestProvider       = "stub"
+	TestProviderConfig = `{"stub": "stub"}` // TODO: Update this to be real json
 )
 
 var (

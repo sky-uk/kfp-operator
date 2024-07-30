@@ -26,7 +26,7 @@ var WorkflowConstants = struct {
 	OwnerNameLabelKey:               apis.Group + "/owner.name",
 	OwnerNamespaceLabelKey:          apis.Group + "/owner.namespace",
 	ConstructionFailedError:         "error constructing workflow",
-	ProviderNameParameterName:       "provider-name",
+	ProviderNameParameterName:       "provider-config",
 	ProviderOutputParameterName:     "provider-output",
 	ResourceKindParameterName:       "resource-kind",
 	ResourceDefinitionParameterName: "resource-definition",
