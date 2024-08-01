@@ -257,10 +257,53 @@ var _ = Context("RunCompletionEvent.Validate", func() {
 		Expect(invalidEvent.Validate()).To(Succeed())
 	})
 
-	It("returns an error when RunName and RunConfigurationName are missing", func() {
+	It("returns an error when RunName and RunConfigurationName are nil", func() {
 		invalidEvent := validEvent
 		invalidEvent.RunName = nil
 		invalidEvent.RunConfigurationName = nil
 		Expect(invalidEvent.Validate()).To(Not(Succeed()))
 	})
+
+	It("returns an error when RunName inner struct Name field is empty and RunConfigurationName is nil", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunName = &NamespacedName{
+			Name:      "",
+			Namespace: "Namespace",
+		}
+		invalidEvent.RunConfigurationName = nil
+
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	var _ = Context("validateNamespacedName", func() {
+		namespacedName := &NamespacedName{
+			Name:      "Name",
+			Namespace: "Namespace",
+		}
+
+		It("returns no error when Name and Namespace are not empty", func() {
+			Expect(validateNamespacedName(namespacedName, "")).To(Succeed())
+		})
+
+		It("returns error when Name is empty", func() {
+			invalidNamespacedName := namespacedName
+			invalidNamespacedName.Name = ""
+			Expect(validateNamespacedName(invalidNamespacedName, "")).To(Not(Succeed()))
+		})
+
+		It("returns error when Namespace is empty", func() {
+			invalidNamespacedName := namespacedName
+			invalidNamespacedName.Namespace = ""
+			Expect(validateNamespacedName(invalidNamespacedName, "")).To(Not(Succeed()))
+		})
+
+		It("returns error when Name and Namespace are empty", func() {
+			invalidNamespacedName := namespacedName
+			invalidNamespacedName.Name = ""
+			invalidNamespacedName.Namespace = ""
+			Expect(validateNamespacedName(invalidNamespacedName, "")).To(Not(Succeed()))
+		})
+
+	})
+
 })

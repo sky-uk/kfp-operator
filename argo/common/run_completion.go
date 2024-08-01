@@ -1,6 +1,7 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/go-playground/validator/v10"
@@ -40,10 +41,32 @@ func (sre RunCompletionEvent) String() string {
 		sre.Status, sre.PipelineName, sre.RunConfigurationName, sre.RunName, sre.RunId, sre.ServingModelArtifacts, sre.Artifacts, sre.Provider)
 }
 
+func validateNamespacedName(nn *NamespacedName, key string) error {
+	if nn == nil {
+		return fmt.Errorf("key: %s is nil", key)
+	} else if nn.Name == "" {
+		return fmt.Errorf("key: %s, Name filed is missing", key)
+	} else if nn.Namespace == "" {
+		return fmt.Errorf("key: %s, Namespace filed is missing", key)
+	}
+
+	return nil
+}
+
 func (sre RunCompletionEvent) Validate() error {
 	validate := validator.New()
 	validate.RegisterValidation("pipelineName", pipelineNameValidator)
-	return validate.Struct(sre)
+	validate_err := validate.Struct(sre)
+
+	err1 := validateNamespacedName(sre.RunConfigurationName, "RunCompletionEvent.RunConfigurationName")
+	err2 := validateNamespacedName(sre.RunName, "RunCompletionEvent.RunName")
+
+	// Either RunConfigurationName or RunName mist be valid
+	if err1 != nil && err2 != nil {
+		return errors.Join(err1, err2, validate_err)
+	}
+
+	return validate_err
 }
 
 func pipelineNameValidator(fl validator.FieldLevel) bool {
