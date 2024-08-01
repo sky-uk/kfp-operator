@@ -22,10 +22,9 @@ import (
 )
 
 const (
-	TestTimeout        = 120
-	TestNamespace      = "argo"
-	TestProvider       = "stub"
-	TestProviderConfig = `{"stub": "stub"}` // TODO: Update this to be real json
+	TestTimeout   = 120
+	TestNamespace = "argo"
+	TestProvider  = "stub"
 )
 
 var (
@@ -33,6 +32,7 @@ var (
 		Host:    "http://localhost:8080",
 		APIPath: "/api",
 	}
+	TestProviderConfig = pipelinesv1.RandomProviderSpec()
 )
 
 func TestPipelineControllersIntegrationSuite(t *testing.T) {
@@ -81,7 +81,7 @@ func StubWithExistingIdAndError[R pipelinesv1.Resource](resource R) base.Output 
 func AssertWorkflow[R pipelinesv1.Resource](
 	newResource func() R,
 	setUp func(resource R) base.Output,
-	constructWorkflow func(string, R) (*argo.Workflow, error)) {
+	constructWorkflow func(pipelinesv1.ProviderSpec, R) (*argo.Workflow, error)) {
 
 	testCtx := WorkflowTestHelper[R]{
 		Resource: newResource(),

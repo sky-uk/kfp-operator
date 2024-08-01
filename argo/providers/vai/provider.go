@@ -229,7 +229,6 @@ func extractPipelineNameFromPipelineSpec(ctx context.Context, pipelineSpec *stru
 }
 
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
-
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
 		return "", err

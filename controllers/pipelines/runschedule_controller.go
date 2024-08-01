@@ -3,6 +3,7 @@ package pipelines
 import (
 	"context"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
@@ -49,8 +50,17 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	logger.V(3).Info("found run schedule", "resource", runSchedule)
 
 	desiredProvider := desiredProvider(runSchedule, r.Config)
+	// TODO LOAD THE PROVIDER
+	provider := pipelinesv1.Provider{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: desiredProvider,
+		},
+		Spec:   pipelinesv1.ProviderSpec{},
+		Status: pipelinesv1.ProviderStatus{},
+	}
 
-	commands := r.StateHandler.StateTransition(ctx, desiredProvider, runSchedule)
+	commands := r.StateHandler.StateTransition(ctx, provider, runSchedule)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, runSchedule); err != nil {

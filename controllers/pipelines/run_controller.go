@@ -70,6 +70,15 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	desiredProvider := desiredProvider(run, r.Config)
+	// TODO LOAD THE PROVIDER
+	provider := pipelinesv1.Provider{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: desiredProvider,
+		},
+		Spec:   pipelinesv1.ProviderSpec{},
+		Status: pipelinesv1.ProviderStatus{},
+	}
 
 	// Never change after being set
 	if run.Status.ObservedPipelineVersion == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
@@ -84,7 +93,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, nil
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, desiredProvider, run)
+	commands := r.StateHandler.StateTransition(ctx, provider, run)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, run); err != nil {

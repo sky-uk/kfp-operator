@@ -48,14 +48,14 @@ func RandomProvider() *Provider {
 
 func RandomProviderSpec() ProviderSpec {
 	randomParameters := make(map[string]*apiextensionsv1.JSON)
-	for key, value := range RandomMap() {
-		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(value)}
+	for key, _ := range RandomMap() {
+		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(`{"key1": "value1", "key2": 1234}`)}
 	}
 
 	return ProviderSpec{
-		Image:               fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
-		ExecutionMode:       RandomLowercaseString(),
-		ServiceAccount:      RandomLowercaseString(),
+		Image:               "kfp-operator-stub-provider",
+		ExecutionMode:       "none",
+		ServiceAccount:      "default",
 		DefaultBeamArgs:     RandomNamedValues(),
 		PipelineRootStorage: RandomLowercaseString(),
 		Parameters:          randomParameters,
