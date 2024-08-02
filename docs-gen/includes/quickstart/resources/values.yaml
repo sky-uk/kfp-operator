@@ -4,3 +4,11 @@ manager:
     serviceAccount: pipeline-runner
   configuration:
     defaultExperiment: Default
+    pipelineStorage: {STORAGE_LOCATION}
+  provider:
+    type: kfp
+    configuration:
+      kfpNamespace: kubeflow
+      restKfpApiUrl: http://ml-pipeline.kubeflow:8888
+      grpcKfpApiAddress: ml-pipeline.kubeflow:8887
+      grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080

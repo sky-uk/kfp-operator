@@ -1,10 +1,11 @@
-{{- $providerName := .Values.provider.name }}
-{{- $labels := include "kfp-operator-provider.eventsourceServer.labels" $ }}
+{{- range $providerName, $providerBlock := .Values.providers -}}
+{{- $labels := include "kfp-operator.eventsourceServer.labels" (merge (dict "ProviderName" $providerName) $ ) }}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-eventsource-server
-  namespace: {{ include "kfp-operator-provider.namespace" $ }}
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-eventsource-server
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
   labels:
     {{- $labels | nindent 4 }}
 spec:
@@ -27,7 +28,7 @@ spec:
           - /provider-config.yaml
           - eventsource-server
           - --port=50051
-          image: {{ include "kfp-operator-provider.image" $ }}
+          image: {{ include "kfp-operator.providerImage" (merge (dict "Provider" $providerBlock) $ ) }}
           securityContext:
             allowPrivilegeEscalation: false
           resources:
@@ -38,20 +39,20 @@ spec:
             protocol: TCP
           volumeMounts:
           - mountPath: /provider-config.yaml
-            name: provider-config
+            name: provider-configs
             subPath: {{ $providerName }}
       volumes:
-      - name: provider-config
+      - name: provider-configs
         configMap:
-          name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-config
-      serviceAccountName: {{ .Values.provider.serviceAccount.name }}
+          name: {{ include "kfp-operator.fullname" $ }}-providers
+      serviceAccountName: {{ $providerBlock.serviceAccount.name }}
       terminationGracePeriodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-eventsource-server
-  namespace: {{ include "kfp-operator-provider.namespace" $ }}
+  name: {{ include "kfp-operator.fullname" $ }}-{{ $providerName }}-eventsource-server
+  namespace: {{ include "kfp-operator.argoNamespace" $ }}
   labels:
     {{- $labels | nindent 4 }}
 spec:
@@ -62,3 +63,4 @@ spec:
       port: {{ $.Values.eventsourceServer.port }}
       protocol: TCP
       targetPort: grpc
+{{ end }}

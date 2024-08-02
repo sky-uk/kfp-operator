@@ -1,4 +1,4 @@
-{{- if .Values.statusFeedback.enabled }}
+{{- if gt (len .Values.providers) 0 }}
 ---
 apiVersion: v1
 kind: ServiceAccount

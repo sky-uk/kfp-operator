@@ -11,6 +11,10 @@ controller:
     leaderElect: true
     resourceName: kfp-operator-lock
 spec:
+  defaultBeamArgs:
+  - name: project
+    value: ${DATAFLOW_PROJECT}
   multiversion: true
+  pipelineStorage: ${PIPELINE_STORAGE}
   workflowNamespace: kfp-operator-system
   workflowTemplatePrefix: kfp-operator-

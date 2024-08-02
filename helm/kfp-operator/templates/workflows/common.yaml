@@ -76,18 +76,8 @@ metadata:
 spec:
   volumes:
   - name: providers-config
-    {{- if and (.Values.providers) (gt (len .Values.providers) 0) }}
-    projected:
-      sources:
-    {{- range $providerName := .Values.providers }}
-      - configMap:
-          name: provider-{{ $providerName }}-config
-          optional: true
-    {{- end }}
-    {{- else }}
     configMap:
       name: {{ include "kfp-operator.fullname" . }}-providers
-    {{- end }}
   ttlStrategy:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
