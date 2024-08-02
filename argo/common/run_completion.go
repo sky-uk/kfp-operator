@@ -28,8 +28,8 @@ type RunCompletionEvent struct {
 	Status       RunCompletionStatus `json:"status" validate:"required"`
 	PipelineName NamespacedName      `json:"pipelineName" validate:"pipelineName"`
 	// Optionally render structs until https://github.com/golang/go/issues/11939 is addressed
-	RunConfigurationName  *NamespacedName `json:"runConfigurationName" validate:"required_without=RunName"`
-	RunName               *NamespacedName `json:"runName" validate:"required_without=RunConfigurationName"`
+	RunConfigurationName  *NamespacedName `json:"runConfigurationName"`
+	RunName               *NamespacedName `json:"runName"`
 	RunId                 string          `json:"runId" validate:"required"`
 	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
 	Artifacts             []Artifact      `json:"artifacts,omitempty"`
@@ -46,8 +46,6 @@ func validateNamespacedName(nn *NamespacedName, key string) error {
 		return fmt.Errorf("key: %s is nil", key)
 	} else if nn.Name == "" {
 		return fmt.Errorf("key: %s, Name filed is missing", key)
-	} else if nn.Namespace == "" {
-		return fmt.Errorf("key: %s, Namespace filed is missing", key)
 	}
 
 	return nil
@@ -56,17 +54,16 @@ func validateNamespacedName(nn *NamespacedName, key string) error {
 func (sre RunCompletionEvent) Validate() error {
 	validate := validator.New()
 	validate.RegisterValidation("pipelineName", pipelineNameValidator)
-	validate_err := validate.Struct(sre)
+	validateErr := validate.Struct(sre)
 
-	err1 := validateNamespacedName(sre.RunConfigurationName, "RunCompletionEvent.RunConfigurationName")
-	err2 := validateNamespacedName(sre.RunName, "RunCompletionEvent.RunName")
+	runConfigurationNameValidationErr := validateNamespacedName(sre.RunConfigurationName, "RunCompletionEvent.RunConfigurationName")
+	runNameValidationErr := validateNamespacedName(sre.RunName, "RunCompletionEvent.RunName")
 
-	// Either RunConfigurationName or RunName mist be valid
-	if err1 != nil && err2 != nil {
-		return errors.Join(err1, err2, validate_err)
+	if runConfigurationNameValidationErr != nil && runNameValidationErr != nil {
+		return errors.Join(runConfigurationNameValidationErr, runNameValidationErr, validateErr)
 	}
 
-	return validate_err
+	return validateErr
 }
 
 func pipelineNameValidator(fl validator.FieldLevel) bool {

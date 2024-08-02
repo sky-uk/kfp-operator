@@ -276,32 +276,32 @@ var _ = Context("RunCompletionEvent.Validate", func() {
 	})
 
 	var _ = Context("validateNamespacedName", func() {
-		namespacedName := &NamespacedName{
+		namespacedName := NamespacedName{
 			Name:      "Name",
 			Namespace: "Namespace",
 		}
 
-		It("returns no error when Name and Namespace are not empty", func() {
-			Expect(validateNamespacedName(namespacedName, "")).To(Succeed())
+		It("succeed when Name and Namespace are not empty", func() {
+			Expect(validateNamespacedName(&namespacedName, "")).To(Succeed())
 		})
 
 		It("returns error when Name is empty", func() {
 			invalidNamespacedName := namespacedName
 			invalidNamespacedName.Name = ""
-			Expect(validateNamespacedName(invalidNamespacedName, "")).To(Not(Succeed()))
+			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Not(Succeed()))
 		})
 
-		It("returns error when Namespace is empty", func() {
+		It("succeed when Namespace is empty", func() {
 			invalidNamespacedName := namespacedName
 			invalidNamespacedName.Namespace = ""
-			Expect(validateNamespacedName(invalidNamespacedName, "")).To(Not(Succeed()))
+			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Succeed())
 		})
 
 		It("returns error when Name and Namespace are empty", func() {
 			invalidNamespacedName := namespacedName
 			invalidNamespacedName.Name = ""
 			invalidNamespacedName.Namespace = ""
-			Expect(validateNamespacedName(invalidNamespacedName, "")).To(Not(Succeed()))
+			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Not(Succeed()))
 		})
 
 	})
