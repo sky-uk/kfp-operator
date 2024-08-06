@@ -2,14 +2,14 @@ package pipelines
 
 import (
 	"context"
+	"time"
+
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"time"
-
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
 var (
@@ -56,17 +56,17 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	logger.V(3).Info("found pipeline", "resource", pipeline)
 
 	desiredProvider := desiredProvider(pipeline, r.Config)
-	// TODO LOAD THE PROVIDER
-	provider := pipelinesv1.Provider{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: desiredProvider,
-		},
-		Spec:   pipelinesv1.ProviderSpec{},
-		Status: pipelinesv1.ProviderStatus{},
+	providerNamespacedName := types.NamespacedName{
+		Namespace: r.Config.WorkflowNamespace,
+		Name:      desiredProvider,
+	}
+	var provider = &pipelinesv1.Provider{}
+	if err := r.EC.Client.NonCached.Get(ctx, providerNamespacedName, provider); err != nil {
+		logger.Error(err, "unable to fetch provider")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, pipeline)
+	commands := r.StateHandler.StateTransition(ctx, *provider, pipeline)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, pipeline); err != nil {
