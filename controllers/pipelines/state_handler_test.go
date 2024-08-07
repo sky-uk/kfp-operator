@@ -23,28 +23,28 @@ type StateTransitionTestCase struct {
 }
 
 type TestWorkflowFactory struct {
-	CalledWithProvider string
+	CalledWithProvider *pipelinesv1.ProviderSpec
 	shouldFail         bool
 }
 
-func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider string, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
-	f.CalledWithProvider = provider
+func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider pipelinesv1.ProviderSpec, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
 	}
 	return &argo.Workflow{}, nil
 }
 
-func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider string, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
-	f.CalledWithProvider = provider
+func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider pipelinesv1.ProviderSpec, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
 	}
 	return &argo.Workflow{}, nil
 }
 
-func (f *TestWorkflowFactory) ConstructDeletionWorkflow(provider string, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
-	f.CalledWithProvider = provider
+func (f *TestWorkflowFactory) ConstructDeletionWorkflow(provider pipelinesv1.ProviderSpec, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
 	}
@@ -111,17 +111,17 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(providerId pipel
 }
 
 func (st StateTransitionTestCase) IssuesCreationWorkflow() StateTransitionTestCase {
-	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(apis.RandomString(), st.Experiment)
+	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(pipelinesv1.RandomProviderSpec(), st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st StateTransitionTestCase) IssuesUpdateWorkflow() StateTransitionTestCase {
-	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(apis.RandomString(), st.Experiment)
+	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(pipelinesv1.RandomProviderSpec(), st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st StateTransitionTestCase) IssuesDeletionWorkflow() StateTransitionTestCase {
-	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(apis.RandomString(), st.Experiment)
+	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(pipelinesv1.RandomProviderSpec(), st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
@@ -158,13 +158,13 @@ func anyNonDeletedState() apis.SynchronizationState {
 }
 
 var _ = Describe("State handler", func() {
-	provider := apis.RandomString()
+	provider := pipelinesv1.RandomProvider()
 	providerId := pipelinesv1.ProviderAndId{
-		Provider: provider,
+		Provider: provider.Name,
 		Id:       apis.RandomString(),
 	}
 	anotherIdSameProvider := pipelinesv1.ProviderAndId{
-		Provider: provider,
+		Provider: provider.Name,
 		Id:       apis.RandomString(),
 	}
 	anotherProviderId := pipelinesv1.ProviderAndId{
@@ -207,10 +207,14 @@ var _ = Describe("State handler", func() {
 			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    st.workflowFactory,
 		}
-		commands := stateHandler.stateTransition(context.Background(), provider, st.Experiment)
+		commands := stateHandler.stateTransition(context.Background(), *provider, st.Experiment)
 		Expect(commands).To(Equal(st.Commands))
-		if st.workflowFactory.CalledWithProvider != "" {
-			Expect(st.workflowFactory.CalledWithProvider).To(Equal(provider))
+		if st.workflowFactory.CalledWithProvider != nil {
+			Expect(st.workflowFactory.CalledWithProvider).To(BeComparableTo(&provider.Spec))
+		} else {
+			fmt.Printf("BADGER SNAKE MUSHROOM %+v", provider)
+			//Expect(provider).To(BeNil())
+			//Fail("BADGER")
 		}
 	},
 		Check("Empty",

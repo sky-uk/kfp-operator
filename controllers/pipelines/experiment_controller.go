@@ -2,11 +2,13 @@ package pipelines
 
 import (
 	"context"
+	"time"
+
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
@@ -50,7 +52,16 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	desiredProvider := desiredProvider(experiment, r.Config)
 
-	commands := r.StateHandler.StateTransition(ctx, desiredProvider, experiment)
+	provider := pipelinesv1.Provider{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: desiredProvider,
+		},
+		Spec:   pipelinesv1.ProviderSpec{},
+		Status: pipelinesv1.ProviderStatus{},
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, experiment)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, experiment); err != nil {

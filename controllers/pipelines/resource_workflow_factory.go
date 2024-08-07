@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"fmt"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
@@ -33,9 +34,9 @@ var WorkflowConstants = struct {
 }
 
 type WorkflowFactory[R pipelinesv1.Resource] interface {
-	ConstructCreationWorkflow(provider string, resource R) (*argo.Workflow, error)
-	ConstructUpdateWorkflow(provider string, resource R) (*argo.Workflow, error)
-	ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error)
+	ConstructCreationWorkflow(provider pipelinesv1.ProviderSpec, resource R) (*argo.Workflow, error)
+	ConstructUpdateWorkflow(provider pipelinesv1.ProviderSpec, resource R) (*argo.Workflow, error)
+	ConstructDeletionWorkflow(provider pipelinesv1.ProviderSpec, resource R) (*argo.Workflow, error)
 }
 
 type TemplateNameGenerator interface {
@@ -105,11 +106,13 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 	return string(marshalled), nil
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(provider string, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(provider pipelinesv1.ProviderSpec, resource R) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
 	if err != nil {
 		return nil, err
 	}
+
+	providerName := provider.Name
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
@@ -126,7 +129,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(provider),
+						Value: argo.AnyStringPtr(providerName),
 					},
 				},
 			},
@@ -137,11 +140,13 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	}, nil
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(provider string, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(provider pipelinesv1.ProviderSpec, resource R) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
 	if err != nil {
 		return nil, err
 	}
+
+	providerName := provider.Name
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
@@ -162,7 +167,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(provider),
+						Value: argo.AnyStringPtr(providerName),
 					},
 				},
 			},
@@ -173,7 +178,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	}, nil
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(provider string, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(provider pipelinesv1.ProviderSpec, resource R) (*argo.Workflow, error) {
+
+	providerName := provider.Name
+
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
 		Spec: argo.WorkflowSpec{
@@ -189,7 +197,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(provider),
+						Value: argo.AnyStringPtr(providerName),
 					},
 				},
 			},
