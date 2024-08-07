@@ -63,9 +63,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		ObjectMeta: metav1.ObjectMeta{
 			Name: desiredProvider,
 		},
-		Spec: pipelinesv1.ProviderSpec{
-			Name: desiredProvider,
-		},
+		Spec:   pipelinesv1.ProviderSpec{},
 		Status: pipelinesv1.ProviderStatus{},
 	}
 

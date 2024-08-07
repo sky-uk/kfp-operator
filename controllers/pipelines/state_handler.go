@@ -32,9 +32,9 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelin
 			commands = st.onCreating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, CommonWorkflowLabels(resource)))
 		case apis.Succeeded, apis.Failed:
 			if !resource.GetDeletionTimestamp().IsZero() {
-				commands = st.onDelete(ctx, provider.Spec, resource)
+				commands = st.onDelete(ctx, provider, resource)
 			} else {
-				commands = st.onSucceededOrFailed(ctx, provider.Spec, resource)
+				commands = st.onSucceededOrFailed(ctx, provider, resource)
 			}
 		case apis.Updating:
 			commands = st.onUpdating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, CommonWorkflowLabels(resource)))
@@ -42,7 +42,7 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelin
 			commands = st.onDeleting(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, CommonWorkflowLabels(resource)))
 		case apis.Deleted:
 		default:
-			commands = st.onUnknown(ctx, provider.Spec, resource)
+			commands = st.onUnknown(ctx, provider, resource)
 		}
 	}
 
@@ -63,7 +63,7 @@ func (st *StateHandler[R]) StateTransition(ctx context.Context, provider pipelin
 	return alwaysSetObservedGeneration(ctx, stateTransitionCommands, resource)
 }
 
-func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.ProviderSpec, resource R) []Command {
+func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 
 	newVersion := resource.ComputeVersion()
@@ -116,7 +116,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.P
 	}
 }
 
-func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.ProviderSpec, resource R) []Command {
+func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
@@ -143,7 +143,7 @@ func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Pro
 	}
 }
 
-func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipelinesv1.ProviderSpec, resource R) []Command {
+func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 	newExperimentVersion := resource.ComputeVersion()
 

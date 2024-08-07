@@ -8,7 +8,6 @@ import (
 )
 
 type ProviderSpec struct {
-	Name          string `json:"name" yaml:"name"` //TODO: remove temporary implementation for existing provider name to be passed through
 	Image         string `json:"image" yaml:"image"`
 	ExecutionMode string `json:"executionMode" yaml:"executionMode"`
 	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`

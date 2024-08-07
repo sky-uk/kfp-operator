@@ -43,7 +43,7 @@ git-status-check:
 	@if [ -n "$$(git status -s)" ]; then echo "Uncommitted or untracked files: "; git status -s ; exit 1; fi
 
 decoupled-test: manifests generate ## Run decoupled acceptance tests
-	$(call envtest-run,go test ./... -tags=decoupled -v -coverprofile cover.out)
+	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
 
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
 integration-test-up:

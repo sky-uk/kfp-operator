@@ -19,7 +19,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 	var newExperiment = func() *pipelinesv1.Experiment {
 		resource := pipelinesv1.RandomExperiment()
 		resourceStatus := resource.GetStatus()
-		resourceStatus.ProviderId.Provider = "stub"
+		resourceStatus.ProviderId.Provider = TestProvider
 		resource.SetStatus(resourceStatus)
 		return resource
 	}

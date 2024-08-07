@@ -56,8 +56,6 @@ spec:
                 type: string
               image:
                 type: string
-              name:
-                type: string
               parameters:
                 additionalProperties:
                   x-kubernetes-preserve-unknown-fields: true
@@ -70,7 +68,6 @@ spec:
             required:
             - executionMode
             - image
-            - name
             - pipelineRootStorage
             - serviceAccount
             type: object

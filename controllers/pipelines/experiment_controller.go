@@ -57,7 +57,6 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		ObjectMeta: metav1.ObjectMeta{
 			Name: desiredProvider,
 		},
-		Spec:   pipelinesv1.ProviderSpec{},
 		Status: pipelinesv1.ProviderStatus{},
 	}
 

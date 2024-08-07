@@ -23,11 +23,11 @@ type StateTransitionTestCase struct {
 }
 
 type TestWorkflowFactory struct {
-	CalledWithProvider *pipelinesv1.ProviderSpec
+	CalledWithProvider *pipelinesv1.Provider
 	shouldFail         bool
 }
 
-func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider pipelinesv1.ProviderSpec, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -35,7 +35,7 @@ func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider pipelinesv1.Pro
 	return &argo.Workflow{}, nil
 }
 
-func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider pipelinesv1.ProviderSpec, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -43,7 +43,7 @@ func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider pipelinesv1.Provi
 	return &argo.Workflow{}, nil
 }
 
-func (f *TestWorkflowFactory) ConstructDeletionWorkflow(provider pipelinesv1.ProviderSpec, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructDeletionWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -111,17 +111,17 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(providerId pipel
 }
 
 func (st StateTransitionTestCase) IssuesCreationWorkflow() StateTransitionTestCase {
-	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(pipelinesv1.RandomProviderSpec(), st.Experiment)
+	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st StateTransitionTestCase) IssuesUpdateWorkflow() StateTransitionTestCase {
-	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(pipelinesv1.RandomProviderSpec(), st.Experiment)
+	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st StateTransitionTestCase) IssuesDeletionWorkflow() StateTransitionTestCase {
-	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(pipelinesv1.RandomProviderSpec(), st.Experiment)
+	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
@@ -210,7 +210,7 @@ var _ = Describe("State handler", func() {
 		commands := stateHandler.stateTransition(context.Background(), *provider, st.Experiment)
 		Expect(commands).To(Equal(st.Commands))
 		if st.workflowFactory.CalledWithProvider != nil {
-			Expect(st.workflowFactory.CalledWithProvider).To(BeComparableTo(&provider.Spec))
+			Expect(st.workflowFactory.CalledWithProvider).To(BeComparableTo(provider))
 		} else {
 			fmt.Printf("BADGER SNAKE MUSHROOM %+v", provider)
 			//Expect(provider).To(BeNil())

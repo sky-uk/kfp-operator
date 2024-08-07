@@ -24,7 +24,7 @@ spec:
   executionMode: {{ .Values.provider.executionMode }}
   serviceAccount: {{ .Values.provider.serviceAccount.name }}
   defaultBeamArgs:
-  {{- .Values.provider.configuration.defaultBeamArgs | toYaml | nindent 2 }}
+    {{- .Values.provider.configuration.defaultBeamArgs | toYaml | nindent 4 }}
   pipelineRootStorage: {{ .Values.provider.configuration.pipelineRootStorage }}
   parameters:
     {{- $providerParams := omit .Values.provider.configuration "defaultBeamArgs" "pipelineRootStorage" -}}
