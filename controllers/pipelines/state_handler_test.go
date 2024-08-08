@@ -211,10 +211,6 @@ var _ = Describe("State handler", func() {
 		Expect(commands).To(Equal(st.Commands))
 		if st.workflowFactory.CalledWithProvider != nil {
 			Expect(st.workflowFactory.CalledWithProvider).To(BeComparableTo(provider))
-		} else {
-			fmt.Printf("BADGER SNAKE MUSHROOM %+v", provider)
-			//Expect(provider).To(BeNil())
-			//Fail("BADGER")
 		}
 	},
 		Check("Empty",
