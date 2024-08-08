@@ -46,7 +46,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 				Resource: newRun(),
 			}
 
-			workflow, err := workflowFactory.ConstructUpdateWorkflow(TestProviderConfig, testCtx.Resource)
+			workflow, err := workflowFactory.ConstructUpdateWorkflow(*TestProviderConfig, testCtx.Resource)
 
 			Expect(err).NotTo(HaveOccurred())
 

@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
@@ -9,6 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -29,6 +31,24 @@ func desiredProvider(resource pipelinesv1.HasProvider, config config.Configurati
 	}
 
 	return config.DefaultProvider
+}
+
+func loadProvider(ctx context.Context, reader client.Reader, namespace string, desiredProvider string) (*pipelinesv1.Provider, error) {
+	logger := log.FromContext(ctx)
+	providerNamespacedName := types.NamespacedName{
+		Namespace: namespace,
+		Name:      desiredProvider,
+	}
+
+	var provider = &pipelinesv1.Provider{}
+
+	err := reader.Get(ctx, providerNamespacedName, provider)
+	if err != nil {
+		logger.Error(err, "unable to fetch provider")
+		return nil, err
+	}
+	logger.Error(err, "found provider", provider)
+	return provider, nil
 }
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipelinesv1.Resource) func(client.Object) []reconcile.Request {

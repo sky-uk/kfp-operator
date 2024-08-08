@@ -160,8 +160,9 @@ func RandomRunScheduleSpec() RunScheduleSpec {
 func RandomRun() *Run {
 	return &Run{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RandomLowercaseString(),
-			Namespace: "default",
+			Name:        RandomLowercaseString(),
+			Namespace:   "default",
+			Annotations: map[string]string{},
 		},
 		Spec: RandomRunSpec(),
 		Status: RunStatus{
