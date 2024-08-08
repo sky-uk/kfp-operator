@@ -2,12 +2,13 @@ package pipelines
 
 import (
 	"context"
+	"time"
+
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"time"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -70,6 +71,15 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	desiredProvider := desiredProvider(run, r.Config)
 
+	provider := pipelinesv1.Provider{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: desiredProvider,
+		},
+		Spec:   pipelinesv1.ProviderSpec{},
+		Status: pipelinesv1.ProviderStatus{},
+	}
+
 	// Never change after being set
 	if run.Status.ObservedPipelineVersion == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
 		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
@@ -83,7 +93,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, nil
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, desiredProvider, run)
+	commands := r.StateHandler.StateTransition(ctx, provider, run)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, run); err != nil {

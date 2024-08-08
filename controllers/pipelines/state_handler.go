@@ -21,9 +21,9 @@ var StateHandlerConstants = struct {
 	ProviderChangedError: "the provider has changed",
 }
 
-func (st *StateHandler[R]) stateTransition(ctx context.Context, provider string, resource R) (commands []Command) {
+func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelinesv1.Provider, resource R) (commands []Command) {
 	resourceProvider := resource.GetStatus().ProviderId.Provider
-	if resourceProvider != "" && resourceProvider != provider {
+	if resourceProvider != "" && resourceProvider != provider.Name {
 		commands = []Command{*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
 			WithMessage(StateHandlerConstants.ProviderChangedError)}
 	} else {
@@ -55,7 +55,7 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider string,
 	return
 }
 
-func (st *StateHandler[R]) StateTransition(ctx context.Context, provider string, resource R) []Command {
+func (st *StateHandler[R]) StateTransition(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
@@ -63,7 +63,7 @@ func (st *StateHandler[R]) StateTransition(ctx context.Context, provider string,
 	return alwaysSetObservedGeneration(ctx, stateTransitionCommands, resource)
 }
 
-func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resource R) []Command {
+func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 
 	newVersion := resource.ComputeVersion()
@@ -116,7 +116,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider string, resou
 	}
 }
 
-func (st StateHandler[R]) onDelete(ctx context.Context, provider string, resource R) []Command {
+func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
@@ -143,7 +143,7 @@ func (st StateHandler[R]) onDelete(ctx context.Context, provider string, resourc
 	}
 }
 
-func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider string, resource R) []Command {
+func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 	newExperimentVersion := resource.ComputeVersion()
 

@@ -5,6 +5,8 @@ package pipelines
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,7 +23,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"testing"
 )
 
 const (
@@ -35,6 +36,7 @@ var (
 		Host:    "http://localhost:8080",
 		APIPath: "/api",
 	}
+	TestProviderConfig = pipelinesv1.RandomProvider()
 )
 
 func TestPipelineControllersIntegrationSuite(t *testing.T) {
@@ -110,14 +112,14 @@ func StubWithExistingIdAndError[R pipelinesv1.Resource](resource R) base.Output 
 func AssertWorkflow[R pipelinesv1.Resource](
 	newResource func() R,
 	setUp func(resource R) base.Output,
-	constructWorkflow func(string, R) (*argo.Workflow, error)) {
+	constructWorkflow func(pipelinesv1.Provider, R) (*argo.Workflow, error)) {
 
 	testCtx := WorkflowTestHelper[R]{
 		Resource: newResource(),
 	}
 
 	expectedOutput := setUp(testCtx.Resource)
-	workflow, err := constructWorkflow(TestProvider, testCtx.Resource)
+	workflow, err := constructWorkflow(TestProviderConfig, testCtx.Resource)
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
