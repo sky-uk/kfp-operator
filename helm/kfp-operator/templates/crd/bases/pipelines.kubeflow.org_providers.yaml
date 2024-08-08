@@ -14,7 +14,7 @@ spec:
     listKind: ProviderList
     plural: providers
     shortNames:
-    - mlpr
+    - mlprv
     singular: provider
   scope: Namespaced
   versions:

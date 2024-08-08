@@ -18,7 +18,7 @@ type ProviderSpec struct {
 }
 
 //+kubebuilder:object:root=true
-//+kubebuilder:resource:shortName="mlpr"
+//+kubebuilder:resource:shortName="mlprv"
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type == 'Synchronized')].reason"
 //+kubebuilder:storageversion
