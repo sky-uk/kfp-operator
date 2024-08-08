@@ -35,18 +35,6 @@ type ProviderStatus struct {
 	Conditions Conditions `json:"conditions,omitempty"`
 }
 
-func (ps *ProviderStatus) SetSynchronizationState(state apis.SynchronizationState, message string, observedGeneration int64) {
-	condition := metav1.Condition{
-		Type:               ConditionTypes.SynchronizationSucceeded,
-		Message:            message,
-		ObservedGeneration: observedGeneration,
-		Reason:             string(state),
-		LastTransitionTime: metav1.Now(),
-		Status:             ConditionStatusForSynchronizationState(state),
-	}
-	ps.Conditions = ps.Conditions.MergeIntoConditions(condition)
-}
-
 func (p Provider) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      p.Name,
