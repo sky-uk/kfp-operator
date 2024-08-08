@@ -5,8 +5,6 @@ import (
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -52,16 +50,13 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	desiredProvider := desiredProvider(runSchedule, r.Config)
 
-	provider := pipelinesv1.Provider{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: desiredProvider,
-		},
-		Spec:   pipelinesv1.ProviderSpec{},
-		Status: pipelinesv1.ProviderStatus{},
+	provider, err := loadProvider(ctx, r.EC.Client.NonCached, r.Config.WorkflowNamespace, desiredProvider)
+	if err != nil {
+		logger.Error(err, "Failed to load provider %v", provider)
+		return ctrl.Result{}, err
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, runSchedule)
+	commands := r.StateHandler.StateTransition(ctx, *provider, runSchedule)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, runSchedule); err != nil {

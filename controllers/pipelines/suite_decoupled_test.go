@@ -18,6 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"strings"
 	"testing"
 	"time"
 )
@@ -89,7 +90,7 @@ var _ = BeforeSuite(func() {
 	testConfig = config.Configuration{
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
-		DefaultProvider:   apis.RandomString(),
+		DefaultProvider:   strings.ToLower(apis.RandomString()),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 	}
 
@@ -100,6 +101,12 @@ var _ = BeforeSuite(func() {
 	Expect(NewExperimentReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
+
+	var provider = pipelinesv1.RandomProvider()
+	provider.Name = testConfig.DefaultProvider
+	provider.Namespace = testConfig.WorkflowNamespace
+	err = k8sClient.Create(ctx, provider)
+	Expect(err).NotTo(HaveOccurred())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())

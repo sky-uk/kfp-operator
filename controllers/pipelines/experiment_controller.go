@@ -5,7 +5,6 @@ import (
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -52,15 +51,16 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	desiredProvider := desiredProvider(experiment, r.Config)
 
-	provider := pipelinesv1.Provider{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: desiredProvider,
-		},
-		Status: pipelinesv1.ProviderStatus{},
+	logger.V(3).Info("found desired provider", "resource", desiredProvider)
+
+	provider, err := loadProvider(ctx, r.EC.Client.NonCached, r.Config.WorkflowNamespace, desiredProvider)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, experiment)
+	logger.V(3).Info("found provider", "resource", *provider)
+
+	commands := r.StateHandler.StateTransition(ctx, *provider, experiment)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, experiment); err != nil {
