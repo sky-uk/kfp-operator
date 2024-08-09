@@ -5,9 +5,10 @@ package common
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"testing"
 )
 
 func TestCommonUnitSuite(t *testing.T) {
@@ -192,4 +193,117 @@ var _ = Context("RunCompletionEvent.String", func() {
 			),
 		)
 	})
+})
+
+var _ = Context("RunCompletionEvent.Validate", func() {
+	validEvent := RunCompletionEvent{
+		Status: "succeeded",
+		PipelineName: NamespacedName{
+			Name:      "Name",
+			Namespace: "Namespace",
+		},
+		RunConfigurationName: &NamespacedName{
+			Name:      "Name",
+			Namespace: "Namespace",
+		},
+		RunName: &NamespacedName{
+			Name:      "Name",
+			Namespace: "Namespace",
+		},
+		RunId:    "RunId",
+		Provider: "Provider",
+	}
+
+	It("returns an error when Status is missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.Status = ""
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returns an error when PipelineName is missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.PipelineName = NamespacedName{}
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returns an error when Provider is missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.Provider = ""
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returns an error when RunId is missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunId = ""
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returnes an error when both RunConfigurationName and RunName are missing", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunConfigurationName = nil
+		invalidEvent.RunName = nil
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("is valid when RunConfigurationName is missing and RunName is provided", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunConfigurationName = nil
+		Expect(invalidEvent.Validate()).To(Succeed())
+	})
+
+	It("is valid when RunName is missing and RunConfigurationName is provided", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunName = nil
+		Expect(invalidEvent.Validate()).To(Succeed())
+	})
+
+	It("returns an error when RunName and RunConfigurationName are nil", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunName = nil
+		invalidEvent.RunConfigurationName = nil
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	It("returns an error when RunName inner struct Name field is empty and RunConfigurationName is nil", func() {
+		invalidEvent := validEvent
+		invalidEvent.RunName = &NamespacedName{
+			Name:      "",
+			Namespace: "Namespace",
+		}
+		invalidEvent.RunConfigurationName = nil
+
+		Expect(invalidEvent.Validate()).To(Not(Succeed()))
+	})
+
+	var _ = Context("validateNamespacedName", func() {
+		namespacedName := NamespacedName{
+			Name:      "Name",
+			Namespace: "Namespace",
+		}
+
+		It("succeed when Name and Namespace are not empty", func() {
+			Expect(validateNamespacedName(&namespacedName, "")).To(Succeed())
+		})
+
+		It("returns error when Name is empty", func() {
+			invalidNamespacedName := namespacedName
+			invalidNamespacedName.Name = ""
+			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Not(Succeed()))
+		})
+
+		It("succeed when Namespace is empty", func() {
+			invalidNamespacedName := namespacedName
+			invalidNamespacedName.Namespace = ""
+			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Succeed())
+		})
+
+		It("returns error when Name and Namespace are empty", func() {
+			invalidNamespacedName := namespacedName
+			invalidNamespacedName.Name = ""
+			invalidNamespacedName.Namespace = ""
+			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Not(Succeed()))
+		})
+
+	})
+
 })
