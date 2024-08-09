@@ -71,13 +71,9 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	desiredProvider := desiredProvider(run, r.Config)
 
-	provider := pipelinesv1.Provider{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: desiredProvider,
-		},
-		Spec:   pipelinesv1.ProviderSpec{},
-		Status: pipelinesv1.ProviderStatus{},
+	provider, err := loadProvider(ctx, r.EC.Client.NonCached, r.Config.WorkflowNamespace, desiredProvider)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
 	// Never change after being set
@@ -93,7 +89,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, nil
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, run)
+	commands := r.StateHandler.StateTransition(ctx, *provider, run)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, run); err != nil {
