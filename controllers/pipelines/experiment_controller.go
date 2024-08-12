@@ -56,8 +56,6 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	logger.V(3).Info("found provider", "resource", desiredProvider)
-
 	commands := r.StateHandler.StateTransition(ctx, *provider, experiment)
 
 	for i := range commands {
