@@ -4,7 +4,6 @@ package vai
 
 import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"context"
 	"errors"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -12,7 +11,6 @@ import (
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func randomBasicRunDefinition() RunDefinition {
@@ -196,62 +194,6 @@ var _ = Context("VAI Provider", func() {
 					StringValue: "value3",
 				},
 			}))
-		})
-	})
-
-	Describe("extractFromStruct", func() {
-		It("should extract a value from a given struct", func() {
-			pipelineSpec := map[string]interface{}{
-				"myKey": "myValue",
-			}
-			pbStruct, err := structpb.NewStruct(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
-
-			result, err := extractFromStruct(pbStruct, "myKey")
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(result.GetStringValue()).To(Equal("myValue"))
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("should error if struct is missing a required field", func() {
-			pipelineSpec, err := structpb.NewStruct(map[string]interface{}{
-				"myKey": "myValue",
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = extractFromStruct(pipelineSpec, "myOtherKey")
-			Expect(err).To(HaveOccurred())
-		})
-	})
-
-	Describe("extractPipelineNameFromPipelineSpec", func() {
-		ctx := context.Background()
-
-		It("should extract pipelineInfo name from a given pipelineSpec", func() {
-			pipelineName := "myPipelineName"
-			pipelineSpec := map[string]interface{}{
-				"pipelineInfo": map[string]interface{}{
-					"name": pipelineName,
-				},
-			}
-			pbStruct, err := structpb.NewStruct(pipelineSpec)
-			Expect(err).NotTo(HaveOccurred())
-
-			result, err := extractPipelineNameFromPipelineSpec(ctx, pbStruct)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(result).To(Equal(pipelineName))
-		})
-
-		It("should error if pipelineSpec is missing a required field", func() {
-			pbStruct, err := structpb.NewStruct(map[string]interface{}{
-				"pipelineInfo": map[string]interface{}{
-					"other_name": "other_value",
-				},
-			})
-
-			_, err = extractPipelineNameFromPipelineSpec(ctx, pbStruct)
-			Expect(err).To(HaveOccurred())
 		})
 	})
 

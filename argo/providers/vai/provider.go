@@ -205,30 +205,8 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 	return nil
 }
 
-func extractFromStruct(pbStruct *structpb.Struct, fieldName string) (value *structpb.Value, err error) {
-	value, ok := pbStruct.Fields[fieldName]
-	if !ok {
-		err = fmt.Errorf("failed extracting field %s from the given struct", fieldName)
-	}
-	return value, err
-}
-
-func extractPipelineNameFromPipelineSpec(ctx context.Context, pipelineSpec *structpb.Struct) (string, error) {
-	logger := common.LoggerFromContext(ctx)
-	pipelineInfo, err := extractFromStruct(pipelineSpec, "pipelineInfo")
-	if err != nil {
-		logger.Error(err, "Failed to extract pipelineInfo from pipeline spec")
-		return "", err
-	}
-	pipelineInfoName, err := extractFromStruct(pipelineInfo.GetStructValue(), "name")
-	if err != nil {
-		logger.Error(err, "Failed to extract name from pipelineInfo")
-		return "", err
-	}
-	return pipelineInfoName.GetStringValue(), nil
-}
-
 func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProviderConfig, runDefinition RunDefinition) (string, error) {
+	runId := fmt.Sprintf("%s-%s", runDefinition.Name.Namespace, runDefinition.Name.Name)
 
 	pipelineClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
 	if err != nil {
@@ -259,11 +237,6 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 	}
 
 	err = enrichJobWithSpecFromTemplateUri(ctx, providerConfig, pipelineJob)
-	if err != nil {
-		return "", err
-	}
-
-	runId, err := extractPipelineNameFromPipelineSpec(ctx, pipelineJob.PipelineSpec)
 	if err != nil {
 		return "", err
 	}
