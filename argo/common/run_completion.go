@@ -3,8 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
-
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 )
 
 const RunCompletionEventName = "run-completion"
@@ -28,8 +27,8 @@ type RunCompletionEvent struct {
 	Status       RunCompletionStatus `json:"status" validate:"required"`
 	PipelineName NamespacedName      `json:"pipelineName" validate:"pipelineName"`
 	// Optionally render structs until https://github.com/golang/go/issues/11939 is addressed
-	RunConfigurationName  *NamespacedName `json:"runConfigurationName"`
-	RunName               *NamespacedName `json:"runName"`
+	RunConfigurationName  *NamespacedName `json:"runConfigurationName,omitempty"`
+	RunName               *NamespacedName `json:"runName,omitempty"`
 	RunId                 string          `json:"runId" validate:"required"`
 	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
 	Artifacts             []Artifact      `json:"artifacts,omitempty"`
@@ -59,8 +58,13 @@ func (sre RunCompletionEvent) Validate() error {
 	runConfigurationNameValidationErr := validateNamespacedName(sre.RunConfigurationName, "RunCompletionEvent.RunConfigurationName")
 	runNameValidationErr := validateNamespacedName(sre.RunName, "RunCompletionEvent.RunName")
 
-	if runConfigurationNameValidationErr != nil && runNameValidationErr != nil {
+	noValidRunNames := runConfigurationNameValidationErr != nil && runNameValidationErr != nil
+	bothRunNamesPresentAndValid := runConfigurationNameValidationErr == nil && runNameValidationErr == nil
+
+	if noValidRunNames {
 		return errors.Join(runConfigurationNameValidationErr, runNameValidationErr, validateErr)
+	} else if bothRunNamesPresentAndValid {
+		return errors.Join(validateErr, fmt.Errorf("both RunName and RunConfigurationName are present, only one should be defined in a RunCompletionEvent"))
 	}
 
 	return validateErr
