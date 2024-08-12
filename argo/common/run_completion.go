@@ -26,18 +26,20 @@ var RunCompletionStatuses = struct {
 
 var (
 	validate *validator.Validate
-	once     sync.Once
+	mutex    sync.Mutex
 )
 
-func getValidator() *validator.Validate {
-	once.Do(func() {
+func InitialiseValidation() (*validator.Validate, error) {
+	if validate == nil {
+		mutex.Lock()
+		defer mutex.Unlock()
 		validate = validator.New()
 		err := validate.RegisterValidation("pipelineName", pipelineNameValidator)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("failed to register pipeline name validation: %s", err)
 		}
-	})
-	return validate
+	}
+	return validate, nil
 }
 
 type RunCompletionEvent struct {
@@ -67,8 +69,8 @@ func validateNamespacedName(nn *NamespacedName, key string) error {
 	return nil
 }
 
-func (sre RunCompletionEvent) Validate() error {
-	validateErr := getValidator().Struct(sre)
+func (sre RunCompletionEvent) Validate(validate *validator.Validate) error {
+	validateErr := validate.Struct(sre)
 	runConfigurationNameValidationErr := validateNamespacedName(sre.RunConfigurationName, "RunCompletionEvent.RunConfigurationName")
 	runNameValidationErr := validateNamespacedName(sre.RunName, "RunCompletionEvent.RunName")
 
