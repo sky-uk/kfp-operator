@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	validator "github.com/go-playground/validator/v10"
+	"sync"
 )
 
 const RunCompletionEventName = "run-completion"
@@ -21,6 +22,22 @@ var RunCompletionStatuses = struct {
 }{
 	Succeeded: "succeeded",
 	Failed:    "failed",
+}
+
+var (
+	validate *validator.Validate
+	once     sync.Once
+)
+
+func getValidator() *validator.Validate {
+	once.Do(func() {
+		validate = validator.New()
+		err := validate.RegisterValidation("pipelineName", pipelineNameValidator)
+		if err != nil {
+			panic(err)
+		}
+	})
+	return validate
 }
 
 type RunCompletionEvent struct {
@@ -51,10 +68,7 @@ func validateNamespacedName(nn *NamespacedName, key string) error {
 }
 
 func (sre RunCompletionEvent) Validate() error {
-	validate := validator.New()
-	validate.RegisterValidation("pipelineName", pipelineNameValidator)
-	validateErr := validate.Struct(sre)
-
+	validateErr := getValidator().Struct(sre)
 	runConfigurationNameValidationErr := validateNamespacedName(sre.RunConfigurationName, "RunCompletionEvent.RunConfigurationName")
 	runNameValidationErr := validateNamespacedName(sre.RunName, "RunCompletionEvent.RunName")
 
