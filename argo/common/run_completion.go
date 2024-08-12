@@ -45,7 +45,7 @@ func validateNamespacedName(nn *NamespacedName, key string) error {
 	if nn == nil {
 		return fmt.Errorf("key: %s is nil", key)
 	} else if nn.Name == "" {
-		return fmt.Errorf("key: %s, Name filed is missing", key)
+		return fmt.Errorf("key: %s, Name field is missing", key)
 	}
 
 	return nil
