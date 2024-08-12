@@ -42,7 +42,7 @@ func loadProvider(ctx context.Context, reader client.Reader, namespace string, d
 
 	err := reader.Get(ctx, providerNamespacedName, provider)
 	if err != nil {
-		return nil, err
+		return provider, err
 	}
 	return provider, nil
 }

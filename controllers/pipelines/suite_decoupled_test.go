@@ -18,7 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"strings"
 	"testing"
 	"time"
 )
@@ -90,7 +89,7 @@ var _ = BeforeSuite(func() {
 	testConfig = config.Configuration{
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
-		DefaultProvider:   strings.ToLower(apis.RandomString()),
+		DefaultProvider:   apis.RandomLowercaseString(),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 	}
 

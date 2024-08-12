@@ -51,14 +51,12 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	desiredProvider := desiredProvider(experiment, r.Config)
 
-	logger.V(3).Info("found desired provider", "resource", desiredProvider)
-
 	provider, err := loadProvider(ctx, r.EC.Client.NonCached, r.Config.WorkflowNamespace, desiredProvider)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
-	logger.V(3).Info("found provider", "resource", *provider)
+	logger.V(3).Info("found provider", "resource", desiredProvider)
 
 	commands := r.StateHandler.StateTransition(ctx, *provider, experiment)
 
