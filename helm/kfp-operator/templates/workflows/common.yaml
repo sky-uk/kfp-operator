@@ -46,6 +46,12 @@ spec:
       - name: provider-image
       - name: provider-sa
       - name: provider-config
+      artifacts:
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -57,12 +63,6 @@ spec:
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: "{{`{{inputs.parameters.provider-image}}`}}"
-      artifacts:
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
       command:
       - /provider
       args:
