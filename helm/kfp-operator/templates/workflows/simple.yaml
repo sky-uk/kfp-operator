@@ -58,7 +58,7 @@ spec:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
       - name: provider-config
-        path: /provider-config.yaml
+        path: /provider-config.json
         raw:
           data: |
             {{`{{workflow.parameters.provider-config}}`}}
@@ -77,7 +77,7 @@ spec:
       - /provider
       args:
       - --provider-config
-      - /providers-config.yaml
+      - /providers-config.json
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - update
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition

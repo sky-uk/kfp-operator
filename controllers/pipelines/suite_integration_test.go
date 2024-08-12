@@ -8,15 +8,12 @@ import (
 	"testing"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/stub"
 	"github.com/sky-uk/kfp-operator/external"
-	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -26,10 +23,9 @@ import (
 )
 
 const (
-	TestTimeout        = 120
-	TestNamespace      = "argo"
-	TestProvider       = "stub"
-	TestProviderConfig = `{"stub": "stub"}` // TODO: Update this to be real json
+	TestTimeout   = 120
+	TestNamespace = "argo"
+	TestProvider  = "stub"
 )
 
 var (

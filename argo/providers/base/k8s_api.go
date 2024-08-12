@@ -16,6 +16,7 @@ import (
 
 var RunGVR = pipelinesv1.GroupVersion.WithResource("runs")
 var RunConfigurationGVR = pipelinesv1.GroupVersion.WithResource("runconfigurations")
+var ProviderGVR = pipelinesv1.GroupVersion.WithResource("providers")
 
 func artifactNamePathAsString(unstructuredArtifact map[string]interface{}) (string, string, error) {
 	nameStr, ok := unstructuredArtifact["name"].(string)

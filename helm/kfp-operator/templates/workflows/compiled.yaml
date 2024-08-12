@@ -9,12 +9,18 @@ spec:
     inputs:
       parameters:
       - name: resource-image
+      - name: provider-config
       artifacts:
       - name: resource-definition
         raw:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
         path: /resource-definition.yaml
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       artifacts:
       - name: resource
@@ -36,7 +42,7 @@ spec:
       - --{{`{{workflow.parameters.resource-kind}}`}}_config
       - /resource-definition.yaml
       - --provider_config
-      - /providers-config/{{`{{workflow.parameters.provider-name}}`}}
+      - /providers-config.json
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared

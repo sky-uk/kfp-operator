@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"io"
+	k8runtime "k8s.io/apimachinery/pkg/runtime"
 	"os"
 	"regexp"
 	"strings"
@@ -25,6 +27,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/structpb"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var labels = struct {
@@ -451,26 +454,52 @@ func runLabelsFromRunDefinition(runDefinition RunDefinition) map[string]string {
 	return runLabels
 }
 
-func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIProviderConfig) (generic.EventingServer, error) {
+func (vaip VAIProvider) EventingServer(ctx context.Context, provider string, namespace string) (generic.EventingServer, error) {
 	k8sClient, err := CreateK8sClient()
 	if err != nil {
 		return nil, err
 	}
 
-	pubSubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
+	// TODO: Move this to common place
+	providerConfig, err := k8sClient.Resource(ProviderGVR).Namespace(namespace).Get(ctx, provider, v1.GetOptions{}, "")
 	if err != nil {
 		return nil, err
 	}
-	runsSubscription := pubSubClient.Subscription(providerConfig.EventsourcePipelineEventsSubscription)
 
-	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
+	providerCR := v1alpha5.Provider{}
+
+	if err = k8runtime.DefaultUnstructuredConverter.FromUnstructured(providerConfig.UnstructuredContent(), &providerCR); err != nil {
+		return nil, err
+	}
+
+	params := providerCR.Spec.Parameters
+	configa := VAIProviderConfig{
+		Name: provider,
+	}
+
+	jparams, err := json.Marshal(params)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(jparams, &configa); err != nil {
+		return nil, err
+	}
+
+	pubSubClient, err := pubsub.NewClient(ctx, configa.VaiProject)
+	if err != nil {
+		return nil, err
+	}
+	runsSubscription := pubSubClient.Subscription(configa.EventsourcePipelineEventsSubscription)
+
+	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(configa.vaiEndpoint()))
 	if err != nil {
 		return nil, err
 	}
 
 	return &VaiEventingServer{
 		K8sApi:            K8sApi{K8sClient: k8sClient},
-		ProviderConfig:    providerConfig,
+		ProviderConfig:    configa,
 		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,
 		Logger:            common.LoggerFromContext(ctx),

@@ -29,6 +29,7 @@ var ProviderConstants = struct {
 	PipelineFileParameter          string
 	OutputParameter                string
 	EventsourceServerPortParameter string
+	Namespace                      string
 }{
 	PipelineDefinitionParameter:    "pipeline-definition",
 	ExperimentDefinitionParameter:  "experiment-definition",
@@ -42,6 +43,7 @@ var ProviderConstants = struct {
 	PipelineFileParameter:          "pipeline-file",
 	OutputParameter:                "out",
 	EventsourceServerPortParameter: "port",
+	Namespace:                      "namespace",
 }
 
 type ProviderApp[Config any] struct {
@@ -65,6 +67,8 @@ func (_ ProviderApp[Config]) LoadProviderConfig(c *cli.Context) (Config, error) 
 }
 
 func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customCommands ...cli.Command) {
+
+	// TODO: Figure out how we can extract this so its less hacky for event source
 	providerConfigFlag := cli.StringFlag{
 		Name:     ProviderConstants.ProviderConfigParameter,
 		Required: true,
@@ -373,13 +377,20 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 		},
 		{
 			Name: "eventsource-server",
-			Flags: []cli.Flag{cli.StringFlag{
-				Name:     ProviderConstants.EventsourceServerPortParameter,
-				Required: true,
-			}},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:     ProviderConstants.EventsourceServerPortParameter,
+					Required: true,
+				},
+				cli.StringFlag{
+					Name:     ProviderConstants.Namespace,
+					Required: true,
+					EnvVar:   "POD_NAMESPACE",
+				},
+			},
 			Action: func(c *cli.Context) error {
 				logger := common.LoggerFromContext(providerApp.Context)
-				providerConfig, err := providerApp.LoadProviderConfig(c)
+				desiredProvider := c.GlobalString(ProviderConstants.ProviderConfigParameter)
 
 				lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", c.Int(ProviderConstants.EventsourceServerPortParameter)))
 				if err != nil {
@@ -389,7 +400,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 
 				s := grpc.NewServer()
 
-				eventingServer, err := provider.EventingServer(providerApp.Context, providerConfig)
+				eventingServer, err := provider.EventingServer(providerApp.Context, desiredProvider, c.String(ProviderConstants.Namespace))
 				if err != nil {
 					logger.Error(err, "failed to create eventing server")
 					os.Exit(1)

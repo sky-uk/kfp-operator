@@ -18,6 +18,8 @@ logging:
   verbosity: # info
 
 eventsourceServer:
+  serviceAccount:
+    name: default
   create: false
   metadata: {}
   port: 8080
