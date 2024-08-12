@@ -10,7 +10,10 @@ import (
 
 var _ = Context("RunCompletionEvent.Validate", func() {
 
-	validate, _ = InitialiseValidation()
+	validate, err := InitialiseValidation()
+	if err != nil {
+		panic("Failed to initialise validation with error: " + err.Error())
+	}
 
 	namespaceName := NamespacedName{
 		Name:      "Name",
@@ -20,71 +23,67 @@ var _ = Context("RunCompletionEvent.Validate", func() {
 	baseEvent := RunCompletionEvent{
 		Status:               "succeeded",
 		PipelineName:         namespaceName,
-		RunConfigurationName: &namespaceName,
-		RunName:              &namespaceName,
+		RunConfigurationName: nil,
+		RunName:              nil,
 		RunId:                "RunId",
 		Provider:             "Provider",
 	}
 
 	It("is valid when RunConfigurationName is missing and RunName is provided", func() {
-		invalidEvent := baseEvent
-		invalidEvent.RunConfigurationName = nil
-		Expect(invalidEvent.Validate(validate)).To(Succeed())
+		event := baseEvent
+		event.RunName = &namespaceName
+		Expect(event.Validate(validate)).To(Succeed())
 	})
 
 	It("is valid when RunName is missing and RunConfigurationName is provided", func() {
-		invalidEvent := baseEvent
-		invalidEvent.RunName = nil
-		Expect(invalidEvent.Validate(validate)).To(Succeed())
+		event := baseEvent
+		event.RunConfigurationName = &namespaceName
+		Expect(event.Validate(validate)).To(Succeed())
 	})
 
 	It("returns an error when Status is missing", func() {
-		invalidEvent := baseEvent
-		invalidEvent.Status = ""
-		Expect(invalidEvent.Validate(validate)).To(Not(Succeed()))
+		event := baseEvent
+		event.Status = ""
+		Expect(event.Validate(validate)).To(Not(Succeed()))
 	})
 
 	It("returns an error when PipelineName is missing", func() {
-		invalidEvent := baseEvent
-		invalidEvent.PipelineName = NamespacedName{}
-		Expect(invalidEvent.Validate(validate)).To(Not(Succeed()))
+		event := baseEvent
+		event.PipelineName = NamespacedName{}
+		Expect(event.Validate(validate)).To(Not(Succeed()))
 	})
 
 	It("returns an error when Provider is missing", func() {
-		invalidEvent := baseEvent
-		invalidEvent.Provider = ""
-		Expect(invalidEvent.Validate(validate)).To(Not(Succeed()))
+		event := baseEvent
+		event.Provider = ""
+		Expect(event.Validate(validate)).To(Not(Succeed()))
 	})
 
 	It("returns an error when RunId is missing", func() {
-		invalidEvent := baseEvent
-		invalidEvent.RunId = ""
-		Expect(invalidEvent.Validate(validate)).To(Not(Succeed()))
+		event := baseEvent
+		event.RunId = ""
+		Expect(event.Validate(validate)).To(Not(Succeed()))
 	})
 
 	It("returnes an error when both RunConfigurationName and RunName are present", func() {
-		invalidEvent := baseEvent
-		invalidEvent.RunName = &namespaceName
-		invalidEvent.RunConfigurationName = &namespaceName
-		Expect(invalidEvent.Validate(validate)).To(Not(Succeed()))
+		event := baseEvent
+		event.RunName = &namespaceName
+		event.RunConfigurationName = &namespaceName
+		Expect(event.Validate(validate)).To(Not(Succeed()))
 	})
 
 	It("returnes an error when both RunConfigurationName and RunName are missing", func() {
-		invalidEvent := baseEvent
-		invalidEvent.RunConfigurationName = nil
-		invalidEvent.RunName = nil
-		Expect(invalidEvent.Validate(validate)).To(Not(Succeed()))
+		event := baseEvent
+		Expect(event.Validate(validate)).To(Not(Succeed()))
 	})
 
 	It("returns an error when RunName inner struct Name field is empty and RunConfigurationName is nil", func() {
-		invalidEvent := baseEvent
-		invalidEvent.RunName = &NamespacedName{
+		event := baseEvent
+		event.RunName = &NamespacedName{
 			Name:      "",
 			Namespace: "Namespace",
 		}
-		invalidEvent.RunConfigurationName = nil
-
-		Expect(invalidEvent.Validate(validate)).To(Not(Succeed()))
+		Expect(event.Validate(validate)).To(Not(Succeed()))
 	})
 
 	var _ = Context("validateNamespacedName", func() {
