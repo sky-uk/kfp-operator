@@ -40,10 +40,8 @@ func (br ResourceReconciler[R]) loadProvider(ctx context.Context, namespace stri
 	var provider = pipelinesv1.Provider{}
 
 	err := br.EC.Client.NonCached.Get(ctx, providerNamespacedName, &provider)
-	if err != nil {
-		return provider, err
-	}
-	return provider, nil
+
+	return provider, err
 }
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipelinesv1.Resource) func(client.Object) []reconcile.Request {
