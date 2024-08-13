@@ -13,10 +13,7 @@ import (
 var _ = Context("RunCompletionEvent.Validate", func() {
 
 	validate := validator.New()
-	err := RegisterPipelineNameValidation(validate)
-	if err != nil {
-		panic("Failed to initialise validation with error: " + err.Error())
-	}
+	validate.RegisterStructValidation(RunCompletionEventValidation, RunCompletionEvent{})
 
 	namespaceName := NamespacedName{
 		Name:      "Name",
@@ -35,49 +32,49 @@ var _ = Context("RunCompletionEvent.Validate", func() {
 	It("is valid when RunConfigurationName is missing and RunName is provided", func() {
 		event := baseEvent
 		event.RunName = &namespaceName
-		Expect(event.Validate(validate)).To(Succeed())
+		Expect(validate.Struct(event)).To(Succeed())
 	})
 
 	It("is valid when RunName is missing and RunConfigurationName is provided", func() {
 		event := baseEvent
 		event.RunConfigurationName = &namespaceName
-		Expect(event.Validate(validate)).To(Succeed())
+		Expect(validate.Struct(event)).To(Succeed())
 	})
 
 	It("returns an error when Status is missing", func() {
 		event := baseEvent
 		event.Status = ""
-		Expect(event.Validate(validate)).To(Not(Succeed()))
+		Expect(validate.Struct(event)).To(Not(Succeed()))
 	})
 
 	It("returns an error when PipelineName is missing", func() {
 		event := baseEvent
 		event.PipelineName = NamespacedName{}
-		Expect(event.Validate(validate)).To(Not(Succeed()))
+		Expect(validate.Struct(event)).To(Not(Succeed()))
 	})
 
 	It("returns an error when Provider is missing", func() {
 		event := baseEvent
 		event.Provider = ""
-		Expect(event.Validate(validate)).To(Not(Succeed()))
+		Expect(validate.Struct(event)).To(Not(Succeed()))
 	})
 
 	It("returns an error when RunId is missing", func() {
 		event := baseEvent
 		event.RunId = ""
-		Expect(event.Validate(validate)).To(Not(Succeed()))
+		Expect(validate.Struct(event)).To(Not(Succeed()))
 	})
 
-	It("returnes an error when both RunConfigurationName and RunName are present", func() {
+	It("returns an error when both RunConfigurationName and RunName are present", func() {
 		event := baseEvent
 		event.RunName = &namespaceName
 		event.RunConfigurationName = &namespaceName
-		Expect(event.Validate(validate)).To(Not(Succeed()))
+		Expect(validate.Struct(event)).To(Not(Succeed()))
 	})
 
-	It("returnes an error when both RunConfigurationName and RunName are missing", func() {
+	It("returns an error when both RunConfigurationName and RunName are missing", func() {
 		event := baseEvent
-		Expect(event.Validate(validate)).To(Not(Succeed()))
+		Expect(validate.Struct(event)).To(Not(Succeed()))
 	})
 
 	It("returns an error when RunName inner struct Name field is empty and RunConfigurationName is nil", func() {
@@ -86,38 +83,16 @@ var _ = Context("RunCompletionEvent.Validate", func() {
 			Name:      "",
 			Namespace: "Namespace",
 		}
-		Expect(event.Validate(validate)).To(Not(Succeed()))
+		Expect(validate.Struct(event)).To(Not(Succeed()))
 	})
 
-	var _ = Context("validateNamespacedName", func() {
-		namespacedName := NamespacedName{
-			Name:      "Name",
+	It("returns an error when RunName inner struct Name field is empty and RunConfigurationName is nil", func() {
+		event := baseEvent
+		event.RunName = &NamespacedName{
+			Name:      "",
 			Namespace: "Namespace",
 		}
-
-		It("succeed when Name and Namespace are not empty", func() {
-			Expect(validateNamespacedName(&namespacedName, "")).To(Succeed())
-		})
-
-		It("returns error when Name is empty", func() {
-			invalidNamespacedName := namespacedName
-			invalidNamespacedName.Name = ""
-			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Not(Succeed()))
-		})
-
-		It("succeed when Namespace is empty", func() {
-			invalidNamespacedName := namespacedName
-			invalidNamespacedName.Namespace = ""
-			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Succeed())
-		})
-
-		It("returns error when Name and Namespace are empty", func() {
-			invalidNamespacedName := namespacedName
-			invalidNamespacedName.Name = ""
-			invalidNamespacedName.Namespace = ""
-			Expect(validateNamespacedName(&invalidNamespacedName, "")).To(Not(Succeed()))
-		})
-
+		Expect(validate.Struct(event)).To(Not(Succeed()))
 	})
 })
 

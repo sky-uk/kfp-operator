@@ -1,7 +1,6 @@
 package common
 
 import (
-	"errors"
 	"fmt"
 
 	validator "github.com/go-playground/validator/v10"
@@ -24,18 +23,9 @@ var RunCompletionStatuses = struct {
 	Failed:    "failed",
 }
 
-func RegisterPipelineNameValidation(validator *validator.Validate) error {
-	err := validator.RegisterValidation("pipelineName", pipelineNameValidator)
-	if err != nil {
-		return fmt.Errorf("failed to register pipeline name validation: %s", err)
-	}
-
-	return nil
-}
-
 type RunCompletionEvent struct {
 	Status       RunCompletionStatus `json:"status" validate:"required"`
-	PipelineName NamespacedName      `json:"pipelineName" validate:"pipelineName"`
+	PipelineName NamespacedName      `json:"pipelineName"`
 	// Optionally render structs until https://github.com/golang/go/issues/11939 is addressed
 	RunConfigurationName  *NamespacedName `json:"runConfigurationName,omitempty"`
 	RunName               *NamespacedName `json:"runName,omitempty"`
@@ -50,38 +40,42 @@ func (sre RunCompletionEvent) String() string {
 		sre.Status, sre.PipelineName, sre.RunConfigurationName, sre.RunName, sre.RunId, sre.ServingModelArtifacts, sre.Artifacts, sre.Provider)
 }
 
-func validateNamespacedName(nn *NamespacedName, key string) error {
-	if nn == nil {
-		return fmt.Errorf("key: %s is nil", key)
-	} else if nn.Name == "" {
-		return fmt.Errorf("key: %s, Name field is missing", key)
+func RunCompletionEventValidation(sl validator.StructLevel) {
+	runCompletionEvent := sl.Current().Interface().(RunCompletionEvent)
+
+	pipelineNamespacedNameValid := namespacedNameValidation(runCompletionEvent.PipelineName, false)
+	if !pipelineNamespacedNameValid {
+		sl.ReportError(NamespacedName{}, "pipelineName", "PipelineName", "run_completion_event_namespaced_name", "")
 	}
 
-	return nil
+	runConfigurationNameValid := false
+	runConfigurationNamespacedNameNonEmpty := runCompletionEvent.RunConfigurationName != nil
+	if runConfigurationNamespacedNameNonEmpty {
+		runConfigurationNameValid = namespacedNameValidation(*runCompletionEvent.RunConfigurationName, true)
+	}
+
+	runNameValid := false
+	runNameNamespacedNonEmpty := runCompletionEvent.RunName != nil
+	if runNameNamespacedNonEmpty {
+		runNameValid = namespacedNameValidation(*runCompletionEvent.RunName, true)
+	}
+
+	if !runNameValid && !runConfigurationNameValid {
+		if !runNameValid {
+			sl.ReportError(NamespacedName{}, "runConfigurationName", "RunConfigurationName", "run_completion_event_namespaced_name", "")
+		}
+		if !runConfigurationNameValid {
+			sl.ReportError(NamespacedName{}, "runName", "RunName", "run_completion_event_namespaced_name", "")
+		}
+	}
+
+	if runNameValid && runConfigurationNameValid {
+		sl.ReportError(NamespacedName{}, "runConfigurationName", "RunConfigurationName", "run_completion_event_ambiguous_name", "")
+		sl.ReportError(NamespacedName{}, "runName", "RunName", "run_completion_event_ambiguous_name", "")
+	}
 }
 
-func (sre RunCompletionEvent) Validate(validate *validator.Validate) error {
-	validateErr := validate.Struct(sre)
-	runConfigurationNameValidationErr := validateNamespacedName(sre.RunConfigurationName, "RunCompletionEvent.RunConfigurationName")
-	runNameValidationErr := validateNamespacedName(sre.RunName, "RunCompletionEvent.RunName")
-
-	noValidRunNames := runConfigurationNameValidationErr != nil && runNameValidationErr != nil
-	bothRunNamesPresentAndValid := runConfigurationNameValidationErr == nil && runNameValidationErr == nil
-
-	if noValidRunNames {
-		return errors.Join(runConfigurationNameValidationErr, runNameValidationErr, validateErr)
-	} else if bothRunNamesPresentAndValid {
-		return errors.Join(validateErr, fmt.Errorf("both RunName and RunConfigurationName are present, only one should be defined in a RunCompletionEvent"))
-	}
-
-	return validateErr
-}
-
-func pipelineNameValidator(fl validator.FieldLevel) bool {
-	nn, ok := fl.Field().Interface().(NamespacedName)
-	if !ok {
-		return false
-	}
-
-	return nn.Name != "" && nn.Namespace != ""
+func namespacedNameValidation(nn NamespacedName, allowEmptyNamespace bool) bool {
+	namespaceCheck := allowEmptyNamespace || nn.Namespace != ""
+	return nn.Name != "" && namespaceCheck
 }
