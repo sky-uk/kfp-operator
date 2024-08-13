@@ -71,7 +71,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	desiredProvider := desiredProvider(run, r.Config)
 
-	provider, err := loadProvider(ctx, r.EC.Client.NonCached, r.Config.WorkflowNamespace, desiredProvider)
+	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, desiredProvider)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

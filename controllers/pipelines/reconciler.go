@@ -32,15 +32,14 @@ func desiredProvider(resource pipelinesv1.HasProvider, config config.Configurati
 	return config.DefaultProvider
 }
 
-func loadProvider(ctx context.Context, reader client.Reader, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {
+func (br ResourceReconciler[R]) loadProvider(ctx context.Context, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {
 	providerNamespacedName := types.NamespacedName{
 		Namespace: namespace,
 		Name:      desiredProvider,
 	}
-
 	var provider = pipelinesv1.Provider{}
 
-	err := reader.Get(ctx, providerNamespacedName, &provider)
+	err := br.EC.Client.NonCached.Get(ctx, providerNamespacedName, &provider)
 	if err != nil {
 		return provider, err
 	}
