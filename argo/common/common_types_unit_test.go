@@ -25,7 +25,7 @@ var _ = Context("Marshal NamespacedName", Serial, func() {
 		})
 	})
 
-	When("pointer is provider", func() {
+	When("pointer is provided", func() {
 		It("custom marshaller is called", func() {
 			serialised, err := json.Marshal(&namespacedName)
 			Expect(err).NotTo(HaveOccurred())
