@@ -38,13 +38,13 @@ func loadProvider(ctx context.Context, reader client.Reader, namespace string, d
 		Name:      desiredProvider,
 	}
 
-	var provider = &pipelinesv1.Provider{}
+	var provider = pipelinesv1.Provider{}
 
-	err := reader.Get(ctx, providerNamespacedName, provider)
+	err := reader.Get(ctx, providerNamespacedName, &provider)
 	if err != nil {
-		return *provider, err
+		return provider, err
 	}
-	return *provider, nil
+	return provider, nil
 }
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipelinesv1.Resource) func(client.Object) []reconcile.Request {
