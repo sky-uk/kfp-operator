@@ -32,7 +32,7 @@ func desiredProvider(resource pipelinesv1.HasProvider, config config.Configurati
 	return config.DefaultProvider
 }
 
-func loadProvider(ctx context.Context, reader client.Reader, namespace string, desiredProvider string) (*pipelinesv1.Provider, error) {
+func loadProvider(ctx context.Context, reader client.Reader, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {
 	providerNamespacedName := types.NamespacedName{
 		Namespace: namespace,
 		Name:      desiredProvider,
@@ -42,9 +42,9 @@ func loadProvider(ctx context.Context, reader client.Reader, namespace string, d
 
 	err := reader.Get(ctx, providerNamespacedName, provider)
 	if err != nil {
-		return provider, err
+		return *provider, err
 	}
-	return provider, nil
+	return *provider, nil
 }
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipelinesv1.Resource) func(client.Object) []reconcile.Request {
