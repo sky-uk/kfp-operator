@@ -4,13 +4,16 @@ package common
 
 import (
 	"fmt"
+
+	validator "github.com/go-playground/validator/v10"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Context("RunCompletionEvent.Validate", func() {
 
-	validate, err := InitialiseValidation()
+	validate := validator.New()
+	err := RegisterPipelineNameValidation(validate)
 	if err != nil {
 		panic("Failed to initialise validation with error: " + err.Error())
 	}

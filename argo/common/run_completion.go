@@ -3,8 +3,8 @@ package common
 import (
 	"errors"
 	"fmt"
+
 	validator "github.com/go-playground/validator/v10"
-	"sync"
 )
 
 const RunCompletionEventName = "run-completion"
@@ -24,22 +24,13 @@ var RunCompletionStatuses = struct {
 	Failed:    "failed",
 }
 
-var (
-	validate *validator.Validate
-	mutex    sync.Mutex
-)
-
-func InitialiseValidation() (*validator.Validate, error) {
-	if validate == nil {
-		mutex.Lock()
-		defer mutex.Unlock()
-		validate = validator.New()
-		err := validate.RegisterValidation("pipelineName", pipelineNameValidator)
-		if err != nil {
-			return nil, fmt.Errorf("failed to register pipeline name validation: %s", err)
-		}
+func RegisterPipelineNameValidation(validator *validator.Validate) error {
+	err := validator.RegisterValidation("pipelineName", pipelineNameValidator)
+	if err != nil {
+		return fmt.Errorf("failed to register pipeline name validation: %s", err)
 	}
-	return validate, nil
+
+	return nil
 }
 
 type RunCompletionEvent struct {
