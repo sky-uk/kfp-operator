@@ -101,7 +101,7 @@ var _ = BeforeSuite(func() {
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
-	var provider = pipelinesv1.RandomProvider()
+	provider := pipelinesv1.RandomProvider()
 	provider.Name = testConfig.DefaultProvider
 	provider.Namespace = testConfig.WorkflowNamespace
 	err = k8sClient.Create(ctx, provider)
