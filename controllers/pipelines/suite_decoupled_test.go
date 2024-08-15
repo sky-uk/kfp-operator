@@ -104,8 +104,7 @@ var _ = BeforeSuite(func() {
 	provider := pipelinesv1.RandomProvider()
 	provider.Name = testConfig.DefaultProvider
 	provider.Namespace = testConfig.WorkflowNamespace
-	err = k8sClient.Create(ctx, provider)
-	Expect(err).NotTo(HaveOccurred())
+	Expect(k8sClient.Create(ctx, provider)).To(Succeed())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
