@@ -89,7 +89,7 @@ var _ = BeforeSuite(func() {
 	testConfig = config.Configuration{
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
-		DefaultProvider:   apis.RandomString(),
+		DefaultProvider:   apis.RandomLowercaseString(),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 	}
 
@@ -100,6 +100,11 @@ var _ = BeforeSuite(func() {
 	Expect(NewExperimentReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
+
+	provider := pipelinesv1.RandomProvider()
+	provider.Name = testConfig.DefaultProvider
+	provider.Namespace = testConfig.WorkflowNamespace
+	Expect(k8sClient.Create(ctx, provider)).To(Succeed())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())

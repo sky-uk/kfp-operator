@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"context"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
@@ -29,6 +30,18 @@ func desiredProvider(resource pipelinesv1.HasProvider, config config.Configurati
 	}
 
 	return config.DefaultProvider
+}
+
+func (br ResourceReconciler[R]) loadProvider(ctx context.Context, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {
+	providerNamespacedName := types.NamespacedName{
+		Namespace: namespace,
+		Name:      desiredProvider,
+	}
+	var provider = pipelinesv1.Provider{}
+
+	err := br.EC.Client.NonCached.Get(ctx, providerNamespacedName, &provider)
+
+	return provider, err
 }
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipelinesv1.Resource) func(client.Object) []reconcile.Request {

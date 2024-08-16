@@ -71,13 +71,9 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	desiredProvider := desiredProvider(run, r.Config)
 
-	provider := pipelinesv1.Provider{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: desiredProvider,
-		},
-		Spec:   pipelinesv1.ProviderSpec{},
-		Status: pipelinesv1.ProviderStatus{},
+	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, desiredProvider)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
 	// Never change after being set

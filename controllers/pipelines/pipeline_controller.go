@@ -5,12 +5,10 @@ import (
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 )
 
 var (
@@ -58,13 +56,9 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	desiredProvider := desiredProvider(pipeline, r.Config)
 
-	provider := pipelinesv1.Provider{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: desiredProvider,
-		},
-		Spec:   pipelinesv1.ProviderSpec{},
-		Status: pipelinesv1.ProviderStatus{},
+	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, desiredProvider)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
 	commands := r.StateHandler.StateTransition(ctx, provider, pipeline)

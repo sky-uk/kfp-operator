@@ -119,7 +119,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	}
 
 	expectedOutput := setUp(testCtx.Resource)
-	workflow, err := constructWorkflow(TestProviderConfig, testCtx.Resource)
+	workflow, err := constructWorkflow(*TestProviderConfig, testCtx.Resource)
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
