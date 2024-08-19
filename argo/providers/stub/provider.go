@@ -10,8 +10,12 @@ import (
 )
 
 type StubProviderConfig struct {
-	StubbedOutput base.Output   `yaml:"expectedOutput"`
-	ExpectedInput ExpectedInput `yaml:"expectedInput"`
+	Parameters Parameters `json:"parameters" yaml:"parameters"`
+}
+
+type Parameters struct {
+	StubbedOutput base.Output   `json:"expectedOutput" yaml:"expectedOutput"`
+	ExpectedInput ExpectedInput `json:"expectedInput" yaml:"expectedInput"`
 }
 
 type ResourceDefinition struct {
@@ -28,11 +32,11 @@ type StubProvider struct {
 }
 
 func verifyResourceDefinition(providerConfig StubProviderConfig, actual ResourceDefinition) (string, error) {
-	if providerConfig.ExpectedInput.ResourceDefinition != actual {
-		return "", fmt.Errorf("expected resource definition %+v did not match provided %+v", providerConfig.ExpectedInput.ResourceDefinition, actual)
+	if providerConfig.Parameters.ExpectedInput.ResourceDefinition != actual {
+		return "", fmt.Errorf("expected resource definition %+v did not match provided %+v", providerConfig.Parameters.ExpectedInput.ResourceDefinition, actual)
 	}
 
-	return providerConfig.StubbedOutput.Id, errors.New(providerConfig.StubbedOutput.ProviderError)
+	return providerConfig.Parameters.StubbedOutput.Id, errors.New(providerConfig.Parameters.StubbedOutput.ProviderError)
 }
 
 func verifyCreateCall(providerConfig StubProviderConfig, actual ResourceDefinition) (string, error) {
@@ -40,20 +44,20 @@ func verifyCreateCall(providerConfig StubProviderConfig, actual ResourceDefiniti
 }
 
 func verifyUpdateCall(providerConfig StubProviderConfig, actual ResourceDefinition, id string) (string, error) {
-	if providerConfig.ExpectedInput.Id != id {
-		return "", fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedInput, id)
+	if providerConfig.Parameters.ExpectedInput.Id != id {
+		return "", fmt.Errorf("expected id %s does not match provided id %s", providerConfig.Parameters.ExpectedInput, id)
 	}
 
 	return verifyResourceDefinition(providerConfig, actual)
 }
 
 func verifyDeleteCall(providerConfig StubProviderConfig, id string) error {
-	if providerConfig.ExpectedInput.Id != id {
-		return fmt.Errorf("expected id %s does not match provided id %s", providerConfig.ExpectedInput, id)
+	if providerConfig.Parameters.ExpectedInput.Id != id {
+		return fmt.Errorf("expected id %s does not match provided id %s", providerConfig.Parameters.ExpectedInput, id)
 	}
 
-	if providerConfig.StubbedOutput.ProviderError != "" {
-		return errors.New(providerConfig.StubbedOutput.ProviderError)
+	if providerConfig.Parameters.StubbedOutput.ProviderError != "" {
+		return errors.New(providerConfig.Parameters.StubbedOutput.ProviderError)
 	}
 
 	return nil

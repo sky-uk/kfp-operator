@@ -132,7 +132,7 @@ kustomize: ## Download kustomize locally if necessary.
 	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
 ##@ Package
-helm-package-operator: helm-cmd
+helm-package-operator: helm-cmd helm-test-operator
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
 helm-package-provider: helm-cmd helm-test-provider

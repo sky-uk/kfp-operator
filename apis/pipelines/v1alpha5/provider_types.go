@@ -17,11 +17,12 @@ type ProviderSpec struct {
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:resource:shortName="mlprv"
-//+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type == 'Synchronized')].reason"
-//+kubebuilder:storageversion
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:shortName="mlprv"
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type == 'Synchronized')].reason"
+// +kubebuilder:storageversion
+// +kubebuilder:pruning:PreserveUnknownFields
 
 type Provider struct {
 	metav1.TypeMeta   `json:",inline"`

@@ -2,7 +2,6 @@ package kfp
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-openapi/runtime"
@@ -15,20 +14,21 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client/run_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_model"
-	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/kfp/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gopkg.in/yaml.v2"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	k8runtime "k8s.io/apimachinery/pkg/runtime"
 	"os"
 )
 
 type KfpProviderConfig struct {
-	Name                     string `yaml:"name"`
+	Name       string     `yaml:"name"`
+	Parameters Parameters `yaml:"parameters"`
+}
+
+type Parameters struct {
 	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
 	GrpcMetadataStoreAddress string `yaml:"grpcMetadataStoreAddress,omitempty"`
 	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
@@ -408,44 +408,26 @@ func (kfpp KfpProvider) EventingServer(ctx context.Context, provider string, nam
 		return nil, err
 	}
 
-	// TODO: Move this to common place
-	providerConfig, err := k8sClient.Resource(ProviderGVR).Namespace(namespace).Get(ctx, provider, v1.GetOptions{}, "")
-	if err != nil {
-		return nil, err
-	}
-
-	providerCR := v1alpha5.Provider{}
-
-	if err = k8runtime.DefaultUnstructuredConverter.FromUnstructured(providerConfig.UnstructuredContent(), &providerCR); err != nil {
-		return nil, err
-	}
-
-	params := providerCR.Spec.Parameters
-	configa := KfpProviderConfig{
+	config := &KfpProviderConfig{
 		Name: provider,
 	}
 
-	jparams, err := json.Marshal(params)
+	if err = LoadProvider[KfpProviderConfig](ctx, k8sClient, provider, namespace, config); err != nil {
+		return nil, err
+	}
+
+	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = json.Unmarshal(jparams, &configa); err != nil {
-		return nil, err
-	}
-
-	metadataStore, err := ConnectToMetadataStore(configa.GrpcMetadataStoreAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	kfpApi, err := ConnectToKfpApi(configa.GrpcKfpApiAddress)
+	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KfpEventingServer{
-		ProviderConfig: configa,
+		ProviderConfig: *config,
 		K8sClient:      k8sClient,
 		Logger:         common.LoggerFromContext(ctx),
 		MetadataStore:  metadataStore,

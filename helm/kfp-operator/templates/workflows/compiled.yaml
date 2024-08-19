@@ -271,6 +271,8 @@ spec:
           parameters:
           - name: resource-image
             value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
+          - name: provider-config
+            value: '{{`{{workflow.parameters.provider-config}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps

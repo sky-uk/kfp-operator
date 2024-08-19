@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-logr/logr"
+	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/urfave/cli"
 	"go.uber.org/zap/zapcore"
@@ -62,8 +63,12 @@ func NewProviderApp[Config any]() ProviderApp[Config] {
 	}
 }
 
-func (_ ProviderApp[Config]) LoadProviderConfig(c *cli.Context) (Config, error) {
-	return LoadYamlFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
+func (providerApp ProviderApp[_]) LoadProviderConfig(c *cli.Context) (v1alpha5.ProviderSpec, error) {
+	providerSpec, err := LoadYamlFromFile[v1alpha5.ProviderSpec](c.GlobalString(ProviderConstants.ProviderConfigParameter))
+	if err != nil {
+		return providerSpec, err
+	}
+	return providerSpec, nil
 }
 
 func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customCommands ...cli.Command) {
@@ -136,10 +141,11 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Flags: []cli.Flag{pipelineDefinitionFlag, pipelineFileFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						pipelineFilePath := c.String(ProviderConstants.PipelineFileParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
+
 						pipelineDefinition, err := LoadYamlFromFile[PipelineDefinition](c.String(ProviderConstants.PipelineDefinitionParameter))
 						if err != nil {
 							return err
@@ -158,10 +164,11 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
 						pipelineFilePath := c.String(ProviderConstants.PipelineFileParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
+
 						pipelineDefinition, err := LoadYamlFromFile[PipelineDefinition](c.String(ProviderConstants.PipelineDefinitionParameter))
 						if err != nil {
 							return err
@@ -179,7 +186,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Flags: []cli.Flag{pipelineIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.PipelineIdParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
@@ -204,14 +211,16 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Name:  "create",
 					Flags: []cli.Flag{runScheduleDefinitionFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
+
 						runScheduleDefinition, err := LoadYamlFromFile[RunScheduleDefinition](c.String(ProviderConstants.RunScheduleDefinitionParameter))
 						if err != nil {
 							return err
 						}
+
 						id, err := provider.CreateRunSchedule(providerApp.Context, providerConfig, runScheduleDefinition)
 
 						logResult(providerApp.Context, "runschedule", "create", "", id, err)
@@ -224,10 +233,12 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Flags: []cli.Flag{runScheduleDefinitionFlag, runScheduleIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunScheduleIdParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
+
 						runScheduleDefinition, err := LoadYamlFromFile[RunScheduleDefinition](c.String(ProviderConstants.RunScheduleDefinitionParameter))
 						if err != nil {
 							return err
@@ -245,7 +256,8 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Flags: []cli.Flag{runScheduleIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunScheduleIdParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
@@ -270,14 +282,16 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Name:  "create",
 					Flags: []cli.Flag{runDefinitionFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
+
 						runDefinition, err := LoadYamlFromFile[RunDefinition](c.String(ProviderConstants.RunDefinitionParameter))
 						if err != nil {
 							return err
 						}
+
 						id, err := provider.CreateRun(providerApp.Context, providerConfig, runDefinition)
 
 						logResult(providerApp.Context, "run", "create", "", id, err)
@@ -290,7 +304,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Flags: []cli.Flag{runIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.RunIdParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
@@ -315,10 +329,11 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Name:  "create",
 					Flags: []cli.Flag{experimentDefinitionFlag, outFlag},
 					Action: func(c *cli.Context) error {
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
+
 						experimentDefinition, err := LoadYamlFromFile[ExperimentDefinition](c.String(ProviderConstants.ExperimentDefinitionParameter))
 						if err != nil {
 							return err
@@ -336,10 +351,11 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Flags: []cli.Flag{experimentDefinitionFlag, experimentIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.ExperimentIdParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
+
 						experimentDefinition, err := LoadYamlFromFile[ExperimentDefinition](c.String(ProviderConstants.ExperimentDefinitionParameter))
 						if err != nil {
 							return err
@@ -357,7 +373,7 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 					Flags: []cli.Flag{experimentIdFlag, outFlag},
 					Action: func(c *cli.Context) error {
 						id := c.String(ProviderConstants.ExperimentIdParameter)
-						providerConfig, err := providerApp.LoadProviderConfig(c)
+						providerConfig, err := LoadJsonFromFile[Config](c.GlobalString(ProviderConstants.ProviderConfigParameter))
 						if err != nil {
 							return err
 						}
