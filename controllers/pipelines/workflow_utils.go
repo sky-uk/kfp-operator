@@ -42,7 +42,7 @@ func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, e
 }
 
 func setWorkflowProvider(workflow *argo.Workflow, provider string) *argo.Workflow {
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: WorkflowConstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider)})
+	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: WorkflowConstants.ProviderConfigParameterName, Value: argo.AnyStringPtr(provider)})
 
 	return workflow
 }

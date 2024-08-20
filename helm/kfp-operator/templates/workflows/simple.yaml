@@ -77,7 +77,7 @@ spec:
       - /provider
       args:
       - --provider-config
-      - /providers-config.json
+      - /provider-config.json
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - update
       - --{{`{{workflow.parameters.resource-kind}}`}}-definition
@@ -159,6 +159,7 @@ spec:
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
+  - name: main
     outputs:
       parameters:
       - name: provider-output

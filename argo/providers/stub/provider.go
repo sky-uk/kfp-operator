@@ -107,6 +107,6 @@ func (s StubProvider) DeleteExperiment(_ context.Context, providerConfig StubPro
 	return verifyDeleteCall(providerConfig, id)
 }
 
-func (s StubProvider) EventingServer(_ context.Context, _ StubProviderConfig) (generic.EventingServer, error) {
+func (s StubProvider) EventingServer(_ context.Context, _ string, _ string) (generic.EventingServer, error) {
 	panic("unimplemented")
 }

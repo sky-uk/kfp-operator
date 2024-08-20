@@ -9,12 +9,18 @@ spec:
     inputs:
       parameters:
       - name: resource-image
+      - name: provider-config
       artifacts:
       - name: resource-definition
         raw:
           data: |
             {{workflow.parameters.resource-definition}}
         path: /resource-definition.yaml
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
     outputs:
       artifacts:
       - name: resource
@@ -27,8 +33,6 @@ spec:
       image: "{{inputs.parameters.resource-image}}"
       name: resource
       volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       - mountPath: /shared
         name: shared
       args:
@@ -37,7 +41,7 @@ spec:
       - --{{workflow.parameters.resource-kind}}_config
       - /resource-definition.yaml
       - --provider_config
-      - /providers-config/{{workflow.parameters.provider-name}}
+      - /providers-config.json
     volumes:
     - name: shared
     initContainers:
@@ -51,6 +55,7 @@ spec:
       parameters:
       - name: provider-image
       - name: provider-sa
+      - name: provider-config
       artifacts:
       - name: resource
         path: /resource.yaml
@@ -59,6 +64,11 @@ spec:
         raw:
           data: |
             {{workflow.parameters.resource-definition}}
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
     outputs:
       parameters:
       - name: provider-output
@@ -69,14 +79,11 @@ spec:
     activeDeadlineSeconds: 300
     container:
       image: "{{inputs.parameters.provider-image}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /providers-config/{{workflow.parameters.provider-name}}
+      - /providers-config.json
       - '{{workflow.parameters.resource-kind}}'
       - create
       - --{{workflow.parameters.resource-kind}}-definition
@@ -95,10 +102,16 @@ spec:
         raw:
           data: |
             {{workflow.parameters.resource-definition}}
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
       parameters:
       - name: resource-id
       - name: provider-image
       - name: provider-sa
+      - name: provider-config
     outputs:
       parameters:
       - name: provider-output
@@ -109,14 +122,11 @@ spec:
     activeDeadlineSeconds: 300
     container:
       image: "{{inputs.parameters.provider-image}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - /provider
       args:
       - --provider-config
-      - /providers-config/{{workflow.parameters.provider-name}}
+      - /providers-config.json
       - '{{workflow.parameters.resource-kind}}'
       - update
       - --{{workflow.parameters.resource-kind}}-definition
@@ -134,17 +144,13 @@ metadata:
   name: create-compiled
   namespace: kfp-operator-system
 spec:
-  volumes:
-  - name: providers-config
-    configMap:
-      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 3600
   arguments:
     parameters:
-    - name: provider-name
     - name: resource-kind
     - name: resource-definition
+    - name: provider-config
   entrypoint: main
   serviceAccountName: kfp-operator-argo
   templates:
@@ -161,16 +167,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: select-provider-sa
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: select-resource-image
         templateRef:
           name: kfp-operator-common-steps
@@ -183,6 +193,8 @@ spec:
           parameters:
           - name: resource-image
             value: '{{steps.select-resource-image.outputs.result}}'
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: provider
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -196,6 +208,8 @@ spec:
             value: '{{steps.select-provider-image.outputs.result}}'
           - name: provider-sa
             value: '{{steps.select-provider-sa.outputs.result}}'
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -203,15 +217,11 @@ metadata:
   name: update-compiled
   namespace: kfp-operator-system
 spec:
-  volumes:
-  - name: providers-config
-    configMap:
-      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 3600
   arguments:
     parameters:
-    - name: provider-name
+    - name: provider-config
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
@@ -231,16 +241,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: select-provider-sa
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: select-resource-image
         templateRef:
           name: kfp-operator-common-steps
@@ -253,6 +267,8 @@ spec:
           parameters:
           - name: resource-image
             value: '{{steps.select-resource-image.outputs.result}}'
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: provider
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -268,3 +284,5 @@ spec:
             value: '{{steps.select-provider-image.outputs.result}}'
           - name: provider-sa
             value: '{{steps.select-provider-sa.outputs.result}}'
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
