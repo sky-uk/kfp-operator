@@ -87,12 +87,31 @@ func CreateK8sClient() (dynamic.Interface, error) {
 	return dynamic.NewForConfig(k8sConfig)
 }
 
-type K8sApi struct {
-	K8sClient dynamic.Interface
+type ResourceAccess interface {
+	GetUnderlyingClient() dynamic.Interface
+	GetRunArtifactDefinitions(ctx context.Context, namespacedName types.NamespacedName, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error)
 }
 
-func (k8a K8sApi) GetRunArtifactDefinitions(ctx context.Context, namespacedName types.NamespacedName, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error) {
-	obj, err := k8a.K8sClient.Resource(gvr).Namespace(namespacedName.Namespace).Get(ctx, namespacedName.Name, metav1.GetOptions{})
+type K8sApi struct {
+	ResourceAccess
+}
+
+func NewK8sApi(k8sClient dynamic.Interface) K8sApi {
+	return K8sApi{
+		ResourceAccess: K8sResourceAccessImpl{
+			k8sClient: k8sClient,
+		},
+	}
+}
+
+type K8sResourceAccessImpl struct{ k8sClient dynamic.Interface }
+
+func (k8r K8sResourceAccessImpl) GetUnderlyingClient() dynamic.Interface {
+	return k8r.k8sClient
+}
+
+func (k8r K8sResourceAccessImpl) GetRunArtifactDefinitions(ctx context.Context, namespacedName types.NamespacedName, gvr schema.GroupVersionResource) ([]pipelinesv1.OutputArtifact, error) {
+	obj, err := k8r.k8sClient.Resource(gvr).Namespace(namespacedName.Namespace).Get(ctx, namespacedName.Name, metav1.GetOptions{})
 
 	if err != nil {
 		common.LoggerFromContext(ctx).Error(err, fmt.Sprintf("Failed to retrieve resource %+v", gvr))
