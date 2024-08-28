@@ -35,7 +35,7 @@ spec:
       command:
       - /provider
       args:
-      - --provider-config
+      - --provider
       - /providers-config.json
       - '{{workflow.parameters.resource-kind}}'
       - create
@@ -73,7 +73,7 @@ spec:
       command:
       - /provider
       args:
-      - --provider-config
+      - --provider
       - /providers-config.json
       - '{{workflow.parameters.resource-kind}}'
       - update
@@ -95,6 +95,7 @@ spec:
   arguments:
     parameters:
     - name: provider-config
+    - name: provider-name
     - name: resource-kind
     - name: resource-definition
   entrypoint: main
@@ -154,6 +155,7 @@ spec:
     - name: resource-id
     - name: resource-definition
     - name: provider-config
+    - name: provider-name
   entrypoint: main
   serviceAccountName: kfp-operator-argo
   templates:

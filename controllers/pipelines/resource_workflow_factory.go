@@ -18,6 +18,7 @@ var WorkflowConstants = struct {
 	OwnerNamespaceLabelKey          string
 	ConstructionFailedError         string
 	ProviderConfigParameterName     string
+	ProviderNameParameterName       string
 	ProviderOutputParameterName     string
 	ResourceKindParameterName       string
 	ResourceDefinitionParameterName string
@@ -28,6 +29,7 @@ var WorkflowConstants = struct {
 	OwnerNamespaceLabelKey:          apis.Group + "/owner.namespace",
 	ConstructionFailedError:         "error constructing workflow",
 	ProviderConfigParameterName:     "provider-config",
+	ProviderNameParameterName:       "provider-name",
 	ProviderOutputParameterName:     "provider-output",
 	ResourceKindParameterName:       "resource-kind",
 	ResourceDefinitionParameterName: "resource-definition",
@@ -132,6 +134,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 						Value: argo.AnyStringPtr(resourceDefinition),
 					},
 					{
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(provider.Name),
+					},
+					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
@@ -173,6 +179,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 						Value: argo.AnyStringPtr(resource.GetStatus().ProviderId.Id),
 					},
 					{
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(provider.Name),
+					},
+					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
@@ -203,6 +213,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 					{
 						Name:  WorkflowConstants.ResourceIdParameterName,
 						Value: argo.AnyStringPtr(resource.GetStatus().ProviderId.Id),
+					},
+					{
+						Name:  WorkflowConstants.ProviderNameParameterName,
+						Value: argo.AnyStringPtr(provider.Name),
 					},
 					{
 						Name:  WorkflowConstants.ProviderConfigParameterName,

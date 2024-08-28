@@ -24,7 +24,7 @@ spec:
           command:
           - /provider
           args:
-          - --provider-config
+          - --provider
           - {{ .Values.provider.name }}
           - eventsource-server
           - --port=50051

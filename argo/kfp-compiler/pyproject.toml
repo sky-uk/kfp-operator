@@ -27,17 +27,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 kfp-compiler = 'kfp_compiler.__main__:main'
-
-[tool.poetry.group.arm]
-optional = true
-
-[tool.poetry.group.arm.dependencies]
-tensorflow-macos = "2.13.0"
-ml-metadata = { path = "./dist/ml_metadata-1.14.0-cp310-cp310-macosx_14_0_arm64.whl" }
-tfx-bsl = { path = "./dist/tfx_bsl-1.14.0-cp310-cp310-macosx_14_0_arm64.whl" }
-tensorflow-data-validation = { path = "./dist/tensorflow_data_validation-1.14.0-cp310-cp310-macosx_14_0_arm64.whl" }
-tensorflow-metal = "1.1.0"
-tensorflow = { version = "^2.13.0", platform = "darwin", markers = "platform_machine=='arm64'" }
-tensorflow-cpu = [
-    { version = "^2.13.0", platform = "darwin", markers = "platform_machine!='arm64' and platform_machine!='aarch64'" },
-]

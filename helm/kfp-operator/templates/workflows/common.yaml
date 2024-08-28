@@ -66,7 +66,7 @@ spec:
       command:
       - /provider
       args:
-      - --provider-config
+      - --provider
       - /provider-config.json
       - '{{`{{workflow.parameters.resource-kind}}`}}'
       - delete
@@ -87,6 +87,7 @@ spec:
   arguments:
     parameters:
     - name: provider-config
+    - name: provider-name
     - name: resource-kind
     - name: resource-id
   entrypoint: main

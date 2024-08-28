@@ -236,7 +236,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
 
 		result, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
-		provider := getWorkflowParameter(workflow, WorkflowConstants.ProviderConfigParameterName)
+		provider := getWorkflowParameter(workflow, WorkflowConstants.ProviderNameParameterName)
 
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
