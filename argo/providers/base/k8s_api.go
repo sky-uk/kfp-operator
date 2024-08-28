@@ -32,14 +32,14 @@ func LoadProvider[Config any](ctx context.Context, k8sClient dynamic.Interface, 
 		return err
 	}
 
-	params := providerCR.Spec.Parameters
+	spec := providerCR.Spec
 
-	paramsMarshalled, err := json.Marshal(params)
+	specMarshalled, err := json.Marshal(spec)
 	if err != nil {
 		return err
 	}
 
-	if err = json.Unmarshal(paramsMarshalled, &config); err != nil {
+	if err = json.Unmarshal(specMarshalled, &config); err != nil {
 		return err
 	}
 

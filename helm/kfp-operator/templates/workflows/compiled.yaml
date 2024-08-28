@@ -42,7 +42,7 @@ spec:
       - --{{`{{workflow.parameters.resource-kind}}`}}_config
       - /resource-definition.yaml
       - --provider_config
-      - /providers-config.json
+      - /provider-config.json
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
@@ -60,11 +60,6 @@ spec:
       - name: provider-sa
       - name: provider-config
       artifacts:
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
       - name: resource
         path: /resource.yaml
       - name: resource-definition
@@ -72,6 +67,11 @@ spec:
         raw:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       parameters:
       - name: provider-output
@@ -100,11 +100,6 @@ spec:
   - name: update
     inputs:
       artifacts:
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
       - name: resource
         path: /resource.yaml
       - name: resource-definition
@@ -112,6 +107,11 @@ spec:
         raw:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{`{{workflow.parameters.provider-config}}`}}
       parameters:
       - name: resource-id
       - name: provider-image

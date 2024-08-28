@@ -35,7 +35,7 @@ type PipelineService struct {
 }
 
 func NewPipelineService(providerConfig KfpProviderConfig) (*PipelineService, error) {
-	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.Parameters.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (ps *PipelineService) PipelineVersionIdForName(ctx context.Context, version
 }
 
 func pipelineUploadService(providerConfig KfpProviderConfig) (*pipeline_upload_service.Client, error) {
-	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.Parameters.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ type ExperimentService struct {
 }
 
 func NewExperimentService(providerConfig KfpProviderConfig) (*ExperimentService, error) {
-	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.Parameters.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (es *ExperimentService) ExperimentIdByName(ctx context.Context, experimentN
 }
 
 func runService(providerConfig KfpProviderConfig) (*run_service.Client, error) {
-	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.Parameters.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func runService(providerConfig KfpProviderConfig) (*run_service.Client, error) {
 }
 
 func jobService(providerConfig KfpProviderConfig) (*job_service.Client, error) {
-	apiUrl, err := url.Parse(providerConfig.RestKfpApiUrl)
+	apiUrl, err := url.Parse(providerConfig.Parameters.RestKfpApiUrl)
 	if err != nil {
 		return nil, err
 	}

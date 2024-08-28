@@ -36,7 +36,7 @@ spec:
       - /provider
       args:
       - --provider
-      - /providers-config.json
+      - /provider-config.json
       - '{{workflow.parameters.resource-kind}}'
       - create
       - --{{workflow.parameters.resource-kind}}-definition
@@ -74,7 +74,7 @@ spec:
       - /provider
       args:
       - --provider
-      - /providers-config.json
+      - /provider-config.json
       - '{{workflow.parameters.resource-kind}}'
       - update
       - --{{workflow.parameters.resource-kind}}-definition
@@ -151,11 +151,11 @@ spec:
     secondsAfterCompletion: 3600
   arguments:
     parameters:
+    - name: provider-config
+    - name: provider-name
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
-    - name: provider-config
-    - name: provider-name
   entrypoint: main
   serviceAccountName: kfp-operator-argo
   templates:
@@ -185,7 +185,7 @@ spec:
           - name: field
             value: serviceAccount
           - name: provider-config
-            value: '{{ workflow.parameters.provider-config }}'
+            value: '{{workflow.parameters.provider-config}}'
     - - name: provider
         templateRef:
           name: kfp-operator-simple-workflow-steps

@@ -151,6 +151,8 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-update-simple
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
+  ttlStrategy:
+    {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
     - name: provider-config

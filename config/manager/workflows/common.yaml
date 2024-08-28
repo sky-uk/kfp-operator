@@ -10,11 +10,6 @@ spec:
       parameters:
       - name: field
       - name: provider-config
-      - name: resource-definition
-        path: /resource-definition.yaml
-        raw:
-          data: |
-            {{workflow.parameters.resource-definition}}
       artifacts:
       - name: provider-config
         path: /provider-config.json
@@ -25,7 +20,7 @@ spec:
       command:
       - ash
       image: mikefarah/yq:4.27.5
-      source: yq e '.{{inputs.parameters.parameter}}' '/providers-config.json'
+      source: yq e '.{{inputs.parameters.field}}' '/provider-config.json'
     metadata: {}
     activeDeadlineSeconds: 300
   - name: select-resource-image
@@ -69,7 +64,7 @@ spec:
       - /provider
       args:
       - --provider
-      - /providers-config.json
+      - /provider-config.json
       - '{{workflow.parameters.resource-kind}}'
       - delete
       - --{{workflow.parameters.resource-kind}}-id
@@ -83,10 +78,6 @@ metadata:
   name: delete
   namespace: kfp-operator-system
 spec:
-  volumes:
-  - name: providers-config
-    configMap:
-      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 3600
   arguments:
@@ -111,16 +102,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: select-provider-sa
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: provider
         templateRef:
           name: kfp-operator-common-steps
@@ -132,4 +127,4 @@ spec:
           - name: provider-sa
             value: '{{steps.select-provider-sa.outputs.result}}'
           - name: provider-config
-            value: '{{steps.select-provider-sa.outputs.result}}'
+            value: '{{workflow.parameters.provider-config}}'

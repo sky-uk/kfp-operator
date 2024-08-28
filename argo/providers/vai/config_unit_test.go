@@ -13,7 +13,7 @@ var _ = Context("VAI Config", func() {
 	config := VAIProviderConfig{}
 
 	DescribeTable("getMaxConcurrentRunCountOrDefault", func(setValue int64, expectDefault bool) {
-		config.MaxConcurrentRunCount = setValue
+		config.Parameters.MaxConcurrentRunCount = setValue
 		expectedRes := setValue
 		if expectDefault {
 			expectedRes = 10
@@ -51,7 +51,7 @@ var _ = Context("VAI Config", func() {
 	)
 
 	DescribeTable("pipelineUri", func(bucket string, pipelineName common.NamespacedName, pipelineVersion string, expectedStorageObject string) {
-		config.PipelineBucket = bucket
+		config.Parameters.PipelineBucket = bucket
 
 		storageObject, err := config.pipelineUri(pipelineName, pipelineVersion)
 		if expectedStorageObject == "" {
