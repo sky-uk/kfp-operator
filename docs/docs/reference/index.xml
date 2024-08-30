@@ -38,121 +38,13 @@
 &lt;/table>
 &lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
 &lt;h2 id="provider-configurations">Provider Configurations&lt;/h2>
-&lt;p>The provider configurations are specific to the implementation. The operator supports the following out of the box.&lt;/p>
-&lt;h3 id="common">Common&lt;/h3>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Parameter name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;th>Example&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>image&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/td>
-&lt;td>Container image of the provider&lt;/td>
-&lt;td>&lt;code>kfp-operator-kfp-provider:0.0.2&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>executionMode&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/td>
-&lt;td>KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
-&lt;td>&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>serviceAccount&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/td>
-&lt;td>Service Account name to be used for all provider-specific operations (see respective provider)&lt;/td>
-&lt;td>&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>defaultBeamArgs&lt;/code>&lt;/td>
-&lt;td>Default Beam arguments to which the pipeline-defined ones will be added&lt;/td>
-&lt;td>&lt;!-- raw HTML omitted -->- name: project&lt;!-- raw HTML omitted --> value: my-gcp-project&lt;!-- raw HTML omitted -->&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>pipelineRootStorage&lt;/code>&lt;/td>
-&lt;td>The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
-&lt;td>&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;p>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> field automatically populated by Helm based on provider type&lt;/p>
+&lt;p>The provider configurations are specific to the implementation, these configuration are applied via &lt;a href="../resources/provider">Provider Custom Resource&lt;/a>.&lt;/p>
 &lt;h3 id="kubeflow-pipelines">Kubeflow Pipelines&lt;/h3>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Parameter name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;th>Example&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>kfpNamespace&lt;/code>&lt;/td>
-&lt;td>The KFP namespace&lt;/td>
-&lt;td>&lt;code>kubeflow&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>restKfpApiUrl&lt;/code>&lt;/td>
-&lt;td>The KFP REST URL available to the operator&lt;/td>
-&lt;td>&lt;code>http://ml-pipeline.kubeflow:8888&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>grpcKfpApiAddress&lt;/code>&lt;/td>
-&lt;td>The KFP gRPC address for the eventsource server&lt;/td>
-&lt;td>&lt;code>ml-pipeline.kubeflow-pipelines:8887&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>grpcMetadataStoreAddress&lt;/code>&lt;/td>
-&lt;td>The MLMD gRPC address for the eventsource server&lt;/td>
-&lt;td>&lt;code>metadata-grpc-service.kubeflow-pipelines:8080&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>. Default endpoints are used below.&lt;/p>
+&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>.
+Its configuration can be controlled using the &lt;a href="../resources/provider/#kubeflow">KFP specific parameters within a Provider Resource&lt;/a>.&lt;/p>
 &lt;h3 id="vertex-ai-pipelines">Vertex AI Pipelines&lt;/h3>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/vai-provider.png" alt="Vertex AI Provider">&lt;/p>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Parameter name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;th>Example&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>pipelineBucket&lt;/code>&lt;/td>
-&lt;td>GCS bucket where to store the compiled pipeline&lt;/td>
-&lt;td>&lt;code>kfp-operator-pipelines&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>vaiProject&lt;/code>&lt;/td>
-&lt;td>Vertex AI GCP project name&lt;/td>
-&lt;td>&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>vaiLocation&lt;/code>&lt;/td>
-&lt;td>Vertex AI GCP project location&lt;/td>
-&lt;td>&lt;code>europe-west2&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>vaiJobServiceAccount&lt;/code>&lt;/td>
-&lt;td>Vertex AI GCP service account to run pipeline jobs&lt;/td>
-&lt;td>&lt;code>kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>eventsourcePipelineEventsSubscription&lt;/code>&lt;/td>
-&lt;td>Subscription for the eventsource to use which subscribes to the Vertex AI pipeline events log sink topic (see below)&lt;/td>
-&lt;td>&lt;code>kfp-operator-vai-run-events-eventsource&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>maxConcurrentRunCount&lt;/code>&lt;/td>
-&lt;td>Maximum number of runs that can be started concurrently per schedule, defaults to 10&lt;/td>
-&lt;td>&lt;code>3&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
+&lt;p>VAI configuration can be controlled using &lt;a href="../resources/provider/#vertex-ai">VAI specific parameters within a Provider Resource&lt;/a>
+&lt;img src="https://sky-uk.github.io/kfp-operator/images/vai-provider.png" alt="Vertex AI Provider">&lt;/p>
 &lt;h4 id="gcp-project-setup">GCP Project Setup&lt;/h4>
 &lt;p>The following GCP APIs need to be enabled in the configured &lt;code>vaiProject&lt;/code>:&lt;/p>
 &lt;ul>
