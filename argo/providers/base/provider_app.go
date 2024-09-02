@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/urfave/cli"
 	"go.uber.org/zap/zapcore"
@@ -61,14 +60,6 @@ func NewProviderApp[Config any]() ProviderApp[Config] {
 	return ProviderApp[Config]{
 		Context: ctx,
 	}
-}
-
-func (providerApp ProviderApp[_]) LoadProviderConfig(c *cli.Context) (v1alpha5.ProviderSpec, error) {
-	providerSpec, err := LoadYamlFromFile[v1alpha5.ProviderSpec](c.GlobalString(ProviderConstants.ProviderParameter))
-	if err != nil {
-		return providerSpec, err
-	}
-	return providerSpec, nil
 }
 
 func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customCommands ...cli.Command) {
