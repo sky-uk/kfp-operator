@@ -1,8 +1,10 @@
 package pipelines
 
 import (
+	"encoding/json"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
 )
@@ -41,10 +43,16 @@ func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, e
 	return output, err
 }
 
-func setWorkflowProvider(workflow *argo.Workflow, provider string) *argo.Workflow {
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: WorkflowConstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider)})
+func setWorkflowProvider(workflow *argo.Workflow, provider pipelinesv1.Provider) (*argo.Workflow, error) {
+	providerStr, err := json.Marshal(provider)
+	if err != nil {
+		return nil, err
+	}
 
-	return workflow
+	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: WorkflowConstants.ProviderConfigParameterName, Value: argo.AnyStringPtr(providerStr)})
+	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: WorkflowConstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider.Name)})
+
+	return workflow, nil
 }
 
 func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *argo.Workflow {

@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"encoding/json"
 	"fmt"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -16,6 +17,7 @@ var WorkflowConstants = struct {
 	OwnerNameLabelKey               string
 	OwnerNamespaceLabelKey          string
 	ConstructionFailedError         string
+	ProviderConfigParameterName     string
 	ProviderNameParameterName       string
 	ProviderOutputParameterName     string
 	ResourceKindParameterName       string
@@ -26,6 +28,7 @@ var WorkflowConstants = struct {
 	OwnerNameLabelKey:               apis.Group + "/owner.name",
 	OwnerNamespaceLabelKey:          apis.Group + "/owner.namespace",
 	ConstructionFailedError:         "error constructing workflow",
+	ProviderConfigParameterName:     "provider-config",
 	ProviderNameParameterName:       "provider-name",
 	ProviderOutputParameterName:     "provider-output",
 	ResourceKindParameterName:       "resource-kind",
@@ -112,7 +115,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
-	providerName := provider.ObjectMeta.Name
+	providerConf, err := json.Marshal(provider.Spec)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
@@ -129,7 +135,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(providerName),
+						Value: argo.AnyStringPtr(provider.Name),
+					},
+					{
+						Name:  WorkflowConstants.ProviderConfigParameterName,
+						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},
 			},
@@ -146,7 +156,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		return nil, err
 	}
 
-	providerName := provider.ObjectMeta.Name
+	providerConf, err := json.Marshal(provider.Spec)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
@@ -167,7 +180,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(providerName),
+						Value: argo.AnyStringPtr(provider.Name),
+					},
+					{
+						Name:  WorkflowConstants.ProviderConfigParameterName,
+						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},
 			},
@@ -179,8 +196,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error) {
-
-	providerName := provider.ObjectMeta.Name
+	providerConf, err := json.Marshal(provider.Spec)
+	if err != nil {
+		return nil, err
+	}
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
@@ -197,7 +216,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(providerName),
+						Value: argo.AnyStringPtr(provider.Name),
+					},
+					{
+						Name:  WorkflowConstants.ProviderConfigParameterName,
+						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},
 			},

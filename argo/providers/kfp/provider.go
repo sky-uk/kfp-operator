@@ -24,7 +24,11 @@ import (
 )
 
 type KfpProviderConfig struct {
-	Name                     string `yaml:"name"`
+	Name       string     `yaml:"name"`
+	Parameters Parameters `yaml:"parameters"`
+}
+
+type Parameters struct {
 	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
 	GrpcMetadataStoreAddress string `yaml:"grpcMetadataStoreAddress,omitempty"`
 	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
@@ -398,24 +402,32 @@ func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
 	}, nil
 }
 
-func (kfpp KfpProvider) EventingServer(ctx context.Context, providerConfig KfpProviderConfig) (generic.EventingServer, error) {
+func (kfpp KfpProvider) EventingServer(ctx context.Context, provider string, namespace string) (generic.EventingServer, error) {
 	k8sClient, err := CreateK8sClient()
 	if err != nil {
 		return nil, err
 	}
 
-	metadataStore, err := ConnectToMetadataStore(providerConfig.GrpcMetadataStoreAddress)
+	config := &KfpProviderConfig{
+		Name: provider,
+	}
+
+	if err = LoadProvider[KfpProviderConfig](ctx, k8sClient, provider, namespace, config); err != nil {
+		return nil, err
+	}
+
+	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	kfpApi, err := ConnectToKfpApi(providerConfig.GrpcKfpApiAddress)
+	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KfpEventingServer{
-		ProviderConfig: providerConfig,
+		ProviderConfig: *config,
 		K8sClient:      k8sClient,
 		Logger:         common.LoggerFromContext(ctx),
 		MetadataStore:  metadataStore,

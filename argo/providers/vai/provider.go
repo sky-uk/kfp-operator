@@ -66,8 +66,8 @@ func extractBucketAndObjectFromGCSPath(gcsPath string) (string, string, error) {
 func gcsClient(ctx context.Context, providerConfig VAIProviderConfig) (*storage.Client, error) {
 	var client *storage.Client
 	var err error
-	if providerConfig.GcsEndpoint != "" {
-		client, err = storage.NewClient(ctx, option.WithoutAuthentication(), option.WithEndpoint(providerConfig.GcsEndpoint))
+	if providerConfig.Parameters.GcsEndpoint != "" {
+		client, err = storage.NewClient(ctx, option.WithoutAuthentication(), option.WithEndpoint(providerConfig.Parameters.GcsEndpoint))
 	} else {
 		client, err = storage.NewClient(ctx)
 	}
@@ -158,7 +158,7 @@ func (vaip VAIProvider) UpdatePipeline(ctx context.Context, providerConfig VAIPr
 	if err != nil {
 		return pipelineId, err
 	}
-	writer := client.Bucket(providerConfig.PipelineBucket).Object(storageObject).NewWriter(ctx)
+	writer := client.Bucket(providerConfig.Parameters.PipelineBucket).Object(storageObject).NewWriter(ctx)
 
 	_, err = io.Copy(writer, reader)
 	if err != nil {
@@ -186,7 +186,7 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 
 	query := &storage.Query{Prefix: fmt.Sprintf("%s/", id)}
 
-	it := client.Bucket(providerConfig.PipelineBucket).Objects(ctx, query)
+	it := client.Bucket(providerConfig.Parameters.PipelineBucket).Objects(ctx, query)
 	for {
 		attrs, err := it.Next()
 		if errors.Is(err, iterator.Done) {
@@ -196,7 +196,7 @@ func (vaip VAIProvider) DeletePipeline(ctx context.Context, providerConfig VAIPr
 			return err
 		}
 
-		err = client.Bucket(providerConfig.PipelineBucket).Object(attrs.Name).Delete(ctx)
+		err = client.Bucket(providerConfig.Parameters.PipelineBucket).Object(attrs.Name).Delete(ctx)
 		if err != nil {
 			return err
 		}
@@ -230,7 +230,7 @@ func (vaip VAIProvider) CreateRun(ctx context.Context, providerConfig VAIProvide
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromRunDefinition(runDefinition),
 		TemplateUri:    templateUri,
-		ServiceAccount: providerConfig.VaiJobServiceAccount,
+		ServiceAccount: providerConfig.Parameters.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: parameters,
 		},
@@ -278,7 +278,7 @@ func (vaip VAIProvider) buildPipelineJob(providerConfig VAIProviderConfig, runSc
 	pipelineJob := &aiplatformpb.PipelineJob{
 		Labels:         runLabelsFromSchedule(runScheduleDefinition),
 		TemplateUri:    templateUri,
-		ServiceAccount: providerConfig.VaiJobServiceAccount,
+		ServiceAccount: providerConfig.Parameters.VaiJobServiceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: parameters,
 		},
@@ -451,26 +451,34 @@ func runLabelsFromRunDefinition(runDefinition RunDefinition) map[string]string {
 	return runLabels
 }
 
-func (vaip VAIProvider) EventingServer(ctx context.Context, providerConfig VAIProviderConfig) (generic.EventingServer, error) {
+func (vaip VAIProvider) EventingServer(ctx context.Context, provider string, namespace string) (generic.EventingServer, error) {
 	k8sClient, err := CreateK8sClient()
 	if err != nil {
 		return nil, err
 	}
 
-	pubSubClient, err := pubsub.NewClient(ctx, providerConfig.VaiProject)
+	config := &VAIProviderConfig{
+		Name: provider,
+	}
+
+	if err = LoadProvider[VAIProviderConfig](ctx, k8sClient, provider, namespace, config); err != nil {
+		return nil, err
+	}
+
+	pubSubClient, err := pubsub.NewClient(ctx, config.Parameters.VaiProject)
 	if err != nil {
 		return nil, err
 	}
-	runsSubscription := pubSubClient.Subscription(providerConfig.EventsourcePipelineEventsSubscription)
+	runsSubscription := pubSubClient.Subscription(config.Parameters.EventsourcePipelineEventsSubscription)
 
-	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.vaiEndpoint()))
+	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(config.vaiEndpoint()))
 	if err != nil {
 		return nil, err
 	}
 
 	return &VaiEventingServer{
 		K8sApi:            K8sApi{K8sClient: k8sClient},
-		ProviderConfig:    providerConfig,
+		ProviderConfig:    *config,
 		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,
 		Logger:            common.LoggerFromContext(ctx),

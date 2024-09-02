@@ -95,7 +95,7 @@ helm install oci://ghcr.io/kfp-operator/provider -f kfp.yaml
 
 ### Configuration
 
-The `provider` block contains provider configurations:
+The `provider` block contains provider configurations, in order to create relevant [Provider Resources](../reference/resources/provider.md).
 
 | Parameter name            | Description                                                                                                                                                 |
 |---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -120,9 +120,30 @@ provider:
 ```
 
 ## Role-based access control (RBAC) for providers {#provider-rbac}
-When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used. 
-An example configuration is provided below for reference:
+When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used.
 
+In order for Event Source Servers and the Controller to read the Providers you must configure their service accounts
+to have read permissions of Provider resources. e.g:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kfp-operator-kfp-providers-viewer-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kfp-operator-providers-viewer-role
+subjects:
+- kind: ServiceAccount
+  name: kfp-operator-kfp #Used by Event Source Server
+  namespace: kfp-operator-system
+- kind: ServiceAccount
+  name: kfp-operator-controller-manager #Used by KFP Controller
+  namespace: kfp-operator-system
+```
+
+An example configuration for Providers is also provided below for reference:
 ```yaml
 ---
 apiVersion: v1

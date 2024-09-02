@@ -16,6 +16,7 @@ spec:
     metadata:
       {{- (deepCopy $.Values.eventsourceServer.metadata | merge (dict "labels" ($labels | fromYaml))) | toYaml | nindent 6 }}
     spec:
+      serviceAccountName: {{ .Values.eventsourceServer.serviceAccount.name }}
       securityContext:
         runAsNonRoot: true
       containers:
@@ -23,8 +24,8 @@ spec:
           command:
           - /provider
           args:
-          - --provider-config
-          - /provider-config.yaml
+          - --provider
+          - {{ .Values.provider.name }}
           - eventsource-server
           - --port=50051
           image: {{ include "kfp-operator-provider.image" $ }}
@@ -36,16 +37,11 @@ spec:
           - name: grpc
             containerPort: 50051
             protocol: TCP
-          volumeMounts:
-          - mountPath: /provider-config.yaml
-            name: provider-config
-            subPath: {{ $providerName }}
-      volumes:
-      - name: provider-config
-        configMap:
-          name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-config
-      serviceAccountName: {{ .Values.provider.serviceAccount.name }}
-      terminationGracePeriodSeconds: 10
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
 ---
 apiVersion: v1
 kind: Service

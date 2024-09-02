@@ -8,15 +8,19 @@ spec:
   - name: select-provider-parameter
     inputs:
       parameters:
-      - name: parameter
+      - name: field
+      - name: provider-config
+      artifacts:
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
     script:
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - ash
       image: mikefarah/yq:4.27.5
-      source: yq e '.{{inputs.parameters.parameter}}' '/providers-config/{{workflow.parameters.provider-name}}'
+      source: yq e '.{{inputs.parameters.field}}' '/provider-config.json'
     metadata: {}
     activeDeadlineSeconds: 300
   - name: select-resource-image
@@ -39,6 +43,13 @@ spec:
       parameters:
       - name: provider-image
       - name: provider-sa
+      - name: provider-config
+      artifacts:
+      - name: provider-config
+        path: /provider-config.json
+        raw:
+          data: |
+            {{workflow.parameters.provider-config}}
     outputs:
       parameters:
       - name: provider-output
@@ -49,14 +60,11 @@ spec:
     activeDeadlineSeconds: 300
     container:
       image: "{{inputs.parameters.provider-image}}"
-      volumeMounts:
-      - name: providers-config
-        mountPath: /providers-config
       command:
       - /provider
       args:
-      - --provider-config
-      - /providers-config/{{workflow.parameters.provider-name}}
+      - --provider
+      - /provider-config.json
       - '{{workflow.parameters.resource-kind}}'
       - delete
       - --{{workflow.parameters.resource-kind}}-id
@@ -70,14 +78,11 @@ metadata:
   name: delete
   namespace: kfp-operator-system
 spec:
-  volumes:
-  - name: providers-config
-    configMap:
-      name: kfp-operator-providers
   ttlStrategy:
     secondsAfterCompletion: 3600
   arguments:
     parameters:
+    - name: provider-config
     - name: provider-name
     - name: resource-kind
     - name: resource-id
@@ -97,16 +102,20 @@ spec:
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: image
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: select-provider-sa
         templateRef:
           name: kfp-operator-common-steps
           template: select-provider-parameter
         arguments:
           parameters:
-          - name: parameter
+          - name: field
             value: serviceAccount
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'
     - - name: provider
         templateRef:
           name: kfp-operator-common-steps
@@ -117,3 +126,5 @@ spec:
             value: '{{steps.select-provider-image.outputs.result}}'
           - name: provider-sa
             value: '{{steps.select-provider-sa.outputs.result}}'
+          - name: provider-config
+            value: '{{workflow.parameters.provider-config}}'

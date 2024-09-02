@@ -12,12 +12,25 @@ namespace:
 kfpOperator:
   fullname: kfp-operator
 
-provider: {}
+provider:
+  name: kfp
+  type: kfp
+  executionMode: v1
+  serviceAccount:
+    name: kfp-operator-kfp
+    create: true
+  configuration:
+    kfpNamespace: kubeflow
+    restKfpApiUrl: http://ml-pipeline.kubeflow:8888
+    grpcMetadataStoreAddress: metadata-grpc-service.kubeflow-pipelines:8080
+    grpcKfpApiAddress: ml-pipeline.kubeflow-pipelines:8887
 
 logging:
   verbosity: # info
 
 eventsourceServer:
+  serviceAccount:
+    name: kfp-operator-kfp
   create: false
   metadata: {}
   port: 8080

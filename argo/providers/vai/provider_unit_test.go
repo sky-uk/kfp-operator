@@ -36,10 +36,12 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 
 func randomVAIProviderConfig() VAIProviderConfig {
 	return VAIProviderConfig{
-		PipelineBucket:        common.RandomString(),
-		VaiProject:            common.RandomString(),
-		VaiLocation:           common.RandomString(),
-		MaxConcurrentRunCount: common.RandomInt64(),
+		Parameters: Parameters{
+			PipelineBucket:        common.RandomString(),
+			VaiProject:            common.RandomString(),
+			VaiLocation:           common.RandomString(),
+			MaxConcurrentRunCount: common.RandomInt64(),
+		},
 	}
 }
 

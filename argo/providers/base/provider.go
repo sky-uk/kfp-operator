@@ -67,5 +67,5 @@ type Provider[Config any] interface {
 	UpdateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition, id string) (string, error)
 	DeleteExperiment(ctx context.Context, providerConfig Config, id string) error
 
-	EventingServer(ctx context.Context, providerConfig Config) (generic.EventingServer, error)
+	EventingServer(ctx context.Context, provider string, namespace string) (generic.EventingServer, error)
 }

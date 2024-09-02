@@ -2,6 +2,7 @@ package base
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
@@ -9,6 +10,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	k8runtime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
@@ -16,6 +18,33 @@ import (
 
 var RunGVR = pipelinesv1.GroupVersion.WithResource("runs")
 var RunConfigurationGVR = pipelinesv1.GroupVersion.WithResource("runconfigurations")
+var ProviderGVR = pipelinesv1.GroupVersion.WithResource("providers")
+
+func LoadProvider[Config any](ctx context.Context, k8sClient dynamic.Interface, provider string, namespace string, config *Config) error {
+	providerConfig, err := k8sClient.Resource(ProviderGVR).Namespace(namespace).Get(ctx, provider, metav1.GetOptions{}, "")
+	if err != nil {
+		return err
+	}
+
+	providerCR := pipelinesv1.Provider{}
+
+	if err = k8runtime.DefaultUnstructuredConverter.FromUnstructured(providerConfig.UnstructuredContent(), &providerCR); err != nil {
+		return err
+	}
+
+	spec := providerCR.Spec
+
+	specMarshalled, err := json.Marshal(spec)
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(specMarshalled, &config); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func artifactNamePathAsString(unstructuredArtifact map[string]interface{}) (string, string, error) {
 	nameStr, ok := unstructuredArtifact["name"].(string)
