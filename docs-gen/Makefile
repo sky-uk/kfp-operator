@@ -11,7 +11,7 @@ quickstart:
 	$(MAKE) -C includes/quickstart docker-build
 
 clean:
-	rm -rf ../docs/
+	find ../docs ! -name '.nojekyll' -delete
 
 serve:
 	hugo server -b http://localhost:1313/
