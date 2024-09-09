@@ -51,6 +51,9 @@ manager:
 
 statusFeedback:
   enabled: false
+  webhook:
+    endpoint: '/'
+    port: 12000
 
 logging:
   verbosity: # info

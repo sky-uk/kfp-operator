@@ -2,16 +2,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: event-source-webhook
+  name: {{ include "kfp-operator.fullname" . }}-event-source-webhook
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   service:
     ports:
-      - port: 12000
-        targetPort: 12000
+      - port: {{ .Values.statusFeedback.webhook.port }}
+        targetPort: {{ .Values.statusFeedback.webhook.port }}
   webhook:
     run-completion-event-source:
-      port: "12000"
-      endpoint: /
+      port: "{{ .Values.statusFeedback.webhook.port }}"
+      endpoint: "{{ .Values.statusFeedback.webhook.endpoint }}"
       method: POST
 {{- end -}}

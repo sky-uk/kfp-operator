@@ -7,7 +7,7 @@ metadata:
 spec:
   dependencies:
     - name: events
-      eventSourceName: event-source-webhook
+      eventSourceName: {{ include "kfp-operator.fullname" . }}-event-source-webhook
       eventName: run-completion-event-source
   triggers:
     - template:
