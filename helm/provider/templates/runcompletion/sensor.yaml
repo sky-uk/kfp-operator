@@ -14,7 +14,8 @@ spec:
   triggers:
     - template:
         name: "publish"
-        nats:
+        http:
+          url: http://{{ .Values.kfpOperator.fullname}}-events-webhook-eventsource-svc:{{ .Values.statusFeedback.webhook.port }}{{ .Values.statusFeedback.webhook.endpoint }}
           payload:
             - dest: specversion
               src:
@@ -41,5 +42,4 @@ spec:
                 useRawData: true
                 dataKey: body
                 dependencyName: events
-          subject: events
-          url: eventbus-{{ .Values.kfpOperator.fullname }}-events-stan-svc:4222
+          method: POST

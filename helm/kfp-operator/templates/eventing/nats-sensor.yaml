@@ -1,0 +1,49 @@
+{{- if .Values.statusFeedback.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-publish-events-to-nats
+  namespace: {{ include "kfp-operator.argoNamespace" . }}
+spec:
+  dependencies:
+    - name: events
+      eventSourceName: {{ include "kfp-operator.fullname" . }}-events-webhook
+      eventName: run-completion-event-source
+  triggers:
+    - template:
+        name: "publish"
+        nats:
+          payload:
+          - dest: specversion
+            src:
+              useRawData: true
+              dataKey: body.specversion
+              dependencyName: events
+          - dest: id
+            src:
+              useRawData: true
+              dataKey: body.id
+              dependencyName: events
+          - dest: source
+            src:
+              useRawData: true
+              dataKey: body.source
+              dependencyName: events
+          - dest: type
+            src:
+              useRawData: true
+              dataKey: body.type
+              dependencyName: events
+          - dest: datacontenttype
+            src:
+              useRawData: true
+              dataKey: body.datacontenttype
+              dependencyName: events
+          - dest: data
+            src:
+              useRawData: true
+              dataKey: body.data
+              dependencyName: events
+          subject: events
+          url: eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc:4222
+{{- end -}}

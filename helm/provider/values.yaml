@@ -41,3 +41,8 @@ eventsourceServer:
     requests:
       cpu: 100m
       memory: 200Mi
+
+statusFeedback:
+  webhook:
+    port: 12000
+    endpoint: '/'
