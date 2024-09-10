@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: {{ include "kfp-operator.fullname" . }}-event-source-webhook
+  name: {{ include "kfp-operator.fullname" . }}-events-webhook
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   service:

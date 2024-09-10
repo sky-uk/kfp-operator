@@ -15,7 +15,7 @@ spec:
     - template:
         name: "publish"
         http:
-          url: http://{{ .Values.kfpOperator.fullname}}-event-source-webhook-eventsource-svc:{{ .Values.statusFeedback.webhook.port }}{{ .Values.statusFeedback.webhook.endpoint }}
+          url: http://{{ .Values.kfpOperator.fullname}}-events-webhook-eventsource-svc:{{ .Values.statusFeedback.webhook.port }}{{ .Values.statusFeedback.webhook.endpoint }}
           payload:
             - dest: specversion
               src:
