@@ -109,6 +109,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 	})
 
 	if err != nil {
+		es.Logger.Error(err, "failed to read from pubsub")
 		return err
 	}
 
