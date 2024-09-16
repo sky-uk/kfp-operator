@@ -1,19 +1,4 @@
 {{- $providerName := .Values.provider.name }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "kfp-operator-provider.resource-prefix" . }}-{{ $providerName }}-config
-  namespace: {{ include "kfp-operator-provider.namespace" . }}
-data:
-  {{ $providerName }}: |
-    name: {{ $providerName }}
-    image: {{ include "kfp-operator-provider.image" $ }}
-    executionMode: {{ .Values.provider.executionMode }}
-    serviceAccount: {{ .Values.provider.serviceAccount.name }}
-    {{- if not (empty .Values.provider.configuration) -}}
-    {{- .Values.provider.configuration | toYaml | nindent 4 }}
-    {{- end }}
----
 apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: Provider
 metadata:

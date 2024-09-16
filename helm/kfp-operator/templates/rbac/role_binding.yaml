@@ -11,4 +11,18 @@ subjects:
 - kind: ServiceAccount
   name: {{ .Values.manager.serviceAccount.name }}
   namespace: {{ .Values.namespace.name }}
+---
+# This is temporary until provider controller is created, once it is permissions will be in roles.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-manager-providers-viewer-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "kfp-operator.fullname" . }}-providers-viewer-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.manager.serviceAccount.name }}
+    namespace: {{ .Values.namespace.name }}
 {{- end -}}
