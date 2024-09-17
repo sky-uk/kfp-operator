@@ -19,6 +19,18 @@ type Configuration struct {
 	RunCompletionTTL *metav1.Duration `json:"runCompletionTTL,omitempty"`
 }
 
+type Endpoint struct {
+	Host string `json:"host,omitempty"`
+	Port int    `json:"port,omitempty"`
+	Path string `json:"path,omitempty"`
+}
+
+type ServiceConfiguration struct {
+	Host      string     `json:"host,omitempty"`
+	Port      int        `json:"port,omitempty"`
+	Endpoints []Endpoint `json:"endpoints,omitempty"`
+}
+
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:storageversion
@@ -26,7 +38,14 @@ type Configuration struct {
 type KfpControllerConfig struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Workflows         Configuration `json:"spec,omitempty"`
+	Workflows         Configuration        `json:"spec,omitempty"`
+	RunCompletionFeed ServiceConfiguration `json:"runCompletionFeed,omitempty"`
+	// TODO new provider event feed (name to be thought of) config here
+	// new version? - Jonas says no new version needed :)
+	/* Config required
+	 * service hostname and port
+	 * list of endpoints to call
+	 */
 
 	cfg.ControllerManagerConfigurationSpec `json:"controller,omitempty"`
 }

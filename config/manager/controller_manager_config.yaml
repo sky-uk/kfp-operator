@@ -14,3 +14,7 @@ spec:
   multiversion: true
   workflowNamespace: kfp-operator-system
   workflowTemplatePrefix: kfp-operator-
+runCompletionFeed:
+  host: localhost
+  port: 8082
+  endpoints: []

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-runcompletion-webhook-service
+  namespace: {{ .Values.namespace.name }}
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: {{ .Values.manager.runcompletionWebhook.servicePort }}
+  selector:
+    control-plane: controller-manager

@@ -160,6 +160,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	// TODO Here we will actually start the new http "webhook" service
+	// RunCompletionFeed maybe.
+	// ProviderWebhookEventThing.start()
+
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

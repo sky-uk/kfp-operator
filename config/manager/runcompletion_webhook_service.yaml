@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: runcompletion-webhook-service
+  namespace: kfp-operator-system
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8082
+  selector:
+    control-plane: controller-manager

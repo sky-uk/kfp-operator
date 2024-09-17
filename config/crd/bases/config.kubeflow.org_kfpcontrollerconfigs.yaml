@@ -746,6 +746,24 @@ spec:
             type: string
           metadata:
             type: object
+          runCompletionFeed:
+            properties:
+              endpoints:
+                items:
+                  properties:
+                    host:
+                      type: string
+                    path:
+                      type: string
+                    port:
+                      type: integer
+                  type: object
+                type: array
+              host:
+                type: string
+              port:
+                type: integer
+            type: object
           spec:
             properties:
               defaultExperiment:

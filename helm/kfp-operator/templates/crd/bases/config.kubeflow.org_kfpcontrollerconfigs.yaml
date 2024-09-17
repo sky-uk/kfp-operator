@@ -500,13 +500,13 @@ spec:
                       This is only applicable if leader election is enabled.
                     type: string
                 required:
-                  - leaderElect
-                  - leaseDuration
-                  - renewDeadline
-                  - resourceLock
-                  - resourceName
-                  - resourceNamespace
-                  - retryPeriod
+                - leaderElect
+                - leaseDuration
+                - renewDeadline
+                - resourceLock
+                - resourceName
+                - resourceNamespace
+                - retryPeriod
                 type: object
               metrics:
                 description: Metrics contains thw controller metrics configuration
@@ -563,8 +563,8 @@ spec:
                     value:
                       type: string
                   required:
-                    - name
-                    - value
+                  - name
+                  - value
                   type: object
                 type: array
               defaultExperiment:
@@ -746,6 +746,24 @@ spec:
               submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
             type: string
           metadata:
+            type: object
+          runCompletionFeed:
+            properties:
+              endpoints:
+                items:
+                  properties:
+                    host:
+                      type: string
+                    path:
+                      type: string
+                    port:
+                      type: integer
+                  type: object
+                type: array
+              host:
+                type: string
+              port:
+                type: integer
             type: object
           spec:
             properties:
