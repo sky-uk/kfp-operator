@@ -45,6 +45,18 @@ func RandomList[T any](gen func() T) []T {
 	return rList
 }
 
+func RandomNonEmptyList[T any](gen func() T) []T {
+	size := rand.Intn(5) + 1
+
+	rList := make([]T, size)
+
+	for i := 0; i < size; i++ {
+		rList[i] = gen()
+	}
+
+	return rList
+}
+
 func RandomNamedValue() NamedValue {
 	return NamedValue{Name: RandomString(), Value: RandomString()}
 }
