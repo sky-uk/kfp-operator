@@ -2,10 +2,7 @@
 
 package common
 
-import (
-	"github.com/sky-uk/kfp-operator/apis"
-	"k8s.io/apimachinery/pkg/util/rand"
-)
+import "k8s.io/apimachinery/pkg/util/rand"
 
 func RandomString() string {
 	return rand.String(5)
@@ -36,19 +33,4 @@ func RandomNamespacedName() NamespacedName {
 
 func UnsafeValue[T any](t T, _ error) T {
 	return t
-}
-
-func RandomRunCompletionEvent() RunCompletionEvent {
-	runName := RandomNamespacedName()
-	runConfigurationName := RandomNamespacedName()
-
-	return RunCompletionEvent{
-		Status:                RunCompletionStatus(RandomString()),
-		Provider:              RandomString(),
-		PipelineName:          RandomNamespacedName(),
-		RunName:               &runName,
-		RunConfigurationName:  &runConfigurationName,
-		RunId:                 RandomString(),
-		ServingModelArtifacts: apis.RandomNonEmptyList(RandomArtifact),
-	}
 }

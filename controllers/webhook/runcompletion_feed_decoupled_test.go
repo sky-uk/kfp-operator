@@ -5,6 +5,7 @@ package webhook
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
@@ -16,6 +17,10 @@ import (
 
 var counter = 0
 
+var _ = BeforeEach(func() {
+	counter = 0
+})
+
 type MockUpstreamService struct {
 	expectedBody string
 }
@@ -25,7 +30,9 @@ func (m MockUpstreamService) call(_ context.Context, ed EventData) error {
 	passedBodyBytes, err := ed.Body.MarshalJSON()
 	Expect(err).NotTo(HaveOccurred())
 	passedBodyStr := string(passedBodyBytes)
-	if passedBodyStr != m.expectedBody {
+	if m.expectedBody == "error" {
+		return errors.New("upstream service error")
+	} else if passedBodyStr != m.expectedBody {
 		Fail(fmt.Sprintf("Body passed to upstream service does not match expected body, passed - [%s], expected - [%s]", passedBodyStr, m.expectedBody))
 	}
 	return nil
@@ -91,6 +98,24 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 			noUpstreams.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusMethodNotAllowed))
+		})
+	})
+
+	When("a upstream returns an error", func() {
+		It("returns internal server error", func() {
+			upstreams := []UpstreamService{MockUpstreamService{expectedBody: "error"}, MockUpstreamService{expectedBody: bodyStr}}
+			withErrorUpstream := RunCompletionFeed{
+				ctx:       ctx,
+				upstreams: upstreams,
+			}
+
+			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader([]byte(bodyStr)), "application/json")
+
+			withErrorUpstream.handleEvent(resp, req)
+
+			Expect(resp.Code).To(Equal(http.StatusInternalServerError))
+			Expect(resp.Body.String()).To(Equal("upstream service error\n"))
+			Expect(counter).To(Equal(1))
 		})
 	})
 })

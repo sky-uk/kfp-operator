@@ -28,7 +28,7 @@ type RunCompletionFeed struct {
 func NewRunCompletionFeed(ctx context.Context, endpoints []config.Endpoint) RunCompletionFeed {
 	upstreams := pipelines.Map(endpoints, func(endpoint config.Endpoint) UpstreamService {
 		return HttpWebhook{
-			Endpoint: endpoint,
+			Upstream: endpoint,
 		}
 	})
 	return RunCompletionFeed{
@@ -79,7 +79,12 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			return
 		} else {
 			for _, upstream := range rcf.upstreams {
-				upstream.call(rcf.ctx, *eventData)
+				err := upstream.call(rcf.ctx, *eventData)
+				if err != nil {
+					// upstream call failed
+					http.Error(response, err.Error(), http.StatusInternalServerError)
+					return
+				}
 			}
 			return
 		}

@@ -51,7 +51,10 @@ manager:
   webhookServicePort: 9443
   runcompletionWebhook:
     servicePort: 8082
-    endpoints: []
+    endpoints:
+      - path:
+        port
+        host
 
 statusFeedback:
   enabled: false

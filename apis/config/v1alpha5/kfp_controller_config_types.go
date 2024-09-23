@@ -1,6 +1,7 @@
 package v1alpha5
 
 import (
+	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	cfg "sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
 )
@@ -25,6 +26,10 @@ type Endpoint struct {
 	Path string `json:"path,omitempty"`
 }
 
+func (e Endpoint) URL() string {
+	return fmt.Sprintf("http://%s:%d/%s", e.Host, e.Port, e.Path)
+}
+
 type ServiceConfiguration struct {
 	Host      string     `json:"host,omitempty"`
 	Port      int        `json:"port,omitempty"`
@@ -36,17 +41,10 @@ type ServiceConfiguration struct {
 //+kubebuilder:storageversion
 
 type KfpControllerConfig struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Workflows         Configuration        `json:"spec,omitempty"`
-	RunCompletionFeed ServiceConfiguration `json:"runCompletionFeed,omitempty"`
-	// TODO new provider event feed (name to be thought of) config here
-	// new version? - Jonas says no new version needed :)
-	/* Config required
-	 * service hostname and port
-	 * list of endpoints to call
-	 */
-
+	metav1.TypeMeta                        `json:",inline"`
+	metav1.ObjectMeta                      `json:"metadata,omitempty"`
+	Workflows                              Configuration        `json:"spec,omitempty"`
+	RunCompletionFeed                      ServiceConfiguration `json:"runCompletionFeed,omitempty"`
 	cfg.ControllerManagerConfigurationSpec `json:"controller,omitempty"`
 }
 
