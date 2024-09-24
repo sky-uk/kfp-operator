@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/sky-uk/kfp-operator/controllers/webhook"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -160,10 +161,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO Here we will actually start the new http "webhook" service
-	// RunCompletionFeed maybe.
-	// ProviderWebhookEventThing.start()
-
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
@@ -175,9 +172,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx := ctrl.SetupSignalHandler()
+
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+	if err := mgr.Start(ctx); err != nil {
+		setupLog.Error(err, "problem starting manager")
 		os.Exit(1)
 	}
+
+	setupLog.Info("starting run completion feed")
+	rcf := webhook.NewRunCompletionFeed(ctx, ctrlConfig.RunCompletionFeed.Endpoints)
+	err = rcf.Start(ctrlConfig.RunCompletionFeed.Host, ctrlConfig.RunCompletionFeed.Port)
+	if err != nil {
+		setupLog.Error(err, "problem starting run completion feed")
+		os.Exit(1)
+	}
+
 }

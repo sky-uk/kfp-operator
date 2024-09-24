@@ -93,8 +93,8 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 	}
 }
 
-func (rcf RunCompletionFeed) start() error {
+func (rcf RunCompletionFeed) Start(host string, port int) error {
 	http.HandleFunc("/events", rcf.handleEvent)
 
-	return http.ListenAndServe(":8080", nil)
+	return http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), nil)
 }

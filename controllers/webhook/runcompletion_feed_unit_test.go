@@ -16,7 +16,7 @@ import (
 var _ = Context("getRequestBody", func() {
 	var logger, _ = common.NewLogger(zapcore.DebugLevel)
 	var ctx = logr.NewContext(context.Background(), logger)
-	
+
 	When("valid request", func() {
 		It("returns request body contents", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("hello world")))
