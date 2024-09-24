@@ -174,18 +174,19 @@ func main() {
 
 	ctx := ctrl.SetupSignalHandler()
 
+	setupLog.Info("starting run completion feed")
+	rcf := webhook.NewRunCompletionFeed(ctx, ctrlConfig.RunCompletionFeed.Endpoints)
+	go func() {
+		err = rcf.Start(ctrlConfig.RunCompletionFeed.Host, ctrlConfig.RunCompletionFeed.Port)
+		if err != nil {
+			setupLog.Error(err, "problem starting run completion feed")
+			os.Exit(1)
+		}
+	}()
+
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem starting manager")
 		os.Exit(1)
 	}
-
-	setupLog.Info("starting run completion feed")
-	rcf := webhook.NewRunCompletionFeed(ctx, ctrlConfig.RunCompletionFeed.Endpoints)
-	err = rcf.Start(ctrlConfig.RunCompletionFeed.Host, ctrlConfig.RunCompletionFeed.Port)
-	if err != nil {
-		setupLog.Error(err, "problem starting run completion feed")
-		os.Exit(1)
-	}
-
 }
