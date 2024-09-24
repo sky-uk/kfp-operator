@@ -177,7 +177,7 @@ func main() {
 	setupLog.Info("starting run completion feed")
 	rcf := webhook.NewRunCompletionFeed(ctx, ctrlConfig.RunCompletionFeed.Endpoints)
 	go func() {
-		err = rcf.Start(ctrlConfig.RunCompletionFeed.Host, ctrlConfig.RunCompletionFeed.Port)
+		err = rcf.Start(ctrlConfig.RunCompletionFeed.Port)
 		if err != nil {
 			setupLog.Error(err, "problem starting run completion feed")
 			os.Exit(1)
