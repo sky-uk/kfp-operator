@@ -760,8 +760,6 @@ spec:
                       type: integer
                   type: object
                 type: array
-              host:
-                type: string
               port:
                 type: integer
             type: object

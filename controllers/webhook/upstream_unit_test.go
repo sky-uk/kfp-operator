@@ -46,7 +46,7 @@ func withHttpWebhook(httpResponseCode int, expectedHeaders http.Header, expected
 		underTest := HttpWebhook{Upstream: config.Endpoint{
 			Host: testHost,
 			Port: testPort,
-			Path: "test-path",
+			Path: "/test-path",
 		}, Client: client}
 
 		f(underTest)
