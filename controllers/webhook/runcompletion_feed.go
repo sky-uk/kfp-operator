@@ -41,11 +41,10 @@ func getRequestBody(request *http.Request) ([]byte, error) {
 	}
 	body, err := io.ReadAll(request.Body)
 	request.Body = io.NopCloser(bytes.NewBuffer(body))
-	if err != nil || len(body) == 0 {
-		if err == nil {
-			err = errors.New("request body is empty")
-		}
+	if err != nil {
 		return nil, fmt.Errorf("failed to read request body, %w", err)
+	} else if len(body) == 0 {
+		return nil, errors.New("request body is empty")
 	}
 	return body, nil
 }
@@ -67,12 +66,13 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 	switch request.Method {
 	case http.MethodPost:
 		if request.Header.Get("Content-Type") != "application/json" {
+			logger.Error(errors.New("RunCompletionFeed call failed"), "invalid Content-Type [%s], want `application/json`", request.Header.Get("Content-Type"))
 			http.Error(response, "invalid Content-Type, want `application/json`", http.StatusUnsupportedMediaType)
 			return
 		}
 		eventData, err := extractEventData(request)
 		if err != nil || eventData == nil {
-			logger.Error(err, "Failed to extract run completion event")
+			logger.Error(err, "Failed to extract body from request")
 			http.Error(response, err.Error(), http.StatusBadRequest)
 			return
 		} else {
@@ -80,6 +80,7 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 				err := upstream.call(rcf.ctx, *eventData)
 				if err != nil {
 					// upstream call failed
+					logger.Error(err, "Call to upstream failed")
 					http.Error(response, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -87,6 +88,7 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			return
 		}
 	default:
+		logger.Error(errors.New("RunCompletionFeed call failed"), "Invalid http method used [%s], only POST supported", request.Method)
 		http.Error(response, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }

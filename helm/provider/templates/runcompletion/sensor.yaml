@@ -15,7 +15,10 @@ spec:
     - template:
         name: "publish"
         http:
-          url: http://{{ .Values.kfpOperator.fullname}}-events-webhook-eventsource-svc:{{ .Values.statusFeedback.webhook.port }}{{ .Values.statusFeedback.webhook.endpoint }}
+          method: POST
+          url: http://{{ .Values.kfpOperator.fullname}}-runcompletion-webhook-service/events
+          headers:
+            Content-Type: application/json
           payload:
             - dest: specversion
               src:
@@ -42,4 +45,3 @@ spec:
                 useRawData: true
                 dataKey: body
                 dependencyName: events
-          method: POST

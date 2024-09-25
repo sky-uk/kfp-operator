@@ -30,7 +30,7 @@ var _ = Context("getRequestBody", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))
 			Expect(err).NotTo(HaveOccurred())
 			_, err = getRequestBody(req)
-			Expect(err.Error()).To(Equal("failed to read request body, request body is empty"))
+			Expect(err.Error()).To(Equal("request body is empty"))
 		})
 
 		It("is nil returns an error", func() {
@@ -63,7 +63,7 @@ var _ = Context("extractEventData", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))
 			Expect(err).NotTo(HaveOccurred())
 			_, err = extractEventData(req)
-			Expect(err.Error()).To(Equal("failed to read request body, request body is empty"))
+			Expect(err.Error()).To(Equal("request body is empty"))
 		})
 	})
 })
