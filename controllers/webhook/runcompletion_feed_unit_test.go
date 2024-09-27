@@ -21,7 +21,7 @@ var _ = Context("getRequestBody", func() {
 		It("returns request body contents", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("hello world")))
 			Expect(err).NotTo(HaveOccurred())
-			Expect(getRequestBody(req)).To(Equal([]byte("hello world")))
+			Expect(getRequestBody(ctx, req)).To(Equal([]byte("hello world")))
 		})
 	})
 
@@ -29,14 +29,14 @@ var _ = Context("getRequestBody", func() {
 		It("is empty returns an error", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))
 			Expect(err).NotTo(HaveOccurred())
-			_, err = getRequestBody(req)
+			_, err = getRequestBody(ctx, req)
 			Expect(err.Error()).To(Equal("request body is empty"))
 		})
 
 		It("is nil returns an error", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", nil)
 			Expect(err).NotTo(HaveOccurred())
-			_, err = getRequestBody(req)
+			_, err = getRequestBody(ctx, req)
 			Expect(err.Error()).To(Equal("request body is nil"))
 		})
 	})
@@ -51,7 +51,7 @@ var _ = Context("extractEventData", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("hello world")))
 			req.Header.Add("hello", "world")
 			Expect(err).NotTo(HaveOccurred())
-			eventData, err := extractEventData(req)
+			eventData, err := extractEventData(ctx, req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(eventData.Body.MarshalJSON()).To(Equal([]byte("hello world")))
 			Expect(eventData.Header.Get("hello")).To(Equal("world"))
@@ -62,7 +62,7 @@ var _ = Context("extractEventData", func() {
 		It("returns an error", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))
 			Expect(err).NotTo(HaveOccurred())
-			_, err = extractEventData(req)
+			_, err = extractEventData(ctx, req)
 			Expect(err.Error()).To(Equal("request body is empty"))
 		})
 	})

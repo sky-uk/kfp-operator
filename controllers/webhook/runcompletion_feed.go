@@ -35,10 +35,21 @@ func NewRunCompletionFeed(ctx context.Context, endpoints []config.Endpoint) RunC
 	}
 }
 
-func getRequestBody(request *http.Request) ([]byte, error) {
+func getRequestBody(ctx context.Context, request *http.Request) ([]byte, error) {
+	logger := log.FromContext(ctx)
+
 	if request.Body == nil {
 		return nil, errors.New("request body is nil")
 	}
+
+	// Ensure that the response body is closed after reading
+	defer func(body io.ReadCloser) {
+		err := body.Close()
+		if err != nil {
+			logger.Error(err, "Failed to close body")
+		}
+	}(request.Body)
+
 	body, err := io.ReadAll(request.Body)
 	request.Body = io.NopCloser(bytes.NewBuffer(body))
 	if err != nil {
@@ -49,8 +60,8 @@ func getRequestBody(request *http.Request) ([]byte, error) {
 	return body, nil
 }
 
-func extractEventData(request *http.Request) (*EventData, error) {
-	body, err := getRequestBody(request)
+func extractEventData(ctx context.Context, request *http.Request) (*EventData, error) {
+	body, err := getRequestBody(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +81,7 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			http.Error(response, "invalid Content-Type, want `application/json`", http.StatusUnsupportedMediaType)
 			return
 		}
-		eventData, err := extractEventData(request)
+		eventData, err := extractEventData(rcf.ctx, request)
 		if err != nil || eventData == nil {
 			logger.Error(err, "Failed to extract body from request")
 			http.Error(response, err.Error(), http.StatusBadRequest)
