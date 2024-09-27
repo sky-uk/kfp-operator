@@ -34,9 +34,36 @@
 &lt;td>Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
 &lt;td>&lt;code>10m&lt;/code>&lt;/td>
 &lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>runCompletionFeed&lt;/code>&lt;/td>
+&lt;td>Configuration of the service for the run completion feed back to KFP Operator&lt;/td>
+&lt;td>See &lt;a href="#run-completion-feed-configuration">here&lt;/a>&lt;/td>
+&lt;/tr>
 &lt;/tbody>
 &lt;/table>
 &lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
+&lt;h2 id="run-completion-feed-configuration">Run Completion Feed Configuration&lt;/h2>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;th>Example&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>runCompletionFeed.port&lt;/code>&lt;/td>
+&lt;td>The port that the feed endpoint will listen on&lt;/td>
+&lt;td>&lt;code>8082&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>runCompletionFeed.endpoints&lt;/code>&lt;/td>
+&lt;td>Array of upstream endpoints that should be called per feed message&lt;/td>
+&lt;td>&lt;code>- host: upstream-service&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
 &lt;h2 id="provider-configurations">Provider Configurations&lt;/h2>
 &lt;p>The provider configurations are specific to the implementation, these configuration are applied via &lt;a href="../resources/provider">Provider Custom Resource&lt;/a>.&lt;/p>
 &lt;h3 id="kubeflow-pipelines">Kubeflow Pipelines&lt;/h3>
@@ -636,12 +663,8 @@ In this example we are updating a serving component with the location of the new
 &lt;td>CA bundle of the certificate authority that has signed the webhook&amp;rsquo;s certificate, required if the &lt;code>custom&lt;/code> provider is chosen&lt;/td>
 &lt;/tr>
 &lt;tr>
-&lt;td>&lt;code>manager.provider.type&lt;/code>&lt;/td>
-&lt;td>Provider type (&lt;code>kfp&lt;/code> for Kubeflow Pipelines or &lt;code>vai&lt;/code> for Vertex AI Pipelines)&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>manager.provider.configuration&lt;/code>&lt;/td>
-&lt;td>Configuration block for the specific provider (see &lt;a href="../../reference/configuration#provider-configuration">Provider Configuration&lt;/a>), automatically mounted as a file&lt;/td>
+&lt;td>&lt;code>manager.runcompletionWebhook.endpoints&lt;/code>&lt;/td>
+&lt;td>Array of endpoint for the upstreams to be called when a run completion event is passed&lt;/td>
 &lt;/tr>
 &lt;tr>
 &lt;td>&lt;code>logging.verbosity&lt;/code>&lt;/td>

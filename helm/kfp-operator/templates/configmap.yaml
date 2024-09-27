@@ -23,4 +23,4 @@ data:
       {{- include "kfp-operator.configuration" . | nindent 6 }}
       runCompletionFeed:
         port: {{ .Values.manager.runcompletionWebhook.servicePort }}
-        endpoints: {{- if gt (len .Values.manager.runcompletionWebhook.endpoints) 0 }}{{- .Values.manager.runcompletionWebhook.endpoints | toYaml | nindent 6 }}{{ else }} []{{ end }}
+        endpoints: {{- if gt (len .Values.manager.runcompletionWebhook.endpoints) 0 }}{{- .Values.manager.runcompletionWebhook.endpoints | toYaml | nindent 8 }}{{ else }} []{{ end }}
