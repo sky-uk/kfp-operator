@@ -8,7 +8,7 @@ import (
 )
 
 type PipelineDefinitionCreator struct {
-	Config config.Configuration
+	Config config.KfpControllerConfigSpec
 }
 
 func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pipeline) (providers.PipelineDefinition, error) {
@@ -22,7 +22,7 @@ func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pi
 	}, nil
 }
 
-func PipelineWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
+func PipelineWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
 	return &ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
 		DefinitionCreator: PipelineDefinitionCreator{
 			Config: config,

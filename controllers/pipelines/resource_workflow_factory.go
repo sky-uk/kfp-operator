@@ -49,15 +49,15 @@ type TemplateNameGenerator interface {
 }
 
 type SuffixedTemplateNameGenerator struct {
-	config config.Configuration
+	config config.KfpControllerConfigSpec
 	suffix string
 }
 
-func CompiledTemplateNameGenerator(config config.Configuration) TemplateNameGenerator {
+func CompiledTemplateNameGenerator(config config.KfpControllerConfigSpec) TemplateNameGenerator {
 	return SuffixedTemplateNameGenerator{config: config, suffix: "compiled"}
 }
 
-func SimpleTemplateNameGenerator(config config.Configuration) TemplateNameGenerator {
+func SimpleTemplateNameGenerator(config config.KfpControllerConfigSpec) TemplateNameGenerator {
 	return SuffixedTemplateNameGenerator{config: config, suffix: "simple"}
 }
 
@@ -74,7 +74,7 @@ func (ctng SuffixedTemplateNameGenerator) DeleteTemplate() string {
 }
 
 type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] struct {
-	Config                config.Configuration
+	Config                config.KfpControllerConfigSpec
 	TemplateNameGenerator TemplateNameGenerator
 	DefinitionCreator     func(R) (ResourceDefinition, error)
 }

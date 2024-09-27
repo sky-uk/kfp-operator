@@ -746,22 +746,6 @@ spec:
             type: string
           metadata:
             type: object
-          runCompletionFeed:
-            properties:
-              endpoints:
-                items:
-                  properties:
-                    host:
-                      type: string
-                    path:
-                      type: string
-                    port:
-                      type: integer
-                  type: object
-                type: array
-              port:
-                type: integer
-            type: object
           spec:
             properties:
               defaultExperiment:
@@ -770,6 +754,22 @@ spec:
                 type: string
               multiversion:
                 type: boolean
+              runCompletionFeed:
+                properties:
+                  endpoints:
+                    items:
+                      properties:
+                        host:
+                          type: string
+                        path:
+                          type: string
+                        port:
+                          type: integer
+                      type: object
+                    type: array
+                  port:
+                    type: integer
+                type: object
               runCompletionTTL:
                 type: string
               workflowNamespace:

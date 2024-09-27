@@ -86,7 +86,7 @@ var _ = BeforeSuite(func() {
 
 	ctx = context.Background()
 
-	testConfig = config.Configuration{
+	testConfig = config.KfpControllerConfigSpec{
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
 		DefaultProvider:   apis.RandomLowercaseString(),

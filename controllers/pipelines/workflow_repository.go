@@ -27,7 +27,7 @@ type WorkflowRepository interface {
 
 type WorkflowRepositoryImpl struct {
 	Client controllers.OptInClient
-	Config config.Configuration
+	Config config.KfpControllerConfigSpec
 	Scheme *runtime.Scheme
 }
 

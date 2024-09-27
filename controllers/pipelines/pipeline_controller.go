@@ -22,7 +22,7 @@ type PipelineReconciler struct {
 	ResourceReconciler[*pipelinesv1.Pipeline]
 }
 
-func NewPipelineReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.Configuration) *PipelineReconciler {
+func NewPipelineReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.KfpControllerConfigSpec) *PipelineReconciler {
 	return &PipelineReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Pipeline]{
 			WorkflowRepository: workflowRepository,

@@ -15,10 +15,10 @@ import (
 	"net/http/httptest"
 )
 
-var counter = 0
+var mockUpstreamServiceCallCounter = 0
 
 var _ = BeforeEach(func() {
-	counter = 0
+	mockUpstreamServiceCallCounter = 0
 })
 
 type MockUpstreamService struct {
@@ -26,7 +26,7 @@ type MockUpstreamService struct {
 }
 
 func (m MockUpstreamService) call(_ context.Context, ed EventData) error {
-	counter++
+	mockUpstreamServiceCallCounter++
 	passedBodyBytes, err := ed.Body.MarshalJSON()
 	Expect(err).NotTo(HaveOccurred())
 	passedBodyStr := string(passedBodyBytes)
@@ -41,7 +41,7 @@ func (m MockUpstreamService) call(_ context.Context, ed EventData) error {
 func setupRequestResponse(ctx context.Context, method string, body io.Reader, contentType string) (*http.Request, *httptest.ResponseRecorder) {
 	req, err := http.NewRequestWithContext(ctx, method, "http://example.com/events", body)
 	Expect(err).NotTo(HaveOccurred())
-	req.Header.Add("Content-Type", contentType)
+	req.Header.Add(HttpHeaderContentType, contentType)
 	return req, httptest.NewRecorder()
 }
 
@@ -62,18 +62,18 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 	When("called with a valid request", func() {
 		It("calls out to configured upstreams passing expected data", func() {
-			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader([]byte(bodyStr)), "application/json")
+			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader([]byte(bodyStr)), HttpContentTypeJSON)
 
 			withUpstreams.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusOK))
-			Expect(counter).To(Equal(len(upstreams)))
+			Expect(mockUpstreamServiceCallCounter).To(Equal(len(upstreams)))
 		})
 	})
 
 	When("called with empty body", func() {
 		It("returns bad request", func() {
-			req, resp := setupRequestResponse(ctx, http.MethodPost, nil, "application/json")
+			req, resp := setupRequestResponse(ctx, http.MethodPost, nil, HttpContentTypeJSON)
 
 			noUpstreams.handleEvent(resp, req)
 
@@ -93,7 +93,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 	When("called with an invalid http method", func() {
 		It("returns method not allowed error", func() {
-			req, resp := setupRequestResponse(ctx, http.MethodGet, bytes.NewReader([]byte(bodyStr)), "application/json")
+			req, resp := setupRequestResponse(ctx, http.MethodGet, bytes.NewReader([]byte(bodyStr)), HttpContentTypeJSON)
 
 			noUpstreams.handleEvent(resp, req)
 
@@ -109,13 +109,13 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 				upstreams: upstreams,
 			}
 
-			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader([]byte(bodyStr)), "application/json")
+			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader([]byte(bodyStr)), HttpContentTypeJSON)
 
 			withErrorUpstream.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusInternalServerError))
 			Expect(resp.Body.String()).To(Equal("upstream service error\n"))
-			Expect(counter).To(Equal(1))
+			Expect(mockUpstreamServiceCallCounter).To(Equal(1))
 		})
 	})
 })

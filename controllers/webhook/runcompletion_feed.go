@@ -13,11 +13,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+const (
+	HttpHeaderContentType = "Content-Type"
+	HttpContentTypeJSON   = "application/json"
+)
+
 type EventData struct {
-	// Header is the http request header
-	Header http.Header `json:"header"`
-	// Body is http request body
-	Body json.RawMessage `json:"body"`
+	Header http.Header     `json:"header"`
+	Body   json.RawMessage `json:"body"`
 }
 
 type RunCompletionFeed struct {
@@ -76,9 +79,9 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 	logger := log.FromContext(rcf.ctx)
 	switch request.Method {
 	case http.MethodPost:
-		if request.Header.Get("Content-Type") != "application/json" {
-			logger.Error(errors.New("RunCompletionFeed call failed"), "invalid Content-Type [%s], want `application/json`", request.Header.Get("Content-Type"))
-			http.Error(response, "invalid Content-Type, want `application/json`", http.StatusUnsupportedMediaType)
+		if request.Header.Get(HttpHeaderContentType) != HttpContentTypeJSON {
+			logger.Error(errors.New("RunCompletionFeed call failed"), "invalid %s [%s], want `%s`", HttpHeaderContentType, request.Header.Get(HttpHeaderContentType), HttpContentTypeJSON)
+			http.Error(response, fmt.Sprintf("invalid %s, want `%s`", HttpHeaderContentType, HttpContentTypeJSON), http.StatusUnsupportedMediaType)
 			return
 		}
 		eventData, err := extractEventData(rcf.ctx, request)
@@ -90,7 +93,6 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			for _, upstream := range rcf.upstreams {
 				err := upstream.call(rcf.ctx, *eventData)
 				if err != nil {
-					// upstream call failed
 					logger.Error(err, "Call to upstream failed")
 					http.Error(response, err.Error(), http.StatusInternalServerError)
 					return

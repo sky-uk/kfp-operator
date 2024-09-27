@@ -12,7 +12,7 @@ import (
 )
 
 type RunScheduleDefinitionCreator struct {
-	Config config.Configuration
+	Config config.KfpControllerConfigSpec
 }
 
 func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipelinesv1.RunSchedule) (providers.RunScheduleDefinition, error) {
@@ -57,7 +57,7 @@ func runConfigurationNameForRunSchedule(runSchedule *pipelinesv1.RunSchedule) (r
 	return
 }
 
-func RunScheduleWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition] {
+func RunScheduleWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition] {
 	return &ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition]{
 		DefinitionCreator: RunScheduleDefinitionCreator{
 			Config: config,

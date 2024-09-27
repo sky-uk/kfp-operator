@@ -9,7 +9,7 @@ import (
 )
 
 type RunDefinitionCreator struct {
-	Config config.Configuration
+	Config config.KfpControllerConfigSpec
 }
 
 func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.RunDefinition, error) {
@@ -46,7 +46,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 	return runDefinition, nil
 }
 
-func RunWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
+func RunWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
 	return &ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
 		DefinitionCreator: RunDefinitionCreator{
 			Config: config,

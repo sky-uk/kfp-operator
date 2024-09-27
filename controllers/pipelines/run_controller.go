@@ -25,7 +25,7 @@ type RunReconciler struct {
 	ResourceReconciler[*pipelinesv1.Run]
 }
 
-func NewRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.Configuration) *RunReconciler {
+func NewRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.KfpControllerConfigSpec) *RunReconciler {
 	return &RunReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Run]{
 			WorkflowRepository: workflowRepository,

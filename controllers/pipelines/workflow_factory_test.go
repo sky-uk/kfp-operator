@@ -15,7 +15,7 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		owner := pipelinesv1.RandomResource()
 		namespace := RandomString()
 		w := ResourceWorkflowFactory[*pipelinesv1.TestResource, interface{}]{
-			Config: config.Configuration{
+			Config: config.KfpControllerConfigSpec{
 				WorkflowNamespace: namespace,
 			},
 		}
