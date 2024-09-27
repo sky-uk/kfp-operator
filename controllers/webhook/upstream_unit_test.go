@@ -82,9 +82,8 @@ var _ = Context("transferHeaders", func() {
 	emptyHeaders := make(http.Header)
 	headers := map[string][]string{"Foo": {"bar"}, "Baz": {"qux"}}
 	DescribeTable("Headers", func(incomingHeaders http.Header, requestHeaders http.Header, expected http.Header) {
-		webhook := HttpWebhook{}
 		request := http.Request{Header: requestHeaders}
-		webhook.transferHeaders(incomingHeaders, &request)
+		transferHeaders(incomingHeaders, &request)
 		Expect(request.Header).To(Equal(expected))
 	},
 		Entry("No incoming headers or existing request headers", emptyHeaders, emptyHeaders, emptyHeaders),

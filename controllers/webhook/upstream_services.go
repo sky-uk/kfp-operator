@@ -25,16 +25,16 @@ type HttpWebhook struct {
 func NewHttpWebhook(endpoint config.Endpoint) HttpWebhook {
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
-			Timeout: 2 * time.Second, // Timeout for establishing connection
+			Timeout: 2 * time.Second,
 		}).DialContext,
-		MaxIdleConns:        100,
-		MaxIdleConnsPerHost: 100,
+		MaxIdleConns:        5,
+		MaxIdleConnsPerHost: 5,
 		IdleConnTimeout:     90 * time.Second,
 	}
 
 	client := &http.Client{
 		Transport: transport,
-		Timeout:   10 * time.Second, // Total timeout for the request
+		Timeout:   10 * time.Second,
 	}
 
 	return HttpWebhook{
@@ -45,14 +45,6 @@ func NewHttpWebhook(endpoint config.Endpoint) HttpWebhook {
 
 func (hw HttpWebhook) buildRequest(ctx context.Context, bodyBytes []byte) (*http.Request, error) {
 	return http.NewRequestWithContext(ctx, http.MethodPost, hw.Upstream.URL(), bytes.NewReader(bodyBytes))
-}
-
-func (hw HttpWebhook) transferHeaders(headers http.Header, req *http.Request) {
-	for headerName, headerValues := range headers {
-		for _, headerValue := range headerValues {
-			req.Header.Add(headerName, headerValue)
-		}
-	}
 }
 
 func (hw HttpWebhook) call(ctx context.Context, ed EventData) error {
@@ -66,7 +58,7 @@ func (hw HttpWebhook) call(ctx context.Context, ed EventData) error {
 	if err != nil {
 		return err
 	}
-	hw.transferHeaders(ed.Header, req)
+	transferHeaders(ed.Header, req)
 
 	response, err := hw.Client.Do(req)
 	if err != nil {
@@ -89,4 +81,12 @@ func (hw HttpWebhook) call(ctx context.Context, ed EventData) error {
 		return errors.New(fmt.Sprintf("Upstream service returned error, http status code: [%s]", response.Status))
 	}
 	return nil
+}
+
+func transferHeaders(headers http.Header, req *http.Request) {
+	for headerName, headerValues := range headers {
+		for _, headerValue := range headerValues {
+			req.Header.Add(headerName, headerValue)
+		}
+	}
 }
