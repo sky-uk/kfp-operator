@@ -33,10 +33,10 @@ type RunConfigurationReconciler struct {
 	DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]
 	EC     K8sExecutionContext
 	Scheme *runtime.Scheme
-	Config config.Configuration
+	Config config.KfpControllerConfigSpec
 }
 
-func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Scheme, config config.Configuration) *RunConfigurationReconciler {
+func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Scheme, config config.KfpControllerConfigSpec) *RunConfigurationReconciler {
 	return &RunConfigurationReconciler{
 		DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
 			EC: ec,

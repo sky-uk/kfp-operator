@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/sky-uk/kfp-operator/controllers/webhook"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -110,32 +111,32 @@ func main() {
 		WorkflowRepository: workflowRepository,
 	}
 
-	if err := pipelinescontrollers.NewPipelineReconciler(ec, workflowRepository, ctrlConfig.Workflows).SetupWithManager(mgr); err != nil {
+	if err := pipelinescontrollers.NewPipelineReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunReconciler(ec, workflowRepository, ctrlConfig.Workflows).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewRunReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Run")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunScheduleReconciler(ec, workflowRepository, ctrlConfig.Workflows).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewRunScheduleReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunSchedule")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewExperimentReconciler(ec, workflowRepository, ctrlConfig.Workflows).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewExperimentReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunConfigurationReconciler(ec, scheme, ctrlConfig.Workflows).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewRunConfigurationReconciler(ec, scheme, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
 		os.Exit(1)
 	}
 
-	if ctrlConfig.Workflows.Multiversion {
+	if ctrlConfig.Spec.Multiversion {
 		if err = (&pipelinesv1.Pipeline{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
 			os.Exit(1)
@@ -171,9 +172,21 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx := ctrl.SetupSignalHandler()
+
+	setupLog.Info("starting run completion feed")
+	rcf := webhook.NewRunCompletionFeed(ctx, ctrlConfig.Spec.RunCompletionFeed.Endpoints)
+	go func() {
+		err = rcf.Start(ctrlConfig.Spec.RunCompletionFeed.Port)
+		if err != nil {
+			setupLog.Error(err, "problem starting run completion feed")
+			os.Exit(1)
+		}
+	}()
+
 	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+	if err := mgr.Start(ctx); err != nil {
+		setupLog.Error(err, "problem starting manager")
 		os.Exit(1)
 	}
 }

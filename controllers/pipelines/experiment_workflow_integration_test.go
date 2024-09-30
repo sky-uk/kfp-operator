@@ -9,7 +9,7 @@ import (
 )
 
 var _ = Context("Resource Workflows", Serial, func() {
-	workflowFactory := ExperimentWorkflowFactory(config.Configuration{
+	workflowFactory := ExperimentWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultExperiment:      "Default",
 		DefaultProvider:        "stub",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml

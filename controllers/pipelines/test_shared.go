@@ -11,5 +11,5 @@ import (
 var (
 	k8sClient  client.Client
 	ctx        context.Context
-	testConfig config.Configuration
+	testConfig config.KfpControllerConfigSpec
 )

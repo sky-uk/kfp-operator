@@ -17,10 +17,10 @@ import (
 
 type ResourceReconciler[R pipelinesv1.Resource] struct {
 	EC     K8sExecutionContext
-	Config config.Configuration
+	Config config.KfpControllerConfigSpec
 }
 
-func desiredProvider(resource pipelinesv1.HasProvider, config config.Configuration) string {
+func desiredProvider(resource pipelinesv1.HasProvider, config config.KfpControllerConfigSpec) string {
 	if provider, hasProvider := resource.GetAnnotations()[apis.ResourceAnnotations.Provider]; hasProvider {
 		return provider
 	}

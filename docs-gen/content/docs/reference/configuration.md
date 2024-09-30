@@ -5,15 +5,22 @@ weight: 1
 
 The Kubeflow Pipelines operator can be configured with the following parameters:
 
-| Parameter name      | Description                                                                                                                                                                                                                        | Example                                                |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| `defaultExperiment` | Default Experiment name to be used for creating pipeline runs                                                                                                                                                                      | `Default`                                              |
-| `defaultProvider`   | Default provider name to be used (see [Using Multiple Providers](../providers))                                                                                                                                                    | `vertex-ai-europe`                                     |
-| `multiversion`      | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                                               | `true`                                                 |
-| `workflowNamespace` | Namespace where operator Argo workflows should be running - defaults to the operator's namespace                                                                                                                                   | `kfp-operator-workflows`                               |
-| `runCompletionTTL`  | Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)                      | `10m`                                                  |
+| Parameter name      | Description                                                                                                                                                                                                   | Example                                        |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
+| `defaultExperiment` | Default Experiment name to be used for creating pipeline runs                                                                                                                                                 | `Default`                                      |
+| `defaultProvider`   | Default provider name to be used (see [Using Multiple Providers](../providers))                                                                                                                               | `vertex-ai-europe`                             |
+| `multiversion`      | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                          | `true`                                         |
+| `workflowNamespace` | Namespace where operator Argo workflows should be running - defaults to the operator's namespace                                                                                                              | `kfp-operator-workflows`                       |
+| `runCompletionTTL`  | Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) | `10m`                                          |
+| `runCompletionFeed` | Configuration of the service for the run completion feed back to KFP Operator                                                                                                                                 | See [here](#run-completion-feed-configuration) |
 
 An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml).
+
+## Run Completion Feed Configuration
+| Parameter name                | Description                                                        | Example                                                                        |
+|-------------------------------|--------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `runCompletionFeed.port`      | The port that the feed endpoint will listen on                     | `8082`                                                                         |
+| `runCompletionFeed.endpoints` | Array of upstream endpoints that should be called per feed message | `- host: upstream-service<br/>&nbsp;&nbsp;path: /<br/>&nbsp;&nbsp;port: 12000` |
 
 ## Provider Configurations
 

@@ -8,7 +8,7 @@ import (
 )
 
 type ExperimentDefinitionCreator struct {
-	Config config.Configuration
+	Config config.KfpControllerConfigSpec
 }
 
 func (edc ExperimentDefinitionCreator) experimentDefinition(experiment *pipelinesv1.Experiment) (providers.ExperimentDefinition, error) {
@@ -19,7 +19,7 @@ func (edc ExperimentDefinitionCreator) experimentDefinition(experiment *pipeline
 	}, nil
 }
 
-func ExperimentWorkflowFactory(config config.Configuration) *ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition] {
+func ExperimentWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition] {
 	return &ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition]{
 		DefinitionCreator: ExperimentDefinitionCreator{
 			Config: config,

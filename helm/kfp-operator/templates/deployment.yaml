@@ -54,10 +54,13 @@ spec:
               subPath: controller_manager_config.yaml
           ports:
         {{- if .Values.manager.multiversion.enabled }}
-           - name: webhook-server
-             containerPort: 9443
-             protocol: TCP
+          - name: webhook-server
+            containerPort: {{ .Values.manager.webhookServicePort }}
+            protocol: TCP
         {{ end }}
+          - name: runcomp-feed
+            containerPort: {{ .Values.manager.runcompletionWebhook.servicePort }}
+            protocol: TCP
         {{- if .Values.manager.monitoring.create }}
         {{ if not .Values.manager.monitoring.rbacSecured }}
            - containerPort: 8080

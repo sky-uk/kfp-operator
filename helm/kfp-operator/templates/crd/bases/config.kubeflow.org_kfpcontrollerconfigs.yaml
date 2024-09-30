@@ -500,13 +500,13 @@ spec:
                       This is only applicable if leader election is enabled.
                     type: string
                 required:
-                  - leaderElect
-                  - leaseDuration
-                  - renewDeadline
-                  - resourceLock
-                  - resourceName
-                  - resourceNamespace
-                  - retryPeriod
+                - leaderElect
+                - leaseDuration
+                - renewDeadline
+                - resourceLock
+                - resourceName
+                - resourceNamespace
+                - retryPeriod
                 type: object
               metrics:
                 description: Metrics contains thw controller metrics configuration
@@ -563,8 +563,8 @@ spec:
                     value:
                       type: string
                   required:
-                    - name
-                    - value
+                  - name
+                  - value
                   type: object
                 type: array
               defaultExperiment:
@@ -761,6 +761,22 @@ spec:
                 type: string
               workflowTemplatePrefix:
                 type: string
+              runCompletionFeed:
+                properties:
+                  endpoints:
+                    items:
+                      properties:
+                        host:
+                          type: string
+                        path:
+                          type: string
+                        port:
+                          type: integer
+                      type: object
+                    type: array
+                  port:
+                    type: integer
+                type: object
             type: object
         type: object
     served: true
