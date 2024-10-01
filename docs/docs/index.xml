@@ -71,7 +71,7 @@
 Its configuration can be controlled using the &lt;a href="../resources/provider/#kubeflow">KFP specific parameters within a Provider Resource&lt;/a>.&lt;/p>
 &lt;h3 id="vertex-ai-pipelines">Vertex AI Pipelines&lt;/h3>
 &lt;p>VAI configuration can be controlled using &lt;a href="../resources/provider/#vertex-ai">VAI specific parameters within a Provider Resource&lt;/a>
-&lt;img src="https://sky-uk.github.io/kfp-operator/images/vai-provider.png" alt="Vertex AI Provider">&lt;/p>
+&lt;img src="https://sky-uk.github.io/kfp-operator/images/vai-provider.svg" alt="Vertex AI Provider">&lt;/p>
 &lt;h4 id="gcp-project-setup">GCP Project Setup&lt;/h4>
 &lt;p>The following GCP APIs need to be enabled in the configured &lt;code>vaiProject&lt;/code>:&lt;/p>
 &lt;ul>
@@ -113,60 +113,19 @@ We suggest an exponential backoff with min and max backoff set to at least 10 se
 &lt;li>&lt;code>iam.serviceAccounts.actAs&lt;/code> the configured &lt;code>vaiJobServiceAccount&lt;/code> Vertex AI Job Runner&lt;/li>
 &lt;/ul>
 &lt;p>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> fields only needed if the operator is installed with &lt;a href="../../getting-started/overview/#eventing-support">eventing support&lt;/a>&lt;/p></description></item><item><title>Docs: Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>
-&lt;p>The Kubeflow Pipelines Operator provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
+&lt;p>The Kubeflow Pipelines Operator (KFP Operator) provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
 A provider is a runtime environment for managing and executing ML pipelines and related resources.&lt;/p>
-&lt;h2 id="compatibility">Compatibility&lt;/h2>
-&lt;p>The operator currently supports&lt;/p>
-&lt;ul>
-&lt;li>TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet&lt;/li>
-&lt;li>KFP standalone (a full KFP installation is not supported yet) and Vertex AI&lt;/li>
-&lt;/ul>
-&lt;h2 id="tfx-pipelines-and-components">TFX Pipelines and Components&lt;/h2>
-&lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.&lt;/p>
-&lt;p>For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart/penguin_pipeline/pipeline.py">penguin pipeline&lt;/a> for an example.&lt;/p>
-&lt;h3 id="lifecycle-phases-and-parameter-types">Lifecycle phases and Parameter types&lt;/h3>
-&lt;p>TFX Pipelines go through certain lifecycle phases that are unique to this technology. It is helpful to understand where these differ and where they are executed.&lt;/p>
-&lt;p>&lt;strong>Development:&lt;/strong> Creating the components definition as code.&lt;/p>
-&lt;p>&lt;strong>Compilation:&lt;/strong> Applying compile-time parameters and defining the execution runtime (aka DAG runner) for the pipeline to be compiled into a deployable artifact.&lt;/p>
-&lt;p>&lt;strong>Deployment:&lt;/strong> Creating a pipeline representation in the target environment.&lt;/p>
-&lt;p>&lt;strong>Running:&lt;/strong> Instantiating the pipeline, applying runtime parameters and running all pipeline steps involved to completion.&lt;/p>
-&lt;p>&lt;em>Note:&lt;/em> Local runners usually skip compilation and deployment and run the pipeline straight away.&lt;/p>
-&lt;p>TFX allows the parameterization of Pipelines in most lifecycle stages:&lt;/p>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Parameter type&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;th>Example&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>Named Constants&lt;/td>
-&lt;td>Code constants&lt;/td>
-&lt;td>ANN layer size&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>Compile-time parameter&lt;/td>
-&lt;td>Parameters that are unlikely to change between pipeline runs supplied as environment variabels to the pipeline function&lt;/td>
-&lt;td>Bigquery dataset&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>Runtime parameter&lt;/td>
-&lt;td>Parameters exposed as TFX &lt;a href="https://www.tensorflow.org/tfx/api_docs/python/tfx/v1/dsl/experimental/RuntimeParameter?hl=en">RuntimeParameter&lt;/a> which can be overridden at runtime allow simplified experimentation without having to recompile the pipeline&lt;/td>
-&lt;td>Number of training runs&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;p>The pipeline operator supports the application of compile time and runtime parameters through its custom resources. We strongly encourage the usage of both of these parameter types to speed up development and experimentation lifecycles. Note that Runtime parameters can initialised to default values from both constants and compile-time parameters&lt;/p>
-&lt;h2 id="eventing-support">Eventing Support&lt;/h2>
-&lt;p>The Kubeflow Pipelines operator can optionally be installed with &lt;a href="https://argoproj.github.io/argo-events/">Argo-Events&lt;/a> eventsources which lets users react to events.&lt;/p>
-&lt;p>Currently, we support the following eventsources:&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="../../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
-&lt;p>To do.&lt;/p></description></item><item><title>Docs: Pipeline</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</guid><description>
+&lt;h3 id="why-kfp-operator">Why KFP Operator&lt;/h3>
+&lt;p>The idea behind the project came about because as engineers we wanted to apply our engineering best practices behind the
+process of deploying a trained model to be served in a production environment. We wanted to get away from the mentality of
+&amp;ldquo;I just need this trained model in Production&amp;rdquo; or the &amp;ldquo;If it&amp;rsquo;s 10 lines of code I&amp;rsquo;d rather copy and paste it&amp;rdquo;.&lt;/p>
+&lt;p>Data scientists produce the artifact of the &amp;ldquo;model training pipeline code&amp;rdquo; (which is fully promotable through the environments)
+and then the deployment configuration for the pipeline etc. can be applied in the different environments, giving the required
+training in each environment on the path to production. Linked with the serving component then gives you a fully testable path to production for the model.&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/cd-ct.svg" alt="cd-ct">&lt;/p>
+&lt;p>KFP Operator allows for the separation of the two concerns, data science and deployment configuration. KFP Operator provides
+the link between CD and CT to provide Level 2 of the &lt;a href="https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning#mlops_level_2_cicd_pipeline_automation">MLOps Maturity model&lt;/a>.&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/mlops-maturity.svg" alt="mlops maturity level">&lt;/p></description></item><item><title>Docs: Pipeline</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</guid><description>
 &lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
 Pipelines can be created, updated and deleted via this resource.
 The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
@@ -526,7 +485,268 @@ In this example we are updating a serving component with the location of the new
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dataKey&lt;/span>: &lt;span style="color:#ae81ff">body.data.artifacts.0.location&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dest&lt;/span>: &lt;span style="color:#ae81ff">data.servingModel&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/apply-model-location.yaml
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Introduction</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/introduction/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/introduction/</guid><description>
+&lt;h2 id="compatibility">Compatibility&lt;/h2>
+&lt;p>The operator currently supports&lt;/p>
+&lt;ul>
+&lt;li>TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet&lt;/li>
+&lt;li>KFP standalone (a full KFP installation is not supported yet) and Vertex AI&lt;/li>
+&lt;/ul>
+&lt;h2 id="tfx-pipelines-and-components">TFX Pipelines and Components&lt;/h2>
+&lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.&lt;/p>
+&lt;p>For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/quickstart/penguin_pipeline/pipeline.py">penguin pipeline&lt;/a> for an example.&lt;/p>
+&lt;h3 id="lifecycle-phases-and-parameter-types">Lifecycle phases and Parameter types&lt;/h3>
+&lt;p>TFX Pipelines go through certain lifecycle phases that are unique to this technology. It is helpful to understand where these differ and where they are executed.&lt;/p>
+&lt;p>&lt;strong>Development:&lt;/strong> Creating the components definition as code.&lt;/p>
+&lt;p>&lt;strong>Compilation:&lt;/strong> Applying compile-time parameters and defining the execution runtime (aka DAG runner) for the pipeline to be compiled into a deployable artifact.&lt;/p>
+&lt;p>&lt;strong>Deployment:&lt;/strong> Creating a pipeline representation in the target environment.&lt;/p>
+&lt;p>&lt;strong>Running:&lt;/strong> Instantiating the pipeline, applying runtime parameters and running all pipeline steps involved to completion.&lt;/p>
+&lt;p>&lt;em>Note:&lt;/em> Local runners usually skip compilation and deployment and run the pipeline straight away.&lt;/p>
+&lt;p>TFX allows the parameterization of Pipelines in most lifecycle stages:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Parameter type&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;th>Example&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>Named Constants&lt;/td>
+&lt;td>Code constants&lt;/td>
+&lt;td>ANN layer size&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>Compile-time parameter&lt;/td>
+&lt;td>Parameters that are unlikely to change between pipeline runs supplied as environment variabels to the pipeline function&lt;/td>
+&lt;td>Bigquery dataset&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>Runtime parameter&lt;/td>
+&lt;td>Parameters exposed as TFX &lt;a href="https://www.tensorflow.org/tfx/api_docs/python/tfx/v1/dsl/experimental/RuntimeParameter?hl=en">RuntimeParameter&lt;/a> which can be overridden at runtime allow simplified experimentation without having to recompile the pipeline&lt;/td>
+&lt;td>Number of training runs&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>The pipeline operator supports the application of compile time and runtime parameters through its custom resources. We strongly encourage the usage of both of these parameter types to speed up development and experimentation lifecycles. Note that Runtime parameters can initialised to default values from both constants and compile-time parameters&lt;/p>
+&lt;h2 id="eventing-support">Eventing Support&lt;/h2>
+&lt;p>The Kubeflow Pipelines operator can optionally be installed with &lt;a href="https://argoproj.github.io/argo-events/">Argo-Events&lt;/a> eventsources which lets users react to events.&lt;/p>
+&lt;p>Currently, we support the following eventsources:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="../../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
+&lt;p>To do.&lt;/p></description></item><item><title>Docs: Pipeline Dependencies</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</guid><description>
+&lt;p>Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p>
+&lt;ul>
+&lt;li>The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li>
+&lt;li>Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data&lt;/li>
+&lt;li>Serving a combined model of two or more pipelines&lt;/li>
+&lt;/ul>
+&lt;p>In this example, we break up the penguin example pipeline into two pipelines:&lt;/p>
+&lt;ul>
+&lt;li>The &lt;em>Penguin Examples Pipeline&lt;/em> has a single pipeline step that imports the CSV example and outputs it as an artifact&lt;/li>
+&lt;li>The &lt;em>Penguin Training Pipeline&lt;/em> references the previously produces example and trains the model&lt;/li>
+&lt;/ul>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/ensembling.svg" alt="ensembling.svg">&lt;/p>
+&lt;p>This example might not be of practical use but it demonstrates the approach to managing pipeline dependencies.&lt;/p>
+&lt;p>The code for this tutorial can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/dependent">GitHub&lt;/a>.&lt;/p>
+&lt;h2 id="1-build-and-deploy-the-penguin-examples-pipeline">1. Build and deploy the Penguin Examples Pipeline&lt;/h2>
+&lt;p>The penguin examples pipeline loads the CSV data and makes it available as an output artifact.&lt;/p>
+&lt;p>First, create the pipeline code in &lt;code>penguin_examples/pipeline.py&lt;/code>:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> os
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> typing &lt;span style="color:#f92672">import&lt;/span> List
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.components &lt;span style="color:#f92672">import&lt;/span> CsvExampleGen, Trainer
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.proto &lt;span style="color:#f92672">import&lt;/span> trainer_pb2
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.dsl.components.base.base_node &lt;span style="color:#f92672">import&lt;/span> BaseNode
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">def&lt;/span> &lt;span style="color:#a6e22e">create_components&lt;/span>() &lt;span style="color:#f92672">-&amp;gt;&lt;/span> List[BaseNode]:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&amp;#34;Creates a penguin pipeline with TFX.&amp;#34;&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Brings data into the pipeline.&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> example_gen &lt;span style="color:#f92672">=&lt;/span> CsvExampleGen(input_base&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;/data&amp;#39;&lt;/span>)
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> [ example_gen ]
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Next, create &lt;code>penguin_examples/Dockerfile&lt;/code>, then build and push the pipeline image:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-dockerfile" data-lang="dockerfile">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># TFX build&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">FROM&lt;/span>&lt;span style="color:#e6db74"> tensorflow/tfx:1.13.0&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">RUN&lt;/span> mkdir /data&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">RUN&lt;/span> wget https://raw.githubusercontent.com/tensorflow/tfx/master/tfx/examples/penguin/data/labelled/penguins_processed.csv -P /data&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">WORKDIR&lt;/span>&lt;span style="color:#e6db74"> /pipeline&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">COPY&lt;/span> ./*.py ./&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">ENV&lt;/span> PYTHONPATH&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;/pipeline:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PYTHONPATH&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker build penguin_examples -t kfp-dependent-examples:v1
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker push kfp-dependent-examples:v1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now create and apply the resources needed to compile and train the penguin examples pipeline:&lt;/p>
+&lt;p>Create &lt;code>pipeline_examples.yaml&lt;/code>. The specification has not changed from the original example.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-examples&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-dependent-examples:v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">tfxComponents&lt;/span>: &lt;span style="color:#ae81ff">pipeline.create_components&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Create &lt;code>runconfiguration_examples.yaml&lt;/code> which schedules the pipeline to be trained at regular intervals and specifies the output artifacts that it exposes.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-examples-rc&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-examples&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">examples&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">CsvExampleGen:examples&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">schedules&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Finally, apply the resources:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/pipeline_examples.yaml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/runconfiguration_examples.yaml
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="2-build-and-deploy-the-penguin-training-pipeline">2. Build and deploy the Penguin Training Pipeline&lt;/h2>
+&lt;p>Create &lt;code>penguin_training/pipeline.py&lt;/code> which imports the artifact as referenced by its runtime parameters. Note that the &lt;code>CsvExampleGen&lt;/code> has been replaced by a &lt;code>ImportExampleGen&lt;/code>:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> os
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> typing &lt;span style="color:#f92672">import&lt;/span> List
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.components &lt;span style="color:#f92672">import&lt;/span> CsvExampleGen, Trainer, ImportExampleGen
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.proto &lt;span style="color:#f92672">import&lt;/span> trainer_pb2, example_gen_pb2
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.dsl.components.base.base_node &lt;span style="color:#f92672">import&lt;/span> BaseNode
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.v1.dsl.experimental &lt;span style="color:#f92672">import&lt;/span> RuntimeParameter
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> typing &lt;span style="color:#f92672">import&lt;/span> Text
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">def&lt;/span> &lt;span style="color:#a6e22e">create_components&lt;/span>() &lt;span style="color:#f92672">-&amp;gt;&lt;/span> List[BaseNode]:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&amp;#34;Creates a penguin pipeline with TFX.&amp;#34;&amp;#34;&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Defines a pipeline runtime parameter&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples_location_param &lt;span style="color:#f92672">=&lt;/span> RuntimeParameter(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;examples_location&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ptype &lt;span style="color:#f92672">=&lt;/span> Text
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Imports the artifact referenced by the runtime parameter&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples &lt;span style="color:#f92672">=&lt;/span> ImportExampleGen(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> input_base &lt;span style="color:#f92672">=&lt;/span> examples_location_param,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> input_config&lt;span style="color:#f92672">=&lt;/span>example_gen_pb2&lt;span style="color:#f92672">.&lt;/span>Input(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> splits&lt;span style="color:#f92672">=&lt;/span>[
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> example_gen_pb2&lt;span style="color:#f92672">.&lt;/span>Input&lt;span style="color:#f92672">.&lt;/span>Split(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;eval&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pattern&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;Split-eval/*&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> example_gen_pb2&lt;span style="color:#f92672">.&lt;/span>Input&lt;span style="color:#f92672">.&lt;/span>Split(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;train&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pattern&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;Split-train/*&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> trainer &lt;span style="color:#f92672">=&lt;/span> Trainer(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> run_fn&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;trainer.run_fn&amp;#39;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples&lt;span style="color:#f92672">=&lt;/span>examples_location_param,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> train_args&lt;span style="color:#f92672">=&lt;/span>trainer_pb2&lt;span style="color:#f92672">.&lt;/span>TrainArgs(num_steps&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">100&lt;/span>),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> eval_args&lt;span style="color:#f92672">=&lt;/span>trainer_pb2&lt;span style="color:#f92672">.&lt;/span>EvalArgs(num_steps&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">5&lt;/span>))
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> components &lt;span style="color:#f92672">=&lt;/span> [
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> trainer,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> components
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Next create &lt;code>penguin_training/trainer.py&lt;/code>, which has not changed from &lt;a href="../pipeline_training/">the original pipeline&lt;/a>.&lt;/p>
+&lt;p>Create &lt;code>penguin_training/Dockerfile&lt;/code>. In contrast to the above, this Dockerfile does not include the examples CSV.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-dockerfile" data-lang="dockerfile">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># TFX build&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">FROM&lt;/span>&lt;span style="color:#e6db74"> tensorflow/tfx:1.13.0&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">WORKDIR&lt;/span>&lt;span style="color:#e6db74"> /pipeline&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">COPY&lt;/span> ./*.py ./&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">ENV&lt;/span> PYTHONPATH&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;/pipeline:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PYTHONPATH&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Next, build the pipeline as a Docker container and push it:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker build penguin_training -t kfp-dependent-training:v1
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker push kfp-dependent-training:v1
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now create and apply the resources needed to compile and train the penguin training pipeline.
+&lt;code>pipeline_training.yaml&lt;/code> has not changed from the original example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-training&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-dependent-training:v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">tfxComponents&lt;/span>: &lt;span style="color:#ae81ff">pipeline.create_components&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>runconfiguration_training.yaml&lt;/code> has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-training-rc&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-training&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">examples_location&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">valueFrom&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurationRef&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-examples-rc&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">outputArtifact&lt;/span>: &lt;span style="color:#ae81ff">examples&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurations&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">penguin-pipeline-examples-rc&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Apply the resources as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/pipeline_training.yaml
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/runconfiguration_training.yaml
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>
+&lt;p>The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).
+Pipeline training runs can be configured using this resource as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-recurring-run&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">serving-model&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">schedules&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">onChange&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">pipeline&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurations&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">dependency-rc&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A Run Configuration can have one of more triggers that determine when the next training run will be started.&lt;/p>
+&lt;h2 id="fields">Fields&lt;/h2>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Name&lt;/th>
+&lt;th>Description&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>spec.run&lt;/code>&lt;/td>
+&lt;td>Definition of any runs created under this run configuration. See &lt;a href="../run/#fields">Runs&lt;/a> for more details.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>spec.triggers.schedules[]&lt;/code>&lt;/td>
+&lt;td>Cron schedules to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>spec.triggers.onChange[]&lt;/code>&lt;/td>
+&lt;td>Resource attributes that execute training runs. &lt;code>pipeline&lt;/code> triggers when the referenced pipeline changes. &lt;code>runSpec&lt;/code> triggers when this resource&amp;rsquo;s spec.run field has changed.&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>spec.triggers.runConfigurations[]&lt;/code>&lt;/td>
+&lt;td>RunConfigurations to watch for completion - a run for this RunConfiguration will start every time any of the listed dependencies has finished a run successfully.&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table></description></item><item><title>Docs: Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>
 &lt;p>We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p>
 &lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>
@@ -847,216 +1067,7 @@ to have read permissions of Provider resources. e.g:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>- &lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">ServiceAccount&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp-service-account&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">namespace&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-namespace&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Pipeline Dependencies</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</guid><description>
-&lt;p>Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p>
-&lt;ul>
-&lt;li>The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li>
-&lt;li>Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data&lt;/li>
-&lt;li>Serving a combined model of two or more pipelines&lt;/li>
-&lt;/ul>
-&lt;p>In this example, we break up the penguin example pipeline into two pipelines:&lt;/p>
-&lt;ul>
-&lt;li>The &lt;em>Penguin Examples Pipeline&lt;/em> has a single pipeline step that imports the CSV example and outputs it as an artifact&lt;/li>
-&lt;li>The &lt;em>Penguin Training Pipeline&lt;/em> references the previously produces example and trains the model&lt;/li>
-&lt;/ul>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/ensembling.svg" alt="ensembling.svg">&lt;/p>
-&lt;p>This example might not be of practical use but it demonstrates the approach to managing pipeline dependencies.&lt;/p>
-&lt;p>The code for this tutorial can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/dependent">GitHub&lt;/a>.&lt;/p>
-&lt;h2 id="1-build-and-deploy-the-penguin-examples-pipeline">1. Build and deploy the Penguin Examples Pipeline&lt;/h2>
-&lt;p>The penguin examples pipeline loads the CSV data and makes it available as an output artifact.&lt;/p>
-&lt;p>First, create the pipeline code in &lt;code>penguin_examples/pipeline.py&lt;/code>:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> os
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> typing &lt;span style="color:#f92672">import&lt;/span> List
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.components &lt;span style="color:#f92672">import&lt;/span> CsvExampleGen, Trainer
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.proto &lt;span style="color:#f92672">import&lt;/span> trainer_pb2
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.dsl.components.base.base_node &lt;span style="color:#f92672">import&lt;/span> BaseNode
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">def&lt;/span> &lt;span style="color:#a6e22e">create_components&lt;/span>() &lt;span style="color:#f92672">-&amp;gt;&lt;/span> List[BaseNode]:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&amp;#34;Creates a penguin pipeline with TFX.&amp;#34;&amp;#34;&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Brings data into the pipeline.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> example_gen &lt;span style="color:#f92672">=&lt;/span> CsvExampleGen(input_base&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;/data&amp;#39;&lt;/span>)
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> [ example_gen ]
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Next, create &lt;code>penguin_examples/Dockerfile&lt;/code>, then build and push the pipeline image:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-dockerfile" data-lang="dockerfile">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># TFX build&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">FROM&lt;/span>&lt;span style="color:#e6db74"> tensorflow/tfx:1.13.0&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">RUN&lt;/span> mkdir /data&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">RUN&lt;/span> wget https://raw.githubusercontent.com/tensorflow/tfx/master/tfx/examples/penguin/data/labelled/penguins_processed.csv -P /data&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">WORKDIR&lt;/span>&lt;span style="color:#e6db74"> /pipeline&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">COPY&lt;/span> ./*.py ./&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">ENV&lt;/span> PYTHONPATH&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;/pipeline:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PYTHONPATH&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker build penguin_examples -t kfp-dependent-examples:v1
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker push kfp-dependent-examples:v1
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now create and apply the resources needed to compile and train the penguin examples pipeline:&lt;/p>
-&lt;p>Create &lt;code>pipeline_examples.yaml&lt;/code>. The specification has not changed from the original example.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-examples&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-dependent-examples:v1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">tfxComponents&lt;/span>: &lt;span style="color:#ae81ff">pipeline.create_components&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Create &lt;code>runconfiguration_examples.yaml&lt;/code> which schedules the pipeline to be trained at regular intervals and specifies the output artifacts that it exposes.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-examples-rc&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-examples&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">examples&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">CsvExampleGen:examples&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">schedules&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Finally, apply the resources:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/pipeline_examples.yaml
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/runconfiguration_examples.yaml
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="2-build-and-deploy-the-penguin-training-pipeline">2. Build and deploy the Penguin Training Pipeline&lt;/h2>
-&lt;p>Create &lt;code>penguin_training/pipeline.py&lt;/code> which imports the artifact as referenced by its runtime parameters. Note that the &lt;code>CsvExampleGen&lt;/code> has been replaced by a &lt;code>ImportExampleGen&lt;/code>:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">import&lt;/span> os
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> typing &lt;span style="color:#f92672">import&lt;/span> List
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.components &lt;span style="color:#f92672">import&lt;/span> CsvExampleGen, Trainer, ImportExampleGen
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.proto &lt;span style="color:#f92672">import&lt;/span> trainer_pb2, example_gen_pb2
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.dsl.components.base.base_node &lt;span style="color:#f92672">import&lt;/span> BaseNode
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> tfx.v1.dsl.experimental &lt;span style="color:#f92672">import&lt;/span> RuntimeParameter
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">from&lt;/span> typing &lt;span style="color:#f92672">import&lt;/span> Text
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">def&lt;/span> &lt;span style="color:#a6e22e">create_components&lt;/span>() &lt;span style="color:#f92672">-&amp;gt;&lt;/span> List[BaseNode]:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;&amp;#34;&amp;#34;Creates a penguin pipeline with TFX.&amp;#34;&amp;#34;&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Defines a pipeline runtime parameter&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples_location_param &lt;span style="color:#f92672">=&lt;/span> RuntimeParameter(
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;examples_location&amp;#34;&lt;/span>,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ptype &lt;span style="color:#f92672">=&lt;/span> Text
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e"># Imports the artifact referenced by the runtime parameter&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples &lt;span style="color:#f92672">=&lt;/span> ImportExampleGen(
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> input_base &lt;span style="color:#f92672">=&lt;/span> examples_location_param,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> input_config&lt;span style="color:#f92672">=&lt;/span>example_gen_pb2&lt;span style="color:#f92672">.&lt;/span>Input(
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> splits&lt;span style="color:#f92672">=&lt;/span>[
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> example_gen_pb2&lt;span style="color:#f92672">.&lt;/span>Input&lt;span style="color:#f92672">.&lt;/span>Split(
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;eval&amp;#34;&lt;/span>,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pattern&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;Split-eval/*&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ),
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> example_gen_pb2&lt;span style="color:#f92672">.&lt;/span>Input&lt;span style="color:#f92672">.&lt;/span>Split(
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;train&amp;#34;&lt;/span>,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pattern&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;Split-train/*&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ),
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ),
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> )
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> trainer &lt;span style="color:#f92672">=&lt;/span> Trainer(
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> run_fn&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#39;trainer.run_fn&amp;#39;&lt;/span>,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples&lt;span style="color:#f92672">=&lt;/span>examples_location_param,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> train_args&lt;span style="color:#f92672">=&lt;/span>trainer_pb2&lt;span style="color:#f92672">.&lt;/span>TrainArgs(num_steps&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">100&lt;/span>),
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> eval_args&lt;span style="color:#f92672">=&lt;/span>trainer_pb2&lt;span style="color:#f92672">.&lt;/span>EvalArgs(num_steps&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">5&lt;/span>))
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> components &lt;span style="color:#f92672">=&lt;/span> [
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> examples,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> trainer,
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#66d9ef">return&lt;/span> components
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Next create &lt;code>penguin_training/trainer.py&lt;/code>, which has not changed from &lt;a href="../pipeline_training/">the original pipeline&lt;/a>.&lt;/p>
-&lt;p>Create &lt;code>penguin_training/Dockerfile&lt;/code>. In contrast to the above, this Dockerfile does not include the examples CSV.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-dockerfile" data-lang="dockerfile">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># TFX build&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">FROM&lt;/span>&lt;span style="color:#e6db74"> tensorflow/tfx:1.13.0&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">WORKDIR&lt;/span>&lt;span style="color:#e6db74"> /pipeline&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">COPY&lt;/span> ./*.py ./&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#960050;background-color:#1e0010">&lt;/span>&lt;span style="color:#66d9ef">ENV&lt;/span> PYTHONPATH&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;/pipeline:&lt;/span>&lt;span style="color:#e6db74">${&lt;/span>PYTHONPATH&lt;span style="color:#e6db74">}&lt;/span>&lt;span style="color:#e6db74">&amp;#34;&lt;/span>&lt;span style="color:#960050;background-color:#1e0010">
-&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Next, build the pipeline as a Docker container and push it:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker build penguin_training -t kfp-dependent-training:v1
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker push kfp-dependent-training:v1
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Now create and apply the resources needed to compile and train the penguin training pipeline.
-&lt;code>pipeline_training.yaml&lt;/code> has not changed from the original example:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-training&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-dependent-training:v1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">tfxComponents&lt;/span>: &lt;span style="color:#ae81ff">pipeline.create_components&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>&lt;code>runconfiguration_training.yaml&lt;/code> has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-training-rc&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-training&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">examples_location&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">valueFrom&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurationRef&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-examples-rc&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">outputArtifact&lt;/span>: &lt;span style="color:#ae81ff">examples&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurations&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">penguin-pipeline-examples-rc&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Apply the resources as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/pipeline_training.yaml
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>kubectl apply -f resources/runconfiguration_training.yaml
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>
-&lt;p>The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).
-Pipeline training runs can be configured using this resource as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-recurring-run&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">serving-model&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">schedules&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">onChange&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">pipeline&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurations&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">dependency-rc&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A Run Configuration can have one of more triggers that determine when the next training run will be started.&lt;/p>
-&lt;h2 id="fields">Fields&lt;/h2>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>spec.run&lt;/code>&lt;/td>
-&lt;td>Definition of any runs created under this run configuration. See &lt;a href="../run/#fields">Runs&lt;/a> for more details.&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.triggers.schedules[]&lt;/code>&lt;/td>
-&lt;td>Cron schedules to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted.&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.triggers.onChange[]&lt;/code>&lt;/td>
-&lt;td>Resource attributes that execute training runs. &lt;code>pipeline&lt;/code> triggers when the referenced pipeline changes. &lt;code>runSpec&lt;/code> triggers when this resource&amp;rsquo;s spec.run field has changed.&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>spec.triggers.runConfigurations[]&lt;/code>&lt;/td>
-&lt;td>RunConfigurations to watch for completion - a run for this RunConfiguration will start every time any of the listed dependencies has finished a run successfully.&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>
 &lt;p>The Run resource represents the lifecycle of a one-off run.
 One-off pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5&lt;/span>
@@ -1193,7 +1204,7 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;h2 id="lifecycle">Lifecycle&lt;/h2>
 &lt;p>The KFP-Operator tracks the completion of the created run in the &lt;code>CompletionState&lt;/code> of the resource&amp;rsquo;s status.
 The operator will clean up completed runs automatically based on the configured TTL. See &lt;a href="../../configuration">Configuration&lt;/a> for more information.&lt;/p></description></item><item><title>Docs: Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.png" alt="Model Serving">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.svg" alt="Model Serving">&lt;/p>
 &lt;p>The KFP-Operator Events system provides a &lt;a href="https://nats.io/">NATS Event bus&lt;/a> in the operator namespace to consume events from.
 To use it, users can create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>

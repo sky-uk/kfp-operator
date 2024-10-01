@@ -1,6 +1,6 @@
 ---
 title: "Installation"
-weight: 2
+weight: 3
 ---
 
 We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.
