@@ -34,7 +34,7 @@ Its configuration can be controlled using the [KFP specific parameters within a 
 ### Vertex AI Pipelines
 
 VAI configuration can be controlled using [VAI specific parameters within a Provider Resource](../resources/provider/#vertex-ai)
-![Vertex AI Provider](/images/vai-provider.png)
+![Vertex AI Provider](/images/vai-provider.svg)
 
 #### GCP Project Setup
 

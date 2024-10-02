@@ -1,6 +1,13 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Getting Started</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/</link><description>Recent content in Getting Started on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/getting-started/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>
-&lt;p>The Kubeflow Pipelines Operator provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
+&lt;p>The Kubeflow Pipelines Operator (KFP Operator) provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
 A provider is a runtime environment for managing and executing ML pipelines and related resources.&lt;/p>
+&lt;h3 id="why-kfp-operator">Why KFP Operator&lt;/h3>
+&lt;p>We started this project to promote the best engineering practices in the Machine Learning process, while reducing the operational overhead associated with deploying, running and maintaining training pipelines. We wanted to move away from a manual, opaque, copy-and-paste style deployment and closer to a declarative, traceable, and self-serve approach.&lt;/p>
+&lt;p>By configuring simple Kubernetes resources, machine learning practitioners can run their desired training pipelines in each environment on the path to production in a repeatable, testable and scalable way. When linked with serving components, this provides a fully testable path to production for machine learning systems.&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/cd-ct.svg" alt="cd-ct">&lt;/p>
+&lt;p>Through separating training code from infrastructure, KFP Operator provides
+the link between CD and CT to provide Level 2 of the &lt;a href="https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning#mlops_level_2_cicd_pipeline_automation">MLOps Maturity model&lt;/a>.&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/mlops-maturity.svg" alt="mlops maturity level">&lt;/p></description></item><item><title>Docs: Introduction</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/introduction/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/introduction/</guid><description>
 &lt;h2 id="compatibility">Compatibility&lt;/h2>
 &lt;p>The operator currently supports&lt;/p>
 &lt;ul>
