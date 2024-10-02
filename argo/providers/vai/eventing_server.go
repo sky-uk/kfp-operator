@@ -9,13 +9,9 @@ import (
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-logr/logr"
 	"github.com/googleapis/gax-go/v2"
-	"github.com/hashicorp/go-bexpr"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -60,20 +56,6 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			return
 		}
 
-		gvr, namespacedName, err := gvrAndNamespacedNameForRunLabels(logEntry.Labels)
-		if err != nil {
-			es.Logger.Error(err, "failed to extract GVR from labels")
-			m.Nack()
-			return
-		}
-
-		artifactDefs, err := es.GetRunArtifactDefinitions(ctx, namespacedName, gvr)
-		if err != nil {
-			es.Logger.Error(err, fmt.Sprintf("failed to lookup run/runconfiguration %s", gvr.Resource))
-			m.Nack()
-			return
-		}
-
 		pipelineJobId, ok := logEntry.Resource.Labels["pipeline_job_id"]
 		if !ok {
 			es.Logger.Error(err, fmt.Sprintf("logEntry did not contain pipeline_job_id %+v", logEntry))
@@ -81,9 +63,9 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			return
 		}
 
-		event := es.runCompletionEventForRun(stream.Context(), pipelineJobId, artifactDefs)
+		event := es.runCompletionEventDataForRun(stream.Context(), pipelineJobId)
 		if event == nil {
-			es.Logger.Error(err, fmt.Sprintf("failed to convert to run completion event %s, %+v", pipelineJobId, artifactDefs))
+			es.Logger.Error(err, fmt.Sprintf("failed to convert to run completion event data %s", pipelineJobId))
 			m.Nack()
 			return
 		}
@@ -116,7 +98,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 	return nil
 }
 
-func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId string, artifacts []pipelinesv1.OutputArtifact) *common.RunCompletionEvent {
+func (es *VaiEventingServer) runCompletionEventDataForRun(ctx context.Context, runId string) *common.RunCompletionEventData {
 	job, err := es.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
 		Name: es.ProviderConfig.pipelineJobName(runId),
 	})
@@ -129,7 +111,7 @@ func (es *VaiEventingServer) runCompletionEventForRun(ctx context.Context, runId
 		return nil
 	}
 
-	return es.toRunCompletionEvent(job, runId, artifacts)
+	return es.toRunCompletionEventData(job, runId)
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
@@ -171,72 +153,70 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifac
 	return servingModelArtifacts
 }
 
-func artifactsForJob(job *aiplatformpb.PipelineJob, artifactDefs []pipelinesv1.OutputArtifact) (artifacts []common.Artifact) {
-	for _, artifactDef := range artifactDefs {
-		var evaluator *bexpr.Evaluator
-		var err error
+func artifactsFilterData(job *aiplatformpb.PipelineJob) (componentCompletions []common.PipelineComponent) {
+	//for _, artifactDef := range artifactDefs {
+	// all move to kfp operator webhook
+	//var evaluator *bexpr.Evaluator
+	//var err error
+	//
+	//if artifactDef.Path.Filter != "" {
+	//	evaluator, err = bexpr.CreateEvaluator(artifactDef.Path.Filter)
+	//	if err != nil {
+	//		continue
+	//	}
+	//}
 
-		if artifactDef.Path.Filter != "" {
-			evaluator, err = bexpr.CreateEvaluator(artifactDef.Path.Filter)
-			if err != nil {
-				continue
+	for _, task := range job.GetJobDetail().GetTaskDetails() {
+		componentArtifactDetails := make([]common.ComponentArtifactDetails, 0, len(task.GetOutputs()))
+
+		//if task.TaskName != artifactDef.Path.Locator.Name {
+		//	continue
+		//}
+
+		for outputName, output := range task.GetOutputs() {
+			//if outputName != artifactDef.Path.Locator.Artifact {
+			//	continue
+			//}
+			//
+			//if artifactDef.Path.Locator.Index >= len(output.Artifacts) {
+			//	continue
+			//}
+
+			//artifact := output.Artifacts[artifactDef.Path.Locator.Index]
+			//
+			//if artifact.Uri == "" {
+			//	continue
+			//}
+			artifacts := make([]common.ComponentOutputArtifact, 0)
+			for _, artifact := range output.GetArtifacts() {
+				metadata := artifact.Metadata.AsMap()
+				artifacts = append(artifacts, common.ComponentOutputArtifact{
+					Uri:      artifact.Uri,
+					Metadata: metadata,
+				})
 			}
+
+			//if evaluator != nil {
+			//	matched, err := evaluator.Evaluate(artifact.Metadata.AsMap())
+			//	// evaluator errors on missing properties
+			//	if err != nil {
+			//		continue
+			//	}
+			//	if !matched {
+			//		continue
+			//	}
+			//}
+
+			componentArtifactDetails = append(componentArtifactDetails, common.ComponentArtifactDetails{ArtifactName: outputName, Artifacts: artifacts})
 		}
-
-		for _, task := range job.GetJobDetail().GetTaskDetails() {
-			if task.TaskName != artifactDef.Path.Locator.Component {
-				continue
-			}
-
-			for outputName, output := range task.GetOutputs() {
-				if outputName != artifactDef.Path.Locator.Artifact {
-					continue
-				}
-
-				if artifactDef.Path.Locator.Index >= len(output.Artifacts) {
-					continue
-				}
-
-				artifact := output.Artifacts[artifactDef.Path.Locator.Index]
-
-				if artifact.Uri == "" {
-					continue
-				}
-
-				if evaluator != nil {
-					matched, err := evaluator.Evaluate(artifact.Metadata.AsMap())
-					// evaluator errors on missing properties
-					if err != nil {
-						continue
-					}
-					if !matched {
-						continue
-					}
-				}
-
-				artifacts = append(artifacts, common.Artifact{Name: artifactDef.Name, Location: artifact.Uri})
-			}
-		}
+		componentCompletions = append(componentCompletions, common.PipelineComponent{Name: task.TaskName, ComponentArtifactDetails: componentArtifactDetails})
 	}
+	//}
 
-	return artifacts
+	return componentCompletions
 }
 
-func gvrAndNamespacedNameForRunLabels(runLabels map[string]string) (schema.GroupVersionResource, types.NamespacedName, error) {
-	runConfigurationName, ok := runLabels[labels.RunConfigurationName]
-	if ok {
-		return base.RunConfigurationGVR, types.NamespacedName{Name: runConfigurationName, Namespace: runLabels[labels.RunConfigurationNamespace]}, nil
-	}
-
-	runName, ok := runLabels[labels.RunName]
-	if ok {
-		return base.RunGVR, types.NamespacedName{Name: runName, Namespace: runLabels[labels.RunNamespace]}, nil
-	}
-
-	return schema.GroupVersionResource{}, types.NamespacedName{}, fmt.Errorf("neither %s or %s provided in labels", labels.RunConfigurationName, labels.RunName)
-}
-
-func (es *VaiEventingServer) toRunCompletionEvent(job *aiplatformpb.PipelineJob, runId string, artifacts []pipelinesv1.OutputArtifact) *common.RunCompletionEvent {
+func (es *VaiEventingServer) toRunCompletionEventData(job *aiplatformpb.PipelineJob, runId string) *common.RunCompletionEventData {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
@@ -261,14 +241,14 @@ func (es *VaiEventingServer) toRunCompletionEvent(job *aiplatformpb.PipelineJob,
 		Namespace: job.Labels[labels.RunConfigurationNamespace],
 	}
 
-	return &common.RunCompletionEvent{
+	return &common.RunCompletionEventData{
 		Status:                runCompletionStatus,
 		PipelineName:          pipelineName,
 		RunConfigurationName:  runConfigurationName.NonEmptyPtr(),
 		RunName:               runName.NonEmptyPtr(),
 		RunId:                 runId,
-		Artifacts:             artifactsForJob(job, artifacts),
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
+		ComponentCompletion:   artifactsFilterData(job),
 		Provider:              es.ProviderConfig.Name,
 	}
 }
