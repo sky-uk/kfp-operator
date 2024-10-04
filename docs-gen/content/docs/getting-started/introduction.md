@@ -49,4 +49,4 @@ Currently, we support the following eventsources:
 
 ## Architecture Overview
 
-![architecture](/images/architecture.drawio.svg)
+![architecture](/images/architecture.svg)
