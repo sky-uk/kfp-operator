@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-nats-event-trigger
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "kfp-operator.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "kfp-operator.labels" . | nindent 6 }}
+  replicas: {{ .Values.manager.replicas }}
+  template:
+    metadata:
+      labels:
+        app: nats-event-trigger
+    spec:
+      containers:
+      - name: nats
+        image: nats:2.8-alpine //TODO: need to create image
+        ports:
+        - containerPort: 50051
+        env: 
+          
+          
