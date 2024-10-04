@@ -77,7 +77,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			return
 		}
 
-		es.Logger.V(1).Info("sending run completion event", "event", event)
+		es.Logger.V(1).Info("sending run completion data", "event", event)
 		if err = stream.Send(&generic.Event{
 			Name:    common.RunCompletionEventName,
 			Payload: jsonPayload,
@@ -153,7 +153,7 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifac
 	return servingModelArtifacts
 }
 
-func artifactsFilterData(job *aiplatformpb.PipelineJob) (componentCompletions []common.PipelineComponent) {
+func artifactsFilterData(job *aiplatformpb.PipelineJob) []common.PipelineComponent {
 	//for _, artifactDef := range artifactDefs {
 	// all move to kfp operator webhook
 	//var evaluator *bexpr.Evaluator
@@ -165,9 +165,10 @@ func artifactsFilterData(job *aiplatformpb.PipelineJob) (componentCompletions []
 	//		continue
 	//	}
 	//}
+	componentCompletions := make([]common.PipelineComponent, 0, len(job.GetJobDetail().GetTaskDetails()))
 
 	for _, task := range job.GetJobDetail().GetTaskDetails() {
-		componentArtifactDetails := make([]common.ComponentArtifactDetails, 0, len(task.GetOutputs()))
+		componentArtifactDetails := make([]common.ComponentArtifact, 0, len(task.GetOutputs()))
 
 		//if task.TaskName != artifactDef.Path.Locator.Name {
 		//	continue
@@ -187,10 +188,10 @@ func artifactsFilterData(job *aiplatformpb.PipelineJob) (componentCompletions []
 			//if artifact.Uri == "" {
 			//	continue
 			//}
-			artifacts := make([]common.ComponentOutputArtifact, 0)
+			artifacts := make([]common.ComponentArtifactInstance, 0)
 			for _, artifact := range output.GetArtifacts() {
 				metadata := artifact.Metadata.AsMap()
-				artifacts = append(artifacts, common.ComponentOutputArtifact{
+				artifacts = append(artifacts, common.ComponentArtifactInstance{
 					Uri:      artifact.Uri,
 					Metadata: metadata,
 				})
@@ -207,9 +208,9 @@ func artifactsFilterData(job *aiplatformpb.PipelineJob) (componentCompletions []
 			//	}
 			//}
 
-			componentArtifactDetails = append(componentArtifactDetails, common.ComponentArtifactDetails{ArtifactName: outputName, Artifacts: artifacts})
+			componentArtifactDetails = append(componentArtifactDetails, common.ComponentArtifact{Name: outputName, Artifacts: artifacts})
 		}
-		componentCompletions = append(componentCompletions, common.PipelineComponent{Name: task.TaskName, ComponentArtifactDetails: componentArtifactDetails})
+		componentCompletions = append(componentCompletions, common.PipelineComponent{Name: task.TaskName, ComponentArtifacts: componentArtifactDetails})
 	}
 	//}
 
@@ -248,7 +249,7 @@ func (es *VaiEventingServer) toRunCompletionEventData(job *aiplatformpb.Pipeline
 		RunName:               runName.NonEmptyPtr(),
 		RunId:                 runId,
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
-		ComponentCompletion:   artifactsFilterData(job),
+		PipelineComponents:    artifactsFilterData(job),
 		Provider:              es.ProviderConfig.Name,
 	}
 }

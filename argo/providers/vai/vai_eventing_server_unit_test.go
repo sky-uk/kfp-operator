@@ -111,13 +111,13 @@ var _ = Context("VaiEventingServer", func() {
 				},
 			},
 			Provider: eventingServer.ProviderConfig.Name,
-			ComponentCompletion: []common.PipelineComponent{
+			PipelineComponents: []common.PipelineComponent{
 				{
 					Name: "my-task-name",
-					ComponentArtifactDetails: []common.ComponentArtifactDetails{
+					ComponentArtifacts: []common.ComponentArtifact{
 						{
-							ArtifactName: "a-model",
-							Artifacts: []common.ComponentOutputArtifact{
+							Name: "a-model",
+							Artifacts: []common.ComponentArtifactInstance{
 								{
 									Uri: "gs://some/where",
 									Metadata: map[string]interface{}{
@@ -189,8 +189,8 @@ var _ = Context("VaiEventingServer", func() {
 					},
 				})).To(Equal([]common.PipelineComponent{
 					{
-						Name:                     componentName,
-						ComponentArtifactDetails: []common.ComponentArtifactDetails{},
+						Name:               componentName,
+						ComponentArtifacts: []common.ComponentArtifact{},
 					},
 				}))
 			})
@@ -216,10 +216,10 @@ var _ = Context("VaiEventingServer", func() {
 				})).To(Equal([]common.PipelineComponent{
 					{
 						Name: componentName,
-						ComponentArtifactDetails: []common.ComponentArtifactDetails{
+						ComponentArtifacts: []common.ComponentArtifact{
 							{
-								ArtifactName: "a-model",
-								Artifacts:    []common.ComponentOutputArtifact{},
+								Name:      "a-model",
+								Artifacts: []common.ComponentArtifactInstance{},
 							},
 						},
 					},

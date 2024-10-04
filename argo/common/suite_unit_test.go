@@ -128,7 +128,7 @@ var _ = Context("NamespacedNameFromString", Serial, func() {
 var _ = Context("RunCompletionEvent.String", func() {
 	artList := []Artifact{
 		{
-			Name:     "ArtifactName",
+			Name:     "Name",
 			Location: "ArtifactLocation",
 		},
 	}
@@ -156,8 +156,8 @@ var _ = Context("RunCompletionEvent.String", func() {
 			Equal(
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
 					"Namespace:RunConfigurationNameNamespace} RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
-					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"ServingModelArtifacts:[{Name:Name Location:ArtifactLocation}] " +
+					"Artifacts:[{Name:Name Location:ArtifactLocation}] " +
 					"Provider:Provider}",
 			),
 		)
@@ -171,8 +171,8 @@ var _ = Context("RunCompletionEvent.String", func() {
 			Equal(
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:<nil> " +
 					"RunName:&{Name:RunNameName Namespace:RunNameNamespace} RunId:RunId " +
-					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"ServingModelArtifacts:[{Name:Name Location:ArtifactLocation}] " +
+					"Artifacts:[{Name:Name Location:ArtifactLocation}] " +
 					"Provider:Provider}",
 			),
 		)
@@ -186,8 +186,8 @@ var _ = Context("RunCompletionEvent.String", func() {
 			Equal(
 				"{Status: PipelineName:{Name:PipelineNameName Namespace:PipelineNameNamespace} RunConfigurationName:&{Name:RunConfigurationNameName " +
 					"Namespace:RunConfigurationNameNamespace} RunName:<nil> RunId:RunId " +
-					"ServingModelArtifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
-					"Artifacts:[{Name:ArtifactName Location:ArtifactLocation}] " +
+					"ServingModelArtifacts:[{Name:Name Location:ArtifactLocation}] " +
+					"Artifacts:[{Name:Name Location:ArtifactLocation}] " +
 					"Provider:Provider}",
 			),
 		)

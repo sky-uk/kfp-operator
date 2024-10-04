@@ -36,19 +36,19 @@ func (sre RunCompletionEvent) String() string {
 		sre.Status, sre.PipelineName, sre.RunConfigurationName, sre.RunName, sre.RunId, sre.ServingModelArtifacts, sre.Artifacts, sre.Provider)
 }
 
-type ComponentOutputArtifact struct {
-	Uri      string
-	Metadata map[string]interface{}
+type ComponentArtifactInstance struct {
+	Uri      string                 `json:"uri"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
-type ComponentArtifactDetails struct {
-	ArtifactName string
-	Artifacts    []ComponentOutputArtifact
+type ComponentArtifact struct {
+	Name      string                      `json:"name"`
+	Artifacts []ComponentArtifactInstance `json:"artifacts"`
 }
 
 type PipelineComponent struct {
-	Name                     string `json:"component,omitempty"`
-	ComponentArtifactDetails []ComponentArtifactDetails
+	Name               string              `json:"name"`
+	ComponentArtifacts []ComponentArtifact `json:"componentArtifacts"`
 }
 
 type RunCompletionEventData struct {
@@ -59,6 +59,6 @@ type RunCompletionEventData struct {
 	RunName               *NamespacedName     `json:"runName,omitempty"`
 	RunId                 string              `json:"runId"`
 	ServingModelArtifacts []Artifact          `json:"servingModelArtifacts"`
-	ComponentCompletion   []PipelineComponent `json:"artifacts,omitempty"`
+	PipelineComponents    []PipelineComponent `json:"pipelineComponents"`
 	Provider              string              `json:"provider"`
 }
