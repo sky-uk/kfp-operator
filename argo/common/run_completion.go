@@ -62,3 +62,16 @@ type RunCompletionEventData struct {
 	PipelineComponents    []PipelineComponent `json:"pipelineComponents"`
 	Provider              string              `json:"provider"`
 }
+
+func (rced RunCompletionEventData) ToRunCompletionEvent() RunCompletionEvent {
+	return RunCompletionEvent{
+		Status:                rced.Status,
+		PipelineName:          rced.PipelineName,
+		RunConfigurationName:  rced.RunConfigurationName,
+		RunName:               rced.RunName,
+		RunId:                 rced.RunId,
+		ServingModelArtifacts: rced.ServingModelArtifacts,
+		Artifacts:             nil,
+		Provider:              rced.Provider,
+	}
+}

@@ -76,8 +76,10 @@ func extractEventData(ctx context.Context, request *http.Request) (*EventData, e
 	if err := json.Unmarshal(body, runData); err != nil {
 		return nil, err
 	}
+
 	// replace with our event processor thing. Pass body and get RunCompletionEvent
 	rawMessage := json.RawMessage(body)
+
 	// Change EventData to contain RunCompletionEvent rather than RawMessage Body.
 	return &EventData{
 		Header: request.Header,

@@ -17,17 +17,18 @@ func NewEventProcessor(client client.Reader) EventProcessor {
 	return EventProcessor{client: client}
 }
 
-func (ep EventProcessor) ToRunCompletionEvent(ctx context.Context, runData common.RunCompletionEventData) (*common.RunCompletionEvent, error) {
-	// filter
-	// create RunCompletionEvent
+type FilterFunc func([]common.PipelineComponent, []pipelinesv1.OutputArtifact) []common.Artifact
+
+func (ep EventProcessor) ToRunCompletionEvent(ctx context.Context, runData common.RunCompletionEventData, filterFunc FilterFunc) (*common.RunCompletionEvent, error) {
 	outputArtifacts, err := extractResourceArtifacts(ctx, ep.client, runData.RunConfigurationName, runData.RunName)
 	if err != nil {
 		return nil, err
 	}
 
-	filter(runData.PipelineComponents, outputArtifacts)
+	runCompletionEvent := runData.ToRunCompletionEvent()
+	runCompletionEvent.Artifacts = filterFunc(runData.PipelineComponents, outputArtifacts)
 
-	return nil, nil
+	return &runCompletionEvent, nil
 }
 
 func filter(pipelineComponents []common.PipelineComponent, outputArtifacts []pipelinesv1.OutputArtifact) []common.Artifact {

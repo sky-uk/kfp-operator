@@ -34,20 +34,32 @@ func checkOutputArtifacts(outputArtifacts []v1alpha5.OutputArtifact, expectedArt
 	}
 }
 
-//func RandomRunCompletionEvent() kfpevents.RunCompletionEvent {
-//	runName := kfpevents.RandomNamespacedName()
-//	runConfigurationName := kfpevents.RandomNamespacedName()
-//
-//	return kfpevents.RunCompletionEvent{
-//		Status:                kfpevents.RunCompletionStatus(kfpevents.RandomString()),
-//		Provider:              kfpevents.RandomString(),
-//		PipelineName:          kfpevents.RandomNamespacedName(),
-//		RunName:               &runName,
-//		RunConfigurationName:  &runConfigurationName,
-//		RunId:                 kfpevents.RandomString(),
-//		ServingModelArtifacts: RandomNonEmptyList(RandomArtifact),
-//	}
-//}
+func randomComponentArtifactInstance() common.ComponentArtifactInstance {
+	return common.ComponentArtifactInstance{
+		Uri: common.RandomString(),
+		Metadata: map[string]interface{}{
+			"x": map[string]interface{}{
+				"y": 1,
+			},
+			"pushed":             1,
+			"pushed_destination": "gs://giveupwhileyoustillcan.com",
+		},
+	}
+}
+
+func randomComponentArtifact() common.ComponentArtifact {
+	return common.ComponentArtifact{
+		Name:      common.RandomString(),
+		Artifacts: apis.RandomNonEmptyList(randomComponentArtifactInstance),
+	}
+}
+
+func randomPipelineComponent() common.PipelineComponent {
+	return common.PipelineComponent{
+		Name:               common.RandomString(),
+		ComponentArtifacts: apis.RandomNonEmptyList(randomComponentArtifact),
+	}
+}
 
 func RandomRunCompletionEventData() common.RunCompletionEventData {
 	runName := common.RandomNamespacedName()
@@ -59,23 +71,52 @@ func RandomRunCompletionEventData() common.RunCompletionEventData {
 		RunConfigurationName:  &runConfigurationName,
 		RunName:               &runName,
 		RunId:                 common.RandomString(),
-		ServingModelArtifacts: apis.RandomList(common.RandomArtifact),
-		PipelineComponents:    apis.RandomList(common.RandomPipelineComponent),
+		ServingModelArtifacts: apis.RandomNonEmptyList(common.RandomArtifact),
+		PipelineComponents:    apis.RandomNonEmptyList(randomPipelineComponent),
 		Provider:              common.RandomString(),
 	}
 }
 
-//var _ = Context("ToRunCompletionEvent", func() {
-//
-//	When("", func() {
-//		It("", func() {
-//
-//		})
-//	})
-//})
+var _ = Context("ToRunCompletionEvent", func() {
+	var ctx = logr.NewContext(context.Background(), logr.Discard())
+
+	When("given valid runCompletionEventData", func() {
+		It("converts to a runCompletionEvent with filtered artifacts", func() {
+			rc := v1alpha5.RandomRunConfiguration()
+
+			runCompletionEventData := RandomRunCompletionEventData()
+			runCompletionEventData.RunConfigurationName = &common.NamespacedName{
+				Name:      rc.Name,
+				Namespace: rc.Namespace,
+			}
+
+			expectedArtifacts := apis.RandomNonEmptyList(common.RandomArtifact)
+
+			stubbedFilterFunc := func(_ []common.PipelineComponent, _ []v1alpha5.OutputArtifact) []common.Artifact {
+				return expectedArtifacts
+			}
+
+			fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(rc).Build()
+
+			result, err := EventProcessor{fakeClient}.ToRunCompletionEvent(ctx, runCompletionEventData, stubbedFilterFunc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(&common.RunCompletionEvent{
+				Status:                runCompletionEventData.Status,
+				PipelineName:          runCompletionEventData.PipelineName,
+				RunConfigurationName:  runCompletionEventData.RunConfigurationName,
+				RunName:               runCompletionEventData.RunName,
+				RunId:                 runCompletionEventData.RunId,
+				ServingModelArtifacts: runCompletionEventData.ServingModelArtifacts,
+				Artifacts:             expectedArtifacts,
+				Provider:              runCompletionEventData.Provider,
+			}))
+
+		})
+	})
+})
 
 var _ = Context("filter", func() {
-	basePipelineComponent := common.RandomPipelineComponent()
+	basePipelineComponent := randomPipelineComponent()
 	baseOutputArtifact := v1alpha5.OutputArtifact{
 		Name: "outputArtifactName",
 		Path: v1alpha5.ArtifactPath{
