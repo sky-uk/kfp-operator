@@ -154,40 +154,12 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifac
 }
 
 func artifactsFilterData(job *aiplatformpb.PipelineJob) []common.PipelineComponent {
-	//for _, artifactDef := range artifactDefs {
-	// all move to kfp operator webhook
-	//var evaluator *bexpr.Evaluator
-	//var err error
-	//
-	//if artifactDef.Path.Filter != "" {
-	//	evaluator, err = bexpr.CreateEvaluator(artifactDef.Path.Filter)
-	//	if err != nil {
-	//		continue
-	//	}
-	//}
 	componentCompletions := make([]common.PipelineComponent, 0, len(job.GetJobDetail().GetTaskDetails()))
 
 	for _, task := range job.GetJobDetail().GetTaskDetails() {
 		componentArtifactDetails := make([]common.ComponentArtifact, 0, len(task.GetOutputs()))
 
-		//if task.TaskName != artifactDef.Path.Locator.Name {
-		//	continue
-		//}
-
 		for outputName, output := range task.GetOutputs() {
-			//if outputName != artifactDef.Path.Locator.Artifact {
-			//	continue
-			//}
-			//
-			//if artifactDef.Path.Locator.Index >= len(output.Artifacts) {
-			//	continue
-			//}
-
-			//artifact := output.Artifacts[artifactDef.Path.Locator.Index]
-			//
-			//if artifact.Uri == "" {
-			//	continue
-			//}
 			artifacts := make([]common.ComponentArtifactInstance, 0)
 			for _, artifact := range output.GetArtifacts() {
 				metadata := artifact.Metadata.AsMap()
@@ -196,23 +168,10 @@ func artifactsFilterData(job *aiplatformpb.PipelineJob) []common.PipelineCompone
 					Metadata: metadata,
 				})
 			}
-
-			//if evaluator != nil {
-			//	matched, err := evaluator.Evaluate(artifact.Metadata.AsMap())
-			//	// evaluator errors on missing properties
-			//	if err != nil {
-			//		continue
-			//	}
-			//	if !matched {
-			//		continue
-			//	}
-			//}
-
 			componentArtifactDetails = append(componentArtifactDetails, common.ComponentArtifact{Name: outputName, Artifacts: artifacts})
 		}
 		componentCompletions = append(componentCompletions, common.PipelineComponent{Name: task.TaskName, ComponentArtifacts: componentArtifactDetails})
 	}
-	//}
 
 	return componentCompletions
 }

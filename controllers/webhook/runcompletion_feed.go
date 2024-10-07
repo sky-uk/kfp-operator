@@ -8,6 +8,7 @@ import (
 	"fmt"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -33,7 +34,9 @@ func NewRunCompletionFeed(ctx context.Context, endpoints []config.Endpoint) RunC
 		return NewHttpWebhook(endpoint)
 	})
 	return RunCompletionFeed{
-		ctx:       ctx,
+		ctx: ctx,
+		// k8s client
+		// new filter/processor thing
 		upstreams: upstreams,
 	}
 }
@@ -68,7 +71,14 @@ func extractEventData(ctx context.Context, request *http.Request) (*EventData, e
 	if err != nil {
 		return nil, err
 	}
+
+	runData := &common.RunCompletionEventData{}
+	if err := json.Unmarshal(body, runData); err != nil {
+		return nil, err
+	}
+	// replace with our event processor thing. Pass body and get RunCompletionEvent
 	rawMessage := json.RawMessage(body)
+	// Change EventData to contain RunCompletionEvent rather than RawMessage Body.
 	return &EventData{
 		Header: request.Header,
 		Body:   rawMessage,

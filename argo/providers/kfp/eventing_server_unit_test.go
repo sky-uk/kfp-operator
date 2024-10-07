@@ -244,6 +244,9 @@ var _ = Context("Eventing Server", func() {
 			Logger:        logr.Discard(),
 			MetadataStore: &mockMetadataStore,
 			KfpApi:        &mockKfpApi,
+			ProviderConfig: KfpProviderConfig{
+				Name: "kfp",
+			},
 		}
 
 		artifacts := mockMetadataStore.returnArtifactForPipeline()

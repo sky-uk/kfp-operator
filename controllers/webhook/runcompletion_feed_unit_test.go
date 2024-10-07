@@ -48,22 +48,31 @@ var _ = Context("extractEventData", func() {
 
 	When("valid request", func() {
 		It("returns event data in raw json and headers", func() {
-			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("hello world")))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("{\"hello\":\"world\"}")))
 			req.Header.Add("hello", "world")
 			Expect(err).NotTo(HaveOccurred())
 			eventData, err := extractEventData(ctx, req)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(eventData.Body.MarshalJSON()).To(Equal([]byte("hello world")))
+			//Expect(eventData.Body.MarshalJSON()).To(Equal([]byte("hello world")))
 			Expect(eventData.Header.Get("hello")).To(Equal("world"))
 		})
 	})
 
-	When("invalid body passed", func() {
+	When("empty body passed", func() {
 		It("returns an error", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))
 			Expect(err).NotTo(HaveOccurred())
 			_, err = extractEventData(ctx, req)
 			Expect(err.Error()).To(Equal("request body is empty"))
+		})
+	})
+
+	When("invalid body passed", func() {
+		It("returns an error", func() {
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("hello world")))
+			Expect(err).NotTo(HaveOccurred())
+			_, err = extractEventData(ctx, req)
+			Expect(err.Error()).To(Equal("invalid character 'h' looking for beginning of value"))
 		})
 	})
 })

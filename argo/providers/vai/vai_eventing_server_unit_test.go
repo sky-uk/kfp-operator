@@ -21,12 +21,6 @@ func artifact() *aiplatformpb.Artifact {
 		Uri:         "gs://some/where",
 		Metadata: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
-				//"x": structpb.NewStructValue(
-				//	&structpb.Struct{
-				//		Fields: map[string]*structpb.Value{
-				//			"y": structpb.NewNumberValue(1),
-				//		},
-				//	}),
 				"pushed":             structpb.NewNumberValue(1),                 // Legacy
 				"pushed_destination": structpb.NewStringValue("gs://some/where"), // Legacy
 			},
@@ -148,33 +142,6 @@ var _ = Context("VaiEventingServer", func() {
 			})
 		})
 
-		// move to KFP Operator
-		//When("The job is missing artifact index", func() {
-		//	It("Produces no artifacts", func() {
-		//		componentName := common.RandomString()
-		//		outputName := common.RandomString()
-		//
-		//		incorrectArtifact := artifact()
-		//
-		//		Expect(artifactsFilterData(&aiplatformpb.PipelineJob{
-		//			JobDetail: &aiplatformpb.PipelineJobDetail{
-		//				TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-		//					{
-		//						TaskName: componentName,
-		//						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-		//							outputName: {
-		//								Artifacts: []*aiplatformpb.Artifact{
-		//									incorrectArtifact,
-		//								},
-		//							},
-		//						},
-		//					},
-		//				},
-		//			},
-		//		})).To(BeEmpty())
-		//	})
-		//})
-
 		When("The job has a component but no output", func() {
 			It("Produces empty pipeline component", func() {
 				componentName := common.RandomString()
@@ -226,121 +193,6 @@ var _ = Context("VaiEventingServer", func() {
 				}))
 			})
 		})
-
-		// to move to KFP Operator
-		//When("The job has a matching path but the artifact has no uri", func() {
-		//	It("Produces no artifacts", func() {
-		//		componentName := common.RandomString()
-		//		outputName := common.RandomString()
-		//		incorrectArtifact := artifact()
-		//		incorrectArtifact.Uri = ""
-		//
-		//		Expect(artifactsFilterData(&aiplatformpb.PipelineJob{
-		//			JobDetail: &aiplatformpb.PipelineJobDetail{
-		//				TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-		//					{
-		//						TaskName: componentName,
-		//						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-		//							outputName: {
-		//								Artifacts: []*aiplatformpb.Artifact{
-		//									incorrectArtifact,
-		//								},
-		//							},
-		//						},
-		//					},
-		//				},
-		//			},
-		//		})).To(BeEmpty())
-		//	})
-		//})
-
-		//When("The job has a matching path but no matching properties", func() {
-		//	It("Produces no artifacts", func() {
-		//		componentName := common.RandomString()
-		//		outputName := common.RandomString()
-		//		incorrectArtifact := artifact()
-		//		incorrectArtifact.Metadata.Fields = nil
-		//
-		//		Expect(artifactsFilterData(&aiplatformpb.PipelineJob{
-		//			JobDetail: &aiplatformpb.PipelineJobDetail{
-		//				TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-		//					{
-		//						TaskName: componentName,
-		//						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-		//							outputName: {
-		//								Artifacts: []*aiplatformpb.Artifact{
-		//									artifact(),
-		//								},
-		//							},
-		//						},
-		//					},
-		//				},
-		//			},
-		//		})).To(BeEmpty())
-		//	})
-		//})
-
-		//When("The job has matching artifacts", func() {
-		//	It("Produces the artifacts", func() {
-		//		componentName := common.RandomString()
-		//		outputName := common.RandomString()
-		//		artifactName := common.RandomString()
-		//
-		//		firstArtifact := artifact()
-		//		secondArtifact := artifact()
-		//		secondArtifact.Uri = "gs://some/where/else"
-		//		secondArtifact.DisplayName = "another-artifact"
-		//
-		//		Expect(artifactsFilterData(&aiplatformpb.PipelineJob{
-		//			JobDetail: &aiplatformpb.PipelineJobDetail{
-		//				TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-		//					{
-		//						TaskName: componentName,
-		//						Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-		//							outputName: {
-		//								Artifacts: []*aiplatformpb.Artifact{
-		//									firstArtifact,
-		//									secondArtifact,
-		//								},
-		//							},
-		//						},
-		//					},
-		//				},
-		//			},
-		//		})).To(ConsistOf(common.Artifact{Name: artifactName, Location: "gs://some/where/else"}))
-		//	})
-		//})
-
-		//	When("The job has matching artifacts with matching properties", func() {
-		//		It("Produces the artifacts", func() {
-		//			componentName := common.RandomString()
-		//			outputName := common.RandomString()
-		//			artifactName := common.RandomString()
-		//
-		//			firstArtifact := artifact()
-		//			secondArtifact := artifact()
-		//			secondArtifact.Uri = "gs://some/where/else"
-		//			secondArtifact.DisplayName = "another-artifact"
-		//
-		//			Expect(artifactsFilterData(&aiplatformpb.PipelineJob{
-		//				JobDetail: &aiplatformpb.PipelineJobDetail{
-		//					TaskDetails: []*aiplatformpb.PipelineTaskDetail{
-		//						{
-		//							TaskName: componentName,
-		//							Outputs: map[string]*aiplatformpb.PipelineTaskDetail_ArtifactList{
-		//								outputName: {
-		//									Artifacts: []*aiplatformpb.Artifact{
-		//										firstArtifact,
-		//										secondArtifact,
-		//									},
-		//								},
-		//							},
-		//						},
-		//					},
-		//				},
-		//			})).To(ConsistOf(common.Artifact{Name: artifactName, Location: "gs://some/where/else"}))
-		//		})
-		//	})
 	})
 
 	Describe("Legacy: modelServingArtifactsForJob", func() {
