@@ -102,8 +102,6 @@ var _ = Context("extractEventData", func() {
 		})
 	})
 
-	//When("valid req")
-
 	When("empty body passed", func() {
 		It("returns an error", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))

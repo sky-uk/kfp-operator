@@ -104,7 +104,8 @@ func extractResourceArtifacts(ctx context.Context, reader client.Reader, runConf
 		}
 		return runResource.Spec.Artifacts, nil
 	} else {
-		logger.Error(errors.New("failed to retrieve resource artifacts"), "Neither RunConfigurationName or RunName specified")
-		return nil, errors.New("no RunConfiguration or RunName specified")
+		err := errors.New("no RunConfiguration or RunName specified")
+		logger.Error(err, "failed to retrieve resource artifacts")
+		return nil, err
 	}
 }

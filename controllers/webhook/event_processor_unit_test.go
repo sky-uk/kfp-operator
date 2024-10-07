@@ -28,7 +28,7 @@ func schemeWithCRDs() *runtime.Scheme {
 
 func checkOutputArtifacts(outputArtifacts []v1alpha5.OutputArtifact, expectedArtifacts []v1alpha5.OutputArtifact) {
 	if outputArtifacts == nil {
-		Expect(expectedArtifacts).To(HaveLen(0))
+		Expect(expectedArtifacts).To(BeEmpty())
 	} else {
 		Expect(outputArtifacts).To(Equal(expectedArtifacts))
 	}

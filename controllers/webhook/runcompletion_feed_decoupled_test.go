@@ -5,6 +5,7 @@ package webhook
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-logr/logr"
@@ -27,7 +28,7 @@ type MockUpstreamService struct {
 
 func (m MockUpstreamService) call(_ context.Context, ed EventData) error {
 	mockUpstreamServiceCallCounter++
-	passedBodyBytes, err := ed.Body.MarshalJSON()
+	passedBodyBytes, err := json.Marshal(ed.RunCompletionEvent)
 	Expect(err).NotTo(HaveOccurred())
 	passedBodyStr := string(passedBodyBytes)
 	if m.expectedBody == "error" {
