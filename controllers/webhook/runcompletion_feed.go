@@ -35,7 +35,7 @@ func NewRunCompletionFeed(ctx context.Context, client client.Reader, endpoints [
 	eventProcessor := NewResourceArtifactsEventProcessor(client)
 
 	upstreams := pipelines.Map(endpoints, func(endpoint config.Endpoint) UpstreamService {
-		return NewHttpWebhook(endpoint)
+		return NewArgoEventWebhook(endpoint)
 	})
 
 	return RunCompletionFeed{
