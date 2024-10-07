@@ -3,6 +3,7 @@ package webhook
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
@@ -49,7 +50,7 @@ func (hw HttpWebhook) buildRequest(ctx context.Context, bodyBytes []byte) (*http
 
 func (hw HttpWebhook) call(ctx context.Context, ed EventData) error {
 	logger := common.LoggerFromContext(ctx)
-	bodyBytes, err := ed.Body.MarshalJSON()
+	bodyBytes, err := json.Marshal(ed.RunCompletionEvent)
 	if err != nil {
 		return err
 	}

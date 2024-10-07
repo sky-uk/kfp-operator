@@ -98,7 +98,7 @@ var _ = Context("ToRunCompletionEvent", func() {
 
 			fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(rc).Build()
 
-			result, err := EventProcessor{fakeClient}.ToRunCompletionEvent(ctx, runCompletionEventData, stubbedFilterFunc)
+			result, err := ResourceArtifactsEventProcessor{client: fakeClient, filter: stubbedFilterFunc}.ToRunCompletionEvent(ctx, runCompletionEventData)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(&common.RunCompletionEvent{
 				Status:                runCompletionEventData.Status,
@@ -131,7 +131,7 @@ var _ = Context("filter", func() {
 
 	When("all fields match", func() {
 		It("returns the matching artifact", func() {
-			result := filter([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{baseOutputArtifact})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{baseOutputArtifact})
 
 			Expect(result).To(Equal([]common.Artifact{
 				{
@@ -147,7 +147,7 @@ var _ = Context("filter", func() {
 			nonMatchingComponent := baseOutputArtifact
 			nonMatchingComponent.Path.Locator.Component = "non matching component"
 
-			result := filter([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingComponent})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingComponent})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -157,7 +157,7 @@ var _ = Context("filter", func() {
 			nonMatchingArtifactName := baseOutputArtifact
 			nonMatchingArtifactName.Path.Locator.Artifact = "non matching artifact"
 
-			result := filter([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingArtifactName})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingArtifactName})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -167,7 +167,7 @@ var _ = Context("filter", func() {
 			missingArtifact := basePipelineComponent
 			missingArtifact.ComponentArtifacts[0].Artifacts[0].Uri = ""
 
-			result := filter([]common.PipelineComponent{missingArtifact}, []v1alpha5.OutputArtifact{baseOutputArtifact})
+			result := filterByResourceArtifacts([]common.PipelineComponent{missingArtifact}, []v1alpha5.OutputArtifact{baseOutputArtifact})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -177,7 +177,7 @@ var _ = Context("filter", func() {
 			nonMatchingFilter := baseOutputArtifact
 			nonMatchingFilter.Path.Filter = "pushed == 0"
 
-			result := filter([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingFilter})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingFilter})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -186,7 +186,7 @@ var _ = Context("filter", func() {
 		It("returns no artifact", func() {
 			invalidIndex := baseOutputArtifact
 			invalidIndex.Path.Locator.Index = 999999999
-			result := filter([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{invalidIndex})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{invalidIndex})
 			Expect(result).To(BeEmpty())
 		})
 	})

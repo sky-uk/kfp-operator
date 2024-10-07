@@ -9,29 +9,34 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type EventProcessor struct {
-	client client.Reader
-}
-
-func NewEventProcessor(client client.Reader) EventProcessor {
-	return EventProcessor{client: client}
+type EventProcessor interface {
+	ToRunCompletionEvent(ctx context.Context, runData common.RunCompletionEventData) (*common.RunCompletionEvent, error)
 }
 
 type FilterFunc func([]common.PipelineComponent, []pipelinesv1.OutputArtifact) []common.Artifact
 
-func (ep EventProcessor) ToRunCompletionEvent(ctx context.Context, runData common.RunCompletionEventData, filterFunc FilterFunc) (*common.RunCompletionEvent, error) {
+type ResourceArtifactsEventProcessor struct {
+	client client.Reader
+	filter FilterFunc
+}
+
+func NewResourceArtifactsEventProcessor(client client.Reader) EventProcessor {
+	return ResourceArtifactsEventProcessor{client: client, filter: filterByResourceArtifacts}
+}
+
+func (ep ResourceArtifactsEventProcessor) ToRunCompletionEvent(ctx context.Context, runData common.RunCompletionEventData) (*common.RunCompletionEvent, error) {
 	outputArtifacts, err := extractResourceArtifacts(ctx, ep.client, runData.RunConfigurationName, runData.RunName)
 	if err != nil {
 		return nil, err
 	}
 
 	runCompletionEvent := runData.ToRunCompletionEvent()
-	runCompletionEvent.Artifacts = filterFunc(runData.PipelineComponents, outputArtifacts)
+	runCompletionEvent.Artifacts = ep.filter(runData.PipelineComponents, outputArtifacts)
 
 	return &runCompletionEvent, nil
 }
 
-func filter(pipelineComponents []common.PipelineComponent, outputArtifacts []pipelinesv1.OutputArtifact) []common.Artifact {
+func filterByResourceArtifacts(pipelineComponents []common.PipelineComponent, outputArtifacts []pipelinesv1.OutputArtifact) []common.Artifact {
 	artifacts := make([]common.Artifact, 0)
 	for _, outputArtifact := range outputArtifacts {
 		var evaluator *bexpr.Evaluator

@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -57,12 +58,15 @@ var _ = Context("call", func() {
 	var ctx = logr.NewContext(context.Background(), logr.Discard())
 
 	When("called", func() {
+		rce := common.RunCompletionEvent{}
 		headers := http.Header{"hello": []string{"world", "goodbye"}}
-		bodyStr := "hello world"
-		rawJson := json.RawMessage(bodyStr)
+		bodyBytes, err := json.Marshal(rce)
+		Expect(err).NotTo(HaveOccurred())
+		bodyStr := string(bodyBytes)
+
 		eventData := EventData{
-			Header: headers,
-			Body:   rawJson,
+			Header:             headers,
+			RunCompletionEvent: rce,
 		}
 
 		It("return no error", withHttpWebhook(http.StatusOK, headers, bodyStr, func(underTest HttpWebhook) {
