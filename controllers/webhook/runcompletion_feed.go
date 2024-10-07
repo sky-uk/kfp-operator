@@ -70,18 +70,22 @@ func getRequestBody(ctx context.Context, request *http.Request) ([]byte, error) 
 	return body, nil
 }
 
+type DataWrapper struct {
+	Data common.RunCompletionEventData `json:"data"`
+}
+
 func (rcf RunCompletionFeed) extractEventData(request *http.Request) (*EventData, error) {
 	body, err := getRequestBody(rcf.ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	runData := &common.RunCompletionEventData{}
-	if err := json.Unmarshal(body, runData); err != nil {
+	runDataWrapper := &DataWrapper{}
+	if err := json.Unmarshal(body, runDataWrapper); err != nil {
 		return nil, err
 	}
 
-	rce, err := rcf.eventProcessor.ToRunCompletionEvent(rcf.ctx, *runData)
+	rce, err := rcf.eventProcessor.ToRunCompletionEvent(rcf.ctx, runDataWrapper.Data)
 	if err != nil {
 		return nil, err
 	} else if rce == nil {
