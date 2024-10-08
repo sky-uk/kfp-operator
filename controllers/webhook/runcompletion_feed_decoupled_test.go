@@ -54,16 +54,33 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		upstreams: nil,
 	}
 
-	bodyStr := "{\"hello\":\"world\"}"
-	upstreams := []UpstreamService{MockUpstreamService{expectedBody: bodyStr}, MockUpstreamService{expectedBody: bodyStr}}
+	rced := RandomRunCompletionEventData()
+	requestBody := DataWrapper{
+		Data: rced,
+	}
+	requestStr, err := json.Marshal(requestBody)
+	Expect(err).NotTo(HaveOccurred())
+
+	rce := RandomRunCompletionEventData().ToRunCompletionEvent()
+	expectedUpstreamStr, err := json.Marshal(rce)
+	Expect(err).NotTo(HaveOccurred())
+
+	upstreams := []UpstreamService{MockUpstreamService{expectedBody: string(expectedUpstreamStr)}, MockUpstreamService{expectedBody: string(expectedUpstreamStr)}}
+
+	eventProcessor := StubbedEventProcessor{
+		expectedRunCompletionEventData: &rced,
+		returnedRunCompletionEvent:     &rce,
+	}
+
 	withUpstreams := RunCompletionFeed{
-		ctx:       ctx,
-		upstreams: upstreams,
+		ctx:            ctx,
+		eventProcessor: eventProcessor,
+		upstreams:      upstreams,
 	}
 
 	When("called with a valid request", func() {
 		It("calls out to configured upstreams passing expected data", func() {
-			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader([]byte(bodyStr)), HttpContentTypeJSON)
+			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
 			withUpstreams.handleEvent(resp, req)
 
@@ -84,7 +101,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 	When("called with an incorrect content type", func() {
 		It("returns unsupported mediatype", func() {
-			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader([]byte(bodyStr)), "application/xml")
+			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), "application/xml")
 
 			noUpstreams.handleEvent(resp, req)
 
@@ -94,7 +111,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 	When("called with an invalid http method", func() {
 		It("returns method not allowed error", func() {
-			req, resp := setupRequestResponse(ctx, http.MethodGet, bytes.NewReader([]byte(bodyStr)), HttpContentTypeJSON)
+			req, resp := setupRequestResponse(ctx, http.MethodGet, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
 			noUpstreams.handleEvent(resp, req)
 
@@ -104,13 +121,14 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 	When("a upstream returns an error", func() {
 		It("returns internal server error", func() {
-			upstreams := []UpstreamService{MockUpstreamService{expectedBody: "error"}, MockUpstreamService{expectedBody: bodyStr}}
+			upstreams := []UpstreamService{MockUpstreamService{expectedBody: "error"}, MockUpstreamService{expectedBody: string(expectedUpstreamStr)}}
 			withErrorUpstream := RunCompletionFeed{
-				ctx:       ctx,
-				upstreams: upstreams,
+				ctx:            ctx,
+				eventProcessor: eventProcessor,
+				upstreams:      upstreams,
 			}
 
-			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader([]byte(bodyStr)), HttpContentTypeJSON)
+			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
 			withErrorUpstream.handleEvent(resp, req)
 

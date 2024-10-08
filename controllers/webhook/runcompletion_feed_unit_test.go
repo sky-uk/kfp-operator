@@ -43,15 +43,6 @@ var _ = Context("getRequestBody", func() {
 	})
 })
 
-type StubbedEventProcessor struct {
-	expectedRunCompletionEvent *common.RunCompletionEvent
-	expectedError              error
-}
-
-func (sep StubbedEventProcessor) ToRunCompletionEvent(_ context.Context, _ common.RunCompletionEventData) (*common.RunCompletionEvent, error) {
-	return sep.expectedRunCompletionEvent, sep.expectedError
-}
-
 var _ = Context("extractEventData", func() {
 	logger, _ := common.NewLogger(zapcore.DebugLevel)
 	ctx := logr.NewContext(context.Background(), logger)
@@ -60,7 +51,7 @@ var _ = Context("extractEventData", func() {
 	When("valid request", func() {
 		It("returns event data in raw json and headers", func() {
 			processor := StubbedEventProcessor{
-				expectedRunCompletionEvent: &common.RunCompletionEvent{},
+				returnedRunCompletionEvent: &common.RunCompletionEvent{},
 				expectedError:              nil,
 			}
 			rcf.eventProcessor = processor
@@ -72,12 +63,12 @@ var _ = Context("extractEventData", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(eventData.Header.Get("hello")).To(Equal("world"))
-			Expect(eventData.RunCompletionEvent).To(Equal(*processor.expectedRunCompletionEvent))
+			Expect(eventData.RunCompletionEvent).To(Equal(*processor.returnedRunCompletionEvent))
 		})
 
 		It("returns error on event processor error", func() {
 			processor := StubbedEventProcessor{
-				expectedRunCompletionEvent: &common.RunCompletionEvent{},
+				returnedRunCompletionEvent: &common.RunCompletionEvent{},
 				expectedError:              errors.New("an error occurred"),
 			}
 			rcf.eventProcessor = processor
@@ -90,7 +81,7 @@ var _ = Context("extractEventData", func() {
 
 		It("returns error on event processor return empty event", func() {
 			processor := StubbedEventProcessor{
-				expectedRunCompletionEvent: nil,
+				returnedRunCompletionEvent: nil,
 				expectedError:              nil,
 			}
 			rcf.eventProcessor = processor

@@ -34,49 +34,6 @@ func checkOutputArtifacts(outputArtifacts []v1alpha5.OutputArtifact, expectedArt
 	}
 }
 
-func randomComponentArtifactInstance() common.ComponentArtifactInstance {
-	return common.ComponentArtifactInstance{
-		Uri: common.RandomString(),
-		Metadata: map[string]interface{}{
-			"x": map[string]interface{}{
-				"y": 1,
-			},
-			"pushed":             1,
-			"pushed_destination": "gs://giveupwhileyoustillcan.com",
-		},
-	}
-}
-
-func randomComponentArtifact() common.ComponentArtifact {
-	return common.ComponentArtifact{
-		Name:      common.RandomString(),
-		Artifacts: apis.RandomNonEmptyList(randomComponentArtifactInstance),
-	}
-}
-
-func randomPipelineComponent() common.PipelineComponent {
-	return common.PipelineComponent{
-		Name:               common.RandomString(),
-		ComponentArtifacts: apis.RandomNonEmptyList(randomComponentArtifact),
-	}
-}
-
-func RandomRunCompletionEventData() common.RunCompletionEventData {
-	runName := common.RandomNamespacedName()
-	runConfigurationName := common.RandomNamespacedName()
-
-	return common.RunCompletionEventData{
-		Status:                common.RunCompletionStatus(common.RandomString()),
-		PipelineName:          common.NamespacedName{},
-		RunConfigurationName:  &runConfigurationName,
-		RunName:               &runName,
-		RunId:                 common.RandomString(),
-		ServingModelArtifacts: apis.RandomNonEmptyList(common.RandomArtifact),
-		PipelineComponents:    apis.RandomNonEmptyList(randomPipelineComponent),
-		Provider:              common.RandomString(),
-	}
-}
-
 var _ = Context("ToRunCompletionEvent", func() {
 	var ctx = logr.NewContext(context.Background(), logr.Discard())
 
