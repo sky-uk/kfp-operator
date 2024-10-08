@@ -28,7 +28,7 @@ func (s *server) ProcessEventFeed(ctx context.Context, in *pb.RunCompletionFeed)
 		return nil, status.Error(codes.FailedPrecondition, "failed to connect to marshal event")
 	}
 
-	err = s.NATSConnection.Publish(s.config.NATSConfig.Subject, []byte(event_data))
+	err = s.NATSConnection.Publish(*s.config.NATSConfig.Subject, []byte(event_data))
 	if err != nil {
 		return nil, status.Error(codes.FailedPrecondition, "failed to publish event")
 	}
@@ -46,17 +46,17 @@ func Start() error {
 
 	flag.Parse()
 
-	config, err := LoadConfig(configFileName)
+	config, err := loadConfigFromFile(configFileName)
 	if err != nil {
 		return err
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", config.ServerConfig.Host, config.ServerConfig.Port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", *config.ServerConfig.Host, *config.ServerConfig.Port))
 	if err != nil {
-		return fmt.Errorf("failed to listen on port %s: %v", config.ServerConfig.Port, err)
+		return fmt.Errorf("failed to listen on port %s: %v", *config.ServerConfig.Port, err)
 	}
 
-	nc, err := nats.Connect(config.NATSConfig.Url)
+	nc, err := nats.Connect(*config.NATSConfig.Url)
 
 	if err != nil {
 		return fmt.Errorf("failed to connect to NATS server: %v", err)

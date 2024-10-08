@@ -11,21 +11,21 @@ service NATSEventTrigger {
 }
 
 message RunCompletionFeed {
-  string specversion = 1;
+  string spec_version = 1;
   string id = 2;
   string source = 3;
   string type = 4;
-  string datacontenttype = 5;
+  string data_content_type = 5;
   RunCompletionEvent data = 6;
 }
 
 message RunCompletionEvent {
-  string pipelineName = 1;
+  string pipeline_name = 1;
   string provider = 2;
-  string runConfigurationName = 3;
-  string runId = 4;
-  string runName = 5;
-  repeated ServingModelArtifact servingModelArtifacts = 6;
+  string run_configuration_name = 3;
+  string run_id = 4;
+  string run_name = 5;
+  repeated ServingModelArtifact serving_model_artifacts = 6;
   string status = 7;
 }
 
