@@ -2,7 +2,9 @@
 
 package common
 
-import "k8s.io/apimachinery/pkg/util/rand"
+import (
+	"k8s.io/apimachinery/pkg/util/rand"
+)
 
 func RandomString() string {
 	return rand.String(5)

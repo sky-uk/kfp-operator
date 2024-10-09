@@ -5,6 +5,7 @@ package webhook
 import (
 	"bytes"
 	"context"
+	"errors"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -43,27 +44,70 @@ var _ = Context("getRequestBody", func() {
 })
 
 var _ = Context("extractEventData", func() {
-	var logger, _ = common.NewLogger(zapcore.DebugLevel)
-	var ctx = logr.NewContext(context.Background(), logger)
+	logger, _ := common.NewLogger(zapcore.DebugLevel)
+	ctx := logr.NewContext(context.Background(), logger)
+	rcf := RunCompletionFeed{ctx: ctx}
 
 	When("valid request", func() {
 		It("returns event data in raw json and headers", func() {
-			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("hello world")))
+			processor := StubbedEventProcessor{
+				returnedRunCompletionEvent: &common.RunCompletionEvent{},
+				expectedError:              nil,
+			}
+			rcf.eventProcessor = processor
+
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("{\"hello\":\"world\"}")))
 			req.Header.Add("hello", "world")
 			Expect(err).NotTo(HaveOccurred())
-			eventData, err := extractEventData(ctx, req)
+			eventData, err := rcf.extractEventData(req)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(eventData.Body.MarshalJSON()).To(Equal([]byte("hello world")))
+
 			Expect(eventData.Header.Get("hello")).To(Equal("world"))
+			Expect(eventData.RunCompletionEvent).To(Equal(*processor.returnedRunCompletionEvent))
+		})
+
+		It("returns error on event processor error", func() {
+			processor := StubbedEventProcessor{
+				returnedRunCompletionEvent: &common.RunCompletionEvent{},
+				expectedError:              errors.New("an error occurred"),
+			}
+			rcf.eventProcessor = processor
+
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("{\"hello\":\"world\"}")))
+			Expect(err).NotTo(HaveOccurred())
+			_, err = rcf.extractEventData(req)
+			Expect(err).To(MatchError("an error occurred"))
+		})
+
+		It("returns error on event processor return empty event", func() {
+			processor := StubbedEventProcessor{
+				returnedRunCompletionEvent: nil,
+				expectedError:              nil,
+			}
+			rcf.eventProcessor = processor
+
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("{\"hello\":\"world\"}")))
+			Expect(err).NotTo(HaveOccurred())
+			_, err = rcf.extractEventData(req)
+			Expect(err).To(MatchError("event data is empty"))
+		})
+	})
+
+	When("empty body passed", func() {
+		It("returns an error", func() {
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))
+			Expect(err).NotTo(HaveOccurred())
+			_, err = rcf.extractEventData(req)
+			Expect(err.Error()).To(Equal("request body is empty"))
 		})
 	})
 
 	When("invalid body passed", func() {
 		It("returns an error", func() {
-			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("hello world")))
 			Expect(err).NotTo(HaveOccurred())
-			_, err = extractEventData(ctx, req)
-			Expect(err.Error()).To(Equal("request body is empty"))
+			_, err = rcf.extractEventData(req)
+			Expect(err.Error()).To(Equal("invalid character 'h' looking for beginning of value"))
 		})
 	})
 })

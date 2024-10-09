@@ -3,6 +3,7 @@ package webhook
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
@@ -10,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -17,12 +19,12 @@ type UpstreamService interface {
 	call(ctx context.Context, ed EventData) error
 }
 
-type HttpWebhook struct {
+type ArgoEventWebhook struct {
 	Upstream config.Endpoint
 	Client   *http.Client
 }
 
-func NewHttpWebhook(endpoint config.Endpoint) HttpWebhook {
+func NewArgoEventWebhook(endpoint config.Endpoint) ArgoEventWebhook {
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
 			Timeout: 2 * time.Second,
@@ -37,19 +39,39 @@ func NewHttpWebhook(endpoint config.Endpoint) HttpWebhook {
 		Timeout:   10 * time.Second,
 	}
 
-	return HttpWebhook{
+	return ArgoEventWebhook{
 		Upstream: endpoint,
 		Client:   client,
 	}
 }
 
-func (hw HttpWebhook) buildRequest(ctx context.Context, bodyBytes []byte) (*http.Request, error) {
+func (hw ArgoEventWebhook) buildRequest(ctx context.Context, bodyBytes []byte) (*http.Request, error) {
 	return http.NewRequestWithContext(ctx, http.MethodPost, hw.Upstream.URL(), bytes.NewReader(bodyBytes))
 }
 
-func (hw HttpWebhook) call(ctx context.Context, ed EventData) error {
+type ArgoEventBody struct {
+	Specversion     string                    `json:"specversion"`
+	Id              string                    `json:"id"`
+	Source          string                    `json:"source"`
+	Type            string                    `json:"type"`
+	DataContentType string                    `json:"datacontenttype"`
+	Data            common.RunCompletionEvent `json:"data"`
+}
+
+func NewArgoEventBody(data common.RunCompletionEvent) ArgoEventBody {
+	return ArgoEventBody{
+		Specversion:     "1.0",
+		Id:              strconv.FormatInt(time.Now().UnixNano(), 10),
+		Source:          "argo-event-webhook",
+		DataContentType: HttpContentTypeJSON,
+		Data:            data,
+	}
+}
+
+func (hw ArgoEventWebhook) call(ctx context.Context, ed EventData) error {
 	logger := common.LoggerFromContext(ctx)
-	bodyBytes, err := ed.Body.MarshalJSON()
+	requestBody := NewArgoEventBody(ed.RunCompletionEvent)
+	bodyBytes, err := json.Marshal(requestBody)
 	if err != nil {
 		return err
 	}

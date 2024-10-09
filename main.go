@@ -175,7 +175,7 @@ func main() {
 	ctx := ctrl.SetupSignalHandler()
 
 	setupLog.Info("starting run completion feed")
-	rcf := webhook.NewRunCompletionFeed(ctx, ctrlConfig.Spec.RunCompletionFeed.Endpoints)
+	rcf := webhook.NewRunCompletionFeed(ctx, client.NonCached, ctrlConfig.Spec.RunCompletionFeed.Endpoints)
 	go func() {
 		err = rcf.Start(ctrlConfig.Spec.RunCompletionFeed.Port)
 		if err != nil {

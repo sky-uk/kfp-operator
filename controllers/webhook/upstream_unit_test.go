@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -23,7 +24,7 @@ func extractHostPort(url string) (string, int) {
 	return matches[1], port
 }
 
-func withHttpWebhook(httpResponseCode int, expectedHeaders http.Header, expectedBody string, f func(upstream HttpWebhook)) func() {
+func withHttpWebhook(httpResponseCode int, expectedHeaders http.Header, expectedBody string, f func(upstream ArgoEventWebhook)) func() {
 	return func() {
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			defer GinkgoRecover()
@@ -36,14 +37,14 @@ func withHttpWebhook(httpResponseCode int, expectedHeaders http.Header, expected
 			if err != nil {
 				Expect(err).ToNot(HaveOccurred())
 			}
-			Expect(string(content)).To(Equal(expectedBody))
+			Expect(string(content)).To(ContainSubstring(expectedBody))
 			w.WriteHeader(httpResponseCode)
 		}))
 		defer testServer.Close()
 
 		client := testServer.Client()
 		testHost, testPort := extractHostPort(testServer.URL)
-		underTest := HttpWebhook{Upstream: config.Endpoint{
+		underTest := ArgoEventWebhook{Upstream: config.Endpoint{
 			Host: testHost,
 			Port: testPort,
 			Path: "/test-path",
@@ -57,20 +58,23 @@ var _ = Context("call", func() {
 	var ctx = logr.NewContext(context.Background(), logr.Discard())
 
 	When("called", func() {
+		rce := common.RunCompletionEvent{}
 		headers := http.Header{"hello": []string{"world", "goodbye"}}
-		bodyStr := "hello world"
-		rawJson := json.RawMessage(bodyStr)
+		bodyBytes, err := json.Marshal(rce)
+		Expect(err).NotTo(HaveOccurred())
+		bodyStr := string(bodyBytes)
+
 		eventData := EventData{
-			Header: headers,
-			Body:   rawJson,
+			Header:             headers,
+			RunCompletionEvent: rce,
 		}
 
-		It("return no error", withHttpWebhook(http.StatusOK, headers, bodyStr, func(underTest HttpWebhook) {
+		It("return no error", withHttpWebhook(http.StatusOK, headers, bodyStr, func(underTest ArgoEventWebhook) {
 			err := underTest.call(ctx, eventData)
 			Expect(err).NotTo(HaveOccurred())
 		}))
 
-		It("returns internal server error if upstream fails", withHttpWebhook(http.StatusMethodNotAllowed, headers, bodyStr, func(underTest HttpWebhook) {
+		It("returns internal server error if upstream fails", withHttpWebhook(http.StatusMethodNotAllowed, headers, bodyStr, func(underTest ArgoEventWebhook) {
 			err := underTest.call(ctx, eventData)
 			Expect(err).To(HaveOccurred())
 		}))

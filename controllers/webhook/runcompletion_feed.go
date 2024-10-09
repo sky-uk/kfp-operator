@@ -8,8 +8,10 @@ import (
 	"fmt"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -19,22 +21,27 @@ const (
 )
 
 type EventData struct {
-	Header http.Header     `json:"header"`
-	Body   json.RawMessage `json:"body"`
+	Header             http.Header               `json:"header"`
+	RunCompletionEvent common.RunCompletionEvent `json:"runCompletionEvent"`
 }
 
 type RunCompletionFeed struct {
-	ctx       context.Context
-	upstreams []UpstreamService
+	ctx            context.Context
+	eventProcessor EventProcessor
+	upstreams      []UpstreamService
 }
 
-func NewRunCompletionFeed(ctx context.Context, endpoints []config.Endpoint) RunCompletionFeed {
+func NewRunCompletionFeed(ctx context.Context, client client.Reader, endpoints []config.Endpoint) RunCompletionFeed {
+	eventProcessor := NewResourceArtifactsEventProcessor(client)
+
 	upstreams := pipelines.Map(endpoints, func(endpoint config.Endpoint) UpstreamService {
-		return NewHttpWebhook(endpoint)
+		return NewArgoEventWebhook(endpoint)
 	})
+
 	return RunCompletionFeed{
-		ctx:       ctx,
-		upstreams: upstreams,
+		ctx:            ctx,
+		eventProcessor: eventProcessor,
+		upstreams:      upstreams,
 	}
 }
 
@@ -63,16 +70,32 @@ func getRequestBody(ctx context.Context, request *http.Request) ([]byte, error) 
 	return body, nil
 }
 
-func extractEventData(ctx context.Context, request *http.Request) (*EventData, error) {
-	body, err := getRequestBody(ctx, request)
+type DataWrapper struct {
+	Data common.RunCompletionEventData `json:"data"`
+}
+
+func (rcf RunCompletionFeed) extractEventData(request *http.Request) (*EventData, error) {
+	body, err := getRequestBody(rcf.ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	rawMessage := json.RawMessage(body)
-	return &EventData{
-		Header: request.Header,
-		Body:   rawMessage,
-	}, nil
+
+	runDataWrapper := &DataWrapper{}
+	if err := json.Unmarshal(body, runDataWrapper); err != nil {
+		return nil, err
+	}
+
+	rce, err := rcf.eventProcessor.ToRunCompletionEvent(rcf.ctx, runDataWrapper.Data)
+	if err != nil {
+		return nil, err
+	} else if rce == nil {
+		return nil, errors.New("event data is empty")
+	} else {
+		return &EventData{
+			Header:             request.Header,
+			RunCompletionEvent: *rce,
+		}, nil
+	}
 }
 
 func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *http.Request) {
@@ -84,7 +107,7 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			http.Error(response, fmt.Sprintf("invalid %s, want `%s`", HttpHeaderContentType, HttpContentTypeJSON), http.StatusUnsupportedMediaType)
 			return
 		}
-		eventData, err := extractEventData(rcf.ctx, request)
+		eventData, err := rcf.extractEventData(request)
 		if err != nil || eventData == nil {
 			logger.Error(err, "Failed to extract body from request")
 			http.Error(response, err.Error(), http.StatusBadRequest)

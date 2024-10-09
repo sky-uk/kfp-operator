@@ -129,25 +129,25 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		workflow := newObj.(*unstructured.Unstructured)
 
-		runCompletionEvent, err := es.eventForWorkflow(ctx, workflow)
+		runCompletionEventData, err := es.eventForWorkflow(ctx, workflow)
 
 		if err != nil {
 			cancel() //force client to disconnect
 			return
 		}
 
-		if runCompletionEvent == nil {
+		if runCompletionEventData == nil {
 			return
 		}
 
-		jsonPayload, err := json.Marshal(runCompletionEvent)
+		jsonPayload, err := json.Marshal(runCompletionEventData)
 
 		if err != nil {
 			es.Logger.Error(err, "failed to serialise event")
 			return
 		}
 
-		es.Logger.V(1).Info("sending run completion event", "event", runCompletionEvent)
+		es.Logger.V(1).Info("sending run completion data", "event", runCompletionEventData)
 		if err = stream.Send(&generic.Event{
 			Name:    common.RunCompletionEventName,
 			Payload: jsonPayload,
@@ -171,7 +171,7 @@ func (es *KfpEventingServer) StartEventSource(source *generic.EventSource, strea
 	return nil
 }
 
-func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEvent, error) {
+func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEventData, error) {
 	status, hasFinished := runCompletionStatus(workflow)
 	if !hasFinished {
 		es.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
@@ -204,13 +204,15 @@ func (es *KfpEventingServer) eventForWorkflow(ctx context.Context, workflow *uns
 		resourceReferences.PipelineName.Name = pipelineName
 	}
 
-	return &common.RunCompletionEvent{
+	return &common.RunCompletionEventData{
 		Status:                status,
 		PipelineName:          resourceReferences.PipelineName,
 		RunConfigurationName:  resourceReferences.RunConfigurationName.NonEmptyPtr(),
 		RunName:               resourceReferences.RunName.NonEmptyPtr(),
 		RunId:                 runId,
 		ServingModelArtifacts: modelArtifacts,
+		PipelineComponents:    nil,
+		Provider:              es.ProviderConfig.Name,
 	}, nil
 }
 
