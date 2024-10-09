@@ -1,8 +1,0 @@
-natsConfig:
-  subject: events
-  serverConfig:
-    host: https://localhost
-    port: 4222
-serverConfig:
-  host: localhost
-  port: 50051
