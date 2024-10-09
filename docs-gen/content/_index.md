@@ -27,7 +27,7 @@ linkTitle: "KFP-Operator"
 The Kubeflow Pipelines Operator provides a declarative API for managing and running machine learning pipelines on [Kubeflow](https://www.kubeflow.org) with [Custom Resource Definitions](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/).
 {{% /blocks/lead %}}
 
-{{< blocks/section color="dark" >}}
+{{< blocks/section color="dark" type="row">}}
 {{< blocks/feature icon="fa-anchor" title="Kubernetes Resources for KFP Entities" >}}
 Deploy and manage KFP resources using you favourite tooling.
 
@@ -42,3 +42,5 @@ React to machine learning pipeline training runs declaratively.
 Uses the same great technologies like KFP itself.
 
 {{< /blocks/feature >}}
+
+{{< /blocks/section >}}
