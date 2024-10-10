@@ -28,7 +28,8 @@ func (sc ServerConfig) ToUrl() string {
 
 func LoadConfig() (*Config, error) {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("./nats_event_trigger/config")
+	viper.AddConfigPath("/etc/nats_event_trigger")
+	viper.AddConfigPath(".")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("fatal error loading config %w", err)

@@ -1,0 +1,4 @@
+FROM gcr.io/distroless/static-debian12
+COPY bin/nats_event_trigger /bin/nats_event_trigger
+COPY ./config/config.yaml /etc/nats_event_trigger/config.yaml
+CMD ["/bin/nats_event_trigger"]
