@@ -63,8 +63,8 @@ spec:
             protocol: TCP
         {{- if .Values.manager.monitoring.create }}
         {{ if not .Values.manager.monitoring.rbacSecured }}
-           - containerPort: 8080
-             name: http
+          - name: http
+            containerPort: 8080
         {{- else -}}
         - name: kube-rbac-proxy
           image: gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
