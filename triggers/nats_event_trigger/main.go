@@ -1,9 +1,8 @@
 package main
 
 import (
-	"log"
-
 	server "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/server"
+	"log"
 )
 
 func main() {

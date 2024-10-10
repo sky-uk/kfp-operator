@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 
@@ -13,7 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 type server struct {
@@ -22,15 +22,15 @@ type server struct {
 	NATSConnection *nats.Conn
 }
 
-func (s *server) ProcessEventFeed(ctx context.Context, in *pb.RunCompletionFeed) (*emptypb.Empty, error) {
-	event_data, err := json.Marshal(in)
+func (s *server) ProcessEventFeed(_ context.Context, in *pb.RunCompletionFeed) (*emptypb.Empty, error) {
+	eventData, err := json.Marshal(in)
 	if err != nil {
-		return nil, status.Error(codes.FailedPrecondition, "failed to connect to marshal event")
+		return nil, status.Error(codes.InvalidArgument, "marshalling provided event failed")
 	}
 
-	err = s.NATSConnection.Publish(s.config.NATSConfig.Subject, []byte(event_data))
+	err = s.NATSConnection.Publish(s.config.NATSConfig.Subject, eventData)
 	if err != nil {
-		return nil, status.Error(codes.FailedPrecondition, "failed to publish event")
+		return nil, status.Error(codes.Internal, "failed to publish event")
 	}
 
 	return &emptypb.Empty{}, nil
