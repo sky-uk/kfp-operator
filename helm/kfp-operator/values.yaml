@@ -53,6 +53,19 @@ manager:
     servicePort: 8082
     endpoints: []
 
+natsEventTrigger:
+  replicas: 1
+  nats:
+    subject: events
+    server:
+      host: https://localhost
+      port: 4222
+  server:
+    port: 50051
+    host: localhost
+
+
+
 statusFeedback:
   enabled: false
   webhook:

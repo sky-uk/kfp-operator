@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: nats-event-trigger
   namespace: kfp-operator-system
+  labels:
+    app: nats-event-trigger
 spec:
   selector:
     matchLabels:
@@ -13,14 +15,20 @@ spec:
       labels:
         app: nats-event-trigger
     spec:
+      securityContext:
+        runAsNonRoot: true
       containers:
       - name: nats-event-trigger
         image: kfp-operator-nats-event-trigger:latest
         ports:
-        - containerPort: 50051
-        envFrom:
-         - configMapRef:
-              name: nats-event-trigger-config
-
-
+        - name: grpc-server
+          containerPort: 50051
+        volumeMounts:
+          - name: config
+            subPath: config.yaml
+            mountPath: /etc/nats_event_trigger/config.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: nats-event-trigger
 

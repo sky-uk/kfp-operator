@@ -7,6 +7,7 @@ spec:
   selector:
     app: nats-event-trigger
   ports:
-  - protocol: TCP
+  - name: grpc-server
+    protocol: TCP
     port: 50051
     targetPort: 50051

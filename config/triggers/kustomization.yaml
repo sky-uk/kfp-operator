@@ -1,0 +1,4 @@
+resources:
+- nats-event-trigger/deployment.yaml
+- nats-event-trigger/service.yaml
+- nats-event-trigger/config.yaml
