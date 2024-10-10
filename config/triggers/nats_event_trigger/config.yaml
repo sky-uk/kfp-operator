@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nats-event-trigger-config
+  namespace: kfp-operator-system
+data:
+  NATSCONFIG_SUBJECT : "events"
+  NATSCONFIG_SERVERCONFIG_HOST : "https://localhost"
+  NATSCONFIG_SERVERCONFIG_PORT : "4222"
+  SERVERCONFIG_HOST : "localhost"
+  SERVERCONFIG_PORT : "50051"
+
