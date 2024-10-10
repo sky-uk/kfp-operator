@@ -5,7 +5,6 @@ theme = "github.com/google/docsy"
 publishDir = '../docs'
 canonifyURLs = true
 
-
 [menu]
   [[menu.main]]
     name = "Discuss"
