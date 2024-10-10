@@ -23,7 +23,7 @@ type Endpoint struct {
 }
 
 func (e Endpoint) URL() string {
-	return fmt.Sprintf("http://%s:%d%s", e.Host, e.Port, e.Path)
+	return fmt.Sprintf("%s:%d%s", e.Host, e.Port, e.Path)
 }
 
 type ServiceConfiguration struct {
