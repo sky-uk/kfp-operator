@@ -233,7 +233,7 @@ prBuild: test-all package-all git-status-check
 
 cdBuild: prBuild publish-all docker-push-quickstart
 
-##@ Controllers 
+##@ Controllers
 
 generate-grpc:
 	protoc --go_out=. --go_opt=paths=source_relative \

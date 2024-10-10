@@ -2,10 +2,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nats-event-trigger
+  namespace: kfp-operator-system
 spec:
   selector:
-    app: nats
+    app: nats-event-trigger
   ports:
   - protocol: TCP
-    port: 4222
-    targetPort: 4222
+    port: 50051
+    targetPort: 50051

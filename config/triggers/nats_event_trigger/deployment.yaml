@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats-event-trigger
+  namespace: kfp-operator-system
+spec:
+  selector:
+    matchLabels:
+      app: nats-event-trigger
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nats-event-trigger
+    spec:
+      containers:
+      - name: nats-event-trigger
+        image: kfp-operator-nats-event-trigger:latest
+        ports:
+        - containerPort: 50051
+        envFrom:
+         - configMapRef:
+              name: nats-event-trigger-config
+
+
+
