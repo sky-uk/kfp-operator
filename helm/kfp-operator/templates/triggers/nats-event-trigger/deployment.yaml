@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-nats-event-trigger
+  namespace: kfp-operator-system
+  labels:
+    app: nats-event-trigger
+spec:
+  selector:
+    matchLabels:
+      app: nats-event-trigger
+  replicas: {{ .Values.natsEventTrigger.replicas }}
+  template:
+    metadata:
+      labels:
+        app: nats-event-trigger
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+      - name: nats-event-trigger
+        image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-nats-event-trigger:{{ .Chart.AppVersion }}
+        ports:
+        -  name: grpc-server
+           containerPort: {{ .Values.natsEventTrigger.server.port }}
+        volumeMounts:
+          - name: config
+            mountPath: /etc/nats_event_trigger/config.yaml
+            subPath: config.yaml
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "kfp-operator.fullname" . }}-nats-event-trigger
+
+
+
+
