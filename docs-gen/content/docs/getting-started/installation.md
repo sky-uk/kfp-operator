@@ -20,9 +20,7 @@ To get a working installation you will need to install both the KFP-Operator and
 
 Create basic `values.yaml` with the following content:
 
-```yaml
-{{% readfile file="includes/quickstart/resources/values.yaml" %}}
-```
+{{% readfile file="/includes/quickstart/resources/values.yaml" code="true" lang="yaml" %}}
 
 Install the latest version of the operator
 
@@ -37,7 +35,7 @@ You will need to configure service accounts and roles required by your chosen `P
 Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/values.yaml" >}}) are:
 
 | Parameter name                                            | Description                                                                                                                                                                                                         |
-|-----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `containerRegistry`                                       | Container Registry base path for all container images                                                                                                                                                               |
 | `namespace.create`                                        | Create the namespace for the operator                                                                                                                                                                               |
 | `namespace.name`                                          | Operator namespace name                                                                                                                                                                                             |
@@ -82,9 +80,7 @@ Install one or more by following these instructions. Please refer to the [respec
 
 Create basic `kfp.yaml` value file with the following content:
 
-```yaml
-{{% readfile file="includes/quickstart/resources/kfp.yaml" %}}
-```
+{{% readfile file="/includes/quickstart/resources/kfp.yaml" code="true" lang="yaml"%}}
 
 Install the latest version of the provider
 
@@ -97,7 +93,7 @@ helm install oci://ghcr.io/kfp-operator/provider -f kfp.yaml
 The `provider` block contains provider configurations, in order to create relevant [Provider Resources](../reference/resources/provider.md).
 
 | Parameter name            | Description                                                                                                                                                 |
-|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`                    | Name given to this provider                                                                                                                                 |
 | `type`                    | Provider type (`kfp` or `vai`)                                                                                                                              |
 | `serviceAccount.name`     | Name of the service account to run provider-specific operations                                                                                             |
@@ -194,7 +190,7 @@ subjects:
 
 ##### KubeFlow completion eventing required RBACs
 If using the `KubeFlowProvider` you will also need a `ClusterRole` for permission to interact with argo workflows for the
-[eventing system]({{< ref "/run-completion" >}} "Run Completion Events").
+[eventing system]({{< ref "/docs/reference/run-completion" >}} "Run Completion Events").
 
 
 ```yaml
