@@ -19710,12 +19710,569 @@ div.drawioframe {
     height: 5rem;
     visibility: hidden; } }
 
-/*
+[data-bs-theme="light"] {
+  /* Chroma style: tango */
+  /* Background */
+  /* PreWrapper */
+  /* Other */
+  /* Error */
+  /* CodeLine */
+  /* LineLink */
+  /* LineTableTD */
+  /* LineTable */
+  /* LineHighlight */
+  /* LineNumbersTable */
+  /* LineNumbers */
+  /* Line */
+  /* Keyword */
+  /* KeywordConstant */
+  /* KeywordDeclaration */
+  /* KeywordNamespace */
+  /* KeywordPseudo */
+  /* KeywordReserved */
+  /* KeywordType */
+  /* Name */
+  /* NameAttribute */
+  /* NameBuiltin */
+  /* NameBuiltinPseudo */
+  /* NameClass */
+  /* NameConstant */
+  /* NameDecorator */
+  /* NameEntity */
+  /* NameException */
+  /* NameFunction */
+  /* NameFunctionMagic */
+  /* NameLabel */
+  /* NameNamespace */
+  /* NameOther */
+  /* NameProperty */
+  /* NameTag */
+  /* NameVariable */
+  /* NameVariableClass */
+  /* NameVariableGlobal */
+  /* NameVariableInstance */
+  /* NameVariableMagic */
+  /* Literal */
+  /* LiteralDate */
+  /* LiteralString */
+  /* LiteralStringAffix */
+  /* LiteralStringBacktick */
+  /* LiteralStringChar */
+  /* LiteralStringDelimiter */
+  /* LiteralStringDoc */
+  /* LiteralStringDouble */
+  /* LiteralStringEscape */
+  /* LiteralStringHeredoc */
+  /* LiteralStringInterpol */
+  /* LiteralStringOther */
+  /* LiteralStringRegex */
+  /* LiteralStringSingle */
+  /* LiteralStringSymbol */
+  /* LiteralNumber */
+  /* LiteralNumberBin */
+  /* LiteralNumberFloat */
+  /* LiteralNumberHex */
+  /* LiteralNumberInteger */
+  /* LiteralNumberIntegerLong */
+  /* LiteralNumberOct */
+  /* Operator */
+  /* OperatorWord */
+  /* Punctuation */
+  /* Comment */
+  /* CommentHashbang */
+  /* CommentMultiline */
+  /* CommentSingle */
+  /* CommentSpecial */
+  /* CommentPreproc */
+  /* CommentPreprocFile */
+  /* Generic */
+  /* GenericDeleted */
+  /* GenericEmph */
+  /* GenericError */
+  /* GenericHeading */
+  /* GenericInserted */
+  /* GenericOutput */
+  /* GenericPrompt */
+  /* GenericStrong */
+  /* GenericSubheading */
+  /* GenericTraceback */
+  /* GenericUnderline */
+  /* TextWhitespace */ }
+  [data-bs-theme="light"] .bg {
+    background-color: #f8f8f8; }
+  [data-bs-theme="light"] .chroma {
+    background-color: #f8f8f8; }
+  [data-bs-theme="light"] .chroma .x {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .err {
+    color: #a40000; }
+  [data-bs-theme="light"] .chroma .lnlinks {
+    outline: none;
+    text-decoration: none;
+    color: inherit; }
+  [data-bs-theme="light"] .chroma .lntd {
+    vertical-align: top;
+    padding: 0;
+    margin: 0;
+    border: 0; }
+  [data-bs-theme="light"] .chroma .lntable {
+    border-spacing: 0;
+    padding: 0;
+    margin: 0;
+    border: 0; }
+  [data-bs-theme="light"] .chroma .hl {
+    background-color: #dfdfdf; }
+  [data-bs-theme="light"] .chroma .lnt {
+    white-space: pre;
+    -webkit-user-select: none;
+    user-select: none;
+    margin-right: 0.4em;
+    padding: 0 0.4em 0 0.4em;
+    color: #7f7f7f; }
+  [data-bs-theme="light"] .chroma .ln {
+    white-space: pre;
+    -webkit-user-select: none;
+    user-select: none;
+    margin-right: 0.4em;
+    padding: 0 0.4em 0 0.4em;
+    color: #7f7f7f; }
+  [data-bs-theme="light"] .chroma .line {
+    display: flex; }
+  [data-bs-theme="light"] .chroma .k {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .kc {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .kd {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .kn {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .kp {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .kr {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .kt {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .n {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .na {
+    color: #c4a000; }
+  [data-bs-theme="light"] .chroma .nb {
+    color: #204a87; }
+  [data-bs-theme="light"] .chroma .bp {
+    color: #3465a4; }
+  [data-bs-theme="light"] .chroma .nc {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .no {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .nd {
+    color: #5c35cc;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .ni {
+    color: #ce5c00; }
+  [data-bs-theme="light"] .chroma .ne {
+    color: #c00;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .nf {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .fm {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .nl {
+    color: #f57900; }
+  [data-bs-theme="light"] .chroma .nn {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .nx {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .py {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .nt {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .nv {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .vc {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .vg {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .vi {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .vm {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .l {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .ld {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .s {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .sa {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .sb {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .sc {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .dl {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .sd {
+    color: #8f5902;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .s2 {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .se {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .sh {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .si {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .sx {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .sr {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .s1 {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .ss {
+    color: #4e9a06; }
+  [data-bs-theme="light"] .chroma .m {
+    color: #0000cf;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .mb {
+    color: #0000cf;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .mf {
+    color: #0000cf;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .mh {
+    color: #0000cf;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .mi {
+    color: #0000cf;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .il {
+    color: #0000cf;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .mo {
+    color: #0000cf;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .o {
+    color: #ce5c00;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .ow {
+    color: #204a87;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .p {
+    color: #000;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .c {
+    color: #8f5902;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .ch {
+    color: #8f5902;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .cm {
+    color: #8f5902;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .c1 {
+    color: #8f5902;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .cs {
+    color: #8f5902;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .cp {
+    color: #8f5902;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .cpf {
+    color: #8f5902;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .g {
+    color: #000; }
+  [data-bs-theme="light"] .chroma .gd {
+    color: #a40000; }
+  [data-bs-theme="light"] .chroma .ge {
+    color: #000;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .gr {
+    color: #ef2929; }
+  [data-bs-theme="light"] .chroma .gh {
+    color: #000080;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .gi {
+    color: #00a000; }
+  [data-bs-theme="light"] .chroma .go {
+    color: #000;
+    font-style: italic; }
+  [data-bs-theme="light"] .chroma .gp {
+    color: #8f5902; }
+  [data-bs-theme="light"] .chroma .gs {
+    color: #000;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .gu {
+    color: #800080;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .gt {
+    color: #a40000;
+    font-weight: bold; }
+  [data-bs-theme="light"] .chroma .gl {
+    color: #000;
+    text-decoration: underline; }
+  [data-bs-theme="light"] .chroma .w {
+    color: #f8f8f8;
+    text-decoration: underline; }
 
-Nothing defined here. The Hugo project that uses this theme can override Bootstrap by adding a file to:
-
-assets/scss/_styles_project.scss
-
-*/
+[data-bs-theme="dark"] {
+  /* Chroma style: onedark */
+  /* Background */
+  /* PreWrapper */
+  /* Other */
+  /* Error */
+  /* CodeLine */
+  /* LineLink */
+  /* LineTableTD */
+  /* LineTable */
+  /* LineHighlight */
+  /* LineNumbersTable */
+  /* LineNumbers */
+  /* Line */
+  /* Keyword */
+  /* KeywordConstant */
+  /* KeywordDeclaration */
+  /* KeywordNamespace */
+  /* KeywordPseudo */
+  /* KeywordReserved */
+  /* KeywordType */
+  /* Name */
+  /* NameAttribute */
+  /* NameBuiltin */
+  /* NameBuiltinPseudo */
+  /* NameClass */
+  /* NameConstant */
+  /* NameDecorator */
+  /* NameEntity */
+  /* NameException */
+  /* NameFunction */
+  /* NameFunctionMagic */
+  /* NameLabel */
+  /* NameNamespace */
+  /* NameOther */
+  /* NameProperty */
+  /* NameTag */
+  /* NameVariable */
+  /* NameVariableClass */
+  /* NameVariableGlobal */
+  /* NameVariableInstance */
+  /* NameVariableMagic */
+  /* Literal */
+  /* LiteralDate */
+  /* LiteralString */
+  /* LiteralStringAffix */
+  /* LiteralStringBacktick */
+  /* LiteralStringChar */
+  /* LiteralStringDelimiter */
+  /* LiteralStringDoc */
+  /* LiteralStringDouble */
+  /* LiteralStringEscape */
+  /* LiteralStringHeredoc */
+  /* LiteralStringInterpol */
+  /* LiteralStringOther */
+  /* LiteralStringRegex */
+  /* LiteralStringSingle */
+  /* LiteralStringSymbol */
+  /* LiteralNumber */
+  /* LiteralNumberBin */
+  /* LiteralNumberFloat */
+  /* LiteralNumberHex */
+  /* LiteralNumberInteger */
+  /* LiteralNumberIntegerLong */
+  /* LiteralNumberOct */
+  /* Operator */
+  /* OperatorWord */
+  /* Punctuation */
+  /* Comment */
+  /* CommentHashbang */
+  /* CommentMultiline */
+  /* CommentSingle */
+  /* CommentSpecial */
+  /* CommentPreproc */
+  /* CommentPreprocFile */
+  /* Generic */
+  /* GenericDeleted */
+  /* GenericEmph */
+  /* GenericError */
+  /* GenericHeading */
+  /* GenericInserted */
+  /* GenericOutput */
+  /* GenericPrompt */
+  /* GenericStrong */
+  /* GenericSubheading */
+  /* GenericTraceback */
+  /* GenericUnderline */
+  /* TextWhitespace */ }
+  [data-bs-theme="dark"] .bg {
+    color: #abb2bf;
+    background-color: #282c34; }
+  [data-bs-theme="dark"] .chroma {
+    color: #abb2bf;
+    background-color: #282c34; }
+  [data-bs-theme="dark"] .chroma .lnlinks {
+    outline: none;
+    text-decoration: none;
+    color: inherit; }
+  [data-bs-theme="dark"] .chroma .lntd {
+    vertical-align: top;
+    padding: 0;
+    margin: 0;
+    border: 0; }
+  [data-bs-theme="dark"] .chroma .lntable {
+    border-spacing: 0;
+    padding: 0;
+    margin: 0;
+    border: 0; }
+  [data-bs-theme="dark"] .chroma .hl {
+    background-color: #3d4148; }
+  [data-bs-theme="dark"] .chroma .lnt {
+    white-space: pre;
+    -webkit-user-select: none;
+    user-select: none;
+    margin-right: 0.4em;
+    padding: 0 0.4em 0 0.4em;
+    color: #55595f; }
+  [data-bs-theme="dark"] .chroma .ln {
+    white-space: pre;
+    -webkit-user-select: none;
+    user-select: none;
+    margin-right: 0.4em;
+    padding: 0 0.4em 0 0.4em;
+    color: #55595f; }
+  [data-bs-theme="dark"] .chroma .line {
+    display: flex; }
+  [data-bs-theme="dark"] .chroma .k {
+    color: #c678dd; }
+  [data-bs-theme="dark"] .chroma .kc {
+    color: #e5c07b; }
+  [data-bs-theme="dark"] .chroma .kd {
+    color: #c678dd; }
+  [data-bs-theme="dark"] .chroma .kn {
+    color: #c678dd; }
+  [data-bs-theme="dark"] .chroma .kp {
+    color: #c678dd; }
+  [data-bs-theme="dark"] .chroma .kr {
+    color: #c678dd; }
+  [data-bs-theme="dark"] .chroma .kt {
+    color: #e5c07b; }
+  [data-bs-theme="dark"] .chroma .n {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .na {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .nb {
+    color: #e5c07b; }
+  [data-bs-theme="dark"] .chroma .bp {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .nc {
+    color: #e5c07b; }
+  [data-bs-theme="dark"] .chroma .no {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .nd {
+    color: #61afef; }
+  [data-bs-theme="dark"] .chroma .ni {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .ne {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .nf {
+    color: #61afef;
+    font-weight: bold; }
+  [data-bs-theme="dark"] .chroma .fm {
+    color: #56b6c2;
+    font-weight: bold; }
+  [data-bs-theme="dark"] .chroma .nl {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .nn {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .nx {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .py {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .nt {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .nv {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .vc {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .vg {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .vi {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .vm {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .s {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .sa {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .sb {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .sc {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .dl {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .sd {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .s2 {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .se {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .sh {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .si {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .sx {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .sr {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .s1 {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .ss {
+    color: #98c379; }
+  [data-bs-theme="dark"] .chroma .m {
+    color: #d19a66; }
+  [data-bs-theme="dark"] .chroma .mb {
+    color: #d19a66; }
+  [data-bs-theme="dark"] .chroma .mf {
+    color: #d19a66; }
+  [data-bs-theme="dark"] .chroma .mh {
+    color: #d19a66; }
+  [data-bs-theme="dark"] .chroma .mi {
+    color: #d19a66; }
+  [data-bs-theme="dark"] .chroma .il {
+    color: #d19a66; }
+  [data-bs-theme="dark"] .chroma .mo {
+    color: #d19a66; }
+  [data-bs-theme="dark"] .chroma .o {
+    color: #56b6c2; }
+  [data-bs-theme="dark"] .chroma .ow {
+    color: #56b6c2; }
+  [data-bs-theme="dark"] .chroma .c {
+    color: #7f848e; }
+  [data-bs-theme="dark"] .chroma .ch {
+    color: #7f848e; }
+  [data-bs-theme="dark"] .chroma .cm {
+    color: #7f848e; }
+  [data-bs-theme="dark"] .chroma .c1 {
+    color: #7f848e; }
+  [data-bs-theme="dark"] .chroma .cs {
+    color: #7f848e; }
+  [data-bs-theme="dark"] .chroma .cp {
+    color: #7f848e; }
+  [data-bs-theme="dark"] .chroma .cpf {
+    color: #7f848e; }
+  [data-bs-theme="dark"] .chroma .gd {
+    color: #e06c75; }
+  [data-bs-theme="dark"] .chroma .gi {
+    color: #98c379;
+    font-weight: bold; }
+  [data-bs-theme="dark"] .chroma {
+    background-color: var(--td-pre-bg); }
 
 /*# sourceMappingURL=main.css.map */

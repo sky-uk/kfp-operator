@@ -5,12 +5,8 @@ theme = "github.com/google/docsy"
 publishDir = '../docs'
 canonifyURLs = true
 
+
 [menu]
-  [[menu.main]]
-    name = "Documentation"
-    weight = -101
-    pre = "<i class='fas fa-book pr-2'></i>"
-    url = "/docs/"
   [[menu.main]]
     name = "Discuss"
     weight = -100
@@ -39,5 +35,13 @@ canonifyURLs = true
   github_branch = "master"
   github_project_repo = "https://github.com/sky-uk/kfp-operator"
 
+[params.ui]
+navbar_logo = false
+showLightDarkModeMenu = true
+
 [security.exec]
   osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|HOME|ASDF_DIR)$']
+
+[markup.goldmark.renderer]
+unsafe = true
+

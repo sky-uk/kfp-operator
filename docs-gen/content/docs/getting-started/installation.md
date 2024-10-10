@@ -20,9 +20,7 @@ To get a working installation you will need to install both the KFP-Operator and
 
 Create basic `values.yaml` with the following content:
 
-```yaml
-{{% readfile file="/includes/quickstart/resources/values.yaml" %}}
-```
+{{% readfile file="/includes/quickstart/resources/values.yaml" code="true" lang="yaml" %}}
 
 Install the latest version of the operator
 
@@ -82,9 +80,7 @@ Install one or more by following these instructions. Please refer to the [respec
 
 Create basic `kfp.yaml` value file with the following content:
 
-```yaml
-{{% readfile file="/includes/quickstart/resources/kfp.yaml" %}}
-```
+{{% readfile file="/includes/quickstart/resources/kfp.yaml" code="true" lang="yaml"%}}
 
 Install the latest version of the provider
 
