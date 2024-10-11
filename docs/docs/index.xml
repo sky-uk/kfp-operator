@@ -533,7 +533,7 @@ In this example we are updating a serving component with the location of the new
 &lt;li>&lt;a href="../../reference/run-completion">Run Completion Eventsource&lt;/a>&lt;/li>
 &lt;/ul>
 &lt;h2 id="architecture-overview">Architecture Overview&lt;/h2>
-&lt;p>To do.&lt;/p></description></item><item><title>Docs: Pipeline Dependencies</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</guid><description>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/architecture.svg" alt="architecture">&lt;/p></description></item><item><title>Docs: Pipeline Dependencies</title><link>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_dependencies/</guid><description>
 &lt;p>Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p>
 &lt;ul>
 &lt;li>The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li>
