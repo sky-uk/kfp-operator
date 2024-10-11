@@ -19,7 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NATSEventTriggerClient interface {
-	ProcessEventFeed(ctx context.Context, in *RunCompletionEvent, opts ...grpc.CallOption) (*emptypb.Empty, error)
+ProcessEventFeed(ctx context.Context, in *RunCompletionEvent, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type nATSEventTriggerClient struct {

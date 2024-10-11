@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
+
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/nats-io/nats.go"
 	configLoader "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/config"
@@ -22,7 +23,7 @@ type server struct {
 	NATSConnection *nats.Conn
 }
 
-func (s *server) ProcessEventFeed(_ context.Context, in *pb.RunCompletionFeed) (*emptypb.Empty, error) {
+func (s *server) ProcessEventFeed(_ context.Context, in *pb.RunCompletionEvent) (*emptypb.Empty, error) {
 	eventData, err := json.Marshal(in)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "marshalling provided event failed")
