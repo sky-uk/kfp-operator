@@ -13,10 +13,10 @@ We started this project to promote the best engineering practices in the Machine
 
 By configuring simple Kubernetes resources, machine learning practitioners can run their desired training pipelines in each environment on the path to production in a repeatable, testable and scalable way. When linked with serving components, this provides a fully testable path to production for machine learning systems.
 
-![cd-ct](images/cd-ct.svg)
+![cd-ct]({{< param "subpath" >}}/images/cd-ct.svg)
 
 Through separating training code from infrastructure, KFP Operator provides 
 the link between CD and CT to provide Level 2 of the [MLOps Maturity model](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning#mlops_level_2_cicd_pipeline_automation). 
 
-![mlops maturity level](images/mlops-maturity.svg)
+![mlops maturity level]({{< param "subpath" >}}/images/mlops-maturity.svg)
 

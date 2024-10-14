@@ -33,6 +33,7 @@ canonifyURLs = false
   github_subdir = "docs-gen"
   github_branch = "master"
   github_project_repo = "https://github.com/sky-uk/kfp-operator"
+  subpath = "/kfp-operator"
 
 [params.ui]
 navbar_logo = false
