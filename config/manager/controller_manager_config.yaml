@@ -16,4 +16,7 @@ spec:
   workflowTemplatePrefix: kfp-operator-
   runCompletionFeed:
     port: 8082
-    endpoints: []
+    endpoints:
+    - host: kfp-operator-nats-event-trigger.kfp-operator-system
+      path: ""
+      port: 50051

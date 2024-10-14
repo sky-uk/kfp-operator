@@ -8,10 +8,10 @@ data:
     natsConfig:
       subject: {{ .Values.natsEventTrigger.nats.subject }}
       serverConfig:
-        host: {{ .Values.natsEventTrigger.nats.server.host }}
+        host: eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc
         port: {{ .Values.natsEventTrigger.nats.server.port }}
     serverConfig:
-      host: {{ .Values.natsEventTrigger.server.host }}
+      host: 0.0.0.0
       port: {{ .Values.natsEventTrigger.server.port }}
 
 

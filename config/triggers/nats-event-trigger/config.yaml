@@ -8,8 +8,8 @@ data:
     natsConfig:
       subject: events
       serverConfig:
-        host: https://localhost
+        host: eventbus-kfp-operator-events-stan-svc
         port: 4222
     serverConfig:
-      host: localhost
+      host: 0.0.0.0
       port: 50051

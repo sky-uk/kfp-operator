@@ -214,6 +214,11 @@ docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/providers docker-push
 
+docker-build-triggers:
+	$(MAKE) -C triggers/nats_event_trigger docker-push
+
+docker-push-triggers:
+	$(MAKE) -C triggers/nats_event_trigger docker-push
 ##@ Docs
 website:
 	$(MAKE) -C docs-gen
@@ -223,9 +228,9 @@ docker-push-quickstart:
 
 ##@ Package
 
-package-all: docker-build docker-build-argo helm-package website
+package-all: docker-build docker-build-argo docker-build-triggers helm-package website
 
-publish-all: docker-push docker-push-argo helm-publish
+publish-all: docker-push docker-push-argo docker-push-triggers helm-publish
 
 ##@ CI
 
