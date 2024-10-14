@@ -8,6 +8,5 @@ spec:
     app: nats-event-trigger
   ports:
   - protocol: TCP
-    name: grpc-server
     port: {{ .Values.natsEventTrigger.server.port }}
-    targetPort: {{ .Values.natsEventTrigger.server.port }}
+    targetPort: grpc-server

@@ -3,11 +3,12 @@ package webhook
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/credentials/insecure"
+	"log"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	pb "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/proto"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type UpstreamService interface {
@@ -22,8 +23,9 @@ type GrpcNatsTrigger struct {
 
 func NewGrpcNatsTrigger(endpoint config.Endpoint) GrpcNatsTrigger {
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	log.Printf("NewGrpcNatsTrigger connected to: %s", endpoint.URL())
 	if err != nil {
-		panic(fmt.Errorf("failed to connect to gRPC server at %s: %v", endpoint.URL(), err))
+		log.Fatal("Error creating grpc client", err)
 	}
 
 	client := pb.NewNATSEventTriggerClient(conn)

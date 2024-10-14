@@ -1,21 +1,14 @@
 {
-    "specversion": "1.0",
-    "id": "123",
-    "source": "vai",
-    "type": "org.kubeflow.pipelines.run-completion",
-    "datacontenttype": "application/json",
-    "data": {
-        "pipelineName": "pipelinename",
-        "provider": "vai",
-        "runConfigurationName": "runcomfigname",
-        "runId": "runIdFromVAI",
-        "runName": "runname",
-        "servingModelArtifacts": [
-            {
-                "location": "some_location",
-                "name": "pushed_model"
-            }
-        ],
-        "status": "succeeded"
+  "pipelineName": "pipelinename",
+  "provider": "vai",
+  "runConfigurationName": "runcomfigname",
+  "runId": "runIdFromVAI",
+  "runName": "runname",
+  "servingModelArtifacts": [
+    {
+      "location": "some_location",
+      "name": "pushed_model"
     }
+  ],
+  "status": "succeeded"
 }

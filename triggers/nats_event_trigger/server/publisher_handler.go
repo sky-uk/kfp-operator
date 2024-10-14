@@ -2,6 +2,7 @@ package nats_event_trigger
 
 import (
 	"github.com/nats-io/nats.go"
+	"log"
 )
 
 type PublisherHandler interface {
@@ -14,6 +15,7 @@ type NatsPublisher struct {
 }
 
 func (nc NatsPublisher) Publish(data []byte) error {
+	log.Printf("Publish called")
 	if err := nc.NatsConn.Publish(nc.Subject, data); err != nil {
 		return err
 	}

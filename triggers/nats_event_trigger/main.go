@@ -14,7 +14,7 @@ import (
 func main() {
 	config, err := configLoader.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to load config on startup %v", err)
 	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", config.ServerConfig.Host, config.ServerConfig.Port))
@@ -37,9 +37,9 @@ func main() {
 
 	pb.RegisterNATSEventTriggerServer(s, &server.Server{Config: config, Publisher: publisher})
 
+	log.Printf("gRPC server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 
-	log.Printf("gRPC server listening at %v", lis.Addr())
 }
