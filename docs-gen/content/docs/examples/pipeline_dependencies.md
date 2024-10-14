@@ -12,7 +12,7 @@ In this example, we break up the penguin example pipeline into two pipelines:
 - The *Penguin Examples Pipeline* has a single pipeline step that imports the CSV example and outputs it as an artifact
 - The *Penguin Training Pipeline* references the previously produces example and trains the model
 
-![ensembling.svg](/images/ensembling.svg)
+![ensembling.svg](images/ensembling.svg)
 
 This example might not be of practical use but it demonstrates the approach to managing pipeline dependencies.
 

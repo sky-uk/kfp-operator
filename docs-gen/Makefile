@@ -14,7 +14,7 @@ clean:
 	find ../docs -mindepth 1 ! -name '.nojekyll' -delete
 
 serve:
-	hugo server -b http://localhost:1313/
+	hugo server -b http://localhost:1313/kfp-operator/
 
 install-npm-dependencies:
 	npm install
