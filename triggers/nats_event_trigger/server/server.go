@@ -25,8 +25,7 @@ func (s *Server) ProcessEventFeed(ctx context.Context, in *pb.RunCompletionEvent
 		return nil, err
 	}
 
-	err = s.Publisher.Publish(eventData)
-	if err != nil {
+	if err = s.Publisher.Publish(eventData); err != nil {
 		err = status.Error(codes.Internal, "failed to publish event")
 		return nil, err
 	}
