@@ -10,7 +10,7 @@ import (
 )
 
 type Triggers struct {
-	Schedules         []string       `json:"schedules,omitempty"`
+	Schedules         []Schedule     `json:"schedules,omitempty"`
 	OnChange          []OnChangeType `json:"onChange,omitempty"`
 	RunConfigurations []string       `json:"runConfigurations,omitempty"`
 }

@@ -338,7 +338,16 @@ spec:
                     type: array
                   schedules:
                     items:
-                      type: string
+                      properties:
+                        cronExpression:
+                          type: string
+                        endTime:
+                          format: date-time
+                          type: string
+                        startTime:
+                          format: date-time
+                          type: string
+                      type: object
                     type: array
                 type: object
             type: object

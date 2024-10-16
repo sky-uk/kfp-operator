@@ -419,7 +419,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		It("passes the provider to owned resources", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration()
 			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
-				Schedules: []string{apis.RandomString()},
+				Schedules: []pipelinesv1.Schedule{pipelinesv1.RandomSchedule()},
 				OnChange:  []pipelinesv1.OnChangeType{pipelinesv1.OnChangeTypes.Pipeline},
 			}
 			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())

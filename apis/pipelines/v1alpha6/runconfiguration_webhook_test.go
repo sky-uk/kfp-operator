@@ -14,9 +14,9 @@ var _ = Context("RunConfiguration Webhook", func() {
 		runConfiguration := RunConfiguration{
 			Spec: RunConfigurationSpec{
 				Triggers: Triggers{
-					Schedules: []string{
-						"a",
-						"a",
+					Schedules: []Schedule{
+						{CronExpression: "a"},
+						{CronExpression: "a"},
 					},
 				},
 			},
@@ -82,8 +82,8 @@ var _ = Context("RunConfiguration Webhook", func() {
 					},
 				},
 				Triggers: Triggers{
-					Schedules: []string{
-						apis.RandomString(),
+					Schedules: []Schedule{
+						RandomSchedule(),
 					},
 					OnChange: []OnChangeType{
 						OnChangeTypes.Pipeline,

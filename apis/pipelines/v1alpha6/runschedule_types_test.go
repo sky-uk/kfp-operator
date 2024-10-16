@@ -3,69 +3,92 @@
 package v1alpha6
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Context("RunSchedule", func() {
 	var _ = Describe("ComputeHash", func() {
 
 		Specify("Pipeline should change the hash", func() {
-			rcs := RunSchedule{}
-			hash1 := rcs.ComputeHash()
+			rs := RunSchedule{}
+			hash1 := rs.ComputeHash()
 
-			rcs.Spec.Pipeline = PipelineIdentifier{Name: "notempty"}
-			hash2 := rcs.ComputeHash()
+			rs.Spec.Pipeline = PipelineIdentifier{Name: "notempty"}
+			hash2 := rs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("ExperimentName should change the hash", func() {
-			rcs := RunSchedule{}
-			hash1 := rcs.ComputeHash()
+			rs := RunSchedule{}
+			hash1 := rs.ComputeHash()
 
-			rcs.Spec.ExperimentName = "notempty"
-			hash2 := rcs.ComputeHash()
+			rs.Spec.ExperimentName = "notempty"
+			hash2 := rs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("Schedule should change the hash", func() {
-			rcs := RunSchedule{}
-			hash1 := rcs.ComputeHash()
+		Specify("Schedule CronExpression should change the hash", func() {
+			rs := RunSchedule{}
+			hash1 := rs.ComputeHash()
 
-			rcs.Spec.Schedule = "notempty"
-			hash2 := rcs.ComputeHash()
+			rs.Spec.Schedule.CronExpression = "notempty"
+			hash2 := rs.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
+		Specify("Schedule StartTime should change the hash", func() {
+			rs := RunSchedule{}
+			hash1 := rs.ComputeHash()
+
+			rs.Spec.Schedule.StartTime = metav1.NewTime(time.Now())
+			hash2 := rs.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
+		Specify("Schedule EndTime should change the hash", func() {
+			rs := RunSchedule{}
+			hash1 := rs.ComputeHash()
+
+			rs.Spec.Schedule.EndTime = metav1.NewTime(time.Now())
+			hash2 := rs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
 		Specify("All RuntimeParameters keys should change the hash", func() {
-			rcs := RunSchedule{}
-			hash1 := rcs.ComputeHash()
+			rs := RunSchedule{}
+			hash1 := rs.ComputeHash()
 
-			rcs.Spec.RuntimeParameters = []apis.NamedValue{
+			rs.Spec.RuntimeParameters = []apis.NamedValue{
 				{Name: "a", Value: ""},
 			}
-			hash2 := rcs.ComputeHash()
+			hash2 := rs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			rcs.Spec.RuntimeParameters = []apis.NamedValue{
+			rs.Spec.RuntimeParameters = []apis.NamedValue{
 				{Name: "b", Value: "notempty"},
 			}
-			hash3 := rcs.ComputeHash()
+			hash3 := rs.ComputeHash()
 
 			Expect(hash2).NotTo(Equal(hash3))
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			rcs := RandomRunSchedule()
-			expected := rcs.DeepCopy()
-			rcs.ComputeHash()
+			rs := RandomRunSchedule()
+			expected := rs.DeepCopy()
+			rs.ComputeHash()
 
-			Expect(rcs).To(Equal(expected))
+			Expect(rs).To(Equal(expected))
 		})
 	})
 
