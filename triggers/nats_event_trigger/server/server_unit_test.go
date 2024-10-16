@@ -23,7 +23,7 @@ func (pf PublishFunc) Publish(data []byte) error {
 var _ = Context("ProcessEventFeed", func() {
 	ctx := logr.NewContext(context.Background(), logr.Discard())
 
-	When("nats returns an error", func() {
+	When("publisher returns an error", func() {
 		It("returns Internal Error", func() {
 			stubPublisher := struct {
 				PublisherHandler
