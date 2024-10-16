@@ -1,158 +1,46 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>KFP-Operator – Reference</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/</link><description>Recent content in Reference on KFP-Operator</description><generator>Hugo -- gohugo.io</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: Configuration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/configuration/</guid><description>
-&lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Reference on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/</link><description>Recent content in Reference on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/reference/index.xml" rel="self" type="application/rss+xml"/><item><title>Configuration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/configuration/</guid><description>&lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
 &lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Parameter name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;th>Example&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>defaultExperiment&lt;/code>&lt;/td>
-&lt;td>Default Experiment name to be used for creating pipeline runs&lt;/td>
-&lt;td>&lt;code>Default&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>defaultProvider&lt;/code>&lt;/td>
-&lt;td>Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>)&lt;/td>
-&lt;td>&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
-&lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
-&lt;td>&lt;code>true&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
-&lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
-&lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>runCompletionTTL&lt;/code>&lt;/td>
-&lt;td>Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
-&lt;td>&lt;code>10m&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>runCompletionFeed&lt;/code>&lt;/td>
-&lt;td>Configuration of the service for the run completion feed back to KFP Operator&lt;/td>
-&lt;td>See &lt;a href="#run-completion-feed-configuration">here&lt;/a>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
+ &lt;thead>
+ &lt;tr>
+ &lt;th style="text-align: left">Parameter name&lt;/th>
+ &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th style="text-align: left">Example&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>defaultExperiment&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Default Experiment name to be used for creating pipeline runs&lt;/td>
+ &lt;td style="text-align: left">&lt;code>Default&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>defaultProvider&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>)&lt;/td>
+ &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>multiversion&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
+ &lt;td style="text-align: left">&lt;code>true&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>workflowNamespace&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
+ &lt;td style="text-align: left">&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>runCompletionTTL&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
+ &lt;td style="text-align: left">&lt;code>10m&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>runCompletionFeed&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Configuration of the service for the run completion feed back to KFP Operator&lt;/td>
+ &lt;td style="text-align: left">See &lt;a href="#run-completion-feed-configuration">here&lt;/a>&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
 &lt;/table>
-&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p>
-&lt;h2 id="run-completion-feed-configuration">Run Completion Feed Configuration&lt;/h2>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Parameter name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;th>Example&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>runCompletionFeed.port&lt;/code>&lt;/td>
-&lt;td>The port that the feed endpoint will listen on&lt;/td>
-&lt;td>&lt;code>8082&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>runCompletionFeed.endpoints&lt;/code>&lt;/td>
-&lt;td>Array of upstream endpoints that should be called per feed message&lt;/td>
-&lt;td>&lt;code>- host: upstream-service&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;h2 id="provider-configurations">Provider Configurations&lt;/h2>
-&lt;p>The provider configurations are specific to the implementation, these configuration are applied via &lt;a href="../resources/provider">Provider Custom Resource&lt;/a>.&lt;/p>
-&lt;h3 id="kubeflow-pipelines">Kubeflow Pipelines&lt;/h3>
-&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode&lt;/a>.
-Its configuration can be controlled using the &lt;a href="../resources/provider/#kubeflow">KFP specific parameters within a Provider Resource&lt;/a>.&lt;/p>
-&lt;h3 id="vertex-ai-pipelines">Vertex AI Pipelines&lt;/h3>
-&lt;p>VAI configuration can be controlled using &lt;a href="../resources/provider/#vertex-ai">VAI specific parameters within a Provider Resource&lt;/a>
-&lt;img src="https://sky-uk.github.io/kfp-operator/images/vai-provider.svg" alt="Vertex AI Provider">&lt;/p>
-&lt;h4 id="gcp-project-setup">GCP Project Setup&lt;/h4>
-&lt;p>The following GCP APIs need to be enabled in the configured &lt;code>vaiProject&lt;/code>:&lt;/p>
-&lt;ul>
-&lt;li>Vertex AI&lt;/li>
-&lt;li>Pub/Sub&lt;/li>
-&lt;li>Cloud Storage&lt;/li>
-&lt;li>Cloud Scheduler&lt;/li>
-&lt;/ul>
-&lt;p>A &lt;a href="https://cloud.google.com/vertex-ai/docs/pipelines/logging">Vertex AI log&lt;/a> sink needs to be created that:&lt;/p>
-&lt;ul>
-&lt;li>captures pipeline state changes as
-&lt;pre tabindex="0">&lt;code class="language-resource.type="aiplatform.googleapis.com/PipelineJob"" data-lang="resource.type="aiplatform.googleapis.com/PipelineJob""> jsonPayload.state=&amp;#34;PIPELINE_STATE_SUCCEEDED&amp;#34; OR &amp;#34;PIPELINE_STATE_FAILED&amp;#34; OR &amp;#34;PIPELINE_STATE_CANCELLED&amp;#34;```
-&lt;/code>&lt;/pre>&lt;/li>
-&lt;li>writes state changes to Pub/Sub on to a Pipeline Events topic (see below for required subscription)&lt;/li>
-&lt;/ul>
-&lt;p>Pub/Sub topics and subscriptions need to be created for:&lt;/p>
-&lt;ul>
-&lt;li>Pipeline Events
-&lt;ul>
-&lt;li>Subscription: &lt;code>eventsourcePipelineEventsSubscription&lt;/code>&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;p>It is important to configure the retry policy for the &lt;code>eventsourcePipelineEventsSubscription&lt;/code> subscription according to your needs. This determines the retry frequency of the eventsource server to query the Vertex AI API in case of errors.
-We suggest an exponential backoff with min and max backoff set to at least 10 seconds each, resulting in a fixed 10 seconds wait between polls.&lt;/p>
-&lt;p>GCS pipeline storage bucket &lt;code>provider.configuration.pipelineBucket&lt;/code> needs to be created&lt;/p>
-&lt;p>The configured &lt;code>serviceAccount&lt;/code> needs to have &lt;a href="https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity">workload identity&lt;/a> enabled and be granted the following permissions:&lt;/p>
-&lt;ul>
-&lt;li>&lt;code>storage.objects.create&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
-&lt;li>&lt;code>storage.objects.get&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
-&lt;li>&lt;code>storage.objects.delete&lt;/code> on the configured &lt;code>pipelineBucket&lt;/code>&lt;/li>
-&lt;li>&lt;code>projects.subscriptions.pull&lt;/code> from the configured &lt;code>eventsourcePipelineEventsSubscription&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> subscription&lt;/li>
-&lt;li>&lt;code>aiplatform.pipelineJobs.create&lt;/code>&lt;/li>
-&lt;li>&lt;code>aiplatform.pipelineJobs.get&lt;/code>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted -->&lt;/li>
-&lt;li>&lt;code>aiplatform.schedules.get&lt;/code>&lt;/li>
-&lt;li>&lt;code>aiplatform.schedules.create&lt;/code>&lt;/li>
-&lt;li>&lt;code>aiplatform.schedules.delete&lt;/code>&lt;/li>
-&lt;li>&lt;code>aiplatform.schedules.update&lt;/code>&lt;/li>
-&lt;li>&lt;code>iam.serviceAccounts.actAs&lt;/code> the configured &lt;code>vaiJobServiceAccount&lt;/code> Vertex AI Job Runner&lt;/li>
-&lt;/ul>
-&lt;p>&lt;!-- raw HTML omitted -->*&lt;!-- raw HTML omitted --> fields only needed if the operator is installed with &lt;a href="../../getting-started/overview/#eventing-support">eventing support&lt;/a>&lt;/p></description></item><item><title>Docs: Resources</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</guid><description>
-&lt;p>The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources.&lt;/p>
-&lt;p>All resources managed by the operator have the following common status fields:&lt;/p>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>synchronizationState&lt;/code>&lt;/td>
-&lt;td>The current synchronization state with the targeted provider&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>observedGeneration&lt;/code>&lt;/td>
-&lt;td>The last processed &lt;a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">generation&lt;/a> of the resource&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;p>Additionally, all resources that are directly synchronised with a provider have the following status fields:&lt;/p>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th>Name&lt;/th>
-&lt;th>Description&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td>&lt;code>providerId&lt;/code>&lt;/td>
-&lt;td>The resource identifier inside the targeted provider&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td>&lt;code>version&lt;/code>&lt;/td>
-&lt;td>The resource version&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table></description></item><item><title>Docs: Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/images/run-completion.svg" alt="Model Serving">&lt;/p>
+&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/images/run-completion.svg" alt="Model Serving">&lt;/p>
 &lt;p>The KFP-Operator Events system provides a &lt;a href="https://nats.io/">NATS Event bus&lt;/a> in the operator namespace to consume events from.
 To use it, users can create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
@@ -191,52 +79,10 @@ To use it, users can create an Argo-Events &lt;a href="https://argoproj.github.i
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;blockquote>
-&lt;p>&lt;strong>&lt;em>NOTE:&lt;/em>&lt;/strong> currently, the event includes both &lt;code>servingModelArtifacts&lt;/code> and &lt;code>artifacts&lt;/code>:&lt;/p>
-&lt;p>&lt;code>servingModelArtifacts&lt;/code> contain a list of all artifacts of type Pushed Model for the pipeline run. This field is deprecated and &lt;code>artifacts&lt;/code> should be used instead,
-which are resolved according to &lt;a href="../resources/run/#run-artifact-definition">Run Artifact Definition&lt;/a>&lt;/p>
-&lt;/blockquote>
-&lt;p>A sensor for the pipeline &lt;code>penguin-pipeline&lt;/code> could look as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Sensor&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-model-update&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">dependencies&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">run-completion&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">eventSourceName&lt;/span>: &lt;span style="color:#ae81ff">run-completion&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">eventName&lt;/span>: &lt;span style="color:#ae81ff">run-completion&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">filters&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">data&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body.status&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">string&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">comparator&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;=&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#34;succeeded&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#ae81ff">body.pipelineName&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">string&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">comparator&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;=&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#e6db74">&amp;#34;penguin-pipeline&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">template&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">log&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">log&lt;/span>: {}
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>For more information and an in-depth example, see the &lt;a href="../../getting-started#5-optional-deploy-newly-trained-models">Quickstart Guide&lt;/a> and &lt;a href="https://argoproj.github.io/argo-events/">Argo-Events Documentation&lt;/a>.&lt;/p>
-&lt;p>Please make sure to provide an event bus for the eventsource and the sensor to connect to.
-You can define a default event bus, which does not require further configuration on either end, as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">EventBus&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">default&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">nats&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">native&lt;/span>: {}
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Docs: Using Multiple Providers</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</guid><description>
-&lt;p>The KFP operator supports multiple provider backends. In most cases, the configured &lt;code>DefaultProvider&lt;/code> will be sufficient.
+&lt;p>&lt;strong>&lt;em>NOTE:&lt;/em>&lt;/strong> currently, the event includes both &lt;code>servingModelArtifacts&lt;/code> and &lt;code>artifacts&lt;/code>:&lt;/p></description></item><item><title>Using Multiple Providers</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/</guid><description>&lt;p>The KFP operator supports multiple provider backends. In most cases, the configured &lt;code>DefaultProvider&lt;/code> will be sufficient.
 For migration scenarios or advanced use-cases, users can overwrite the default using the &lt;code>pipelines.kubeflow.org/provider&lt;/code> annotation on any resource specifying the name of the provider.&lt;/p>
 &lt;p>Changing the provider of a resource that was previously managed by another provider will result in the resource erroring.
-Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Docs: Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>
-&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
 &lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
 &lt;p>Example:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>$ kubectl describe pipeline pipeline-sample
@@ -249,38 +95,4 @@ Any referenced resources must always match the provider of the referencing resou
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="compiling-locally">Compiling locally&lt;/h2>
-&lt;p>The KFP-Operator&amp;rsquo;s compiler can be used locally for debugging purposes. This can be especially useful for troubleshooting environment variable and beam argument resolution.&lt;/p>
-&lt;h3 id="environment-setup-and-compiler-injection">Environment setup and compiler injection&lt;/h3>
-&lt;p>The compiler is injected into a shared directory first before it can be called from within the pipeline image.
-Note that the setup is usually only needed once unless you want to use a different version of the compiler.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>export KFP_COMPILER_IMAGE&lt;span style="color:#f92672">=&lt;/span>ghcr.io/kfp-operator/kfp-operator-argo-kfp-compiler:&amp;lt;KFP-Operator version&amp;gt;
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker pull $KFP_COMPILER_IMAGE
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Create a temporary directory for the following steps, alternatively choose a different location&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>SHARED_DIR&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#66d9ef">$(&lt;/span>mktemp -d&lt;span style="color:#66d9ef">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Inject the compiler into the shared temporary directory&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker run -v $SHARED_DIR:/shared $KFP_COMPILER_IMAGE /shared
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="compiler-configuration">Compiler configuration&lt;/h3>
-&lt;p>The compilation process can be configured as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>export PIPELINE_IMAGE&lt;span style="color:#f92672">=&lt;/span>&amp;lt;your pipeline image&amp;gt;
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Choose an execution mode: v1 for KFP or v2 for Vertex AI&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>export EXECUTION_MODE&lt;span style="color:#f92672">=&lt;/span>v1
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># create the compiler configuration&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cat &amp;gt; $SHARED_DIR/config.yaml &lt;span style="color:#e6db74">&amp;lt;&amp;lt; EOF
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">name: &amp;lt;Your pipeline name&amp;gt;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">rootLocation: &amp;lt;pipeline root location. for debugging, this can be any string&amp;gt;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">servingLocation: &amp;lt;model serving location. for debugging, this can be any string&amp;gt;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">image: $PIPELINE_IMAGE
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">tfxComponents: &amp;lt;component function&amp;gt;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">env:
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &amp;lt;Dict[str, str] of environment variables to be passed to the compilation step&amp;gt;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">beamArgs:
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74"> &amp;lt;Dict[str, List[str]] of beam arguments&amp;gt;
-&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#e6db74">EOF&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="running-the-compiler">Running the compiler&lt;/h3>
-&lt;p>You can then run the compiler from inside your pipeline container to produce &lt;code>$SHARED_DIR/pipeline_out.yaml&lt;/code>.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#75715e"># Run the compiler in your pipeline image&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker run -v $SHARED_DIR:/shared --entrypoint /shared/compile.sh $PIPELINE_IMAGE --pipeline_config /shared/config.yaml --output_file /shared/pipeline_out.yaml --execution_mode $EXECUTION_MODE
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item></channel></rss>
+&lt;p>The KFP-Operator&amp;rsquo;s compiler can be used locally for debugging purposes. This can be especially useful for troubleshooting environment variable and beam argument resolution.&lt;/p></description></item></channel></rss>

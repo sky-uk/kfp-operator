@@ -6,7 +6,7 @@ weight: 1
 The Kubeflow Pipelines operator can be configured with the following parameters:
 
 | Parameter name      | Description                                                                                                                                                                                                   | Example                                        |
-|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | `defaultExperiment` | Default Experiment name to be used for creating pipeline runs                                                                                                                                                 | `Default`                                      |
 | `defaultProvider`   | Default provider name to be used (see [Using Multiple Providers](../providers))                                                                                                                               | `vertex-ai-europe`                             |
 | `multiversion`      | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                          | `true`                                         |
@@ -18,7 +18,7 @@ An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/maste
 
 ## Run Completion Feed Configuration
 | Parameter name                | Description                                                        | Example                                                                        |
-|-------------------------------|--------------------------------------------------------------------|--------------------------------------------------------------------------------|
+| ----------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | `runCompletionFeed.port`      | The port that the feed endpoint will listen on                     | `8082`                                                                         |
 | `runCompletionFeed.endpoints` | Array of upstream endpoints that should be called per feed message | `- host: upstream-service<br/>&nbsp;&nbsp;path: /<br/>&nbsp;&nbsp;port: 12000` |
 
@@ -34,7 +34,7 @@ Its configuration can be controlled using the [KFP specific parameters within a 
 ### Vertex AI Pipelines
 
 VAI configuration can be controlled using [VAI specific parameters within a Provider Resource](../resources/provider/#vertex-ai)
-![Vertex AI Provider](/images/vai-provider.svg)
+![Vertex AI Provider]({{< param "subpath" >}}/images/vai-provider.svg)
 
 #### GCP Project Setup
 
