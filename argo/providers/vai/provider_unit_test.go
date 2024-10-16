@@ -3,14 +3,18 @@
 package vai
 
 import (
-	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"errors"
+
+	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func randomBasicRunDefinition() RunDefinition {
@@ -22,6 +26,8 @@ func randomBasicRunDefinition() RunDefinition {
 	}
 }
 
+var now = metav1.Now()
+
 func randomRunScheduleDefinition() RunScheduleDefinition {
 	return RunScheduleDefinition{
 		Name:                 common.RandomNamespacedName(),
@@ -30,7 +36,11 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 		PipelineVersion:      common.RandomString(),
 		RunConfigurationName: common.RandomNamespacedName(),
 		ExperimentName:       common.RandomNamespacedName(),
-		Schedule:             "1 1 0 0 0",
+		Schedule: pipelinesv1.Schedule{
+			CronExpression: "1 1 0 0 0",
+			StartTime:      now,
+			EndTime:        now,
+		},
 	}
 }
 
@@ -145,11 +155,15 @@ var _ = Context("VAI Provider", func() {
 
 			runScheduleDefinition := randomRunScheduleDefinition()
 			expectedCron := "1 2 * 1 2"
-			runScheduleDefinition.Schedule = expectedCron
+			runScheduleDefinition.Schedule.CronExpression = expectedCron
+			expectedStartTime := timestamppb.New(now.Time)
+			expectedEndTime := timestamppb.New(now.Time)
 
 			schedule, err := vaiProvider.buildVaiScheduleFromPipelineJob(providerConfig, runScheduleDefinition, &emptyPipelineJob)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(schedule.TimeSpecification).To(Equal(&aiplatformpb.Schedule_Cron{Cron: expectedCron}))
+			Expect(schedule.StartTime).To(Equal(expectedStartTime))
+			Expect(schedule.EndTime).To(Equal(expectedEndTime))
 			Expect(schedule.MaxConcurrentRunCount).To(Equal(providerConfig.getMaxConcurrentRunCountOrDefault()))
 			Expect(schedule.DisplayName).To(HavePrefix("rc-"))
 		})
@@ -159,7 +173,7 @@ var _ = Context("VAI Provider", func() {
 
 			runScheduleDefinition := randomRunScheduleDefinition()
 			expectedCron := "invalid cron"
-			runScheduleDefinition.Schedule = expectedCron
+			runScheduleDefinition.Schedule.CronExpression = expectedCron
 
 			_, err := vaiProvider.buildVaiScheduleFromPipelineJob(providerConfig, runScheduleDefinition, &emptyPipelineJob)
 			Expect(err).To(HaveOccurred())

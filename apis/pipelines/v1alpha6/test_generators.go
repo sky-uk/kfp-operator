@@ -102,6 +102,12 @@ func RandomRunConfigurationSpec() RunConfigurationSpec {
 	}
 }
 
+func RandomSchedule() Schedule {
+	return Schedule{
+		CronExpression: RandomString(),
+	}
+}
+
 func RandomTriggers() Triggers {
 	var onChange []OnChangeType
 	if common.RandomInt64()%2 == 0 {
@@ -109,13 +115,13 @@ func RandomTriggers() Triggers {
 	}
 
 	return Triggers{
-		Schedules: RandomList(RandomString),
+		Schedules: RandomList(RandomSchedule),
 		OnChange:  onChange,
 	}
 }
 
 func RandomScheduleTrigger() Triggers {
-	return Triggers{Schedules: []string{RandomString()}}
+	return Triggers{Schedules: []Schedule{RandomSchedule()}}
 }
 
 func RandomOnChangeTrigger() Triggers {
@@ -153,7 +159,7 @@ func RandomRunScheduleSpec() RunScheduleSpec {
 		ExperimentName:    RandomString(),
 		RuntimeParameters: RandomNamedValues(),
 		Artifacts:         RandomList(RandomOutputArtifact),
-		Schedule:          RandomString(),
+		Schedule:          RandomSchedule(),
 	}
 }
 
