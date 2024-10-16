@@ -41,7 +41,7 @@ var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
 
 	It("propagates the runconfiguration's name", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
-		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(apis.RandomString)}
+		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(pipelinesv1.RandomSchedule)}
 		provider := apis.RandomString()
 
 		run, err := rcr.constructRunForRunConfiguration(provider, runConfiguration)
@@ -59,7 +59,7 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 
 	It("sets all spec fields", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration()
-		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(apis.RandomString)}
+		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(pipelinesv1.RandomSchedule)}
 		provider := apis.RandomString()
 		resolvedParameters := pipelines.Map(runConfiguration.Spec.Run.RuntimeParameters, func(rp pipelinesv1.RuntimeParameter) apis.NamedValue {
 			return apis.NamedValue{Name: rp.Name, Value: rp.Value}

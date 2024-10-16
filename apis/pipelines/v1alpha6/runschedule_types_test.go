@@ -3,9 +3,12 @@
 package v1alpha6
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Context("RunSchedule", func() {
@@ -31,11 +34,31 @@ var _ = Context("RunSchedule", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("Schedule should change the hash", func() {
+		Specify("Schedule CronExpression should change the hash", func() {
 			rcs := RunSchedule{}
 			hash1 := rcs.ComputeHash()
 
-			rcs.Spec.Schedule = "notempty"
+			rcs.Spec.Schedule.CronExpression = "notempty"
+			hash2 := rcs.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
+		Specify("Schedule StartTime should change the hash", func() {
+			rcs := RunSchedule{}
+			hash1 := rcs.ComputeHash()
+
+			rcs.Spec.Schedule.StartTime = metav1.NewTime(time.Date(1996, 4, 11, 6, 9, 0, 0, time.UTC))
+			hash2 := rcs.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
+		Specify("Schedule CronExpression should change the hash", func() {
+			rcs := RunSchedule{}
+			hash1 := rcs.ComputeHash()
+
+			rcs.Spec.Schedule.EndTime = metav1.NewTime(time.Date(1997, 11, 13, 8, 0, 0, 0, time.UTC))
 			hash2 := rcs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
