@@ -84,6 +84,6 @@ spec:
         parameters:
         - src:
             dependencyName: events
-            dataKey: body.data
+            dataKey: body
           dest: spec.arguments.parameters.0.value
 {{- end }}
