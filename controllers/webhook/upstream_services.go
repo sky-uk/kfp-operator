@@ -3,21 +3,22 @@ package webhook
 import (
 	"context"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	pb "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/proto"
+	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
 )
 
 type UpstreamService interface {
-	call(ctx context.Context, ed EventData) error
+	call(ctx context.Context, ed common.RunCompletionEvent) error
 }
 
 type GrpcNatsTrigger struct {
 	Upstream          config.Endpoint
-	Client            pb.NATSEventTriggerClient
+	Client            pb.RunCompletionEventTriggerClient
 	ConnectionHandler func() error
 }
 
@@ -28,7 +29,7 @@ func NewGrpcNatsTrigger(endpoint config.Endpoint) GrpcNatsTrigger {
 		log.Fatal("Error creating grpc client", err)
 	}
 
-	client := pb.NewNATSEventTriggerClient(conn)
+	client := pb.NewRunCompletionEventTriggerClient(conn)
 
 	return GrpcNatsTrigger{
 		Upstream: endpoint,
@@ -42,8 +43,8 @@ func NewGrpcNatsTrigger(endpoint config.Endpoint) GrpcNatsTrigger {
 	}
 }
 
-func (gnt GrpcNatsTrigger) call(ctx context.Context, eventData EventData) error {
-	runCompletionEvent, err := EventDataToPbRunCompletion(eventData)
+func (gnt GrpcNatsTrigger) call(ctx context.Context, event common.RunCompletionEvent) error {
+	runCompletionEvent, err := RunCompletionEventToProto(event)
 	if err != nil {
 		return err
 	}
@@ -51,24 +52,24 @@ func (gnt GrpcNatsTrigger) call(ctx context.Context, eventData EventData) error 
 	return err
 }
 
-func EventDataToPbRunCompletion(eventData EventData) (*pb.RunCompletionEvent, error) {
-	pipelineName, err := eventData.RunCompletionEvent.PipelineName.String()
+func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompletionEvent, error) {
+	pipelineName, err := event.PipelineName.String()
 	if err != nil {
 		return nil, fmt.Errorf("failed to format pipeline name for proto run completion event: %w", err)
 	}
 
-	runConfigurationName, err := eventData.RunCompletionEvent.RunConfigurationName.String()
+	runConfigurationName, err := event.RunConfigurationName.String()
 	if err != nil {
 		return nil, fmt.Errorf("failed to format run configuration name for proto run completion event: %w", err)
 	}
 
-	runName, err := eventData.RunCompletionEvent.RunName.String()
+	runName, err := event.RunName.String()
 	if err != nil {
 		return nil, fmt.Errorf("failed to format run name for proto run completion event: %w", err)
 	}
 
 	var artifacts []*pb.ServingModelArtifact
-	for _, artifact := range eventData.RunCompletionEvent.ServingModelArtifacts {
+	for _, artifact := range event.ServingModelArtifacts {
 		artifacts = append(artifacts, &pb.ServingModelArtifact{
 			Location: artifact.Location,
 			Name:     artifact.Name,
@@ -77,12 +78,12 @@ func EventDataToPbRunCompletion(eventData EventData) (*pb.RunCompletionEvent, er
 
 	runCompletionEvent := pb.RunCompletionEvent{
 		PipelineName:          pipelineName,
-		Provider:              eventData.RunCompletionEvent.Provider,
+		Provider:              event.Provider,
 		RunConfigurationName:  runConfigurationName,
-		RunId:                 eventData.RunCompletionEvent.RunId,
+		RunId:                 event.RunId,
 		RunName:               runName,
 		ServingModelArtifacts: artifacts,
-		Status:                string(eventData.RunCompletionEvent.Status),
+		Status:                string(event.Status),
 	}
 
 	return &runCompletionEvent, err

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: nats-event-trigger
+  name: run-completion-event-trigger
   namespace: kfp-operator-system
 data:
   config.yaml: |

@@ -1,6 +1,6 @@
 //go:build unit
 
-package nats_event_trigger
+package run_completion_event_trigger
 
 import (
 	"os"
@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-func TestNATSEventTriggerConfig(t *testing.T) {
+func TestRunCompletionEventTriggerConfig(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "NATs Event Trigger Config Unit Suite")
+	RunSpecs(t, "Run Completion Event Trigger Config Unit Suite")
 }
 
 var _ = Context("LoadConfig", func() {

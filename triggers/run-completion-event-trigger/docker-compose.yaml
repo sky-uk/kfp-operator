@@ -1,0 +1,21 @@
+services:
+  run-completion-event-trigger:
+    image: kfp-operator-run-completion-event-trigger
+    ports:
+      - "50051:50051"
+    environment:
+      NATSCONFIG_SERVERCONFIG_HOST: nats
+      SERVERCONFIG_HOST: 0.0.0.0
+    depends_on:
+      nats:
+        condition: service_healthy
+
+  nats:
+    image: nats:alpine
+    ports:
+      - "4222:4222"
+    healthcheck:
+      test: [ "CMD", "nc", "-zv", "localhost", "4222" ]
+      interval: 1s
+      timeout: 1s
+      retries: 5

@@ -76,7 +76,10 @@ test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test
 
-test-all: test helm-test-operator helm-test-provider test-argo
+test-triggers:
+	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
+
+test-all: test helm-test-operator helm-test-provider test-argo test-triggers
 
 integration-test-all: integration-test
 	$(MAKE) -C argo/kfp-compiler integration-test
@@ -215,10 +218,10 @@ docker-push-argo:
 	$(MAKE) -C argo/providers docker-push
 
 docker-build-triggers:
-	$(MAKE) -C triggers/nats_event_trigger docker-push
+	$(MAKE) -C triggers/run-completion-event-trigger docker-build
 
 docker-push-triggers:
-	$(MAKE) -C triggers/nats_event_trigger docker-push
+	$(MAKE) -C triggers/run-completion-event-trigger docker-push
 ##@ Docs
 website:
 	$(MAKE) -C docs-gen
@@ -243,4 +246,4 @@ cdBuild: prBuild publish-all docker-push-quickstart
 generate-grpc:
 	protoc --go_out=. --go_opt=paths=source_relative \
 	--go-grpc_out=.  --go-grpc_opt=paths=source_relative \
-	triggers/nats_event_trigger/proto/nats_event_trigger.proto
+	triggers/run-completion-event-trigger/proto/run_completion_event_trigger.proto

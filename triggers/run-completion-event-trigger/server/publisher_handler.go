@@ -1,4 +1,4 @@
-package nats_event_trigger
+package run_completion_event_trigger
 
 import (
 	"github.com/nats-io/nats.go"

@@ -2,11 +2,11 @@ syntax = "proto3";
 
 import "google/protobuf/empty.proto";
 
-package nats_event_trigger;
+package run_completion_event_trigger;
 
-option go_package = "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/proto/nats_event_trigger";
+option go_package = "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto/run-completion-event-trigger";
 
-service NATSEventTrigger {
+service RunCompletionEventTrigger {
   rpc ProcessEventFeed(RunCompletionEvent) returns (google.protobuf.Empty) {};
 }
 
