@@ -1,4 +1,4 @@
-package nats_event_trigger
+package run_completion_event_trigger
 
 import (
 	"fmt"
@@ -28,7 +28,7 @@ func (sc ServerConfig) ToUrl() string {
 
 func LoadConfig() (*Config, error) {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("/etc/nats_event_trigger")
+	viper.AddConfigPath("/etc/run-completion-event-trigger")
 	viper.AddConfigPath(".")
 
 	if err := viper.ReadInConfig(); err != nil {

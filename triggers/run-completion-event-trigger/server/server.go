@@ -1,4 +1,4 @@
-package nats_event_trigger
+package run_completion_event_trigger
 
 import (
 	"context"
@@ -6,19 +6,19 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 
-	configLoader "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/config"
-	pb "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/proto"
+	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/config"
+	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type Server struct {
-	pb.UnimplementedNATSEventTriggerServer
+	pb.UnimplementedRunCompletionEventTriggerServer
 	Config    *configLoader.Config
 	Publisher PublisherHandler
 }
 
-func (s *Server) ProcessEventFeed(ctx context.Context, in *pb.RunCompletionEvent) (*emptypb.Empty, error) {
+func (s *Server) ProcessEventFeed(_ context.Context, in *pb.RunCompletionEvent) (*emptypb.Empty, error) {
 	eventData, err := json.Marshal(in)
 	if err != nil {
 		err = status.Error(codes.InvalidArgument, "marshalling provided event failed")

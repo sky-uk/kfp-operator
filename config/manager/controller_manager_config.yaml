@@ -17,6 +17,6 @@ spec:
   runCompletionFeed:
     port: 8082
     endpoints:
-    - host: kfp-operator-nats-event-trigger.kfp-operator-system
+    - host: kfp-operator-run-completion-event-trigger.kfp-operator-system
       path: ""
       port: 50051

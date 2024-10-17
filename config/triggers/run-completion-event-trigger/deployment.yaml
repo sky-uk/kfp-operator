@@ -1,34 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nats-event-trigger
+  name: run-completion-event-trigger
   namespace: kfp-operator-system
   labels:
-    app: nats-event-trigger
+    app: run-completion-event-trigger
 spec:
   selector:
     matchLabels:
-      app: nats-event-trigger
+      app: run-completion-event-trigger
   replicas: 1
   template:
     metadata:
       labels:
-        app: nats-event-trigger
+        app: run-completion-event-trigger
     spec:
       securityContext:
         runAsNonRoot: true
       containers:
-      - name: nats-event-trigger
-        image: kfp-operator-nats-event-trigger:latest
+      - name: run-completion-event-trigger
+        image: kfp-operator-run-completion-event-trigger:latest
         ports:
         - name: grpc-server
           containerPort: 50051
         volumeMounts:
           - name: config
             subPath: config.yaml
-            mountPath: /etc/nats_event_trigger/config.yaml
+            mountPath: /etc/run-completion-event-trigger/config.yaml
       volumes:
         - name: config
           configMap:
-            name: nats-event-trigger
+            name: run-completion-event-trigger
 
