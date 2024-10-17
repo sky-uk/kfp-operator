@@ -1,3 +1,4 @@
+{{- if .Values.statusFeedback.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -10,3 +11,4 @@ spec:
   - protocol: TCP
     port: {{ .Values.runcompletionEventTrigger.server.port }}
     targetPort: grpc-server
+{{- end -}}

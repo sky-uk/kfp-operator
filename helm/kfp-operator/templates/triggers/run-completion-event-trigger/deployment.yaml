@@ -1,3 +1,4 @@
+{{- if .Values.statusFeedback.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,7 +32,4 @@ spec:
         - name: config
           configMap:
             name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
-
-
-
-
+{{- end -}}
