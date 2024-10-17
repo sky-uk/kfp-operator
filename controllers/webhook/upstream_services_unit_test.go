@@ -5,14 +5,12 @@ package webhook
 import (
 	"context"
 	"errors"
-	"net/http"
-
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	pb "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/proto"
+	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -28,18 +26,11 @@ var _ = Context("call", func() {
 
 	When("called", func() {
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
-
-		headers := http.Header{"hello": []string{"world", "goodbye"}}
-
-		eventData := EventData{
-			Header:             headers,
-			RunCompletionEvent: rce,
-		}
-		protoRce, _ := EventDataToPbRunCompletion(eventData)
+		protoRce, _ := RunCompletionEventToProto(rce)
 
 		It("return no error when server responds with no error", func() {
-			stubNatsEventTrigger := struct {
-				pb.NATSEventTriggerClient
+			stubRunCompletionEventTrigger := struct {
+				pb.RunCompletionEventTriggerClient
 			}{
 				ProcessEventFeedFunc(func(ctx context.Context, in *pb.RunCompletionEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 					Expect(in).To(Equal(protoRce))
@@ -49,18 +40,18 @@ var _ = Context("call", func() {
 
 			stub := GrpcNatsTrigger{
 				Upstream:          config.Endpoint{},
-				Client:            stubNatsEventTrigger,
+				Client:            stubRunCompletionEventTrigger,
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := stub.call(ctx, eventData)
+			err := stub.call(ctx, rce)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error when server responds with an error", func() {
 			testError := errors.New("some error")
-			stubNatsEventTrigger := struct {
-				pb.NATSEventTriggerClient
+			stubRunCompletionEventTrigger := struct {
+				pb.RunCompletionEventTriggerClient
 			}{
 				ProcessEventFeedFunc(func(ctx context.Context, in *pb.RunCompletionEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 					return &emptypb.Empty{}, testError
@@ -69,11 +60,11 @@ var _ = Context("call", func() {
 
 			stub := GrpcNatsTrigger{
 				Upstream:          config.Endpoint{},
-				Client:            stubNatsEventTrigger,
+				Client:            stubRunCompletionEventTrigger,
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := stub.call(ctx, eventData)
+			err := stub.call(ctx, rce)
 			Expect(err).To(Equal(testError))
 		})
 	})
@@ -101,12 +92,8 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			Provider: "some-provider",
 		}
 
-		eventData := EventData{
-			RunCompletionEvent: rce,
-		}
-
 		It("return no error when event data is converted to proto runcompletion event", func() {
-			protoRce, err := EventDataToPbRunCompletion(eventData)
+			protoRce, err := RunCompletionEventToProto(rce)
 			expectedResult := &pb.RunCompletionEvent{
 				Status:               "some-status",
 				PipelineName:         "namespace/name",
@@ -159,13 +146,9 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			}
 
 			for i := range testTargets {
-				eventData := EventData{
-					RunCompletionEvent: testTargets[i],
-				}
-				_, err := EventDataToPbRunCompletion(eventData)
+				_, err := RunCompletionEventToProto(testTargets[i])
 				Expect(err).To(HaveOccurred())
 			}
-
 		})
 	})
 })

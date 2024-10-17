@@ -1,4 +1,4 @@
 resources:
-- nats-event-trigger/deployment.yaml
-- nats-event-trigger/service.yaml
-- nats-event-trigger/config.yaml
+- run-completion-event-trigger/deployment.yaml
+- run-completion-event-trigger/service.yaml
+- run-completion-event-trigger/config.yaml

@@ -1,6 +1,6 @@
 //go:build unit
 
-package nats_event_trigger
+package run_completion_event_trigger
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pb "github.com/sky-uk/kfp-operator/triggers/nats_event_trigger/proto"
+	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -34,8 +34,8 @@ var _ = Context("ProcessEventFeed", func() {
 			}
 
 			stubServer := Server{
-				UnimplementedNATSEventTriggerServer: pb.UnimplementedNATSEventTriggerServer{},
-				Publisher:                           stubPublisher,
+				UnimplementedRunCompletionEventTriggerServer: pb.UnimplementedRunCompletionEventTriggerServer{},
+				Publisher: stubPublisher,
 			}
 
 			_, err := stubServer.ProcessEventFeed(ctx, &pb.RunCompletionEvent{})
@@ -54,8 +54,8 @@ var _ = Context("ProcessEventFeed", func() {
 			}
 
 			stubServer := Server{
-				UnimplementedNATSEventTriggerServer: pb.UnimplementedNATSEventTriggerServer{},
-				Publisher:                           stubPublisher,
+				UnimplementedRunCompletionEventTriggerServer: pb.UnimplementedRunCompletionEventTriggerServer{},
+				Publisher: stubPublisher,
 			}
 
 			result, err := stubServer.ProcessEventFeed(ctx, &pb.RunCompletionEvent{})

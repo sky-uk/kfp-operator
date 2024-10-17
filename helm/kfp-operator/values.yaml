@@ -52,11 +52,11 @@ manager:
   runcompletionWebhook:
     servicePort: 8082
     endpoints:
-      - host: kfp-operator-nats-event-trigger.kfp-operator-system
+      - host: kfp-operator-run-completion-event-trigger.kfp-operator-system
         path: ""
         port: 50051
 
-natsEventTrigger:
+runcompletionEventTrigger:
   replicas: 1
   nats:
     subject: events
