@@ -1,0 +1,14 @@
+{
+  "pipelineName": "pipelinename",
+  "provider": "vai",
+  "runConfigurationName": "runconfigname",
+  "runId": "runIdFromVAI",
+  "runName": "runname",
+  "servingModelArtifacts": [
+    {
+      "location": "some_location",
+      "name": "pushed_model"
+    }
+  ],
+  "status": "succeeded"
+}

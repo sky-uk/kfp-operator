@@ -78,7 +78,10 @@ test-argo:
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test
 
-test-all: test helm-test-operator helm-test-provider test-argo
+test-triggers:
+	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
+
+test-all: test helm-test-operator helm-test-provider test-argo test-triggers
 
 integration-test-all: integration-test
 	$(MAKE) -C argo/kfp-compiler integration-test
@@ -216,6 +219,11 @@ docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/providers docker-push
 
+docker-build-triggers:
+	$(MAKE) -C triggers/run-completion-event-trigger docker-build
+
+docker-push-triggers:
+	$(MAKE) -C triggers/run-completion-event-trigger docker-push
 ##@ Docs
 website:
 	$(MAKE) -C docs-gen
@@ -225,12 +233,19 @@ docker-push-quickstart:
 
 ##@ Package
 
-package-all: docker-build docker-build-argo helm-package website
+package-all: docker-build docker-build-argo docker-build-triggers helm-package website
 
-publish-all: docker-push docker-push-argo helm-publish
+publish-all: docker-push docker-push-argo docker-push-triggers helm-publish
 
 ##@ CI
 
 prBuild: test-all package-all git-status-check
 
 cdBuild: prBuild publish-all docker-push-quickstart
+
+##@ Controllers
+
+generate-grpc:
+	protoc --go_out=. --go_opt=paths=source_relative \
+	--go-grpc_out=.  --go-grpc_opt=paths=source_relative \
+	triggers/run-completion-event-trigger/proto/run_completion_event_trigger.proto
