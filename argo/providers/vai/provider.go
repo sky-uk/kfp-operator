@@ -288,13 +288,14 @@ func (vaip VAIProvider) buildPipelineJob(providerConfig VAIProviderConfig, runSc
 }
 
 func (vaip VAIProvider) buildVaiScheduleFromPipelineJob(providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, pipelineJob *aiplatformpb.PipelineJob) (*aiplatformpb.Schedule, error) {
-	cron, err := ParseCron(runScheduleDefinition.Schedule)
+	cron, err := ParseCron(runScheduleDefinition.Schedule.CronExpression)
 	if err != nil {
 		return nil, err
 	}
 
 	return &aiplatformpb.Schedule{
 		TimeSpecification: &aiplatformpb.Schedule_Cron{Cron: cron.PrintStandard()},
+		StartTime:         runScheduleDefinition.Schedule.StartTime,
 		Request: &aiplatformpb.Schedule_CreatePipelineJobRequest{
 			CreatePipelineJobRequest: &aiplatformpb.CreatePipelineJobRequest{
 				Parent:      providerConfig.parent(),

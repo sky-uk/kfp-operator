@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -157,7 +158,6 @@ type RunStatus struct {
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 //+kubebuilder:printcolumn:name="CompletionState",type="string",JSONPath=".status.completionState"
-//+kubebuilder:storageversion
 
 type Run struct {
 	metav1.TypeMeta   `json:",inline"`

@@ -147,7 +147,7 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: true
+    storage: false
     subresources:
       status: {}
   - additionalPrinterColumns:
