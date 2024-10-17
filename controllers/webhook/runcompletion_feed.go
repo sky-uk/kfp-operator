@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net/http"
+
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )

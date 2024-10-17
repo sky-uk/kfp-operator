@@ -6,7 +6,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"google.golang.org/grpc/credentials/insecure"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
 	"sigs.k8s.io/controller-runtime/pkg/log"

@@ -4,7 +4,8 @@ package pipelines
 
 import (
 	"context"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

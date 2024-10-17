@@ -236,6 +236,13 @@ spec:
       name: Provider
       type: string
     name: v1alpha5
+    - jsonPath: .status.synchronizationState
+      name: SynchronizationState
+      type: string
+    - jsonPath: .status.provider
+      name: Provider
+      type: string
+    name: v1alpha6
     schema:
       openAPIV3Schema:
         properties:

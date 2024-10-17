@@ -3,12 +3,13 @@ package v1alpha5
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	. "github.com/docker/distribution/reference"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"strings"
 )
 
 type PipelineSpec struct {
@@ -45,7 +46,6 @@ func (ps Pipeline) ComputeVersion() string {
 //+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
