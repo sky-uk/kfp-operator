@@ -1,11 +1,12 @@
 package v1alpha5
 
 import (
+	"reflect"
+
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"reflect"
 )
 
 type Triggers struct {
@@ -89,7 +90,6 @@ func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.Synchroniz
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
-//+kubebuilder:storageversion
 
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
