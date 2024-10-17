@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	cfg "sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
 )
@@ -33,7 +34,6 @@ type ServiceConfiguration struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:storageversion
 
 type KfpControllerConfig struct {
 	metav1.TypeMeta                        `json:",inline"`
