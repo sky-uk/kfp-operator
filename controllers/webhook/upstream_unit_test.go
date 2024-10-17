@@ -5,16 +5,17 @@ package webhook
 import (
 	"context"
 	"encoding/json"
-	"github.com/go-logr/logr"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
 	"strconv"
+
+	"github.com/go-logr/logr"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 func extractHostPort(url string) (string, int) {
