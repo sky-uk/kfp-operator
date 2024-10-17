@@ -19,7 +19,7 @@ spec:
     - jsonPath: .status.conditions[?(@.type == 'Synchronized')].reason
       name: SynchronizationState
       type: string
-    name: v1alpha5
+    name: v1alpha6
     schema:
       openAPIV3Schema:
         properties:

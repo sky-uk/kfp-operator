@@ -5,7 +5,7 @@ package pipelines
 import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 )
 
 func createSucceededRcWithSchedule() *pipelinesv1.RunConfiguration {

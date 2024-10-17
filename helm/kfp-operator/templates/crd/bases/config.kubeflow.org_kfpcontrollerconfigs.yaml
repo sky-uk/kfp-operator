@@ -586,7 +586,7 @@ spec:
     subresources:
       status: {}
   {{- end }}
-  - name: v1alpha5
+  - name: v1alpha6
     schema:
       openAPIV3Schema:
         properties:

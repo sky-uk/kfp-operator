@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net"
 	"net/http"
 	"strconv"
 	"time"
+
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type UpstreamService interface {
