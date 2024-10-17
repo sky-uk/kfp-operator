@@ -1,4 +1,0 @@
-resources:
-- run-completion-event-trigger/deployment.yaml
-- run-completion-event-trigger/service.yaml
-- run-completion-event-trigger/config.yaml
