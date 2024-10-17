@@ -4,17 +4,18 @@ package status_updater
 
 import (
 	"context"
+	"path/filepath"
+	"testing"
+
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/client-go/kubernetes/scheme"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"testing"
 )
 
 var (
@@ -58,7 +59,7 @@ var _ = AfterSuite(func() {
 
 var _ = Describe("Status Updater", Serial, func() {
 	Context("Runs", func() {
-		var CompletionStateHasChangedTo = func (expectedState pipelinesv1.CompletionState) func(pipelinesv1.Run, pipelinesv1.Run) {
+		var CompletionStateHasChangedTo = func(expectedState pipelinesv1.CompletionState) func(pipelinesv1.Run, pipelinesv1.Run) {
 			return func(oldRun pipelinesv1.Run, newRun pipelinesv1.Run) {
 				Expect(oldRun.Status.CompletionState).NotTo(Equal(expectedState))
 				Expect(newRun.Status.CompletionState).To(Equal(expectedState))
@@ -110,7 +111,7 @@ var _ = Describe("Status Updater", Serial, func() {
 				ctx := context.Background()
 
 				runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunName: &common.NamespacedName{
-					Name:      common.RandomString(),
+					Name: common.RandomString(),
 				}}
 
 				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())
@@ -162,7 +163,7 @@ var _ = Describe("Status Updater", Serial, func() {
 					RunId: common.RandomString(),
 					Artifacts: apis.RandomList(func() common.Artifact {
 						return common.Artifact{
-							Name: common.RandomString(),
+							Name:     common.RandomString(),
 							Location: common.RandomString(),
 						}
 					}),
@@ -196,7 +197,7 @@ var _ = Describe("Status Updater", Serial, func() {
 				ctx := context.Background()
 
 				runCompletionEvent := common.RunCompletionEvent{Status: common.RunCompletionStatuses.Succeeded, RunConfigurationName: &common.NamespacedName{
-					Name:      common.RandomString(),
+					Name: common.RandomString(),
 				}}
 
 				Expect(statusUpdater.UpdateStatus(ctx, runCompletionEvent)).To(Succeed())

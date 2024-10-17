@@ -111,6 +111,16 @@ spec:
       name: Version
       type: string
     name: v1alpha5
+    - jsonPath: .status.providerId
+      name: ProviderId
+      type: string
+    - jsonPath: .status.synchronizationState
+      name: SynchronizationState
+      type: string
+    - jsonPath: .status.version
+      name: Version
+      type: string
+    name: v1alpha6
     schema:
       openAPIV3Schema:
         properties:
