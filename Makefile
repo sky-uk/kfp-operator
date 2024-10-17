@@ -46,12 +46,15 @@ decoupled-test: manifests generate ## Run decoupled acceptance tests
 	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
 
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
-integration-test-up:
-	minikube start -p kfp-operator-tests
+install-argo:
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
+
+integration-test-up:
+	minikube start -p kfp-operator-tests
+	$(MAKE) install-argo
 	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! > config/testing/pids
 
@@ -105,6 +108,18 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
+
+install-dependencies:
+	kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/release-0.14/manifests/setup/0servicemonitorCustomResourceDefinition.yaml
+	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.1/cert-manager.yaml
+
+minikube-start: 
+	minikube start -p local-kfp-operator
+
+minikube-stop:
+	minikube stop -p local-kfp-operator
+
+local-dev-env: docker-build docker-build-argo minikube-start install install-argo install-dependencies deploy
 
 ##@ Tools
 
@@ -208,7 +223,7 @@ include docker-targets.mk
 
 docker-build-argo:
 	$(MAKE) -C argo/status-updater docker-build
-	$(MAKE) -C argo/kfp-compiler docker-build
+# $(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/providers docker-build
 
 docker-push-argo:
