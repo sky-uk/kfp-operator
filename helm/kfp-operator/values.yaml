@@ -56,20 +56,17 @@ manager:
         path: ""
         port: 50051
 
-runcompletionEventTrigger:
-  replicas: 1
-  nats:
-    subject: events
-    server:
-      port: 4222
-  server:
-    port: 50051
-
 statusFeedback:
   enabled: false
-  webhook:
-    endpoint: '/'
-    port: 12000
+  runcompletionEventTrigger:
+    replicas: 1
+    nats:
+      subject: events
+      server:
+        port: 4222
+    server:
+      port: 50051
+
 
 logging:
   verbosity: # info
