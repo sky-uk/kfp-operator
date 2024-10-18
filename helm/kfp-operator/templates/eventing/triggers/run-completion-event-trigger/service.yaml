@@ -1,0 +1,14 @@
+{{- if .Values.statusFeedback.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
+  namespace: kfp-operator-system
+spec:
+  selector:
+    app: run-completion-event-trigger
+  ports:
+  - protocol: TCP
+    port: {{ .Values.statusFeedback.runcompletionEventTrigger.server.port }}
+    targetPort: grpc-server
+{{- end -}}

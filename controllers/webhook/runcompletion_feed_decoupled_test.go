@@ -11,6 +11,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -26,9 +27,9 @@ type MockUpstreamService struct {
 	expectedBody string
 }
 
-func (m MockUpstreamService) call(_ context.Context, ed EventData) error {
+func (m MockUpstreamService) call(_ context.Context, event common.RunCompletionEvent) error {
 	mockUpstreamServiceCallCounter++
-	passedBodyBytes, err := json.Marshal(ed.RunCompletionEvent)
+	passedBodyBytes, err := json.Marshal(event)
 	Expect(err).NotTo(HaveOccurred())
 	passedBodyStr := string(passedBodyBytes)
 	if m.expectedBody == "error" {

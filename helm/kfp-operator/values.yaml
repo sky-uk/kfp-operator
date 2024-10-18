@@ -51,13 +51,22 @@ manager:
   webhookServicePort: 9443
   runcompletionWebhook:
     servicePort: 8082
-    endpoints: []
+    endpoints:
+      - host: kfp-operator-run-completion-event-trigger.kfp-operator-system
+        path: ""
+        port: 50051
 
 statusFeedback:
   enabled: false
-  webhook:
-    endpoint: '/'
-    port: 12000
+  runcompletionEventTrigger:
+    replicas: 1
+    nats:
+      subject: events
+      server:
+        port: 4222
+    server:
+      port: 50051
+
 
 logging:
   verbosity: # info

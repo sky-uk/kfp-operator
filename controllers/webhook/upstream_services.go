@@ -1,114 +1,90 @@
 package webhook
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"io"
-	"net"
-	"net/http"
-	"strconv"
-	"time"
+	"google.golang.org/grpc/credentials/insecure"
+	"log"
+
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
+	"google.golang.org/grpc"
 )
 
 type UpstreamService interface {
-	call(ctx context.Context, ed EventData) error
+	call(ctx context.Context, ed common.RunCompletionEvent) error
 }
 
-type ArgoEventWebhook struct {
-	Upstream config.Endpoint
-	Client   *http.Client
+type GrpcNatsTrigger struct {
+	Upstream          config.Endpoint
+	Client            pb.RunCompletionEventTriggerClient
+	ConnectionHandler func() error
 }
 
-func NewArgoEventWebhook(endpoint config.Endpoint) ArgoEventWebhook {
-	transport := &http.Transport{
-		DialContext: (&net.Dialer{
-			Timeout: 2 * time.Second,
-		}).DialContext,
-		MaxIdleConns:        5,
-		MaxIdleConnsPerHost: 5,
-		IdleConnTimeout:     90 * time.Second,
+func NewGrpcNatsTrigger(endpoint config.Endpoint) GrpcNatsTrigger {
+	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	log.Printf("NewGrpcNatsTrigger connected to: %s", endpoint.URL())
+	if err != nil {
+		log.Fatal("Error creating grpc client", err)
 	}
 
-	client := &http.Client{
-		Transport: transport,
-		Timeout:   10 * time.Second,
-	}
+	client := pb.NewRunCompletionEventTriggerClient(conn)
 
-	return ArgoEventWebhook{
+	return GrpcNatsTrigger{
 		Upstream: endpoint,
 		Client:   client,
+		ConnectionHandler: func() error {
+			if err := conn.Close(); err != nil {
+				return err
+			}
+			return nil
+		},
 	}
 }
 
-func (hw ArgoEventWebhook) buildRequest(ctx context.Context, bodyBytes []byte) (*http.Request, error) {
-	return http.NewRequestWithContext(ctx, http.MethodPost, hw.Upstream.URL(), bytes.NewReader(bodyBytes))
-}
-
-type ArgoEventBody struct {
-	Specversion     string                    `json:"specversion"`
-	Id              string                    `json:"id"`
-	Source          string                    `json:"source"`
-	Type            string                    `json:"type"`
-	DataContentType string                    `json:"datacontenttype"`
-	Data            common.RunCompletionEvent `json:"data"`
-}
-
-func NewArgoEventBody(data common.RunCompletionEvent) ArgoEventBody {
-	return ArgoEventBody{
-		Specversion:     "1.0",
-		Id:              strconv.FormatInt(time.Now().UnixNano(), 10),
-		Source:          "argo-event-webhook",
-		DataContentType: HttpContentTypeJSON,
-		Data:            data,
-	}
-}
-
-func (hw ArgoEventWebhook) call(ctx context.Context, ed EventData) error {
-	logger := common.LoggerFromContext(ctx)
-	requestBody := NewArgoEventBody(ed.RunCompletionEvent)
-	bodyBytes, err := json.Marshal(requestBody)
+func (gnt GrpcNatsTrigger) call(ctx context.Context, event common.RunCompletionEvent) error {
+	runCompletionEvent, err := RunCompletionEventToProto(event)
 	if err != nil {
 		return err
 	}
-
-	req, err := hw.buildRequest(ctx, bodyBytes)
-	if err != nil {
-		return err
-	}
-	transferHeaders(ed.Header, req)
-
-	response, err := hw.Client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			logger.Error(err, "Failed to close body")
-		}
-	}(response.Body)
-
-	// Fully consume the response body
-	_, err = io.Copy(io.Discard, response.Body)
-	if err != nil {
-		logger.Error(err, "Failed to fully consume response body")
-	}
-
-	if response.StatusCode/100 != 2 {
-		return errors.New(fmt.Sprintf("Upstream service returned error, http status code: [%s]", response.Status))
-	}
-	return nil
+	_, err = gnt.Client.ProcessEventFeed(ctx, runCompletionEvent)
+	return err
 }
 
-func transferHeaders(headers http.Header, req *http.Request) {
-	for headerName, headerValues := range headers {
-		for _, headerValue := range headerValues {
-			req.Header.Add(headerName, headerValue)
-		}
+func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompletionEvent, error) {
+	pipelineName, err := event.PipelineName.String()
+	if err != nil {
+		return nil, fmt.Errorf("failed to format pipeline name for proto run completion event: %w", err)
 	}
+
+	runConfigurationName, err := event.RunConfigurationName.String()
+	if err != nil {
+		return nil, fmt.Errorf("failed to format run configuration name for proto run completion event: %w", err)
+	}
+
+	runName, err := event.RunName.String()
+	if err != nil {
+		return nil, fmt.Errorf("failed to format run name for proto run completion event: %w", err)
+	}
+
+	var artifacts []*pb.ServingModelArtifact
+	for _, artifact := range event.ServingModelArtifacts {
+		artifacts = append(artifacts, &pb.ServingModelArtifact{
+			Location: artifact.Location,
+			Name:     artifact.Name,
+		})
+	}
+
+	runCompletionEvent := pb.RunCompletionEvent{
+		PipelineName:          pipelineName,
+		Provider:              event.Provider,
+		RunConfigurationName:  runConfigurationName,
+		RunId:                 event.RunId,
+		RunName:               runName,
+		ServingModelArtifacts: artifacts,
+		Status:                string(event.Status),
+	}
+
+	return &runCompletionEvent, err
 }
