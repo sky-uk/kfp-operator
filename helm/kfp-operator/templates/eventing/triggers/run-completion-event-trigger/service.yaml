@@ -9,6 +9,6 @@ spec:
     app: run-completion-event-trigger
   ports:
   - protocol: TCP
-    port: {{ .Values.runcompletionEventTrigger.server.port }}
+    port: {{ .Values.statusFeedback.runcompletionEventTrigger.server.port }}
     targetPort: grpc-server
 {{- end -}}
