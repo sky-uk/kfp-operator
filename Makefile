@@ -5,7 +5,7 @@ include newline.mk
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:preserveUnknownFields=false"
+CRD_OPTIONS ?= "crd:ignoreUnexportedFields=false"
 
 all: build
 
@@ -128,7 +128,7 @@ helm-cmd: ## Download helm locally if necessary.
 
 CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-install,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.14.0)
+	$(call go-install,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.12.0)
 
 KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
