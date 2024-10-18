@@ -13,5 +13,5 @@ data:
         port: {{ .Values.runcompletionEventTrigger.nats.server.port }}
     serverConfig:
       host: 0.0.0.0
-      port: {{ .Values.runcompletionEventTrigger.server.port }}
+      port: {{ .Values.statusFeedback.runcompletionEventTrigger.server.port }}
 {{- end -}}
