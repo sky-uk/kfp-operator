@@ -1,10 +1,8 @@
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.4.1
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.12.0
   name: kfpcontrollerconfigs.config.kubeflow.org
 spec:
   group: config.kubeflow.org
@@ -755,12 +753,6 @@ spec:
                 type: string
               multiversion:
                 type: boolean
-              runCompletionTTL:
-                type: string
-              workflowNamespace:
-                type: string
-              workflowTemplatePrefix:
-                type: string
               runCompletionFeed:
                 properties:
                   endpoints:
@@ -777,15 +769,15 @@ spec:
                   port:
                     type: integer
                 type: object
+              runCompletionTTL:
+                type: string
+              workflowNamespace:
+                type: string
+              workflowTemplatePrefix:
+                type: string
             type: object
         type: object
     served: true
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
