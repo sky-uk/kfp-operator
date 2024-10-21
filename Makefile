@@ -4,8 +4,6 @@ include newline.mk
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:preserveUnknownFields=false"
 
 all: build
 
@@ -28,7 +26,7 @@ help: ## Display this help.
 ##@ Development
 
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) crd rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
@@ -125,7 +123,7 @@ helm-cmd: ## Download helm locally if necessary.
 
 CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-install,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
+	$(call go-install,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.12.0)
 
 KUSTOMIZE = $(PROJECT_DIR)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
