@@ -26,7 +26,7 @@ var _ = Context("LoadConfig", func() {
 				NATSConfig: NATSConfig{
 					Subject: "events",
 					ServerConfig: ServerConfig{
-						Host: "https://localhost",
+						Host: "localhost",
 						Port: "4222",
 					},
 				},
@@ -48,7 +48,7 @@ var _ = Context("LoadConfig", func() {
 				NATSConfig: NATSConfig{
 					Subject: "events",
 					ServerConfig: ServerConfig{
-						Host: "https://localhost",
+						Host: "localhost",
 						Port: "5000",
 					},
 				},

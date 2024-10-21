@@ -5,6 +5,6 @@ This adds a grpc service intended to pass run completion events to a nats servic
 events webhook built into the controller manager. 
 
 ## Configuration:
-Configuration files `config.yaml` must be located in the same location the user is calling the binary from ie `$pwd` / `.`
-Alternatively a config.yml can be located at `/etc/run-completion-event-trigger/config.yaml` to be accessed when the binary is called
+Configuration files `config.yaml` must be located in the same location the user is calling the binary from, i.e. `$pwd/.`.
+Alternatively a `config.yaml` can be located at `/etc/run-completion-event-trigger/config.yaml` to be accessed when the binary is called
 from anywhere in the system.

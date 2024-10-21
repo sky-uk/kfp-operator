@@ -78,7 +78,7 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 		}
 
 		rce := common.RunCompletionEvent{
-			Status:               "some-status",
+			Status:               common.RunCompletionStatuses.Succeeded,
 			PipelineName:         namespacedName,
 			RunConfigurationName: &namespacedName,
 			RunName:              &namespacedName,
@@ -92,10 +92,10 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			Provider: "some-provider",
 		}
 
-		It("return no error when event data is converted to proto runcompletion event", func() {
+		It("returns no error when event data is converted to proto runcompletion event", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
 			expectedResult := &pb.RunCompletionEvent{
-				Status:               "some-status",
+				Status:               pb.Status_SUCCEEDED,
 				PipelineName:         "namespace/name",
 				RunConfigurationName: "namespace/name",
 				RunName:              "namespace/name",
@@ -117,7 +117,7 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				Namespace: "namespace",
 			}
 			rce := common.RunCompletionEvent{
-				Status:               "some-status",
+				Status:               common.RunCompletionStatuses.Succeeded,
 				PipelineName:         namespacedName,
 				RunConfigurationName: &namespacedName,
 				RunName:              &namespacedName,
