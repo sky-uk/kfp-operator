@@ -54,7 +54,7 @@ func RandomRunCompletionEventData() common.RunCompletionEventData {
 	runConfigurationName := common.RandomNamespacedName()
 
 	return common.RunCompletionEventData{
-		Status:                common.RunCompletionStatus(common.RandomString()),
+		Status:                common.RunCompletionStatuses.Succeeded,
 		PipelineName:          common.NamespacedName{},
 		RunConfigurationName:  &runConfigurationName,
 		RunName:               &runName,

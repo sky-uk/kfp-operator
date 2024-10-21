@@ -5,6 +5,8 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"log"
 	"testing"
 	"time"
@@ -74,7 +76,7 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 				RunConfigurationName: "some-run-configuration-name",
 				RunId:                "some-run-id",
 				RunName:              "some-run-name",
-				Status:               "Succeeded",
+				Status:               pb.Status_SUCCEEDED,
 				ServingModelArtifacts: []*pb.ServingModelArtifact{
 					{
 						Location: "gs://my-bucket/model-1",
@@ -97,33 +99,22 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 			latestRunCompletionEventFromNats, err := getLatestMessageFromNats(natsSubscription)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedRunCompletionEvent, err := removeMetadataFieldsFromEvent(runCompletionEvent)
+			expectedRunCompletionEvent, err := pb.ProtoRunCompletionToCommon(runCompletionEvent)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(latestRunCompletionEventFromNats).To(Equal(expectedRunCompletionEvent))
+			Expect(latestRunCompletionEventFromNats).To(Equal(&expectedRunCompletionEvent))
 		})
 	})
 })
 
-func getLatestMessageFromNats(natsSubscription *nats.Subscription) (*pb.RunCompletionEvent, error) {
+func getLatestMessageFromNats(natsSubscription *nats.Subscription) (*common.RunCompletionEvent, error) {
 	msg, err := natsSubscription.NextMsg(5 * time.Second)
 	Expect(err).ToNot(HaveOccurred())
 
-	latestRunCompletionEvent := &pb.RunCompletionEvent{}
+	latestRunCompletionEvent := &common.RunCompletionEvent{}
 	if err = json.Unmarshal(msg.Data, latestRunCompletionEvent); err != nil {
 		return nil, err
 	}
+	fmt.Printf("failed: %v", err)
 	return latestRunCompletionEvent, nil
-}
-
-func removeMetadataFieldsFromEvent(event *pb.RunCompletionEvent) (*pb.RunCompletionEvent, error) {
-	eventJson, err := json.Marshal(event)
-	if err != nil {
-		return nil, err
-	}
-	runCompletionEventWithoutMetadata := &pb.RunCompletionEvent{}
-	if err = json.Unmarshal(eventJson, runCompletionEventWithoutMetadata); err != nil {
-		return nil, err
-	}
-	return runCompletionEventWithoutMetadata, nil
 }

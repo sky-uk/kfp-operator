@@ -7,10 +7,10 @@ metadata:
 data:
   config.yaml: |
     natsConfig:
-      subject: {{ .Values.runcompletionEventTrigger.nats.subject }}
+      subject: {{ .Values.statusFeedback.runcompletionEventTrigger.nats.subject }}
       serverConfig:
         host: eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc
-        port: {{ .Values.runcompletionEventTrigger.nats.server.port }}
+        port: {{ .Values.statusFeedback.runcompletionEventTrigger.nats.server.port }}
     serverConfig:
       host: 0.0.0.0
       port: {{ .Values.statusFeedback.runcompletionEventTrigger.server.port }}

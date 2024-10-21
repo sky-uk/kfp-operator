@@ -2,7 +2,6 @@ package run_completion_event_trigger
 
 import (
 	"context"
-	"encoding/json"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 
@@ -18,19 +17,27 @@ type Server struct {
 	Publisher PublisherHandler
 }
 
-func (s *Server) ProcessEventFeed(_ context.Context, in *pb.RunCompletionEvent) (*emptypb.Empty, error) {
-	eventData, err := json.Marshal(in)
+func (s *Server) ProcessEventFeed(_ context.Context, runCompletion *pb.RunCompletionEvent) (*emptypb.Empty, error) {
+
+	commonRunCompletionEvent, err := pb.ProtoRunCompletionToCommon(runCompletion)
 	if err != nil {
-		err = status.Error(codes.InvalidArgument, "marshalling provided event failed")
+		err = status.Error(codes.InvalidArgument, "Proto run completion event could not be converted to a common run completion event.")
 		return nil, err
 	}
 
-	if err = s.Publisher.Publish(eventData); err != nil {
-		err = status.Error(codes.Internal, "failed to publish event")
+	marshalErr, connErr := s.Publisher.Publish(commonRunCompletionEvent)
+
+	if marshalErr != nil {
+		err = status.Error(codes.InvalidArgument, "failed to marshal event")
 		return nil, err
 	}
 
-	log.Printf("Run Completion Event Processed for %s", in.RunId)
+	if connErr != nil {
+		err = status.Error(codes.Internal, "publisher request to upstream failed")
+		return nil, err
+	}
+
+	log.Printf("Run Completion Event Processed for %s", commonRunCompletionEvent.RunId)
 
 	return &emptypb.Empty{}, nil
 }

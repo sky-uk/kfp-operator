@@ -1,7 +1,7 @@
 natsConfig:
   subject: events
   serverConfig:
-    host: https://localhost
+    host: localhost
     port: 4222
 serverConfig:
   host: localhost

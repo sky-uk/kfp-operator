@@ -17,10 +17,16 @@ message RunCompletionEvent {
   string run_id = 4;
   string run_name = 5;
   repeated ServingModelArtifact serving_model_artifacts = 6;
-  string status = 7;
+  Status status = 7;
+}
+
+enum Status {
+  SUCCEEDED = 0;
+  FAILED = 1;
 }
 
 message ServingModelArtifact {
   string location = 1;
   string name = 2;
 }
+

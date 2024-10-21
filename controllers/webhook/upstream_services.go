@@ -24,6 +24,7 @@ type GrpcNatsTrigger struct {
 
 func NewGrpcNatsTrigger(endpoint config.Endpoint) GrpcNatsTrigger {
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+
 	log.Printf("NewGrpcNatsTrigger connected to: %s", endpoint.URL())
 	if err != nil {
 		log.Fatal("Error creating grpc client", err)
@@ -83,8 +84,15 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		RunId:                 event.RunId,
 		RunName:               runName,
 		ServingModelArtifacts: artifacts,
-		Status:                string(event.Status),
+		Status:                statusToProto(event.Status),
 	}
 
 	return &runCompletionEvent, err
+}
+
+func statusToProto(status common.RunCompletionStatus) pb.Status {
+	if status == common.RunCompletionStatuses.Succeeded {
+		return pb.Status_SUCCEEDED
+	}
+	return pb.Status_FAILED
 }

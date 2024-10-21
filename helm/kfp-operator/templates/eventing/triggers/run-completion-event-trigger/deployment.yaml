@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: run-completion-event-trigger
-  replicas: {{ .Values.runcompletionEventTrigger.replicas }}
+  replicas: {{ .Values.statusFeedback.runcompletionEventTrigger.replicas }}
   template:
     metadata:
       labels:
@@ -23,7 +23,7 @@ spec:
         image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-run-completion-event-trigger:{{ .Chart.AppVersion }}
         ports:
         -  name: grpc-server
-           containerPort: {{ .Values.runcompletionEventTrigger.server.port }}
+           containerPort: {{ .Values.statusFeedback.runcompletionEventTrigger.server.port }}
         volumeMounts:
           - name: config
             mountPath: /etc/run-completion-event-trigger/config.yaml
