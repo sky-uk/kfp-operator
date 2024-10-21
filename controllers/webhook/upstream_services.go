@@ -91,8 +91,11 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 }
 
 func statusToProto(status common.RunCompletionStatus) pb.Status {
-	if status == common.RunCompletionStatuses.Succeeded {
+	switch status {
+	case common.RunCompletionStatuses.Succeeded:
 		return pb.Status_SUCCEEDED
+	default:
+		return pb.Status_FAILED
 	}
-	return pb.Status_FAILED
+
 }
