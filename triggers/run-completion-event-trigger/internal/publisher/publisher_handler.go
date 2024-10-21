@@ -1,4 +1,4 @@
-package run_completion_event_trigger
+package publisher
 
 import (
 	"encoding/json"
@@ -7,15 +7,23 @@ import (
 )
 
 type PublisherHandler interface {
-	Publish(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError)
+	Publish(runCompletionEvent common.RunCompletionEvent) error
 }
 
 type MarshallingError struct {
-	Error error
+	Message string
+}
+
+func (e *MarshallingError) Error() string {
+	return e.Message
 }
 
 type ConnectionError struct {
-	Error error
+	Message string
+}
+
+func (e *ConnectionError) Error() string {
+	return e.Message
 }
 
 type NatsPublisher struct {
@@ -23,13 +31,13 @@ type NatsPublisher struct {
 	Subject  string
 }
 
-func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
+func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) error {
 	eventData, err := json.Marshal(runCompletionEvent)
 	if err != nil {
-		return &MarshallingError{err}, nil
+		return &MarshallingError{err.Error()}
 	}
 	if err := nc.NatsConn.Publish(nc.Subject, eventData); err != nil {
-		return nil, &ConnectionError{err}
+		return &ConnectionError{err.Error()}
 	}
-	return nil, nil
+	return nil
 }

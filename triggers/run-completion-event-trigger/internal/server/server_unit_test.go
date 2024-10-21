@@ -1,14 +1,14 @@
 //go:build unit
 
-package run_completion_event_trigger
+package server
 
 import (
 	"context"
-	"errors"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,9 +21,9 @@ func TestServerUnit(t *testing.T) {
 	RunSpecs(t, "Server Unit Suite")
 }
 
-type PublishFunc func(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError)
+type PublishFunc func(runCompletionEvent common.RunCompletionEvent) error
 
-func (pf PublishFunc) Publish(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
+func (pf PublishFunc) Publish(runCompletionEvent common.RunCompletionEvent) error {
 	return pf(runCompletionEvent)
 }
 
@@ -33,10 +33,10 @@ var _ = Context("ProcessEventFeed", func() {
 	When("publisher returns a marshalling error", func() {
 		It("returns Invalid Argument Error", func() {
 			stubPublisher := struct {
-				PublisherHandler
+				publisher.PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
-					return &MarshallingError{Error: errors.New("test error")}, nil
+				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+					return &publisher.MarshallingError{Message: "test error"}
 				}),
 			}
 
@@ -53,10 +53,10 @@ var _ = Context("ProcessEventFeed", func() {
 	When("publisher returns a connection error", func() {
 		It("returns Internal Error", func() {
 			stubPublisher := struct {
-				PublisherHandler
+				publisher.PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
-					return nil, &ConnectionError{Error: errors.New("test error")}
+				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+					return &publisher.ConnectionError{Message: "test error"}
 				}),
 			}
 
@@ -73,10 +73,10 @@ var _ = Context("ProcessEventFeed", func() {
 	When("successfully publishing to nats", func() {
 		It("returns empty", func() {
 			stubPublisher := struct {
-				PublisherHandler
+				publisher.PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
-					return nil, nil
+				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+					return nil
 				}),
 			}
 
@@ -90,5 +90,4 @@ var _ = Context("ProcessEventFeed", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
-
 })

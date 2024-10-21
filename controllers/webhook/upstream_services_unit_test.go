@@ -77,59 +77,58 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			Namespace: "namespace",
 		}
 
-		rce := common.RunCompletionEvent{
-			Status:               common.RunCompletionStatuses.Succeeded,
-			PipelineName:         namespacedName,
-			RunConfigurationName: &namespacedName,
-			RunName:              &namespacedName,
-			RunId:                "some-runid",
-			ServingModelArtifacts: []common.Artifact{
-				{
-					Name:     "some-artifact",
-					Location: "gs://some/where",
-				},
+		artifacts := []common.Artifact{
+			{
+				Name:     "some-artifact",
+				Location: "gs://some/where",
 			},
-			Provider: "some-provider",
+		}
+
+		rce := common.RunCompletionEvent{
+			Status:                common.RunCompletionStatuses.Succeeded,
+			PipelineName:          namespacedName,
+			RunConfigurationName:  &namespacedName,
+			RunName:               &namespacedName,
+			RunId:                 "some-runid",
+			ServingModelArtifacts: artifacts,
+			Artifacts:             artifacts,
+			Provider:              "some-provider",
 		}
 
 		It("returns no error when event data is converted to proto runcompletion event", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
-			expectedResult := &pb.RunCompletionEvent{
-				Status:               pb.Status_SUCCEEDED,
-				PipelineName:         "namespace/name",
-				RunConfigurationName: "namespace/name",
-				RunName:              "namespace/name",
-				RunId:                "some-runid",
-				ServingModelArtifacts: []*pb.ServingModelArtifact{
-					{
-						Name:     "some-artifact",
-						Location: "gs://some/where",
-					},
+			expectedArtifacts := []*pb.Artifact{
+				{
+					Name:     "some-artifact",
+					Location: "gs://some/where",
 				},
-				Provider: "some-provider",
+			}
+			expectedResult := &pb.RunCompletionEvent{
+				Status:                pb.Status_SUCCEEDED,
+				PipelineName:          "namespace/name",
+				RunConfigurationName:  "namespace/name",
+				RunName:               "namespace/name",
+				RunId:                 "some-runid",
+				ServingModelArtifacts: expectedArtifacts,
+				Artifacts:             expectedArtifacts,
+				Provider:              "some-provider",
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns error when namespaced name fields cannot be marshalled", func() {
-			invalidNamespacedName := common.NamespacedName{
-				Namespace: "namespace",
-			}
+
 			rce := common.RunCompletionEvent{
-				Status:               common.RunCompletionStatuses.Succeeded,
 				PipelineName:         namespacedName,
 				RunConfigurationName: &namespacedName,
 				RunName:              &namespacedName,
-				RunId:                "some-runid",
-				ServingModelArtifacts: []common.Artifact{
-					{
-						Name:     "some-artifact",
-						Location: "gs://some/where",
-					},
-				},
-				Provider: "some-provider",
 			}
+
+			invalidNamespacedName := common.NamespacedName{
+				Namespace: "namespace",
+			}
+
 			pipelineTest := rce
 			pipelineTest.PipelineName = invalidNamespacedName
 

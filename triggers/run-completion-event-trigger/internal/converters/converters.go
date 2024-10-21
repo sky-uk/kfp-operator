@@ -1,8 +1,11 @@
-package run_completion_event_trigger
+package converters
 
-import "github.com/sky-uk/kfp-operator/argo/common"
+import (
+	"github.com/sky-uk/kfp-operator/argo/common"
+	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
+)
 
-func ProtoRunCompletionToCommon(protoRunCompletion *RunCompletionEvent) (common.RunCompletionEvent, error) {
+func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (common.RunCompletionEvent, error) {
 
 	pipelineName, err := common.NamespacedNameFromString(protoRunCompletion.PipelineName)
 	if err != nil {
@@ -20,18 +23,18 @@ func ProtoRunCompletionToCommon(protoRunCompletion *RunCompletionEvent) (common.
 	}
 
 	return common.RunCompletionEvent{
-		Status:                StatusConverter(protoRunCompletion.Status),
+		Status:                statusConverter(protoRunCompletion.Status),
 		PipelineName:          pipelineName,
 		RunConfigurationName:  &runConfigurationName,
 		RunName:               &runName,
 		RunId:                 protoRunCompletion.RunId,
-		ServingModelArtifacts: ArtifactsConverter(protoRunCompletion.ServingModelArtifacts),
-		Artifacts:             nil,
+		ServingModelArtifacts: artifactsConverter(protoRunCompletion.ServingModelArtifacts),
+		Artifacts:             artifactsConverter(protoRunCompletion.Artifacts),
 		Provider:              protoRunCompletion.Provider,
 	}, nil
 }
 
-func ArtifactsConverter(artifacts []*ServingModelArtifact) []common.Artifact {
+func artifactsConverter(artifacts []*pb.Artifact) []common.Artifact {
 	var commonArtifacts []common.Artifact
 
 	for _, pbArtifact := range artifacts {
@@ -45,9 +48,9 @@ func ArtifactsConverter(artifacts []*ServingModelArtifact) []common.Artifact {
 	return commonArtifacts
 }
 
-func StatusConverter(status Status) common.RunCompletionStatus {
+func statusConverter(status pb.Status) common.RunCompletionStatus {
 	switch status {
-	case Status_SUCCEEDED:
+	case pb.Status_SUCCEEDED:
 		return common.RunCompletionStatuses.Succeeded
 	default:
 		return common.RunCompletionStatuses.Failed

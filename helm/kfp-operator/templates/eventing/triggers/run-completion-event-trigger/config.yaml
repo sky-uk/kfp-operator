@@ -1,4 +1,4 @@
-{{- if .Values.statusFeedback.enabled }}
+{{- if .Values.runcompletionEventTrigger.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,11 +7,11 @@ metadata:
 data:
   config.yaml: |
     natsConfig:
-      subject: {{ .Values.statusFeedback.runcompletionEventTrigger.nats.subject }}
+      subject: {{ .Values.runcompletionEventTrigger.nats.subject }}
       serverConfig:
         host: eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc
-        port: {{ .Values.statusFeedback.runcompletionEventTrigger.nats.server.port }}
+        port: {{ .Values.runcompletionEventTrigger.nats.server.port }}
     serverConfig:
       host: 0.0.0.0
-      port: {{ .Values.statusFeedback.runcompletionEventTrigger.server.port }}
+      port: {{ .Values.runcompletionEventTrigger.server.port }}
 {{- end -}}

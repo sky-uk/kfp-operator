@@ -41,8 +41,8 @@ var _ = Context("LoadConfig", func() {
 		})
 	})
 
-	When("given an enviornment variable", func() {
-		It("correctly override config value", func() {
+	When("given an environment variable", func() {
+		It("correctly overrides config value", func() {
 			os.Setenv("NATSCONFIG_SERVERCONFIG_PORT", "5000")
 			expectedConfig := Config{
 				NATSConfig: NATSConfig{

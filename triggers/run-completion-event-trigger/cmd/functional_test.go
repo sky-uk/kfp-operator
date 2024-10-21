@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/converters"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
 
@@ -70,23 +71,26 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 
 	When("the Run Completion Event Trigger Service is called with a valid request", func() {
 		It("returns empty and NATS receives an event", func() {
-			runCompletionEvent := &pb.RunCompletionEvent{
-				PipelineName:         "some-pipeline-name",
-				Provider:             "some-provider",
-				RunConfigurationName: "some-run-configuration-name",
-				RunId:                "some-run-id",
-				RunName:              "some-run-name",
-				Status:               pb.Status_SUCCEEDED,
-				ServingModelArtifacts: []*pb.ServingModelArtifact{
-					{
-						Location: "gs://my-bucket/model-1",
-						Name:     "model-1",
-					},
-					{
-						Location: "gs://my-bucket/model-2",
-						Name:     "model-2",
-					},
+			artifacts := []*pb.Artifact{
+				{
+					Location: "gs://my-bucket/model-1",
+					Name:     "model-1",
 				},
+				{
+					Location: "gs://my-bucket/model-2",
+					Name:     "model-2",
+				},
+			}
+
+			runCompletionEvent := &pb.RunCompletionEvent{
+				PipelineName:          "some-pipeline-name",
+				Provider:              "some-provider",
+				RunConfigurationName:  "some-run-configuration-name",
+				RunId:                 "some-run-id",
+				RunName:               "some-run-name",
+				Status:                pb.Status_SUCCEEDED,
+				ServingModelArtifacts: artifacts,
+				Artifacts:             artifacts,
 			}
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -99,7 +103,7 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 			latestRunCompletionEventFromNats, err := getLatestMessageFromNats(natsSubscription)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedRunCompletionEvent, err := pb.ProtoRunCompletionToCommon(runCompletionEvent)
+			expectedRunCompletionEvent, err := converters.ProtoRunCompletionToCommon(runCompletionEvent)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(latestRunCompletionEventFromNats).To(Equal(&expectedRunCompletionEvent))

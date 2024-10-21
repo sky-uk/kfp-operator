@@ -16,8 +16,9 @@ message RunCompletionEvent {
   string run_configuration_name = 3;
   string run_id = 4;
   string run_name = 5;
-  repeated ServingModelArtifact serving_model_artifacts = 6;
-  Status status = 7;
+  Status status = 6;
+  repeated Artifact artifacts = 7;
+  repeated Artifact serving_model_artifacts = 8;
 }
 
 enum Status {
@@ -25,7 +26,7 @@ enum Status {
   FAILED = 1;
 }
 
-message ServingModelArtifact {
+message Artifact {
   string location = 1;
   string name = 2;
 }
