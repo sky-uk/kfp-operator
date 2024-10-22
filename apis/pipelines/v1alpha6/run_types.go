@@ -151,15 +151,14 @@ type RunStatus struct {
 	MarkedCompletedAt       *metav1.Time    `json:"markedCompletedAt,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:resource:shortName="mlr"
-//+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
-//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
-//+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:printcolumn:name="CompletionState",type="string",JSONPath=".status.completionState"
-//+kubebuilder:storageversion
-
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:shortName="mlr"
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+// +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
+// +kubebuilder:printcolumn:name="CompletionState",type="string",JSONPath=".status.completionState"
+// +kubebuilder:storageversion
 type Run struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -234,8 +233,7 @@ func (r *Run) GetKind() string {
 	return "run"
 }
 
-//+kubebuilder:object:root=true
-
+// +kubebuilder:object:root=true
 type RunList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

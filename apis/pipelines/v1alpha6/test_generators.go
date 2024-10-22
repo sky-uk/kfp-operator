@@ -102,9 +102,21 @@ func RandomRunConfigurationSpec() RunConfigurationSpec {
 	}
 }
 
+func RandomTime() *metav1.Time {
+	if rand.Intn(2) == 1 {
+		return nil
+	}
+	min := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+	max := time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+	randTime := time.Unix(rand.Int63n(max-min)+min, 0)
+	return &metav1.Time{Time: randTime}
+}
+
 func RandomSchedule() Schedule {
 	return Schedule{
 		CronExpression: RandomString(),
+		StartTime:      RandomTime(),
+		EndTime:        RandomTime(),
 	}
 }
 

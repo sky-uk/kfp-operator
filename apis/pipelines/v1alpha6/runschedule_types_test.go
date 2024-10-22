@@ -48,7 +48,8 @@ var _ = Context("RunSchedule", func() {
 			rs := RunSchedule{}
 			hash1 := rs.ComputeHash()
 
-			rs.Spec.Schedule.StartTime = metav1.NewTime(time.Now())
+			startTime := metav1.NewTime(time.Now())
+			rs.Spec.Schedule.StartTime = &startTime
 			hash2 := rs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
@@ -58,7 +59,8 @@ var _ = Context("RunSchedule", func() {
 			rs := RunSchedule{}
 			hash1 := rs.ComputeHash()
 
-			rs.Spec.Schedule.EndTime = metav1.NewTime(time.Now())
+			endTime := metav1.NewTime(time.Now())
+			rs.Spec.Schedule.EndTime = &endTime
 			hash2 := rs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
