@@ -1,4 +1,4 @@
-package run_completion_event_trigger
+package publisher
 
 import (
 	"encoding/json"

@@ -99,7 +99,7 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 			latestRunCompletionEventFromNats, err := getLatestMessageFromNats(natsSubscription)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedRunCompletionEvent, err := pb.ProtoRunCompletionToCommon(runCompletionEvent)
+			expectedRunCompletionEvent, err := ProtoRunCompletionToCommon(runCompletionEvent)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(latestRunCompletionEventFromNats).To(Equal(&expectedRunCompletionEvent))

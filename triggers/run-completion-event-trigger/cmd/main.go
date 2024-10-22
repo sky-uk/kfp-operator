@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/nats-io/nats.go"
-	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/config"
+	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/cmd/config"
+	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
+	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/server"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
-	server "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/server"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -30,12 +31,12 @@ func main() {
 
 	s := grpc.NewServer()
 
-	publisher := server.NatsPublisher{
+	natsPublisher := publisher.NatsPublisher{
 		NatsConn: nc,
 		Subject:  config.NATSConfig.Subject,
 	}
 
-	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: publisher})
+	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: natsPublisher})
 
 	log.Printf("gRPC server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {

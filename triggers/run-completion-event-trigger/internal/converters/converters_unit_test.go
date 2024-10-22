@@ -1,9 +1,10 @@
 //go:build functional
 
-package run_completion_event_trigger
+package converters
 
 import (
 	"github.com/sky-uk/kfp-operator/argo/common"
+	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -18,19 +19,19 @@ func TestConvertersUnit(t *testing.T) {
 var _ = Context("ProtoRunCompletionToCommon", func() {
 	When("given a proto run completion event", func() {
 		It("returns the run completion event in the common struct", func() {
-			protoRunCompletionEvent := RunCompletionEvent{
+			protoRunCompletionEvent := pb.RunCompletionEvent{
 				PipelineName:         "namespace/some-pipeline",
 				Provider:             "some-provider",
 				RunConfigurationName: "namespace/some-run-configuration-name",
 				RunId:                "some-run-id",
 				RunName:              "namespace/some-run-name",
-				ServingModelArtifacts: []*ServingModelArtifact{
+				ServingModelArtifacts: []*pb.ServingModelArtifact{
 					{
 						Location: "some-location",
 						Name:     "some-name",
 					},
 				},
-				Status: Status_SUCCEEDED,
+				Status: pb.Status_SUCCEEDED,
 			}
 
 			expectedCommonRunCompletionEvent := common.RunCompletionEvent{
@@ -67,7 +68,7 @@ var _ = Context("artifactsConverter", func() {
 
 	When("given a list of proto `ServingModelArtifacts`", func() {
 		It("returns a list of artifacts in the common struct", func() {
-			servingModelArtifacts := []*ServingModelArtifact{
+			servingModelArtifacts := []*pb.ServingModelArtifact{
 				{
 					Location: "some-location",
 					Name:     "some-name",
@@ -97,13 +98,13 @@ var _ = Context("statusConverter", func() {
 
 	When("given a `SUCCEEDED` proto Status", func() {
 		It("returns a common RunCompletionStatus of succeeded", func() {
-			Expect(statusConverter(Status_SUCCEEDED)).To(Equal(common.RunCompletionStatuses.Succeeded))
+			Expect(statusConverter(pb.Status_SUCCEEDED)).To(Equal(common.RunCompletionStatuses.Succeeded))
 		})
 	})
 
 	When("given a `FAILED` proto Status", func() {
 		It("returns a common RunCompletionStatus of failed", func() {
-			Expect(statusConverter(Status_FAILED)).To(Equal(common.RunCompletionStatuses.Failed))
+			Expect(statusConverter(pb.Status_FAILED)).To(Equal(common.RunCompletionStatuses.Failed))
 		})
 	})
 
