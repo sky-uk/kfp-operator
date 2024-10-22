@@ -27,7 +27,7 @@ func NewGrpcNatsTrigger(ctx context.Context, endpoint config.Endpoint) GrpcNatsT
 
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-	logger.Info("NewGrpcNatsTrigger connected to: %s", endpoint.URL())
+	logger.Info("NewGrpcNatsTrigger connected to", "endpoint", endpoint.URL())
 	if err != nil {
 		logger.Error(err, "Error creating grpc client")
 	}
