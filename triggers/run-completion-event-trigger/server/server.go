@@ -2,7 +2,7 @@ package run_completion_event_trigger
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 
@@ -27,11 +27,12 @@ func (s *Server) ProcessEventFeed(_ context.Context, runCompletion *pb.RunComple
 	}
 
 	if err = s.Publisher.Publish(commonRunCompletionEvent); err != nil {
-		switch e := err.(type) {
-		case *MarshallingError:
-			fmt.Println("NotFoundError:", e.Message)
+		var marshallingError *MarshallingError
+		var connectionError *ConnectionError
+		switch {
+		case errors.As(err, &marshallingError):
 			return nil, status.Error(codes.InvalidArgument, "failed to marshal event")
-		case *ConnectionError:
+		case errors.As(err, &connectionError):
 			return nil, status.Error(codes.Internal, "publisher request to upstream failed")
 		default:
 			return nil, status.Error(codes.Internal, "unexpected error occurred")
