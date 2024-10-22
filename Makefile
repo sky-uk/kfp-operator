@@ -31,6 +31,11 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
+generate-grpc:
+	protoc --go_out=. --go_opt=paths=source_relative \
+	--go-grpc_out=.  --go-grpc_opt=paths=source_relative \
+	triggers/run-completion-event-trigger/proto/run_completion_event_trigger.proto
+
 fmt: ## Run go fmt against code.
 	go fmt ./...
 
@@ -222,7 +227,9 @@ docker-build-triggers:
 
 docker-push-triggers:
 	$(MAKE) -C triggers/run-completion-event-trigger docker-push
+
 ##@ Docs
+
 website:
 	$(MAKE) -C docs-gen
 
@@ -240,10 +247,3 @@ publish-all: docker-push docker-push-argo docker-push-triggers helm-publish
 prBuild: test-all package-all git-status-check
 
 cdBuild: prBuild publish-all docker-push-quickstart
-
-##@ Controllers
-
-generate-grpc:
-	protoc --go_out=. --go_opt=paths=source_relative \
-	--go-grpc_out=.  --go-grpc_opt=paths=source_relative \
-	triggers/run-completion-event-trigger/proto/run_completion_event_trigger.proto
