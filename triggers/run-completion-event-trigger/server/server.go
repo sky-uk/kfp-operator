@@ -34,7 +34,7 @@ func (s *Server) ProcessEventFeed(_ context.Context, runCompletion *pb.RunComple
 		case *ConnectionError:
 			return nil, status.Error(codes.Internal, "publisher request to upstream failed")
 		default:
-			return nil, status.Error(codes.Internal, "unknown error occurred")
+			return nil, status.Error(codes.Internal, "unexpected error occurred")
 		}
 	}
 
