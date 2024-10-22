@@ -4,7 +4,6 @@ package run_completion_event_trigger
 
 import (
 	"context"
-	"errors"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,9 +20,9 @@ func TestServerUnit(t *testing.T) {
 	RunSpecs(t, "Server Unit Suite")
 }
 
-type PublishFunc func(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError)
+type PublishFunc func(runCompletionEvent common.RunCompletionEvent) error
 
-func (pf PublishFunc) Publish(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
+func (pf PublishFunc) Publish(runCompletionEvent common.RunCompletionEvent) error {
 	return pf(runCompletionEvent)
 }
 
@@ -35,8 +34,8 @@ var _ = Context("ProcessEventFeed", func() {
 			stubPublisher := struct {
 				PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
-					return &MarshallingError{Error: errors.New("test error")}, nil
+				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+					return &MarshallingError{"test error"}
 				}),
 			}
 
@@ -55,8 +54,8 @@ var _ = Context("ProcessEventFeed", func() {
 			stubPublisher := struct {
 				PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
-					return nil, &ConnectionError{Error: errors.New("test error")}
+				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+					return &ConnectionError{"test error"}
 				}),
 			}
 
@@ -75,8 +74,8 @@ var _ = Context("ProcessEventFeed", func() {
 			stubPublisher := struct {
 				PublisherHandler
 			}{
-				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) (*MarshallingError, *ConnectionError) {
-					return nil, nil
+				PublishFunc(func(runCompletionEvent common.RunCompletionEvent) error {
+					return nil
 				}),
 			}
 

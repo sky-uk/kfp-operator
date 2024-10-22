@@ -63,7 +63,7 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 	})
 })
 
-var _ = Context("ArtifactsConverter", func() {
+var _ = Context("artifactsConverter", func() {
 
 	When("given a list of proto `ServingModelArtifacts`", func() {
 		It("returns a list of artifacts in the common struct", func() {
@@ -78,7 +78,7 @@ var _ = Context("ArtifactsConverter", func() {
 				},
 			}
 
-			Expect(ArtifactsConverter(servingModelArtifacts)).To(Equal(
+			Expect(artifactsConverter(servingModelArtifacts)).To(Equal(
 				[]common.Artifact{
 					{
 						Location: "some-location",
@@ -93,17 +93,17 @@ var _ = Context("ArtifactsConverter", func() {
 	})
 })
 
-var _ = Context("StatusConverter", func() {
+var _ = Context("statusConverter", func() {
 
 	When("given a `SUCCEEDED` proto Status", func() {
 		It("returns a common RunCompletionStatus of succeeded", func() {
-			Expect(StatusConverter(Status_SUCCEEDED)).To(Equal(common.RunCompletionStatuses.Succeeded))
+			Expect(statusConverter(Status_SUCCEEDED)).To(Equal(common.RunCompletionStatuses.Succeeded))
 		})
 	})
 
 	When("given a `FAILED` proto Status", func() {
 		It("returns a common RunCompletionStatus of failed", func() {
-			Expect(StatusConverter(Status_FAILED)).To(Equal(common.RunCompletionStatuses.Failed))
+			Expect(statusConverter(Status_FAILED)).To(Equal(common.RunCompletionStatuses.Failed))
 		})
 	})
 

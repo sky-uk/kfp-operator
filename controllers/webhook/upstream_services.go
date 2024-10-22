@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type UpstreamService interface {
@@ -22,12 +22,14 @@ type GrpcNatsTrigger struct {
 	ConnectionHandler func() error
 }
 
-func NewGrpcNatsTrigger(endpoint config.Endpoint) GrpcNatsTrigger {
+func NewGrpcNatsTrigger(ctx context.Context, endpoint config.Endpoint) GrpcNatsTrigger {
+	logger := log.FromContext(ctx)
+
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-	log.Printf("NewGrpcNatsTrigger connected to: %s", endpoint.URL())
+	logger.Info("NewGrpcNatsTrigger connected to: %s", endpoint.URL())
 	if err != nil {
-		log.Fatal("Error creating grpc client", err)
+		logger.Error(err, "Error creating grpc client")
 	}
 
 	client := pb.NewRunCompletionEventTriggerClient(conn)
