@@ -26,18 +26,18 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 		})
 	})
 
-	// var _ = Describe("Roundtrip backward", func() {
-	// 	Specify("converts to and from the same object", func() {
-	// 		src := hub.RandomRunSchedule()
-	// 		src.Spec.Schedule = hub.Schedule{CronExpression: "1 1 1 1 1"}
-	// 		intermediate := &RunSchedule{}
-	// 		dst := &hub.RunSchedule{}
-	//
-	// 		Expect(intermediate.ConvertFrom(src)).To(Succeed())
-	// 		Expect(intermediate.Spec.Schedule).To(Equal("1 1 1 1 1"))
-	// 		Expect(intermediate.ConvertTo(dst)).To(Succeed())
-	//
-	// 		Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
-	// 	})
-	// })
+	var _ = Describe("Roundtrip backward", func() {
+		Specify("converts to and from the same object", func() {
+			src := hub.RandomRunSchedule()
+			src.Spec.Schedule = hub.Schedule{CronExpression: "1 1 1 1 1"}
+			intermediate := &RunSchedule{}
+			dst := &hub.RunSchedule{}
+
+			Expect(intermediate.ConvertFrom(src)).To(Succeed())
+			Expect(intermediate.Spec.Schedule).To(Equal("1 1 1 1 1"))
+			Expect(intermediate.ConvertTo(dst)).To(Succeed())
+
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+		})
+	})
 })
