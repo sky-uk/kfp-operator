@@ -16,6 +16,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/converters"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
 
@@ -99,7 +100,7 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 			latestRunCompletionEventFromNats, err := getLatestMessageFromNats(natsSubscription)
 			Expect(err).ToNot(HaveOccurred())
 
-			expectedRunCompletionEvent, err := ProtoRunCompletionToCommon(runCompletionEvent)
+			expectedRunCompletionEvent, err := converters.ProtoRunCompletionToCommon(runCompletionEvent)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(latestRunCompletionEventFromNats).To(Equal(&expectedRunCompletionEvent))
