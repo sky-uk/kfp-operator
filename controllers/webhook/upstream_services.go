@@ -68,15 +68,8 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 
 	runName, err := event.RunName.String()
 	if err != nil {
-		return nil, fmt.Errorf("failed to format run name for proto run completion event: %w", err)
-	}
 
-	var artifacts []*pb.ServingModelArtifact
-	for _, artifact := range event.ServingModelArtifacts {
-		artifacts = append(artifacts, &pb.ServingModelArtifact{
-			Location: artifact.Location,
-			Name:     artifact.Name,
-		})
+		return nil, fmt.Errorf("failed to format run name for proto run completion event: %w", err)
 	}
 
 	runCompletionEvent := pb.RunCompletionEvent{
@@ -85,11 +78,23 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		RunConfigurationName:  runConfigurationName,
 		RunId:                 event.RunId,
 		RunName:               runName,
-		ServingModelArtifacts: artifacts,
+		ServingModelArtifacts: artifactToProto(event.ServingModelArtifacts),
+		Artifacts:             artifactToProto(event.Artifacts),
 		Status:                statusToProto(event.Status),
 	}
 
 	return &runCompletionEvent, err
+}
+
+func artifactToProto(commonArtifacts []common.Artifact) []*pb.Artifact {
+	var pbArtifacts []*pb.Artifact
+	for _, commonArtifact := range commonArtifacts {
+		pbArtifacts = append(pbArtifacts, &pb.Artifact{
+			Location: commonArtifact.Location,
+			Name:     commonArtifact.Name,
+		})
+	}
+	return pbArtifacts
 }
 
 func statusToProto(status common.RunCompletionStatus) pb.Status {
@@ -99,5 +104,4 @@ func statusToProto(status common.RunCompletionStatus) pb.Status {
 	default:
 		return pb.Status_FAILED
 	}
-
 }

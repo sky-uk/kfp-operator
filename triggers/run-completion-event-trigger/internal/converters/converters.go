@@ -29,12 +29,12 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		RunName:               &runName,
 		RunId:                 protoRunCompletion.RunId,
 		ServingModelArtifacts: artifactsConverter(protoRunCompletion.ServingModelArtifacts),
-		Artifacts:             nil,
+		Artifacts:             artifactsConverter(protoRunCompletion.Artifacts),
 		Provider:              protoRunCompletion.Provider,
 	}, nil
 }
 
-func artifactsConverter(artifacts []*pb.ServingModelArtifact) []common.Artifact {
+func artifactsConverter(artifacts []*pb.Artifact) []common.Artifact {
 	var commonArtifacts []common.Artifact
 
 	for _, pbArtifact := range artifacts {
