@@ -12,7 +12,6 @@ import (
 var _ = Context("Provider Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		Specify("converts to and from the same object", func() {
-			// convert from v1alpha5, to v1alpha6, and back
 			src := RandomProvider()
 			intermediate := &hub.Provider{}
 			dst := &Provider{}

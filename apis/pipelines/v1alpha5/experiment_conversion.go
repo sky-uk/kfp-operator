@@ -19,7 +19,6 @@ func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 	dst.Status.ObservedGeneration = src.Status.ObservedGeneration
 	dst.Status.Version = src.Status.Version
 	dst.Status.Conditions = hub.Conditions(src.Status.Conditions)
-
 	return nil
 }
 

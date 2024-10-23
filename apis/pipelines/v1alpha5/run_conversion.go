@@ -15,8 +15,8 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 		Version: src.Spec.Pipeline.Version,
 	}
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
-	dst.Spec.RuntimeParameters = convertRuntimeParametersToHub(src.Spec.RuntimeParameters)
-	dst.Spec.Artifacts = convertArtifactsToHub(src.Spec.Artifacts)
+	dst.Spec.RuntimeParameters = convertRuntimeParametersTo(src.Spec.RuntimeParameters)
+	dst.Spec.Artifacts = convertArtifactsTo(src.Spec.Artifacts)
 
 	dst.Status.ProviderId.Provider = src.Status.ProviderId.Provider
 	dst.Status.ProviderId.Id = src.Status.ProviderId.Id
@@ -41,8 +41,8 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 		Version: src.Spec.Pipeline.Version,
 	}
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
-	dst.Spec.RuntimeParameters = convertRuntimeParametersFromHub(src.Spec.RuntimeParameters)
-	dst.Spec.Artifacts = convertArtifactsFromHub(src.Spec.Artifacts)
+	dst.Spec.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.RuntimeParameters)
+	dst.Spec.Artifacts = convertArtifactsFrom(src.Spec.Artifacts)
 
 	dst.Status.ProviderId.Provider = src.Status.ProviderId.Provider
 	dst.Status.ProviderId.Id = src.Status.ProviderId.Id
@@ -54,6 +54,5 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.CompletionState = CompletionState(src.Status.CompletionState)
 	dst.Status.MarkedCompletedAt = src.Status.MarkedCompletedAt
 	dst.Status.Conditions = Conditions(src.Status.Conditions)
-
 	return nil
 }

@@ -12,7 +12,6 @@ import (
 var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		Specify("converts string Schedules into Schedule structs", func() {
-			// convert from v1alpha5, to v1alpha6, and back
 			src := RandomRunConfiguration()
 			src.Spec.Triggers.Schedules = []string{"1 1 1 1 1"}
 			intermediate := &hub.RunConfiguration{}

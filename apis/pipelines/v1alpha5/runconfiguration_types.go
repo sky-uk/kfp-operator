@@ -48,11 +48,9 @@ func (ts TriggersStatus) Equals(other TriggersStatus) bool {
 	if ts.RunSpec.Version != other.RunSpec.Version {
 		return false
 	}
-
 	if len(ts.RunConfigurations) == 0 && len(other.RunConfigurations) == 0 {
 		return true
 	}
-
 	return reflect.DeepEqual(ts.RunConfigurations, other.RunConfigurations)
 }
 
@@ -72,7 +70,10 @@ type RunConfigurationStatus struct {
 	Conditions               Conditions                `json:"conditions,omitempty"`
 }
 
-func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.SynchronizationState, message string) {
+func (rcs *RunConfigurationStatus) SetSynchronizationState(
+	state apis.SynchronizationState,
+	message string,
+) {
 	rcs.SynchronizationState = state
 	condition := metav1.Condition{
 		Type:               ConditionTypes.SynchronizationSucceeded,
@@ -85,12 +86,11 @@ func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.Synchroniz
 	rcs.Conditions = rcs.Conditions.MergeIntoConditions(condition)
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:resource:shortName="mlrc"
-//+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
-//+kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
-
+// +kubebuilder:object:root=true
+// +kubebuilder:resource:shortName="mlrc"
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+// +kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -111,24 +111,26 @@ func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
 }
 
 func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
-		if rp.ValueFrom == nil {
-			return RunConfigurationRef{}, false
-		}
-
-		return rp.ValueFrom.RunConfigurationRef, true
-	})
+	return pipelines.Collect(
+		rc.Spec.Run.RuntimeParameters,
+		func(rp RuntimeParameter) (RunConfigurationRef, bool) {
+			if rp.ValueFrom == nil {
+				return RunConfigurationRef{}, false
+			}
+			return rp.ValueFrom.RunConfigurationRef, true
+		},
+	)
 }
 
 func (rc *RunConfiguration) GetReferencedRCs() []string {
-	triggeringRcs := pipelines.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string) string {
-		return rcName
-	})
-
-	parameterRcs := pipelines.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef) string {
-		return r.Name
-	})
-
+	triggeringRcs := pipelines.Map(
+		rc.Spec.Triggers.RunConfigurations,
+		func(rcName string) string { return rcName },
+	)
+	parameterRcs := pipelines.Map(
+		rc.GetReferencedRCArtifacts(),
+		func(r RunConfigurationRef) string { return r.Name },
+	)
 	return pipelines.Unique(append(parameterRcs, triggeringRcs...))
 }
 
@@ -159,8 +161,7 @@ func (rc *RunConfiguration) GetKind() string {
 	return "runconfiguration"
 }
 
-//+kubebuilder:object:root=true
-
+// +kubebuilder:object:root=true
 type RunConfigurationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

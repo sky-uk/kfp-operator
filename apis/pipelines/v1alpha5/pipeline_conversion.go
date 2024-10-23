@@ -26,7 +26,6 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		ObservedGeneration:   src.Status.ObservedGeneration,
 		Conditions:           hub.Conditions(src.Status.Conditions),
 	}
-
 	return nil
 }
 
@@ -51,6 +50,5 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 		ObservedGeneration:   src.Status.ObservedGeneration,
 		Conditions:           Conditions(src.Status.Conditions),
 	}
-
 	return nil
 }

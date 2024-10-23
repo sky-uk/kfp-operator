@@ -32,10 +32,9 @@ type ServiceConfiguration struct {
 	Endpoints []Endpoint `json:"endpoints,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-//+kubebuilder:storageversion
-
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:storageversion
 type KfpControllerConfig struct {
 	metav1.TypeMeta                        `json:",inline"`
 	metav1.ObjectMeta                      `json:"metadata,omitempty"`
@@ -43,8 +42,7 @@ type KfpControllerConfig struct {
 	cfg.ControllerManagerConfigurationSpec `json:"controller,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-
+// +kubebuilder:object:root=true
 func init() {
 	SchemeBuilder.Register(&KfpControllerConfig{})
 }

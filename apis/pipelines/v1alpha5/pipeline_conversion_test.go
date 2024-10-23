@@ -12,7 +12,6 @@ import (
 var _ = Context("Pipeline Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		Specify("converts string Schedules into Schedule structs", func() {
-			// convert from v1alpha5, to v1alpha6, and back
 			src := RandomPipeline()
 			intermediate := &hub.Pipeline{}
 			dst := &Pipeline{}

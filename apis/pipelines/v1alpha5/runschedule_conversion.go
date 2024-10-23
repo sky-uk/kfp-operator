@@ -6,20 +6,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
-func convertScheduleToHubWithRemainder(schedule string, remainder hub.Schedule) (hubSchedule hub.Schedule) {
-	return hub.Schedule{
-		CronExpression: schedule,
-		StartTime:      remainder.StartTime,
-		EndTime:        remainder.EndTime,
-	}
-}
-
-// v1alpha5 -> v1alpha6
 func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunSchedule)
 	// get old schedules out from remainder
-	v1alpha6remainder := hub.RunScheduleConversionRemainder{}
-	if err := pipelines.RetrieveAndUnsetConversionAnnotations(src, &v1alpha6remainder); err != nil {
+	v1alpha6Remainder := hub.RunScheduleConversionRemainder{}
+	if err := pipelines.RetrieveAndUnsetConversionAnnotations(src, &v1alpha6Remainder); err != nil {
 		return err
 	}
 	dst.TypeMeta = src.TypeMeta
@@ -30,9 +21,11 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	}
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
-	dst.Spec.Artifacts = convertArtifactsToHub(src.Spec.Artifacts)
-
-	dst.Spec.Schedule = convertScheduleToHubWithRemainder(src.Spec.Schedule, v1alpha6remainder.Schedule)
+	dst.Spec.Artifacts = convertArtifactsTo(src.Spec.Artifacts)
+	dst.Spec.Schedule = convertScheduleTo(
+		src.Spec.Schedule,
+		v1alpha6Remainder.Schedule,
+	)
 	dst.Status = hub.Status{
 		ProviderId: hub.ProviderAndId{
 			Provider: src.Status.ProviderId.Provider,
@@ -43,15 +36,12 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 		ObservedGeneration:   src.Status.ObservedGeneration,
 		Conditions:           hub.Conditions(src.Status.Conditions),
 	}
-
 	return nil
 }
 
-// v1alpha6 -> v1alpha5
 func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunSchedule)
-	v1alpha6remainder := hub.RunScheduleConversionRemainder{}
-
+	v1alpha6Remainder := hub.RunScheduleConversionRemainder{}
 	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Pipeline = PipelineIdentifier{
@@ -60,9 +50,9 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
-	dst.Spec.Artifacts = convertArtifactsFromHub(src.Spec.Artifacts)
+	dst.Spec.Artifacts = convertArtifactsFrom(src.Spec.Artifacts)
 	dst.Spec.Schedule = src.Spec.Schedule.CronExpression
-	v1alpha6remainder.Schedule = src.Spec.Schedule
+	v1alpha6Remainder.Schedule = src.Spec.Schedule
 	dst.Status = Status{
 		ProviderId: ProviderAndId{
 			Provider: src.Status.ProviderId.Provider,
@@ -73,6 +63,5 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 		ObservedGeneration:   src.Status.ObservedGeneration,
 		Conditions:           Conditions(src.Status.Conditions),
 	}
-
-	return pipelines.SetConversionAnnotations(dst, &v1alpha6remainder)
+	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
 }
