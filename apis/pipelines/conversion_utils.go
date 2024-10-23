@@ -12,41 +12,40 @@ type ConversionRemainder interface {
 	ConversionAnnotation() string
 }
 
-func SetConversionAnnotations(resource metav1.Object, remainders ...ConversionRemainder) error {
+func SetConversionAnnotations(
+	resource metav1.Object,
+	remainders ...ConversionRemainder,
+) error {
 	annotations := resource.GetAnnotations()
-
 	for _, remainder := range remainders {
 		if !remainder.Empty() {
 			remainderJson, err := json.Marshal(remainder)
 			if err != nil {
 				return err
 			}
-
 			if annotations == nil {
 				annotations = map[string]string{}
 			}
 			annotations[remainder.ConversionAnnotation()] = string(remainderJson)
 		}
 	}
-
 	resource.SetAnnotations(annotations)
-
 	return nil
 }
 
-func RetrieveAndUnsetConversionAnnotations(resource metav1.Object, remainders ...ConversionRemainder) error {
+func GetAndUnsetConversionAnnotations(
+	resource metav1.Object,
+	remainders ...ConversionRemainder,
+) error {
 	annotations := resource.GetAnnotations()
-
 	for _, remainder := range remainders {
 		if remainderJson, hasRemainder := annotations[remainder.ConversionAnnotation()]; hasRemainder {
 			err := json.Unmarshal([]byte(remainderJson), remainder)
 			if err != nil {
 				return err
 			}
-
 			delete(annotations, remainder.ConversionAnnotation())
 		}
 	}
-
 	return nil
 }

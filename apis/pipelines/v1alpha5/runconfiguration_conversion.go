@@ -1,13 +1,18 @@
 package v1alpha5
 
 import (
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
 func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunConfiguration)
-
+	v1alpha6Remainder := hub.RunConfigurationConversionRemainder{}
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &v1alpha6Remainder); err != nil {
+		return err
+	}
 	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{
@@ -15,23 +20,24 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 		Version: src.Spec.Run.Pipeline.Version,
 	}
 	dst.Spec.Run.ExperimentName = src.Spec.Run.ExperimentName
-	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersToHub(src.Spec.Run.RuntimeParameters)
-	dst.Spec.Run.Artifacts = convertArtifactsToHub(src.Spec.Run.Artifacts)
-	dst.Spec.Triggers = convertTriggersToHub(src.Spec.Triggers)
-
+	// TODO: tests do not generate *ValueFrom
+	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersTo(
+		src.Spec.Run.RuntimeParameters,
+	)
+	dst.Spec.Run.Artifacts = convertArtifactsTo(src.Spec.Run.Artifacts)
+	dst.Spec.Triggers = convertTriggersTo(src.Spec.Triggers, v1alpha6Remainder)
 	dst.Status = hub.RunConfigurationStatus{
 		ObservedPipelineVersion: src.Status.ObservedPipelineVersion,
 		SynchronizationState:    src.Status.SynchronizationState,
 		Provider:                src.Status.Provider,
 		ObservedGeneration:      src.Status.ObservedGeneration,
 	}
-
 	return nil
 }
 
 func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
-
+	v1alpha6Remainder := hub.RunConfigurationConversionRemainder{}
 	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Run.Pipeline = PipelineIdentifier{
@@ -39,14 +45,107 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 		Version: src.Spec.Run.Pipeline.Version,
 	}
 	dst.Spec.Run.ExperimentName = src.Spec.Run.ExperimentName
-	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersFromHub(src.Spec.Run.RuntimeParameters)
-	dst.Spec.Run.Artifacts = convertArtifactsFromHub(src.Spec.Run.Artifacts)
-	dst.Spec.Triggers = convertTriggersFromHub(src.Spec.Triggers)
+	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.Run.RuntimeParameters)
+	dst.Spec.Run.Artifacts = convertArtifactsFrom(src.Spec.Run.Artifacts)
+	dst.Spec.Triggers = convertTriggersFrom(src.Spec.Triggers, &v1alpha6Remainder)
 	dst.Status = RunConfigurationStatus{
 		ObservedPipelineVersion: src.Status.ObservedPipelineVersion,
 		SynchronizationState:    src.Status.SynchronizationState,
 		Provider:                src.Status.Provider,
 		ObservedGeneration:      src.Status.ObservedGeneration,
 	}
-	return nil
+	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
+}
+
+// Converts spoke Triggers into hub Triggers whilst taking into account of
+// annotations that convey hub Triggers (remainder).
+//
+// If the spoke Schedule matches a CronExpression in the remainder then the
+// conversion will use the StartTime and EndTime ptrs from the remainder.
+// If the spoke Schedules does not have a matching CronExpression in the
+// remainder then the StartTime and EndTime ptrs will be set to nil.
+func convertTriggersTo(
+	triggers Triggers,
+	remainder hub.RunConfigurationConversionRemainder,
+) hub.Triggers {
+	convertOnChangesTo := func(oct []OnChangeType) []hub.OnChangeType {
+		var hubOct []hub.OnChangeType
+		for _, onChange := range oct {
+			hubOct = append(hubOct, hub.OnChangeType(onChange))
+		}
+		return hubOct
+	}
+	convertSchedulesTo := func(
+		schedules []string,
+		remainder hub.RunConfigurationConversionRemainder,
+	) []hub.Schedule {
+		// map of the hub CronExpression -> { StartTime, EndTime }.
+		// This could potentially be lossy because if two schedules share
+		// the same CronExpression, then one of them will be overwritten.
+		remainderMap := make(
+			map[string]struct {
+				StartTime *metav1.Time
+				EndTime   *metav1.Time
+			},
+		)
+		for _, schedule := range remainder.Schedules {
+			remainderMap[schedule.CronExpression] = struct {
+				StartTime *metav1.Time
+				EndTime   *metav1.Time
+			}{
+				StartTime: schedule.StartTime,
+				EndTime:   schedule.EndTime,
+			}
+		}
+		var hubSchedules []hub.Schedule
+		for _, schedule := range schedules {
+			hubSchedules = append(
+				hubSchedules,
+				hub.Schedule{
+					CronExpression: schedule,
+					StartTime:      remainderMap[schedule].StartTime,
+					EndTime:        remainderMap[schedule].EndTime,
+				},
+			)
+		}
+		return hubSchedules
+	}
+	return hub.Triggers{
+		Schedules:         convertSchedulesTo(triggers.Schedules, remainder),
+		OnChange:          convertOnChangesTo(triggers.OnChange),
+		RunConfigurations: triggers.RunConfigurations,
+	}
+}
+
+func convertTriggersFrom(
+	triggers hub.Triggers,
+	remainder *hub.RunConfigurationConversionRemainder,
+) Triggers {
+	convertSchedulesFrom := func(hubSchedules []hub.Schedule) (schedules []string) {
+		for _, schedule := range hubSchedules {
+			schedules = append(schedules, schedule.CronExpression)
+		}
+		return schedules
+	}
+	convertOnChangesFrom := func(hubOct []hub.OnChangeType) []OnChangeType {
+		var oct []OnChangeType
+		for _, onChange := range hubOct {
+			oct = append(oct, OnChangeType(onChange))
+		}
+		return oct
+	}
+	var remainderSchedules []hub.Schedule
+	for _, schedule := range triggers.Schedules {
+		if schedule.StartTime != nil || schedule.EndTime != nil {
+			remainderSchedules = append(remainderSchedules, schedule)
+		}
+	}
+	if len(remainderSchedules) > 0 {
+		remainder.Schedules = remainderSchedules
+	}
+	return Triggers{
+		Schedules:         convertSchedulesFrom(triggers.Schedules),
+		OnChange:          convertOnChangesFrom(triggers.OnChange),
+		RunConfigurations: triggers.RunConfigurations,
+	}
 }

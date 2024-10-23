@@ -1,5 +1,4 @@
 //go:build unit
-
 package kfp
 
 import (
@@ -31,7 +30,6 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 }
 
 var _ = Context("KFP Provider", func() {
-
 	Describe("createAPICronSchedule", func() {
 		It("returns APICronScheudle with fields all set as expected", func() {
 			runScheduleDefinition := randomRunScheduleDefinition()
