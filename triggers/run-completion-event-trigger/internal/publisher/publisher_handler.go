@@ -31,8 +31,13 @@ type NatsPublisher struct {
 	Subject  string
 }
 
+type DataWrapper struct {
+	Data common.RunCompletionEvent `json:"data"`
+}
+
 func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) error {
-	eventData, err := json.Marshal(runCompletionEvent)
+	dataWrapper := DataWrapper{Data: runCompletionEvent}
+	eventData, err := json.Marshal(dataWrapper)
 	if err != nil {
 		return &MarshallingError{err.Error()}
 	}
