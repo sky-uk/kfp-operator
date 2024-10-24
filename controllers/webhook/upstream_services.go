@@ -16,25 +16,25 @@ type UpstreamService interface {
 	call(ctx context.Context, ed common.RunCompletionEvent) error
 }
 
-type GrpcNatsTrigger struct {
+type GrpcTrigger struct {
 	Upstream          config.Endpoint
 	Client            pb.RunCompletionEventTriggerClient
 	ConnectionHandler func() error
 }
 
-func NewGrpcNatsTrigger(ctx context.Context, endpoint config.Endpoint) GrpcNatsTrigger {
+func NewGrpcTrigger(ctx context.Context, endpoint config.Endpoint) GrpcTrigger {
 	logger := log.FromContext(ctx)
 
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-	logger.Info("NewGrpcNatsTrigger connected to", "endpoint", endpoint.URL())
+	logger.Info("NewGrpcTrigger connected to", "endpoint", endpoint.URL())
 	if err != nil {
 		logger.Error(err, "Error creating grpc client")
 	}
 
 	client := pb.NewRunCompletionEventTriggerClient(conn)
 
-	return GrpcNatsTrigger{
+	return GrpcTrigger{
 		Upstream: endpoint,
 		Client:   client,
 		ConnectionHandler: func() error {
@@ -46,7 +46,7 @@ func NewGrpcNatsTrigger(ctx context.Context, endpoint config.Endpoint) GrpcNatsT
 	}
 }
 
-func (gnt GrpcNatsTrigger) call(ctx context.Context, event common.RunCompletionEvent) error {
+func (gnt GrpcTrigger) call(ctx context.Context, event common.RunCompletionEvent) error {
 	runCompletionEvent, err := RunCompletionEventToProto(event)
 	if err != nil {
 		return err
