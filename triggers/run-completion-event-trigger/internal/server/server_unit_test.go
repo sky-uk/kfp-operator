@@ -43,6 +43,7 @@ var _ = Context("ProcessEventFeed", func() {
 			stubServer := Server{
 				UnimplementedRunCompletionEventTriggerServer: pb.UnimplementedRunCompletionEventTriggerServer{},
 				Publisher: stubPublisher,
+				Context:   ctx,
 			}
 
 			_, err := stubServer.ProcessEventFeed(ctx, &pb.RunCompletionEvent{})
@@ -63,6 +64,7 @@ var _ = Context("ProcessEventFeed", func() {
 			stubServer := Server{
 				UnimplementedRunCompletionEventTriggerServer: pb.UnimplementedRunCompletionEventTriggerServer{},
 				Publisher: stubPublisher,
+				Context:   ctx,
 			}
 
 			_, err := stubServer.ProcessEventFeed(ctx, &pb.RunCompletionEvent{})
@@ -83,6 +85,7 @@ var _ = Context("ProcessEventFeed", func() {
 			stubServer := Server{
 				UnimplementedRunCompletionEventTriggerServer: pb.UnimplementedRunCompletionEventTriggerServer{},
 				Publisher: stubPublisher,
+				Context:   ctx,
 			}
 
 			result, err := stubServer.ProcessEventFeed(ctx, &pb.RunCompletionEvent{})

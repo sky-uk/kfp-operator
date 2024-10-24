@@ -3,24 +3,25 @@ package server
 import (
 	"context"
 	"errors"
-	"google.golang.org/protobuf/types/known/emptypb"
-	"log"
-
+	"github.com/sky-uk/kfp-operator/argo/common"
 	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/cmd/config"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/converters"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type Server struct {
 	pb.UnimplementedRunCompletionEventTriggerServer
+	Context   context.Context
 	Config    *configLoader.Config
 	Publisher publisher.PublisherHandler
 }
 
 func (s *Server) ProcessEventFeed(_ context.Context, runCompletion *pb.RunCompletionEvent) (*emptypb.Empty, error) {
+	logger := common.LoggerFromContext(s.Context)
 
 	commonRunCompletionEvent, err := converters.ProtoRunCompletionToCommon(runCompletion)
 	if err != nil {
@@ -31,6 +32,9 @@ func (s *Server) ProcessEventFeed(_ context.Context, runCompletion *pb.RunComple
 	if err = s.Publisher.Publish(commonRunCompletionEvent); err != nil {
 		var marshallingError *publisher.MarshallingError
 		var connectionError *publisher.ConnectionError
+
+		logger.Error(err, "Failed to publish event", "runId", runCompletion.RunId)
+
 		switch {
 		case errors.As(err, &marshallingError):
 			return nil, status.Error(codes.InvalidArgument, "failed to marshal event")
@@ -41,7 +45,7 @@ func (s *Server) ProcessEventFeed(_ context.Context, runCompletion *pb.RunComple
 		}
 	}
 
-	log.Printf("Run Completion Event Processed for %s", commonRunCompletionEvent.RunId)
+	logger.Info("Run Completion Event Processed", "RunId", commonRunCompletionEvent.RunId)
 
 	return &emptypb.Empty{}, nil
 }

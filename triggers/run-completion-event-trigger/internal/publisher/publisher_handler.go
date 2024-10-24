@@ -1,6 +1,7 @@
 package publisher
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/nats-io/nats.go"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -33,6 +34,16 @@ type NatsPublisher struct {
 
 type DataWrapper struct {
 	Data common.RunCompletionEvent `json:"data"`
+}
+
+func NewNatsPublisher(ctx context.Context, nc *nats.Conn, subject string) *NatsPublisher {
+	logger := common.LoggerFromContext(ctx)
+
+	logger.Info("New nats publisher:", "Subject", subject, "Server", nc.ConnectedUrl())
+	return &NatsPublisher{
+		NatsConn: nc,
+		Subject:  subject,
+	}
 }
 
 func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) error {
