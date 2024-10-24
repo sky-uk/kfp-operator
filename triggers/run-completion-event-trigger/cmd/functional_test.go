@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
 	"log"
 	"testing"
 	"time"
@@ -115,10 +116,10 @@ func getLatestMessageFromNats(natsSubscription *nats.Subscription) (*common.RunC
 	msg, err := natsSubscription.NextMsg(5 * time.Second)
 	Expect(err).ToNot(HaveOccurred())
 
-	latestRunCompletionEvent := &common.RunCompletionEvent{}
-	if err = json.Unmarshal(msg.Data, latestRunCompletionEvent); err != nil {
+	latestRunCompletionEventWrapped := &publisher.DataWrapper{}
+	if err = json.Unmarshal(msg.Data, latestRunCompletionEventWrapped); err != nil {
 		return nil, err
 	}
 	fmt.Printf("failed: %v", err)
-	return latestRunCompletionEvent, nil
+	return &latestRunCompletionEventWrapped.Data, nil
 }
