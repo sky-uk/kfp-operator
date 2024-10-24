@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
-  namespace: kfp-operator-system
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: run-completion-event-trigger
 spec:

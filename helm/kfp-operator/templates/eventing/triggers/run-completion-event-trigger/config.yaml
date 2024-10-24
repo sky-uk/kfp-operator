@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
-  namespace: kfp-operator-system
+  namespace: {{ .Values.namespace.name }}
 data:
   config.yaml: |
     natsConfig:
