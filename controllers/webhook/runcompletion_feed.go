@@ -30,7 +30,7 @@ func NewRunCompletionFeed(ctx context.Context, client client.Reader, endpoints [
 	eventProcessor := NewResourceArtifactsEventProcessor(client)
 
 	upstreams := pipelines.Map(endpoints, func(endpoint config.Endpoint) UpstreamService {
-		return NewGrpcNatsTrigger(ctx, endpoint)
+		return NewGrpcTrigger(ctx, endpoint)
 	})
 
 	return RunCompletionFeed{

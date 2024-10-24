@@ -38,7 +38,7 @@ var _ = Context("call", func() {
 				}),
 			}
 
-			stub := GrpcNatsTrigger{
+			stub := GrpcTrigger{
 				Upstream:          config.Endpoint{},
 				Client:            stubRunCompletionEventTrigger,
 				ConnectionHandler: func() error { return nil },
@@ -58,7 +58,7 @@ var _ = Context("call", func() {
 				}),
 			}
 
-			stub := GrpcNatsTrigger{
+			stub := GrpcTrigger{
 				Upstream:          config.Endpoint{},
 				Client:            stubRunCompletionEventTrigger,
 				ConnectionHandler: func() error { return nil },
