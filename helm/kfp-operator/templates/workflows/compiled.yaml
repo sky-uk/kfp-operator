@@ -24,7 +24,7 @@ spec:
     outputs:
       artifacts:
       - name: resource
-        path: /tmp/resource.yaml
+        path: /tmp/resource.json
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.compile }}
@@ -38,7 +38,7 @@ spec:
         name: shared
       args:
       - --output_file
-      - /tmp/resource.yaml
+      - /tmp/resource.json
       - --{{`{{workflow.parameters.resource-kind}}`}}_config
       - /resource-definition.yaml
       - --provider_config
