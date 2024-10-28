@@ -4,14 +4,12 @@ type RunScheduleConversionRemainder struct {
 	Schedule Schedule `json:"schedule,omitempty"`
 }
 
-// TODO: check this can be private. Really shouldn't expose this function
-// because it means if it is empty in the remainder sense.
-func (s Schedule) Empty() bool {
+func (s Schedule) empty() bool {
 	return s.StartTime == nil && s.EndTime == nil
 }
 
 func (rscr RunScheduleConversionRemainder) Empty() bool {
-	return rscr.Schedule.Empty()
+	return rscr.Schedule.empty()
 }
 
 func (rscr RunScheduleConversionRemainder) ConversionAnnotation() string {
@@ -24,7 +22,7 @@ type RunConfigurationConversionRemainder struct {
 
 func (rccr RunConfigurationConversionRemainder) Empty() bool {
 	for _, schedule := range rccr.Schedules {
-		if schedule.Empty() {
+		if schedule.empty() {
 			return false
 		}
 	}
