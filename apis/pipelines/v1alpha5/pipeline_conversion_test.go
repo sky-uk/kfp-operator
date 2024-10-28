@@ -11,7 +11,7 @@ import (
 
 var _ = Context("Pipeline Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts string Schedules into Schedule structs", func() {
+		Specify("converts to and from the same object", func() {
 			src := RandomPipeline()
 			intermediate := &hub.Pipeline{}
 			dst := &Pipeline{}

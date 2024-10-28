@@ -214,9 +214,9 @@ func createAPICronSchedule(rsd RunScheduleDefinition) (*job_model.APICronSchedul
 		return nil, err
 	}
 	return &job_model.APICronSchedule{
-		Cron: schedule.PrintGo(),
+		Cron:      schedule.PrintGo(),
 		StartTime: strfmt.DateTime(rsd.Schedule.StartTime.Time),
-		EndTime: strfmt.DateTime(rsd.Schedule.EndTime.Time),
+		EndTime:   strfmt.DateTime(rsd.Schedule.EndTime.Time),
 	}, nil
 }
 

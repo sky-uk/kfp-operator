@@ -3,9 +3,6 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.12.0
-    {{- if and .Values.manager.multiversion.enabled (eq .Values.manager.webhookCertificates.provider "cert-manager") }}
-    cert-manager.io/inject-ca-from: {{ .Values.namespace.name }}/{{ include "kfp-operator.fullname" . }}-serving-cert
-    {{- end }}
   name: providers.pipelines.kubeflow.org
 spec:
   group: pipelines.kubeflow.org
@@ -17,21 +14,6 @@ spec:
     - mlprv
     singular: provider
   scope: Namespaced
-  {{- if and .Values.manager.multiversion.enabled }}
-  conversion:
-    strategy: Webhook
-    webhook:
-      clientConfig:
-        service:
-          name: {{ include "kfp-operator.fullname" . }}-webhook-service
-          namespace: {{ .Values.namespace.name }}
-          path: /convert
-        {{- if and .Values.manager.multiversion.enabled (eq .Values.manager.webhookCertificates.provider "custom") }}
-        caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
-        {{- end }}
-      conversionReviewVersions:
-      - v1
-  {{- end }}
   versions:
   {{- if .Values.manager.multiversion.enabled }}
   - additionalPrinterColumns:

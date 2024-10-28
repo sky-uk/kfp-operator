@@ -1,4 +1,5 @@
 //go:build unit
+
 package kfp
 
 import (
@@ -23,8 +24,8 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 		ExperimentName:       common.RandomNamespacedName(),
 		Schedule: pipelinesv1.Schedule{
 			CronExpression: "0 1 1 0 0 0",
-			StartTime:      now,
-			EndTime:        now,
+			StartTime:      &now,
+			EndTime:        &now,
 		},
 	}
 }

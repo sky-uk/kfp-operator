@@ -202,7 +202,6 @@ helm-test-operator: manifests helm-cmd kustomize yq dyff
 	$(INDEXED_YAML) $(TMP)/helm > $(TMP)/helm_indexed
 	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
-	echo $(TMP)
 	rm -rf $(TMP)
 
 helm-test-provider: helm-cmd
