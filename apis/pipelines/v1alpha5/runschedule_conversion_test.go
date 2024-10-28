@@ -11,7 +11,7 @@ import (
 
 var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from ", func() {
+		Specify("converts to and from the same object", func() {
 			src := RandomRunSchedule()
 			intermediate := &hub.RunSchedule{}
 			dst := &RunSchedule{}
