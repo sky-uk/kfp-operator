@@ -72,7 +72,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 
 		jsonPayload, err := json.Marshal(event)
 		if err != nil {
-			es.Logger.Error(err, "failed to marshal event")
+			es.Logger.Error(err, "failed to marshal event %v", event)
 			m.Nack()
 			return
 		}
@@ -82,7 +82,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			Name:    common.RunCompletionEventName,
 			Payload: jsonPayload,
 		}); err != nil {
-			es.Logger.Error(err, "failed to send event")
+			es.Logger.Error(err, "failed to send event %v", event)
 			m.Nack()
 			return
 		}

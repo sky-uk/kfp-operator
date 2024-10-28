@@ -20,11 +20,6 @@ const (
 	HttpContentTypeJSON   = "application/json"
 )
 
-type EventData struct {
-	Header             http.Header               `json:"header"`
-	RunCompletionEvent common.RunCompletionEvent `json:"runCompletionEvent"`
-}
-
 type RunCompletionFeed struct {
 	ctx            context.Context
 	eventProcessor EventProcessor
@@ -35,7 +30,7 @@ func NewRunCompletionFeed(ctx context.Context, client client.Reader, endpoints [
 	eventProcessor := NewResourceArtifactsEventProcessor(client)
 
 	upstreams := pipelines.Map(endpoints, func(endpoint config.Endpoint) UpstreamService {
-		return NewArgoEventWebhook(endpoint)
+		return NewGrpcTrigger(ctx, endpoint)
 	})
 
 	return RunCompletionFeed{
@@ -74,7 +69,7 @@ type DataWrapper struct {
 	Data common.RunCompletionEventData `json:"data"`
 }
 
-func (rcf RunCompletionFeed) extractEventData(request *http.Request) (*EventData, error) {
+func (rcf RunCompletionFeed) extractRunCompletionEvent(request *http.Request) (*common.RunCompletionEvent, error) {
 	body, err := getRequestBody(rcf.ctx, request)
 	if err != nil {
 		return nil, err
@@ -91,10 +86,7 @@ func (rcf RunCompletionFeed) extractEventData(request *http.Request) (*EventData
 	} else if rce == nil {
 		return nil, errors.New("event data is empty")
 	} else {
-		return &EventData{
-			Header:             request.Header,
-			RunCompletionEvent: *rce,
-		}, nil
+		return rce, nil
 	}
 }
 
@@ -107,14 +99,14 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			http.Error(response, fmt.Sprintf("invalid %s, want `%s`", HttpHeaderContentType, HttpContentTypeJSON), http.StatusUnsupportedMediaType)
 			return
 		}
-		eventData, err := rcf.extractEventData(request)
-		if err != nil || eventData == nil {
+		event, err := rcf.extractRunCompletionEvent(request)
+		if err != nil || event == nil {
 			logger.Error(err, "Failed to extract body from request")
 			http.Error(response, err.Error(), http.StatusBadRequest)
 			return
 		} else {
 			for _, upstream := range rcf.upstreams {
-				err := upstream.call(rcf.ctx, *eventData)
+				err := upstream.call(rcf.ctx, *event)
 				if err != nil {
 					logger.Error(err, "Call to upstream failed")
 					http.Error(response, err.Error(), http.StatusInternalServerError)

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package run_completion_event_trigger;
+
+option go_package = "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto/run-completion-event-trigger";
+
+service RunCompletionEventTrigger {
+  rpc ProcessEventFeed(RunCompletionEvent) returns (google.protobuf.Empty) {};
+}
+
+message RunCompletionEvent {
+  string pipeline_name = 1;
+  string provider = 2;
+  string run_configuration_name = 3;
+  string run_id = 4;
+  string run_name = 5;
+  Status status = 6;
+  repeated Artifact artifacts = 7;
+  repeated Artifact serving_model_artifacts = 8;
+}
+
+enum Status {
+  SUCCEEDED = 0;
+  FAILED = 1;
+}
+
+message Artifact {
+  string location = 1;
+  string name = 2;
+}
+

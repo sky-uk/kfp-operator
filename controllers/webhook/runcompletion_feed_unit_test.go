@@ -43,7 +43,7 @@ var _ = Context("getRequestBody", func() {
 	})
 })
 
-var _ = Context("extractEventData", func() {
+var _ = Context("extractRunCompletionEvent", func() {
 	logger, _ := common.NewLogger(zapcore.DebugLevel)
 	ctx := logr.NewContext(context.Background(), logger)
 	rcf := RunCompletionFeed{ctx: ctx}
@@ -57,13 +57,12 @@ var _ = Context("extractEventData", func() {
 			rcf.eventProcessor = processor
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("{\"hello\":\"world\"}")))
-			req.Header.Add("hello", "world")
-			Expect(err).NotTo(HaveOccurred())
-			eventData, err := rcf.extractEventData(req)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(eventData.Header.Get("hello")).To(Equal("world"))
-			Expect(eventData.RunCompletionEvent).To(Equal(*processor.returnedRunCompletionEvent))
+			event, err := rcf.extractRunCompletionEvent(req)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(event).To(Equal(processor.returnedRunCompletionEvent))
 		})
 
 		It("returns error on event processor error", func() {
@@ -75,7 +74,7 @@ var _ = Context("extractEventData", func() {
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("{\"hello\":\"world\"}")))
 			Expect(err).NotTo(HaveOccurred())
-			_, err = rcf.extractEventData(req)
+			_, err = rcf.extractRunCompletionEvent(req)
 			Expect(err).To(MatchError("an error occurred"))
 		})
 
@@ -88,7 +87,7 @@ var _ = Context("extractEventData", func() {
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("{\"hello\":\"world\"}")))
 			Expect(err).NotTo(HaveOccurred())
-			_, err = rcf.extractEventData(req)
+			_, err = rcf.extractRunCompletionEvent(req)
 			Expect(err).To(MatchError("event data is empty"))
 		})
 	})
@@ -97,7 +96,7 @@ var _ = Context("extractEventData", func() {
 		It("returns an error", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("")))
 			Expect(err).NotTo(HaveOccurred())
-			_, err = rcf.extractEventData(req)
+			_, err = rcf.extractRunCompletionEvent(req)
 			Expect(err.Error()).To(Equal("request body is empty"))
 		})
 	})
@@ -106,7 +105,7 @@ var _ = Context("extractEventData", func() {
 		It("returns an error", func() {
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://example.com/events", bytes.NewReader([]byte("hello world")))
 			Expect(err).NotTo(HaveOccurred())
-			_, err = rcf.extractEventData(req)
+			_, err = rcf.extractRunCompletionEvent(req)
 			Expect(err.Error()).To(Equal("invalid character 'h' looking for beginning of value"))
 		})
 	})

@@ -1,0 +1,17 @@
+{{- if .Values.runcompletionEventTrigger.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
+  namespace: {{ .Values.namespace.name }}
+data:
+  config.yaml: |
+    natsConfig:
+      subject: {{ .Values.runcompletionEventTrigger.nats.subject }}
+      serverConfig:
+        host: eventbus-{{ include "kfp-operator.fullname" . }}-events-stan-svc
+        port: {{ .Values.runcompletionEventTrigger.nats.server.port }}
+    serverConfig:
+      host: 0.0.0.0
+      port: {{ .Values.runcompletionEventTrigger.server.port }}
+{{- end -}}

@@ -53,11 +53,13 @@ manager:
     servicePort: 8082
     endpoints: []
 
+runcompletionEventTrigger:
+  enabled: false
+
 statusFeedback:
   enabled: false
-  webhook:
-    endpoint: '/'
-    port: 12000
+
+
 
 logging:
   verbosity: # info
