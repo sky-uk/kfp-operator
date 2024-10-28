@@ -70,6 +70,7 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
 }
 
+// +kubebuilder:object:generate=false
 type ConversionError struct {
 	Message string
 }
