@@ -117,6 +117,29 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
+		It("returns no error when event data with no RunName provided is converted to proto runcompletion event", func() {
+			rce.RunName = nil
+			protoRce, err := RunCompletionEventToProto(rce)
+			expectedArtifacts := []*pb.Artifact{
+				{
+					Name:     "some-artifact",
+					Location: "gs://some/where",
+				},
+			}
+			expectedResult := &pb.RunCompletionEvent{
+				Status:                pb.Status_SUCCEEDED,
+				PipelineName:          "namespace/name",
+				RunConfigurationName:  "namespace/name",
+				RunName:               "",
+				RunId:                 "some-runid",
+				ServingModelArtifacts: expectedArtifacts,
+				Artifacts:             expectedArtifacts,
+				Provider:              "some-provider",
+			}
+			Expect(protoRce).To(Equal(expectedResult))
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		It("returns error when namespaced name fields cannot be marshalled", func() {
 
 			rce := common.RunCompletionEvent{

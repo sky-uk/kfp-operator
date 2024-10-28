@@ -66,10 +66,12 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		return nil, fmt.Errorf("failed to format run configuration name for proto run completion event: %w", err)
 	}
 
-	runName, err := event.RunName.String()
-	if err != nil {
-
-		return nil, fmt.Errorf("failed to format run name for proto run completion event: %w", err)
+	runName := ""
+	if event.RunName != nil {
+		runName, err = event.RunName.String()
+		if err != nil {
+			return nil, fmt.Errorf("failed to format run name for proto run completion event: %w", err)
+		}
 	}
 
 	runCompletionEvent := pb.RunCompletionEvent{
