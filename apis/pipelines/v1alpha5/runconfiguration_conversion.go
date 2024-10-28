@@ -20,7 +20,6 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 		Version: src.Spec.Run.Pipeline.Version,
 	}
 	dst.Spec.Run.ExperimentName = src.Spec.Run.ExperimentName
-	// TODO: tests do not generate *ValueFrom
 	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersTo(
 		src.Spec.Run.RuntimeParameters,
 	)
