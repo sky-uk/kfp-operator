@@ -44,6 +44,9 @@ spec:
     - jsonPath: .status.version
       name: Version
       type: string
+    - jsonPath: .status.completionState
+      name: CompletionState
+      type: string
     name: v1alpha5
     schema:
       openAPIV3Schema:
@@ -87,16 +90,30 @@ spec:
                       type: string
                     value:
                       type: string
+                    valueFrom:
+                      properties:
+                        runConfigurationRef:
+                          properties:
+                            name:
+                              type: string
+                            outputArtifact:
+                              type: string
+                          required:
+                          - name
+                          - outputArtifact
+                          type: object
+                      required:
+                      - runConfigurationRef
+                      type: object
                   required:
                   - name
-                  - value
                   type: object
                 type: array
-              schedule:
-                type: string
             type: object
           status:
             properties:
+              completionState:
+                type: string
               conditions:
                 items:
                   description: "Condition contains details for one aspect of the current
@@ -165,9 +182,36 @@ spec:
                   - type
                   type: object
                 type: array
+              dependencies:
+                properties:
+                  runConfigurations:
+                    additionalProperties:
+                      properties:
+                        artifacts:
+                          items:
+                            properties:
+                              location:
+                                type: string
+                              name:
+                                type: string
+                            required:
+                            - location
+                            - name
+                            type: object
+                          type: array
+                        providerId:
+                          type: string
+                      type: object
+                    type: object
+                type: object
+              markedCompletedAt:
+                format: date-time
+                type: string
               observedGeneration:
                 format: int64
                 type: integer
+              observedPipelineVersion:
+                type: string
               providerId:
                 type: string
               synchronizationState:
