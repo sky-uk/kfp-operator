@@ -62,10 +62,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	}
 
 	rced := RandomRunCompletionEventData()
-	requestBody := DataWrapper{
-		Data: rced,
-	}
-	requestStr, err := json.Marshal(requestBody)
+	requestStr, err := json.Marshal(rced)
 	Expect(err).NotTo(HaveOccurred())
 
 	rce := RandomRunCompletionEventData().ToRunCompletionEvent()
