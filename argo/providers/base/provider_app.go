@@ -3,16 +3,12 @@ package base
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/urfave/cli"
 	"go.uber.org/zap/zapcore"
-	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 	"log"
-	"net"
 	"os"
 )
 
@@ -379,48 +375,6 @@ func (providerApp ProviderApp[Config]) Run(provider Provider[Config], customComm
 						return writeOutput(c, updatedId, err)
 					},
 				},
-			},
-		},
-		{
-			Name: "eventsource-server",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:     ProviderConstants.EventsourceServerPortParameter,
-					Required: true,
-				},
-				cli.StringFlag{
-					Name:     ProviderConstants.Namespace,
-					Required: true,
-					EnvVar:   "POD_NAMESPACE",
-				},
-			},
-			Action: func(c *cli.Context) error {
-				logger := common.LoggerFromContext(providerApp.Context)
-				desiredProvider := c.GlobalString(ProviderConstants.ProviderParameter)
-
-				lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", c.Int(ProviderConstants.EventsourceServerPortParameter)))
-				if err != nil {
-					logger.Error(err, "failed to listen")
-					os.Exit(1)
-				}
-
-				s := grpc.NewServer()
-
-				eventingServer, err := provider.EventingServer(providerApp.Context, desiredProvider, c.String(ProviderConstants.Namespace))
-				if err != nil {
-					logger.Error(err, "failed to create eventing server")
-					os.Exit(1)
-				}
-
-				generic.RegisterEventingServer(s, eventingServer)
-
-				logger.Info(fmt.Sprintf("server listening at %s", lis.Addr()))
-				if err := s.Serve(lis); err != nil {
-					logger.Error(err, "failed to serve")
-					os.Exit(1)
-				}
-
-				return nil
 			},
 		},
 	}
