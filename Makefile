@@ -225,6 +225,12 @@ docker-build-triggers:
 docker-push-triggers:
 	$(MAKE) -C triggers/run-completion-event-trigger docker-push
 
+docker-build-providers:
+	$(MAKE) -C provider-service docker-build
+
+docker-push-providers:
+	$(MAKE) -C provider-service docker-push
+
 ##@ Docs
 
 website:
@@ -235,9 +241,9 @@ docker-push-quickstart:
 
 ##@ Package
 
-package-all: docker-build docker-build-argo docker-build-triggers helm-package website
+package-all: docker-build docker-build-argo docker-build-triggers docker-build-providers helm-package website
 
-publish-all: docker-push docker-push-argo docker-push-triggers helm-publish
+publish-all: docker-push docker-push-argo docker-push-triggers docker-push-providers helm-publish
 
 ##@ CI
 
