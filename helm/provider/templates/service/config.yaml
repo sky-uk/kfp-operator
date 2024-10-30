@@ -1,0 +1,12 @@
+{{- $providerName := .Values.provider.name }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $providerName }}-{{ include "kfp-operator-provider.resource-prefix" $ }}-service-config
+  namespace: {{ include "kfp-operator-provider.namespace" $ }}
+data:
+  config.yaml: |
+    providerName: {{ $providerName }}
+    operatorWebhook: http://{{ .Values.kfpOperator.fullname}}-runcompletion-webhook-service/events
+    pod:
+      namespace: to-be-overridden
