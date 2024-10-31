@@ -8,7 +8,6 @@ import (
 func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Run)
 
-	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
@@ -32,7 +31,6 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Run)
 
-	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,

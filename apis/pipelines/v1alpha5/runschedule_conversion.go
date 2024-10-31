@@ -14,7 +14,6 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	if err := pipelines.GetAndUnsetConversionAnnotations(src, &v1alpha6Remainder); err != nil {
 		return err
 	}
-	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
@@ -43,7 +42,6 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunSchedule)
 	v1alpha6Remainder := hub.RunScheduleConversionRemainder{}
-	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,

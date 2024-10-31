@@ -8,7 +8,6 @@ import (
 func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Experiment)
 
-	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Description = src.Spec.Description
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
@@ -25,7 +24,6 @@ func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *Experiment) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Experiment)
 
-	dst.TypeMeta = src.TypeMeta
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Description = src.Spec.Description
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
