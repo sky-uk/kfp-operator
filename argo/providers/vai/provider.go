@@ -294,10 +294,8 @@ func (vaip VAIProvider) buildVaiScheduleFromPipelineJob(providerConfig VAIProvid
 		return nil, err
 	}
 
-	return &aiplatformpb.Schedule{
+	schedule := &aiplatformpb.Schedule{
 		TimeSpecification: &aiplatformpb.Schedule_Cron{Cron: cron.PrintStandard()},
-		StartTime:         timestamppb.New(runScheduleDefinition.Schedule.StartTime.Time),
-		EndTime:           timestamppb.New(runScheduleDefinition.Schedule.EndTime.Time),
 		Request: &aiplatformpb.Schedule_CreatePipelineJobRequest{
 			CreatePipelineJobRequest: &aiplatformpb.CreatePipelineJobRequest{
 				Parent:      providerConfig.parent(),
@@ -307,7 +305,17 @@ func (vaip VAIProvider) buildVaiScheduleFromPipelineJob(providerConfig VAIProvid
 		DisplayName:           fmt.Sprintf("rc-%s-%s", runScheduleDefinition.Name.Namespace, runScheduleDefinition.Name.Name),
 		MaxConcurrentRunCount: providerConfig.getMaxConcurrentRunCountOrDefault(),
 		AllowQueueing:         true,
-	}, nil
+	}
+
+	if runScheduleDefinition.Schedule.StartTime != nil {
+		schedule.StartTime = timestamppb.New(runScheduleDefinition.Schedule.StartTime.Time)
+	}
+
+	if runScheduleDefinition.Schedule.EndTime != nil {
+		schedule.EndTime = timestamppb.New(runScheduleDefinition.Schedule.EndTime.Time)
+	}
+
+	return schedule, nil
 }
 
 func (vaip VAIProvider) buildAndEnrichPipelineJob(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.PipelineJob, error) {

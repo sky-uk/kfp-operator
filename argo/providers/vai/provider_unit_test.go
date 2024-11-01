@@ -168,6 +168,24 @@ var _ = Context("VAI Provider", func() {
 			Expect(schedule.DisplayName).To(HavePrefix("rc-"))
 		})
 
+		It("returns schedule with empty starttime and endtime fields", func() {
+			providerConfig := randomVAIProviderConfig()
+
+			runScheduleDefinition := randomRunScheduleDefinition()
+			expectedCron := "1 2 * 1 2"
+			runScheduleDefinition.Schedule.CronExpression = expectedCron
+			runScheduleDefinition.Schedule.StartTime = nil
+			runScheduleDefinition.Schedule.EndTime = nil
+
+			schedule, err := vaiProvider.buildVaiScheduleFromPipelineJob(providerConfig, runScheduleDefinition, &emptyPipelineJob)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(schedule.TimeSpecification).To(Equal(&aiplatformpb.Schedule_Cron{Cron: expectedCron}))
+			Expect(schedule.StartTime).To(BeNil())
+			Expect(schedule.EndTime).To(BeNil())
+			Expect(schedule.MaxConcurrentRunCount).To(Equal(providerConfig.getMaxConcurrentRunCountOrDefault()))
+			Expect(schedule.DisplayName).To(HavePrefix("rc-"))
+		})
+
 		It("returns error if schedule set in RunScheduleDefinition is invalid cron", func() {
 			providerConfig := randomVAIProviderConfig()
 

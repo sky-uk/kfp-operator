@@ -209,15 +209,24 @@ func (kfpp KfpProvider) DeleteRun(_ context.Context, _ KfpProviderConfig, _ stri
 }
 
 func createAPICronSchedule(rsd RunScheduleDefinition) (*job_model.APICronSchedule, error) {
-	schedule, err := ParseCron(rsd.Schedule.CronExpression)
+	cronExpression, err := ParseCron(rsd.Schedule.CronExpression)
 	if err != nil {
 		return nil, err
 	}
-	return &job_model.APICronSchedule{
-		Cron:      schedule.PrintGo(),
-		StartTime: strfmt.DateTime(rsd.Schedule.StartTime.Time),
-		EndTime:   strfmt.DateTime(rsd.Schedule.EndTime.Time),
-	}, nil
+
+	schedule := &job_model.APICronSchedule{
+		Cron: cronExpression.PrintGo(),
+	}
+
+	if rsd.Schedule.StartTime != nil {
+		schedule.StartTime = strfmt.DateTime(rsd.Schedule.StartTime.Time)
+	}
+
+	if rsd.Schedule.EndTime != nil {
+		schedule.EndTime = strfmt.DateTime(rsd.Schedule.EndTime.Time)
+	}
+
+	return schedule, nil
 }
 
 func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig KfpProviderConfig, runScheduleDefinition RunScheduleDefinition) (string, error) {

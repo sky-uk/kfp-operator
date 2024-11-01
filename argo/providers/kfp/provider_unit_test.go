@@ -3,13 +3,15 @@
 package kfp
 
 import (
+	"time"
+
+	"github.com/go-openapi/strfmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"time"
 )
 
 var now = metav1.Now()
@@ -32,7 +34,7 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 
 var _ = Context("KFP Provider", func() {
 	Describe("createAPICronSchedule", func() {
-		It("returns APICronScheudle with fields all set as expected", func() {
+		It("returns APICronSchedule with fields all set as expected", func() {
 			runScheduleDefinition := randomRunScheduleDefinition()
 
 			result, err := createAPICronSchedule(runScheduleDefinition)
@@ -41,6 +43,20 @@ var _ = Context("KFP Provider", func() {
 			Expect(result.Cron).To(Equal("0 1 1 0 0 0"))
 			Expect(time.Time(result.StartTime)).To(Equal(now.Time))
 			Expect(time.Time(result.EndTime)).To(Equal(now.Time))
+		})
+
+		It("returns APICronSchedule with fields all set as expected", func() {
+			runScheduleDefinition := randomRunScheduleDefinition()
+			runScheduleDefinition.Schedule.StartTime = nil
+			runScheduleDefinition.Schedule.EndTime = nil
+
+			result, err := createAPICronSchedule(runScheduleDefinition)
+			defaultTime := strfmt.DateTime{}
+
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result.Cron).To(Equal("0 1 1 0 0 0"))
+			Expect(result.StartTime).To(Equal(defaultTime))
+			Expect(result.EndTime).To(Equal(defaultTime))
 		})
 	})
 })
