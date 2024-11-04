@@ -14,7 +14,13 @@ type RunScheduleSpec struct {
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
 	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
-	Schedule          string             `json:"schedule,omitempty"`
+	Schedule          Schedule           `json:"schedule,omitempty"`
+}
+
+type Schedule struct {
+	CronExpression string       `json:"cronExpression,omitempty"`
+	StartTime      *metav1.Time `json:"startTime,omitempty"`
+	EndTime        *metav1.Time `json:"endTime,omitempty"`
 }
 
 func (rs RunSchedule) ComputeHash() []byte {
@@ -23,7 +29,13 @@ func (rs RunSchedule) ComputeHash() []byte {
 	oh.WriteStringField(rs.Spec.ExperimentName)
 	pipelines.WriteKVListField(oh, rs.Spec.RuntimeParameters)
 	pipelines.WriteKVListField(oh, rs.Spec.Artifacts)
-	oh.WriteStringField(rs.Spec.Schedule)
+	oh.WriteStringField(rs.Spec.Schedule.CronExpression)
+	if rs.Spec.Schedule.StartTime != nil {
+		oh.WriteStringField(rs.Spec.Schedule.StartTime.String())
+	}
+	if rs.Spec.Schedule.EndTime != nil {
+		oh.WriteStringField(rs.Spec.Schedule.EndTime.String())
+	}
 	return oh.Sum()
 }
 

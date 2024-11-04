@@ -102,6 +102,24 @@ func RandomRunConfigurationSpec() RunConfigurationSpec {
 	}
 }
 
+func RandomTime() *metav1.Time {
+	if rand.Intn(2) == 1 {
+		return nil
+	}
+	min := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+	max := time.Date(2030, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+	randTime := time.Unix(rand.Int63n(max-min)+min, 0)
+	return &metav1.Time{Time: randTime}
+}
+
+func RandomSchedule() Schedule {
+	return Schedule{
+		CronExpression: RandomString(),
+		StartTime:      RandomTime(),
+		EndTime:        RandomTime(),
+	}
+}
+
 func RandomTriggers() Triggers {
 	var onChange []OnChangeType
 	if common.RandomInt64()%2 == 0 {
@@ -109,13 +127,13 @@ func RandomTriggers() Triggers {
 	}
 
 	return Triggers{
-		Schedules: RandomList(RandomString),
+		Schedules: RandomList(RandomSchedule),
 		OnChange:  onChange,
 	}
 }
 
 func RandomScheduleTrigger() Triggers {
-	return Triggers{Schedules: []string{RandomString()}}
+	return Triggers{Schedules: []Schedule{RandomSchedule()}}
 }
 
 func RandomOnChangeTrigger() Triggers {
@@ -153,7 +171,7 @@ func RandomRunScheduleSpec() RunScheduleSpec {
 		ExperimentName:    RandomString(),
 		RuntimeParameters: RandomNamedValues(),
 		Artifacts:         RandomList(RandomOutputArtifact),
-		Schedule:          RandomString(),
+		Schedule:          RandomSchedule(),
 	}
 }
 

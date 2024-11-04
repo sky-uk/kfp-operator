@@ -31,7 +31,7 @@ type RunScheduleDefinition struct {
 	PipelineVersion      string                     `yaml:"pipelineVersion"`
 	RunConfigurationName common.NamespacedName      `yaml:"runConfigurationName"`
 	ExperimentName       common.NamespacedName      `yaml:"experimentName"`
-	Schedule             string                     `yaml:"schedule"`
+	Schedule             pipelines.Schedule         `yaml:"schedule"`
 	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
 	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }

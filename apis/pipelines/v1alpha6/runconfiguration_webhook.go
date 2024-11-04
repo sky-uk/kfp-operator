@@ -22,7 +22,7 @@ var _ webhook.Validator = &RunConfiguration{}
 func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) {
 	duplicateSchedules := pipelines.Duplicates(rc.Spec.Triggers.Schedules)
 	schedulePath := field.NewPath("spec").Key("triggers").Key("schedules")
-	errors = append(errors, pipelines.Map(duplicateSchedules, func(schedule string) *field.Error {
+	errors = append(errors, pipelines.Map(duplicateSchedules, func(schedule Schedule) *field.Error {
 		return field.Duplicate(schedulePath, schedule)
 	})...)
 

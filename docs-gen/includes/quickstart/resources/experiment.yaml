@@ -3,4 +3,4 @@ kind: Experiment
 metadata:
   name: penguin-experiment
 spec:
-  description: 'An experiment for the penguin pipeline'
+  description: An experiment for the penguin pipeline
