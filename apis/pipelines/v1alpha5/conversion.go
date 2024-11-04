@@ -4,33 +4,46 @@ import (
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 )
 
-func convertRuntimeParametersTo(rtp []RuntimeParameter) []hub.RuntimeParameter {
-	convertValueFromTo := func(v *ValueFrom) *hub.ValueFrom {
-		if v != nil {
-			return &hub.ValueFrom{
-				RunConfigurationRef: hub.RunConfigurationRef{
-					Name:           v.RunConfigurationRef.Name,
-					OutputArtifact: v.RunConfigurationRef.OutputArtifact,
-				},
-			}
+func (v *ValueFrom) convertToHub() *hub.ValueFrom {
+	if v != nil {
+		return &hub.ValueFrom{
+			RunConfigurationRef: hub.RunConfigurationRef{
+				Name:           v.RunConfigurationRef.Name,
+				OutputArtifact: v.RunConfigurationRef.OutputArtifact,
+			},
 		}
-		return nil
 	}
+	return nil
+}
+
+func convertFromHubValueFrom(v *hub.ValueFrom) *ValueFrom {
+	if v != nil {
+		return &ValueFrom{
+			RunConfigurationRef: RunConfigurationRef{
+				Name:           v.RunConfigurationRef.Name,
+				OutputArtifact: v.RunConfigurationRef.OutputArtifact,
+			},
+		}
+	}
+	return nil
+}
+
+func convertRuntimeParametersTo(rtp []RuntimeParameter) []hub.RuntimeParameter {
 	var hubRtp []hub.RuntimeParameter
 	for _, namedValue := range rtp {
 		hubRtp = append(hubRtp, hub.RuntimeParameter{
 			Name:      namedValue.Name,
 			Value:     namedValue.Value,
-			ValueFrom: convertValueFromTo(namedValue.ValueFrom),
+			ValueFrom: namedValue.ValueFrom.convertToHub(),
 		})
 	}
 	return hubRtp
 }
 
-func convertArtifactsTo(oa []OutputArtifact) []hub.OutputArtifact {
-	var hubOa []hub.OutputArtifact
-	for _, artifact := range oa {
-		hubOa = append(hubOa, hub.OutputArtifact{
+func convertArtifactsTo(outputArtifact []OutputArtifact) []hub.OutputArtifact {
+	var hubOutputArtifact []hub.OutputArtifact
+	for _, artifact := range outputArtifact {
+		hubOutputArtifact = append(hubOutputArtifact, hub.OutputArtifact{
 			Name: artifact.Name,
 			Path: hub.ArtifactPath{
 				Locator: hub.ArtifactLocator{
@@ -42,27 +55,16 @@ func convertArtifactsTo(oa []OutputArtifact) []hub.OutputArtifact {
 			},
 		})
 	}
-	return hubOa
+	return hubOutputArtifact
 }
 
 func convertRuntimeParametersFrom(hubRtp []hub.RuntimeParameter) []RuntimeParameter {
-	convertValueFromFrom := func(v *hub.ValueFrom) *ValueFrom {
-		if v != nil {
-			return &ValueFrom{
-				RunConfigurationRef: RunConfigurationRef{
-					Name:           v.RunConfigurationRef.Name,
-					OutputArtifact: v.RunConfigurationRef.OutputArtifact,
-				},
-			}
-		}
-		return nil
-	}
 	var rtp []RuntimeParameter
 	for _, namedValue := range hubRtp {
 		rtp = append(rtp, RuntimeParameter{
 			Name:      namedValue.Name,
 			Value:     namedValue.Value,
-			ValueFrom: convertValueFromFrom(namedValue.ValueFrom),
+			ValueFrom: convertFromHubValueFrom(namedValue.ValueFrom),
 		})
 	}
 	return rtp

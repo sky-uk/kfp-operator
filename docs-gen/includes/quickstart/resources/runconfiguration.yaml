@@ -8,6 +8,6 @@ spec:
       experimentName: penguin-experiment
     triggers:
       schedules:
-      - cronExpression: '0 * * * *'
-        startTime: "2024-01-01T00:00:00Z"
-        endTime: "2024-12-31T23:59:59Z"
+      - cronExpression: 0 * * * *
+        startTime: 2024-01-01T00:00:00Z
+        endTime: 2024-12-31T23:59:59Z

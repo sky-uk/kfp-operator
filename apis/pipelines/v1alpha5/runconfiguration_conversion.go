@@ -59,9 +59,9 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 // annotations that convey hub Triggers (remainder).
 //
 // If the spoke Schedule matches a CronExpression in the remainder then the
-// conversion will use the StartTime and EndTime ptrs from the remainder.
+// conversion will use the StartTime and EndTime pointers from the remainder.
 // If the spoke Schedules does not have a matching CronExpression in the
-// remainder then the StartTime and EndTime ptrs will be set to nil.
+// remainder then the StartTime and EndTime pointers will be set to nil.
 func convertTriggersTo(
 	triggers Triggers,
 	remainder hub.RunConfigurationConversionRemainder,
