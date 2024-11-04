@@ -1,7 +1,14 @@
 # Development
 
-We use [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) to scaffold the kubernetes controllers.
+We use [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder) to scaffold the kubernetes controllers. 
 The [Kubebuilder Book](https://book.kubebuilder.io/) is a good introduction to the topic and we recommend reading it before proceeding.
+
+Please install kubebuilder `3.15.1` before upgrading or adding new Custom Resources:
+```
+asdf plugin-add kubebuilder https://github.com/virtualstaticvoid/asdf-kubebuilder.git
+asdf install kubebuilder 3.15.1
+```
+Note that we currently need to use kubebuilder version 3 or below, as [work is required to support later versions](https://github.com/sky-uk/kfp-operator/issues/381).
 
 ## Set up the development environment
 

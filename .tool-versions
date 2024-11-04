@@ -4,4 +4,3 @@ protoc 21.12
 hugo extended_0.135.0
 golang 1.20
 nodejs 22.9.0
-kubebuilder 3.15.1
