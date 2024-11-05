@@ -215,10 +215,13 @@ spec:
                 type: array
               image:
                 type: string
+              provider:
+                type: string
               tfxComponents:
                 type: string
             required:
             - image
+            - provider
             - tfxComponents
             type: object
           status:

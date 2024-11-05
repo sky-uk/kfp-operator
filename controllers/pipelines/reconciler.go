@@ -21,6 +21,7 @@ type ResourceReconciler[R pipelinesv1.Resource] struct {
 	Config config.KfpControllerConfigSpec
 }
 
+// TODO: remove this once provider has moved to spec in all resources (i.e. when this is not called anywhere)
 func desiredProvider(resource pipelinesv1.HasProvider, config config.KfpControllerConfigSpec) string {
 	if provider, hasProvider := resource.GetAnnotations()[apis.ResourceAnnotations.Provider]; hasProvider {
 		return provider

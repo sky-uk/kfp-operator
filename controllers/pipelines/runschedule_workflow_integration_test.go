@@ -11,13 +11,13 @@ import (
 var _ = Context("Resource Workflows", Serial, func() {
 	workflowFactory := RunScheduleWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultExperiment:      "Default",
-		DefaultProvider:        "stub",
+		DefaultProvider:        "not-used",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
 	})
 
 	var newRunSchedule = func() *pipelinesv1.RunSchedule {
-		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule())
+		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule(TestProvider))
 	}
 
 	DescribeTable("RunSchedule Workflows", AssertWorkflow[*pipelinesv1.RunSchedule],

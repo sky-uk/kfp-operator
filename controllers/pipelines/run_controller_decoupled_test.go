@@ -20,7 +20,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("Creating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
-			runHelper := Create(pipelinesv1.RandomRun())
+			runHelper := Create(pipelinesv1.RandomRun(provider.Name))
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -36,11 +36,11 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(run.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(run.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
+				g.Expect(run.Status.ProviderId.Provider).To(Equal(run.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(runHelper.Update(func(run *pipelinesv1.Run) {
-				run.Spec = pipelinesv1.RandomRunSpec()
+				run.Spec = pipelinesv1.RandomRunSpec(provider.Name)
 			})).To(MatchError(ContainSubstring("immutable")))
 
 			Expect(runHelper.Delete()).To(Succeed())
@@ -70,7 +70,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("Creating an invalid run", func() {
 		It("errors", func() {
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Value: apis.RandomString(),
@@ -89,7 +89,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("the completion state is set", func() {
 		It("sets MarkCompletedAt", func() {
-			runHelper := CreateSucceeded(pipelinesv1.RandomRun())
+			runHelper := CreateSucceeded(pipelinesv1.RandomRun(provider.Name))
 
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				run.Status.CompletionState = pipelinesv1.CompletionStates.Succeeded
@@ -103,7 +103,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("MarkCompletedAt is set and the TTL has passed", func() {
 		It("deletes the resource", func() {
-			runHelper := CreateSucceeded(pipelinesv1.RandomRun())
+			runHelper := CreateSucceeded(pipelinesv1.RandomRun(provider.Name))
 
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				// time.Sub does not exist for Durations
@@ -118,7 +118,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("The pipeline version is fixed", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the fixed version", func() {
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			pipelineVersion := apis.RandomString()
 			run.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
 
@@ -133,10 +133,10 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("The pipeline version is not fixed and the pipeline has succeeded", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
-			pipeline := pipelinesv1.RandomPipeline()
+			pipeline := pipelinesv1.RandomPipeline(provider.Name)
 			CreateSucceeded(pipeline)
 
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
 			runHelper := Create(run)
 
@@ -149,10 +149,10 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("The pipeline version is not fixed and the pipeline succeeds", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
-			pipeline := pipelinesv1.RandomPipeline()
+			pipeline := pipelinesv1.RandomPipeline(provider.Name)
 			pipelineHelper := CreateStable(pipeline)
 
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
 			runHelper := Create(run)
 
@@ -168,7 +168,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("A referenced RunConfiguration does not exist", func() {
 		It("unsets the dependency", func() {
 			runConfigurationName := apis.RandomString()
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),
@@ -194,10 +194,10 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("A referenced RunConfiguration has no succeeded run", func() {
 		It("unsets the dependency", func() {
-			referencedRc := pipelinesv1.RandomRunConfiguration()
+			referencedRc := pipelinesv1.RandomRunConfiguration(provider.Name)
 			Expect(k8sClient.Create(ctx, referencedRc)).To(Succeed())
 
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),
@@ -228,7 +228,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				Artifacts:  []common.Artifact{common.RandomArtifact()},
 			})
 
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),
@@ -254,7 +254,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("A RunConfiguration reference has been removed", func() {
 		It("removes the dependency", func() {
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{}
 			runHelper := Create(run)
 
@@ -285,7 +285,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				},
 			})
 
-			run := pipelinesv1.RandomRun()
+			run := pipelinesv1.RandomRun(provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),

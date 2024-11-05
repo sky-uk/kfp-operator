@@ -15,13 +15,13 @@ import (
 var _ = Context("Resource Workflows", Serial, func() {
 	workflowFactory := RunWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultExperiment:      "Default",
-		DefaultProvider:        "stub",
+		DefaultProvider:        "not-used",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
 	})
 
 	var newRun = func() *pipelinesv1.Run {
-		return withIntegrationTestFields(pipelinesv1.RandomRun())
+		return withIntegrationTestFields(pipelinesv1.RandomRun(TestProvider))
 	}
 
 	DescribeTable("Run Workflows", AssertWorkflow[*pipelinesv1.Run],

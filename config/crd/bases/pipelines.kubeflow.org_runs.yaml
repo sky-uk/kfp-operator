@@ -255,6 +255,8 @@ spec:
               pipeline:
                 pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                 type: string
+              provider:
+                type: string
               runtimeParameters:
                 items:
                   properties:
@@ -281,6 +283,8 @@ spec:
                   - name
                   type: object
                 type: array
+            required:
+            - provider
             type: object
           status:
             properties:

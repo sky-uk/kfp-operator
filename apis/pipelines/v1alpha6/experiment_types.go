@@ -9,6 +9,7 @@ import (
 )
 
 type ExperimentSpec struct {
+	Provider    string `json:"provider" yaml:"provider"`
 	Description string `json:"description,omitempty"`
 }
 

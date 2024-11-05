@@ -11,13 +11,13 @@ import (
 var _ = Context("Resource Workflows", Serial, func() {
 	workflowFactory := PipelineWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultExperiment:      "Default",
-		DefaultProvider:        "stub",
+		DefaultProvider:        "not-used",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
 	})
 
 	var newPipeline = func() *pipelinesv1.Pipeline {
-		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline())
+		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline(TestProvider))
 		pipeline.Spec.Image = "kfp-operator-stub-provider"
 
 		return pipeline

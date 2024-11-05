@@ -12,6 +12,16 @@ import (
 
 var _ = Context("Run", func() {
 	var _ = Describe("ComputeHash", func() {
+		Specify("Provider should change the hash", func() {
+			run := Run{}
+			hash1 := run.ComputeHash()
+
+			run.Spec.Provider = "notempty"
+			hash2 := run.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
 		Specify("Pipeline should change the hash", func() {
 			run := Run{}
 			hash1 := run.ComputeHash()
@@ -62,7 +72,7 @@ var _ = Context("Run", func() {
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			run := RandomRun()
+			run := RandomRun(apis.RandomLowercaseString())
 			expected := run.DeepCopy()
 			run.ComputeHash()
 

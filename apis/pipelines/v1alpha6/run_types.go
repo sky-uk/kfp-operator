@@ -26,6 +26,7 @@ type ValueFrom struct {
 }
 
 type RunSpec struct {
+	Provider          string             `json:"provider" yaml:"provider"`
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []RuntimeParameter `json:"runtimeParameters,omitempty"`
@@ -115,6 +116,7 @@ func (r Run) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	r.Spec.WriteRunSpec(oh)
 	oh.WriteStringField(r.Status.ObservedPipelineVersion)
+	oh.WriteStringField(r.Spec.Provider)
 	return oh.Sum()
 }
 

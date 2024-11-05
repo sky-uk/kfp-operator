@@ -5,6 +5,7 @@ package v1alpha6
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 )
 
 var _ = Context("Experiment", func() {
@@ -20,7 +21,7 @@ var _ = Context("Experiment", func() {
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			rcs := RandomExperiment()
+			rcs := RandomExperiment(apis.RandomLowercaseString())
 			expected := rcs.DeepCopy()
 			rcs.ComputeHash()
 

@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 )
 
@@ -25,7 +26,7 @@ var _ = Context("Run Conversion", PropertyBased, func() {
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
-			src := hub.RandomRun()
+			src := hub.RandomRun(apis.RandomLowercaseString())
 			intermediate := &Run{}
 			dst := &hub.Run{}
 

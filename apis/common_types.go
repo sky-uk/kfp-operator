@@ -27,6 +27,7 @@ func (nv NamedValue) GetValue() string {
 	return nv.Value
 }
 
+// TODO: remove once we stop using this
 var ResourceAnnotations = struct {
 	Provider string
 }{
