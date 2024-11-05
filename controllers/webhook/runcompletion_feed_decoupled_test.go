@@ -17,25 +17,31 @@ import (
 	"net/http/httptest"
 )
 
-var mockUpstreamServiceCallCounter = 0
+var mockRCEHandlerHandleCounter = 0
 
 var _ = BeforeEach(func() {
-	mockUpstreamServiceCallCounter = 0
+	mockRCEHandlerHandleCounter = 0
 })
 
-type MockUpstreamService struct {
+type MockRCEHandler struct {
 	expectedBody string
 }
 
-func (m MockUpstreamService) call(_ context.Context, event common.RunCompletionEvent) error {
-	mockUpstreamServiceCallCounter++
+func (m MockRCEHandler) handle(_ context.Context, event common.RunCompletionEvent) error {
+	mockRCEHandlerHandleCounter++
 	passedBodyBytes, err := json.Marshal(event)
 	Expect(err).NotTo(HaveOccurred())
 	passedBodyStr := string(passedBodyBytes)
 	if m.expectedBody == "error" {
-		return errors.New("upstream service error")
+		return errors.New("run completion event handler error")
 	} else if passedBodyStr != m.expectedBody {
-		Fail(fmt.Sprintf("Body passed to upstream service does not match expected body, passed - [%s], expected - [%s]", passedBodyStr, m.expectedBody))
+		Fail(
+			fmt.Sprintf(
+				"Body passed to run completion event handler does not match expected body, passed - [%s], expected - [%s]",
+				passedBodyStr,
+				m.expectedBody,
+			),
+		)
 	}
 	return nil
 }
@@ -50,9 +56,9 @@ func setupRequestResponse(ctx context.Context, method string, body io.Reader, co
 var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	ctx := logr.NewContext(context.Background(), logr.Discard())
 
-	noUpstreams := RunCompletionFeed{
-		ctx:       ctx,
-		upstreams: nil,
+	noHandlers := RunCompletionFeed{
+		ctx:           ctx,
+		eventHandlers: nil,
 	}
 
 	rced := RandomRunCompletionEventData()
@@ -63,30 +69,33 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	rce := RandomRunCompletionEventData().ToRunCompletionEvent()
-	expectedUpstreamStr, err := json.Marshal(rce)
+	expectedRCEHStr, err := json.Marshal(rce)
 	Expect(err).NotTo(HaveOccurred())
 
-	upstreams := []UpstreamService{MockUpstreamService{expectedBody: string(expectedUpstreamStr)}, MockUpstreamService{expectedBody: string(expectedUpstreamStr)}}
+	handlers := []RunCompletionEventHandler{
+		MockRCEHandler{expectedBody: string(expectedRCEHStr)},
+		MockRCEHandler{expectedBody: string(expectedRCEHStr)},
+	}
 
 	eventProcessor := StubbedEventProcessor{
 		expectedRunCompletionEventData: &rced,
 		returnedRunCompletionEvent:     &rce,
 	}
 
-	withUpstreams := RunCompletionFeed{
+	withHandlers := RunCompletionFeed{
 		ctx:            ctx,
 		eventProcessor: eventProcessor,
-		upstreams:      upstreams,
+		eventHandlers:  handlers,
 	}
 
 	When("called with a valid request", func() {
-		It("calls out to configured upstreams passing expected data", func() {
+		It("calls out to configured run completion event handlers passing expected data", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withUpstreams.handleEvent(resp, req)
+			withHandlers.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusOK))
-			Expect(mockUpstreamServiceCallCounter).To(Equal(len(upstreams)))
+			Expect(mockRCEHandlerHandleCounter).To(Equal(len(handlers)))
 		})
 	})
 
@@ -94,7 +103,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns bad request", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, nil, HttpContentTypeJSON)
 
-			noUpstreams.handleEvent(resp, req)
+			noHandlers.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusBadRequest))
 		})
@@ -104,7 +113,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns unsupported mediatype", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), "application/xml")
 
-			noUpstreams.handleEvent(resp, req)
+			noHandlers.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusUnsupportedMediaType))
 		})
@@ -114,28 +123,31 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns method not allowed error", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodGet, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			noUpstreams.handleEvent(resp, req)
+			noHandlers.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusMethodNotAllowed))
 		})
 	})
 
-	When("a upstream returns an error", func() {
+	When("a run completion event handler returns an error", func() {
 		It("returns internal server error", func() {
-			upstreams := []UpstreamService{MockUpstreamService{expectedBody: "error"}, MockUpstreamService{expectedBody: string(expectedUpstreamStr)}}
-			withErrorUpstream := RunCompletionFeed{
+			handlers := []RunCompletionEventHandler{
+				MockRCEHandler{expectedBody: "error"},
+				MockRCEHandler{expectedBody: string(expectedRCEHStr)},
+			}
+			withErrorHandler := RunCompletionFeed{
 				ctx:            ctx,
 				eventProcessor: eventProcessor,
-				upstreams:      upstreams,
+				eventHandlers:  handlers,
 			}
 
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withErrorUpstream.handleEvent(resp, req)
+			withErrorHandler.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusInternalServerError))
-			Expect(resp.Body.String()).To(Equal("upstream service error\n"))
-			Expect(mockUpstreamServiceCallCounter).To(Equal(1))
+			Expect(resp.Body.String()).To(Equal("run completion event handler error\n"))
+			Expect(mockRCEHandlerHandleCounter).To(Equal(1))
 		})
 	})
 })
