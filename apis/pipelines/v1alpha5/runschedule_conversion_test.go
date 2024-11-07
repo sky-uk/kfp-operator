@@ -12,6 +12,17 @@ import (
 
 var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
+		Specify("converts to and from the same object using default provider", func() {
+			src := RandomRunSchedule()
+			DefaultProvider = "default-provider"
+			intermediate := &hub.RunSchedule{}
+			dst := &RunSchedule{}
+
+			Expect(src.ConvertTo(intermediate)).To(Succeed())
+			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+		})
+
 		Specify("converts to and from the same object", func() {
 			src := RandomRunSchedule()
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)

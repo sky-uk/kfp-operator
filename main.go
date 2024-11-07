@@ -84,7 +84,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-
+	pipelinesv1alpha5.DefaultProvider = ctrlConfig.Spec.DefaultProvider
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	var mgr ctrl.Manager
 

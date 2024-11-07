@@ -12,6 +12,17 @@ import (
 
 var _ = Context("Experiment Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
+		Specify("converts to and from the same object using default provider", func() {
+			src := RandomExperiment()
+			DefaultProvider = "default-provider"
+			intermediate := &hub.Experiment{}
+			dst := &Experiment{}
+
+			Expect(src.ConvertTo(intermediate)).To(Succeed())
+			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+		})
+
 		Specify("converts to and from the same object", func() {
 			src := RandomExperiment()
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)

@@ -6,6 +6,10 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var (
+	DefaultProvider string
+)
+
 func (v *ValueFrom) convertToHub() *hub.ValueFrom {
 	if v != nil {
 		return &hub.ValueFrom{
@@ -94,7 +98,7 @@ func getProviderAnnotation(resource v1.Object) string {
 	if provider, hasProvider := resource.GetAnnotations()[apis.ResourceAnnotations.Provider]; hasProvider {
 		return provider
 	}
-	return "kfp"
+	return DefaultProvider
 }
 
 func setProviderAnnotation(provider string, resource *v1.ObjectMeta) {
