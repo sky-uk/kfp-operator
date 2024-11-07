@@ -15,6 +15,8 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 	dst.ObjectMeta = src.ObjectMeta
+	dst.Spec.Run.Provider = getProviderAnnotation(src)
+	removeProviderAnnotation(dst)
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Run.Pipeline.Name,
 		Version: src.Spec.Run.Pipeline.Version,
@@ -38,6 +40,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
 	v1alpha6Remainder := hub.RunConfigurationConversionRemainder{}
 	dst.ObjectMeta = src.ObjectMeta
+	setProviderAnnotation(src.Spec.Run.Provider, &dst.ObjectMeta)
 	dst.Spec.Run.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Run.Pipeline.Name,
 		Version: src.Spec.Run.Pipeline.Version,

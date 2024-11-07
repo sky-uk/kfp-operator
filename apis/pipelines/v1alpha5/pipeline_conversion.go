@@ -10,11 +10,13 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec = hub.PipelineSpec{
+		Provider:      getProviderAnnotation(src),
 		Image:         src.Spec.Image,
 		TfxComponents: src.Spec.TfxComponents,
 		Env:           src.Spec.Env,
 		BeamArgs:      src.Spec.BeamArgs,
 	}
+	removeProviderAnnotation(dst)
 	dst.Status = hub.Status{
 		ProviderId: hub.ProviderAndId{
 			Provider: src.Status.ProviderId.Provider,
@@ -32,6 +34,8 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Pipeline)
 
 	dst.ObjectMeta = src.ObjectMeta
+	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
+
 	dst.Spec = PipelineSpec{
 		Image:         src.Spec.Image,
 		TfxComponents: src.Spec.TfxComponents,

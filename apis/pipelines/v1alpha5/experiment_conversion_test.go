@@ -14,6 +14,7 @@ var _ = Context("Experiment Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		Specify("converts to and from the same object", func() {
 			src := RandomExperiment()
+			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.Experiment{}
 			dst := &Experiment{}
 

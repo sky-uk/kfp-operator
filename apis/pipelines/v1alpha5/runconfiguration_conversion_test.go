@@ -14,6 +14,7 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		Specify("converts to and from the same object", func() {
 			src := RandomRunConfiguration()
+			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.RunConfiguration{}
 			dst := &RunConfiguration{}
 
