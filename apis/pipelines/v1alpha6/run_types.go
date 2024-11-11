@@ -200,10 +200,6 @@ func (r *Run) GetReferencedRCs() []string {
 	})
 }
 
-func (r *Run) GetProvider() string {
-	return r.Status.ProviderId.Provider
-}
-
 func (r *Run) GetPipeline() PipelineIdentifier {
 	return r.Spec.Pipeline
 }

@@ -133,10 +133,6 @@ func (rc *RunConfiguration) GetReferencedRCs() []string {
 	return pipelines.Unique(append(parameterRcs, triggeringRcs...))
 }
 
-func (rc *RunConfiguration) GetProvider() string {
-	return rc.Status.Provider
-}
-
 func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {
 	return rc.Spec.Run.Pipeline
 }

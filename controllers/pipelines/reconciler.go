@@ -4,7 +4,6 @@ import (
 	"context"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"k8s.io/apimachinery/pkg/types"
@@ -19,19 +18,6 @@ import (
 type ResourceReconciler[R pipelinesv1.Resource] struct {
 	EC     K8sExecutionContext
 	Config config.KfpControllerConfigSpec
-}
-
-// TODO: remove this once provider has moved to spec in all resources (i.e. when this is not called anywhere)
-func desiredProvider(resource pipelinesv1.HasProvider, config config.KfpControllerConfigSpec) string {
-	if provider, hasProvider := resource.GetAnnotations()[apis.ResourceAnnotations.Provider]; hasProvider {
-		return provider
-	}
-
-	if provider := resource.GetProvider(); provider != "" {
-		return provider
-	}
-
-	return config.DefaultProvider
 }
 
 func (br ResourceReconciler[R]) loadProvider(ctx context.Context, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {

@@ -41,10 +41,6 @@ type Experiment struct {
 	Status Status         `json:"status,omitempty"`
 }
 
-func (e *Experiment) GetProvider() string {
-	return e.Status.ProviderId.Provider
-}
-
 func (e *Experiment) GetStatus() Status {
 	return e.Status
 }

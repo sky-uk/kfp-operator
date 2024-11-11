@@ -63,10 +63,6 @@ type RunSchedule struct {
 	Status Status          `json:"status,omitempty"`
 }
 
-func (rs *RunSchedule) GetProvider() string {
-	return rs.Status.ProviderId.Provider
-}
-
 func (rs *RunSchedule) GetPipeline() PipelineIdentifier {
 	return rs.Spec.Pipeline
 }
