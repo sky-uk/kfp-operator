@@ -75,7 +75,7 @@ var _ = Describe("Status Updater", Serial, func() {
 		DescribeTable("updates Run on known states only",
 			func(status common.RunCompletionStatus, expectation func(pipelinesv1.Run, pipelinesv1.Run)) {
 				ctx := context.Background()
-				run := pipelinesv1.RandomRun()
+				run := pipelinesv1.RandomRun(apis.RandomLowercaseString())
 				Expect(k8sClient.Create(ctx, run)).To(Succeed())
 
 				runCompletionEvent := common.RunCompletionEvent{Status: status, RunName: &common.NamespacedName{
@@ -151,7 +151,7 @@ var _ = Describe("Status Updater", Serial, func() {
 		DescribeTable("updates RunConfiguration on known states only",
 			func(status common.RunCompletionStatus, expectation func(pipelinesv1.RunConfiguration, common.RunCompletionEvent, pipelinesv1.RunConfiguration)) {
 				ctx := context.Background()
-				runConfiguration := pipelinesv1.RandomRunConfiguration()
+				runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
 				Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
 
 				runCompletionEvent := common.RunCompletionEvent{
