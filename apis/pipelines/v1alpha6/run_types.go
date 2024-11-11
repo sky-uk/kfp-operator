@@ -98,6 +98,7 @@ func WriteRunTimeParameters(oh pipelines.ObjectHasher, rps []RuntimeParameter) {
 }
 
 func (rs RunSpec) WriteRunSpec(oh pipelines.ObjectHasher) {
+	oh.WriteStringField(rs.Provider)
 	oh.WriteStringField(rs.Pipeline.String())
 	oh.WriteStringField(rs.ExperimentName)
 	WriteRunTimeParameters(oh, rs.RuntimeParameters)
@@ -116,7 +117,6 @@ func (r Run) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	r.Spec.WriteRunSpec(oh)
 	oh.WriteStringField(r.Status.ObservedPipelineVersion)
-	oh.WriteStringField(r.Spec.Provider)
 	return oh.Sum()
 }
 

@@ -10,6 +10,12 @@ var (
 	DefaultProvider string
 )
 
+var ResourceAnnotations = struct {
+	Provider string
+}{
+	Provider: apis.Group + "/provider",
+}
+
 func (v *ValueFrom) convertToHub() *hub.ValueFrom {
 	if v != nil {
 		return &hub.ValueFrom{
@@ -95,16 +101,16 @@ func convertArtifactsFrom(hubArtifacts []hub.OutputArtifact) []OutputArtifact {
 }
 
 func getProviderAnnotation(resource v1.Object) string {
-	if provider, hasProvider := resource.GetAnnotations()[apis.ResourceAnnotations.Provider]; hasProvider {
+	if provider, hasProvider := resource.GetAnnotations()[ResourceAnnotations.Provider]; hasProvider {
 		return provider
 	}
 	return DefaultProvider
 }
 
 func setProviderAnnotation(provider string, resource *v1.ObjectMeta) {
-	v1.SetMetaDataAnnotation(resource, apis.ResourceAnnotations.Provider, provider)
+	v1.SetMetaDataAnnotation(resource, ResourceAnnotations.Provider, provider)
 }
 
 func removeProviderAnnotation(resource v1.Object) {
-	delete(resource.GetAnnotations(), apis.ResourceAnnotations.Provider)
+	delete(resource.GetAnnotations(), ResourceAnnotations.Provider)
 }
