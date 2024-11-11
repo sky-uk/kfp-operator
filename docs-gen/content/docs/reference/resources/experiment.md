@@ -12,6 +12,7 @@ kind: Experiment
 metadata:
   name: penguin-experiment
 spec:
+  provider: kfp
   description: 'An experiment for the penguin pipeline'
 ```
 

@@ -13,6 +13,7 @@ metadata:
   name: penguin-pipeline-recurring-run
 spec:
   run:
+    provider: kfp
     pipeline: penguin-pipeline:v1-abcdef
     experimentName: penguin-experiment
     runtimeParameters:
