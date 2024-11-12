@@ -181,6 +181,10 @@ spec:
             properties:
               description:
                 type: string
+              provider:
+                type: string
+            required:
+              - provider
             type: object
           status:
             properties:

@@ -16,8 +16,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := apis.RandomString()
-			rcHelper := Create(pipelinesv1.RandomRunSchedule())
-
+			rcHelper := Create(pipelinesv1.RandomRunSchedule(provider.Name))
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
@@ -32,11 +31,11 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(runSchedule.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
+				g.Expect(runSchedule.Status.ProviderId.Provider).To(Equal(runSchedule.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(rcHelper.Update(func(runSchedule *pipelinesv1.RunSchedule) {
-				runSchedule.Spec = pipelinesv1.RandomRunScheduleSpec()
+				runSchedule.Spec = pipelinesv1.RandomRunScheduleSpec(provider.Name)
 			})).To(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
@@ -52,7 +51,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(runSchedule.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
+				g.Expect(runSchedule.Status.ProviderId.Provider).To(Equal(runSchedule.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(rcHelper.Delete()).To(Succeed())

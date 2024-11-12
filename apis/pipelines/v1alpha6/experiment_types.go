@@ -9,11 +9,13 @@ import (
 )
 
 type ExperimentSpec struct {
+	Provider    string `json:"provider" yaml:"provider"`
 	Description string `json:"description,omitempty"`
 }
 
 func (es Experiment) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
+	oh.WriteStringField(es.Spec.Provider)
 	oh.WriteStringField(es.Spec.Description)
 	return oh.Sum()
 }
@@ -38,10 +40,6 @@ type Experiment struct {
 
 	Spec   ExperimentSpec `json:"spec,omitempty"`
 	Status Status         `json:"status,omitempty"`
-}
-
-func (e *Experiment) GetProvider() string {
-	return e.Status.ProviderId.Provider
 }
 
 func (e *Experiment) GetStatus() Status {

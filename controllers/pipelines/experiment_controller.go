@@ -49,9 +49,7 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	logger.V(3).Info("found experiment", "resource", experiment)
 
-	desiredProvider := desiredProvider(experiment, r.Config)
-
-	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, desiredProvider)
+	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, experiment.Spec.Provider)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

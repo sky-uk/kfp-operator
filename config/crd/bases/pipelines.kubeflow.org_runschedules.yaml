@@ -208,6 +208,8 @@ spec:
               pipeline:
                 pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                 type: string
+              provider:
+                type: string
               runtimeParameters:
                 items:
                   properties:
@@ -231,6 +233,8 @@ spec:
                     format: date-time
                     type: string
                 type: object
+            required:
+            - provider
             type: object
           status:
             properties:

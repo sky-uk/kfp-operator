@@ -11,13 +11,13 @@ import (
 var _ = Context("Resource Workflows", Serial, func() {
 	workflowFactory := ExperimentWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultExperiment:      "Default",
-		DefaultProvider:        "stub",
+		DefaultProvider:        "not-used",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
 	})
 
 	var newExperiment = func() *pipelinesv1.Experiment {
-		resource := pipelinesv1.RandomExperiment()
+		resource := pipelinesv1.RandomExperiment(TestProvider)
 		resourceStatus := resource.GetStatus()
 		resourceStatus.ProviderId.Provider = TestProvider
 		resource.SetStatus(resourceStatus)

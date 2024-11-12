@@ -8,7 +8,7 @@ import (
 
 // +kubebuilder:object:generate=false
 type Resource interface {
-	HasProvider
+	metav1.Object
 	runtime.Object
 	GetStatus() Status
 	SetStatus(Status)
@@ -16,10 +16,4 @@ type Resource interface {
 	ComputeVersion() string
 	// GetKind is a workaround to address https://github.com/sky-uk/kfp-operator/issues/137
 	GetKind() string
-}
-
-// +kubebuilder:object:generate=false
-type HasProvider interface {
-	metav1.Object
-	GetProvider() string
 }

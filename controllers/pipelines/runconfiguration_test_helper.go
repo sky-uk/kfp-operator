@@ -40,7 +40,7 @@ func createSucceededRcWith(modifyRc func(runConfiguration *pipelinesv1.RunConfig
 }
 
 func createStableRcWith(modifyRc func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration, synchronizationState apis.SynchronizationState) *pipelinesv1.RunConfiguration {
-	runConfiguration := pipelinesv1.RandomRunConfiguration()
+	runConfiguration := pipelinesv1.RandomRunConfiguration(provider.Name)
 	runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{}
 	runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
 	modifiedRc := modifyRc(runConfiguration)

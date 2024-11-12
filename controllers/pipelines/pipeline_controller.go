@@ -54,9 +54,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	logger.V(3).Info("found pipeline", "resource", pipeline)
 
-	desiredProvider := desiredProvider(pipeline, r.Config)
-
-	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, desiredProvider)
+	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, pipeline.Spec.Provider)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

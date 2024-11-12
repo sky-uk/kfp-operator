@@ -1,8 +1,18 @@
 package v1alpha5
 
 import (
+	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+var DefaultProvider string
+
+var ResourceAnnotations = struct {
+	Provider string
+}{
+	Provider: apis.Group + "/provider",
+}
 
 func (v *ValueFrom) convertToHub() *hub.ValueFrom {
 	if v != nil {
@@ -86,4 +96,19 @@ func convertArtifactsFrom(hubArtifacts []hub.OutputArtifact) []OutputArtifact {
 		})
 	}
 	return artifacts
+}
+
+func getProviderAnnotation(resource v1.Object) string {
+	if provider, hasProvider := resource.GetAnnotations()[ResourceAnnotations.Provider]; hasProvider {
+		return provider
+	}
+	return DefaultProvider
+}
+
+func setProviderAnnotation(provider string, resource *v1.ObjectMeta) {
+	v1.SetMetaDataAnnotation(resource, ResourceAnnotations.Provider, provider)
+}
+
+func removeProviderAnnotation(resource v1.Object) {
+	delete(resource.GetAnnotations(), ResourceAnnotations.Provider)
 }

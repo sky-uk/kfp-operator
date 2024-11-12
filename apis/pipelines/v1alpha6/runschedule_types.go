@@ -10,6 +10,7 @@ import (
 )
 
 type RunScheduleSpec struct {
+	Provider          string             `json:"provider" yaml:"provider"`
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
@@ -25,6 +26,7 @@ type Schedule struct {
 
 func (rs RunSchedule) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
+	oh.WriteStringField(rs.Spec.Provider)
 	oh.WriteStringField(rs.Spec.Pipeline.String())
 	oh.WriteStringField(rs.Spec.ExperimentName)
 	pipelines.WriteKVListField(oh, rs.Spec.RuntimeParameters)
@@ -59,10 +61,6 @@ type RunSchedule struct {
 
 	Spec   RunScheduleSpec `json:"spec,omitempty"`
 	Status Status          `json:"status,omitempty"`
-}
-
-func (rs *RunSchedule) GetProvider() string {
-	return rs.Status.ProviderId.Provider
 }
 
 func (rs *RunSchedule) GetPipeline() PipelineIdentifier {

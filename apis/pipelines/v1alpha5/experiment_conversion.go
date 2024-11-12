@@ -9,6 +9,8 @@ func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Experiment)
 
 	dst.ObjectMeta = src.ObjectMeta
+	dst.Spec.Provider = getProviderAnnotation(src)
+	removeProviderAnnotation(dst)
 	dst.Spec.Description = src.Spec.Description
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
 	dst.Status.ProviderId = hub.ProviderAndId{
@@ -25,6 +27,7 @@ func (dst *Experiment) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Experiment)
 
 	dst.ObjectMeta = src.ObjectMeta
+	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
 	dst.Spec.Description = src.Spec.Description
 	dst.Status.SynchronizationState = src.Status.SynchronizationState
 	dst.Status.ProviderId = ProviderAndId{

@@ -3,8 +3,9 @@
 package apis
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/thanhpk/randstr"
 	"k8s.io/apimachinery/pkg/types"

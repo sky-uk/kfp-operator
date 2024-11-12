@@ -14,6 +14,16 @@ import (
 var _ = Context("RunSchedule", func() {
 	var _ = Describe("ComputeHash", func() {
 
+		Specify("Provider should change the hash", func() {
+			rs := RunSchedule{}
+			hash1 := rs.ComputeHash()
+
+			rs.Spec.Provider = "notempty"
+			hash2 := rs.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
 		Specify("Pipeline should change the hash", func() {
 			rs := RunSchedule{}
 			hash1 := rs.ComputeHash()
@@ -86,7 +96,7 @@ var _ = Context("RunSchedule", func() {
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			rs := RandomRunSchedule()
+			rs := RandomRunSchedule(apis.RandomLowercaseString())
 			expected := rs.DeepCopy()
 			rs.ComputeHash()
 

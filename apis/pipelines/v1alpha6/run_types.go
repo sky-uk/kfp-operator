@@ -26,6 +26,7 @@ type ValueFrom struct {
 }
 
 type RunSpec struct {
+	Provider          string             `json:"provider" yaml:"provider"`
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []RuntimeParameter `json:"runtimeParameters,omitempty"`
@@ -97,6 +98,7 @@ func WriteRunTimeParameters(oh pipelines.ObjectHasher, rps []RuntimeParameter) {
 }
 
 func (rs RunSpec) WriteRunSpec(oh pipelines.ObjectHasher) {
+	oh.WriteStringField(rs.Provider)
 	oh.WriteStringField(rs.Pipeline.String())
 	oh.WriteStringField(rs.ExperimentName)
 	WriteRunTimeParameters(oh, rs.RuntimeParameters)
@@ -196,10 +198,6 @@ func (r *Run) GetReferencedRCs() []string {
 
 		return rp.ValueFrom.RunConfigurationRef.Name, true
 	})
-}
-
-func (r *Run) GetProvider() string {
-	return r.Status.ProviderId.Provider
 }
 
 func (r *Run) GetPipeline() PipelineIdentifier {

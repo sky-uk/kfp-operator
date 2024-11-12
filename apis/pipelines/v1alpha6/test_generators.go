@@ -15,19 +15,20 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func RandomPipeline() *Pipeline {
+func RandomPipeline(provider string) *Pipeline {
 	return &Pipeline{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec:   RandomPipelineSpec(),
+		Spec:   RandomPipelineSpec(provider),
 		Status: RandomStatus(),
 	}
 }
 
-func RandomPipelineSpec() PipelineSpec {
+func RandomPipelineSpec(provider string) PipelineSpec {
 	return PipelineSpec{
+		Provider:      provider,
 		Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
 		Env:           RandomNamedValues(),
@@ -82,22 +83,22 @@ func RandomCondition() metav1.Condition {
 	}
 }
 
-func RandomRunConfiguration() *RunConfiguration {
+func RandomRunConfiguration(provider string) *RunConfiguration {
 	return &RunConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec: RandomRunConfigurationSpec(),
+		Spec: RandomRunConfigurationSpec(provider),
 		Status: RunConfigurationStatus{
 			SynchronizationState: RandomSynchronizationState(),
 		},
 	}
 }
 
-func RandomRunConfigurationSpec() RunConfigurationSpec {
+func RandomRunConfigurationSpec(provider string) RunConfigurationSpec {
 	return RunConfigurationSpec{
-		Run:      RandomRunSpec(),
+		Run:      RandomRunSpec(provider),
 		Triggers: RandomTriggers(),
 	}
 }
@@ -140,13 +141,13 @@ func RandomOnChangeTrigger() Triggers {
 	return Triggers{OnChange: []OnChangeType{OnChangeTypes.Pipeline}}
 }
 
-func RandomRunSchedule() *RunSchedule {
+func RandomRunSchedule(provider string) *RunSchedule {
 	return &RunSchedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec:   RandomRunScheduleSpec(),
+		Spec:   RandomRunScheduleSpec(provider),
 		Status: RandomStatus(),
 	}
 }
@@ -165,8 +166,9 @@ func RandomOutputArtifact() OutputArtifact {
 	}
 }
 
-func RandomRunScheduleSpec() RunScheduleSpec {
+func RandomRunScheduleSpec(provider string) RunScheduleSpec {
 	return RunScheduleSpec{
+		Provider:          provider,
 		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		ExperimentName:    RandomString(),
 		RuntimeParameters: RandomNamedValues(),
@@ -175,14 +177,14 @@ func RandomRunScheduleSpec() RunScheduleSpec {
 	}
 }
 
-func RandomRun() *Run {
+func RandomRun(provider string) *Run {
 	return &Run{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        RandomLowercaseString(),
 			Namespace:   "default",
 			Annotations: map[string]string{},
 		},
-		Spec: RandomRunSpec(),
+		Spec: RandomRunSpec(provider),
 		Status: RunStatus{
 			ObservedPipelineVersion: RandomString(),
 			Status:                  RandomStatus(),
@@ -206,8 +208,9 @@ func WithValueFrom(runSpec *RunSpec) {
 	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(RandomRunConfigurationRefRuntimeParameter)...)
 }
 
-func RandomRunSpec() RunSpec {
+func RandomRunSpec(provider string) RunSpec {
 	return RunSpec{
+		Provider:       provider,
 		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		ExperimentName: RandomString(),
 		RuntimeParameters: RandomList(func() RuntimeParameter {
@@ -229,19 +232,20 @@ func RandomRunSpec() RunSpec {
 	}
 }
 
-func RandomExperiment() *Experiment {
+func RandomExperiment(provider string) *Experiment {
 	return &Experiment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec:   RandomExperimentSpec(),
+		Spec:   RandomExperimentSpec(provider),
 		Status: RandomStatus(),
 	}
 }
 
-func RandomExperimentSpec() ExperimentSpec {
+func RandomExperimentSpec(provider string) ExperimentSpec {
 	return ExperimentSpec{
+		Provider:    provider,
 		Description: RandomString(),
 	}
 }
@@ -266,10 +270,6 @@ type TestResource struct {
 	Kind            string
 	Status          Status
 	ComputedVersion string
-}
-
-func (tr *TestResource) GetProvider() string {
-	return tr.Status.ProviderId.Provider
 }
 
 func (tr *TestResource) GetStatus() Status {

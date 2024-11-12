@@ -14,6 +14,7 @@ kind: Pipeline
 metadata:
   name: penguin-pipeline
 spec:
+  provider: kfp
   image: kfp-quickstart:v1
   tfxComponents: base_pipeline.create_components
   env:

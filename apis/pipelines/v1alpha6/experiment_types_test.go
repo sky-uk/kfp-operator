@@ -5,6 +5,7 @@ package v1alpha6
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 )
 
 var _ = Context("Experiment", func() {
@@ -19,8 +20,18 @@ var _ = Context("Experiment", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
+		Specify("Provider should change the hash", func() {
+			rcs := Experiment{}
+			hash1 := rcs.ComputeHash()
+
+			rcs.Spec.Provider = "notempty"
+			hash2 := rcs.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
 		Specify("The original object should not change", PropertyBased, func() {
-			rcs := RandomExperiment()
+			rcs := RandomExperiment(apis.RandomLowercaseString())
 			expected := rcs.DeepCopy()
 			rcs.ComputeHash()
 
