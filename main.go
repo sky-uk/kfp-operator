@@ -84,7 +84,10 @@ func main() {
 			os.Exit(1)
 		}
 	}
+
+	// TODO: This is temporary whilst have conversion from v1alpha5 to v1alpha6, this is to be removed once v1alpha5 is removed.
 	pipelinesv1alpha5.DefaultProvider = ctrlConfig.Spec.DefaultProvider
+
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	var mgr ctrl.Manager
 
