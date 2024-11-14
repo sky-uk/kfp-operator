@@ -31,16 +31,6 @@ var _ = Context("Pipeline", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("Provider should change the hash", func() {
-			pipeline := Pipeline{}
-			hash1 := pipeline.ComputeHash()
-
-			pipeline.Spec.Provider = "notempty"
-			hash2 := pipeline.ComputeHash()
-
-			Expect(hash1).NotTo(Equal(hash2))
-		})
-
 		Specify("All Env keys should change the hash", func() {
 			pipeline := Pipeline{}
 			hash1 := pipeline.ComputeHash()

@@ -26,7 +26,6 @@ type Schedule struct {
 
 func (rs RunSchedule) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(rs.Spec.Provider)
 	oh.WriteStringField(rs.Spec.Pipeline.String())
 	oh.WriteStringField(rs.Spec.ExperimentName)
 	pipelines.WriteKVListField(oh, rs.Spec.RuntimeParameters)

@@ -20,16 +20,6 @@ var _ = Context("Experiment", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("Provider should change the hash", func() {
-			rcs := Experiment{}
-			hash1 := rcs.ComputeHash()
-
-			rcs.Spec.Provider = "notempty"
-			hash2 := rcs.ComputeHash()
-
-			Expect(hash1).NotTo(Equal(hash2))
-		})
-
 		Specify("The original object should not change", PropertyBased, func() {
 			rcs := RandomExperiment(apis.RandomLowercaseString())
 			expected := rcs.DeepCopy()

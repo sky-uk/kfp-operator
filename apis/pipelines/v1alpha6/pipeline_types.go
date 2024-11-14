@@ -22,7 +22,6 @@ type PipelineSpec struct {
 
 func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(ps.Spec.Provider)
 	oh.WriteStringField(ps.Spec.Image)
 	oh.WriteStringField(ps.Spec.TfxComponents)
 	pipelines.WriteKVListField(oh, ps.Spec.Env)

@@ -15,7 +15,6 @@ type ExperimentSpec struct {
 
 func (es Experiment) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(es.Spec.Provider)
 	oh.WriteStringField(es.Spec.Description)
 	return oh.Sum()
 }
