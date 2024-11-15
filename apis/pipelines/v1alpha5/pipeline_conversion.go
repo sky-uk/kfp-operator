@@ -8,6 +8,7 @@ import (
 
 func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Pipeline)
+	dstApiVersion := dst.APIVersion
 
 	err := pipelines.TransformInto(src, &dst)
 	if err != nil {
@@ -15,6 +16,8 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.Spec.Provider = getProviderAnnotation(src)
+	dst.TypeMeta.APIVersion = dstApiVersion
+
 	removeProviderAnnotation(dst)
 
 	return nil
@@ -22,12 +25,14 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 
 func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Pipeline)
+	dstApiVersion := dst.APIVersion
 
 	err := pipelines.TransformInto(src, &dst)
 	if err != nil {
 		return err
 	}
 	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
+	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil
 }
