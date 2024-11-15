@@ -145,7 +145,7 @@ type Dependencies struct {
 }
 
 type RunStatus struct {
-	Status                  `json:",inline"`
+	Status                  Status          `json:"status,inline"`
 	ObservedPipelineVersion string          `json:"observedPipelineVersion,omitempty"`
 	Dependencies            Dependencies    `json:"dependencies,omitempty"`
 	CompletionState         CompletionState `json:"completionState,omitempty"`
