@@ -49,3 +49,14 @@ func GetAndUnsetConversionAnnotations(
 	}
 	return nil
 }
+
+func TransformInto[S any, D any](source S, destination *D) error {
+	srcStatus, err := json.Marshal(source)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(srcStatus, &destination); err != nil {
+		return err
+	}
+	return nil
+}

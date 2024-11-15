@@ -14,6 +14,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	if err := pipelines.GetAndUnsetConversionAnnotations(src, &v1alpha6Remainder); err != nil {
 		return err
 	}
+
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Run.Provider = getProviderAnnotation(src)
 	removeProviderAnnotation(dst)
@@ -27,12 +28,11 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	)
 	dst.Spec.Run.Artifacts = convertArtifactsTo(src.Spec.Run.Artifacts)
 	dst.Spec.Triggers = convertTriggersTo(src.Spec.Triggers, v1alpha6Remainder)
-	dst.Status = hub.RunConfigurationStatus{
-		ObservedPipelineVersion: src.Status.ObservedPipelineVersion,
-		SynchronizationState:    src.Status.SynchronizationState,
-		Provider:                src.Status.Provider,
-		ObservedGeneration:      src.Status.ObservedGeneration,
+
+	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
+		return err
 	}
+
 	return nil
 }
 
@@ -49,12 +49,11 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.Run.RuntimeParameters)
 	dst.Spec.Run.Artifacts = convertArtifactsFrom(src.Spec.Run.Artifacts)
 	dst.Spec.Triggers = convertTriggersFrom(src.Spec.Triggers, &v1alpha6Remainder)
-	dst.Status = RunConfigurationStatus{
-		ObservedPipelineVersion: src.Status.ObservedPipelineVersion,
-		SynchronizationState:    src.Status.SynchronizationState,
-		Provider:                src.Status.Provider,
-		ObservedGeneration:      src.Status.ObservedGeneration,
+
+	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
+		return err
 	}
+
 	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
 }
 

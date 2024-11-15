@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
@@ -25,6 +26,12 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 
 		Specify("converts to and from the same object", func() {
 			src := RandomRunConfiguration()
+			src.Status.LatestRuns = LatestRuns{
+				Succeeded: RunReference{
+					ProviderId: apis.RandomString(),
+					Artifacts:  apis.RandomList(common.RandomArtifact),
+				},
+			}
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.RunConfiguration{}
 			dst := &RunConfiguration{}
