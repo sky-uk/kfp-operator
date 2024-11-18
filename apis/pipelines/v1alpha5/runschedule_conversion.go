@@ -28,16 +28,11 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 		src.Spec.Schedule,
 		v1alpha6Remainder.Schedule,
 	)
-	dst.Status = hub.Status{
-		ProviderId: hub.ProviderAndId{
-			Provider: src.Status.ProviderId.Provider,
-			Id:       src.Status.ProviderId.Id,
-		},
-		SynchronizationState: src.Status.SynchronizationState,
-		Version:              src.Status.Version,
-		ObservedGeneration:   src.Status.ObservedGeneration,
-		Conditions:           hub.Conditions(src.Status.Conditions),
+	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
+		return err
 	}
+	dst.Status.Provider = convertProviderAndIdToHub(src.Status.ProviderId)
+
 	return nil
 }
 
@@ -58,16 +53,11 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 	dst.Spec.Schedule = schedule
-	dst.Status = Status{
-		ProviderId: ProviderAndId{
-			Provider: src.Status.ProviderId.Provider,
-			Id:       src.Status.ProviderId.Id,
-		},
-		SynchronizationState: src.Status.SynchronizationState,
-		Version:              src.Status.Version,
-		ObservedGeneration:   src.Status.ObservedGeneration,
-		Conditions:           Conditions(src.Status.Conditions),
+	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
+		return err
 	}
+	dst.Status.ProviderId = convertProviderAndIdToV1Alpha5(src.Status.Provider)
+
 	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
 }
 

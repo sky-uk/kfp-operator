@@ -31,7 +31,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(pipeline.Status.ProviderId.Provider).To(Equal(pipeline.Spec.Provider))
+				g.Expect(pipeline.Status.Provider.Name).To(Equal(pipeline.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(pipelineHelper.Update(func(pipeline *pipelinesv1.Pipeline) {
@@ -51,7 +51,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(pipeline.Status.ProviderId.Provider).To(Equal(pipeline.Spec.Provider))
+				g.Expect(pipeline.Status.Provider.Name).To(Equal(pipeline.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(pipelineHelper.Delete()).To(Succeed())

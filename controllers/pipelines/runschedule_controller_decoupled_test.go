@@ -31,7 +31,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(runSchedule.Status.ProviderId.Provider).To(Equal(runSchedule.Spec.Provider))
+				g.Expect(runSchedule.Status.Provider.Name).To(Equal(runSchedule.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(rcHelper.Update(func(runSchedule *pipelinesv1.RunSchedule) {
@@ -51,7 +51,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(runSchedule.Status.ProviderId.Provider).To(Equal(runSchedule.Spec.Provider))
+				g.Expect(runSchedule.Status.Provider.Name).To(Equal(runSchedule.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(rcHelper.Delete()).To(Succeed())

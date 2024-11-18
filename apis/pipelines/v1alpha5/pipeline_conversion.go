@@ -17,6 +17,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.Spec.Provider = getProviderAnnotation(src)
 	dst.TypeMeta.APIVersion = dstApiVersion
+	dst.Status.Provider = convertProviderAndIdToHub(src.Status.ProviderId)
 
 	removeProviderAnnotation(dst)
 
@@ -33,6 +34,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
 	dst.TypeMeta.APIVersion = dstApiVersion
+	dst.Status.ProviderId = convertProviderAndIdToV1Alpha5(src.Status.Provider)
 
 	return nil
 }

@@ -23,7 +23,7 @@ var StateHandlerConstants = struct {
 }
 
 func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelinesv1.Provider, resource R) (commands []Command) {
-	resourceProvider := resource.GetStatus().ProviderId.Provider
+	resourceProvider := resource.GetStatus().Provider.Name
 	if resourceProvider != "" && resourceProvider != provider.Name {
 		commands = []Command{*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
 			WithMessage(StateHandlerConstants.ProviderChangedError)}
@@ -69,7 +69,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.P
 
 	newVersion := resource.ComputeVersion()
 
-	if resource.GetStatus().ProviderId.Id != "" {
+	if resource.GetStatus().Provider.Id != "" {
 		logger.Info("empty state but ProviderId already exists, updating resource")
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(provider, resource)
 
@@ -121,7 +121,7 @@ func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Pro
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
-	if resource.GetStatus().ProviderId.Id == "" {
+	if resource.GetStatus().Provider.Id == "" {
 		return []Command{
 			*From(resource.GetStatus()).WithSynchronizationState(apis.Deleted),
 		}
@@ -157,7 +157,7 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipe
 	var err error
 	var targetState apis.SynchronizationState
 
-	if resource.GetStatus().ProviderId.Id == "" {
+	if resource.GetStatus().Provider.Id == "" {
 		logger.Info("no providerId exists, creating")
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(provider, resource)
 
@@ -245,11 +245,11 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
 		}
 
-		providerAndId := pipelinesv1.ProviderAndId{Provider: provider, Id: result.Id}
+		providerAndId := pipelinesv1.ProviderAndId{Name: provider, Id: result.Id}
 
 		if result.ProviderError != "" {
 			logger.Error(err, fmt.Sprintf("%s, failing resource", result.ProviderError))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithProviderId(providerAndId)
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithProvider(providerAndId)
 		}
 
 		err = states.VerifyId(result.Id)
@@ -260,7 +260,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
 		}
 
-		return From(status).WithSynchronizationState(states.SuccessState).WithProviderId(providerAndId)
+		return From(status).WithSynchronizationState(states.SuccessState).WithProvider(providerAndId)
 	}
 
 	inProgress, succeeded, failed := latestWorkflowByPhase(workflows)
@@ -314,7 +314,7 @@ func (st StateHandler[R]) onCreating(ctx context.Context, resource R, creationWo
 func (st StateHandler[R]) onUpdating(ctx context.Context, resource R, updateWorkflows []argo.Workflow) []Command {
 	logger := log.FromContext(ctx)
 
-	if resource.GetStatus().Version == "" || resource.GetStatus().ProviderId.Id == "" {
+	if resource.GetStatus().Version == "" || resource.GetStatus().Provider.Id == "" {
 		failureMessage := "updating resource with empty version or providerId"
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
 

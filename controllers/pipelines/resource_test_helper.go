@@ -90,9 +90,9 @@ func (testCtx ResourceTestHelper[R]) UpdateToSucceeded() {
 	testCtx.Resource.SetStatus(pipelinesv1.Status{
 		SynchronizationState: apis.Succeeded,
 		Version:              testCtx.Resource.ComputeVersion(),
-		ProviderId: pipelinesv1.ProviderAndId{
-			Provider: provider.Name,
-			Id:       apis.RandomString(),
+		Provider: pipelinesv1.ProviderAndId{
+			Name: provider.Name,
+			Id:   apis.RandomString(),
 		},
 	})
 

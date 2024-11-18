@@ -23,7 +23,6 @@ type ProviderSpec struct {
 // +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type == 'Synchronized')].reason"
 // +kubebuilder:storageversion
 // +kubebuilder:pruning:PreserveUnknownFields
-
 type Provider struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

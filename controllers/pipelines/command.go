@@ -106,8 +106,8 @@ func (sps *SetStatus) WithVersion(version string) *SetStatus {
 	return sps
 }
 
-func (sps *SetStatus) WithProviderId(providerId pipelinesv1.ProviderAndId) *SetStatus {
-	sps.Status.ProviderId = providerId
+func (sps *SetStatus) WithProvider(providerId pipelinesv1.ProviderAndId) *SetStatus {
+	sps.Status.Provider = providerId
 
 	return sps
 }

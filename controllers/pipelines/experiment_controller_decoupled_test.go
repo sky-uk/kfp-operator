@@ -33,7 +33,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(experiment.Status.ProviderId.Provider).To(Equal(experiment.Spec.Provider))
+				g.Expect(experiment.Status.Provider.Name).To(Equal(experiment.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(experimentHelper.Update(func(pipeline *pipelinesv1.Experiment) {
@@ -53,7 +53,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(experiment.Status.ProviderId.Provider).To(Equal(experiment.Spec.Provider))
+				g.Expect(experiment.Status.Provider.Name).To(Equal(experiment.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(experimentHelper.Delete()).To(Succeed())

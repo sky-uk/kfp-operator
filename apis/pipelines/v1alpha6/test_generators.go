@@ -254,9 +254,9 @@ func RandomStatus() Status {
 	return Status{
 		SynchronizationState: RandomSynchronizationState(),
 		Version:              RandomString(),
-		ProviderId: ProviderAndId{
-			Provider: RandomString(),
-			Id:       RandomString(),
+		Provider: ProviderAndId{
+			Name: RandomString(),
+			Id:   RandomString(),
 		},
 		ObservedGeneration: rand.Int63(),
 	}

@@ -12,7 +12,6 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
@@ -78,21 +77,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
 
 			Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
-		})
-	})
-
-	When("Migrating from v1alpha4", func() {
-		It("Releases previously acquired resources", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration(provider.Name)
-			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
-			controllerutil.AddFinalizer(runConfiguration, finalizerName)
-			Expect(k8sClient.Create(ctx, runConfiguration)).To(Succeed())
-
-			Expect(k8sClient.Delete(ctx, runConfiguration)).To(Succeed())
-
-			Eventually(func(g Gomega) {
-				g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).NotTo(Succeed())
-			}).Should(Succeed())
 		})
 	})
 

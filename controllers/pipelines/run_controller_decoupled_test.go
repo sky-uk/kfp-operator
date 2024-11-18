@@ -36,7 +36,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(run.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(run.Status.ProviderId.Provider).To(Equal(run.Spec.Provider))
+				g.Expect(run.Status.Provider.Name).To(Equal(run.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(runHelper.Update(func(run *pipelinesv1.Run) {

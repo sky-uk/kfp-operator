@@ -112,3 +112,17 @@ func setProviderAnnotation(provider string, resource *v1.ObjectMeta) {
 func removeProviderAnnotation(resource v1.Object) {
 	delete(resource.GetAnnotations(), ResourceAnnotations.Provider)
 }
+
+func convertProviderAndIdToHub(providerAndId ProviderAndId) hub.ProviderAndId {
+	return hub.ProviderAndId{
+		Name: providerAndId.Provider,
+		Id:   providerAndId.Id,
+	}
+}
+
+func convertProviderAndIdToV1Alpha5(providerAndId hub.ProviderAndId) ProviderAndId {
+	return ProviderAndId{
+		Provider: providerAndId.Name,
+		Id:       providerAndId.Id,
+	}
+}

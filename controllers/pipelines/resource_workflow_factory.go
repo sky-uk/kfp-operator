@@ -176,7 +176,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 					},
 					{
 						Name:  WorkflowConstants.ResourceIdParameterName,
-						Value: argo.AnyStringPtr(resource.GetStatus().ProviderId.Id),
+						Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,
@@ -212,7 +212,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 					},
 					{
 						Name:  WorkflowConstants.ResourceIdParameterName,
-						Value: argo.AnyStringPtr(resource.GetStatus().ProviderId.Id),
+						Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
 					},
 					{
 						Name:  WorkflowConstants.ProviderNameParameterName,

@@ -226,8 +226,8 @@ spec:
       status: {}
   {{- end }}
   - additionalPrinterColumns:
-    - jsonPath: .status.providerId
-      name: ProviderId
+    - jsonPath: .status.provider.name
+      name: Provider
       type: string
     - jsonPath: .status.synchronizationState
       name: SynchronizationState
@@ -407,8 +407,13 @@ spec:
                 type: integer
               observedPipelineVersion:
                 type: string
-              providerId:
-                type: string
+              provider:
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                type: object
               synchronizationState:
                 type: string
               version:
