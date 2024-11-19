@@ -62,7 +62,7 @@ var _ = BeforeEach(func() {
 
 func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R) (pipelinesv1.Provider, base.Output) {
 	expectedInput := stub.ExpectedInput{
-		Id: resource.GetStatus().ProviderId.Id,
+		Id: resource.GetStatus().Provider.Id,
 		ResourceDefinition: stub.ResourceDefinition{
 			Name: common.NamespacedName{
 				Name:      resource.GetName(),
@@ -110,7 +110,7 @@ func StubWithEmpty[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, ba
 
 func StubWithExistingIdAndError[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, base.Output) {
 	return StubProvider(base.Output{
-		Id:            resource.GetStatus().ProviderId.Id,
+		Id:            resource.GetStatus().Provider.Id,
 		ProviderError: apis.RandomString(),
 	}, resource)
 }
@@ -143,7 +143,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 func withIntegrationTestFields[T pipelinesv1.Resource](resource T) T {
 	resource.SetNamespace(TestNamespace)
 	resourceStatus := resource.GetStatus()
-	resourceStatus.ProviderId.Provider = TestProvider
+	resourceStatus.Provider.Name = TestProvider
 	resource.SetStatus(resourceStatus)
 
 	return resource
