@@ -5,7 +5,7 @@ package pipelines
 import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -90,9 +90,9 @@ func (testCtx ResourceTestHelper[R]) UpdateToSucceeded() {
 	testCtx.Resource.SetStatus(pipelinesv1.Status{
 		SynchronizationState: apis.Succeeded,
 		Version:              testCtx.Resource.ComputeVersion(),
-		ProviderId: pipelinesv1.ProviderAndId{
-			Provider: testConfig.DefaultProvider,
-			Id:       apis.RandomString(),
+		Provider: pipelinesv1.ProviderAndId{
+			Name: provider.Name,
+			Id:   apis.RandomString(),
 		},
 	})
 

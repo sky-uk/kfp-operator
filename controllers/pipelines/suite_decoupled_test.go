@@ -4,22 +4,23 @@ package pipelines
 
 import (
 	"context"
+	"path/filepath"
+	"testing"
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/external"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
-	"path/filepath"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"testing"
-	"time"
 )
 
 func TestPipelineControllersDecoupledSuite(t *testing.T) {
@@ -101,8 +102,8 @@ var _ = BeforeSuite(func() {
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
-	provider := pipelinesv1.RandomProvider()
-	provider.Name = testConfig.DefaultProvider
+	provider = pipelinesv1.RandomProvider()
+	provider.Name = apis.RandomLowercaseString()
 	provider.Namespace = testConfig.WorkflowNamespace
 	Expect(k8sClient.Create(ctx, provider)).To(Succeed())
 

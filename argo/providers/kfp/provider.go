@@ -3,8 +3,11 @@ package kfp
 import (
 	"context"
 	"errors"
+	"os"
+
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_client/experiment_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_model"
@@ -20,7 +23,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gopkg.in/yaml.v2"
-	"os"
 )
 
 type KfpProviderConfig struct {
@@ -206,6 +208,27 @@ func (kfpp KfpProvider) DeleteRun(_ context.Context, _ KfpProviderConfig, _ stri
 	return nil
 }
 
+func createAPICronSchedule(rsd RunScheduleDefinition) (*job_model.APICronSchedule, error) {
+	cronExpression, err := ParseCron(rsd.Schedule.CronExpression)
+	if err != nil {
+		return nil, err
+	}
+
+	schedule := &job_model.APICronSchedule{
+		Cron: cronExpression.PrintGo(),
+	}
+
+	if rsd.Schedule.StartTime != nil {
+		schedule.StartTime = strfmt.DateTime(rsd.Schedule.StartTime.Time)
+	}
+
+	if rsd.Schedule.EndTime != nil {
+		schedule.EndTime = strfmt.DateTime(rsd.Schedule.EndTime.Time)
+	}
+
+	return schedule, nil
+}
+
 func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig KfpProviderConfig, runScheduleDefinition RunScheduleDefinition) (string, error) {
 	pipelineService, err := NewPipelineService(providerConfig)
 	if err != nil {
@@ -234,7 +257,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 
 	experimentVersion, err := experimentService.ExperimentIdByName(ctx, runScheduleDefinition.ExperimentName)
 
-	schedule, err := ParseCron(runScheduleDefinition.Schedule)
+	apiCronSchedule, err := createAPICronSchedule(runScheduleDefinition)
 	if err != nil {
 		return "", err
 	}
@@ -292,9 +315,7 @@ func (kfpp KfpProvider) CreateRunSchedule(ctx context.Context, providerConfig Kf
 				},
 			},
 			Trigger: &job_model.APITrigger{
-				CronSchedule: &job_model.APICronSchedule{
-					Cron: schedule.PrintGo(),
-				},
+				CronSchedule: apiCronSchedule,
 			},
 		},
 		Context: ctx,

@@ -6,8 +6,8 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -15,13 +15,13 @@ import (
 var _ = Context("Resource Workflows", Serial, func() {
 	workflowFactory := RunWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultExperiment:      "Default",
-		DefaultProvider:        "stub",
+		DefaultProvider:        "not-used",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
 	})
 
 	var newRun = func() *pipelinesv1.Run {
-		return withIntegrationTestFields(pipelinesv1.RandomRun())
+		return withIntegrationTestFields(pipelinesv1.RandomRun(TestProvider))
 	}
 
 	DescribeTable("Run Workflows", AssertWorkflow[*pipelinesv1.Run],

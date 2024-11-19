@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -54,9 +54,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	logger.V(3).Info("found pipeline", "resource", pipeline)
 
-	desiredProvider := desiredProvider(pipeline, r.Config)
-
-	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, desiredProvider)
+	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, pipeline.Spec.Provider)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

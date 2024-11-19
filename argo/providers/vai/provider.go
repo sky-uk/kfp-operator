@@ -25,6 +25,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 	"google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var labels = struct {
@@ -288,12 +289,12 @@ func (vaip VAIProvider) buildPipelineJob(providerConfig VAIProviderConfig, runSc
 }
 
 func (vaip VAIProvider) buildVaiScheduleFromPipelineJob(providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition, pipelineJob *aiplatformpb.PipelineJob) (*aiplatformpb.Schedule, error) {
-	cron, err := ParseCron(runScheduleDefinition.Schedule)
+	cron, err := ParseCron(runScheduleDefinition.Schedule.CronExpression)
 	if err != nil {
 		return nil, err
 	}
 
-	return &aiplatformpb.Schedule{
+	schedule := &aiplatformpb.Schedule{
 		TimeSpecification: &aiplatformpb.Schedule_Cron{Cron: cron.PrintStandard()},
 		Request: &aiplatformpb.Schedule_CreatePipelineJobRequest{
 			CreatePipelineJobRequest: &aiplatformpb.CreatePipelineJobRequest{
@@ -304,7 +305,17 @@ func (vaip VAIProvider) buildVaiScheduleFromPipelineJob(providerConfig VAIProvid
 		DisplayName:           fmt.Sprintf("rc-%s-%s", runScheduleDefinition.Name.Namespace, runScheduleDefinition.Name.Name),
 		MaxConcurrentRunCount: providerConfig.getMaxConcurrentRunCountOrDefault(),
 		AllowQueueing:         true,
-	}, nil
+	}
+
+	if runScheduleDefinition.Schedule.StartTime != nil {
+		schedule.StartTime = timestamppb.New(runScheduleDefinition.Schedule.StartTime.Time)
+	}
+
+	if runScheduleDefinition.Schedule.EndTime != nil {
+		schedule.EndTime = timestamppb.New(runScheduleDefinition.Schedule.EndTime.Time)
+	}
+
+	return schedule, nil
 }
 
 func (vaip VAIProvider) buildAndEnrichPipelineJob(ctx context.Context, providerConfig VAIProviderConfig, runScheduleDefinition RunScheduleDefinition) (*aiplatformpb.PipelineJob, error) {

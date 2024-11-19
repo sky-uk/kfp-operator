@@ -2,6 +2,7 @@ package v1alpha5
 
 import (
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,7 +39,6 @@ func (rs RunSchedule) ComputeVersion() string {
 //+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
 //+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-//+kubebuilder:storageversion
 
 type RunSchedule struct {
 	metav1.TypeMeta   `json:",inline"`

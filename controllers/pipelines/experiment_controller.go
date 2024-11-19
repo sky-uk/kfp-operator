@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 )
 
 // ExperimentReconciler reconciles a Experiment object
@@ -49,9 +49,7 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	logger.V(3).Info("found experiment", "resource", experiment)
 
-	desiredProvider := desiredProvider(experiment, r.Config)
-
-	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, desiredProvider)
+	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, experiment.Spec.Provider)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

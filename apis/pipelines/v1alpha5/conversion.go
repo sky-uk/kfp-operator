@@ -2,54 +2,79 @@ package v1alpha5
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type RunConfigurationConversionRemainder struct {
-	RunConversionRemainder `json:",inline"`
-	Triggers               Triggers `json:"triggers,omitempty"`
+var DefaultProvider string
+
+var ResourceAnnotations = struct {
+	Provider string
+}{
+	Provider: apis.Group + "/provider",
 }
 
-func (rcr RunConfigurationConversionRemainder) Empty() bool {
-	return len(rcr.Triggers.Schedules) == 0 && len(rcr.Triggers.OnChange) == 0 && rcr.RunConversionRemainder.Empty()
-}
-
-type RunConversionRemainder struct {
-	Artifacts           []OutputArtifact   `json:"artifacts,omitempty"`
-	ValueFromParameters []RuntimeParameter `json:"valueFromParameters,omitempty"`
-}
-
-func (rcr RunConversionRemainder) Empty() bool {
-	return len(rcr.Artifacts) == 0 && len(rcr.ValueFromParameters) == 0
-}
-
-func (rcr RunConversionRemainder) ConversionAnnotation() string {
-	return GroupVersion.Version + "." + GroupVersion.Group + "/conversions.remainder"
-}
-
-func SplitRunTimeParameters(rts []RuntimeParameter) (namedValues []apis.NamedValue, valueFroms []RuntimeParameter) {
-	for _, rt := range rts {
-		if rt.ValueFrom != nil {
-			valueFroms = append(valueFroms, rt)
-		} else {
-			namedValues = append(namedValues, apis.NamedValue{
-				Name:  rt.Name,
-				Value: rt.Value,
-			})
-		}
-	}
-
-	return
-}
-
-func MergeRuntimeParameters(namedValues []apis.NamedValue, valueFroms []RuntimeParameter) (rts []RuntimeParameter) {
-	for _, namedValue := range namedValues {
-		rts = append(rts, RuntimeParameter{
-			Name:  namedValue.Name,
-			Value: namedValue.Value,
+func convertArtifactsTo(outputArtifact []OutputArtifact) []hub.OutputArtifact {
+	var hubOutputArtifact []hub.OutputArtifact
+	for _, artifact := range outputArtifact {
+		hubOutputArtifact = append(hubOutputArtifact, hub.OutputArtifact{
+			Name: artifact.Name,
+			Path: hub.ArtifactPath{
+				Locator: hub.ArtifactLocator{
+					Component: artifact.Path.Locator.Component,
+					Artifact:  artifact.Path.Locator.Artifact,
+					Index:     artifact.Path.Locator.Index,
+				},
+				Filter: artifact.Path.Filter,
+			},
 		})
 	}
+	return hubOutputArtifact
+}
 
-	rts = append(rts, valueFroms...)
+func convertArtifactsFrom(hubArtifacts []hub.OutputArtifact) []OutputArtifact {
+	var artifacts []OutputArtifact
+	for _, artifact := range hubArtifacts {
+		artifacts = append(artifacts, OutputArtifact{
+			Name: artifact.Name,
+			Path: ArtifactPath{
+				Locator: ArtifactLocator{
+					artifact.Path.Locator.Component,
+					artifact.Path.Locator.Artifact,
+					artifact.Path.Locator.Index,
+				},
+				Filter: artifact.Path.Filter,
+			},
+		})
+	}
+	return artifacts
+}
 
-	return
+func getProviderAnnotation(resource v1.Object) string {
+	if provider, hasProvider := resource.GetAnnotations()[ResourceAnnotations.Provider]; hasProvider {
+		return provider
+	}
+	return DefaultProvider
+}
+
+func setProviderAnnotation(provider string, resource *v1.ObjectMeta) {
+	v1.SetMetaDataAnnotation(resource, ResourceAnnotations.Provider, provider)
+}
+
+func removeProviderAnnotation(resource v1.Object) {
+	delete(resource.GetAnnotations(), ResourceAnnotations.Provider)
+}
+
+func convertProviderAndIdTo(providerAndId ProviderAndId) hub.ProviderAndId {
+	return hub.ProviderAndId{
+		Name: providerAndId.Provider,
+		Id:   providerAndId.Id,
+	}
+}
+
+func convertProviderAndIdFrom(providerAndId hub.ProviderAndId) ProviderAndId {
+	return ProviderAndId{
+		Provider: providerAndId.Name,
+		Id:       providerAndId.Id,
+	}
 }

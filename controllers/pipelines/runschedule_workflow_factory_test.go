@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
@@ -16,7 +16,7 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 	Specify("returns the name of the owner if set", func() {
 		runSchedule := pipelinesv1.RunSchedule{}
 		runSchedule.Namespace = apis.RandomString()
-		runConfiguration := pipelinesv1.RandomRunConfiguration()
+		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
 
 		runSchedule.OwnerReferences = []metav1.OwnerReference{{
 			Controller: pointer.Bool(true),

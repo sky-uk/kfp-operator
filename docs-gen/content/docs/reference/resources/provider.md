@@ -22,7 +22,7 @@ Providers configuration can be set using this resource and permissions for acces
 ### Kubeflow:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1alpha6
 kind: Provider
 metadata:
   name: kfp
@@ -54,7 +54,7 @@ spec:
 ### Vertex AI:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha5
+apiVersion: pipelines.kubeflow.org/v1alpha6
 kind: Provider
 metadata:
   name: vai

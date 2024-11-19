@@ -2,9 +2,10 @@ package base
 
 import (
 	"context"
+
 	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
@@ -30,7 +31,7 @@ type RunScheduleDefinition struct {
 	PipelineVersion      string                     `yaml:"pipelineVersion"`
 	RunConfigurationName common.NamespacedName      `yaml:"runConfigurationName"`
 	ExperimentName       common.NamespacedName      `yaml:"experimentName"`
-	Schedule             string                     `yaml:"schedule"`
+	Schedule             pipelines.Schedule         `yaml:"schedule"`
 	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
 	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }

@@ -3,9 +3,10 @@ package pipelines
 import (
 	"context"
 	"fmt"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -105,8 +106,8 @@ func (sps *SetStatus) WithVersion(version string) *SetStatus {
 	return sps
 }
 
-func (sps *SetStatus) WithProviderId(providerId pipelinesv1.ProviderAndId) *SetStatus {
-	sps.Status.ProviderId = providerId
+func (sps *SetStatus) WithProvider(providerId pipelinesv1.ProviderAndId) *SetStatus {
+	sps.Status.Provider = providerId
 
 	return sps
 }

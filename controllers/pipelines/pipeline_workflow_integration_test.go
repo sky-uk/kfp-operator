@@ -4,20 +4,20 @@ package pipelines
 
 import (
 	. "github.com/onsi/ginkgo/v2"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha5"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 )
 
 var _ = Context("Resource Workflows", Serial, func() {
 	workflowFactory := PipelineWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultExperiment:      "Default",
-		DefaultProvider:        "stub",
+		DefaultProvider:        "not-used",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
 	})
 
 	var newPipeline = func() *pipelinesv1.Pipeline {
-		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline())
+		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline(TestProvider))
 		pipeline.Spec.Image = "kfp-operator-stub-provider"
 
 		return pipeline

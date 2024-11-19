@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	v1 "k8s.io/api/core/v1"
 )
@@ -16,8 +16,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
-			pipelineHelper := Create(pipelinesv1.RandomPipeline())
-
+			pipelineHelper := Create(pipelinesv1.RandomPipeline(provider.Name))
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
@@ -32,11 +31,11 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(pipeline.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
+				g.Expect(pipeline.Status.Provider.Name).To(Equal(pipeline.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(pipelineHelper.Update(func(pipeline *pipelinesv1.Pipeline) {
-				pipeline.Spec = pipelinesv1.RandomPipelineSpec()
+				pipeline.Spec = pipelinesv1.RandomPipelineSpec(provider.Name)
 			})).To(Succeed())
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -52,7 +51,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
-				g.Expect(pipeline.Status.ProviderId.Provider).To(Equal(testConfig.DefaultProvider))
+				g.Expect(pipeline.Status.Provider.Name).To(Equal(pipeline.Spec.Provider))
 			})).Should(Succeed())
 
 			Expect(pipelineHelper.Delete()).To(Succeed())

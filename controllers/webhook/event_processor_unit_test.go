@@ -4,11 +4,12 @@ package webhook
 
 import (
 	"context"
+
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -19,14 +20,14 @@ import (
 func schemeWithCRDs() *runtime.Scheme {
 	scheme := runtime.NewScheme()
 
-	groupVersion := schema.GroupVersion{Group: "pipelines.kubeflow.org", Version: "v1alpha5"}
-	scheme.AddKnownTypes(groupVersion, &v1alpha5.RunConfiguration{}, &v1alpha5.Run{})
+	groupVersion := schema.GroupVersion{Group: "pipelines.kubeflow.org", Version: "v1alpha6"}
+	scheme.AddKnownTypes(groupVersion, &pipelinesv1.RunConfiguration{}, &pipelinesv1.Run{})
 
 	metav1.AddToGroupVersion(scheme, groupVersion)
 	return scheme
 }
 
-func checkOutputArtifacts(outputArtifacts []v1alpha5.OutputArtifact, expectedArtifacts []v1alpha5.OutputArtifact) {
+func checkOutputArtifacts(outputArtifacts []pipelinesv1.OutputArtifact, expectedArtifacts []pipelinesv1.OutputArtifact) {
 	if outputArtifacts == nil {
 		Expect(expectedArtifacts).To(BeEmpty())
 	} else {
@@ -39,7 +40,7 @@ var _ = Context("ToRunCompletionEvent", func() {
 
 	When("given valid runCompletionEventData", func() {
 		It("converts to a runCompletionEvent with filtered artifacts", func() {
-			rc := v1alpha5.RandomRunConfiguration()
+			rc := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
 
 			runCompletionEventData := RandomRunCompletionEventData()
 			runCompletionEventData.RunConfigurationName = &common.NamespacedName{
@@ -49,7 +50,7 @@ var _ = Context("ToRunCompletionEvent", func() {
 
 			expectedArtifacts := apis.RandomNonEmptyList(common.RandomArtifact)
 
-			stubbedFilterFunc := func(_ []common.PipelineComponent, _ []v1alpha5.OutputArtifact) []common.Artifact {
+			stubbedFilterFunc := func(_ []common.PipelineComponent, _ []pipelinesv1.OutputArtifact) []common.Artifact {
 				return expectedArtifacts
 			}
 
@@ -74,10 +75,10 @@ var _ = Context("ToRunCompletionEvent", func() {
 
 var _ = Context("filter", func() {
 	basePipelineComponent := randomPipelineComponent()
-	baseOutputArtifact := v1alpha5.OutputArtifact{
+	baseOutputArtifact := pipelinesv1.OutputArtifact{
 		Name: "outputArtifactName",
-		Path: v1alpha5.ArtifactPath{
-			Locator: v1alpha5.ArtifactLocator{
+		Path: pipelinesv1.ArtifactPath{
+			Locator: pipelinesv1.ArtifactLocator{
 				Component: basePipelineComponent.Name,
 				Artifact:  basePipelineComponent.ComponentArtifacts[0].Name,
 				Index:     0,
@@ -88,7 +89,7 @@ var _ = Context("filter", func() {
 
 	When("all fields match", func() {
 		It("returns the matching artifact", func() {
-			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{baseOutputArtifact})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []pipelinesv1.OutputArtifact{baseOutputArtifact})
 
 			Expect(result).To(Equal([]common.Artifact{
 				{
@@ -104,7 +105,7 @@ var _ = Context("filter", func() {
 			nonMatchingComponent := baseOutputArtifact
 			nonMatchingComponent.Path.Locator.Component = "non matching component"
 
-			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingComponent})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []pipelinesv1.OutputArtifact{nonMatchingComponent})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -114,7 +115,7 @@ var _ = Context("filter", func() {
 			nonMatchingArtifactName := baseOutputArtifact
 			nonMatchingArtifactName.Path.Locator.Artifact = "non matching artifact"
 
-			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingArtifactName})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []pipelinesv1.OutputArtifact{nonMatchingArtifactName})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -124,7 +125,7 @@ var _ = Context("filter", func() {
 			missingArtifact := basePipelineComponent
 			missingArtifact.ComponentArtifacts[0].Artifacts[0].Uri = ""
 
-			result := filterByResourceArtifacts([]common.PipelineComponent{missingArtifact}, []v1alpha5.OutputArtifact{baseOutputArtifact})
+			result := filterByResourceArtifacts([]common.PipelineComponent{missingArtifact}, []pipelinesv1.OutputArtifact{baseOutputArtifact})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -134,7 +135,7 @@ var _ = Context("filter", func() {
 			nonMatchingFilter := baseOutputArtifact
 			nonMatchingFilter.Path.Filter = "pushed == 0"
 
-			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{nonMatchingFilter})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []pipelinesv1.OutputArtifact{nonMatchingFilter})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -143,7 +144,7 @@ var _ = Context("filter", func() {
 		It("returns no artifact", func() {
 			invalidIndex := baseOutputArtifact
 			invalidIndex.Path.Locator.Index = 999999999
-			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []v1alpha5.OutputArtifact{invalidIndex})
+			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []pipelinesv1.OutputArtifact{invalidIndex})
 			Expect(result).To(BeEmpty())
 		})
 	})
@@ -171,7 +172,7 @@ var _ = Context("extractResourceArtifacts", func() {
 
 	When("run configuration passed and no run name namespace", func() {
 		It("should return run configuration artifacts", func() {
-			rc := v1alpha5.RandomRunConfiguration()
+			rc := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
 			rcName := &common.NamespacedName{
 				Namespace: rc.Namespace,
 				Name:      rc.Name,
@@ -185,7 +186,7 @@ var _ = Context("extractResourceArtifacts", func() {
 
 	When("run passed and no run configuration", func() {
 		It("should return run artifacts", func() {
-			run := v1alpha5.RandomRun()
+			run := pipelinesv1.RandomRun(apis.RandomLowercaseString())
 			rName := &common.NamespacedName{
 				Namespace: run.Namespace,
 				Name:      run.Name,
@@ -199,8 +200,8 @@ var _ = Context("extractResourceArtifacts", func() {
 
 	When("both run configuration and run passed", func() {
 		It("should return run configuration artifacts", func() {
-			rc := v1alpha5.RandomRunConfiguration()
-			run := v1alpha5.RandomRun()
+			rc := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
+			run := pipelinesv1.RandomRun(apis.RandomLowercaseString())
 			rName := &common.NamespacedName{
 				Namespace: run.Namespace,
 				Name:      run.Name,

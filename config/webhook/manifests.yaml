@@ -10,14 +10,14 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-pipelines-kubeflow-org-v1alpha5-run
+      path: /validate-pipelines-kubeflow-org-v1alpha6-run
   failurePolicy: Fail
   name: vrun.kb.io
   rules:
   - apiGroups:
     - pipelines.kubeflow.org
     apiVersions:
-    - v1alpha5
+    - v1alpha6
     operations:
     - CREATE
     - UPDATE
@@ -30,14 +30,14 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-pipelines-kubeflow-org-v1alpha5-runconfiguration
+      path: /validate-pipelines-kubeflow-org-v1alpha6-runconfiguration
   failurePolicy: Fail
   name: vrunconfiguration.kb.io
   rules:
   - apiGroups:
     - pipelines.kubeflow.org
     apiVersions:
-    - v1alpha5
+    - v1alpha6
     operations:
     - CREATE
     - UPDATE
