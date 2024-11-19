@@ -15,12 +15,11 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
+	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Spec.Provider = getProviderAnnotation(src)
-	dst.TypeMeta.APIVersion = hub.GroupVersion.String()
 	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId)
 
 	removeProviderAnnotation(dst)
-	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil
 }
