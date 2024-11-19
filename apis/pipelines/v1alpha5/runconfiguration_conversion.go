@@ -149,3 +149,51 @@ func convertTriggersFrom(
 		RunConfigurations: triggers.RunConfigurations,
 	}
 }
+
+func (v *ValueFrom) convertToHub() *hub.ValueFrom {
+	if v != nil {
+		return &hub.ValueFrom{
+			RunConfigurationRef: hub.RunConfigurationRef{
+				Name:           v.RunConfigurationRef.Name,
+				OutputArtifact: v.RunConfigurationRef.OutputArtifact,
+			},
+		}
+	}
+	return nil
+}
+
+func convertFromHubValueFrom(v *hub.ValueFrom) *ValueFrom {
+	if v != nil {
+		return &ValueFrom{
+			RunConfigurationRef: RunConfigurationRef{
+				Name:           v.RunConfigurationRef.Name,
+				OutputArtifact: v.RunConfigurationRef.OutputArtifact,
+			},
+		}
+	}
+	return nil
+}
+
+func convertRuntimeParametersTo(rtp []RuntimeParameter) []hub.RuntimeParameter {
+	var hubRtp []hub.RuntimeParameter
+	for _, namedValue := range rtp {
+		hubRtp = append(hubRtp, hub.RuntimeParameter{
+			Name:      namedValue.Name,
+			Value:     namedValue.Value,
+			ValueFrom: namedValue.ValueFrom.convertToHub(),
+		})
+	}
+	return hubRtp
+}
+
+func convertRuntimeParametersFrom(hubRtp []hub.RuntimeParameter) []RuntimeParameter {
+	var rtp []RuntimeParameter
+	for _, namedValue := range hubRtp {
+		rtp = append(rtp, RuntimeParameter{
+			Name:      namedValue.Name,
+			Value:     namedValue.Value,
+			ValueFrom: convertFromHubValueFrom(namedValue.ValueFrom),
+		})
+	}
+	return rtp
+}

@@ -31,7 +31,7 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
-	dst.Status.Provider = convertProviderAndIdToHub(src.Status.ProviderId)
+	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId)
 
 	return nil
 }
@@ -56,7 +56,7 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
-	dst.Status.ProviderId = convertProviderAndIdToV1Alpha5(src.Status.Provider)
+	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 
 	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
 }

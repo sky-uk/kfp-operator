@@ -14,42 +14,6 @@ var ResourceAnnotations = struct {
 	Provider: apis.Group + "/provider",
 }
 
-func (v *ValueFrom) convertToHub() *hub.ValueFrom {
-	if v != nil {
-		return &hub.ValueFrom{
-			RunConfigurationRef: hub.RunConfigurationRef{
-				Name:           v.RunConfigurationRef.Name,
-				OutputArtifact: v.RunConfigurationRef.OutputArtifact,
-			},
-		}
-	}
-	return nil
-}
-
-func convertFromHubValueFrom(v *hub.ValueFrom) *ValueFrom {
-	if v != nil {
-		return &ValueFrom{
-			RunConfigurationRef: RunConfigurationRef{
-				Name:           v.RunConfigurationRef.Name,
-				OutputArtifact: v.RunConfigurationRef.OutputArtifact,
-			},
-		}
-	}
-	return nil
-}
-
-func convertRuntimeParametersTo(rtp []RuntimeParameter) []hub.RuntimeParameter {
-	var hubRtp []hub.RuntimeParameter
-	for _, namedValue := range rtp {
-		hubRtp = append(hubRtp, hub.RuntimeParameter{
-			Name:      namedValue.Name,
-			Value:     namedValue.Value,
-			ValueFrom: namedValue.ValueFrom.convertToHub(),
-		})
-	}
-	return hubRtp
-}
-
 func convertArtifactsTo(outputArtifact []OutputArtifact) []hub.OutputArtifact {
 	var hubOutputArtifact []hub.OutputArtifact
 	for _, artifact := range outputArtifact {
@@ -66,18 +30,6 @@ func convertArtifactsTo(outputArtifact []OutputArtifact) []hub.OutputArtifact {
 		})
 	}
 	return hubOutputArtifact
-}
-
-func convertRuntimeParametersFrom(hubRtp []hub.RuntimeParameter) []RuntimeParameter {
-	var rtp []RuntimeParameter
-	for _, namedValue := range hubRtp {
-		rtp = append(rtp, RuntimeParameter{
-			Name:      namedValue.Name,
-			Value:     namedValue.Value,
-			ValueFrom: convertFromHubValueFrom(namedValue.ValueFrom),
-		})
-	}
-	return rtp
 }
 
 func convertArtifactsFrom(hubArtifacts []hub.OutputArtifact) []OutputArtifact {
@@ -113,14 +65,14 @@ func removeProviderAnnotation(resource v1.Object) {
 	delete(resource.GetAnnotations(), ResourceAnnotations.Provider)
 }
 
-func convertProviderAndIdToHub(providerAndId ProviderAndId) hub.ProviderAndId {
+func convertProviderAndIdTo(providerAndId ProviderAndId) hub.ProviderAndId {
 	return hub.ProviderAndId{
 		Name: providerAndId.Provider,
 		Id:   providerAndId.Id,
 	}
 }
 
-func convertProviderAndIdToV1Alpha5(providerAndId hub.ProviderAndId) ProviderAndId {
+func convertProviderAndIdFrom(providerAndId hub.ProviderAndId) ProviderAndId {
 	return ProviderAndId{
 		Provider: providerAndId.Name,
 		Id:       providerAndId.Id,
