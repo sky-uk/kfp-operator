@@ -229,6 +229,28 @@ var _ = Context("Eventing Server", func() {
 			Expect(event).To(BeNil())
 			Expect(err).To(Equal(expectedError))
 		})
+
+		It("errors when the KFP API errors", func() {
+			workflow := &unstructured.Unstructured{}
+			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
+			setPipelineNameInSpec(workflow, common.RandomString())
+
+			mockMetadataStore := MockMetadataStore{}
+			mockKfpApi := MockKfpApi{}
+
+			eventingServer := KfpEventSource{
+				Logger:        logr.Discard(),
+				MetadataStore: &mockMetadataStore,
+				KfpApi:        &mockKfpApi,
+			}
+
+			expectedError := errors.New("an error occurred")
+			mockKfpApi.error(expectedError)
+
+			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
+			Expect(event).To(BeNil())
+			Expect(err).To(Equal(expectedError))
+		})
 	})
 
 	DescribeTable("eventForWorkflow", func(phase argo.WorkflowPhase) {
