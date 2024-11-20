@@ -180,7 +180,7 @@ func main() {
 	handlers := pipelines.Map(
 		ctrlConfig.Spec.RunCompletionFeed.Endpoints,
 		func(endpoint config.Endpoint) webhook.RunCompletionEventHandler {
-			return webhook.NewRCETrigger(ctx, endpoint)
+			return webhook.NewRuntimeCompletionEventTrigger(ctx, endpoint)
 		},
 	)
 	statusUpdater, err := webhook.NewStatusUpdater(ctx, scheme)

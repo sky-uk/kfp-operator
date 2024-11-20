@@ -18,7 +18,7 @@ type RunCompletionEventTrigger struct {
 	ConnectionHandler func() error
 }
 
-func NewRCETrigger(ctx context.Context, endpoint config.Endpoint) RunCompletionEventTrigger {
+func NewRuntimeCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint) RunCompletionEventTrigger {
 	logger := log.FromContext(ctx)
 
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
