@@ -67,7 +67,7 @@ func (su StatusUpdater) completeRun(ctx context.Context, event common.RunComplet
 
 	if event.RunName.Namespace == "" {
 		logger.Info(
-			"RunCompletionEvent's RunName namespace was the empty string. Skipping.",
+			"RunCompletionEvent's RunName namespace was empty. Skipping.",
 			"RunId",
 			event.RunId,
 		)
@@ -129,7 +129,7 @@ func (su StatusUpdater) completeRunConfiguration(
 	if event.Status != common.RunCompletionStatuses.Succeeded ||
 		event.RunConfigurationName.Namespace == "" {
 		logger.Info(
-			"RunCompletionEvent's RunConfigurationName namespace was the empty string. Skipping.",
+			"RunCompletionEvent's RunConfigurationName namespace was empty. Skipping.",
 			"RunId",
 			event.RunId,
 		)
