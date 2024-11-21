@@ -9,8 +9,6 @@ import (
 	"io"
 	"net/http"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -24,20 +22,19 @@ const (
 type RunCompletionFeed struct {
 	ctx            context.Context
 	eventProcessor EventProcessor
-	upstreams      []UpstreamService
+	eventHandlers  []RunCompletionEventHandler
 }
 
-func NewRunCompletionFeed(ctx context.Context, client client.Reader, endpoints []config.Endpoint) RunCompletionFeed {
+func NewRunCompletionFeed(
+	ctx context.Context,
+	client client.Reader,
+	handlers []RunCompletionEventHandler,
+) RunCompletionFeed {
 	eventProcessor := NewResourceArtifactsEventProcessor(client)
-
-	upstreams := pipelines.Map(endpoints, func(endpoint config.Endpoint) UpstreamService {
-		return NewGrpcTrigger(ctx, endpoint)
-	})
-
 	return RunCompletionFeed{
 		ctx:            ctx,
 		eventProcessor: eventProcessor,
-		upstreams:      upstreams,
+		eventHandlers:  handlers,
 	}
 }
 
@@ -106,10 +103,10 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			http.Error(response, err.Error(), http.StatusBadRequest)
 			return
 		} else {
-			for _, upstream := range rcf.upstreams {
-				err := upstream.call(rcf.ctx, *event)
+			for _, handler := range rcf.eventHandlers {
+				err := handler.handle(rcf.ctx, *event)
 				if err != nil {
-					logger.Error(err, "Call to upstream failed")
+					logger.Error(err, "Run completion event handler operation failed")
 					http.Error(response, err.Error(), http.StatusInternalServerError)
 					return
 				}

@@ -21,7 +21,7 @@ func (pef ProcessEventFeedFunc) ProcessEventFeed(ctx context.Context, in *pb.Run
 	return pef(ctx, in, opts...)
 }
 
-var _ = Context("call", func() {
+var _ = Context("handle", func() {
 	var ctx = logr.NewContext(context.Background(), logr.Discard())
 
 	When("called", func() {
@@ -29,7 +29,7 @@ var _ = Context("call", func() {
 		protoRce, _ := RunCompletionEventToProto(rce)
 
 		It("return no error when server responds with no error", func() {
-			stubRunCompletionEventTrigger := struct {
+			stubClient := struct {
 				pb.RunCompletionEventTriggerClient
 			}{
 				ProcessEventFeedFunc(func(ctx context.Context, in *pb.RunCompletionEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -38,19 +38,19 @@ var _ = Context("call", func() {
 				}),
 			}
 
-			stub := GrpcTrigger{
-				Upstream:          config.Endpoint{},
-				Client:            stubRunCompletionEventTrigger,
+			trigger := RunCompletionEventTrigger{
+				EndPoint:          config.Endpoint{},
+				Client:            stubClient,
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := stub.call(ctx, rce)
+			err := trigger.handle(ctx, rce)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
 		It("returns error when server responds with an error", func() {
 			testError := errors.New("some error")
-			stubRunCompletionEventTrigger := struct {
+			stubClient := struct {
 				pb.RunCompletionEventTriggerClient
 			}{
 				ProcessEventFeedFunc(func(ctx context.Context, in *pb.RunCompletionEvent, opts ...grpc.CallOption) (*emptypb.Empty, error) {
@@ -58,13 +58,13 @@ var _ = Context("call", func() {
 				}),
 			}
 
-			stub := GrpcTrigger{
-				Upstream:          config.Endpoint{},
-				Client:            stubRunCompletionEventTrigger,
+			trigger := RunCompletionEventTrigger{
+				EndPoint:          config.Endpoint{},
+				Client:            stubClient,
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := stub.call(ctx, rce)
+			err := trigger.handle(ctx, rce)
 			Expect(err).To(Equal(testError))
 		})
 	})

@@ -20,7 +20,7 @@ An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/maste
 | Parameter name                | Description                                                        | Example                                                                        |
 | ----------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
 | `runCompletionFeed.port`      | The port that the feed endpoint will listen on                     | `8082`                                                                         |
-| `runCompletionFeed.endpoints` | Array of upstream endpoints that should be called per feed message | `- host: upstream-service<br/>&nbsp;&nbsp;path: /<br/>&nbsp;&nbsp;port: 12000` |
+| `runCompletionFeed.endpoints` | Array of run completion event handler endpoints that should be called per feed message | `- host: run-completion-event-handler<br/>&nbsp;&nbsp;path: /<br/>&nbsp;&nbsp;port: 12000` |
 
 ## Provider Configurations
 

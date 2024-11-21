@@ -12,30 +12,26 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-type UpstreamService interface {
-	call(ctx context.Context, ed common.RunCompletionEvent) error
-}
-
-type GrpcTrigger struct {
-	Upstream          config.Endpoint
+type RunCompletionEventTrigger struct {
+	EndPoint          config.Endpoint
 	Client            pb.RunCompletionEventTriggerClient
 	ConnectionHandler func() error
 }
 
-func NewGrpcTrigger(ctx context.Context, endpoint config.Endpoint) GrpcTrigger {
+func NewRuntimeCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint) RunCompletionEventTrigger {
 	logger := log.FromContext(ctx)
 
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 
-	logger.Info("NewGrpcTrigger connected to", "endpoint", endpoint.URL())
+	logger.Info("RunCompletionEventTrigger client connected to", "endpoint", endpoint.URL())
 	if err != nil {
 		logger.Error(err, "Error creating grpc client")
 	}
 
 	client := pb.NewRunCompletionEventTriggerClient(conn)
 
-	return GrpcTrigger{
-		Upstream: endpoint,
+	return RunCompletionEventTrigger{
+		EndPoint: endpoint,
 		Client:   client,
 		ConnectionHandler: func() error {
 			if err := conn.Close(); err != nil {
@@ -46,12 +42,12 @@ func NewGrpcTrigger(ctx context.Context, endpoint config.Endpoint) GrpcTrigger {
 	}
 }
 
-func (gnt GrpcTrigger) call(ctx context.Context, event common.RunCompletionEvent) error {
+func (rcet RunCompletionEventTrigger) handle(ctx context.Context, event common.RunCompletionEvent) error {
 	runCompletionEvent, err := RunCompletionEventToProto(event)
 	if err != nil {
 		return err
 	}
-	_, err = gnt.Client.ProcessEventFeed(ctx, runCompletionEvent)
+	_, err = rcet.Client.ProcessEventFeed(ctx, runCompletionEvent)
 	return err
 }
 

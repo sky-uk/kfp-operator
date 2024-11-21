@@ -77,7 +77,7 @@ func (es *VaiEventingServer) StartEventSource(source *generic.EventSource, strea
 			return
 		}
 
-		es.Logger.V(1).Info("sending run completion data", "event", event)
+		es.Logger.Info("sending run completion data", "event", event)
 		if err = stream.Send(&generic.Event{
 			Name:    common.RunCompletionEventName,
 			Payload: jsonPayload,

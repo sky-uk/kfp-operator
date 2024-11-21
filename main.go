@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1alpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
@@ -175,7 +176,24 @@ func main() {
 	ctx := ctrl.SetupSignalHandler()
 
 	setupLog.Info("starting run completion feed")
-	rcf := webhook.NewRunCompletionFeed(ctx, client.NonCached, ctrlConfig.Spec.RunCompletionFeed.Endpoints)
+
+	handlers := pipelines.Map(
+		ctrlConfig.Spec.RunCompletionFeed.Endpoints,
+		func(endpoint config.Endpoint) webhook.RunCompletionEventHandler {
+			return webhook.NewRuntimeCompletionEventTrigger(ctx, endpoint)
+		},
+	)
+	statusUpdater, err := webhook.NewStatusUpdater(ctx, scheme)
+	if err != nil {
+		setupLog.Error(err, "unable to create status updater")
+		os.Exit(1)
+	}
+	handlers = append(handlers, statusUpdater)
+	rcf := webhook.NewRunCompletionFeed(
+		ctx,
+		client.NonCached,
+		handlers,
+	)
 	go func() {
 		err = rcf.Start(ctrlConfig.Spec.RunCompletionFeed.Port)
 		if err != nil {

@@ -77,7 +77,6 @@ test: fmt vet unit-test decoupled-test
 
 test-argo:
 	$(MAKE) -C argo/common test
-	$(MAKE) -C argo/status-updater test
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test
 
@@ -213,12 +212,10 @@ helm-test-provider: helm-cmd
 include docker-targets.mk
 
 docker-build-argo:
-	$(MAKE) -C argo/status-updater docker-build
 	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/providers docker-build
 
 docker-push-argo:
-	$(MAKE) -C argo/status-updater docker-push
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/providers docker-push
 
