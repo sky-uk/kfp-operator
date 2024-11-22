@@ -64,6 +64,8 @@ func NewKfpEventSource(ctx context.Context, provider string, namespace string) (
 	logger := common.LoggerFromContext(ctx)
 	k8sClient, err := NewK8sClient()
 	if err != nil {
+		logger.Error(err, "failed to initialise K8s Client")
+
 		return nil, err
 	}
 
@@ -72,16 +74,19 @@ func NewKfpEventSource(ctx context.Context, provider string, namespace string) (
 	}
 
 	if err = LoadProvider[KfpProviderConfig](ctx, k8sClient.Client, provider, namespace, config); err != nil {
+		logger.Error(err, "failed to load provider", "name", provider, "namespace", namespace)
 		return nil, err
 	}
 
 	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
 	if err != nil {
+		logger.Error(err, "failed to connect to metadata store", "address", config.Parameters.GrpcMetadataStoreAddress)
 		return nil, err
 	}
 
 	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
 	if err != nil {
+		logger.Error(err, "failed to connect to Kubeflow API", "address", config.Parameters.GrpcKfpApiAddress)
 		return nil, err
 	}
 
@@ -97,7 +102,7 @@ func NewKfpEventSource(ctx context.Context, provider string, namespace string) (
 	go func() {
 		err := kfpEventDataSource.start(ctx, config.Parameters.KfpNamespace)
 		if err != nil {
-			logger.Error(err, "Failed to start KFP event source")
+			logger.Error(err, "failed to start KFP event source")
 			os.Exit(1)
 		}
 	}()

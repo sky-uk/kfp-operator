@@ -1,9 +1,9 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"go.uber.org/zap/zapcore"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -19,13 +19,8 @@ type Pod struct {
 	Namespace string `mapstructure:"namespace"`
 }
 
-func LoadConfig() (*Config, error) {
-	logger, err := common.NewLogger(zapcore.InfoLevel)
-	if err != nil {
-		logger.Error(err, "Failed to create zap logger")
-		return nil, err
-	}
-
+func LoadConfig(ctx context.Context) (*Config, error) {
+	logger := common.LoggerFromContext(ctx)
 	config, err := load()
 
 	if err != nil {
