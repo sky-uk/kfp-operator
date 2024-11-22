@@ -68,6 +68,7 @@ func NewVaiEventSource(ctx context.Context, provider string, namespace string) (
 	logger := common.LoggerFromContext(ctx)
 	k8sClient, err := NewK8sClient()
 	if err != nil {
+		logger.Error(err, "failed to initialise K8s Client")
 		return nil, err
 	}
 
@@ -76,17 +77,20 @@ func NewVaiEventSource(ctx context.Context, provider string, namespace string) (
 	}
 
 	if err = LoadProvider[VAIProviderConfig](ctx, k8sClient.Client, provider, namespace, config); err != nil {
+		logger.Error(err, "failed to load provider", "name", provider, "namespace", namespace)
 		return nil, err
 	}
 
 	pubSubClient, err := pubsub.NewClient(ctx, config.Parameters.VaiProject)
 	if err != nil {
+		logger.Error(err, "failed to create pubsub client", "project", config.Parameters.VaiProject)
 		return nil, err
 	}
 	runsSubscription := pubSubClient.Subscription(config.Parameters.EventsourcePipelineEventsSubscription)
 
 	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(config.vaiEndpoint()))
 	if err != nil {
+		logger.Error(err, "failed to create VAI pipeline client", "endpoint", config.vaiEndpoint())
 		return nil, err
 	}
 
