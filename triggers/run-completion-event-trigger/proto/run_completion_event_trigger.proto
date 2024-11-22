@@ -4,7 +4,7 @@ import "google/protobuf/empty.proto";
 
 package run_completion_event_trigger;
 
-option go_package = "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto/run-completion-event-trigger";
+option go_package = "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto/run-completion-event-trigger;run_completion_event_trigger";
 
 service RunCompletionEventTrigger {
   rpc ProcessEventFeed(RunCompletionEvent) returns (google.protobuf.Empty) {};
