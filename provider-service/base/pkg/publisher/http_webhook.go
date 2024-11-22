@@ -3,7 +3,6 @@ package publisher
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -62,7 +61,9 @@ func (hws HttpWebhookSink) send(rced common.RunCompletionEventData) error {
 	}
 
 	if response.StatusCode() != 200 {
-		return errors.New(fmt.Sprintf("KFP Operator error response received with http status code: [%s]", response.Status()))
+		logger := common.LoggerFromContext(hws.context)
+		logger.Info("Error returned from Webhook", "status", response.Status(), "body", response.Body(), "event", rced)
+		return fmt.Errorf("KFP Operator error response received with http status code: [%s]", response.Status())
 	}
 
 	return nil
