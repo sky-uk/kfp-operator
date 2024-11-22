@@ -1,6 +1,6 @@
 //go:build unit
 
-package kfp
+package internal
 
 import (
 	"time"

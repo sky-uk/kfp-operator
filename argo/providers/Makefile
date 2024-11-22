@@ -8,6 +8,7 @@ base-test:
 	go test ./base/... -tags=unit
 
 test: base-test
+	$(MAKE) -C kfp test
 	$(MAKE) -C vai test
 
 build:

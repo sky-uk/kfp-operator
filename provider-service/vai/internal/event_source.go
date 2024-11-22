@@ -43,16 +43,25 @@ var labels = struct {
 }
 
 type PipelineJobClient interface {
-	GetPipelineJob(ctx context.Context, req *aiplatformpb.GetPipelineJobRequest, opts ...gax.CallOption) (*aiplatformpb.PipelineJob, error)
+	GetPipelineJob(
+		ctx context.Context,
+		req *aiplatformpb.GetPipelineJobRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.PipelineJob, error)
 }
 
 type VaiEventSource struct {
-	RunsSubscription  *pubsub.Subscription
-	K8sClient         K8sClient
+	RunsSubscription                 *pubsub.Subscription
+	Logger                           logr.Logger
+	RunCompletionEventConversionFlow streams.Flow
+	out                              chan any
+}
+
+type VaiEventFlow struct {
 	ProviderConfig    VAIProviderConfig
 	PipelineJobClient PipelineJobClient
 	Logger            logr.Logger
-	out               chan any
+	context           context.Context
 }
 
 type VaiResource struct {
@@ -66,42 +75,41 @@ type VaiLogEntry struct {
 
 func NewVaiEventSource(ctx context.Context, provider string, namespace string) (*VaiEventSource, error) {
 	logger := common.LoggerFromContext(ctx)
-	k8sClient, err := NewK8sClient()
+
+	config, err := loadProviderConfig(ctx, provider, namespace, logger)
 	if err != nil {
-		return nil, err
-	}
-
-	config := &VAIProviderConfig{
-		Name: provider,
-	}
-
-	if err = LoadProvider[VAIProviderConfig](ctx, k8sClient.Client, provider, namespace, config); err != nil {
 		return nil, err
 	}
 
 	pubSubClient, err := pubsub.NewClient(ctx, config.Parameters.VaiProject)
 	if err != nil {
+		logger.Error(err, "failed to create pubsub client", "project", config.Parameters.VaiProject)
 		return nil, err
 	}
+
 	runsSubscription := pubSubClient.Subscription(config.Parameters.EventsourcePipelineEventsSubscription)
 
 	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(config.vaiEndpoint()))
 	if err != nil {
+		logger.Error(err, "failed to create VAI pipeline client", "endpoint", config.vaiEndpoint())
 		return nil, err
 	}
 
-	vaiEventDataSource := &VaiEventSource{
-		K8sClient:         *k8sClient,
+	vaiEventFlow := VaiEventFlow{
 		ProviderConfig:    *config,
-		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,
 		Logger:            logger,
-		out:               make(chan any),
+		context:           ctx,
+	}
+
+	vaiEventDataSource := &VaiEventSource{
+		RunCompletionEventConversionFlow: vaiEventFlow.ToVaiRCE(),
+		Logger:                           logger,
+		out:                              make(chan any),
 	}
 
 	go func() {
-		err := vaiEventDataSource.subscribe(ctx)
-		if err != nil {
+		if err := vaiEventDataSource.subscribe(ctx, runsSubscription); err != nil {
 			logger.Error(err, "Failed to subscribe", "subscription", config.Parameters.EventsourcePipelineEventsSubscription)
 			os.Exit(1)
 		}
@@ -110,86 +118,118 @@ func NewVaiEventSource(ctx context.Context, provider string, namespace string) (
 	return vaiEventDataSource, nil
 }
 
-func (s *VaiEventSource) Via(operator streams.Flow) streams.Flow {
-	flow.DoStream(s, operator)
+func loadProviderConfig(ctx context.Context, provider string, namespace string, logger logr.Logger) (*VAIProviderConfig, error) {
+	k8sClient, err := NewK8sClient()
+	if err != nil {
+		logger.Error(err, "failed to initialise K8s Client")
+		return nil, err
+	}
+
+	config := &VAIProviderConfig{
+		Name: provider,
+	}
+
+	if err = LoadProvider(ctx, k8sClient.Client, provider, namespace, config); err != nil {
+		logger.Error(err, "failed to load provider", "name", provider, "namespace", namespace)
+		return nil, err
+	}
+	return config, err
+}
+
+func (es *VaiEventSource) Via(operator streams.Flow) streams.Flow {
+	flow.DoStream(es, operator)
 	return operator
 }
 
-func (s *VaiEventSource) Out() <-chan any {
-	return s.out
+func (ef *VaiEventFlow) ToRunCompletionEventData(message StreamMessage[string]) StreamMessage[*common.RunCompletionEventData] {
+	event := ef.runCompletionEventDataForRun(message.Message)
+	if event == nil {
+		ef.Logger.Info("failed to convert to run completion event data", "jobId", message.Message)
+		message.OnFailureHandler()
+		return StreamMessage[*common.RunCompletionEventData]{}
+	}
+
+	return StreamMessage[*common.RunCompletionEventData]{
+		Message:            event,
+		OnCompleteHandlers: message.OnCompleteHandlers,
+	}
 }
 
-func (s *VaiEventSource) subscribe(ctx context.Context) error {
-	s.Logger.Info("subscribing to pubsub...")
+func (ef *VaiEventFlow) ToVaiRCE() streams.Flow {
+	filterEmptyMessages := flow.NewFilter(func(data StreamMessage[*common.RunCompletionEventData]) bool {
+		return data.Message != nil
+	}, 1)
+	return flow.NewMap(ef.ToRunCompletionEventData, 1).Via(filterEmptyMessages)
+}
 
-	err := s.RunsSubscription.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
-		s.Logger.Info(fmt.Sprintf("message received from Pub/Sub with ID: %s", m.ID))
+func (es *VaiEventSource) Out() <-chan any {
+	return es.out
+}
+
+func (es *VaiEventSource) subscribe(ctx context.Context, runsSubscription *pubsub.Subscription) error {
+	es.Logger.Info("subscribing to pubsub...")
+
+	err := runsSubscription.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
+		es.Logger.Info(fmt.Sprintf("message received from Pub/Sub with ID: %s", m.ID))
 		logEntry := VaiLogEntry{}
 		err := json.Unmarshal(m.Data, &logEntry)
 		if err != nil {
-			s.Logger.Error(err, "failed to unmarshal Pub/Sub message")
+			es.Logger.Error(err, "failed to unmarshal Pub/Sub message")
 			m.Nack()
 			return
 		}
-		s.Logger.Info(fmt.Sprintf("%+v", logEntry))
+		es.Logger.Info(fmt.Sprintf("%+v", logEntry))
 
 		pipelineJobId, ok := logEntry.Resource.Labels["pipeline_job_id"]
 		if !ok {
-			s.Logger.Error(err, fmt.Sprintf("logEntry did not contain pipeline_job_id %+v", logEntry))
-			m.Nack()
-			return
-		}
-
-		event := s.runCompletionEventDataForRun(ctx, pipelineJobId)
-		if event == nil {
-			s.Logger.Error(err, fmt.Sprintf("failed to convert to run completion event data %s", pipelineJobId))
+			es.Logger.Error(err, fmt.Sprintf("logEntry did not contain pipeline_job_id %+v", logEntry))
 			m.Nack()
 			return
 		}
 
 		select {
-		case s.out <- StreamMessage{
-			RunCompletionEventData: *event,
+		case es.out <- StreamMessage[string]{
+			Message: pipelineJobId,
 			OnCompleteHandlers: OnCompleteHandlers{
 				OnSuccessHandler: func() { m.Ack() },
 				OnFailureHandler: func() { m.Nack() },
 			},
 		}:
 		case <-ctx.Done():
-			s.Logger.Info("stopped reading from pubsub")
+			es.Logger.Info("stopped reading from pubsub")
 			return
 		}
 	})
 
 	if err != nil {
-		s.Logger.Error(err, "failed to read from pubsub")
+		es.Logger.Error(err, "failed to read from pubsub")
 		return err
 	}
 
 	return nil
 }
 
-func (s *VaiEventSource) runCompletionEventDataForRun(ctx context.Context, runId string) *common.RunCompletionEventData {
-	job, err := s.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
-		Name: s.ProviderConfig.pipelineJobName(runId),
+func (ef *VaiEventFlow) runCompletionEventDataForRun(runId string) *common.RunCompletionEventData {
+	job, err := ef.PipelineJobClient.GetPipelineJob(ef.context, &aiplatformpb.GetPipelineJobRequest{
+		Name: ef.ProviderConfig.pipelineJobName(runId),
 	})
 	if err != nil {
-		s.Logger.Error(err, "could not fetch pipeline job")
+		ef.Logger.Error(err, "could not fetch pipeline job")
 		return nil
 	}
 	if job == nil {
-		s.Logger.Error(nil, "expected pipeline job not found", "run-id", runId)
+		ef.Logger.Error(nil, "expected pipeline job not found", "run-id", runId)
 		return nil
 	}
 
-	return s.toRunCompletionEventData(job, runId)
+	return ef.toRunCompletionEventData(job, runId)
 }
 
-func (s *VaiEventSource) toRunCompletionEventData(job *aiplatformpb.PipelineJob, runId string) *common.RunCompletionEventData {
+func (ef *VaiEventFlow) toRunCompletionEventData(job *aiplatformpb.PipelineJob, runId string) *common.RunCompletionEventData {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
-		s.Logger.Error(nil, "expected pipeline job to have finished", "run-id", runId)
+		ef.Logger.Error(nil, "expected pipeline job to have finished", "run-id", runId)
 		return nil
 	}
 
@@ -218,7 +258,7 @@ func (s *VaiEventSource) toRunCompletionEventData(job *aiplatformpb.PipelineJob,
 		RunId:                 runId,
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 		PipelineComponents:    artifactsFilterData(job),
-		Provider:              s.ProviderConfig.Name,
+		Provider:              ef.ProviderConfig.Name,
 	}
 }
 

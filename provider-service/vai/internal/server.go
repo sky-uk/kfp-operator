@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"github.com/go-resty/resty/v2"
-	"github.com/reugn/go-streams/flow"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/publisher"
@@ -18,5 +17,5 @@ func Start(ctx context.Context, config config.Config) {
 		os.Exit(1)
 	}
 	sink := publisher.NewHttpWebhookSink(ctx, config.OperatorWebhook, resty.New(), make(chan any))
-	source.Via(flow.NewPassThrough()).To(sink)
+	source.Via(source.RunCompletionEventConversionFlow).To(sink)
 }

@@ -4,7 +4,6 @@ package internal
 
 import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"context"
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/golang/mock/gomock"
@@ -32,20 +31,20 @@ var _ = Context("VaiEventingServer", func() {
 	var (
 		mockCtrl              *gomock.Controller
 		mockPipelineJobClient *MockPipelineJobClient
-		eventingServer        VaiEventSource
+		eventingFlow          VaiEventFlow
 	)
 
 	BeforeEach(func() {
 		mockCtrl = gomock.NewController(GinkgoT())
 		mockPipelineJobClient = NewMockPipelineJobClient(mockCtrl)
-		eventingServer = VaiEventSource{
+		eventingFlow = VaiEventFlow{
 			ProviderConfig: VAIProviderConfig{
 				Name: common.RandomString(),
 			},
 			PipelineJobClient: mockPipelineJobClient,
 			Logger:            logr.Discard(),
-			out:               make(chan any),
 		}
+
 	})
 
 	AfterEach(func() {
@@ -53,7 +52,7 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEventData for job that has not completed", func(state aiplatformpb.PipelineState) {
-		Expect(eventingServer.toRunCompletionEventData(&aiplatformpb.PipelineJob{State: state}, common.RandomString())).To(BeNil())
+		Expect(eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{State: state}, common.RandomString())).To(BeNil())
 	},
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_UNSPECIFIED),
 		Entry("Unspecified", aiplatformpb.PipelineState_PIPELINE_STATE_QUEUED),
@@ -68,7 +67,7 @@ var _ = Context("VaiEventingServer", func() {
 		pipelineName := common.RandomNamespacedName()
 		pipelineRunName := common.RandomNamespacedName()
 
-		Expect(eventingServer.toRunCompletionEventData(&aiplatformpb.PipelineJob{
+		Expect(eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{
 			Name: pipelineRunName.Name,
 			Labels: map[string]string{
 				labels.RunConfigurationName:      runConfigurationName.Name,
@@ -105,7 +104,7 @@ var _ = Context("VaiEventingServer", func() {
 					Location: "gs://some/where",
 				},
 			},
-			Provider: eventingServer.ProviderConfig.Name,
+			Provider: eventingFlow.ProviderConfig.Name,
 			PipelineComponents: []common.PipelineComponent{
 				{
 					Name: "my-task-name",
@@ -427,7 +426,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("an error"))
-				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString())
+				event := eventingFlow.runCompletionEventDataForRun(common.RandomString())
 				Expect(event).To(BeNil())
 			})
 		})
@@ -435,7 +434,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob return no result", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, nil)
-				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString())
+				event := eventingFlow.runCompletionEventDataForRun(common.RandomString())
 				Expect(event).To(BeNil())
 			})
 		})
@@ -445,7 +444,7 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
 					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
 				}, nil)
-				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString())
+				event := eventingFlow.runCompletionEventDataForRun(common.RandomString())
 				Expect(event).NotTo(BeNil())
 			})
 		})

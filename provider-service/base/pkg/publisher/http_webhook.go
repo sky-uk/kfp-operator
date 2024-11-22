@@ -3,7 +3,6 @@ package publisher
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -34,19 +33,22 @@ func (hws HttpWebhookSink) SendEvents() {
 	for data := range hws.in {
 		var err error
 		switch object := data.(type) {
-		case pkg.StreamMessage:
-			err = hws.send(object.RunCompletionEventData)
-			if err != nil {
-				logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", object))
-				object.OnFailure()
+		case pkg.StreamMessage[*common.RunCompletionEventData]:
+			if object.Message != nil {
+				err = hws.send(*object.Message)
+				if err != nil {
+					logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", object))
+					object.OnFailure()
+				} else {
+					logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", object))
+					object.OnSuccess()
+				}
 			} else {
-				logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", object))
-				object.OnSuccess()
+				logger.Info("Discarding empty message")
 			}
 		default:
 			logger.Info("Unknown object type in stream", "unknown", fmt.Sprintf("%+v", object))
 		}
-
 	}
 }
 
@@ -62,7 +64,9 @@ func (hws HttpWebhookSink) send(rced common.RunCompletionEventData) error {
 	}
 
 	if response.StatusCode() != 200 {
-		return errors.New(fmt.Sprintf("KFP Operator error response received with http status code: [%s]", response.Status()))
+		logger := common.LoggerFromContext(hws.context)
+		logger.Info("Error returned from Webhook", "status", response.Status(), "body", response.Body(), "event", rced)
+		return fmt.Errorf("KFP Operator error response received with http status code: [%s]", response.Status())
 	}
 
 	return nil
