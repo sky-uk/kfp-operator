@@ -104,8 +104,7 @@ func NewVaiEventSource(ctx context.Context, provider string, namespace string) (
 	}
 
 	go func() {
-		err := vaiEventDataSource.subscribe(ctx)
-		if err != nil {
+		if err := vaiEventDataSource.subscribe(ctx); err != nil {
 			logger.Error(err, "Failed to subscribe", "subscription", config.Parameters.EventsourcePipelineEventsSubscription)
 			os.Exit(1)
 		}

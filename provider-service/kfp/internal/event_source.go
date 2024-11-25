@@ -100,8 +100,7 @@ func NewKfpEventSource(ctx context.Context, provider string, namespace string) (
 	}
 
 	go func() {
-		err := kfpEventDataSource.start(ctx, config.Parameters.KfpNamespace)
-		if err != nil {
+		if err := kfpEventDataSource.start(ctx, config.Parameters.KfpNamespace); err != nil {
 			logger.Error(err, "failed to start KFP event source")
 			os.Exit(1)
 		}

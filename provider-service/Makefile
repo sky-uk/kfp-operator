@@ -3,14 +3,9 @@ build:
 	$(MAKE) -C vai build
 
 test:
-#	$(MAKE) -C base test
+	$(MAKE) -C base test
 	$(MAKE) -C kfp test
 	$(MAKE) -C vai test
-
-#functional-test: docker-build
-#	docker compose up -d
-#	go test ./... -tags=functional
-#	docker compose down
 
 ##@ Containers
 
