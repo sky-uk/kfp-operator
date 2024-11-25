@@ -24,7 +24,6 @@ var ProviderConstants = struct {
 	RunIdParameter                 string
 	PipelineFileParameter          string
 	OutputParameter                string
-	EventsourceServerPortParameter string
 	Namespace                      string
 }{
 	PipelineDefinitionParameter:    "pipeline-definition",
@@ -38,7 +37,6 @@ var ProviderConstants = struct {
 	RunScheduleIdParameter:         "runschedule-id",
 	PipelineFileParameter:          "pipeline-file",
 	OutputParameter:                "out",
-	EventsourceServerPortParameter: "port",
 	Namespace:                      "namespace",
 }
 
