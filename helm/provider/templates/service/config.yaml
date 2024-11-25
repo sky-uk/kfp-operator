@@ -9,4 +9,4 @@ data:
     providerName: {{ $providerName }}
     operatorWebhook: http://{{ .Values.kfpOperator.fullname}}-runcompletion-webhook-service/events
     pod:
-      namespace: to-be-overridden
+      namespace: "To be overridden by env var POD_NAMESPACE"
