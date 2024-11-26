@@ -71,9 +71,9 @@ integration-test-down:
 	minikube stop -p kfp-operator-tests
 
 minikube-install-dependencies:
-	helm repo add argo https://argoproj.github.io/argo-helm
-	helm install argo-workflows argo/argo-workflows -n argo --create-namespace
-	helm install argo-events argo/argo-events -n argo-events --create-namespace
+	$(HELM) repo add argo https://argoproj.github.io/argo-helm
+	$(HELM) install argo-workflows argo/argo-workflows -n argo --create-namespace
+	$(HELM) install argo-events argo/argo-events -n argo-events --create-namespace
 	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.crds.yaml
 	openssl req -newkey rsa:2048 -nodes -keyout webhook-server-key.pem -x509 -days 365 -out webhook-server-cert.pem -subj "/CN=webhook-server.kubeflow.svc"
 	kubectl create namespace kfp-operator-system
@@ -81,24 +81,27 @@ minikube-install-dependencies:
 
 minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 
+minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect minikube --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
+
 minikube-install-operator:
-	CONTAINER_REPOSITORIES=localhost:5000 $(MAKE) docker-push docker-push-triggers
-	CONTAINER_REPOSITORIES=localhost:5000 $(MAKE) -C argo/providers docker-push
+	CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT} $(MAKE) docker-push docker-push-triggers
+	CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT} $(MAKE) -C argo/providers docker-push
+	$(MAKE) helm-install-operator
 
-minikube-proxy-registry: export MINIKUBE_IP=$(shell minikube ip)
-
-minikube-proxy-registry:
-	docker run -d --rm -it --network=host --name minikube-registry-proxy alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:${MINIKUBE_IP}:5000"
+minikube-install-stub-provider:
+	$(MAKE) -C argo/providers/stub docker-build && \
+	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
+		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
+		kubectl apply -f -
 
 minikube-start:
 	minikube start --driver=docker
 	minikube addons enable registry
 
-minikube-up: minikube-start minikube-proxy-registry minikube-install-dependencies minikube-install-operator
+minikube-up: minikube-start minikube-install-dependencies minikube-install-operator minikube-install-stub-provider
 
 minikube-delete:
 	minikube delete
-	docker kill minikube-registry-proxy
 
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
