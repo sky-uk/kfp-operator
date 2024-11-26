@@ -3,9 +3,8 @@ package internal
 import (
 	"context"
 	"errors"
-	"os"
-	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_client/experiment_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/experiment_model"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/job_client/job_service"
@@ -14,8 +13,11 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client/run_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_model"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
+	"os"
 )
 
 type KfpProviderConfig struct {
@@ -27,6 +29,19 @@ type Parameters struct {
 	RestKfpApiUrl            string `yaml:"restKfpApiUrl,omitempty"`
 	GrpcMetadataStoreAddress string `yaml:"grpcMetadataStoreAddress,omitempty"`
 	GrpcKfpApiAddress        string `yaml:"grpcKfpApiAddress,omitempty"`
+}
+
+type ResourceReferences struct {
+	PipelineName         common.NamespacedName        `yaml:"pipelineName"`
+	RunConfigurationName common.NamespacedName        `yaml:"runConfigurationName"`
+	RunName              common.NamespacedName        `yaml:"runName"`
+	Artifacts            []pipelinesv1.OutputArtifact `yaml:"artifacts,omitempty"`
+}
+
+var kfpApiConstants = struct {
+	KfpResourceNotFoundCode int32
+}{
+	KfpResourceNotFoundCode: 5,
 }
 
 type KfpProvider struct{}
