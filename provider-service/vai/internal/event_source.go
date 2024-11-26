@@ -76,7 +76,7 @@ func NewVaiEventSource(ctx context.Context, provider string, namespace string) (
 		Name: provider,
 	}
 
-	if err = LoadProvider[VAIProviderConfig](ctx, k8sClient.Client, provider, namespace, config); err != nil {
+	if err = LoadProvider(ctx, k8sClient.Client, provider, namespace, config); err != nil {
 		logger.Error(err, "failed to load provider", "name", provider, "namespace", namespace)
 		return nil, err
 	}
