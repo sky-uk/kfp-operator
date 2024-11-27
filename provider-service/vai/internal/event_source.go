@@ -52,7 +52,6 @@ type PipelineJobClient interface {
 
 type VaiEventSource struct {
 	RunsSubscription  *pubsub.Subscription
-	K8sClient         K8sClient
 	ProviderConfig    VAIProviderConfig
 	PipelineJobClient PipelineJobClient
 	Logger            logr.Logger
@@ -99,7 +98,6 @@ func NewVaiEventSource(ctx context.Context, provider string, namespace string) (
 	}
 
 	vaiEventDataSource := &VaiEventSource{
-		K8sClient:         *k8sClient,
 		ProviderConfig:    *config,
 		RunsSubscription:  runsSubscription,
 		PipelineJobClient: pipelineJobClient,
