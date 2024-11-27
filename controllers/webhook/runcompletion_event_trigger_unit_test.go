@@ -5,6 +5,7 @@ package webhook
 import (
 	"context"
 	"errors"
+
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -114,6 +115,22 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				Provider:              "some-provider",
 			}
 			Expect(protoRce).To(Equal(expectedResult))
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("returns an empty slice for no artifacts when event data is converted to proto runcompletion event", func() {
+			rceWithoutArtifacts := rce
+			rceWithoutArtifacts.Artifacts = []common.Artifact{}
+			rceWithoutArtifacts.ServingModelArtifacts = []common.Artifact{}
+
+			protoRce, err := RunCompletionEventToProto(rceWithoutArtifacts)
+			expectedArtifacts := []*pb.Artifact{}
+
+			Expect(protoRce.Artifacts).To(Not(BeNil()))
+			Expect(protoRce.Artifacts).To(Equal(expectedArtifacts))
+			Expect(protoRce.ServingModelArtifacts).To(Not(BeNil()))
+			Expect(protoRce.ServingModelArtifacts).To(Equal(expectedArtifacts))
+
 			Expect(err).NotTo(HaveOccurred())
 		})
 
