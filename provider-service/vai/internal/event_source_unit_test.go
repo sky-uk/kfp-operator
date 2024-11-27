@@ -42,8 +42,8 @@ var _ = Context("VaiEventingServer", func() {
 			ProviderConfig: VAIProviderConfig{
 				Name: common.RandomString(),
 			},
-			Logger:            logr.Discard(),
-			out:               make(chan any),
+			Logger: logr.Discard(),
+			out:    make(chan any),
 		}
 	})
 

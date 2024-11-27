@@ -49,10 +49,10 @@ type PipelineJobClient interface {
 }
 
 type VaiEventSource struct {
-	RunsSubscription  *pubsub.Subscription
-	ProviderConfig    VAIProviderConfig
-	Logger            logr.Logger
-	out               chan any
+	RunsSubscription *pubsub.Subscription
+	ProviderConfig   VAIProviderConfig
+	Logger           logr.Logger
+	out              chan any
 }
 
 type VaiResource struct {
@@ -93,17 +93,11 @@ func NewVaiEventSource(
 	}
 	runsSubscription := pubSubClient.Subscription(config.Parameters.EventsourcePipelineEventsSubscription)
 
-	// pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(config.vaiEndpoint()))
-	// if err != nil {
-	// 	logger.Error(err, "failed to create VAI pipeline client", "endpoint", config.vaiEndpoint())
-	// 	return nil, err
-	// }
-
 	vaiEventDataSource := &VaiEventSource{
-		ProviderConfig:    *config,
-		RunsSubscription:  runsSubscription,
-		Logger:            logger,
-		out:               make(chan any),
+		ProviderConfig:   *config,
+		RunsSubscription: runsSubscription,
+		Logger:           logger,
+		out:              make(chan any),
 	}
 
 	go func() {
