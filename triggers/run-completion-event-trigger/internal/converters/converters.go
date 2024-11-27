@@ -35,7 +35,7 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 }
 
 func artifactsConverter(artifacts []*pb.Artifact) []common.Artifact {
-	var commonArtifacts []common.Artifact
+	commonArtifacts := []common.Artifact{}
 
 	for _, pbArtifact := range artifacts {
 		commonArtifact := common.Artifact{
