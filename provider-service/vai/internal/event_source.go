@@ -1,7 +1,6 @@
 package internal
 
 import (
-	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"cloud.google.com/go/pubsub"
 	"context"
@@ -13,7 +12,6 @@ import (
 	"github.com/reugn/go-streams/flow"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
-	"google.golang.org/api/option"
 	"os"
 )
 
@@ -53,7 +51,6 @@ type PipelineJobClient interface {
 type VaiEventSource struct {
 	RunsSubscription  *pubsub.Subscription
 	ProviderConfig    VAIProviderConfig
-	PipelineJobClient PipelineJobClient
 	Logger            logr.Logger
 	out               chan any
 }
@@ -67,7 +64,12 @@ type VaiLogEntry struct {
 	Resource VaiResource       `json:"resource"`
 }
 
-func NewVaiEventSource(ctx context.Context, provider string, namespace string) (*VaiEventSource, error) {
+func NewVaiEventSource(
+	ctx context.Context,
+	provider string,
+	namespace string,
+	pipelineJobClient PipelineJobClient,
+) (*VaiEventSource, error) {
 	logger := common.LoggerFromContext(ctx)
 	k8sClient, err := NewK8sClient()
 	if err != nil {
@@ -91,22 +93,21 @@ func NewVaiEventSource(ctx context.Context, provider string, namespace string) (
 	}
 	runsSubscription := pubSubClient.Subscription(config.Parameters.EventsourcePipelineEventsSubscription)
 
-	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(config.vaiEndpoint()))
-	if err != nil {
-		logger.Error(err, "failed to create VAI pipeline client", "endpoint", config.vaiEndpoint())
-		return nil, err
-	}
+	// pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(config.vaiEndpoint()))
+	// if err != nil {
+	// 	logger.Error(err, "failed to create VAI pipeline client", "endpoint", config.vaiEndpoint())
+	// 	return nil, err
+	// }
 
 	vaiEventDataSource := &VaiEventSource{
 		ProviderConfig:    *config,
 		RunsSubscription:  runsSubscription,
-		PipelineJobClient: pipelineJobClient,
 		Logger:            logger,
 		out:               make(chan any),
 	}
 
 	go func() {
-		if err := vaiEventDataSource.subscribe(ctx); err != nil {
+		if err := vaiEventDataSource.subscribe(ctx, pipelineJobClient); err != nil {
 			logger.Error(err, "Failed to subscribe", "subscription", config.Parameters.EventsourcePipelineEventsSubscription)
 			os.Exit(1)
 		}
@@ -124,7 +125,7 @@ func (es *VaiEventSource) Out() <-chan any {
 	return es.out
 }
 
-func (es *VaiEventSource) subscribe(ctx context.Context) error {
+func (es *VaiEventSource) subscribe(ctx context.Context, pipelineJobClient PipelineJobClient) error {
 	es.Logger.Info("subscribing to pubsub...")
 
 	err := es.RunsSubscription.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
@@ -145,7 +146,7 @@ func (es *VaiEventSource) subscribe(ctx context.Context) error {
 			return
 		}
 
-		event := es.runCompletionEventDataForRun(ctx, pipelineJobId)
+		event := es.runCompletionEventDataForRun(ctx, pipelineJobId, pipelineJobClient)
 		if event == nil {
 			es.Logger.Error(err, fmt.Sprintf("failed to convert to run completion event data %s", pipelineJobId))
 			m.Nack()
@@ -174,8 +175,12 @@ func (es *VaiEventSource) subscribe(ctx context.Context) error {
 	return nil
 }
 
-func (es *VaiEventSource) runCompletionEventDataForRun(ctx context.Context, runId string) *common.RunCompletionEventData {
-	job, err := es.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
+func (es *VaiEventSource) runCompletionEventDataForRun(
+	ctx context.Context,
+	runId string,
+	pipelineJobClient PipelineJobClient,
+) *common.RunCompletionEventData {
+	job, err := pipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
 		Name: es.ProviderConfig.pipelineJobName(runId),
 	})
 	if err != nil {

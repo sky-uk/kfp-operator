@@ -42,7 +42,6 @@ var _ = Context("VaiEventingServer", func() {
 			ProviderConfig: VAIProviderConfig{
 				Name: common.RandomString(),
 			},
-			PipelineJobClient: mockPipelineJobClient,
 			Logger:            logr.Discard(),
 			out:               make(chan any),
 		}
@@ -427,7 +426,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("an error"))
-				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString())
+				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString(), mockPipelineJobClient)
 				Expect(event).To(BeNil())
 			})
 		})
@@ -435,7 +434,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob return no result", func() {
 			It("returns no event", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, nil)
-				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString())
+				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString(), mockPipelineJobClient)
 				Expect(event).To(BeNil())
 			})
 		})
@@ -445,7 +444,7 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
 					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
 				}, nil)
-				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString())
+				event := eventingServer.runCompletionEventDataForRun(context.Background(), common.RandomString(), mockPipelineJobClient)
 				Expect(event).NotTo(BeNil())
 			})
 		})
