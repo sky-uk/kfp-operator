@@ -42,7 +42,7 @@ func Start(ctx context.Context, config config.Config) {
 		logger.Error(err, "failed to create VAI pipeline client", "endpoint", providerConfig.vaiEndpoint())
 		os.Exit(1)
 	}
-	source, err := NewVaiEventSource(ctx, config.ProviderName, config.Pod.Namespace, pipelineJobClient)
+	source, err := NewVaiEventSource(ctx, *providerConfig, pipelineJobClient)
 	if err != nil {
 		logger.Error(err, "Failed to create VAI event data source")
 		os.Exit(1)

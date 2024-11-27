@@ -66,25 +66,10 @@ type VaiLogEntry struct {
 
 func NewVaiEventSource(
 	ctx context.Context,
-	provider string,
-	namespace string,
+	config VAIProviderConfig,
 	pipelineJobClient PipelineJobClient,
 ) (*VaiEventSource, error) {
 	logger := common.LoggerFromContext(ctx)
-	k8sClient, err := NewK8sClient()
-	if err != nil {
-		logger.Error(err, "failed to initialise K8s Client")
-		return nil, err
-	}
-
-	config := &VAIProviderConfig{
-		Name: provider,
-	}
-
-	if err = LoadProvider(ctx, k8sClient.Client, provider, namespace, config); err != nil {
-		logger.Error(err, "failed to load provider", "name", provider, "namespace", namespace)
-		return nil, err
-	}
 
 	pubSubClient, err := pubsub.NewClient(ctx, config.Parameters.VaiProject)
 	if err != nil {
@@ -94,7 +79,7 @@ func NewVaiEventSource(
 	runsSubscription := pubSubClient.Subscription(config.Parameters.EventsourcePipelineEventsSubscription)
 
 	vaiEventDataSource := &VaiEventSource{
-		ProviderConfig:   *config,
+		ProviderConfig:   config,
 		RunsSubscription: runsSubscription,
 		Logger:           logger,
 		out:              make(chan any),
