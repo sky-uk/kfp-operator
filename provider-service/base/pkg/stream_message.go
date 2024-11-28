@@ -1,6 +1,6 @@
 package pkg
 
-import "github.com/sky-uk/kfp-operator/argo/common"
+import _ "github.com/sky-uk/kfp-operator/argo/common"
 
 type OnCompleteHandlers struct {
 	OnSuccessHandler func()
@@ -19,7 +19,7 @@ func (onc OnCompleteHandlers) OnFailure() {
 	}
 }
 
-type StreamMessage struct {
-	RunCompletionEventData common.RunCompletionEventData
+type StreamMessage[T any] struct {
+	Message T
 	OnCompleteHandlers
 }
