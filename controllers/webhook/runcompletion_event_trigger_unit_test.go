@@ -118,7 +118,7 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("returns an empty slice for no artifacts when event data is converted to proto runcompletion event", func() {
+		It("returns empty slices when there are no artifacts", func() {
 			rceWithoutArtifacts := rce
 			rceWithoutArtifacts.Artifacts = []common.Artifact{}
 			rceWithoutArtifacts.ServingModelArtifacts = []common.Artifact{}
