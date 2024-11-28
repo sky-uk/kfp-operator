@@ -127,10 +127,10 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			protoRce, err := RunCompletionEventToProto(rceWithoutArtifacts)
 			Expect(err).NotTo(HaveOccurred())
 
-			expectedArtifacts := []*pb.Artifact{}
+			emptySliceOfArtifacts := []*pb.Artifact{}
 
-			Expect(protoRce.Artifacts).To(Equal(expectedArtifacts))
-			Expect(protoRce.ServingModelArtifacts).To(Equal(expectedArtifacts))
+			Expect(protoRce.Artifacts).To(Equal(emptySliceOfArtifacts))
+			Expect(protoRce.ServingModelArtifacts).To(Equal(emptySliceOfArtifacts))
 		})
 
 		It("returns no error when event data with no RunName provided is converted to proto runcompletion event", func() {
