@@ -33,14 +33,18 @@ func (hws HttpWebhookSink) SendEvents() {
 	for data := range hws.in {
 		var err error
 		switch object := data.(type) {
-		case pkg.StreamMessage:
-			err = hws.send(object.RunCompletionEventData)
-			if err != nil {
-				logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", object))
-				object.OnFailure()
+		case pkg.StreamMessage[*common.RunCompletionEventData]:
+			if object.Message != nil {
+				err = hws.send(*object.Message)
+				if err != nil {
+					logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", object))
+					object.OnFailure()
+				} else {
+					logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", object))
+					object.OnSuccess()
+				}
 			} else {
-				logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", object))
-				object.OnSuccess()
+				logger.Info("Discarding empty message")
 			}
 		default:
 			logger.Info("Unknown object type in stream", "unknown", fmt.Sprintf("%+v", object))
