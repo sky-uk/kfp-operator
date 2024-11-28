@@ -127,7 +127,6 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			expectedArtifacts := []*pb.Artifact{}
 
 			Expect(protoRce.Artifacts).To(Equal(expectedArtifacts))
-			Expect(protoRce.ServingModelArtifacts).To(Not(BeNil()))
 			Expect(protoRce.ServingModelArtifacts).To(Equal(expectedArtifacts))
 
 			Expect(err).NotTo(HaveOccurred())
