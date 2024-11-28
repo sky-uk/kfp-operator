@@ -98,6 +98,8 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 
 		It("returns no error when event data is converted to proto runcompletion event", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
+			Expect(err).NotTo(HaveOccurred())
+
 			expectedArtifacts := []*pb.Artifact{
 				{
 					Name:     "some-artifact",
@@ -115,7 +117,6 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				Provider:              "some-provider",
 			}
 			Expect(protoRce).To(Equal(expectedResult))
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns empty slices when there are no artifacts", func() {
@@ -124,17 +125,19 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			rceWithoutArtifacts.ServingModelArtifacts = []common.Artifact{}
 
 			protoRce, err := RunCompletionEventToProto(rceWithoutArtifacts)
+			Expect(err).NotTo(HaveOccurred())
+
 			expectedArtifacts := []*pb.Artifact{}
 
 			Expect(protoRce.Artifacts).To(Equal(expectedArtifacts))
 			Expect(protoRce.ServingModelArtifacts).To(Equal(expectedArtifacts))
-
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns no error when event data with no RunName provided is converted to proto runcompletion event", func() {
 			rce.RunName = nil
 			protoRce, err := RunCompletionEventToProto(rce)
+			Expect(err).NotTo(HaveOccurred())
+
 			expectedArtifacts := []*pb.Artifact{
 				{
 					Name:     "some-artifact",
@@ -152,7 +155,6 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				Provider:              "some-provider",
 			}
 			Expect(protoRce).To(Equal(expectedResult))
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns error when namespaced name fields cannot be marshalled", func() {
