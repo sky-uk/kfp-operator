@@ -11,7 +11,6 @@ import (
 	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/reugn/go-streams/flow"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/publisher"
@@ -135,11 +134,21 @@ var _ = BeforeSuite(func() {
 	mockMetadataStore = MockMetadataStore{}
 	mockKfpApi = MockKfpApi{}
 
-	eventSource = &KfpEventSource{
-		ProviderConfig: KfpProviderConfig{},
-		K8sClient:      pkg.K8sClient{Client: k8sClient},
+	config := &KfpProviderConfig{
+		Name: "kfp",
+	}
+
+	eventFlow := KfpEventFlow{
+		ProviderConfig: *config,
 		MetadataStore:  &mockMetadataStore,
 		KfpApi:         &mockKfpApi,
+		Logger:         logr.Discard(),
+		context:        context.Background(),
+	}
+
+	eventSource = &KfpEventSource{
+		K8sClient:      pkg.K8sClient{Client: k8sClient},
+		RunCompletionEventConversionFlow: eventFlow.ToRCE(),
 		Logger:         logr.Discard(),
 		out:            make(chan any),
 	}
@@ -173,14 +182,7 @@ func WithTestContext(fun func(context.Context)) {
 	httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(200, ""))
 	webhookSink = publisher.NewHttpWebhookSink(ctx, webhookUrl, client, make(chan any))
 
-	handleEvent := func(e any) any {
-		streamMsg, _ := e.(pkg.StreamMessage)
-		eventData = streamMsg.RunCompletionEventData
-		numberOfEvents += 1
-		return e
-	}
-
-	go eventSource.Via(flow.NewMap(handleEvent, 1)).To(webhookSink)
+	go eventSource.Via(eventSource.RunCompletionEventConversionFlow).To(webhookSink)
 	fun(ctx)
 }
 
