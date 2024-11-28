@@ -126,7 +126,6 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			protoRce, err := RunCompletionEventToProto(rceWithoutArtifacts)
 			expectedArtifacts := []*pb.Artifact{}
 
-			Expect(protoRce.Artifacts).To(Not(BeNil()))
 			Expect(protoRce.Artifacts).To(Equal(expectedArtifacts))
 			Expect(protoRce.ServingModelArtifacts).To(Not(BeNil()))
 			Expect(protoRce.ServingModelArtifacts).To(Equal(expectedArtifacts))
