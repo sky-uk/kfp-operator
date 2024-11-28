@@ -3,6 +3,7 @@ package webhook
 import (
 	"context"
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -85,7 +86,7 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 }
 
 func artifactToProto(commonArtifacts []common.Artifact) []*pb.Artifact {
-	var pbArtifacts []*pb.Artifact
+	pbArtifacts := []*pb.Artifact{}
 	for _, commonArtifact := range commonArtifacts {
 		pbArtifacts = append(pbArtifacts, &pb.Artifact{
 			Location: commonArtifact.Location,

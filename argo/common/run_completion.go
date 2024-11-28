@@ -27,7 +27,7 @@ type RunCompletionEvent struct {
 	RunName               *NamespacedName `json:"runName,omitempty"`
 	RunId                 string          `json:"runId"`
 	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
-	Artifacts             []Artifact      `json:"artifacts,omitempty"`
+	Artifacts             []Artifact      `json:"artifacts"`
 	Provider              string          `json:"provider"`
 }
 

@@ -5,6 +5,7 @@ package webhook
 import (
 	"context"
 	"errors"
+
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -97,6 +98,8 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 
 		It("returns no error when event data is converted to proto runcompletion event", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
+			Expect(err).NotTo(HaveOccurred())
+
 			expectedArtifacts := []*pb.Artifact{
 				{
 					Name:     "some-artifact",
@@ -114,12 +117,27 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				Provider:              "some-provider",
 			}
 			Expect(protoRce).To(Equal(expectedResult))
+		})
+
+		It("returns empty slices when there are no artifacts", func() {
+			rceWithoutArtifacts := rce
+			rceWithoutArtifacts.Artifacts = []common.Artifact{}
+			rceWithoutArtifacts.ServingModelArtifacts = []common.Artifact{}
+
+			protoRce, err := RunCompletionEventToProto(rceWithoutArtifacts)
 			Expect(err).NotTo(HaveOccurred())
+
+			emptySliceOfArtifacts := []*pb.Artifact{}
+
+			Expect(protoRce.Artifacts).To(Equal(emptySliceOfArtifacts))
+			Expect(protoRce.ServingModelArtifacts).To(Equal(emptySliceOfArtifacts))
 		})
 
 		It("returns no error when event data with no RunName provided is converted to proto runcompletion event", func() {
 			rce.RunName = nil
 			protoRce, err := RunCompletionEventToProto(rce)
+			Expect(err).NotTo(HaveOccurred())
+
 			expectedArtifacts := []*pb.Artifact{
 				{
 					Name:     "some-artifact",
@@ -137,7 +155,6 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				Provider:              "some-provider",
 			}
 			Expect(protoRce).To(Equal(expectedResult))
-			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("returns error when namespaced name fields cannot be marshalled", func() {

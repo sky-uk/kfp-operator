@@ -6,11 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
 	"log"
 	"testing"
 	"time"
+
+	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
 
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -83,6 +84,8 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 				},
 			}
 
+			emptyArtifacts := []*pb.Artifact{}
+
 			runCompletionEvent := &pb.RunCompletionEvent{
 				PipelineName:          "some-pipeline-name",
 				Provider:              "some-provider",
@@ -91,7 +94,7 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 				RunName:               "some-run-name",
 				Status:                pb.Status_SUCCEEDED,
 				ServingModelArtifacts: artifacts,
-				Artifacts:             artifacts,
+				Artifacts:             emptyArtifacts,
 			}
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)

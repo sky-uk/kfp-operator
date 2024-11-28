@@ -3,9 +3,10 @@
 package converters
 
 import (
+	"testing"
+
 	"github.com/sky-uk/kfp-operator/argo/common"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
-	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -67,7 +68,7 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 	})
 })
 
-var _ = Context("artifactsConverter", func() {
+var _ = Context("protoToArtifacts", func() {
 
 	When("given a list of proto `Artifacts`", func() {
 		It("returns a list of artifacts in the common struct", func() {
@@ -82,7 +83,7 @@ var _ = Context("artifactsConverter", func() {
 				},
 			}
 
-			Expect(artifactsConverter(artifacts)).To(Equal(
+			Expect(protoToArtifacts(artifacts)).To(Equal(
 				[]common.Artifact{
 					{
 						Location: "some-location",
