@@ -30,8 +30,10 @@ func (mms *MockMetadataStore) reset() {
 func (mms *MockMetadataStore) returnArtifactForPipeline() []common.Artifact {
 	mms.results = []common.Artifact{
 		{
-			common.RandomString(),
-			common.RandomString(),
+			"artifact-name",
+			"artifact-location",
+			// common.RandomString(),
+			// common.RandomString(),
 		},
 	}
 	mms.err = nil

@@ -127,10 +127,12 @@ func (es *KfpEventSource) Via(operator streams.Flow) streams.Flow {
 }
 
 func (ef *KfpEventFlow) ToRCE() streams.Flow {
-	filterEmptyMessages := flow.NewFilter(func(data StreamMessage[*unstructured.Unstructured]) bool {
-		return data.Message != nil
-	}, 1)
-	return flow.NewMap(ef.toRunCompletionEventData, 1).Via(filterEmptyMessages)
+	// filterEmptyMessages := flow.NewFilter(func(data StreamMessage[*common.RunCompletionEventData]) bool {
+	// 	fmt.Println(data.Message)
+	// 	return data.Message != nil
+	// }, 1)
+	// 	fmt.Println("TORCE")
+	return flow.NewMap(ef.toRunCompletionEventData, 1)
 }
 
 func (ef *KfpEventFlow) toRunCompletionEventData(message StreamMessage[*unstructured.Unstructured]) StreamMessage[*common.RunCompletionEventData] {

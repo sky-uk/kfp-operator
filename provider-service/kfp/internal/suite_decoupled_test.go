@@ -4,7 +4,14 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"path/filepath"
+	"testing"
+	"time"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
@@ -18,10 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/dynamic"
-	"path/filepath"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
-	"testing"
-	"time"
 )
 
 var (
@@ -36,6 +40,7 @@ var (
 
 const (
 	defaultNamespace = "default"
+	providerName = "kfp"
 	webhookUrl       = "/operator-webhook"
 )
 
@@ -111,7 +116,7 @@ func triggerUpdate(ctx context.Context, name string) error {
 func expectedNumberOfEventsOccurred(ctx context.Context, expectedNumberOfEvents int) {
 	const Marker = "marker"
 
-	_, err := createAndTriggerPhaseUpdate(ctx, common.RandomString(), Marker, argo.WorkflowRunning, argo.WorkflowSucceeded)
+	_, err := createAndTriggerPhaseUpdate(ctx, "p-name", Marker, argo.WorkflowRunning, argo.WorkflowSucceeded)
 
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(func() string { return getEventData().RunId }).Should(Equal(Marker))
@@ -135,7 +140,7 @@ var _ = BeforeSuite(func() {
 	mockKfpApi = MockKfpApi{}
 
 	config := &KfpProviderConfig{
-		Name: "kfp",
+		Name: providerName,
 	}
 
 	eventFlow := KfpEventFlow{
@@ -179,7 +184,21 @@ func WithTestContext(fun func(context.Context)) {
 	eventSource.out = make(chan any)
 	client := resty.New()
 	httpmock.ActivateNonDefault(client.GetClient())
-	httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(200, ""))
+	httpmock.RegisterResponder(
+		"POST",
+		webhookUrl,
+		func(req *http.Request) (*http.Response, error) {
+			body, err := io.ReadAll(req.Body)
+			if err != nil {
+				return httpmock.NewStringResponse(503, "failed to read body"), err
+			}
+			err = json.Unmarshal(body, &eventData)
+			if err != nil {
+				return httpmock.NewStringResponse(503, "failed to unmarshal body"), err
+			}
+			return httpmock.NewStringResponse(200, ""), nil
+		},
+	)
 	webhookSink = publisher.NewHttpWebhookSink(ctx, webhookUrl, client, make(chan any))
 
 	go eventSource.Via(eventSource.RunCompletionEventConversionFlow).To(webhookSink)
@@ -192,8 +211,10 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run succeeds and a model has been pushed", func() {
 		It("Triggers an event with serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
-				pipelineName := common.RandomString()
-				runId := common.RandomString()
+				// pipelineName := common.RandomString()
+				// runId := common.RandomString()
+				pipelineName := "p-name"
+				runId := "r-name"
 				servingModelArtifacts := mockMetadataStore.returnArtifactForPipeline()
 				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
 
@@ -207,6 +228,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunName:               resourceReferences.RunName.NonEmptyPtr(),
 					RunId:                 runId,
 					ServingModelArtifacts: servingModelArtifacts,
+					Provider:              providerName,
 				}
 
 				Eventually(getEventData).Should(Equal(expectedRced))
