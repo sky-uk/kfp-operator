@@ -147,10 +147,10 @@ var _ = BeforeSuite(func() {
 	}
 
 	eventSource = &KfpEventSource{
-		K8sClient:      pkg.K8sClient{Client: k8sClient},
+		K8sClient:                        pkg.K8sClient{Client: k8sClient},
 		RunCompletionEventConversionFlow: eventFlow.ToRCE(),
-		Logger:         logr.Discard(),
-		out:            make(chan any),
+		Logger:                           logr.Discard(),
+		out:                              make(chan any),
 	}
 
 	ctx := context.Background()

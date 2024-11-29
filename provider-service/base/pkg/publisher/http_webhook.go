@@ -49,7 +49,6 @@ func (hws HttpWebhookSink) SendEvents() {
 		default:
 			logger.Info("Unknown object type in stream", "unknown", fmt.Sprintf("%+v", object))
 		}
-
 	}
 }
 
