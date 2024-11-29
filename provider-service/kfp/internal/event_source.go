@@ -151,12 +151,20 @@ func (es *KfpEventSource) Out() <-chan any {
 
 func (es *KfpEventSource) start(ctx context.Context, kfpNamespace string) error {
 	es.Logger.Info("starting KFP event data source...")
-	kfpSdkVersionExistsRequirement, err := labels.NewRequirement(pipelineRunIdLabel, selection.Exists, []string{})
+	kfpSdkVersionExistsRequirement, err := labels.NewRequirement(
+		pipelineRunIdLabel,
+		selection.Exists,
+		[]string{},
+	)
 	if err != nil {
 		es.Logger.Error(err, "failed to construct requirement")
 		return err
 	}
-	workflowUpdateTriggeredRequirement, err := labels.NewRequirement(workflowUpdateTriggeredLabel, selection.NotEquals, []string{strconv.FormatBool(true)})
+	workflowUpdateTriggeredRequirement, err := labels.NewRequirement(
+		workflowUpdateTriggeredLabel,
+		selection.NotEquals,
+		[]string{strconv.FormatBool(true)},
+	)
 	if err != nil {
 		es.Logger.Error(err, "failed to construct requirement")
 		return err
@@ -169,9 +177,14 @@ func (es *KfpEventSource) start(ctx context.Context, kfpNamespace string) error 
 			String(),
 	}
 
-	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(es.K8sClient.Client, 0, kfpNamespace, func(listOptions *metav1.ListOptions) {
-		*listOptions = kfpWorkflowListOptions
-	})
+	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(
+		es.K8sClient.Client,
+		0,
+		kfpNamespace,
+		func(listOptions *metav1.ListOptions) {
+			*listOptions = kfpWorkflowListOptions
+		},
+	)
 	informer := factory.ForResource(argoWorkflowsGvr)
 	sharedInformer := informer.Informer()
 
@@ -187,7 +200,12 @@ func (es *KfpEventSource) start(ctx context.Context, kfpNamespace string) error 
 				OnSuccessHandler: func() {
 					path := jsonPatchPath("metadata", "labels", workflowUpdateTriggeredLabel)
 					patchPayload := fmt.Sprintf(`[{ "op": "replace", "path": "%s", "value": "true" }]`, path)
-					_, err = es.K8sClient.Client.Resource(argoWorkflowsGvr).Namespace(wf.GetNamespace()).Patch(ctx, wf.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
+					_, err = es.
+						K8sClient.
+						Client.
+						Resource(argoWorkflowsGvr).
+						Namespace(wf.GetNamespace()).
+						Patch(ctx, wf.GetName(), types.JSONPatchType, []byte(patchPayload), metav1.PatchOptions{})
 					if err != nil {
 						es.Logger.Error(err, "failed to patch resource")
 						return

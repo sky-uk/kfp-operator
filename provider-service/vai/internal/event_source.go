@@ -160,7 +160,6 @@ func (ef *VaiEventFlow) ToVaiRCE() streams.Flow {
 		return data.Message != nil
 	}, 1)
 	return flow.NewMap(ef.ToRunCompletionEventData, 1).Via(filterEmptyMessages)
-
 }
 
 func (es *VaiEventSource) Out() <-chan any {
