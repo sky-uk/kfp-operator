@@ -6,7 +6,6 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	command "github.com/sky-uk/kfp-operator/controllers/pipelines/command"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,7 +20,7 @@ type ResourceReconciler[R pipelinesv1.Resource] struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (br ResourceReconciler[R]) loadProvider(ctx context.Context, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {
+func (br ResourceReconciler[R]) LoadProvider(ctx context.Context, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {
 	providerNamespacedName := types.NamespacedName{
 		Namespace: namespace,
 		Name:      desiredProvider,
