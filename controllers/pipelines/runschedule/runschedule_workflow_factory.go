@@ -1,4 +1,4 @@
-package pipelines
+package runschedule
 
 import (
 	"strings"
@@ -6,6 +6,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelines "github.com/sky-uk/kfp-operator/controllers/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,7 +33,7 @@ func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipe
 		PipelineVersion:      runSchedule.Spec.Pipeline.Version,
 		ExperimentName:       experimentName,
 		Schedule:             runSchedule.Spec.Schedule,
-		RuntimeParameters:    NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
+		RuntimeParameters:    pipelines.NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
 		Artifacts:            runSchedule.Spec.Artifacts,
 	}, nil
 }
@@ -58,12 +59,12 @@ func runConfigurationNameForRunSchedule(runSchedule *pipelinesv1.RunSchedule) (r
 	return
 }
 
-func RunScheduleWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition] {
-	return &ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition]{
+func RunScheduleWorkflowFactory(config config.KfpControllerConfigSpec) *pipelines.ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition] {
+	return &pipelines.ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition]{
 		DefinitionCreator: RunScheduleDefinitionCreator{
 			Config: config,
 		}.runScheduleDefinition,
 		Config:                config,
-		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
+		TemplateNameGenerator: pipelines.SimpleTemplateNameGenerator(config),
 	}
 }

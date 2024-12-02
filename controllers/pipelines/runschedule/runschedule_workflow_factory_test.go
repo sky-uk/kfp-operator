@@ -1,6 +1,6 @@
 //go:build unit
 
-package pipelines
+package runschedule
 
 import (
 	. "github.com/onsi/ginkgo/v2"

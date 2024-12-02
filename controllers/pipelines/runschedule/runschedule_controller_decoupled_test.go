@@ -1,6 +1,6 @@
 //go:build decoupled
 
-package pipelines
+package runschedule
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -9,6 +9,8 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -16,7 +18,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := apis.RandomString()
-			rcHelper := Create(pipelinesv1.RandomRunSchedule(provider.Name))
+			rcHelper := pipelines.Create(pipelinesv1.RandomRunSchedule(testutil.Provider.Name))
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
@@ -35,7 +37,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(rcHelper.Update(func(runSchedule *pipelinesv1.RunSchedule) {
-				runSchedule.Spec = pipelinesv1.RandomRunScheduleSpec(provider.Name)
+				runSchedule.Spec = pipelinesv1.RandomRunScheduleSpec(testutil.Provider.Name)
 			})).To(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
@@ -70,12 +72,12 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(
-					HaveReason(EventReasons.Syncing),
-					HaveReason(EventReasons.Synced),
-					HaveReason(EventReasons.Syncing),
-					HaveReason(EventReasons.Synced),
-					HaveReason(EventReasons.Syncing),
-					HaveReason(EventReasons.Synced),
+					testutil.HaveReason(pipelines.EventReasons.Syncing),
+					testutil.HaveReason(pipelines.EventReasons.Synced),
+					testutil.HaveReason(pipelines.EventReasons.Syncing),
+					testutil.HaveReason(pipelines.EventReasons.Synced),
+					testutil.HaveReason(pipelines.EventReasons.Syncing),
+					testutil.HaveReason(pipelines.EventReasons.Synced),
 				))
 			})).Should(Succeed())
 		})
