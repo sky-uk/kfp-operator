@@ -1,0 +1,81 @@
+package experiment
+
+import (
+	"context"
+	"time"
+
+	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	common "github.com/sky-uk/kfp-operator/controllers/pipelines"
+)
+
+// ExperimentReconciler reconciles a Experiment object
+type ExperimentReconciler struct {
+	common.StateHandler[*pipelinesv1.Experiment]
+	common.ResourceReconciler[*pipelinesv1.Experiment]
+}
+
+func NewExperimentReconciler(ec common.K8sExecutionContext, workflowRepository common.WorkflowRepository, config config.KfpControllerConfigSpec) *ExperimentReconciler {
+	return &ExperimentReconciler{
+		StateHandler: common.StateHandler[*pipelinesv1.Experiment]{
+			WorkflowRepository: workflowRepository,
+			WorkflowFactory:    ExperimentWorkflowFactory(config),
+		},
+		ResourceReconciler: common.ResourceReconciler[*pipelinesv1.Experiment]{
+			EC:     ec,
+			Config: config,
+		},
+	}
+}
+
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=experiments,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=experiments/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=experiments/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
+
+func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	logger := log.FromContext(ctx)
+	startTime := time.Now()
+	logger.V(2).Info("reconciliation started")
+
+	var experiment = &pipelinesv1.Experiment{}
+	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, experiment); err != nil {
+		logger.Error(err, "unable to fetch experiment")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	logger.V(3).Info("found experiment", "resource", experiment)
+
+	provider, err := r.LoadProvider(ctx, r.Config.WorkflowNamespace, experiment.Spec.Provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, experiment)
+
+	for i := range commands {
+		if err := commands[i].Execute(ctx, r.EC, experiment); err != nil {
+			logger.Error(err, "error executing command", common.LogKeys.Command, commands[i])
+			return ctrl.Result{}, err
+		}
+	}
+
+	duration := time.Now().Sub(startTime)
+	logger.V(2).Info("reconciliation ended", common.LogKeys.Duration, duration)
+
+	return ctrl.Result{}, nil
+}
+
+func (r *ExperimentReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	experiment := &pipelinesv1.Experiment{}
+	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
+		For(experiment)
+
+	controllerBuilder = r.ResourceReconciler.SetupWithManager(controllerBuilder, experiment)
+
+	return controllerBuilder.Complete(r)
+}
