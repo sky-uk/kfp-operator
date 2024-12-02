@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	pipelineRefField = ".spec.pipeline"
+	PipelineRefField = ".spec.pipeline"
 )
 
 type DependingOnPipelineResource interface {
@@ -32,7 +32,7 @@ type DependingOnPipelineReconciler[R DependingOnPipelineResource] struct {
 	EC K8sExecutionContext
 }
 
-func (dr DependingOnPipelineReconciler[R]) handleObservedPipelineVersion(ctx context.Context, pipelineIdentifier pipelinesv1.PipelineIdentifier, resource R) (bool, error) {
+func (dr DependingOnPipelineReconciler[R]) HandleObservedPipelineVersion(ctx context.Context, pipelineIdentifier pipelinesv1.PipelineIdentifier, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
 	setVersion := true
@@ -81,7 +81,7 @@ func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context
 	return pipeline, nil
 }
 
-func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
+func (dr DependingOnPipelineReconciler[R]) SetupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, pipelineRefField, func(rawObj client.Object) []string {
 		referencingResource := rawObj.(R)
 		return []string{referencingResource.GetPipeline().Name}

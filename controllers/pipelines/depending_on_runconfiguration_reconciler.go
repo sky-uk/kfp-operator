@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	rcRefField = ".referencedRunConfigurations"
+	RcRefField = ".referencedRunConfigurations"
 )
 
 type DependingOnRunConfigurationResource interface {
@@ -35,7 +35,7 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 	EC K8sExecutionContext
 }
 
-func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
+func (dr DependingOnRunConfigurationReconciler[R]) HandleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
 	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelinesv1.RunConfigurationRef) (string, string) {
@@ -111,7 +111,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 	return runConfiguration, nil
 }
 
-func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, resource client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
+func (dr DependingOnRunConfigurationReconciler[R]) SetupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, resource client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, rcRefField, func(rawObj client.Object) []string {
 		return rawObj.(R).GetReferencedRCs()
 	}); err != nil {

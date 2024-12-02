@@ -77,11 +77,11 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	// Never change after being set
 	if run.Status.ObservedPipelineVersion == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
-		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
+		if hasChanged, err := r.HandleDependentRuns(ctx, run); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
 
-		if hasChanged, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); hasChanged || err != nil {
+		if hasChanged, err := r.HandleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
 
@@ -135,7 +135,7 @@ func (r *RunReconciler) markCompletedIfCompleted(ctx context.Context, run *pipel
 func (r *RunReconciler) reconciliationRequestsForPipeline(pipeline client.Object) []reconcile.Request {
 	referencingRuns := &pipelinesv1.RunList{}
 	listOps := &client.ListOptions{
-		FieldSelector: fields.OneTermEqualSelector(pipelineRefField, pipeline.GetName()),
+		FieldSelector: fields.OneTermEqualSelector(pipelines.PipelineRefField, pipeline.GetName()),
 		Namespace:     pipeline.GetNamespace(),
 	}
 
@@ -159,7 +159,7 @@ func (r *RunReconciler) reconciliationRequestsForPipeline(pipeline client.Object
 func (r *RunReconciler) reconciliationRequestsForRunconfigurations(runConfiguration client.Object) []reconcile.Request {
 	referencingRuns := &pipelinesv1.RunList{}
 	listOps := &client.ListOptions{
-		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
+		FieldSelector: fields.OneTermEqualSelector(pipelines.RcRefField, runConfiguration.GetName()),
 		Namespace:     runConfiguration.GetNamespace(),
 	}
 
@@ -186,11 +186,11 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(run)
 
 	controllerBuilder = r.ResourceReconciler.SetupWithManager(controllerBuilder, run)
-	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForPipeline)
+	controllerBuilder, err := r.DependingOnPipelineReconciler.SetupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForPipeline)
 	if err != nil {
 		return err
 	}
-	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForRunconfigurations)
+	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.SetupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForRunconfigurations)
 	if err != nil {
 		return err
 	}
