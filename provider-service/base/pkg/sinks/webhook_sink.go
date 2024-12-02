@@ -1,4 +1,4 @@
-package publisher
+package sinks
 
 import (
 	"context"
@@ -9,26 +9,26 @@ import (
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 )
 
-type HttpWebhookSink struct {
+type WebhookSink struct {
 	context         context.Context
 	client          *resty.Client
 	operatorWebhook string
 	in              chan StreamMessage[*common.RunCompletionEventData]
 }
 
-func NewHttpWebhookSink(ctx context.Context, operatorWebhook string, client *resty.Client, inChan chan StreamMessage[*common.RunCompletionEventData]) *HttpWebhookSink {
-	httpWebhook := &HttpWebhookSink{context: ctx, client: client, operatorWebhook: operatorWebhook, in: inChan}
+func NewWebhookSink(ctx context.Context, operatorWebhook string, client *resty.Client, inChan chan StreamMessage[*common.RunCompletionEventData]) *WebhookSink {
+	webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: operatorWebhook, in: inChan}
 
-	go httpWebhook.SendEvents()
+	go webhookSink.SendEvents()
 
-	return httpWebhook
+	return webhookSink
 }
 
-func (hws HttpWebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData] {
+func (hws WebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData] {
 	return hws.in
 }
 
-func (hws HttpWebhookSink) SendEvents() {
+func (hws WebhookSink) SendEvents() {
 	logger := common.LoggerFromContext(hws.context)
 	for message := range hws.in {
 		var err error
@@ -47,7 +47,7 @@ func (hws HttpWebhookSink) SendEvents() {
 	}
 }
 
-func (hws HttpWebhookSink) send(rced common.RunCompletionEventData) error {
+func (hws WebhookSink) send(rced common.RunCompletionEventData) error {
 	rcedBytes, err := json.Marshal(rced)
 	if err != nil {
 		return err
