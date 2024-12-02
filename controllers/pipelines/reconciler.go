@@ -48,7 +48,7 @@ func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipel
 	}
 }
 
-func (br ResourceReconciler[R]) setupWithManager(controllerBuilder *builder.Builder, resource R) *builder.Builder {
+func (br ResourceReconciler[R]) SetupWithManager(controllerBuilder *builder.Builder, resource R) *builder.Builder {
 	return controllerBuilder.Watches(&source.Kind{Type: &argo.Workflow{}},
 		handler.EnqueueRequestsFromMapFunc(br.reconciliationRequestsForWorkflow(resource)),
 		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),

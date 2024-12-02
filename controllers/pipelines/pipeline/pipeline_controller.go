@@ -80,7 +80,7 @@ func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(pipeline)
 
-	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, pipeline)
+	controllerBuilder = r.ResourceReconciler.SetupWithManager(controllerBuilder, pipeline)
 
 	return controllerBuilder.Complete(r)
 }

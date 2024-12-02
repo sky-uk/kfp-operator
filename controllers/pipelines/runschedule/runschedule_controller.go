@@ -75,7 +75,7 @@ func (r *RunScheduleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(runSchedule)
 
-	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, runSchedule)
+	controllerBuilder = r.ResourceReconciler.SetupWithManager(controllerBuilder, runSchedule)
 
 	return controllerBuilder.Complete(r)
 }

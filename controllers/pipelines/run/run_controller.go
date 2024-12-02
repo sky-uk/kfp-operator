@@ -185,7 +185,7 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(run)
 
-	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, run)
+	controllerBuilder = r.ResourceReconciler.SetupWithManager(controllerBuilder, run)
 	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForPipeline)
 	if err != nil {
 		return err
