@@ -79,29 +79,38 @@ minikube-install-dependencies:
 	kubectl create namespace kfp-operator-system
 	kubectl create secret tls webhook-server-cert --cert=./local/webhook-server-cert.pem --key=./local/webhook-server-key.pem --namespace kfp-operator-system
 
-minikube-install-operator: helm-package-operator ./local/values.yaml
+minikube-helm-install-operator: helm-package-operator ./local/values.yaml
 	$(HELM) install -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
 
-minikube-prepare-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
-minikube-prepare-operator: export REGISTRY_PORT=$(shell docker inspect minikube --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
-minikube-prepare-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
-minikube-prepare-operator:
-	echo ${CONTAINER_REPOSITORIES}
+minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
+minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect minikube --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
+minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
+minikube-install-operator:
 	$(MAKE) docker-push docker-push-triggers
 	$(MAKE) -C argo/providers docker-push
-	$(MAKE) minikube-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
+	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
 
-minikube-install-stub-provider:
-	$(MAKE) -C argo/providers/stub docker-build && \
-	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
-		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
-		kubectl apply -f -
+minikube-helm-install-provider: helm-package-provider
+helm-install-provider: helm-package-provider
+	$(HELM) install -f $(NAME).yaml provider-$(NAME) dist/provider-$(VERSION).tgz
+
+minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
+minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect minikube --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
+minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
+minikube-install-provider: helm-package-provider
+
+
+#minikube-install-stub-provider:
+#	$(MAKE) -C argo/providers/stub docker-build && \
+#	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
+#		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
+#		kubectl apply -f -
 
 minikube-start:
 	minikube start --driver=docker --registry-mirror="https://mirror.gcr.io"
 	minikube addons enable registry
 
-minikube-up: minikube-start minikube-install-dependencies minikube-prepare-operator minikube-install-stub-provider
+minikube-up: minikube-start minikube-install-dependencies minikube-install-operator
 
 minikube-delete:
 	minikube delete
