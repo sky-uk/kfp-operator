@@ -32,7 +32,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
+				testutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
@@ -54,7 +54,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: ""})
+				testutil.SetProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(runHelper.Exists).Should(Not(Succeed()))
@@ -85,7 +85,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				},
 			}
 
-			Expect(k8sClient.Create(ctx, run)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
+			Expect(testutil.K8sClient.Create(testutil.Ctx, run)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
 		})
 	})
 
@@ -197,7 +197,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("A referenced RunConfiguration has no succeeded run", func() {
 		It("unsets the dependency", func() {
 			referencedRc := pipelinesv1.RandomRunConfiguration(testutil.Provider.Name)
-			Expect(k8sClient.Create(ctx, referencedRc)).To(Succeed())
+			Expect(testutil.K8sClient.Create(testutil.Ctx, referencedRc)).To(Succeed())
 
 			run := pipelinesv1.RandomRun(testutil.Provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
@@ -262,7 +262,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			excessDependency := apis.RandomString()
 			run.SetDependencyRuns(map[string]pipelinesv1.RunReference{excessDependency: {}})
-			Expect(k8sClient.Status().Update(ctx, run)).To(Succeed())
+			Expect(testutil.K8sClient.Status().Update(testutil.Ctx, run)).To(Succeed())
 
 			Eventually(runHelper.ToMatch(func(g Gomega, fetchedRun *pipelinesv1.Run) {
 				g.Expect(fetchedRun.Status.Dependencies.RunConfigurations).NotTo(HaveKey(excessDependency))

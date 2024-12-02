@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	k8sClient  client.Client
-	ctx        context.Context
+	K8sClient  client.Client
+	Ctx        context.Context
 	TestConfig config.KfpControllerConfigSpec
 	Provider   *pipelinesv1.Provider
 )

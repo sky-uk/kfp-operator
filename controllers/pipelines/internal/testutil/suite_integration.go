@@ -48,13 +48,13 @@ func TestPipelineControllersIntegrationSuite(t *testing.T) {
 var _ = BeforeSuite(func() {
 	Expect(external.InitSchemes(scheme.Scheme)).To(Succeed())
 	var err error
-	k8sClient, err = client.New(&restCfg, client.Options{Scheme: scheme.Scheme})
+	K8sClient, err = client.New(&restCfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
-	ctx = context.Background()
+	Ctx = context.Background()
 })
 
 var _ = BeforeEach(func() {
-	k8sClient.Delete(ctx, &pipelinesv1.Provider{
+	K8sClient.Delete(Ctx, &pipelinesv1.Provider{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kfp-operator-integration-tests-providers",
 			Namespace: TestNamespace,
@@ -129,7 +129,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	workflow, err := constructWorkflow(provider, testCtx.Resource)
 
 	Expect(err).NotTo(HaveOccurred())
-	Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
+	Expect(K8sClient.Create(Ctx, workflow)).To(Succeed())
 
 	Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
 		func(g Gomega, workflow *argo.Workflow) {
