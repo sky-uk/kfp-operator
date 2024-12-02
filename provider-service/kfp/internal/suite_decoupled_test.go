@@ -20,7 +20,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/publisher"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/sinks"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -33,7 +33,7 @@ var (
 	mockKfpApi        MockKfpApi
 	k8sClient         dynamic.Interface
 	eventSource       *KfpEventSource
-	webhookSink       *publisher.HttpWebhookSink
+	webhookSink       *sinks.WebhookSink
 	eventData         common.RunCompletionEventData
 	numberOfEvents    int
 )
@@ -203,7 +203,7 @@ func WithTestContext(fun func(context.Context)) {
 			return httpmock.NewStringResponse(200, ""), nil
 		},
 	)
-	webhookSink = publisher.NewHttpWebhookSink(ctx, webhookUrl, client, make(chan pkg.StreamMessage[*common.RunCompletionEventData]))
+	webhookSink = sinks.NewWebhookSink(ctx, webhookUrl, client, make(chan pkg.StreamMessage[*common.RunCompletionEventData]))
 
 	go eventSource.RunCompletionEventConversionFlow.From(eventSource).To(webhookSink)
 	fun(ctx)
