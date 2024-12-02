@@ -1,10 +1,12 @@
-package pipelines
+package run
 
 import (
 	"fmt"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/runconfiguration"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
@@ -36,23 +38,23 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 		PipelineName:      common.NamespacedName{Namespace: run.Namespace, Name: run.Spec.Pipeline.Name},
 		PipelineVersion:   run.Status.ObservedPipelineVersion,
 		ExperimentName:    experimentName,
-		RuntimeParameters: NamedValuesToMap(runtimeParameters),
+		RuntimeParameters: pipelines.NamedValuesToMap(runtimeParameters),
 		Artifacts:         run.Spec.Artifacts,
 	}
 
-	if runConfigurationName, ok := run.Labels[RunConfigurationConstants.RunConfigurationNameLabelKey]; ok {
+	if runConfigurationName, ok := run.Labels[runconfiguration.RunConfigurationConstants.RunConfigurationNameLabelKey]; ok {
 		runDefinition.RunConfigurationName = common.NamespacedName{Namespace: run.Namespace, Name: runConfigurationName}
 	}
 
 	return runDefinition, nil
 }
 
-func RunWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
-	return &ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
+func RunWorkflowFactory(config config.KfpControllerConfigSpec) *pipelines.ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
+	return &pipelines.ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
 		DefinitionCreator: RunDefinitionCreator{
 			Config: config,
 		}.runDefinition,
 		Config:                config,
-		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
+		TemplateNameGenerator: pipelines.SimpleTemplateNameGenerator(config),
 	}
 }

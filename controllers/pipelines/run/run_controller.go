@@ -1,4 +1,4 @@
-package pipelines
+package run
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -18,27 +19,27 @@ import (
 
 // RunReconciler reconciles a Run object
 type RunReconciler struct {
-	EC K8sExecutionContext
-	StateHandler[*pipelinesv1.Run]
-	DependingOnPipelineReconciler[*pipelinesv1.Run]
-	DependingOnRunConfigurationReconciler[*pipelinesv1.Run]
-	ResourceReconciler[*pipelinesv1.Run]
+	EC pipelines.K8sExecutionContext
+	pipelines.StateHandler[*pipelinesv1.Run]
+	pipelines.DependingOnPipelineReconciler[*pipelinesv1.Run]
+	pipelines.DependingOnRunConfigurationReconciler[*pipelinesv1.Run]
+	pipelines.ResourceReconciler[*pipelinesv1.Run]
 }
 
-func NewRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.KfpControllerConfigSpec) *RunReconciler {
+func NewRunReconciler(ec pipelines.K8sExecutionContext, workflowRepository pipelines.WorkflowRepository, config config.KfpControllerConfigSpec) *RunReconciler {
 	return &RunReconciler{
-		StateHandler: StateHandler[*pipelinesv1.Run]{
+		StateHandler: pipelines.StateHandler[*pipelinesv1.Run]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    RunWorkflowFactory(config),
 		},
 		EC: ec,
-		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.Run]{
+		DependingOnPipelineReconciler: pipelines.DependingOnPipelineReconciler[*pipelinesv1.Run]{
 			EC: ec,
 		},
-		DependingOnRunConfigurationReconciler: DependingOnRunConfigurationReconciler[*pipelinesv1.Run]{
+		DependingOnRunConfigurationReconciler: pipelines.DependingOnRunConfigurationReconciler[*pipelinesv1.Run]{
 			EC: ec,
 		},
-		ResourceReconciler: ResourceReconciler[*pipelinesv1.Run]{
+		ResourceReconciler: pipelines.ResourceReconciler[*pipelinesv1.Run]{
 			EC:     ec,
 			Config: config,
 		},
@@ -91,13 +92,13 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, run); err != nil {
-			logger.Error(err, "error executing command", LogKeys.Command, commands[i])
+			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
 			return result, err
 		}
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", pipelines.LogKeys.Duration, duration)
 
 	return result, nil
 }

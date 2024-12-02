@@ -18,7 +18,7 @@ type RunScheduleReconciler struct {
 	pipelines.ResourceReconciler[*pipelinesv1.RunSchedule]
 }
 
-func NewRunScheduleReconciler(ec pipelines.K8sExecutionContext, workflowRepository WorkflowRepository, config config.KfpControllerConfigSpec) *RunScheduleReconciler {
+func NewRunScheduleReconciler(ec pipelines.K8sExecutionContext, workflowRepository pipelines.WorkflowRepository, config config.KfpControllerConfigSpec) *RunScheduleReconciler {
 	return &RunScheduleReconciler{
 		StateHandler: pipelines.StateHandler[*pipelinesv1.RunSchedule]{
 			WorkflowRepository: workflowRepository,

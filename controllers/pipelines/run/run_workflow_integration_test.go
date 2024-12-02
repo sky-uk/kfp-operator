@@ -1,6 +1,6 @@
 //go:build integration
 
-package pipelines
+package run
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
