@@ -71,7 +71,7 @@ func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *a
 	return workflow
 }
 
-func setProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.Workflow {
+func SetProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.Workflow {
 	return setWorkflowOutputs(
 		workflow,
 		[]argo.Parameter{

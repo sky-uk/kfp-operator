@@ -8,7 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	common "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	command "github.com/sky-uk/kfp-operator/controllers/pipelines/command"
+	testutil "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	v1 "k8s.io/api/core/v1"
 )
@@ -18,7 +19,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
 			anotherProviderId := "67890"
-			experimentHelper := common.Create(pipelinesv1.RandomExperiment(common.Provider.Name))
+			experimentHelper := testutil.Create(pipelinesv1.RandomExperiment(testutil.Provider.Name))
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -28,7 +29,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Eventually(experimentHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				common.SetProviderOutput(workflow, providers.Output{Id: providerId})
+				testutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
@@ -38,7 +39,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(experimentHelper.Update(func(pipeline *pipelinesv1.Experiment) {
-				pipeline.Spec = pipelinesv1.RandomExperimentSpec(common.Provider.Name)
+				pipeline.Spec = pipelinesv1.RandomExperimentSpec(testutil.Provider.Name)
 			})).To(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
@@ -48,7 +49,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Eventually(experimentHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				common.SetProviderOutput(workflow, providers.Output{Id: anotherProviderId})
+				testutil.SetProviderOutput(workflow, providers.Output{Id: anotherProviderId})
 			})).Should(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
@@ -66,19 +67,19 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Eventually(experimentHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				common.SetProviderOutput(workflow, providers.Output{Id: ""})
+				testutil.SetProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(experimentHelper.Exists).Should(Not(Succeed()))
 
 			Eventually(experimentHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(
-					common.HaveReason(common.EventReasons.Syncing),
-					common.HaveReason(common.EventReasons.Synced),
-					common.HaveReason(common.EventReasons.Syncing),
-					common.HaveReason(common.EventReasons.Synced),
-					common.HaveReason(common.EventReasons.Syncing),
-					common.HaveReason(common.EventReasons.Synced),
+					testutil.HaveReason(command.EventReasons.Syncing),
+					testutil.HaveReason(command.EventReasons.Synced),
+					testutil.HaveReason(command.EventReasons.Syncing),
+					testutil.HaveReason(command.EventReasons.Synced),
+					testutil.HaveReason(command.EventReasons.Syncing),
+					testutil.HaveReason(command.EventReasons.Synced),
 				))
 			})).Should(Succeed())
 		})
