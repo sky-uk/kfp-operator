@@ -1,6 +1,6 @@
 //go:build unit
 
-package publisher
+package sinks
 
 import (
 	"testing"
@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestPublisherUnitSuite(t *testing.T) {
+func TestSinksUnitSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Publisher Unit Suite")
+	RunSpecs(t, "Sinks Unit Suite")
 }

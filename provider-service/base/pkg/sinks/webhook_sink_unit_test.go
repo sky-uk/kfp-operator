@@ -1,4 +1,4 @@
-package publisher
+package sinks
 
 import (
 	"context"
@@ -34,12 +34,12 @@ var _ = Context("SendEvents", func() {
 			webhookUrl := "/operator-webhook"
 			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(200, ""))
 
-			in := make(chan any)
-			httpWebhook := &HttpWebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}
+			in := make(chan StreamMessage[*common.RunCompletionEventData])
+			webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}
 
 			onSuccessCalled := make(chan any, 1)
 
-			go httpWebhook.SendEvents()
+			go webhookSink.SendEvents()
 			handlers := OnCompleteHandlers{
 				OnSuccessHandler: func() {
 					onSuccessCalled <- "ring ring!"
@@ -61,12 +61,12 @@ var _ = Context("SendEvents", func() {
 			webhookUrl := "/operator-webhook"
 			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(500, ""))
 
-			in := make(chan any)
-			httpWebhook := &HttpWebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}
+			in := make(chan StreamMessage[*common.RunCompletionEventData])
+			webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}
 
 			onFailureCalled := make(chan any)
 
-			go httpWebhook.SendEvents()
+			go webhookSink.SendEvents()
 			handlers := OnCompleteHandlers{
 				OnFailureHandler: func() {
 					onFailureCalled <- "ring ring!"
