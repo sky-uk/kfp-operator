@@ -82,7 +82,7 @@ func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context
 }
 
 func (dr DependingOnPipelineReconciler[R]) SetupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, pipelineRefField, func(rawObj client.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, PipelineRefField, func(rawObj client.Object) []string {
 		referencingResource := rawObj.(R)
 		return []string{referencingResource.GetPipeline().Name}
 	}); err != nil {

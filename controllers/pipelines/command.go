@@ -211,7 +211,7 @@ type AcquireResource struct {
 func (ap AcquireResource) Execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
-	if !controllerutil.ContainsFinalizer(resource, finalizerName) {// pipeline.finalizerName?
+	if !controllerutil.ContainsFinalizer(resource, finalizerName) {
 		logger.V(2).Info("adding finalizer")
 		controllerutil.AddFinalizer(resource, finalizerName)
 

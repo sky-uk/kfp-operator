@@ -112,7 +112,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 }
 
 func (dr DependingOnRunConfigurationReconciler[R]) SetupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, resource client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, rcRefField, func(rawObj client.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, RcRefField, func(rawObj client.Object) []string {
 		return rawObj.(R).GetReferencedRCs()
 	}); err != nil {
 		return nil, err
