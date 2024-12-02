@@ -1,4 +1,4 @@
-package pipelines
+package runconfiguration
 
 import (
 	"context"
@@ -17,6 +17,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	common "github.com/sky-uk/kfp-operator/controllers/pipelines"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -30,19 +31,19 @@ var RunConfigurationConstants = struct {
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
-	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
-	DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]
-	EC     K8sExecutionContext
+	common.DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
+	common.DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]
+	EC     common.K8sExecutionContext
 	Scheme *runtime.Scheme
 	Config config.KfpControllerConfigSpec
 }
 
-func NewRunConfigurationReconciler(ec K8sExecutionContext, scheme *runtime.Scheme, config config.KfpControllerConfigSpec) *RunConfigurationReconciler {
+func NewRunConfigurationReconciler(ec common.K8sExecutionContext, scheme *runtime.Scheme, config config.KfpControllerConfigSpec) *RunConfigurationReconciler {
 	return &RunConfigurationReconciler{
-		DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
+		common.DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
 			EC: ec,
 		},
-		DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]{
+		common.DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]{
 			EC: ec,
 		},
 		ec,
@@ -81,8 +82,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		//TODO: refactor to use Commands and introduce a StateHandler
 		runConfiguration.Status.SynchronizationState = apis.Failed
 
-		message := fmt.Sprintf(`%s: %s`, string(runConfiguration.Status.SynchronizationState), StateHandlerConstants.ProviderChangedError)
-		r.EC.Recorder.Event(runConfiguration, EventTypes.Warning, EventReasons.SyncFailed, message)
+		message := fmt.Sprintf(`%s: %s`, string(runConfiguration.Status.SynchronizationState), common.StateHandlerConstants.ProviderChangedError)
+		r.EC.Recorder.Event(runConfiguration, common.EventTypes.Warning, common.EventReasons.SyncFailed, message)
 
 		return ctrl.Result{}, r.EC.Client.Status().Update(ctx, runConfiguration)
 	}
@@ -124,7 +125,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", common.LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

@@ -1,6 +1,6 @@
 //go:build unit
 
-package pipelines
+package runconfiguration
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -8,6 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	testutil "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -33,7 +34,7 @@ var _ = Context("aggregateState", func() {
 	)
 })
 
-var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
+var _ = Context("constructRunForRunConfiguration", testutil.PropertyBased, func() {
 	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
 	rcr := RunConfigurationReconciler{
 		Scheme: scheme.Scheme,
@@ -50,7 +51,7 @@ var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
 	})
 })
 
-var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
+var _ = Context("constructRunSchedulesForTriggers", testutil.PropertyBased, func() {
 	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
 	rcr := RunConfigurationReconciler{
 		Scheme: scheme.Scheme,
@@ -79,7 +80,7 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 	})
 })
 
-var _ = Context("updateRcTriggers", PropertyBased, func() {
+var _ = Context("updateRcTriggers", testutil.PropertyBased, func() {
 	It("sets the pipeline trigger status", func() {
 		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
 		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{

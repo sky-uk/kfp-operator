@@ -1,11 +1,12 @@
 //go:build decoupled
 
-package pipelines
+package runconfiguration
 
 import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 )
 
 func createSucceededRcWithSchedule() *pipelinesv1.RunConfiguration {
@@ -40,7 +41,7 @@ func createSucceededRcWith(modifyRc func(runConfiguration *pipelinesv1.RunConfig
 }
 
 func createStableRcWith(modifyRc func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration, synchronizationState apis.SynchronizationState) *pipelinesv1.RunConfiguration {
-	runConfiguration := pipelinesv1.RandomRunConfiguration(provider.Name)
+	runConfiguration := pipelinesv1.RandomRunConfiguration(testutil.Provider.Name)
 	runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{}
 	runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
 	modifiedRc := modifyRc(runConfiguration)
