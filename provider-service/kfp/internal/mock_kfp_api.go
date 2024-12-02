@@ -23,21 +23,9 @@ func (mka *MockKfpApi) reset() {
 
 func (mka *MockKfpApi) returnResourceReferencesForRun() ResourceReferences {
 	mka.resourceReferences = ResourceReferences{
-		// RunConfigurationName: common.RandomNamespacedName(),
-		// RunName:              common.RandomNamespacedName(),
-		// PipelineName:         common.RandomNamespacedName(),
-		RunConfigurationName: common.NamespacedName{
-			Name: "rc-name",
-			Namespace: "rc-namespace",
-		},
-		RunName:              common.NamespacedName{
-			Name: "r-name",
-			Namespace: "r-namespace",
-		},
-		PipelineName:         common.NamespacedName{
-			Name: "p-name",
-			Namespace: "p-namespace",
-		},
+		RunConfigurationName: common.RandomNamespacedName(),
+		RunName:              common.RandomNamespacedName(),
+		PipelineName:         common.RandomNamespacedName(),
 	}
 	mka.err = nil
 

@@ -6,17 +6,17 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 )
 
 type HttpWebhookSink struct {
 	context         context.Context
 	client          *resty.Client
 	operatorWebhook string
-	in              chan any
+	in              chan StreamMessage[*common.RunCompletionEventData]
 }
 
-func NewHttpWebhookSink(ctx context.Context, operatorWebhook string, client *resty.Client, inChan chan any) *HttpWebhookSink {
+func NewHttpWebhookSink(ctx context.Context, operatorWebhook string, client *resty.Client, inChan chan StreamMessage[*common.RunCompletionEventData]) *HttpWebhookSink {
 	httpWebhook := &HttpWebhookSink{context: ctx, client: client, operatorWebhook: operatorWebhook, in: inChan}
 
 	go httpWebhook.SendEvents()
@@ -24,30 +24,25 @@ func NewHttpWebhookSink(ctx context.Context, operatorWebhook string, client *res
 	return httpWebhook
 }
 
-func (hws HttpWebhookSink) In() chan<- any {
+func (hws HttpWebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData] {
 	return hws.in
 }
 
 func (hws HttpWebhookSink) SendEvents() {
 	logger := common.LoggerFromContext(hws.context)
-	for data := range hws.in {
+	for message := range hws.in {
 		var err error
-		switch object := data.(type) {
-		case pkg.StreamMessage[*common.RunCompletionEventData]:
-			if object.Message != nil {
-				err = hws.send(*object.Message)
-				if err != nil {
-					logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", object))
-					object.OnFailure()
-				} else {
-					logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", object))
-					object.OnSuccess()
-				}
+		if message.Message != nil {
+			err = hws.send(*message.Message)
+			if err != nil {
+				logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", message))
+				message.OnFailure()
 			} else {
-				logger.Info("Discarding empty message")
+				logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", message))
+				message.OnSuccess()
 			}
-		default:
-			logger.Info("Unknown object type in stream", "unknown", fmt.Sprintf("%+v", object))
+		} else {
+			logger.Info("Discarding empty message")
 		}
 	}
 }
