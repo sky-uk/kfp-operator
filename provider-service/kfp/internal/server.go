@@ -17,6 +17,11 @@ func Start(ctx context.Context, config config.Config) {
 		logger.Error(err, "Failed to create KFP event source")
 		os.Exit(1)
 	}
+
 	sink := publisher.NewHttpWebhookSink(ctx, config.OperatorWebhook, resty.New(), make(chan StreamMessage[*common.RunCompletionEventData]))
-	source.RunCompletionEventConversionFlow.From(source).To(sink)
+	errorSink := publisher.NewErrorSink(ctx, make(chan error))
+
+	flow := source.RunCompletionEventConversionFlow.From(source)
+	flow.To(sink)
+	flow.Error(errorSink)
 }
