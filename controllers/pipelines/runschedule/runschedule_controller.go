@@ -58,7 +58,7 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	commands := r.StateHandler.StateTransition(ctx, provider, runSchedule)
 
 	for i := range commands {
-		if err := commands[i].execute(ctx, r.EC, runSchedule); err != nil {
+		if err := commands[i].Execute(ctx, r.EC, runSchedule); err != nil {
 			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}

@@ -41,7 +41,7 @@ type K8sExecutionContext struct {
 }
 
 type Command interface {
-	execute(context.Context, K8sExecutionContext, pipelinesv1.Resource) error
+	Execute(context.Context, K8sExecutionContext, pipelinesv1.Resource) error
 }
 
 func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelinesv1.Resource) []Command {
@@ -160,7 +160,7 @@ func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
 	return sps.Status
 }
 
-func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
+func (sps SetStatus) Execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, resource.GetStatus(), LogKeys.NewStatus, sps.Status)
 
@@ -179,7 +179,7 @@ type CreateWorkflow struct {
 	Workflow argo.Workflow
 }
 
-func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
+func (cw CreateWorkflow) Execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info("creating child workflow", LogKeys.Workflow, cw.Workflow)
 
@@ -194,7 +194,7 @@ type MarkWorkflowsAsProcessed struct {
 	Workflows []argo.Workflow
 }
 
-func (dw MarkWorkflowsAsProcessed) execute(ctx context.Context, ec K8sExecutionContext, _ pipelinesv1.Resource) error {
+func (dw MarkWorkflowsAsProcessed) Execute(ctx context.Context, ec K8sExecutionContext, _ pipelinesv1.Resource) error {
 	for i := range dw.Workflows {
 		workflow := &dw.Workflows[i]
 		if err := ec.WorkflowRepository.MarkWorkflowAsProcessed(ctx, workflow); err != nil {
@@ -208,7 +208,7 @@ func (dw MarkWorkflowsAsProcessed) execute(ctx context.Context, ec K8sExecutionC
 type AcquireResource struct {
 }
 
-func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
+func (ap AcquireResource) Execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
 	if !controllerutil.ContainsFinalizer(resource, finalizerName) {// pipeline.finalizerName?
@@ -224,7 +224,7 @@ func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, r
 type ReleaseResource struct {
 }
 
-func (rp ReleaseResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
+func (rp ReleaseResource) Execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
 	if controllerutil.ContainsFinalizer(resource, finalizerName) {

@@ -91,7 +91,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	commands := r.StateHandler.StateTransition(ctx, provider, run)
 
 	for i := range commands {
-		if err := commands[i].execute(ctx, r.EC, run); err != nil {
+		if err := commands[i].Execute(ctx, r.EC, run); err != nil {
 			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
 			return result, err
 		}

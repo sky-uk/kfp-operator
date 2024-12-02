@@ -63,7 +63,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	commands := r.StateHandler.StateTransition(ctx, provider, pipeline)
 
 	for i := range commands {
-		if err := commands[i].execute(ctx, r.EC, pipeline); err != nil {
+		if err := commands[i].Execute(ctx, r.EC, pipeline); err != nil {
 			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
