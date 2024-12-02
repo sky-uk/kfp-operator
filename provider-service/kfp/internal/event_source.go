@@ -2,17 +2,12 @@ package internal
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
-	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
-	"github.com/reugn/go-streams"
-	"github.com/reugn/go-streams/flow"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,21 +44,17 @@ type KfpEventSourceConfig struct {
 
 type KfpEventSource struct {
 	K8sClient                        K8sClient
-	RunCompletionEventConversionFlow streams.Flow
+	RunCompletionEventConversionFlow Flow[StreamMessage[*unstructured.Unstructured], StreamMessage[*common.RunCompletionEventData], error]
 	Logger                           logr.Logger
-	out                              chan any
-}
-
-type KfpEventFlow struct {
-	ProviderConfig KfpProviderConfig
-	MetadataStore  MetadataStore
-	KfpApi         KfpApi
-	Logger         logr.Logger
-	context        context.Context
+	out                              chan StreamMessage[*unstructured.Unstructured]
 }
 
 type PipelineSpec struct {
 	Name string `json:"name"`
+}
+
+func (kes *KfpEventSource) Out() <-chan StreamMessage[*unstructured.Unstructured] {
+	return kes.out
 }
 
 func NewKfpEventSource(ctx context.Context, provider string, namespace string) (*KfpEventSource, error) {
@@ -71,7 +62,6 @@ func NewKfpEventSource(ctx context.Context, provider string, namespace string) (
 	k8sClient, err := NewK8sClient()
 	if err != nil {
 		logger.Error(err, "failed to initialise K8s Client")
-
 		return nil, err
 	}
 
@@ -84,31 +74,17 @@ func NewKfpEventSource(ctx context.Context, provider string, namespace string) (
 		return nil, err
 	}
 
-	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
+	flow, err := NewKfpEventFlow(ctx, *config)
 	if err != nil {
-		logger.Error(err, "failed to connect to metadata store", "address", config.Parameters.GrpcMetadataStoreAddress)
+		logger.Error(err, "failed to create RunCompletionEvent conversion flow")
 		return nil, err
-	}
-
-	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
-	if err != nil {
-		logger.Error(err, "failed to connect to Kubeflow API", "address", config.Parameters.GrpcKfpApiAddress)
-		return nil, err
-	}
-
-	eventFlow := KfpEventFlow{
-		ProviderConfig: *config,
-		MetadataStore:  metadataStore,
-		KfpApi:         kfpApi,
-		Logger:         logger,
-		context:        ctx,
 	}
 
 	kfpEventDataSource := &KfpEventSource{
 		K8sClient:                        *k8sClient,
-		RunCompletionEventConversionFlow: eventFlow.ToRCE(),
 		Logger:                           logger,
-		out:                              make(chan any),
+		out:                              make(chan StreamMessage[*unstructured.Unstructured]),
+		RunCompletionEventConversionFlow: flow,
 	}
 
 	go func() {
@@ -119,36 +95,6 @@ func NewKfpEventSource(ctx context.Context, provider string, namespace string) (
 	}()
 
 	return kfpEventDataSource, nil
-}
-
-func (es *KfpEventSource) Via(operator streams.Flow) streams.Flow {
-	flow.DoStream(es, operator)
-	return operator
-}
-
-func (ef *KfpEventFlow) ToRCE() streams.Flow {
-	// filterEmptyMessages := flow.NewFilter(func(data StreamMessage[*common.RunCompletionEventData]) bool {
-	// 	fmt.Println(data.Message)
-	// 	return data.Message != nil
-	// }, 1)
-	// 	fmt.Println("TORCE")
-	return flow.NewMap(ef.toRunCompletionEventData, 1)
-}
-
-func (ef *KfpEventFlow) toRunCompletionEventData(message StreamMessage[*unstructured.Unstructured]) StreamMessage[*common.RunCompletionEventData] {
-	runCompletionEventData, err := ef.eventForWorkflow(ef.context, message.Message)
-	if err != nil {
-		message.OnFailureHandler()
-		return StreamMessage[*common.RunCompletionEventData]{}
-	}
-	return StreamMessage[*common.RunCompletionEventData]{
-		Message:            runCompletionEventData,
-		OnCompleteHandlers: message.OnCompleteHandlers,
-	}
-}
-
-func (es *KfpEventSource) Out() <-chan any {
-	return es.out
 }
 
 func (es *KfpEventSource) start(ctx context.Context, kfpNamespace string) error {
@@ -240,103 +186,6 @@ func jsonPatchPath(segments ...string) string {
 	}
 
 	return builder.String()
-}
-
-func (ef *KfpEventFlow) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEventData, error) {
-	status, hasFinished := runCompletionStatus(workflow)
-	if !hasFinished {
-		ef.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
-		return nil, nil
-	}
-
-	workflowName := workflow.GetName()
-
-	modelArtifacts, err := ef.MetadataStore.GetServingModelArtifact(ctx, workflowName)
-	if err != nil {
-		ef.Logger.Error(err, "failed to retrieve serving model artifact")
-		return nil, err
-	}
-
-	runId := workflow.GetLabels()[pipelineRunIdLabel]
-	resourceReferences, err := ef.KfpApi.GetResourceReferences(ctx, runId)
-	if err != nil {
-		ef.Logger.Error(err, "failed to retrieve resource references")
-		return nil, err
-	}
-
-	// For compatability with resources created with v0.3.0 and older
-	if resourceReferences.PipelineName.Empty() {
-		pipelineName := getPipelineName(workflow)
-		if pipelineName == "" {
-			ef.Logger.Info("failed to get pipeline name from workflow")
-			return nil, nil
-		}
-
-		resourceReferences.PipelineName.Name = pipelineName
-	}
-
-	return &common.RunCompletionEventData{
-		Status:                status,
-		PipelineName:          resourceReferences.PipelineName,
-		RunConfigurationName:  resourceReferences.RunConfigurationName.NonEmptyPtr(),
-		RunName:               resourceReferences.RunName.NonEmptyPtr(),
-		RunId:                 runId,
-		ServingModelArtifacts: modelArtifacts,
-		PipelineComponents:    nil,
-		Provider:              ef.ProviderConfig.Name,
-	}, nil
-}
-
-func runCompletionStatus(workflow *unstructured.Unstructured) (common.RunCompletionStatus, bool) {
-	switch workflow.GetLabels()[workflowPhaseLabel] {
-	case string(argo.WorkflowSucceeded):
-		return common.RunCompletionStatuses.Succeeded, true
-	case string(argo.WorkflowFailed), string(argo.WorkflowError):
-		return common.RunCompletionStatuses.Failed, true
-	default:
-		return "", false
-	}
-}
-
-func getPipelineNameFromAnnotation(workflow *unstructured.Unstructured) string {
-	specString := workflow.GetAnnotations()[pipelineSpecAnnotationName]
-	spec := &PipelineSpec{}
-	if err := json.Unmarshal([]byte(specString), spec); err != nil {
-		return ""
-	}
-
-	return spec.Name
-}
-
-func getPipelineName(workflow *unstructured.Unstructured) (name string) {
-	name = getPipelineNameFromAnnotation(workflow)
-
-	if name == "" {
-		name = getPipelineNameFromEntrypoint(workflow)
-	}
-
-	return
-}
-
-func getPipelineNameFromEntrypoint(workflow *unstructured.Unstructured) string {
-	name, ok, err := unstructured.NestedString(workflow.Object, "spec", "entrypoint")
-
-	if !ok || err != nil {
-		return ""
-	}
-
-	return name
-}
-
-func ConnectToMetadataStore(address string) (*GrpcMetadataStore, error) {
-	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
-	}
-
-	return &GrpcMetadataStore{
-		MetadataStoreServiceClient: ml_metadata.NewMetadataStoreServiceClient(conn),
-	}, nil
 }
 
 func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
