@@ -141,7 +141,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 		}), TestTimeout).Should(Succeed())
 }
 
-func withIntegrationTestFields[T pipelinesv1.Resource](resource T) T {
+func WithIntegrationTestFields[T pipelinesv1.Resource](resource T) T {
 	resource.SetNamespace(TestNamespace)
 	resourceStatus := resource.GetStatus()
 	resourceStatus.Provider.Name = TestProvider
