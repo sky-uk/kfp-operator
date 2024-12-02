@@ -58,7 +58,7 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	commands := r.StateHandler.StateTransition(ctx, provider, experiment)
 
 	for i := range commands {
-		if err := commands[i].Execute(ctx, r.EC, experiment); err != nil {
+		if err := commands[i].execute(ctx, r.EC, experiment); err != nil {
 			logger.Error(err, "error executing command", common.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
