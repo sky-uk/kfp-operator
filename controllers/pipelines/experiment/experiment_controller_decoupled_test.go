@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	command "github.com/sky-uk/kfp-operator/controllers/pipelines/command"
+	pipelines "github.com/sky-uk/kfp-operator/controllers/pipelines"
 	testutil "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	v1 "k8s.io/api/core/v1"
@@ -74,12 +74,12 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Eventually(experimentHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
 				g.Expect(events).To(ConsistOf(
-					testutil.HaveReason(command.EventReasons.Syncing),
-					testutil.HaveReason(command.EventReasons.Synced),
-					testutil.HaveReason(command.EventReasons.Syncing),
-					testutil.HaveReason(command.EventReasons.Synced),
-					testutil.HaveReason(command.EventReasons.Syncing),
-					testutil.HaveReason(command.EventReasons.Synced),
+					testutil.HaveReason(pipelines.EventReasons.Syncing),
+					testutil.HaveReason(pipelines.EventReasons.Synced),
+					testutil.HaveReason(pipelines.EventReasons.Syncing),
+					testutil.HaveReason(pipelines.EventReasons.Synced),
+					testutil.HaveReason(pipelines.EventReasons.Syncing),
+					testutil.HaveReason(pipelines.EventReasons.Synced),
 				))
 			})).Should(Succeed())
 		})

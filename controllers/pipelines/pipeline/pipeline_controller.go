@@ -6,8 +6,7 @@ import (
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	common "github.com/sky-uk/kfp-operator/controllers/pipelines"
-	command "github.com/sky-uk/kfp-operator/controllers/pipelines/command"
+	pipelines "github.com/sky-uk/kfp-operator/controllers/pipelines"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -20,17 +19,17 @@ var (
 )
 
 type PipelineReconciler struct {
-	common.StateHandler[*pipelinesv1.Pipeline]
-	common.ResourceReconciler[*pipelinesv1.Pipeline]
+	pipelines.StateHandler[*pipelinesv1.Pipeline]
+	pipelines.ResourceReconciler[*pipelinesv1.Pipeline]
 }
 
-func NewPipelineReconciler(ec command.K8sExecutionContext, workflowRepository common.WorkflowRepository, config config.KfpControllerConfigSpec) *PipelineReconciler {
+func NewPipelineReconciler(ec pipelines.K8sExecutionContext, workflowRepository pipelines.WorkflowRepository, config config.KfpControllerConfigSpec) *PipelineReconciler {
 	return &PipelineReconciler{
-		StateHandler: common.StateHandler[*pipelinesv1.Pipeline]{
+		StateHandler: pipelines.StateHandler[*pipelinesv1.Pipeline]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    PipelineWorkflowFactory(config),
 		},
-		ResourceReconciler: common.ResourceReconciler[*pipelinesv1.Pipeline]{
+		ResourceReconciler: pipelines.ResourceReconciler[*pipelinesv1.Pipeline]{
 			EC:     ec,
 			Config: config,
 		},
@@ -65,13 +64,13 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, pipeline); err != nil {
-			logger.Error(err, "error executing command", common.LogKeys.Command, commands[i])
+			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", common.LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", pipelines.LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

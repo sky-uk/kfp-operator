@@ -7,7 +7,6 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	common "github.com/sky-uk/kfp-operator/controllers/pipelines"
 	"github.com/sky-uk/kfp-operator/controllers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,7 +37,7 @@ type K8sExecutionContext struct {
 	Client             controllers.OptInClient
 	Recorder           record.EventRecorder
 	Scheme             *runtime.Scheme
-	WorkflowRepository common.WorkflowRepository
+	WorkflowRepository WorkflowRepository
 }
 
 type Command interface {
@@ -163,7 +162,7 @@ func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
 
 func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("setting pipeline status", common.LogKeys.OldStatus, resource.GetStatus(), common.LogKeys.NewStatus, sps.Status)
+	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, resource.GetStatus(), LogKeys.NewStatus, sps.Status)
 
 	resource.SetStatus(sps.statusWithCondition())
 
@@ -182,7 +181,7 @@ type CreateWorkflow struct {
 
 func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("creating child workflow", common.LogKeys.Workflow, cw.Workflow)
+	logger.V(1).Info("creating child workflow", LogKeys.Workflow, cw.Workflow)
 
 	if err := ec.WorkflowRepository.CreateWorkflowForResource(ctx, &cw.Workflow, resource); err != nil {
 		return err
@@ -212,9 +211,9 @@ type AcquireResource struct {
 func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
-	if !controllerutil.ContainsFinalizer(resource, common.finalizerName) {// pipeline.finalizerName?
+	if !controllerutil.ContainsFinalizer(resource, finalizerName) {// pipeline.finalizerName?
 		logger.V(2).Info("adding finalizer")
-		controllerutil.AddFinalizer(resource, common.finalizerName)
+		controllerutil.AddFinalizer(resource, finalizerName)
 
 		return ec.Client.Update(ctx, resource)
 	}
@@ -228,9 +227,9 @@ type ReleaseResource struct {
 func (rp ReleaseResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
 
-	if controllerutil.ContainsFinalizer(resource, common.finalizerName) {
+	if controllerutil.ContainsFinalizer(resource, finalizerName) {
 		logger.V(2).Info("removing finalizer")
-		controllerutil.RemoveFinalizer(resource, common.finalizerName)
+		controllerutil.RemoveFinalizer(resource, finalizerName)
 		return ec.Client.Update(ctx, resource)
 	}
 
