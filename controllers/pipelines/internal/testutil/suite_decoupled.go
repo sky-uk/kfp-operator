@@ -1,6 +1,6 @@
 //go:build decoupled
 
-package pipelines
+package testutil
 
 import (
 	"context"
@@ -14,6 +14,12 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/runschedule"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/experiment"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/run"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/runconfiguration"
 	"github.com/sky-uk/kfp-operator/external"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -56,9 +62,9 @@ var _ = BeforeSuite(func() {
 
 	Expect(external.InitSchemes(scheme.Scheme)).To(Succeed())
 
-	k8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
+	K8sClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
-	Expect(k8sClient).NotTo(BeNil())
+	Expect(K8sClient).NotTo(BeNil())
 
 	webhookInstallOptions := &testEnv.WebhookInstallOptions
 	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
@@ -73,39 +79,39 @@ var _ = BeforeSuite(func() {
 
 	optInClient := controllers.NewOptInClient(k8sManager)
 
-	var workflowRepository = WorkflowRepositoryImpl{
+	var workflowRepository = pipelines.WorkflowRepositoryImpl{
 		Client: optInClient,
 		Scheme: k8sManager.GetScheme(),
 	}
 
-	ec := K8sExecutionContext{
+	ec := pipelines.K8sExecutionContext{
 		Client:             optInClient,
 		Recorder:           k8sManager.GetEventRecorderFor("decoupled-test-controller"),
 		Scheme:             k8sManager.GetScheme(),
 		WorkflowRepository: workflowRepository,
 	}
 
-	ctx = context.Background()
+	Ctx = context.Background()
 
-	testConfig = config.KfpControllerConfigSpec{
+	TestConfig = config.KfpControllerConfigSpec{
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
 		DefaultProvider:   apis.RandomLowercaseString(),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 	}
 
-	Expect(NewPipelineReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewRunReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewRunConfigurationReconciler(ec, k8sManager.GetScheme(), testConfig).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewRunScheduleReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewExperimentReconciler(ec, &workflowRepository, testConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(pipeline.NewPipelineReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(run.NewRunReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(runconfiguration.NewRunConfigurationReconciler(ec, k8sManager.GetScheme(), TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(runschedule.NewRunScheduleReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(experiment.NewExperimentReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
-	provider = pipelinesv1.RandomProvider()
-	provider.Name = apis.RandomLowercaseString()
-	provider.Namespace = testConfig.WorkflowNamespace
-	Expect(k8sClient.Create(ctx, provider)).To(Succeed())
+	Provider = pipelinesv1.RandomProvider()
+	Provider.Name = apis.RandomLowercaseString()
+	Provider.Namespace = TestConfig.WorkflowNamespace
+	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
@@ -114,27 +120,27 @@ var _ = BeforeSuite(func() {
 
 var _ = BeforeEach(func() {
 	allRuns := &pipelinesv1.RunList{}
-	Expect(k8sClient.List(ctx, allRuns)).To(Succeed())
+	Expect(K8sClient.List(Ctx, allRuns)).To(Succeed())
 	for _, r := range allRuns.Items {
-		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &r))).To(Succeed())
+		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
 
 	allRunSchedules := &pipelinesv1.RunScheduleList{}
-	Expect(k8sClient.List(ctx, allRunSchedules)).To(Succeed())
+	Expect(K8sClient.List(Ctx, allRunSchedules)).To(Succeed())
 	for _, r := range allRunSchedules.Items {
-		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &r))).To(Succeed())
+		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
 
 	allRcs := &pipelinesv1.RunConfigurationList{}
-	Expect(k8sClient.List(ctx, allRcs)).To(Succeed())
+	Expect(K8sClient.List(Ctx, allRcs)).To(Succeed())
 	for _, r := range allRcs.Items {
-		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &r))).To(Succeed())
+		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
 
 	allPipelines := &pipelinesv1.PipelineList{}
-	Expect(k8sClient.List(ctx, allPipelines)).To(Succeed())
+	Expect(K8sClient.List(Ctx, allPipelines)).To(Succeed())
 	for _, r := range allPipelines.Items {
-		Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, &r))).To(Succeed())
+		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
 })
 

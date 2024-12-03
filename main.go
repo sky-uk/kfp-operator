@@ -38,12 +38,12 @@ import (
 	pipelinesv1alpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
-	runcontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/run"
 	pipelinesec "github.com/sky-uk/kfp-operator/controllers/pipelines"
-	runschedulecontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/runschedule"
-	runconfigurationcontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/runconfiguration"
 	experimentcontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/experiment"
 	pipelinecontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline"
+	runcontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/run"
+	runconfigurationcontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/runconfiguration"
+	runschedulecontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/runschedule"
 
 	//+kubebuilder:scaffold:imports
 
