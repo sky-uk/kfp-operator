@@ -11,6 +11,7 @@ import (
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/statehandler"
 )
 
@@ -60,13 +61,13 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	for i := range commands {
 		if err := commands[i].Execute(ctx, r.EC, experiment); err != nil {
-			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
+			logger.Error(err, "error executing command", logging.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", pipelines.LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", logging.LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

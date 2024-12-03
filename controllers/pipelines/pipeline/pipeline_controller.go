@@ -8,6 +8,7 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/statehandler"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -65,13 +66,13 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	for i := range commands {
 		if err := commands[i].Execute(ctx, r.EC, pipeline); err != nil {
-			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
+			logger.Error(err, "error executing command", logging.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", pipelines.LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", logging.LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

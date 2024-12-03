@@ -8,6 +8,7 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/statehandler"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -60,7 +61,7 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	for i := range commands {
 		if err := commands[i].Execute(ctx, r.EC, runSchedule); err != nil {
-			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
+			logger.Error(err, "error executing command", logging.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}

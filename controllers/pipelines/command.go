@@ -8,6 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -162,7 +163,7 @@ func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
 
 func (sps SetStatus) Execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("setting pipeline status", LogKeys.OldStatus, resource.GetStatus(), LogKeys.NewStatus, sps.Status)
+	logger.V(1).Info("setting pipeline status", logging.LogKeys.OldStatus, resource.GetStatus(), logging.LogKeys.NewStatus, sps.Status)
 
 	resource.SetStatus(sps.statusWithCondition())
 
@@ -181,7 +182,7 @@ type CreateWorkflow struct {
 
 func (cw CreateWorkflow) Execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("creating child workflow", LogKeys.Workflow, cw.Workflow)
+	logger.V(1).Info("creating child workflow", logging.LogKeys.Workflow, cw.Workflow)
 
 	if err := ec.WorkflowRepository.CreateWorkflowForResource(ctx, &cw.Workflow, resource); err != nil {
 		return err

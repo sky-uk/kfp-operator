@@ -1,4 +1,4 @@
-package pipelines
+package logging
 
 var LogKeys = struct {
 	Workflow  string
