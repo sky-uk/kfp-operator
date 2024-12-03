@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/googleapis/gax-go/v2"
-	"github.com/reugn/go-streams"
 	"github.com/reugn/go-streams/flow"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"google.golang.org/api/option"
 	"os"
 )
@@ -76,7 +76,13 @@ type VaiLogEntry struct {
 func NewVaiEventSource(ctx context.Context, provider string, namespace string) (*VaiEventSource, error) {
 	logger := common.LoggerFromContext(ctx)
 
-	config, err := loadProviderConfig(ctx, provider, namespace, logger)
+	k8sClient, err := NewK8sClient()
+	if err != nil {
+		logger.Error(err, "failed to initialise K8s Client")
+		return nil, err
+	}
+
+	config, err := loadProviderConfig(ctx, provider, namespace, *k8sClient)
 	if err != nil {
 		return nil, err
 	}
@@ -118,22 +124,18 @@ func NewVaiEventSource(ctx context.Context, provider string, namespace string) (
 	return vaiEventDataSource, nil
 }
 
-func loadProviderConfig(ctx context.Context, provider string, namespace string, logger logr.Logger) (*VAIProviderConfig, error) {
-	k8sClient, err := NewK8sClient()
-	if err != nil {
-		logger.Error(err, "failed to initialise K8s Client")
-		return nil, err
-	}
-
+func loadProviderConfig(ctx context.Context, provider string, namespace string, k8sClient K8sClient) (*VAIProviderConfig, error) {
+	logger := common.LoggerFromContext(ctx)
 	config := &VAIProviderConfig{
 		Name: provider,
 	}
 
-	if err = LoadProvider(ctx, k8sClient.Client, provider, namespace, config); err != nil {
+	if err := LoadProvider(ctx, k8sClient.Client, provider, namespace, config); err != nil {
 		logger.Error(err, "failed to load provider", "name", provider, "namespace", namespace)
 		return nil, err
 	}
-	return config, err
+
+	return config, nil
 }
 
 func (es *VaiEventSource) Via(operator streams.Flow) streams.Flow {

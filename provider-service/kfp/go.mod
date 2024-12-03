@@ -10,7 +10,6 @@ require (
 	github.com/kubeflow/pipelines v0.0.0-20220721222832-061905b6df39
 	github.com/onsi/ginkgo/v2 v2.8.0
 	github.com/onsi/gomega v1.25.0
-	github.com/reugn/go-streams v0.10.0
 	github.com/sky-uk/kfp-operator v0.6.0
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20241107144142-477120a374b9
 	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-00010101000000-000000000000

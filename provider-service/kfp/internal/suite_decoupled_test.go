@@ -6,14 +6,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"io"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"net/http"
 	"path/filepath"
 	"testing"
 	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo/v2"
@@ -21,6 +23,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/sinks"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/sources"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -32,10 +35,19 @@ var (
 	mockMetadataStore MockMetadataStore
 	mockKfpApi        MockKfpApi
 	k8sClient         dynamic.Interface
-	eventSource       *KfpEventSource
+	eventSource       *sources.WorkflowSource
 	webhookSink       *sinks.WebhookSink
+	eventFlow         streams.Flow[pkg.StreamMessage[*unstructured.Unstructured], pkg.StreamMessage[*common.RunCompletionEventData], error]
 	eventData         common.RunCompletionEventData
 	numberOfEvents    int
+)
+
+var (
+	argoWorkflowsGvr = schema.GroupVersionResource{
+		Group:    workflow.Group,
+		Version:  workflow.Version,
+		Resource: workflow.WorkflowPlural,
+	}
 )
 
 const (
@@ -80,31 +92,31 @@ func updatePhase(ctx context.Context, name string, phase argo.WorkflowPhase) (*u
 }
 
 func createWorkflowInPhase(ctx context.Context, pipelineName string, runId string, phase argo.WorkflowPhase) (*unstructured.Unstructured, error) {
-	workflow := unstructured.Unstructured{
+	wf := unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"spec": map[string]interface{}{},
 		},
 	}
-	workflow.SetGroupVersionKind(argo.WorkflowSchemaGroupVersionKind)
-	workflow.SetName(rand.String(10))
-	workflow.SetLabels(map[string]string{
+	wf.SetGroupVersionKind(argo.WorkflowSchemaGroupVersionKind)
+	wf.SetName(rand.String(10))
+	wf.SetLabels(map[string]string{
 		workflowPhaseLabel: string(phase),
 		pipelineRunIdLabel: runId,
 	})
-	workflow.SetAnnotations(map[string]string{
+	wf.SetAnnotations(map[string]string{
 		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
 	})
 
-	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Create(ctx, &workflow, metav1.CreateOptions{})
+	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Create(ctx, &wf, metav1.CreateOptions{})
 }
 
 func createAndTriggerPhaseUpdate(ctx context.Context, pipelineName string, runId string, from argo.WorkflowPhase, to argo.WorkflowPhase) (*unstructured.Unstructured, error) {
-	workflow, err := createWorkflowInPhase(ctx, pipelineName, runId, from)
+	wf, err := createWorkflowInPhase(ctx, pipelineName, runId, from)
 	if err != nil {
 		return nil, err
 	}
 
-	return updatePhase(ctx, workflow.GetName(), to)
+	return updatePhase(ctx, wf.GetName(), to)
 }
 
 func triggerUpdate(ctx context.Context, name string) error {
@@ -124,6 +136,8 @@ func expectedNumberOfEventsOccurred(ctx context.Context, expectedNumberOfEvents 
 }
 
 var _ = BeforeSuite(func() {
+	ctx := context.Background()
+
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			filepath.Join("..", "..", "..", "", "config", "crd", "external"),
@@ -133,47 +147,28 @@ var _ = BeforeSuite(func() {
 
 	k8sConfig, err := testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
+
 	k8sClient, err = dynamic.NewForConfig(k8sConfig)
 	Expect(err).NotTo(HaveOccurred())
 
 	mockMetadataStore = MockMetadataStore{}
 	mockKfpApi = MockKfpApi{}
 
+	eventSource, err = sources.NewWorkflowSource(ctx, defaultNamespace, pkg.K8sClient{Client: k8sClient})
+	Expect(err).ToNot(HaveOccurred())
+
 	config := &KfpProviderConfig{
 		Name: providerName,
 	}
 
-	eventFlow := KfpEventFlow{
-		ProviderConfig: *config,
-		MetadataStore:  &mockMetadataStore,
-		KfpApi:         &mockKfpApi,
-		Logger:         logr.Discard(),
-		context:        context.Background(),
-		in:             make(chan pkg.StreamMessage[*unstructured.Unstructured]),
-		out:            make(chan pkg.StreamMessage[*common.RunCompletionEventData]),
-		errorOut:       make(chan error),
-	}
+	eventSource, err = sources.NewWorkflowSource(context.Background(), defaultNamespace, pkg.K8sClient{Client: k8sClient})
+	Expect(err).ToNot(HaveOccurred())
 
-	eventSource = &KfpEventSource{
-		K8sClient:                        pkg.K8sClient{Client: k8sClient},
-		RunCompletionEventConversionFlow: &eventFlow,
-		Logger:                           logr.Discard(),
-		out:                              make(chan pkg.StreamMessage[*unstructured.Unstructured]),
-	}
-
-	ctx := context.Background()
-
-	go startEventSource(ctx)
+	eventFlow, err = NewKfpEventFlow(context.Background(), *config, &mockKfpApi, &mockMetadataStore)
+	Expect(err).ToNot(HaveOccurred())
 })
 
-func startEventSource(ctx context.Context) {
-	err := eventSource.start(ctx, defaultNamespace)
-	if err != nil {
-		return
-	}
-}
-
-var _ = AfterEach(func() {
+var _ = BeforeEach(func() {
 	numberOfEvents = 0
 })
 
@@ -184,7 +179,6 @@ func WithTestContext(fun func(context.Context)) {
 	Expect(deleteAllWorkflows(ctx)).To(Succeed())
 	mockMetadataStore.reset()
 	mockKfpApi.reset()
-	eventSource.out = make(chan pkg.StreamMessage[*unstructured.Unstructured])
 	client := resty.New()
 	httpmock.ActivateNonDefault(client.GetClient())
 	httpmock.RegisterResponder(
@@ -205,7 +199,10 @@ func WithTestContext(fun func(context.Context)) {
 	)
 	webhookSink = sinks.NewWebhookSink(ctx, webhookUrl, client, make(chan pkg.StreamMessage[*common.RunCompletionEventData]))
 
-	go eventSource.RunCompletionEventConversionFlow.From(eventSource).To(webhookSink)
+	go func() {
+		eventFlow.From(eventSource).To(webhookSink)
+	}()
+
 	fun(ctx)
 }
 
@@ -309,26 +306,6 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 			})
 		})
 	})
-
-	//When("A pipeline run finishes before the stream is started", func() {
-	//	It("Catches up and triggers an event", func() {
-	//		WithTestContext(func(ctx context.Context) {
-	//			pipelineName := common.RandomString()
-	//			runId := common.RandomString()
-	//
-	//			_, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
-	//			Expect(err).NotTo(HaveOccurred())
-	//
-	//			expectedRced := common.RunCompletionEventData{
-	//				Status:       common.RunCompletionStatuses.Succeeded,
-	//				PipelineName: common.NamespacedName{Name: pipelineName},
-	//				RunId:        runId,
-	//				Provider:     providerName,
-	//			}
-	//			Eventually(getEventData).Should(Equal(expectedRced))
-	//		})
-	//	})
-	//})
 
 	When("A pipeline run doesn't finish", func() {
 		It("Does not trigger an event", func() {

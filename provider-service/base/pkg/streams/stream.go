@@ -1,4 +1,4 @@
-package pkg
+package streams
 
 type Inlet[I any] interface {
 	In() chan<- I
@@ -21,8 +21,8 @@ type Flow[I any, O any, E any] interface {
 	Outlet[O]
 	ErrorOutlet[E]
 	From(Outlet[I]) Flow[I, O, E]
-	To(Sink[O])
-	Error(Sink[E])
+	To(Inlet[O])
+	Error(Inlet[E])
 }
 
 type Sink[I any] interface {
