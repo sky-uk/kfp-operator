@@ -12,7 +12,6 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
@@ -100,7 +99,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating the referenced pipeline with no version specified on the RC", func() {
 		It("triggers an update of the run configuration", func() {
 			pipeline := pipelinesv1.RandomPipeline(testutil.Provider.Name)
-			pipelineHelper := pipelines.CreateSucceeded(pipeline)
+			pipelineHelper := testutil.CreateSucceeded(pipeline)
 
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
@@ -119,7 +118,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		It("change trigger creates a run when the pipeline is updated", func() {
 			pipeline := pipelinesv1.RandomPipeline(testutil.Provider.Name)
-			pipelineHelper := pipelines.CreateSucceeded(pipeline)
+			pipelineHelper := testutil.CreateSucceeded(pipeline)
 			firstPipelineVersion := pipeline.ComputeVersion()
 
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
@@ -161,7 +160,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(ownedRuns).To(BeEmpty())
 
-			pipelines.CreateSucceeded(pipeline)
+			testutil.CreateSucceeded(pipeline)
 
 			Eventually(func(g Gomega) {
 				ownedRuns, err := findOwnedRuns(testutil.Ctx, testutil.K8sClient, runConfiguration)
@@ -176,7 +175,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			pipeline := pipelinesv1.RandomPipeline(testutil.Provider.Name)
 			fixedIdentifier := pipeline.VersionedIdentifier()
 
-			pipelineHelper := pipelines.CreateSucceeded(pipeline)
+			pipelineHelper := testutil.CreateSucceeded(pipeline)
 
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = fixedIdentifier

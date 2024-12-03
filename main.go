@@ -38,7 +38,12 @@ import (
 	pipelinesv1alpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
-	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	runcontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/run"
+	pipelinesec "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	runschedulecontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/runschedule"
+	runconfigurationcontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/runconfiguration"
+	experimentcontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/experiment"
+	pipelinecontroller "github.com/sky-uk/kfp-operator/controllers/pipelines/pipeline"
 
 	//+kubebuilder:scaffold:imports
 
@@ -100,39 +105,39 @@ func main() {
 
 	client := controllers.NewOptInClient(mgr)
 
-	workflowRepository := pipelinescontrollers.WorkflowRepositoryImpl{
+	workflowRepository := pipelinesec.WorkflowRepositoryImpl{
 		Client: client,
 		Scheme: mgr.GetScheme(),
 	}
 
-	ec := pipelinescontrollers.K8sExecutionContext{
+	ec := pipelinesec.K8sExecutionContext{
 		Client:             client,
 		Recorder:           mgr.GetEventRecorderFor("kfp-operator"),
 		Scheme:             mgr.GetScheme(),
 		WorkflowRepository: workflowRepository,
 	}
 
-	if err := pipelinescontrollers.NewPipelineReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err := pipelinecontroller.NewPipelineReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err = runcontroller.NewRunReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Run")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunScheduleReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err = runschedulecontroller.NewRunScheduleReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunSchedule")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewExperimentReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err = experimentcontroller.NewExperimentReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunConfigurationReconciler(ec, scheme, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err = runconfigurationcontroller.NewRunConfigurationReconciler(ec, scheme, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
 		os.Exit(1)
 	}

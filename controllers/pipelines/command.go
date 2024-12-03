@@ -45,7 +45,7 @@ type Command interface {
 	Execute(context.Context, K8sExecutionContext, pipelinesv1.Resource) error
 }
 
-func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelinesv1.Resource) []Command {
+func AlwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelinesv1.Resource) []Command {
 	currentGeneration := resource.GetGeneration()
 	if currentGeneration == resource.GetStatus().ObservedGeneration {
 		return commands

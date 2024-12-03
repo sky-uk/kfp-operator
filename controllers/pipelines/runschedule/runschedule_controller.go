@@ -67,7 +67,7 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", pipelines.LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", logging.LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

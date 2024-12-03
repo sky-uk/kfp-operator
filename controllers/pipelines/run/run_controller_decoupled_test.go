@@ -22,7 +22,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("Creating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
-			runHelper := pipelines.Create(pipelinesv1.RandomRun(testutil.Provider.Name))
+			runHelper := testutil.Create(pipelinesv1.RandomRun(testutil.Provider.Name))
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -91,7 +91,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("the completion state is set", func() {
 		It("sets MarkCompletedAt", func() {
-			runHelper := pipelines.CreateSucceeded(pipelinesv1.RandomRun(testutil.Provider.Name))
+			runHelper := testutil.CreateSucceeded(pipelinesv1.RandomRun(testutil.Provider.Name))
 
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				run.Status.CompletionState = pipelinesv1.CompletionStates.Succeeded
@@ -105,7 +105,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("MarkCompletedAt is set and the TTL has passed", func() {
 		It("deletes the resource", func() {
-			runHelper := pipelines.CreateSucceeded(pipelinesv1.RandomRun(testutil.Provider.Name))
+			runHelper := testutil.CreateSucceeded(pipelinesv1.RandomRun(testutil.Provider.Name))
 
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				// time.Sub does not exist for Durations
@@ -124,7 +124,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			pipelineVersion := apis.RandomString()
 			run.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
 
-			runHelper := pipelines.Create(run)
+			runHelper := testutil.Create(run)
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -136,11 +136,11 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("The pipeline version is not fixed and the pipeline has succeeded", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
 			pipeline := pipelinesv1.RandomPipeline(testutil.Provider.Name)
-			pipelines.CreateSucceeded(pipeline)
+			testutil.CreateSucceeded(pipeline)
 
 			run := pipelinesv1.RandomRun(testutil.Provider.Name)
 			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
-			runHelper := pipelines.Create(run)
+			runHelper := testutil.Create(run)
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -152,11 +152,11 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("The pipeline version is not fixed and the pipeline succeeds", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
 			pipeline := pipelinesv1.RandomPipeline(testutil.Provider.Name)
-			pipelineHelper := pipelines.CreateStable(pipeline)
+			pipelineHelper := testutil.CreateStable(pipeline)
 
 			run := pipelinesv1.RandomRun(testutil.Provider.Name)
 			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
-			runHelper := pipelines.Create(run)
+			runHelper := testutil.Create(run)
 
 			pipelineHelper.UpdateToSucceeded()
 
@@ -183,7 +183,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				},
 			}
 
-			runHelper := pipelines.Create(run)
+			runHelper := testutil.Create(run)
 
 			oldState := run.Status.SynchronizationState
 			Eventually(runHelper.ToMatch(func(g Gomega, fetchedRun *pipelinesv1.Run) {
@@ -212,7 +212,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				},
 			}
 
-			runHelper := pipelines.Create(run)
+			runHelper := testutil.Create(run)
 
 			oldState := run.Status.SynchronizationState
 			Eventually(runHelper.ToMatch(func(g Gomega, fetchedRun *pipelinesv1.Run) {
@@ -243,7 +243,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				},
 			}
 
-			runHelper := pipelines.Create(run)
+			runHelper := testutil.Create(run)
 
 			oldState := run.Status.SynchronizationState
 			Eventually(runHelper.ToMatch(func(g Gomega, fetchedRun *pipelinesv1.Run) {
@@ -258,7 +258,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 		It("removes the dependency", func() {
 			run := pipelinesv1.RandomRun(testutil.Provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{}
-			runHelper := pipelines.Create(run)
+			runHelper := testutil.Create(run)
 
 			excessDependency := apis.RandomString()
 			run.SetDependencyRuns(map[string]pipelinesv1.RunReference{excessDependency: {}})
@@ -318,7 +318,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				},
 			}
 
-			runHelper := pipelines.Create(run)
+			runHelper := testutil.Create(run)
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))

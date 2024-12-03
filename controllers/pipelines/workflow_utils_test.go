@@ -31,7 +31,7 @@ var _ = Describe("Utils", func() {
 					},
 				},
 			}
-			result, error := getWorkflowOutput(&workflow, "aKey")
+			result, error := GetWorkflowOutput(&workflow, "aKey")
 			Expect(error).NotTo(HaveOccurred())
 			Expect(result.Id).To(Equal("aValue"))
 		})
@@ -57,7 +57,7 @@ var _ = Describe("Utils", func() {
 				},
 			}
 
-			inProgress, succeeded, failed := latestWorkflowByPhase([]argo.Workflow{
+			inProgress, succeeded, failed := LatestWorkflowByPhase([]argo.Workflow{
 				expectedInProgress, expectedSucceeded, expectedFailed,
 			})
 
@@ -87,7 +87,7 @@ var _ = Describe("Utils", func() {
 				},
 			}
 
-			_, succeeded, _ := latestWorkflowByPhase([]argo.Workflow{
+			_, succeeded, _ := LatestWorkflowByPhase([]argo.Workflow{
 				expectedSucceededNewest, expectedSucceededOldest,
 			})
 
@@ -97,7 +97,7 @@ var _ = Describe("Utils", func() {
 
 	When("latestWorkflowByPhase is called with no workflows", func() {
 		It("returns all empty values", func() {
-			inProgress, succeeded, failed := latestWorkflowByPhase([]argo.Workflow{})
+			inProgress, succeeded, failed := LatestWorkflowByPhase([]argo.Workflow{})
 			Expect(inProgress).To(BeNil())
 			Expect(succeeded).To(BeNil())
 			Expect(failed).To(BeNil())
