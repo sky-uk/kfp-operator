@@ -1,4 +1,4 @@
-package pipelines
+package pipeline
 
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"

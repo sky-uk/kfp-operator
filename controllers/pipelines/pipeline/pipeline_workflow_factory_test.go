@@ -1,6 +1,6 @@
 //go:build unit
 
-package pipelines
+package pipeline
 
 import (
 	. "github.com/onsi/ginkgo/v2"

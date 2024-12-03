@@ -1,6 +1,6 @@
 //go:build decoupled
 
-package pipelines
+package pipeline
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
