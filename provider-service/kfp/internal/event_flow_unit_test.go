@@ -14,90 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-func setWorkflowPhase(workflow *unstructured.Unstructured, phase argo.WorkflowPhase) {
-	workflow.SetLabels(map[string]string{
-		workflowPhaseLabel: string(phase),
-	})
-}
-
-func setWorkflowEntryPoint(workflow *unstructured.Unstructured, entrypoint string) {
-	workflow.Object = map[string]interface{}{
-		"spec": map[string]interface{}{
-			"entrypoint": entrypoint,
-		},
-	}
-}
-
-func setPipelineNameInSpec(workflow *unstructured.Unstructured, pipelineName string) {
-	workflow.SetAnnotations(map[string]string{
-		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
-	})
-}
-
-var _ = Context("Eventing Server", func() {
-	Describe("jsonPatchPath", func() {
-		It("concatenates path segments", func() {
-			segment1 := common.RandomString()
-			segment2 := common.RandomString()
-			segment3 := common.RandomString()
-
-			expectedPath := fmt.Sprintf("/%s/%s/%s", segment1, segment2, segment3)
-
-			Expect(jsonPatchPath(segment1, segment2, segment3)).To(Equal(expectedPath))
-		})
-
-		It("escapes '/'", func() {
-			segment1 := common.RandomString()
-			segment2 := common.RandomString()
-
-			toBeEscaped := fmt.Sprintf("%s/%s", segment1, segment2)
-			escaped := fmt.Sprintf("/%s~1%s", segment1, segment2)
-			Expect(jsonPatchPath(toBeEscaped)).To(Equal(escaped))
-		})
-
-		It("escapes '~'", func() {
-			segment1 := common.RandomString()
-			segment2 := common.RandomString()
-
-			toBeEscaped := fmt.Sprintf("%s~%s", segment1, segment2)
-			escaped := fmt.Sprintf("/%s~0%s", segment1, segment2)
-			Expect(jsonPatchPath(toBeEscaped)).To(Equal(escaped))
-		})
-	})
-
-	Describe("runCompletionStatus", func() {
-		It("returns false when the workflow has no status", func() {
-			workflow := &unstructured.Unstructured{}
-			_, hasFinished := runCompletionStatus(workflow)
-			Expect(hasFinished).To(BeFalse())
-		})
-	})
-
-	DescribeTable("runCompletionStatus",
-		func(phase argo.WorkflowPhase) {
-			workflow := &unstructured.Unstructured{}
-			setWorkflowPhase(workflow, phase)
-			_, hasFinished := runCompletionStatus(workflow)
-			Expect(hasFinished).To(Equal(false))
-		},
-		Entry("unknown", argo.WorkflowUnknown),
-		Entry("pending", argo.WorkflowPending),
-		Entry("running", argo.WorkflowRunning),
-	)
-
-	DescribeTable("runCompletionStatus",
-		func(phase argo.WorkflowPhase, expectedStatus common.RunCompletionStatus) {
-			workflow := &unstructured.Unstructured{}
-			setWorkflowPhase(workflow, phase)
-			status, hasFinished := runCompletionStatus(workflow)
-			Expect(status).To(Equal(expectedStatus))
-			Expect(hasFinished).To(Equal(true))
-		},
-		Entry("error", argo.WorkflowError, common.RunCompletionStatuses.Failed),
-		Entry("failed", argo.WorkflowFailed, common.RunCompletionStatuses.Failed),
-		Entry("succeeded", argo.WorkflowSucceeded, common.RunCompletionStatuses.Succeeded),
-	)
-
+var _ = Context("Eventing Flow", func() {
 	Describe("getPipelineNameFromAnnotation", func() {
 		It("returns empty when the workflow has no pipeline spec annotation", func() {
 			workflow := &unstructured.Unstructured{}
@@ -285,4 +202,25 @@ var _ = Context("Eventing Server", func() {
 		Entry("workflow failed", argo.WorkflowFailed),
 		Entry("workflow errored", argo.WorkflowError),
 	)
+
 })
+
+func setPipelineNameInSpec(workflow *unstructured.Unstructured, pipelineName string) {
+	workflow.SetAnnotations(map[string]string{
+		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
+	})
+}
+
+func setWorkflowEntryPoint(workflow *unstructured.Unstructured, entrypoint string) {
+	workflow.Object = map[string]interface{}{
+		"spec": map[string]interface{}{
+			"entrypoint": entrypoint,
+		},
+	}
+}
+
+func setWorkflowPhase(workflow *unstructured.Unstructured, phase argo.WorkflowPhase) {
+	workflow.SetLabels(map[string]string{
+		workflowPhaseLabel: string(phase),
+	})
+}

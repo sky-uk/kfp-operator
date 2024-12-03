@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
+	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/ml_metadata"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -24,6 +26,17 @@ type KfpEventFlow struct {
 	errorOut       chan error
 }
 
+const (
+	pipelineRunIdLabel           = "pipeline/runid"
+	workflowPhaseLabel           = "workflows.argoproj.io/phase"
+	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
+	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
+)
+
+type PipelineSpec struct {
+	Name string `json:"name"`
+}
+
 func (kef *KfpEventFlow) In() chan<- StreamMessage[*unstructured.Unstructured] {
 	return kef.in
 }
@@ -39,45 +52,50 @@ func (kef *KfpEventFlow) ErrOut() <-chan error {
 func (kef *KfpEventFlow) From(outlet Outlet[StreamMessage[*unstructured.Unstructured]]) Flow[StreamMessage[*unstructured.Unstructured], StreamMessage[*common.RunCompletionEventData], error] {
 	go func() {
 		for message := range outlet.Out() {
-			rce, err := kef.toRunCompletionEventData(message)
-			if err != nil {
-				kef.errorOut <- err
-			} else {
-				kef.out <- rce
-			}
+			kef.In() <- message
 		}
 	}()
 	return kef
 }
 
-func (kef *KfpEventFlow) To(s Sink[StreamMessage[*common.RunCompletionEventData]]) {
-	for message := range kef.out {
-		s.In() <- message
-	}
+func (kef *KfpEventFlow) To(inlet Inlet[StreamMessage[*common.RunCompletionEventData]]) {
+	go func() {
+		for message := range kef.out {
+			inlet.In() <- message
+		}
+	}()
 }
 
-func (kef *KfpEventFlow) Error(s Sink[error]) {
+func (kef *KfpEventFlow) Error(inlet Inlet[error]) {
 	for errorMessage := range kef.errorOut {
-		s.In() <- errorMessage
+		inlet.In() <- errorMessage
 	}
 }
 
-func NewKfpEventFlow(ctx context.Context, config KfpProviderConfig) (*KfpEventFlow, error) {
+func CreateKfpApi(ctx context.Context, config KfpProviderConfig) (KfpApi, error) {
 	logger := common.LoggerFromContext(ctx)
-
 	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
 	if err != nil {
 		logger.Error(err, "failed to connect to Kubeflow API", "address", config.Parameters.GrpcKfpApiAddress)
 		return nil, err
 	}
+	return kfpApi, nil
+}
 
+func CreateMetadataStore(ctx context.Context, config KfpProviderConfig) (MetadataStore, error) {
+	logger := common.LoggerFromContext(ctx)
 	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
 	if err != nil {
 		logger.Error(err, "failed to connect to metadata store", "address", config.Parameters.GrpcMetadataStoreAddress)
 		return nil, err
 	}
+	return metadataStore, nil
+}
 
-	return &KfpEventFlow{
+func NewKfpEventFlow(ctx context.Context, config KfpProviderConfig, kfpApi KfpApi, metadataStore MetadataStore) (*KfpEventFlow, error) {
+	logger := common.LoggerFromContext(ctx)
+
+	flow := &KfpEventFlow{
 		ProviderConfig: config,
 		MetadataStore:  metadataStore,
 		KfpApi:         kfpApi,
@@ -86,7 +104,22 @@ func NewKfpEventFlow(ctx context.Context, config KfpProviderConfig) (*KfpEventFl
 		in:             make(chan StreamMessage[*unstructured.Unstructured]),
 		out:            make(chan StreamMessage[*common.RunCompletionEventData]),
 		errorOut:       make(chan error),
-	}, nil
+	}
+
+	go flow.subscribeAndConvert()
+
+	return flow, nil
+}
+
+func (kef *KfpEventFlow) subscribeAndConvert() {
+	for msg := range kef.in {
+		runCompletionEvent, err := kef.toRunCompletionEventData(msg)
+		if err != nil {
+			kef.errorOut <- err
+		} else {
+			kef.out <- runCompletionEvent
+		}
+	}
 }
 
 func (kef *KfpEventFlow) toRunCompletionEventData(message StreamMessage[*unstructured.Unstructured]) (StreamMessage[*common.RunCompletionEventData], error) {
@@ -195,5 +228,17 @@ func ConnectToMetadataStore(address string) (*GrpcMetadataStore, error) {
 
 	return &GrpcMetadataStore{
 		MetadataStoreServiceClient: ml_metadata.NewMetadataStoreServiceClient(conn),
+	}, nil
+}
+
+func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
+	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &GrpcKfpApi{
+		RunServiceClient: go_client.NewRunServiceClient(conn),
+		JobServiceClient: go_client.NewJobServiceClient(conn),
 	}, nil
 }
