@@ -98,16 +98,42 @@ minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PO
 minikube-install-provider:
 	$(MAKE) -C argo/providers docker-push
 	$(MAKE) -C argo/providers/stub docker-push
+	$(MAKE) minikube-provider-setup
 	$(MAKE) minikube-helm-install-provider VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES} NAME=${NAME}
+
+minikube-provider-setup:
+	@if [ -f ./provider-setup.sh ]; then \
+		echo "Running provider setup script"; \
+		bash ./provider-setup.sh -k minikube -r; \
+	else \
+		echo "Provider setup script not found"; \
+	fi
+
+minikube-provider-teardown:
+	@if [ -f ./provider-teardown.sh ]; then \
+		echo "Running provider teardown script"; \
+		bash ./provider-teardown.sh; \
+	else \
+		echo "Provider teardown script not found"; \
+	fi
 
 minikube-start:
 	minikube start --driver=docker --registry-mirror="https://mirror.gcr.io"
 	minikube addons enable registry
 
-minikube-up: minikube-start minikube-install-dependencies minikube-install-operator
+minikube-up:
+	@if [ -z ${NAME} ]; then \
+		echo "You must specify the name of the provider you want to install"; \
+		exit 1; \
+	fi
+	$(MAKE) minikube-start
+	$(MAKE) minikube-install-dependencies
+	$(MAKE) minikube-install-operator
+	$(MAKE) minikube-install-provider
 
 minikube-delete:
 	minikube delete
+	$(MAKE) minikube-provider-teardown
 
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
