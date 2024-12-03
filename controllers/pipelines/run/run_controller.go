@@ -12,6 +12,7 @@ import (
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/statehandler"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -20,7 +21,7 @@ import (
 // RunReconciler reconciles a Run object
 type RunReconciler struct {
 	EC pipelines.K8sExecutionContext
-	pipelines.StateHandler[*pipelinesv1.Run]
+	statehandler.StateHandler[*pipelinesv1.Run]
 	pipelines.DependingOnPipelineReconciler[*pipelinesv1.Run]
 	pipelines.DependingOnRunConfigurationReconciler[*pipelinesv1.Run]
 	pipelines.ResourceReconciler[*pipelinesv1.Run]
@@ -28,7 +29,7 @@ type RunReconciler struct {
 
 func NewRunReconciler(ec pipelines.K8sExecutionContext, workflowRepository pipelines.WorkflowRepository, config config.KfpControllerConfigSpec) *RunReconciler {
 	return &RunReconciler{
-		StateHandler: pipelines.StateHandler[*pipelinesv1.Run]{
+		StateHandler: statehandler.StateHandler[*pipelinesv1.Run]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    RunWorkflowFactory(config),
 		},

@@ -27,7 +27,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				testutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
+				pipelines.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
@@ -47,7 +47,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				testutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
+				pipelines.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
@@ -65,7 +65,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				testutil.SetProviderOutput(workflow, providers.Output{Id: ""})
+				pipelines.SetProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(rcHelper.Exists).Should(Not(Succeed()))

@@ -3,7 +3,7 @@ package pipelines
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	workflowfactory "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
@@ -23,12 +23,12 @@ func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pi
 	}, nil
 }
 
-func PipelineWorkflowFactory(config config.KfpControllerConfigSpec) *workflowfactory.ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
-	return &workflowfactory.ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
+func PipelineWorkflowFactory(config config.KfpControllerConfigSpec) *pipelines.ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
+	return &pipelines.ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
 		DefinitionCreator: PipelineDefinitionCreator{
 			Config: config,
 		}.pipelineDefinition,
 		Config:                config,
-		TemplateNameGenerator: workflowfactory.CompiledTemplateNameGenerator(config),
+		TemplateNameGenerator: pipelines.CompiledTemplateNameGenerator(config),
 	}
 }

@@ -10,22 +10,23 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	common "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/statehandler"
 )
 
 // ExperimentReconciler reconciles a Experiment object
 type ExperimentReconciler struct {
-	common.StateHandler[*pipelinesv1.Experiment]
-	common.ResourceReconciler[*pipelinesv1.Experiment]
+	statehandler.StateHandler[*pipelinesv1.Experiment]
+	pipelines.ResourceReconciler[*pipelinesv1.Experiment]
 }
 
-func NewExperimentReconciler(ec common.K8sExecutionContext, workflowRepository common.WorkflowRepository, config config.KfpControllerConfigSpec) *ExperimentReconciler {
+func NewExperimentReconciler(ec pipelines.K8sExecutionContext, workflowRepository pipelines.WorkflowRepository, config config.KfpControllerConfigSpec) *ExperimentReconciler {
 	return &ExperimentReconciler{
-		StateHandler: common.StateHandler[*pipelinesv1.Experiment]{
+		StateHandler: statehandler.StateHandler[*pipelinesv1.Experiment]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    ExperimentWorkflowFactory(config),
 		},
-		ResourceReconciler: common.ResourceReconciler[*pipelinesv1.Experiment]{
+		ResourceReconciler: pipelines.ResourceReconciler[*pipelinesv1.Experiment]{
 			EC:     ec,
 			Config: config,
 		},
@@ -59,13 +60,13 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	for i := range commands {
 		if err := commands[i].Execute(ctx, r.EC, experiment); err != nil {
-			logger.Error(err, "error executing command", common.LogKeys.Command, commands[i])
+			logger.Error(err, "error executing command", pipelines.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", common.LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", pipelines.LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

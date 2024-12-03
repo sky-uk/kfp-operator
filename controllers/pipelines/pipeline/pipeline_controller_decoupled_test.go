@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	testutil "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
-	pipelines "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	v1 "k8s.io/api/core/v1"
 )
@@ -27,7 +27,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(pipelineHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				testutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
+				pipelines.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -47,7 +47,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(pipelineHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				testutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
+				pipelines.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelinesv1.Pipeline) {
@@ -65,7 +65,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Eventually(pipelineHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				testutil.SetProviderOutput(workflow, providers.Output{Id: ""})
+				pipelines.SetProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(pipelineHelper.Exists).Should(Not(Succeed()))

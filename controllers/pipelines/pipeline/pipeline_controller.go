@@ -6,7 +6,8 @@ import (
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	pipelines "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/statehandler"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -19,13 +20,13 @@ var (
 )
 
 type PipelineReconciler struct {
-	pipelines.StateHandler[*pipelinesv1.Pipeline]
+	statehandler.StateHandler[*pipelinesv1.Pipeline]
 	pipelines.ResourceReconciler[*pipelinesv1.Pipeline]
 }
 
 func NewPipelineReconciler(ec pipelines.K8sExecutionContext, workflowRepository pipelines.WorkflowRepository, config config.KfpControllerConfigSpec) *PipelineReconciler {
 	return &PipelineReconciler{
-		StateHandler: pipelines.StateHandler[*pipelinesv1.Pipeline]{
+		StateHandler: statehandler.StateHandler[*pipelinesv1.Pipeline]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    PipelineWorkflowFactory(config),
 		},

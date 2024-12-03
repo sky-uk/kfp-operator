@@ -32,7 +32,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				testutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
+				pipelines.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
@@ -54,7 +54,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				testutil.SetProviderOutput(workflow, providers.Output{Id: ""})
+				pipelines.SetProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(runHelper.Exists).Should(Not(Succeed()))
