@@ -185,6 +185,7 @@ func WithTestContext(fun func(context.Context)) {
 		"POST",
 		webhookUrl,
 		func(req *http.Request) (*http.Response, error) {
+			numberOfEvents++
 			body, err := io.ReadAll(req.Body)
 			if err != nil {
 				return httpmock.NewStringResponse(503, "failed to read body"), err
@@ -198,12 +199,8 @@ func WithTestContext(fun func(context.Context)) {
 	)
 	webhookSink = sinks.NewWebhookSink(ctx, webhookUrl, client, make(chan pkg.StreamMessage[*common.RunCompletionEventData]))
 
-	counterFlow := streams.NewPassThroughFlow[pkg.StreamMessage[*common.RunCompletionEventData], error](func(m pkg.StreamMessage[*common.RunCompletionEventData]) {
-		numberOfEvents++
-	})
-
 	go func() {
-		counterFlow.From(eventFlow.From(eventSource)).To(webhookSink)
+		eventFlow.From(eventSource).To(webhookSink)
 	}()
 
 	fun(ctx)
