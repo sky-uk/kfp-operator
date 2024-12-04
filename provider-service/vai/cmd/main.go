@@ -57,9 +57,17 @@ func main() {
 		logger.Error(err, "Failed to create VAI event data source")
 		os.Exit(1)
 	}
+	go handleErrorInSourceOperations(source)
+
 	flow := vai.NewVaiEventFlow(ctx, vaiConfig, pipelineJobClient)
-	
+
 	sink := sinks.NewWebhookSink(ctx, config.OperatorWebhook, resty.New(), make(chan StreamMessage[*common.RunCompletionEventData]))
 
 	flow.From(source).To(sink)
+}
+
+func handleErrorInSourceOperations(source *sources.PubSubSource) {
+	for range source.ErrorOut() {
+		os.Exit(1)
+	}
 }

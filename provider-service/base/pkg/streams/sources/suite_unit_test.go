@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestStreamsUnitSuite(t *testing.T) {
+func TestSourcesUnitSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Streams Unit Suite")
+	RunSpecs(t, "Sources Unit Suite")
 }

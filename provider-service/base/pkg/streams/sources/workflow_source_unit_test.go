@@ -32,7 +32,7 @@ func runCompletionStatus(workflow *unstructured.Unstructured) (common.RunComplet
 	}
 }
 
-var _ = Context("Eventing Server", func() {
+var _ = Context("workflow source", func() {
 	Describe("jsonPatchPath", func() {
 		It("concatenates path segments", func() {
 			segment1 := common.RandomString()
