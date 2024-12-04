@@ -59,7 +59,7 @@ func main() {
 
 	flow, err := kfp.NewKfpEventFlow(ctx, *providerConfig, kfpApi, kfpMetadataStore)
 	if err != nil {
-		logger.Error(err, "Failed to create KFP Event Flow")
+		logger.Error(err, "Failed to create kfp event flow")
 		os.Exit(1)
 	}
 
