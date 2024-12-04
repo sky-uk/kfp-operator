@@ -20,7 +20,7 @@ type Parameters struct {
 	MaxConcurrentRunCount                 int64  `yaml:"maxConcurrentRunCount"`
 }
 
-func (vaipc VAIProviderConfig) vaiEndpoint() string {
+func (vaipc VAIProviderConfig) VaiEndpoint() string {
 	return fmt.Sprintf("%s-aiplatform.googleapis.com:443", vaipc.Parameters.VaiLocation)
 }
 
