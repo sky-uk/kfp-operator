@@ -22,8 +22,7 @@ type Resource struct {
 }
 
 type LogEntry struct {
-	Labels   map[string]string `json:"labels"`
-	Resource Resource          `json:"resource"`
+	Resource Resource `json:"resource"`
 }
 
 func NewPubSubSource(ctx context.Context, project string, subscription string) (*PubSubSource, error) {
@@ -52,49 +51,55 @@ func NewPubSubSource(ctx context.Context, project string, subscription string) (
 	return pubSubSource, nil
 }
 
-func (es *PubSubSource) Out() <-chan StreamMessage[string] {
-	return es.out
+func (pss *PubSubSource) Out() <-chan StreamMessage[string] {
+	return pss.out
 }
 
-func (es *PubSubSource) subscribe(ctx context.Context, runsSubscription *pubsub.Subscription) error {
-	es.Logger.Info("subscribing to pubsub...")
+func (pss *PubSubSource) subscribe(ctx context.Context, runsSubscription *pubsub.Subscription) error {
+	pss.Logger.Info("subscribing to pubsub...")
 
-	err := runsSubscription.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
-		es.Logger.Info(fmt.Sprintf("message received from Pub/Sub with ID: %s", m.ID))
-		logEntry := LogEntry{}
-		err := json.Unmarshal(m.Data, &logEntry)
+	err := runsSubscription.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
+		pss.Logger.Info(fmt.Sprintf("message received from Pub/Sub with ID: %s", msg.ID))
+
+		pipelineJobId, err := pss.extractPipelineJobId(msg)
 		if err != nil {
-			es.Logger.Error(err, "failed to unmarshal Pub/Sub message")
-			m.Nack()
-			return
-		}
-		es.Logger.Info(fmt.Sprintf("%+v", logEntry))
-
-		pipelineJobId, ok := logEntry.Resource.Labels["pipeline_job_id"]
-		if !ok {
-			es.Logger.Error(err, fmt.Sprintf("logEntry did not contain pipeline_job_id %+v", logEntry))
-			m.Nack()
-			return
+			pss.Logger.Error(err, "failed to extract pipeline_job_id from message")
+			msg.Nack()
 		}
 
 		select {
-		case es.out <- StreamMessage[string]{
+		case pss.out <- StreamMessage[string]{
 			Message: pipelineJobId,
 			OnCompleteHandlers: OnCompleteHandlers{
-				OnSuccessHandler: func() { m.Ack() },
-				OnFailureHandler: func() { m.Nack() },
+				OnSuccessHandler: func() { msg.Ack() },
+				OnFailureHandler: func() { msg.Nack() },
 			},
 		}:
 		case <-ctx.Done():
-			es.Logger.Info("stopped reading from pubsub")
+			pss.Logger.Info("stopped reading from pubsub")
 			return
 		}
 	})
 
 	if err != nil {
-		es.Logger.Error(err, "failed to read from pubsub")
+		pss.Logger.Error(err, "failed to read from pubsub")
 		return err
 	}
 
 	return nil
+}
+
+func (pss *PubSubSource) extractPipelineJobId(msg *pubsub.Message) (string, error) {
+	logEntry := LogEntry{}
+	err := json.Unmarshal(msg.Data, &logEntry)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineJobId, ok := logEntry.Resource.Labels["pipeline_job_id"]
+	if !ok {
+		err := fmt.Errorf("logEntry did not contain pipeline_job_id %+v", logEntry)
+		return "", err
+	}
+	return pipelineJobId, nil
 }
