@@ -98,8 +98,8 @@ minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PO
 minikube-install-provider:
 	$(MAKE) -C argo/providers docker-push
 	$(MAKE) -C argo/providers/stub docker-push
-	$(MAKE) minikube-provider-setup
 	$(MAKE) minikube-helm-install-provider VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES} NAME=${NAME}
+	$(MAKE) minikube-provider-setup
 
 minikube-provider-setup:
 	@if [ -f ./provider-setup.sh ]; then \
