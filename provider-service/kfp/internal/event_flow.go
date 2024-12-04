@@ -115,6 +115,7 @@ func (kef *KfpEventFlow) subscribeAndConvert() {
 	for msg := range kef.in {
 		runCompletionEvent, err := kef.toRunCompletionEventData(msg)
 		if err != nil {
+			msg.OnFailureHandler()
 			kef.errorOut <- err
 		} else {
 			kef.out <- runCompletionEvent
