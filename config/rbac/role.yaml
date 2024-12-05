@@ -78,6 +78,32 @@ rules:
 - apiGroups:
   - pipelines.kubeflow.org
   resources:
+  - providers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - providers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
+  - providers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - pipelines.kubeflow.org
+  resources:
   - runconfigurations
   verbs:
   - create

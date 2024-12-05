@@ -139,6 +139,15 @@ spec:
                   - type
                   type: object
                 type: array
+              observedGeneration:
+                format: int64
+                type: integer
+              providerId:
+                type: string
+              synchronizationState:
+                type: string
+              version:
+                type: string
             type: object
         type: object
         x-kubernetes-preserve-unknown-fields: true
@@ -193,11 +202,14 @@ spec:
               serviceAccount:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                 type: string
+              type:
+                type: string
             required:
             - executionMode
             - image
             - pipelineRootStorage
             - serviceAccount
+            - type
             type: object
           status:
             properties:
@@ -269,6 +281,20 @@ spec:
                   - type
                   type: object
                 type: array
+              observedGeneration:
+                format: int64
+                type: integer
+              provider:
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                type: object
+              synchronizationState:
+                type: string
+              version:
+                type: string
             type: object
         type: object
         x-kubernetes-preserve-unknown-fields: true

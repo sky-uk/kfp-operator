@@ -27,12 +27,8 @@ type Provider struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ProviderSpec   `json:"spec,omitempty"`
-	Status ProviderStatus `json:"status,omitempty"`
-}
-
-type ProviderStatus struct {
-	Conditions Conditions `json:"conditions,omitempty"`
+	Spec   ProviderSpec `json:"spec,omitempty"`
+	Status Status       `json:"status,omitempty"`
 }
 
 func (p Provider) GetNamespacedName() types.NamespacedName {
