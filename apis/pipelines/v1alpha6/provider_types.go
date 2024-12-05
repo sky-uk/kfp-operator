@@ -1,21 +1,14 @@
 package v1alpha6
 
 import (
+	"fmt"
+
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
-
-type ProviderSpec struct {
-	Image         string `json:"image" yaml:"image"`
-	ExecutionMode string `json:"executionMode" yaml:"executionMode"`
-	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
-	ServiceAccount      string                           `json:"serviceAccount" yaml:"serviceAccount"`
-	DefaultBeamArgs     []apis.NamedValue                `json:"defaultBeamArgs,omitempty" yaml:"defaultBeamArgs,omitempty"`
-	PipelineRootStorage string                           `json:"pipelineRootStorage" yaml:"pipelineRootStorage"`
-	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
-}
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName="mlprv"
@@ -27,12 +20,53 @@ type Provider struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ProviderSpec   `json:"spec,omitempty"`
-	Status ProviderStatus `json:"status,omitempty"`
+	Spec   ProviderSpec `json:"spec,omitempty"`
+	Status Status       `json:"status,omitempty"`
 }
 
-type ProviderStatus struct {
-	Conditions Conditions `json:"conditions,omitempty"`
+// +kubebuilder:object:root=true
+type ProviderList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []Provider `json:"items"`
+}
+
+type ProviderSpec struct {
+	Type          ProviderType `json:"type" yaml:"type"`
+	Image         string       `json:"image" yaml:"image"`
+	ExecutionMode string       `json:"executionMode" yaml:"executionMode"`
+	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
+	ServiceAccount      string                           `json:"serviceAccount" yaml:"serviceAccount"`
+	DefaultBeamArgs     []apis.NamedValue                `json:"defaultBeamArgs,omitempty" yaml:"defaultBeamArgs,omitempty"`
+	PipelineRootStorage string                           `json:"pipelineRootStorage" yaml:"pipelineRootStorage"`
+	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+}
+
+type ProviderType string
+
+const (
+	KFP ProviderType = "KFP"
+	VAI ProviderType = "VAI"
+)
+
+func (ps Provider) ComputeHash() []byte {
+	oh := pipelines.NewObjectHasher()
+	oh.WriteStringField(ps.Spec.Image)
+	return oh.Sum()
+}
+
+func (ps Provider) ComputeVersion() string {
+	hash := ps.ComputeHash()[0:3]
+
+	return fmt.Sprintf("%x", hash)
+}
+
+func (p *Provider) GetStatus() Status {
+	return p.Status
+}
+
+func (p *Provider) SetStatus(status Status) {
+	p.Status = status
 }
 
 func (p Provider) GetNamespacedName() types.NamespacedName {
@@ -44,14 +78,6 @@ func (p Provider) GetNamespacedName() types.NamespacedName {
 
 func (e Provider) GetKind() string {
 	return "provider"
-}
-
-//+kubebuilder:object:root=true
-
-type ProviderList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Provider `json:"items"`
 }
 
 func init() {

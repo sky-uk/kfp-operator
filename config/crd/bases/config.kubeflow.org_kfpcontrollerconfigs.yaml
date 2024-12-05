@@ -370,6 +370,8 @@ spec:
             type: object
           spec:
             properties:
+              containerRegistry:
+                type: string
               defaultExperiment:
                 type: string
               defaultProvider:
