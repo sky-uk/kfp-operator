@@ -104,7 +104,7 @@ minikube-install-provider:
 minikube-provider-setup:
 	@if [ -f ./provider-setup.sh ]; then \
 		echo "Running provider setup script"; \
-		bash ./provider-setup.sh -k minikube -r; \
+		bash ./provider-setup.sh; \
 	else \
 		echo "Provider setup script not found"; \
 	fi
