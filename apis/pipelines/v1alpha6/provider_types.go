@@ -1,7 +1,10 @@
 package v1alpha6
 
 import (
+	"fmt"
+
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -17,6 +20,18 @@ type ProviderSpec struct {
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
 
+func (ps Provider) ComputeHash() []byte {
+	oh := pipelines.NewObjectHasher()
+	oh.WriteStringField(ps.Spec.Image)
+	return oh.Sum()
+}
+
+func (ps Provider) ComputeVersion() string {
+	hash := ps.ComputeHash()[0:3]
+
+	return fmt.Sprintf("%x", hash)
+}
+
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName="mlprv"
 // +kubebuilder:subresource:status
@@ -27,8 +42,16 @@ type Provider struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   ProviderSpec   `json:"spec,omitempty"`
-	Status ProviderStatus `json:"status,omitempty"`
+	Spec   ProviderSpec `json:"spec,omitempty"`
+	Status Status       `json:"status,omitempty"`
+}
+
+func (p *Provider) GetStatus() Status {
+	return p.Status
+}
+
+func (p *Provider) SetStatus(status Status) {
+	p.Status = status
 }
 
 type ProviderStatus struct {
