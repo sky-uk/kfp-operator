@@ -8,13 +8,13 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
-	"os"
 )
 
 type PubSubSource struct {
 	RunsSubscription *pubsub.Subscription
 	Logger           logr.Logger
 	out              chan StreamMessage[string]
+	errOut           chan error
 }
 
 type Resource struct {
@@ -23,6 +23,12 @@ type Resource struct {
 
 type LogEntry struct {
 	Resource Resource `json:"resource"`
+}
+
+const PipelineJobLabel = "pipeline_job_id"
+
+func (ps *PubSubSource) ErrorOut() <-chan error {
+	return ps.errOut
 }
 
 func NewPubSubSource(ctx context.Context, project string, subscription string) (*PubSubSource, error) {
@@ -35,6 +41,10 @@ func NewPubSubSource(ctx context.Context, project string, subscription string) (
 	}
 
 	runsSubscription := pubSubClient.Subscription(subscription)
+	exists, err := runsSubscription.Exists(ctx)
+	if err != nil || !exists {
+		return nil, fmt.Errorf("subscription %s does not exist on topic", subscription)
+	}
 
 	pubSubSource := &PubSubSource{
 		Logger: logger,
@@ -44,7 +54,8 @@ func NewPubSubSource(ctx context.Context, project string, subscription string) (
 	go func() {
 		if err := pubSubSource.subscribe(ctx, runsSubscription); err != nil {
 			logger.Error(err, "Failed to subscribe", "subscription", subscription)
-			os.Exit(1)
+			pubSubSource.errOut <- err
+			return
 		}
 	}()
 
@@ -96,7 +107,7 @@ func (pss *PubSubSource) extractPipelineJobId(msg *pubsub.Message) (string, erro
 		return "", err
 	}
 
-	pipelineJobId, ok := logEntry.Resource.Labels["pipeline_job_id"]
+	pipelineJobId, ok := logEntry.Resource.Labels[PipelineJobLabel]
 	if !ok {
 		err := fmt.Errorf("logEntry did not contain pipeline_job_id %+v", logEntry)
 		return "", err
