@@ -76,6 +76,7 @@ func (pss *PubSubSource) subscribe(ctx context.Context, runsSubscription *pubsub
 		if err != nil {
 			pss.Logger.Error(err, "failed to extract pipeline_job_id from message")
 			msg.Nack()
+			return
 		}
 
 		select {

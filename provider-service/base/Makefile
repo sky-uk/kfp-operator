@@ -5,7 +5,6 @@ unit-test:
 test: unit-test
 
 integration-test:
-#	docker compose down
 	docker compose up -d
 	$(MAKE) wait-for-pubsub
 	go test ./... -v -tags=integration

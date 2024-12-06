@@ -7,19 +7,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/smartystreets/assertions/should"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	"go.uber.org/zap/zapcore"
 	"os"
 	"testing"
 	"time"
 )
 
 var topics = []*pubsub.Topic{}
+var subscriptions = []*pubsub.Subscription{}
 
 const (
 	pubsubSubscriptionName = "some_subscription"
-	pubsubTopicName        = "some_topic"
 	pubsubProject          = "some_project"
 	pubsubHost             = "localhost:8085"
 )
@@ -38,7 +40,13 @@ func sendMessage(ctx context.Context, topic *pubsub.Topic, id string, data []byt
 }
 
 var _ = Context("Pub sub source", Ordered, func() {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(5000)*time.Millisecond)
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(5000)*time.Millisecond)
+	logger, err := common.NewLogger(zapcore.InfoLevel)
+	Expect(err).ToNot(HaveOccurred())
+	ctx := logr.NewContext(ctxWithTimeout, logger)
+
+	ctxWithCancel, appCancel := context.WithCancel(context.Background())
+	appCtx := logr.NewContext(ctxWithCancel, logger)
 
 	BeforeAll(func() {
 		err := os.Setenv("PUBSUB_EMULATOR_HOST", pubsubHost)
@@ -49,7 +57,11 @@ var _ = Context("Pub sub source", Ordered, func() {
 		for _, topic := range topics {
 			_ = topic.Delete(ctx)
 		}
+		for _, sub := range subscriptions {
+			_ = sub.Delete(ctx)
+		}
 		cancel()
+		appCancel()
 	})
 
 	Describe("subscribing to a topic", func() {
@@ -57,7 +69,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 			It("should stream the messages", func() {
 				pipelineId := "valid_pipeline"
 
-				_, topic, _ := createClientTopicSubscription(ctx, pipelineId, pipelineId)
+				topic, _, _ := createClientTopicSubscription(ctx, pipelineId, pipelineId)
 				source := createPubSubSource(ctx, pipelineId)
 
 				message := LogEntry{
@@ -98,7 +110,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 			It("should be ack'd on the topic", func() {
 				pipelineId := "valid_message_ack_check"
 
-				_, topic, _ := createClientTopicSubscription(ctx, pipelineId, pipelineId)
+				topic, _, _ := createClientTopicSubscription(ctx, pipelineId, pipelineId)
 				source := createPubSubSource(ctx, pipelineId)
 
 				message := LogEntry{
@@ -125,64 +137,121 @@ var _ = Context("Pub sub source", Ordered, func() {
 			})
 		})
 
+		//When("a streamed message is valid but fails upstream", func() {
+		//	It("should be nack'd", func() {
+		//		pipelineId := "invalid_message_nack_check"
+		//
+		//		topic, _, deadletterSub := createClientTopicSubscription(ctx, pipelineId, pipelineId)
+		//		underTest := createPubSubSource(appCtx, pipelineId)
+		//		message := LogEntry{
+		//			Resource: Resource{
+		//				Labels: map[string]string{
+		//					PipelineJobLabel: pipelineId,
+		//				}},
+		//		}
+		//		jsonMessage, err := json.Marshal(message)
+		//		Expect(err).NotTo(HaveOccurred())
+		//
+		//		deadMessages := false
+		//		go func() {
+		//			_ = deadletterSub.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
+		//				deadMessages = true
+		//				Expect(message.Data).To(Equal(jsonMessage))
+		//				return
+		//			})
+		//		}()
+		//
+		//		sendMessage(ctx, topic, pipelineId, jsonMessage)
+		//		timeout := 2 * time.Second
+		//		select {
+		//		case msg := <-underTest.Out():
+		//			msg.OnFailure()
+		//		case <-time.After(timeout):
+		//			Fail("timed out waiting for message")
+		//		}
+		//
+		//		appCancel()
+		//
+		//		Expect(deadMessages).To(BeTrue())
+		//	})
+		//})
+
 		When("a streamed message is malformed it", func() {
 			It("should be nack'd", func() {
 				pipelineId := "invalid_message_nack_check"
 
-				_, topic, subscription := createClientTopicSubscription(ctx, pipelineId, pipelineId)
-				_ = createPubSubSource(ctx, pipelineId)
-
+				topic, _, deadletterSub := createClientTopicSubscription(ctx, pipelineId, pipelineId)
+				_ = createPubSubSource(appCtx, pipelineId)
 				message := LogEntry{
 					Resource: Resource{Labels: map[string]string{"": ""}},
 				}
 				jsonMessage, err := json.Marshal(message)
 				Expect(err).NotTo(HaveOccurred())
 
+				deadMessages := false
+				go func() {
+					_ = deadletterSub.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
+						deadMessages = true
+						Expect(message.Data).To(Equal(jsonMessage))
+						return
+					})
+				}()
+
 				sendMessage(ctx, topic, pipelineId, jsonMessage)
 
-				attempts := 0
-				err = subscription.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
-					if message.DeliveryAttempt != nil {
-						attempts = *message.DeliveryAttempt
-						return
-					}
-					return
-				})
-				should.BeGreaterThan(attempts, 1)
-			})
-		})
+				time.Sleep(2 * time.Second)
+				appCancel()
 
-		When("a streamed message is valid but fails upstream", func() {
-			It("should be nack'd", func() {
-				Expect(1).To(Equal(1))
+				Expect(deadMessages).To(BeTrue())
 			})
 		})
 	})
 })
 
-func createClientTopicSubscription(ctx context.Context, topicName string, subscriptionName string) (*pubsub.Client, *pubsub.Topic, *pubsub.Subscription) {
-	client, err := pubsub.NewClient(ctx, pubsubProject)
-	Expect(err).ToNot(HaveOccurred())
-
+func createTopicIfNotExists(ctx context.Context, client *pubsub.Client, topicName string) *pubsub.Topic {
 	topic := client.Topic(topicName)
 	topicExists, err := topic.Exists(ctx)
+	Expect(err).ToNot(HaveOccurred())
 	if err != nil || !topicExists {
 		topic, err = client.CreateTopic(ctx, topicName)
 		Expect(err).ToNot(HaveOccurred())
 	}
+	return topic
+}
 
+func createSubIfNotExists(ctx context.Context, client *pubsub.Client, subscriptionName string, topic *pubsub.Topic, deadLetterPol *pubsub.DeadLetterPolicy) *pubsub.Subscription {
 	subscription := client.Subscription(subscriptionName)
 	subscriptionExists, err := subscription.Exists(ctx)
 
 	if err != nil || !subscriptionExists {
 		subscription, err = client.CreateSubscription(ctx, subscriptionName, pubsub.SubscriptionConfig{
-			Topic: topic,
+			DeadLetterPolicy: deadLetterPol,
+			Topic:            topic,
 		})
 		Expect(err).ToNot(HaveOccurred())
 	}
+	return subscription
+}
 
-	topics = append(topics, topic)
-	return client, topic, subscription
+func createClientTopicSubscription(ctx context.Context, topicName string, subscriptionName string) (*pubsub.Topic, *pubsub.Subscription, *pubsub.Subscription) {
+	deadLetterTopicName := fmt.Sprintf("deadletter_topic_%s", topicName)
+	client, err := pubsub.NewClient(ctx, pubsubProject)
+	Expect(err).ToNot(HaveOccurred())
+
+	topic := createTopicIfNotExists(ctx, client, topicName)
+	deadLetterTopic := createTopicIfNotExists(ctx, client, deadLetterTopicName)
+
+	subscription := createSubIfNotExists(ctx, client, subscriptionName, topic, &pubsub.DeadLetterPolicy{
+		DeadLetterTopic:     deadLetterTopic.String(),
+		MaxDeliveryAttempts: 5,
+	})
+
+	deadSubscription := createSubIfNotExists(ctx, client, subscriptionName+"-deadletter", deadLetterTopic, nil)
+	Expect(err).ToNot(HaveOccurred())
+
+	topics = append(topics, topic, deadLetterTopic)
+	subscriptions = append(subscriptions, subscription, deadSubscription)
+	return topic, subscription, deadSubscription
 }
 
 func createPubSubSource(ctx context.Context, subscription string) *PubSubSource {
