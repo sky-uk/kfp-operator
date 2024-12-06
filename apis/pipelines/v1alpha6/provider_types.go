@@ -11,14 +11,22 @@ import (
 )
 
 type ProviderSpec struct {
-	Image         string `json:"image" yaml:"image"`
-	ExecutionMode string `json:"executionMode" yaml:"executionMode"`
+	Type          ProviderType `json:"type" yaml:"type"`
+	Image         string       `json:"image" yaml:"image"`
+	ExecutionMode string       `json:"executionMode" yaml:"executionMode"`
 	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	ServiceAccount      string                           `json:"serviceAccount" yaml:"serviceAccount"`
 	DefaultBeamArgs     []apis.NamedValue                `json:"defaultBeamArgs,omitempty" yaml:"defaultBeamArgs,omitempty"`
 	PipelineRootStorage string                           `json:"pipelineRootStorage" yaml:"pipelineRootStorage"`
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
+
+type ProviderType string
+
+const (
+	KFP ProviderType = "KFP"
+	VAI ProviderType = "VAI"
+)
 
 func (ps Provider) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()

@@ -137,7 +137,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewProviderReconciler(ec).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewProviderReconciler(ec, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Provider")
 		os.Exit(1)
 	}

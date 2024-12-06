@@ -24,3 +24,4 @@ data:
       runCompletionFeed:
         port: {{ .Values.manager.runcompletionWebhook.servicePort }}
         endpoints: {{- if gt (len .Values.manager.runcompletionWebhook.endpoints) 0 }}{{- .Values.manager.runcompletionWebhook.endpoints | toYaml | nindent 8 }}{{ else }} []{{ end }}
+      containerRegistry: {{ .Values.containerRegistry }}
