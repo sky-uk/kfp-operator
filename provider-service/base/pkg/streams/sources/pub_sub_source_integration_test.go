@@ -137,44 +137,47 @@ var _ = Context("Pub sub source", Ordered, func() {
 			})
 		})
 
-		//When("a streamed message is valid but fails upstream", func() {
-		//	It("should be nack'd", func() {
-		//		pipelineId := "invalid_message_nack_check"
-		//
-		//		topic, _, deadletterSub := createClientTopicSubscription(ctx, pipelineId, pipelineId)
-		//		underTest := createPubSubSource(appCtx, pipelineId)
-		//		message := LogEntry{
-		//			Resource: Resource{
-		//				Labels: map[string]string{
-		//					PipelineJobLabel: pipelineId,
-		//				}},
-		//		}
-		//		jsonMessage, err := json.Marshal(message)
-		//		Expect(err).NotTo(HaveOccurred())
-		//
-		//		deadMessages := false
-		//		go func() {
-		//			_ = deadletterSub.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
-		//				deadMessages = true
-		//				Expect(message.Data).To(Equal(jsonMessage))
-		//				return
-		//			})
-		//		}()
-		//
-		//		sendMessage(ctx, topic, pipelineId, jsonMessage)
-		//		timeout := 2 * time.Second
-		//		select {
-		//		case msg := <-underTest.Out():
-		//			msg.OnFailure()
-		//		case <-time.After(timeout):
-		//			Fail("timed out waiting for message")
-		//		}
-		//
-		//		appCancel()
-		//
-		//		Expect(deadMessages).To(BeTrue())
-		//	})
-		//})
+		When("a streamed message is valid but fails upstream", func() {
+			It("should be nack'd", func() {
+				pipelineId := "invalid_message_nack_check"
+
+				topic, _, deadletterSub := createClientTopicSubscription(ctx, pipelineId, pipelineId)
+				underTest := createPubSubSource(appCtx, pipelineId)
+				message := LogEntry{
+					Resource: Resource{
+						Labels: map[string]string{
+							PipelineJobLabel: pipelineId,
+						}},
+				}
+				jsonMessage, err := json.Marshal(message)
+				Expect(err).NotTo(HaveOccurred())
+
+				deadMessages := false
+				go func() {
+					_ = deadletterSub.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
+						Expect(message.Data).To(Equal(jsonMessage))
+						deadMessages = true
+						return
+					})
+				}()
+
+				sendMessage(ctx, topic, pipelineId, jsonMessage)
+				timeout := 2 * time.Second
+				counter := 0
+				for i := 0; i < 6; i++ {
+					select {
+					case msg := <-underTest.Out():
+						msg.OnFailure()
+						counter = counter + 1
+					case <-time.After(timeout):
+						break
+					}
+				}
+
+				Expect(counter).To(Equal(5))
+				Expect(deadMessages).To(BeTrue())
+			})
+		})
 
 		When("a streamed message is malformed it", func() {
 			It("should be nack'd", func() {
