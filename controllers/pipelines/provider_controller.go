@@ -47,7 +47,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	logger.V(3).Info("found provider", "resource", provider)
+	logger.Info("found provider", "resource", provider)
 
 	providerServiceName := fmt.Sprintf("provider-%s-service", req.Name)
 	providerServiceDeployment, err := r.fetchProviderServiceDeployment(ctx, providerServiceName, req.Namespace)
