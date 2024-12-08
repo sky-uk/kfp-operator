@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"testing"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
@@ -16,6 +17,13 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+var PropertyBased = MustPassRepeatedly(5)
+
+func TestPipelineControllersUnitSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Pipeline Controllers StateHandler Unit Test Suite")
+}
 
 type StateTransitionTestCase struct {
 	workflowFactory *TestWorkflowFactory
