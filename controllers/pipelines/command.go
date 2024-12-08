@@ -161,16 +161,31 @@ func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
 	return sps.Status
 }
 
-func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
+func (sps SetStatus) execute(
+	ctx context.Context,
+	ec K8sExecutionContext,
+	resource pipelinesv1.Resource,
+) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("setting pipeline status", logging.Keys.OldStatus, resource.GetStatus(), logging.Keys.NewStatus, sps.Status)
+	logger.V(1).Info(
+		"setting pipeline status",
+		logging.Keys.OldStatus,
+		resource.GetStatus(),
+		logging.Keys.NewStatus,
+		sps.Status,
+	)
 
 	resource.SetStatus(sps.statusWithCondition())
 
 	err := ec.Client.Status().Update(ctx, resource)
 
 	if err == nil {
-		ec.Recorder.Event(resource, eventType(sps), eventReason(sps), eventMessage(sps))
+		ec.Recorder.Event(
+			resource,
+			eventType(sps),
+			eventReason(sps),
+			eventMessage(sps),
+		)
 	}
 
 	return err
@@ -180,11 +195,23 @@ type CreateWorkflow struct {
 	Workflow argo.Workflow
 }
 
-func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
+func (cw CreateWorkflow) execute(
+	ctx context.Context,
+	ec K8sExecutionContext,
+	resource pipelinesv1.Resource,
+) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("creating child workflow", logging.Keys.Workflow, cw.Workflow)
+	logger.V(1).Info(
+		"creating child workflow",
+		logging.Keys.Workflow,
+		cw.Workflow,
+	)
 
-	if err := ec.WorkflowRepository.CreateWorkflowForResource(ctx, &cw.Workflow, resource); err != nil {
+	if err := ec.WorkflowRepository.CreateWorkflowForResource(
+		ctx,
+		&cw.Workflow,
+		resource,
+	); err != nil {
 		return err
 	}
 
