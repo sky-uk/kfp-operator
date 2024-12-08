@@ -6,6 +6,7 @@ import (
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -58,13 +59,13 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, experiment); err != nil {
-			logger.Error(err, "error executing command", LogKeys.Command, commands[i])
+			logger.Error(err, "error executing command", logging.LogKeys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", logging.LogKeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
