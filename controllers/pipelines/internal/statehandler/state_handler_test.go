@@ -18,9 +18,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var PropertyBased = MustPassRepeatedly(5)
-
-func TestPipelineControllersUnitSuite(t *testing.T) {
+func PipelineControllersStateHandlerUnitTest(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Pipeline Controllers StateHandler Unit Test Suite")
 }
