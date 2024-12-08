@@ -104,7 +104,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		}
 		resource.SetGeneration(rand.Int63())
 
-		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+		modifiedCommands := AlwaysSetObservedGeneration(context.Background(), commands, resource)
 
 		Expect(modifiedCommands).To(Equal(
 			[]Command{
@@ -130,7 +130,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		resource.SetGeneration(rand.Int63())
 		resource.Status.ObservedGeneration = -1
 
-		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+		modifiedCommands := AlwaysSetObservedGeneration(context.Background(), commands, resource)
 
 		expectedResource := resource.Status.DeepCopy()
 		expectedResource.ObservedGeneration = resource.GetGeneration()
@@ -158,7 +158,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		}
 		resource.SetGeneration(generation)
 
-		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+		modifiedCommands := AlwaysSetObservedGeneration(context.Background(), commands, resource)
 
 		Expect(modifiedCommands).To(Equal(commands))
 	})

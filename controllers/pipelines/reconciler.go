@@ -20,7 +20,7 @@ type ResourceReconciler[R pipelinesv1.Resource] struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (br ResourceReconciler[R]) loadProvider(ctx context.Context, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {
+func (br ResourceReconciler[R]) LoadProvider(ctx context.Context, namespace string, desiredProvider string) (pipelinesv1.Provider, error) {
 	providerNamespacedName := types.NamespacedName{
 		Namespace: namespace,
 		Name:      desiredProvider,
@@ -48,7 +48,7 @@ func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipel
 	}
 }
 
-func (br ResourceReconciler[R]) setupWithManager(controllerBuilder *builder.Builder, resource R) *builder.Builder {
+func (br ResourceReconciler[R]) SetupWithManager(controllerBuilder *builder.Builder, resource R) *builder.Builder {
 	return controllerBuilder.Watches(&source.Kind{Type: &argo.Workflow{}},
 		handler.EnqueueRequestsFromMapFunc(br.reconciliationRequestsForWorkflow(resource)),
 		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
