@@ -163,7 +163,7 @@ func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
 
 func (sps SetStatus) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("setting pipeline status", logging.LogKeys.OldStatus, resource.GetStatus(), logging.LogKeys.NewStatus, sps.Status)
+	logger.V(1).Info("setting pipeline status", logging.Keys.OldStatus, resource.GetStatus(), logging.Keys.NewStatus, sps.Status)
 
 	resource.SetStatus(sps.statusWithCondition())
 
@@ -182,7 +182,7 @@ type CreateWorkflow struct {
 
 func (cw CreateWorkflow) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
 	logger := log.FromContext(ctx)
-	logger.V(1).Info("creating child workflow", logging.LogKeys.Workflow, cw.Workflow)
+	logger.V(1).Info("creating child workflow", logging.Keys.Workflow, cw.Workflow)
 
 	if err := ec.WorkflowRepository.CreateWorkflowForResource(ctx, &cw.Workflow, resource); err != nil {
 		return err

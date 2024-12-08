@@ -1,6 +1,6 @@
 package logging
 
-var LogKeys = struct {
+var Keys = struct {
 	Workflow  string
 	Command   string
 	Duration  string

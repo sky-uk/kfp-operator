@@ -5,8 +5,8 @@ import (
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -59,13 +59,13 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, runSchedule); err != nil {
-			logger.Error(err, "error executing command", logging.LogKeys.Command, commands[i])
+			logger.Error(err, "error executing command", logging.Keys.Command, commands[i])
 			return ctrl.Result{}, err
 		}
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", logging.LogKeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", logging.Keys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
