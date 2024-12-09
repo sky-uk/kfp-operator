@@ -72,7 +72,7 @@ var _ = Context("Pub sub source", func() {
 
 				result, err := source.extractPipelineJobId(pubsubMessage)
 
-				expectedErr := fmt.Errorf("logEntry did not contain pipeline_job_id %+v", logEntry)
+				expectedErr := fmt.Errorf("logEntry did not contain pipeline_job_id in %+v", logEntry)
 
 				Expect(result).To(Equal(""))
 				Expect(err).To(Equal(expectedErr))

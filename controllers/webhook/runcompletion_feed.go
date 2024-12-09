@@ -101,7 +101,7 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			return
 		} else {
 			for _, handler := range rcf.eventHandlers {
-				err := handler.handle(rcf.ctx, *event)
+				err := handler.Handle(rcf.ctx, *event)
 				if err != nil {
 					logger.Error(err, "Run completion event handler operation failed")
 					http.Error(response, err.Error(), http.StatusInternalServerError)

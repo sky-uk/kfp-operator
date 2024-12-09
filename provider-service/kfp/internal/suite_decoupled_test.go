@@ -197,7 +197,7 @@ func WithTestContext(fun func(context.Context)) {
 			return httpmock.NewStringResponse(200, ""), nil
 		},
 	)
-	webhookSink = sinks.NewWebhookSink(ctx, webhookUrl, client, make(chan pkg.StreamMessage[*common.RunCompletionEventData]))
+	webhookSink = sinks.NewWebhookSink(ctx, client, webhookUrl, make(chan pkg.StreamMessage[*common.RunCompletionEventData]))
 
 	go func() {
 		eventFlow.From(eventSource).To(webhookSink)

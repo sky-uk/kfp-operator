@@ -63,7 +63,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	sink := sinks.NewWebhookSink(ctx, config.OperatorWebhook, resty.New(), make(chan StreamMessage[*common.RunCompletionEventData]))
+	sink := sinks.NewWebhookSink(ctx, resty.New(), config.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
 	errorSink := sinks.NewErrorSink(ctx, make(chan error))
 
 	connectedFlow := flow.From(source)
