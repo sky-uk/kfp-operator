@@ -1,13 +1,21 @@
-package pipelines
+package workflowfactory
 
 import (
 	"fmt"
 
+	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
+
+// copied over from runconfiguration_controller
+var RunConfigurationConstants = struct {
+	RunConfigurationNameLabelKey string
+}{
+	RunConfigurationNameLabelKey: apis.Group + "/runconfiguration.name",
+}
 
 type RunDefinitionCreator struct {
 	Config config.KfpControllerConfigSpec

@@ -6,6 +6,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -34,9 +35,9 @@ func (br ResourceReconciler[R]) loadProvider(ctx context.Context, namespace stri
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipelinesv1.Resource) func(client.Object) []reconcile.Request {
 	return func(workflow client.Object) []reconcile.Request {
-		kind, hasKind := workflow.GetLabels()[WorkflowConstants.OwnerKindLabelKey]
-		ownerName, hasOwnerName := workflow.GetLabels()[WorkflowConstants.OwnerNameLabelKey]
-		ownerNamespace, hasOwnerNamespace := workflow.GetLabels()[WorkflowConstants.OwnerNamespaceLabelKey]
+		kind, hasKind := workflow.GetLabels()[workflowfactory.WorkflowConstants.OwnerKindLabelKey]
+		ownerName, hasOwnerName := workflow.GetLabels()[workflowfactory.WorkflowConstants.OwnerNameLabelKey]
+		ownerNamespace, hasOwnerNamespace := workflow.GetLabels()[workflowfactory.WorkflowConstants.OwnerNamespaceLabelKey]
 		if !hasKind || !hasOwnerName || !hasOwnerNamespace || kind != resource.GetKind() {
 			return nil
 		}

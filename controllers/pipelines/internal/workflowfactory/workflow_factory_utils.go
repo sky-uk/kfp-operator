@@ -1,4 +1,4 @@
-package pipelines
+package workflowfactory
 
 import "github.com/sky-uk/kfp-operator/apis"
 

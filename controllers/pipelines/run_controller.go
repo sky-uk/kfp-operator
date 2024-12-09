@@ -6,6 +6,7 @@ import (
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -30,7 +31,7 @@ func NewRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowReposit
 	return &RunReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Run]{
 			WorkflowRepository: workflowRepository,
-			WorkflowFactory:    RunWorkflowFactory(config),
+			WorkflowFactory:    workflowfactory.RunWorkflowFactory(config),
 		},
 		EC: ec,
 		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.Run]{
