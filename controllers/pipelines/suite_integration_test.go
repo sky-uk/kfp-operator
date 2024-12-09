@@ -92,7 +92,7 @@ func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R)
 				"expectedOutput": {Raw: expectedOutputJson},
 			},
 		},
-		Status: pipelinesv1.ProviderStatus{},
+		Status: pipelinesv1.Status{},
 	}
 	return provider, stubbedOutput
 }

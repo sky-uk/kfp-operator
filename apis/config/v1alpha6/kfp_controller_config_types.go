@@ -15,6 +15,7 @@ type KfpControllerConfigSpec struct {
 	DefaultExperiment      string               `json:"defaultExperiment,omitempty"`
 	RunCompletionTTL       *metav1.Duration     `json:"runCompletionTTL,omitempty"`
 	RunCompletionFeed      ServiceConfiguration `json:"runCompletionFeed,omitempty"`
+	ContainerRegistry      string               `json:"containerRegistry,omitempty"`
 }
 
 type Endpoint struct {
