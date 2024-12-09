@@ -7,7 +7,7 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/selection"
@@ -69,7 +69,7 @@ func (w WorkflowRepositoryImpl) GetByLabels(ctx context.Context, matchingLabels 
 func (w WorkflowRepositoryImpl) MarkWorkflowAsProcessed(ctx context.Context, workflow *argo.Workflow) error {
 	logger := log.FromContext(ctx)
 
-	logger.V(1).Info("marking child workflow as processed", logging.Keys.Workflow, workflow)
+	logger.V(1).Info("marking child workflow as processed", logkeys.Workflow, workflow)
 	workflowLabels := workflow.GetLabels()
 	if workflowLabels == nil {
 		workflowLabels = map[string]string{}

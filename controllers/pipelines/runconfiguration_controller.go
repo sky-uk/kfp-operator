@@ -9,7 +9,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -125,7 +125,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", logging.Keys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

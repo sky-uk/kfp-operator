@@ -8,7 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logging"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -169,9 +169,9 @@ func (sps SetStatus) execute(
 	logger := log.FromContext(ctx)
 	logger.V(1).Info(
 		"setting pipeline status",
-		logging.Keys.OldStatus,
+		logkeys.OldStatus,
 		resource.GetStatus(),
-		logging.Keys.NewStatus,
+		logkeys.NewStatus,
 		sps.Status,
 	)
 
@@ -203,7 +203,7 @@ func (cw CreateWorkflow) execute(
 	logger := log.FromContext(ctx)
 	logger.V(1).Info(
 		"creating child workflow",
-		logging.Keys.Workflow,
+		logkeys.Workflow,
 		cw.Workflow,
 	)
 
