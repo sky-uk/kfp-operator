@@ -1,4 +1,4 @@
-package pipelines
+package workflowutil
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"gopkg.in/yaml.v2"
 )
 
@@ -19,7 +20,7 @@ var mapParams = func(params []argo.Parameter) map[string]string {
 	return m
 }
 
-func getWorkflowParameter(workflow *argo.Workflow, name string) string {
+func GetWorkflowParameter(workflow *argo.Workflow, name string) string {
 	for _, parameter := range workflow.Spec.Arguments.Parameters {
 		if parameter.Name == name {
 			return parameter.Value.String()
@@ -29,7 +30,7 @@ func getWorkflowParameter(workflow *argo.Workflow, name string) string {
 	return ""
 }
 
-func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, error) {
+func GetWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, error) {
 	output := providers.Output{}
 
 	entrypointNode, exists := workflow.Status.Nodes[workflow.Name]
@@ -44,14 +45,29 @@ func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, e
 	return output, err
 }
 
-func setWorkflowProvider(workflow *argo.Workflow, provider pipelinesv1.Provider) (*argo.Workflow, error) {
+func SetWorkflowProvider(
+	workflow *argo.Workflow,
+	provider pipelinesv1.Provider,
+) (*argo.Workflow, error) {
 	providerStr, err := json.Marshal(provider)
 	if err != nil {
 		return nil, err
 	}
 
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: WorkflowConstants.ProviderConfigParameterName, Value: argo.AnyStringPtr(providerStr)})
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: WorkflowConstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider.Name)})
+	workflow.Spec.Arguments.Parameters = append(
+		workflow.Spec.Arguments.Parameters,
+		argo.Parameter{
+			Name:  workflowconstants.ProviderConfigParameterName,
+			Value: argo.AnyStringPtr(providerStr),
+		},
+	)
+	workflow.Spec.Arguments.Parameters = append(
+		workflow.Spec.Arguments.Parameters,
+		argo.Parameter{
+			Name:  workflowconstants.ProviderNameParameterName,
+			Value: argo.AnyStringPtr(provider.Name),
+		},
+	)
 
 	return workflow, nil
 }
@@ -70,12 +86,12 @@ func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *a
 	return workflow
 }
 
-func setProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.Workflow {
+func SetProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.Workflow {
 	return setWorkflowOutputs(
 		workflow,
 		[]argo.Parameter{
 			{
-				Name:  WorkflowConstants.ProviderOutputParameterName,
+				Name:  workflowconstants.ProviderOutputParameterName,
 				Value: argo.AnyStringPtr("id: " + output.Id + "\nproviderError: " + output.ProviderError),
 			},
 		},
@@ -92,7 +108,9 @@ func latestWorkflow(workflow1 *argo.Workflow, workflow2 *argo.Workflow) *argo.Wo
 	}
 }
 
-func latestWorkflowByPhase(workflows []argo.Workflow) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
+func LatestWorkflowByPhase(
+	workflows []argo.Workflow,
+) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
 
 	for i := range workflows {
 		workflow := workflows[i]

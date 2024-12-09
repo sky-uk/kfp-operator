@@ -1,4 +1,4 @@
-package pipelines
+package workflowfactory
 
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
@@ -11,15 +11,22 @@ type ExperimentDefinitionCreator struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (edc ExperimentDefinitionCreator) experimentDefinition(experiment *pipelinesv1.Experiment) (providers.ExperimentDefinition, error) {
+func (edc ExperimentDefinitionCreator) experimentDefinition(
+	experiment *pipelinesv1.Experiment,
+) (providers.ExperimentDefinition, error) {
 	return providers.ExperimentDefinition{
-		Name:        common.NamespacedName{Namespace: experiment.ObjectMeta.Namespace, Name: experiment.ObjectMeta.Name},
+		Name: common.NamespacedName{
+			Namespace: experiment.ObjectMeta.Namespace,
+			Name:      experiment.ObjectMeta.Name,
+		},
 		Version:     experiment.ComputeVersion(),
 		Description: experiment.Spec.Description,
 	}, nil
 }
 
-func ExperimentWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition] {
+func ExperimentWorkflowFactory(
+	config config.KfpControllerConfigSpec,
+) *ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition] {
 	return &ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition]{
 		DefinitionCreator: ExperimentDefinitionCreator{
 			Config: config,
