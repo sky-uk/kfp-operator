@@ -27,7 +27,7 @@ type MockRCEHandler struct {
 	expectedBody string
 }
 
-func (m MockRCEHandler) handle(_ context.Context, event common.RunCompletionEvent) error {
+func (m MockRCEHandler) Handle(_ context.Context, event common.RunCompletionEvent) error {
 	mockRCEHandlerHandleCounter++
 	passedBodyBytes, err := json.Marshal(event)
 	Expect(err).NotTo(HaveOccurred())
@@ -62,10 +62,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	}
 
 	rced := RandomRunCompletionEventData()
-	requestBody := DataWrapper{
-		Data: rced,
-	}
-	requestStr, err := json.Marshal(requestBody)
+	requestStr, err := json.Marshal(rced)
 	Expect(err).NotTo(HaveOccurred())
 
 	rce := RandomRunCompletionEventData().ToRunCompletionEvent()

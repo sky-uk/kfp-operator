@@ -2,8 +2,6 @@ package base
 
 import (
 	"context"
-
-	"github.com/argoproj/argo-events/eventsources/sources/generic"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -67,6 +65,4 @@ type Provider[Config any] interface {
 	CreateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition) (string, error)
 	UpdateExperiment(ctx context.Context, providerConfig Config, experimentDefinition ExperimentDefinition, id string) (string, error)
 	DeleteExperiment(ctx context.Context, providerConfig Config, id string) error
-
-	EventingServer(ctx context.Context, provider string, namespace string) (generic.EventingServer, error)
 }

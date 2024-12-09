@@ -1,7 +1,5 @@
 include ../../common.mk
 
-IMG := kfp-operator-kfp-provider
-
 all: build
 
 ##@ Development
@@ -13,12 +11,7 @@ test: base-test
 	$(MAKE) -C kfp test
 	$(MAKE) -C vai test
 
-##@ Build
-
-generate: protoc-gen-go
-	$(MAKE) -C kfp generate
-
-build: generate
+build:
 	$(MAKE) -C kfp build
 	$(MAKE) -C vai build
 
