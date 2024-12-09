@@ -110,7 +110,7 @@ func (pss *PubSubSource) extractPipelineJobId(msg *pubsub.Message) (string, erro
 
 	pipelineJobId, ok := logEntry.Resource.Labels[PipelineJobLabel]
 	if !ok {
-		err := fmt.Errorf("logEntry did not contain pipeline_job_id %+v", logEntry)
+		err := fmt.Errorf("logEntry did not contain %s in %+v", PipelineJobLabel, logEntry)
 		return "", err
 	}
 	return pipelineJobId, nil
