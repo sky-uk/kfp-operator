@@ -39,14 +39,19 @@ func sendMessage(ctx context.Context, topic *pubsub.Topic, id string, data []byt
 	topic.Publish(ctx, msg)
 }
 
-var _ = Context("Pub sub source", Ordered, func() {
+func createContextWithLogger(logger logr.Logger) (ctx context.Context, cancel context.CancelFunc) {
 	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(5000)*time.Millisecond)
+	ctxWithLogger := logr.NewContext(ctxWithTimeout, logger)
+	return ctxWithLogger, cancel
+}
+
+var _ = Context("Pub sub source", Ordered, func() {
 	logger, err := common.NewLogger(zapcore.InfoLevel)
 	Expect(err).ToNot(HaveOccurred())
-	ctx := logr.NewContext(ctxWithTimeout, logger)
 
-	ctxWithCancel, appCancel := context.WithCancel(context.Background())
-	appCtx := logr.NewContext(ctxWithCancel, logger)
+	ctx, cancel := createContextWithLogger(logger)
+
+	appCtx, appCancel := createContextWithLogger(logger)
 
 	BeforeAll(func() {
 		err := os.Setenv("PUBSUB_EMULATOR_HOST", pubsubHost)
@@ -62,6 +67,12 @@ var _ = Context("Pub sub source", Ordered, func() {
 		}
 		cancel()
 		appCancel()
+	})
+
+	BeforeEach(func() {
+		cancel()
+		ctx, cancel = createContextWithLogger(logger)
+		appCtx, appCancel = createContextWithLogger(logger)
 	})
 
 	Describe("subscribing to a topic", func() {
@@ -139,7 +150,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 
 		When("a streamed message is valid but fails upstream", func() {
 			It("should be nack'd", func() {
-				pipelineId := "invalid_message_nack_check"
+				pipelineId := "valid_message_nack_check"
 
 				topic, _, deadletterSub := createClientTopicSubscription(ctx, pipelineId, pipelineId)
 				underTest := createPubSubSource(appCtx, pipelineId)
