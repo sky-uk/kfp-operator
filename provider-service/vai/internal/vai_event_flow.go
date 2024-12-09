@@ -89,10 +89,14 @@ func NewVaiEventFlow(ctx context.Context, config *VAIProviderConfig, pipelineJob
 		PipelineJobClient: pipelineJobClient,
 		Logger:            logger,
 		context:           ctx,
+		in:                make(chan StreamMessage[string]),
+		out:               make(chan StreamMessage[*common.RunCompletionEventData]),
+		errorOut:          make(chan error),
 	}
 
 	go func() {
 		for msg := range vaiEventFlow.in {
+			logger.Info("In VAI flow - received message", "message", msg.Message)
 			runCompletionEvent := vaiEventFlow.runCompletionEventDataForRun(msg.Message)
 			vaiEventFlow.out <- StreamMessage[*common.RunCompletionEventData]{
 				Message:            runCompletionEvent,
@@ -163,7 +167,7 @@ func artifactsFilterData(job *aiplatformpb.PipelineJob) []common.PipelineCompone
 }
 
 func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifact {
-	servingModelArtifacts := []common.Artifact{}
+	var servingModelArtifacts []common.Artifact
 	for _, task := range job.GetJobDetail().GetTaskDetails() {
 		for name, output := range task.GetOutputs() {
 			for _, artifact := range output.GetArtifacts() {

@@ -63,11 +63,17 @@ func main() {
 
 	sink := sinks.NewWebhookSink(ctx, resty.New(), config.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
 
+	logger.Info("Starting VAI Event Flow")
 	flow.From(source).To(sink)
+
+	// block till terminated
+	<-ctx.Done()
+	logger.Info("VAI Event Flow is terminating")
 }
 
 func handleErrorInSourceOperations(source *sources.PubSubSource) {
-	for range source.ErrorOut() {
+	for err := range source.ErrorOut() {
+		println(err)
 		os.Exit(1)
 	}
 }

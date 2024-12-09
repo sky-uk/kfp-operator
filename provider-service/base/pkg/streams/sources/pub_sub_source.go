@@ -1,10 +1,11 @@
 package sources
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
 	"fmt"
+
+	"cloud.google.com/go/pubsub"
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
@@ -43,12 +44,14 @@ func NewPubSubSource(ctx context.Context, project string, subscription string) (
 	runsSubscription := pubSubClient.Subscription(subscription)
 	exists, err := runsSubscription.Exists(ctx)
 	if err != nil || !exists {
+		logger.Error(err, "Subscription err")
 		return nil, fmt.Errorf("subscription %s does not exist on topic", subscription)
 	}
 
 	pubSubSource := &PubSubSource{
 		Logger: logger,
 		out:    make(chan StreamMessage[string]),
+		errOut: make(chan error),
 	}
 
 	go func() {
