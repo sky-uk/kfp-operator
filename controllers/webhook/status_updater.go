@@ -45,7 +45,7 @@ func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdate
 	return StatusUpdater{k8sClient}, nil
 }
 
-func (su StatusUpdater) handle(
+func (su StatusUpdater) Handle(
 	ctx context.Context,
 	event common.RunCompletionEvent,
 ) error {

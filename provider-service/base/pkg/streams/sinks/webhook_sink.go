@@ -16,7 +16,7 @@ type WebhookSink struct {
 	in              chan StreamMessage[*common.RunCompletionEventData]
 }
 
-func NewWebhookSink(ctx context.Context, operatorWebhook string, client *resty.Client, inChan chan StreamMessage[*common.RunCompletionEventData]) *WebhookSink {
+func NewWebhookSink(ctx context.Context, client *resty.Client, operatorWebhook string, inChan chan StreamMessage[*common.RunCompletionEventData]) *WebhookSink {
 	webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: operatorWebhook, in: inChan}
 
 	go webhookSink.SendEvents()

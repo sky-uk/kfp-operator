@@ -27,7 +27,7 @@ type MockRCEHandler struct {
 	expectedBody string
 }
 
-func (m MockRCEHandler) handle(_ context.Context, event common.RunCompletionEvent) error {
+func (m MockRCEHandler) Handle(_ context.Context, event common.RunCompletionEvent) error {
 	mockRCEHandlerHandleCounter++
 	passedBodyBytes, err := json.Marshal(event)
 	Expect(err).NotTo(HaveOccurred())

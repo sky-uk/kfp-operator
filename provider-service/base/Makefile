@@ -2,7 +2,10 @@
 unit-test:
 	go test ./... -tags=unit
 
-test: unit-test
+decouple-test:
+	go test ./... -tags=decoupled
+
+test: unit-test decouple-test integration-test
 
 integration-test:
 	docker compose up -d

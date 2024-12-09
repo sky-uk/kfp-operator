@@ -61,7 +61,7 @@ func main() {
 
 	flow := vai.NewVaiEventFlow(ctx, vaiConfig, pipelineJobClient)
 
-	sink := sinks.NewWebhookSink(ctx, config.OperatorWebhook, resty.New(), make(chan StreamMessage[*common.RunCompletionEventData]))
+	sink := sinks.NewWebhookSink(ctx, resty.New(), config.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
 
 	flow.From(source).To(sink)
 }

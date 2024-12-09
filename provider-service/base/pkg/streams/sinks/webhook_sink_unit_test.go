@@ -1,3 +1,5 @@
+//go:build unit
+
 package sinks
 
 import (
@@ -11,7 +13,13 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"go.uber.org/zap/zapcore"
+	"testing"
 )
+
+func TestSinksUnitSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Sinks Unit Suite")
+}
 
 var _ = Context("SendEvents", func() {
 	var logger, _ = common.NewLogger(zapcore.DebugLevel)
