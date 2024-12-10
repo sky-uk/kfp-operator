@@ -13,7 +13,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/foo"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -266,7 +266,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithMessage(workflowfactory.WorkflowConstants.ConstructionFailedError).
+					WithMessage(foo.WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with version",
@@ -293,7 +293,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage(workflowfactory.WorkflowConstants.ConstructionFailedError).
+					WithMessage(foo.WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with id and version",
@@ -374,7 +374,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v2).
-					WithMessage(workflowfactory.WorkflowConstants.ConstructionFailedError).
+					WithMessage(foo.WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no ProviderAndId",
@@ -391,7 +391,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v2).
-					WithMessage(workflowfactory.WorkflowConstants.ConstructionFailedError).
+					WithMessage(foo.WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no ProviderAndId and no version",
@@ -422,7 +422,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v2).
-					WithMessage(workflowfactory.WorkflowConstants.ConstructionFailedError).
+					WithMessage(foo.WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no ProviderAndId",
@@ -439,7 +439,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v2).
-					WithMessage(workflowfactory.WorkflowConstants.ConstructionFailedError).
+					WithMessage(foo.WorkflowConstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no ProviderAndId and no version",
