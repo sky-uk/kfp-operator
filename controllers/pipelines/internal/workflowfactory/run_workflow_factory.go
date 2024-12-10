@@ -1,13 +1,20 @@
-package pipelines
+package workflowfactory
 
 import (
 	"fmt"
 
+	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
+
+var RunConfigurationConstants = struct {
+	RunConfigurationNameLabelKey string
+}{
+	RunConfigurationNameLabelKey: apis.Group + "/runconfiguration.name",
+}
 
 type RunDefinitionCreator struct {
 	Config config.KfpControllerConfigSpec
@@ -16,9 +23,14 @@ type RunDefinitionCreator struct {
 func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.RunDefinition, error) {
 	var experimentName common.NamespacedName
 	if run.Spec.ExperimentName == "" {
-		experimentName = common.NamespacedName{Name: rdc.Config.DefaultExperiment}
+		experimentName = common.NamespacedName{
+			Name: rdc.Config.DefaultExperiment,
+		}
 	} else {
-		experimentName = common.NamespacedName{Name: run.Spec.ExperimentName, Namespace: run.Namespace}
+		experimentName = common.NamespacedName{
+			Name:      run.Spec.ExperimentName,
+			Namespace: run.Namespace,
+		}
 	}
 
 	if run.Status.ObservedPipelineVersion == "" {
@@ -31,9 +43,15 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 	}
 
 	runDefinition := providers.RunDefinition{
-		Name:              common.NamespacedName{Namespace: run.Namespace, Name: run.Name},
-		Version:           run.ComputeVersion(),
-		PipelineName:      common.NamespacedName{Namespace: run.Namespace, Name: run.Spec.Pipeline.Name},
+		Name: common.NamespacedName{
+			Namespace: run.Namespace,
+			Name:      run.Name,
+		},
+		Version: run.ComputeVersion(),
+		PipelineName: common.NamespacedName{
+			Namespace: run.Namespace,
+			Name:      run.Spec.Pipeline.Name,
+		},
 		PipelineVersion:   run.Status.ObservedPipelineVersion,
 		ExperimentName:    experimentName,
 		RuntimeParameters: NamedValuesToMap(runtimeParameters),
@@ -41,13 +59,18 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 	}
 
 	if runConfigurationName, ok := run.Labels[RunConfigurationConstants.RunConfigurationNameLabelKey]; ok {
-		runDefinition.RunConfigurationName = common.NamespacedName{Namespace: run.Namespace, Name: runConfigurationName}
+		runDefinition.RunConfigurationName = common.NamespacedName{
+			Namespace: run.Namespace,
+			Name:      runConfigurationName,
+		}
 	}
 
 	return runDefinition, nil
 }
 
-func RunWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
+func RunWorkflowFactory(
+	config config.KfpControllerConfigSpec,
+) *ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
 	return &ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
 		DefinitionCreator: RunDefinitionCreator{
 			Config: config,

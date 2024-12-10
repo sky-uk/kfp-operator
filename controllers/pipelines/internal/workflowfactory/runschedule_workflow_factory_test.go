@@ -1,6 +1,6 @@
 //go:build unit
 
-package pipelines
+package workflowfactory
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -25,7 +25,11 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 			Name:       runConfiguration.Name,
 		}}
 
-		Expect(runConfigurationNameForRunSchedule(&runSchedule)).To(Equal(common.NamespacedName{Name: runConfiguration.Name, Namespace: runSchedule.Namespace}))
+		Expect(runConfigurationNameForRunSchedule(&runSchedule)).
+			To(Equal(common.NamespacedName{
+				Name:      runConfiguration.Name,
+				Namespace: runSchedule.Namespace,
+			}))
 	})
 
 	Specify("returns the empty string if owner not set", func() {
@@ -35,12 +39,14 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 	Specify("returns the empty string if the controller is not a RunConfiguration", func() {
 		runSchedule := pipelinesv1.RunSchedule{}
 
-		runSchedule.OwnerReferences = append(runSchedule.OwnerReferences, metav1.OwnerReference{
-			Controller: pointer.Bool(true),
-			APIVersion: apis.RandomString(),
-			Kind:       apis.RandomString(),
-			Name:       apis.RandomString(),
-		})
+		runSchedule.OwnerReferences = append(
+			runSchedule.OwnerReferences, metav1.OwnerReference{
+				Controller: pointer.Bool(true),
+				APIVersion: apis.RandomString(),
+				Kind:       apis.RandomString(),
+				Name:       apis.RandomString(),
+			},
+		)
 
 		Expect(runConfigurationNameForRunSchedule(&runSchedule).Empty()).To(BeTrue())
 	})

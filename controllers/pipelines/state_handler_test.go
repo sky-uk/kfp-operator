@@ -13,6 +13,8 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -28,7 +30,10 @@ type TestWorkflowFactory struct {
 	shouldFail         bool
 }
 
-func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructCreationWorkflow(
+	provider pipelinesv1.Provider,
+	_ *pipelinesv1.TestResource,
+) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -36,7 +41,10 @@ func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider pipelinesv1.Pro
 	return &argo.Workflow{}, nil
 }
 
-func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructUpdateWorkflow(
+	provider pipelinesv1.Provider,
+	_ *pipelinesv1.TestResource,
+) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -44,7 +52,10 @@ func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider pipelinesv1.Provi
 	return &argo.Workflow{}, nil
 }
 
-func (f *TestWorkflowFactory) ConstructDeletionWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructDeletionWorkflow(
+	provider pipelinesv1.Provider,
+	_ *pipelinesv1.TestResource,
+) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -66,13 +77,17 @@ func (st StateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) S
 	return st.WithWorkFlow(CreateTestWorkflow(phase))
 }
 
-func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(provider pipelinesv1.Provider, providerId pipelinesv1.ProviderAndId, providerError string) StateTransitionTestCase {
-	workflow, err := setWorkflowProvider(
+func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(
+	provider pipelinesv1.Provider,
+	providerId pipelinesv1.ProviderAndId,
+	providerError string,
+) StateTransitionTestCase {
+	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
 	Expect(err).NotTo(HaveOccurred())
 	return st.WithWorkFlow(
-		setProviderOutput(
+		workflowutil.SetProviderOutput(
 			workflow,
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),
@@ -85,13 +100,17 @@ func (st StateTransitionTestCase) WithFailedUpdateWorkflow() StateTransitionTest
 	)
 }
 
-func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(provider pipelinesv1.Provider, providerId pipelinesv1.ProviderAndId, providerError string) StateTransitionTestCase {
-	workflow, err := setWorkflowProvider(
+func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(
+	provider pipelinesv1.Provider,
+	providerId pipelinesv1.ProviderAndId,
+	providerError string,
+) StateTransitionTestCase {
+	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
 	Expect(err).NotTo(HaveOccurred())
 	return st.WithWorkFlow(
-		setProviderOutput(
+		workflowutil.SetProviderOutput(
 			workflow,
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),
@@ -104,13 +123,17 @@ func (st StateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase)
 	)
 }
 
-func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(provider pipelinesv1.Provider, providerId pipelinesv1.ProviderAndId, providerError string) StateTransitionTestCase {
-	workflow, err := setWorkflowProvider(
+func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(
+	provider pipelinesv1.Provider,
+	providerId pipelinesv1.ProviderAndId,
+	providerError string,
+) StateTransitionTestCase {
+	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
 	Expect(err).NotTo(HaveOccurred())
 	return st.WithWorkFlow(
-		setProviderOutput(
+		workflowutil.SetProviderOutput(
 			workflow,
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),
@@ -152,7 +175,9 @@ func (st StateTransitionTestCase) IssuesCommand(command Command) StateTransition
 }
 
 func (st StateTransitionTestCase) DeletionRequested() StateTransitionTestCase {
-	st.Experiment.DeletionTimestamp = &metav1.Time{time.UnixMilli(1)}
+	st.Experiment.DeletionTimestamp = &metav1.Time{
+		Time: time.UnixMilli(1),
+	}
 	return st
 }
 
@@ -195,7 +220,12 @@ var _ = Describe("State handler", func() {
 		)
 	}
 
-	var From = func(status apis.SynchronizationState, id pipelinesv1.ProviderAndId, versionInState string, computedVersion string) StateTransitionTestCase {
+	var From = func(
+		status apis.SynchronizationState,
+		id pipelinesv1.ProviderAndId,
+		versionInState string,
+		computedVersion string,
+	) StateTransitionTestCase {
 		resource := pipelinesv1.RandomResource()
 		resource.SetStatus(pipelinesv1.Status{
 			SynchronizationState: status,
@@ -236,7 +266,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with version",
@@ -263,7 +293,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with id and version",
@@ -344,7 +374,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v2).
-					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no ProviderAndId",
@@ -361,7 +391,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v2).
-					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no ProviderAndId and no version",
@@ -392,7 +422,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v2).
-					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no ProviderAndId",
@@ -409,7 +439,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v2).
-					WithMessage(WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no ProviderAndId and no version",

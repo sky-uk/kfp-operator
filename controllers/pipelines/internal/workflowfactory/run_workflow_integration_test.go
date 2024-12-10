@@ -1,6 +1,6 @@
 //go:build integration
 
-package pipelines
+package workflowfactory
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -9,6 +9,7 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"k8s.io/apimachinery/pkg/types"
 )
 
@@ -51,12 +52,20 @@ var _ = Context("Resource Workflows", Serial, func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			StubProvider(base.Output{}, testCtx.Resource)
-			Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
+			Expect(K8sClient.Create(Ctx, workflow)).To(Succeed())
 
-			Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-				}), TestTimeout).Should(Succeed())
+			Eventually(
+				testCtx.WorkflowByNameToMatch(
+					types.NamespacedName{
+						Name:      workflow.Name,
+						Namespace: workflow.Namespace,
+					},
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+					},
+				),
+				TestTimeout,
+			).Should(Succeed())
 		})
 	})
 })

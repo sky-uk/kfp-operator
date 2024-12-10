@@ -6,6 +6,7 @@ import (
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
@@ -26,11 +27,15 @@ type RunReconciler struct {
 	ResourceReconciler[*pipelinesv1.Run]
 }
 
-func NewRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.KfpControllerConfigSpec) *RunReconciler {
+func NewRunReconciler(
+	ec K8sExecutionContext,
+	workflowRepository WorkflowRepository,
+	config config.KfpControllerConfigSpec,
+) *RunReconciler {
 	return &RunReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Run]{
 			WorkflowRepository: workflowRepository,
-			WorkflowFactory:    RunWorkflowFactory(config),
+			WorkflowFactory:    workflowfactory.RunWorkflowFactory(config),
 		},
 		EC: ec,
 		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.Run]{
@@ -186,11 +191,21 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(run)
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, run)
-	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForPipeline)
+	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(
+		mgr,
+		controllerBuilder,
+		run,
+		r.reconciliationRequestsForPipeline,
+	)
 	if err != nil {
 		return err
 	}
-	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForRunconfigurations)
+	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(
+		mgr,
+		controllerBuilder,
+		run,
+		r.reconciliationRequestsForRunconfigurations,
+	)
 	if err != nil {
 		return err
 	}

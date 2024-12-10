@@ -9,6 +9,8 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -16,7 +18,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := apis.RandomString()
-			rcHelper := Create(pipelinesv1.RandomRunSchedule(provider.Name))
+			rcHelper := Create(pipelinesv1.RandomRunSchedule(Provider.Name))
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
@@ -25,7 +27,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
+				workflowutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
@@ -35,7 +37,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(rcHelper.Update(func(runSchedule *pipelinesv1.RunSchedule) {
-				runSchedule.Spec = pipelinesv1.RandomRunScheduleSpec(provider.Name)
+				runSchedule.Spec = pipelinesv1.RandomRunScheduleSpec(Provider.Name)
 			})).To(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
@@ -45,7 +47,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
+				workflowutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
@@ -63,7 +65,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Eventually(rcHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: ""})
+				workflowutil.SetProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(rcHelper.Exists).Should(Not(Succeed()))

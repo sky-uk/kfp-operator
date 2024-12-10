@@ -1,6 +1,6 @@
 //go:build decoupled || integration
 
-package pipelines
+package testutil
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	//+kubebuilder:scaffold:imports
@@ -17,11 +18,14 @@ type WorkflowTestHelper[R pipelinesv1.Resource] struct {
 	Resource R
 }
 
-func (testCtx WorkflowTestHelper[R]) WorkflowByNameToMatch(namespacedName types.NamespacedName, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+func (testCtx WorkflowTestHelper[R]) WorkflowByNameToMatch(
+	namespacedName types.NamespacedName,
+	matcher func(Gomega, *argo.Workflow),
+) func(Gomega) {
 
 	return func(g Gomega) {
 		workflow := &argo.Workflow{}
-		Expect(k8sClient.Get(ctx, namespacedName, workflow)).To(Succeed())
+		Expect(K8sClient.Get(Ctx, namespacedName, workflow)).To(Succeed())
 
 		matcher(g, workflow)
 	}
@@ -35,7 +39,7 @@ func (testCtx WorkflowTestHelper[R]) UpdateWorkflow(updateFunc func(*argo.Workfl
 	}
 
 	updateFunc(workflow)
-	return k8sClient.Update(ctx, workflow)
+	return K8sClient.Update(Ctx, workflow)
 }
 
 func (testCtx WorkflowTestHelper[R]) WorkflowToBeUpdated(updateFunc func(*argo.Workflow)) func(g Gomega) {
@@ -54,7 +58,11 @@ func (testCtx WorkflowTestHelper[R]) FetchWorkflow() func() error {
 func (testCtx WorkflowTestHelper[R]) fetchWorkflow() (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := k8sClient.List(ctx, workflowList, client.MatchingLabels(CommonWorkflowLabels(testCtx.Resource))); err != nil {
+	if err := K8sClient.List(
+		Ctx,
+		workflowList,
+		client.MatchingLabels(workflowconstants.CommonWorkflowLabels(testCtx.Resource)),
+	); err != nil {
 		return nil, err
 	}
 

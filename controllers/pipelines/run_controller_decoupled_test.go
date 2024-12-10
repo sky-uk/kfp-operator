@@ -12,6 +12,8 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -20,7 +22,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("Creating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
-			runHelper := Create(pipelinesv1.RandomRun(provider.Name))
+			runHelper := Create(pipelinesv1.RandomRun(Provider.Name))
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
 				g.Expect(run.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -30,7 +32,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
+				workflowutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
@@ -40,7 +42,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(runHelper.Update(func(run *pipelinesv1.Run) {
-				run.Spec = pipelinesv1.RandomRunSpec(provider.Name)
+				run.Spec = pipelinesv1.RandomRunSpec(Provider.Name)
 			})).To(MatchError(ContainSubstring("immutable")))
 
 			Expect(runHelper.Delete()).To(Succeed())
@@ -52,7 +54,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: ""})
+				workflowutil.SetProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(runHelper.Exists).Should(Not(Succeed()))
@@ -70,7 +72,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("Creating an invalid run", func() {
 		It("errors", func() {
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Value: apis.RandomString(),
@@ -83,13 +85,13 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				},
 			}
 
-			Expect(k8sClient.Create(ctx, run)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
+			Expect(K8sClient.Create(Ctx, run)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
 		})
 	})
 
 	When("the completion state is set", func() {
 		It("sets MarkCompletedAt", func() {
-			runHelper := CreateSucceeded(pipelinesv1.RandomRun(provider.Name))
+			runHelper := CreateSucceeded(pipelinesv1.RandomRun(Provider.Name))
 
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				run.Status.CompletionState = pipelinesv1.CompletionStates.Succeeded
@@ -103,11 +105,11 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("MarkCompletedAt is set and the TTL has passed", func() {
 		It("deletes the resource", func() {
-			runHelper := CreateSucceeded(pipelinesv1.RandomRun(provider.Name))
+			runHelper := CreateSucceeded(pipelinesv1.RandomRun(Provider.Name))
 
 			Expect(runHelper.UpdateStatus(func(run *pipelinesv1.Run) {
 				// time.Sub does not exist for Durations
-				run.Status.MarkedCompletedAt = &metav1.Time{Time: time.Now().Add(-testConfig.RunCompletionTTL.Duration)}
+				run.Status.MarkedCompletedAt = &metav1.Time{Time: time.Now().Add(-TestConfig.RunCompletionTTL.Duration)}
 			})).To(Succeed())
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
@@ -118,7 +120,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("The pipeline version is fixed", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the fixed version", func() {
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			pipelineVersion := apis.RandomString()
 			run.Spec.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
 
@@ -133,10 +135,10 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("The pipeline version is not fixed and the pipeline has succeeded", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
-			pipeline := pipelinesv1.RandomPipeline(provider.Name)
+			pipeline := pipelinesv1.RandomPipeline(Provider.Name)
 			CreateSucceeded(pipeline)
 
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
 			runHelper := Create(run)
 
@@ -149,10 +151,10 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("The pipeline version is not fixed and the pipeline succeeds", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
-			pipeline := pipelinesv1.RandomPipeline(provider.Name)
+			pipeline := pipelinesv1.RandomPipeline(Provider.Name)
 			pipelineHelper := CreateStable(pipeline)
 
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			run.Spec.Pipeline = pipeline.UnversionedIdentifier()
 			runHelper := Create(run)
 
@@ -168,7 +170,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("A referenced RunConfiguration does not exist", func() {
 		It("unsets the dependency", func() {
 			runConfigurationName := apis.RandomString()
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),
@@ -194,10 +196,10 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("A referenced RunConfiguration has no succeeded run", func() {
 		It("unsets the dependency", func() {
-			referencedRc := pipelinesv1.RandomRunConfiguration(provider.Name)
-			Expect(k8sClient.Create(ctx, referencedRc)).To(Succeed())
+			referencedRc := pipelinesv1.RandomRunConfiguration(Provider.Name)
+			Expect(K8sClient.Create(Ctx, referencedRc)).To(Succeed())
 
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),
@@ -228,7 +230,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				Artifacts:  []common.Artifact{common.RandomArtifact()},
 			})
 
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),
@@ -254,13 +256,13 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 	When("A RunConfiguration reference has been removed", func() {
 		It("removes the dependency", func() {
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{}
 			runHelper := Create(run)
 
 			excessDependency := apis.RandomString()
 			run.SetDependencyRuns(map[string]pipelinesv1.RunReference{excessDependency: {}})
-			Expect(k8sClient.Status().Update(ctx, run)).To(Succeed())
+			Expect(K8sClient.Status().Update(Ctx, run)).To(Succeed())
 
 			Eventually(runHelper.ToMatch(func(g Gomega, fetchedRun *pipelinesv1.Run) {
 				g.Expect(fetchedRun.Status.Dependencies.RunConfigurations).NotTo(HaveKey(excessDependency))
@@ -285,7 +287,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				},
 			})
 
-			run := pipelinesv1.RandomRun(provider.Name)
+			run := pipelinesv1.RandomRun(Provider.Name)
 			run.Spec.RuntimeParameters = []pipelinesv1.RuntimeParameter{
 				{
 					Name: apis.RandomString(),

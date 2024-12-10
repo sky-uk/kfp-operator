@@ -1,6 +1,6 @@
 //go:build decoupled || integration
 
-package pipelines
+package testutil
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	k8sClient  client.Client
-	ctx        context.Context
-	testConfig config.KfpControllerConfigSpec
-	provider   *pipelinesv1.Provider
+	K8sClient  client.Client
+	Ctx        context.Context
+	TestConfig config.KfpControllerConfigSpec
+	Provider   *pipelinesv1.Provider
 )
