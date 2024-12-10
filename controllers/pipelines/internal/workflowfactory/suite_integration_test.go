@@ -17,8 +17,8 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/stub"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/foo"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	"github.com/sky-uk/kfp-operator/external"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -136,7 +136,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
 		func(g Gomega, workflow *argo.Workflow) {
 			g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-			output, err := workflowutil.GetWorkflowOutput(workflow, foo.WorkflowConstants.ProviderOutputParameterName)
+			output, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.WorkflowConstants.ProviderOutputParameterName)
 			g.Expect(err).NotTo(HaveOccurred())
 			g.Expect(output.ProviderError).To(Equal(expectedOutput.ProviderError))
 			g.Expect(output.Id).To(Equal(expectedOutput.Id))

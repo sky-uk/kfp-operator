@@ -7,7 +7,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/foo"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -61,7 +61,7 @@ func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMe
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", owner.GetKind(), owner.GetName()),
 		Namespace:    workflows.Config.WorkflowNamespace,
-		Labels:       foo.CommonWorkflowLabels(owner),
+		Labels:       workflowconstants.CommonWorkflowLabels(owner),
 	}
 }
 
@@ -99,19 +99,19 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  foo.WorkflowConstants.ResourceKindParameterName,
+						Name:  workflowconstants.WorkflowConstants.ResourceKindParameterName,
 						Value: argo.AnyStringPtr(resource.GetKind()),
 					},
 					{
-						Name:  foo.WorkflowConstants.ResourceDefinitionParameterName,
+						Name:  workflowconstants.WorkflowConstants.ResourceDefinitionParameterName,
 						Value: argo.AnyStringPtr(resourceDefinition),
 					},
 					{
-						Name:  foo.WorkflowConstants.ProviderNameParameterName,
+						Name:  workflowconstants.WorkflowConstants.ProviderNameParameterName,
 						Value: argo.AnyStringPtr(provider.Name),
 					},
 					{
-						Name:  foo.WorkflowConstants.ProviderConfigParameterName,
+						Name:  workflowconstants.WorkflowConstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},
@@ -143,23 +143,23 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  foo.WorkflowConstants.ResourceKindParameterName,
+						Name:  workflowconstants.WorkflowConstants.ResourceKindParameterName,
 						Value: argo.AnyStringPtr(resource.GetKind()),
 					},
 					{
-						Name:  foo.WorkflowConstants.ResourceDefinitionParameterName,
+						Name:  workflowconstants.WorkflowConstants.ResourceDefinitionParameterName,
 						Value: argo.AnyStringPtr(resourceDefinition),
 					},
 					{
-						Name:  foo.WorkflowConstants.ResourceIdParameterName,
+						Name:  workflowconstants.WorkflowConstants.ResourceIdParameterName,
 						Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
 					},
 					{
-						Name:  foo.WorkflowConstants.ProviderNameParameterName,
+						Name:  workflowconstants.WorkflowConstants.ProviderNameParameterName,
 						Value: argo.AnyStringPtr(provider.Name),
 					},
 					{
-						Name:  foo.WorkflowConstants.ProviderConfigParameterName,
+						Name:  workflowconstants.WorkflowConstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},
@@ -186,19 +186,19 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  foo.WorkflowConstants.ResourceKindParameterName,
+						Name:  workflowconstants.WorkflowConstants.ResourceKindParameterName,
 						Value: argo.AnyStringPtr(resource.GetKind()),
 					},
 					{
-						Name:  foo.WorkflowConstants.ResourceIdParameterName,
+						Name:  workflowconstants.WorkflowConstants.ResourceIdParameterName,
 						Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
 					},
 					{
-						Name:  foo.WorkflowConstants.ProviderNameParameterName,
+						Name:  workflowconstants.WorkflowConstants.ProviderNameParameterName,
 						Value: argo.AnyStringPtr(provider.Name),
 					},
 					{
-						Name:  foo.WorkflowConstants.ProviderConfigParameterName,
+						Name:  workflowconstants.WorkflowConstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},

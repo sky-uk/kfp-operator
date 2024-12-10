@@ -7,7 +7,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/foo"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"gopkg.in/yaml.v2"
 )
 
@@ -51,8 +51,8 @@ func SetWorkflowProvider(workflow *argo.Workflow, provider pipelinesv1.Provider)
 		return nil, err
 	}
 
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: foo.WorkflowConstants.ProviderConfigParameterName, Value: argo.AnyStringPtr(providerStr)})
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: foo.WorkflowConstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider.Name)})
+	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: workflowconstants.WorkflowConstants.ProviderConfigParameterName, Value: argo.AnyStringPtr(providerStr)})
+	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: workflowconstants.WorkflowConstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider.Name)})
 
 	return workflow, nil
 }
@@ -76,7 +76,7 @@ func SetProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.W
 		workflow,
 		[]argo.Parameter{
 			{
-				Name:  foo.WorkflowConstants.ProviderOutputParameterName,
+				Name:  workflowconstants.WorkflowConstants.ProviderOutputParameterName,
 				Value: argo.AnyStringPtr("id: " + output.Id + "\nproviderError: " + output.ProviderError),
 			},
 		},

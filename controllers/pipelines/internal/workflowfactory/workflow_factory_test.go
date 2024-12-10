@@ -8,7 +8,7 @@ import (
 	. "github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/foo"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 )
 
 var _ = Describe("CommonWorkflowMeta", func() {
@@ -25,8 +25,8 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		Expect(meta.Namespace).To(Equal(namespace))
 		Expect(meta.GetGenerateName()).To(Equal(owner.GetKind() + "-" + owner.GetName() + "-"))
 
-		Expect(meta.Labels[foo.WorkflowConstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
-		Expect(meta.Labels[foo.WorkflowConstants.OwnerNameLabelKey]).To(Equal(owner.GetName()))
-		Expect(meta.Labels[foo.WorkflowConstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
+		Expect(meta.Labels[workflowconstants.WorkflowConstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
+		Expect(meta.Labels[workflowconstants.WorkflowConstants.OwnerNameLabelKey]).To(Equal(owner.GetName()))
+		Expect(meta.Labels[workflowconstants.WorkflowConstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
 	})
 })

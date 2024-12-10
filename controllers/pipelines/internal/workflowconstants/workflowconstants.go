@@ -1,4 +1,4 @@
-package foo
+package workflowconstants
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
