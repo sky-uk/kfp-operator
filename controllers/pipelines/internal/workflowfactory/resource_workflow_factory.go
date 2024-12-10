@@ -61,16 +61,16 @@ func SimpleTemplateNameGenerator(config config.KfpControllerConfigSpec) Template
 	return SuffixedTemplateNameGenerator{config: config, suffix: "simple"}
 }
 
-func (ctng SuffixedTemplateNameGenerator) CreateTemplate() string {
-	return fmt.Sprintf("%screate-%s", ctng.config.WorkflowTemplatePrefix, ctng.suffix)
+func (stng SuffixedTemplateNameGenerator) CreateTemplate() string {
+	return fmt.Sprintf("%screate-%s", stng.config.WorkflowTemplatePrefix, stng.suffix)
 }
 
-func (ctng SuffixedTemplateNameGenerator) UpdateTemplate() string {
-	return fmt.Sprintf("%supdate-%s", ctng.config.WorkflowTemplatePrefix, ctng.suffix)
+func (stng SuffixedTemplateNameGenerator) UpdateTemplate() string {
+	return fmt.Sprintf("%supdate-%s", stng.config.WorkflowTemplatePrefix, stng.suffix)
 }
 
-func (ctng SuffixedTemplateNameGenerator) DeleteTemplate() string {
-	return fmt.Sprintf("%sdelete", ctng.config.WorkflowTemplatePrefix)
+func (stng SuffixedTemplateNameGenerator) DeleteTemplate() string {
+	return fmt.Sprintf("%sdelete", stng.config.WorkflowTemplatePrefix)
 }
 
 type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] struct {

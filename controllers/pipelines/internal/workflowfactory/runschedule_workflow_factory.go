@@ -16,46 +16,46 @@ type RunScheduleDefinitionCreator struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(
-	runSchedule *pipelinesv1.RunSchedule,
+func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
+	rs *pipelinesv1.RunSchedule,
 ) (providers.RunScheduleDefinition, error) {
 	var experimentName common.NamespacedName
-	if runSchedule.Spec.ExperimentName == "" {
+	if rs.Spec.ExperimentName == "" {
 		experimentName = common.NamespacedName{
-			Name: rcdc.Config.DefaultExperiment,
+			Name: rsdc.Config.DefaultExperiment,
 		}
 	} else {
 		experimentName = common.NamespacedName{
-			Name:      runSchedule.Spec.ExperimentName,
-			Namespace: runSchedule.Namespace,
+			Name:      rs.Spec.ExperimentName,
+			Namespace: rs.Namespace,
 		}
 	}
 
 	return providers.RunScheduleDefinition{
 		Name: common.NamespacedName{
-			Name:      runSchedule.ObjectMeta.Name,
-			Namespace: runSchedule.Namespace,
+			Name:      rs.ObjectMeta.Name,
+			Namespace: rs.Namespace,
 		},
-		RunConfigurationName: runConfigurationNameForRunSchedule(runSchedule),
-		Version:              runSchedule.ComputeVersion(),
+		RunConfigurationName: runConfigurationNameForRunSchedule(rs),
+		Version:              rs.ComputeVersion(),
 		PipelineName: common.NamespacedName{
-			Name:      runSchedule.Spec.Pipeline.Name,
-			Namespace: runSchedule.Namespace,
+			Name:      rs.Spec.Pipeline.Name,
+			Namespace: rs.Namespace,
 		},
-		PipelineVersion:   runSchedule.Spec.Pipeline.Version,
+		PipelineVersion:   rs.Spec.Pipeline.Version,
 		ExperimentName:    experimentName,
-		Schedule:          runSchedule.Spec.Schedule,
-		RuntimeParameters: NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
-		Artifacts:         runSchedule.Spec.Artifacts,
+		Schedule:          rs.Spec.Schedule,
+		RuntimeParameters: NamedValuesToMap(rs.Spec.RuntimeParameters),
+		Artifacts:         rs.Spec.Artifacts,
 	}, nil
 }
 
 func runConfigurationNameForRunSchedule(
-	runSchedule *pipelinesv1.RunSchedule,
-) (runConfigurationName common.NamespacedName) {
+	rs *pipelinesv1.RunSchedule,
+) (rcn common.NamespacedName) {
 	rc := pipelinesv1.RunConfiguration{}
 
-	owner := metav1.GetControllerOf(runSchedule)
+	owner := metav1.GetControllerOf(rs)
 	if owner == nil {
 		return
 	}
@@ -66,8 +66,8 @@ func runConfigurationNameForRunSchedule(
 	}
 
 	if ownerGroupVersion.Group == apis.Group && strings.ToLower(owner.Kind) == rc.GetKind() {
-		runConfigurationName.Name = owner.Name
-		runConfigurationName.Namespace = runSchedule.Namespace
+		rcn.Name = owner.Name
+		rcn.Namespace = rs.Namespace
 	}
 
 	return
