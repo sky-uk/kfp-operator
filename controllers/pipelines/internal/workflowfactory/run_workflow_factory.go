@@ -10,7 +10,6 @@ import (
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
-// copied over from runconfiguration_controller
 var RunConfigurationConstants = struct {
 	RunConfigurationNameLabelKey string
 }{

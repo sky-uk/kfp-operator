@@ -10,6 +10,7 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -22,12 +23,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
-
-var RunConfigurationConstants = struct {
-	RunConfigurationNameLabelKey string
-}{
-	RunConfigurationNameLabelKey: apis.Group + "/runconfiguration.name",
-}
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
@@ -331,7 +326,7 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(runConfigur
 			GenerateName: runConfiguration.Name + "-",
 			Namespace:    runConfiguration.Namespace,
 			Labels: map[string]string{
-				RunConfigurationConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
+				workflowfactory.RunConfigurationConstants.RunConfigurationNameLabelKey: runConfiguration.GetName(),
 			},
 		},
 		Spec: spec,
