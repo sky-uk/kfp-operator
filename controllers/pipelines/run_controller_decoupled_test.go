@@ -13,6 +13,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -31,7 +32,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: providerId})
+				workflowutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelinesv1.Run) {
@@ -53,7 +54,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.WorkflowToBeUpdated(func(workflow *argo.Workflow) {
 				workflow.Status.Phase = argo.WorkflowSucceeded
-				setProviderOutput(workflow, providers.Output{Id: ""})
+				workflowutil.SetProviderOutput(workflow, providers.Output{Id: ""})
 			})).Should(Succeed())
 
 			Eventually(runHelper.Exists).Should(Not(Succeed()))

@@ -14,6 +14,7 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -81,12 +82,12 @@ func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(
 	providerId pipelinesv1.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
-	workflow, err := setWorkflowProvider(
+	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
 	Expect(err).NotTo(HaveOccurred())
 	return st.WithWorkFlow(
-		setProviderOutput(
+		workflowutil.SetProviderOutput(
 			workflow,
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),
@@ -104,12 +105,12 @@ func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(
 	providerId pipelinesv1.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
-	workflow, err := setWorkflowProvider(
+	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
 	Expect(err).NotTo(HaveOccurred())
 	return st.WithWorkFlow(
-		setProviderOutput(
+		workflowutil.SetProviderOutput(
 			workflow,
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),
@@ -127,12 +128,12 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(
 	providerId pipelinesv1.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
-	workflow, err := setWorkflowProvider(
+	workflow, err := workflowutil.SetWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
 	Expect(err).NotTo(HaveOccurred())
 	return st.WithWorkFlow(
-		setProviderOutput(
+		workflowutil.SetProviderOutput(
 			workflow,
 			providers.Output{Id: providerId.Id, ProviderError: providerError},
 		),

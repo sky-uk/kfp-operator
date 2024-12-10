@@ -1,4 +1,4 @@
-package pipelines
+package workflowutil
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ var mapParams = func(params []argo.Parameter) map[string]string {
 	return m
 }
 
-func getWorkflowParameter(workflow *argo.Workflow, name string) string {
+func GetWorkflowParameter(workflow *argo.Workflow, name string) string {
 	for _, parameter := range workflow.Spec.Arguments.Parameters {
 		if parameter.Name == name {
 			return parameter.Value.String()
@@ -30,7 +30,7 @@ func getWorkflowParameter(workflow *argo.Workflow, name string) string {
 	return ""
 }
 
-func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, error) {
+func GetWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, error) {
 	output := providers.Output{}
 
 	entrypointNode, exists := workflow.Status.Nodes[workflow.Name]
@@ -45,7 +45,7 @@ func getWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, e
 	return output, err
 }
 
-func setWorkflowProvider(workflow *argo.Workflow, provider pipelinesv1.Provider) (*argo.Workflow, error) {
+func SetWorkflowProvider(workflow *argo.Workflow, provider pipelinesv1.Provider) (*argo.Workflow, error) {
 	providerStr, err := json.Marshal(provider)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func setWorkflowOutputs(workflow *argo.Workflow, parameters []argo.Parameter) *a
 	return workflow
 }
 
-func setProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.Workflow {
+func SetProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.Workflow {
 	return setWorkflowOutputs(
 		workflow,
 		[]argo.Parameter{
@@ -93,7 +93,7 @@ func latestWorkflow(workflow1 *argo.Workflow, workflow2 *argo.Workflow) *argo.Wo
 	}
 }
 
-func latestWorkflowByPhase(workflows []argo.Workflow) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
+func LatestWorkflowByPhase(workflows []argo.Workflow) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
 
 	for i := range workflows {
 		workflow := workflows[i]

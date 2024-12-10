@@ -9,6 +9,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -237,8 +238,8 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
 
-		result, err := getWorkflowOutput(workflow, workflowfactory.WorkflowConstants.ProviderOutputParameterName)
-		provider := getWorkflowParameter(workflow, workflowfactory.WorkflowConstants.ProviderNameParameterName)
+		result, err := workflowutil.GetWorkflowOutput(workflow, workflowfactory.WorkflowConstants.ProviderOutputParameterName)
+		provider := workflowutil.GetWorkflowParameter(workflow, workflowfactory.WorkflowConstants.ProviderNameParameterName)
 
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
@@ -264,7 +265,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 		return From(status).WithSynchronizationState(states.SuccessState).WithProvider(providerAndId)
 	}
 
-	inProgress, succeeded, failed := latestWorkflowByPhase(workflows)
+	inProgress, succeeded, failed := workflowutil.LatestWorkflowByPhase(workflows)
 
 	if inProgress != nil {
 		logger.V(2).Info("operation in progress")
