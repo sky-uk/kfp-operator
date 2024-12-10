@@ -27,7 +27,11 @@ type RunReconciler struct {
 	ResourceReconciler[*pipelinesv1.Run]
 }
 
-func NewRunReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.KfpControllerConfigSpec) *RunReconciler {
+func NewRunReconciler(
+	ec K8sExecutionContext,
+	workflowRepository WorkflowRepository,
+	config config.KfpControllerConfigSpec,
+) *RunReconciler {
 	return &RunReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Run]{
 			WorkflowRepository: workflowRepository,
@@ -187,11 +191,21 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(run)
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, run)
-	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForPipeline)
+	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(
+		mgr,
+		controllerBuilder,
+		run,
+		r.reconciliationRequestsForPipeline,
+	)
 	if err != nil {
 		return err
 	}
-	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(mgr, controllerBuilder, run, r.reconciliationRequestsForRunconfigurations)
+	controllerBuilder, err = r.DependingOnRunConfigurationReconciler.setupWithManager(
+		mgr,
+		controllerBuilder,
+		run,
+		r.reconciliationRequestsForRunconfigurations,
+	)
 	if err != nil {
 		return err
 	}

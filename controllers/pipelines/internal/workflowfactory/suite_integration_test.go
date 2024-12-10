@@ -63,7 +63,10 @@ var _ = BeforeEach(func() {
 		}})
 })
 
-func StubProvider[R pipelinesv1.Resource](stubbedOutput base.Output, resource R) (pipelinesv1.Provider, base.Output) {
+func StubProvider[R pipelinesv1.Resource](
+	stubbedOutput base.Output,
+	resource R,
+) (pipelinesv1.Provider, base.Output) {
 	expectedInput := stub.ExpectedInput{
 		Id: resource.GetStatus().Provider.Id,
 		ResourceDefinition: stub.ResourceDefinition{
@@ -133,14 +136,24 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	Expect(err).NotTo(HaveOccurred())
 	Expect(K8sClient.Create(Ctx, workflow)).To(Succeed())
 
-	Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
-		func(g Gomega, workflow *argo.Workflow) {
-			g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-			output, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.ProviderOutputParameterName)
-			g.Expect(err).NotTo(HaveOccurred())
-			g.Expect(output.ProviderError).To(Equal(expectedOutput.ProviderError))
-			g.Expect(output.Id).To(Equal(expectedOutput.Id))
-		}), TestTimeout).Should(Succeed())
+	Eventually(
+		testCtx.WorkflowByNameToMatch(
+			types.NamespacedName{
+				Name:      workflow.Name,
+				Namespace: workflow.Namespace,
+			},
+			func(g Gomega, workflow *argo.Workflow) {
+				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
+				output, err := workflowutil.GetWorkflowOutput(
+					workflow,
+					workflowconstants.ProviderOutputParameterName,
+				)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output.ProviderError).To(Equal(expectedOutput.ProviderError))
+				g.Expect(output.Id).To(Equal(expectedOutput.Id))
+			},
+		), TestTimeout,
+	).Should(Succeed())
 }
 
 func withIntegrationTestFields[T pipelinesv1.Resource](resource T) T {

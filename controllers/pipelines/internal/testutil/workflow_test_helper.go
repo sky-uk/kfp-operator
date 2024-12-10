@@ -18,7 +18,10 @@ type WorkflowTestHelper[R pipelinesv1.Resource] struct {
 	Resource R
 }
 
-func (testCtx WorkflowTestHelper[R]) WorkflowByNameToMatch(namespacedName types.NamespacedName, matcher func(Gomega, *argo.Workflow)) func(Gomega) {
+func (testCtx WorkflowTestHelper[R]) WorkflowByNameToMatch(
+	namespacedName types.NamespacedName,
+	matcher func(Gomega, *argo.Workflow),
+) func(Gomega) {
 
 	return func(g Gomega) {
 		workflow := &argo.Workflow{}
@@ -55,7 +58,11 @@ func (testCtx WorkflowTestHelper[R]) FetchWorkflow() func() error {
 func (testCtx WorkflowTestHelper[R]) fetchWorkflow() (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := K8sClient.List(Ctx, workflowList, client.MatchingLabels(workflowconstants.CommonWorkflowLabels(testCtx.Resource))); err != nil {
+	if err := K8sClient.List(
+		Ctx,
+		workflowList,
+		client.MatchingLabels(workflowconstants.CommonWorkflowLabels(testCtx.Resource)),
+	); err != nil {
 		return nil, err
 	}
 

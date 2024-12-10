@@ -45,14 +45,29 @@ func GetWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, e
 	return output, err
 }
 
-func SetWorkflowProvider(workflow *argo.Workflow, provider pipelinesv1.Provider) (*argo.Workflow, error) {
+func SetWorkflowProvider(
+	workflow *argo.Workflow,
+	provider pipelinesv1.Provider,
+) (*argo.Workflow, error) {
 	providerStr, err := json.Marshal(provider)
 	if err != nil {
 		return nil, err
 	}
 
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: workflowconstants.ProviderConfigParameterName, Value: argo.AnyStringPtr(providerStr)})
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: workflowconstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider.Name)})
+	workflow.Spec.Arguments.Parameters = append(
+		workflow.Spec.Arguments.Parameters,
+		argo.Parameter{
+			Name:  workflowconstants.ProviderConfigParameterName,
+			Value: argo.AnyStringPtr(providerStr),
+		},
+	)
+	workflow.Spec.Arguments.Parameters = append(
+		workflow.Spec.Arguments.Parameters,
+		argo.Parameter{
+			Name:  workflowconstants.ProviderNameParameterName,
+			Value: argo.AnyStringPtr(provider.Name),
+		},
+	)
 
 	return workflow, nil
 }
@@ -93,7 +108,9 @@ func latestWorkflow(workflow1 *argo.Workflow, workflow2 *argo.Workflow) *argo.Wo
 	}
 }
 
-func LatestWorkflowByPhase(workflows []argo.Workflow) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
+func LatestWorkflowByPhase(
+	workflows []argo.Workflow,
+) (inProgress *argo.Workflow, succeeded *argo.Workflow, failed *argo.Workflow) {
 
 	for i := range workflows {
 		workflow := workflows[i]

@@ -20,7 +20,11 @@ type ExperimentReconciler struct {
 	ResourceReconciler[*pipelinesv1.Experiment]
 }
 
-func NewExperimentReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.KfpControllerConfigSpec) *ExperimentReconciler {
+func NewExperimentReconciler(
+	ec K8sExecutionContext,
+	workflowRepository WorkflowRepository,
+	config config.KfpControllerConfigSpec,
+) *ExperimentReconciler {
 	return &ExperimentReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Experiment]{
 			WorkflowRepository: workflowRepository,

@@ -69,7 +69,13 @@ func (testCtx ResourceTestHelper[R]) Delete() error {
 func (testCtx ResourceTestHelper[R]) EmittedEventsToMatch(matcher func(Gomega, []v1.Event)) func(Gomega) {
 	return func(g Gomega) {
 		eventList := &v1.EventList{}
-		Expect(K8sClient.List(Ctx, eventList, client.MatchingFields{"involvedObject.name": testCtx.Resource.GetName()})).To(Succeed())
+		Expect(
+			K8sClient.List(
+				Ctx,
+				eventList,
+				client.MatchingFields{"involvedObject.name": testCtx.Resource.GetName()},
+			),
+		).To(Succeed())
 
 		matcher(g, eventList.Items)
 	}

@@ -17,7 +17,17 @@ var _ = Context("aggregateState", func() {
 	DescribeTable("calculates based on sub states", func(subStates []apis.SynchronizationState, expectedState apis.SynchronizationState, expectedMessage string) {
 		runSchedules := make([]pipelinesv1.RunSchedule, len(subStates))
 		for i, state := range subStates {
-			runSchedules[i] = pipelinesv1.RunSchedule{Status: pipelinesv1.Status{SynchronizationState: state, Conditions: []metav1.Condition{{Type: pipelinesv1.ConditionTypes.SynchronizationSucceeded, Message: string(state)}}}}
+			runSchedules[i] = pipelinesv1.RunSchedule{
+				Status: pipelinesv1.Status{
+					SynchronizationState: state,
+					Conditions: []metav1.Condition{
+						{
+							Type:    pipelinesv1.ConditionTypes.SynchronizationSucceeded,
+							Message: string(state),
+						},
+					},
+				},
+			}
 		}
 
 		state, message := aggregateState(runSchedules)

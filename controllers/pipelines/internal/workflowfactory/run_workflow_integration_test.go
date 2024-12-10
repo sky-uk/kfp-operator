@@ -54,10 +54,18 @@ var _ = Context("Resource Workflows", Serial, func() {
 			StubProvider(base.Output{}, testCtx.Resource)
 			Expect(K8sClient.Create(Ctx, workflow)).To(Succeed())
 
-			Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
-				func(g Gomega, workflow *argo.Workflow) {
-					g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
-				}), TestTimeout).Should(Succeed())
+			Eventually(
+				testCtx.WorkflowByNameToMatch(
+					types.NamespacedName{
+						Name:      workflow.Name,
+						Namespace: workflow.Namespace,
+					},
+					func(g Gomega, workflow *argo.Workflow) {
+						g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowFailed))
+					},
+				),
+				TestTimeout,
+			).Should(Succeed())
 		})
 	})
 })
