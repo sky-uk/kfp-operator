@@ -36,6 +36,16 @@ var _ = Context("SendEvents", func() {
 	}
 
 	When("webhook sink receives StreamMessage", func() {
+		handlerCall := make(chan any, 1)
+		onCompHandlers := OnCompleteHandlers{
+			OnSuccessHandler: func() {
+				handlerCall <- "success_called"
+			},
+			OnFailureHandler: func() {
+				handlerCall <- "failure_called"
+			},
+		}
+
 		It("sends RunCompletionEventData to the webhook successfully", func() {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
@@ -45,22 +55,16 @@ var _ = Context("SendEvents", func() {
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}
 
-			onSuccessCalled := make(chan any, 1)
-
 			go webhookSink.SendEvents()
-			handlers := OnCompleteHandlers{
-				OnSuccessHandler: func() {
-					onSuccessCalled <- "ring ring!"
-				},
-			}
+
 			streamMessage := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,
-				OnCompleteHandlers: handlers,
+				OnCompleteHandlers: onCompHandlers,
 			}
 			in <- streamMessage
 
 			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("POST %s", webhookUrl)] }).Should(Equal(1))
-			Eventually(onSuccessCalled).Should(Receive(Equal("ring ring!")))
+			Eventually(handlerCall).Should(Receive(Equal("success_called")))
 		})
 
 		It("fails to send RunCompletionEventData to the webhook", func() {
@@ -72,22 +76,16 @@ var _ = Context("SendEvents", func() {
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}
 
-			onFailureCalled := make(chan any)
-
 			go webhookSink.SendEvents()
-			handlers := OnCompleteHandlers{
-				OnFailureHandler: func() {
-					onFailureCalled <- "ring ring!"
-				},
-			}
+
 			streamMessage := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,
-				OnCompleteHandlers: handlers,
+				OnCompleteHandlers: onCompHandlers,
 			}
 			in <- streamMessage
 
 			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("POST %s", webhookUrl)] }).Should(Equal(1))
-			Eventually(onFailureCalled).Should(Receive(Equal("ring ring!")))
+			Eventually(handlerCall).Should(Receive(Equal("failure_called")))
 		})
 	})
 })

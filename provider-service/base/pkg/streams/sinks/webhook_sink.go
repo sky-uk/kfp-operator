@@ -35,10 +35,10 @@ func (hws WebhookSink) SendEvents() {
 		if message.Message != nil {
 			err = hws.send(*message.Message)
 			if err != nil {
-				logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", message))
+				logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", message.Message))
 				message.OnFailure()
 			} else {
-				logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", message))
+				logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
 				message.OnSuccess()
 			}
 		} else {
