@@ -8,6 +8,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	//+kubebuilder:scaffold:imports
@@ -54,7 +55,7 @@ func (testCtx WorkflowTestHelper[R]) FetchWorkflow() func() error {
 func (testCtx WorkflowTestHelper[R]) fetchWorkflow() (*argo.Workflow, error) {
 	workflowList := &argo.WorkflowList{}
 
-	if err := k8sClient.List(ctx, workflowList, client.MatchingLabels(CommonWorkflowLabels(testCtx.Resource))); err != nil {
+	if err := k8sClient.List(ctx, workflowList, client.MatchingLabels(workflowfactory.CommonWorkflowLabels(testCtx.Resource))); err != nil {
 		return nil, err
 	}
 
