@@ -7,7 +7,13 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
+
+func TestWorkflowUtilsUnitSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Pipeline Controllers Workflow Utils Unit Suite")
+}
 
 var _ = Describe("Utils", func() {
 	When("getWorkflowOutput is called with a workflow that has an output with the given key", func() {
