@@ -1,6 +1,6 @@
 //go:build integration
 
-package pipelines
+package workflowfactory
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/stub"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/external"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -48,13 +48,13 @@ func TestPipelineControllersIntegrationSuite(t *testing.T) {
 var _ = BeforeSuite(func() {
 	Expect(external.InitSchemes(scheme.Scheme)).To(Succeed())
 	var err error
-	k8sClient, err = client.New(&restCfg, client.Options{Scheme: scheme.Scheme})
+	K8sClient, err = client.New(&restCfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
-	ctx = context.Background()
+	Ctx = context.Background()
 })
 
 var _ = BeforeEach(func() {
-	k8sClient.Delete(ctx, &pipelinesv1.Provider{
+	K8sClient.Delete(Ctx, &pipelinesv1.Provider{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kfp-operator-integration-tests-providers",
 			Namespace: TestNamespace,
@@ -129,12 +129,12 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	workflow, err := constructWorkflow(provider, testCtx.Resource)
 
 	Expect(err).NotTo(HaveOccurred())
-	Expect(k8sClient.Create(ctx, workflow)).To(Succeed())
+	Expect(K8sClient.Create(Ctx, workflow)).To(Succeed())
 
 	Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
 		func(g Gomega, workflow *argo.Workflow) {
 			g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-			output, err := getWorkflowOutput(workflow, workflowfactory.WorkflowConstants.ProviderOutputParameterName)
+			output, err := getWorkflowOutput(workflow, WorkflowConstants.ProviderOutputParameterName)
 			g.Expect(err).NotTo(HaveOccurred())
 			g.Expect(output.ProviderError).To(Equal(expectedOutput.ProviderError))
 			g.Expect(output.Id).To(Equal(expectedOutput.Id))

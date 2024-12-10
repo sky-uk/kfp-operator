@@ -9,6 +9,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -17,7 +18,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
 			anotherProviderId := "67890"
-			experimentHelper := Create(pipelinesv1.RandomExperiment(provider.Name))
+			experimentHelper := Create(pipelinesv1.RandomExperiment(Provider.Name))
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -37,7 +38,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(experimentHelper.Update(func(pipeline *pipelinesv1.Experiment) {
-				pipeline.Spec = pipelinesv1.RandomExperimentSpec(provider.Name)
+				pipeline.Spec = pipelinesv1.RandomExperimentSpec(Provider.Name)
 			})).To(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
