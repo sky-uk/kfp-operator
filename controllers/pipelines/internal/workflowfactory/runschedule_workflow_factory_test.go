@@ -25,7 +25,11 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 			Name:       runConfiguration.Name,
 		}}
 
-		Expect(runConfigurationNameForRunSchedule(&runSchedule)).To(Equal(common.NamespacedName{Name: runConfiguration.Name, Namespace: runSchedule.Namespace}))
+		Expect(runConfigurationNameForRunSchedule(&runSchedule)).
+			To(Equal(common.NamespacedName{
+				Name:      runConfiguration.Name,
+				Namespace: runSchedule.Namespace,
+			}))
 	})
 
 	Specify("returns the empty string if owner not set", func() {

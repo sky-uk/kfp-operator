@@ -29,7 +29,10 @@ type TestWorkflowFactory struct {
 	shouldFail         bool
 }
 
-func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructCreationWorkflow(
+	provider pipelinesv1.Provider,
+	_ *pipelinesv1.TestResource,
+) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -37,7 +40,10 @@ func (f *TestWorkflowFactory) ConstructCreationWorkflow(provider pipelinesv1.Pro
 	return &argo.Workflow{}, nil
 }
 
-func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructUpdateWorkflow(
+	provider pipelinesv1.Provider,
+	_ *pipelinesv1.TestResource,
+) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -45,7 +51,10 @@ func (f *TestWorkflowFactory) ConstructUpdateWorkflow(provider pipelinesv1.Provi
 	return &argo.Workflow{}, nil
 }
 
-func (f *TestWorkflowFactory) ConstructDeletionWorkflow(provider pipelinesv1.Provider, _ *pipelinesv1.TestResource) (*argo.Workflow, error) {
+func (f *TestWorkflowFactory) ConstructDeletionWorkflow(
+	provider pipelinesv1.Provider,
+	_ *pipelinesv1.TestResource,
+) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
@@ -67,7 +76,11 @@ func (st StateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) S
 	return st.WithWorkFlow(CreateTestWorkflow(phase))
 }
 
-func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(provider pipelinesv1.Provider, providerId pipelinesv1.ProviderAndId, providerError string) StateTransitionTestCase {
+func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(
+	provider pipelinesv1.Provider,
+	providerId pipelinesv1.ProviderAndId,
+	providerError string,
+) StateTransitionTestCase {
 	workflow, err := setWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
@@ -86,7 +99,11 @@ func (st StateTransitionTestCase) WithFailedUpdateWorkflow() StateTransitionTest
 	)
 }
 
-func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(provider pipelinesv1.Provider, providerId pipelinesv1.ProviderAndId, providerError string) StateTransitionTestCase {
+func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(
+	provider pipelinesv1.Provider,
+	providerId pipelinesv1.ProviderAndId,
+	providerError string,
+) StateTransitionTestCase {
 	workflow, err := setWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
@@ -105,7 +122,11 @@ func (st StateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase)
 	)
 }
 
-func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(provider pipelinesv1.Provider, providerId pipelinesv1.ProviderAndId, providerError string) StateTransitionTestCase {
+func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(
+	provider pipelinesv1.Provider,
+	providerId pipelinesv1.ProviderAndId,
+	providerError string,
+) StateTransitionTestCase {
 	workflow, err := setWorkflowProvider(
 		CreateTestWorkflow(argo.WorkflowSucceeded),
 		provider)
@@ -198,7 +219,12 @@ var _ = Describe("State handler", func() {
 		)
 	}
 
-	var From = func(status apis.SynchronizationState, id pipelinesv1.ProviderAndId, versionInState string, computedVersion string) StateTransitionTestCase {
+	var From = func(
+		status apis.SynchronizationState,
+		id pipelinesv1.ProviderAndId,
+		versionInState string,
+		computedVersion string,
+	) StateTransitionTestCase {
 		resource := pipelinesv1.RandomResource()
 		resource.SetStatus(pipelinesv1.Status{
 			SynchronizationState: status,

@@ -16,28 +16,43 @@ type RunScheduleDefinitionCreator struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(runSchedule *pipelinesv1.RunSchedule) (providers.RunScheduleDefinition, error) {
+func (rcdc RunScheduleDefinitionCreator) runScheduleDefinition(
+	runSchedule *pipelinesv1.RunSchedule,
+) (providers.RunScheduleDefinition, error) {
 	var experimentName common.NamespacedName
 	if runSchedule.Spec.ExperimentName == "" {
-		experimentName = common.NamespacedName{Name: rcdc.Config.DefaultExperiment}
+		experimentName = common.NamespacedName{
+			Name: rcdc.Config.DefaultExperiment,
+		}
 	} else {
-		experimentName = common.NamespacedName{Name: runSchedule.Spec.ExperimentName, Namespace: runSchedule.Namespace}
+		experimentName = common.NamespacedName{
+			Name:      runSchedule.Spec.ExperimentName,
+			Namespace: runSchedule.Namespace,
+		}
 	}
 
 	return providers.RunScheduleDefinition{
-		Name:                 common.NamespacedName{Name: runSchedule.ObjectMeta.Name, Namespace: runSchedule.Namespace},
+		Name: common.NamespacedName{
+			Name:      runSchedule.ObjectMeta.Name,
+			Namespace: runSchedule.Namespace,
+		},
 		RunConfigurationName: runConfigurationNameForRunSchedule(runSchedule),
 		Version:              runSchedule.ComputeVersion(),
-		PipelineName:         common.NamespacedName{Name: runSchedule.Spec.Pipeline.Name, Namespace: runSchedule.Namespace},
-		PipelineVersion:      runSchedule.Spec.Pipeline.Version,
-		ExperimentName:       experimentName,
-		Schedule:             runSchedule.Spec.Schedule,
-		RuntimeParameters:    NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
-		Artifacts:            runSchedule.Spec.Artifacts,
+		PipelineName: common.NamespacedName{
+			Name:      runSchedule.Spec.Pipeline.Name,
+			Namespace: runSchedule.Namespace,
+		},
+		PipelineVersion:   runSchedule.Spec.Pipeline.Version,
+		ExperimentName:    experimentName,
+		Schedule:          runSchedule.Spec.Schedule,
+		RuntimeParameters: NamedValuesToMap(runSchedule.Spec.RuntimeParameters),
+		Artifacts:         runSchedule.Spec.Artifacts,
 	}, nil
 }
 
-func runConfigurationNameForRunSchedule(runSchedule *pipelinesv1.RunSchedule) (runConfigurationName common.NamespacedName) {
+func runConfigurationNameForRunSchedule(
+	runSchedule *pipelinesv1.RunSchedule,
+) (runConfigurationName common.NamespacedName) {
 	rc := pipelinesv1.RunConfiguration{}
 
 	owner := metav1.GetControllerOf(runSchedule)
@@ -58,7 +73,9 @@ func runConfigurationNameForRunSchedule(runSchedule *pipelinesv1.RunSchedule) (r
 	return
 }
 
-func RunScheduleWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition] {
+func RunScheduleWorkflowFactory(
+	config config.KfpControllerConfigSpec,
+) *ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition] {
 	return &ResourceWorkflowFactory[*pipelinesv1.RunSchedule, providers.RunScheduleDefinition]{
 		DefinitionCreator: RunScheduleDefinitionCreator{
 			Config: config,

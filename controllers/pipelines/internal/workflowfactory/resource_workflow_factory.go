@@ -79,7 +79,9 @@ type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] str
 	DefinitionCreator     func(R) (ResourceDefinition, error)
 }
 
-func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(owner pipelinesv1.Resource) *metav1.ObjectMeta {
+func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
+	owner pipelinesv1.Resource,
+) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", owner.GetKind(), owner.GetName()),
 		Namespace:    workflows.Config.WorkflowNamespace,
@@ -109,7 +111,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 	return string(marshalled), nil
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
+	provider pipelinesv1.Provider,
+	resource R,
+) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
 	if err != nil {
 		return nil, err
@@ -150,7 +155,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	}, nil
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(
+	provider pipelinesv1.Provider,
+	resource R,
+) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
 	if err != nil {
 		return nil, err
@@ -195,7 +203,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	}, nil
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(
+	provider pipelinesv1.Provider,
+	resource R,
+) (*argo.Workflow, error) {
 	providerConf, err := json.Marshal(provider.Spec)
 	if err != nil {
 		return nil, err

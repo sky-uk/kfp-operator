@@ -11,9 +11,14 @@ type PipelineDefinitionCreator struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pipeline) (providers.PipelineDefinition, error) {
+func (pdc PipelineDefinitionCreator) pipelineDefinition(
+	pipeline *pipelinesv1.Pipeline,
+) (providers.PipelineDefinition, error) {
 	return providers.PipelineDefinition{
-		Name:          common.NamespacedName{Namespace: pipeline.ObjectMeta.Namespace, Name: pipeline.ObjectMeta.Name},
+		Name: common.NamespacedName{
+			Namespace: pipeline.ObjectMeta.Namespace,
+			Name:      pipeline.ObjectMeta.Name,
+		},
 		Version:       pipeline.ComputeVersion(),
 		Image:         pipeline.Spec.Image,
 		TfxComponents: pipeline.Spec.TfxComponents,
@@ -22,7 +27,9 @@ func (pdc PipelineDefinitionCreator) pipelineDefinition(pipeline *pipelinesv1.Pi
 	}, nil
 }
 
-func PipelineWorkflowFactory(config config.KfpControllerConfigSpec) *ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
+func PipelineWorkflowFactory(
+	config config.KfpControllerConfigSpec,
+) *ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
 	return &ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
 		DefinitionCreator: PipelineDefinitionCreator{
 			Config: config,
