@@ -153,7 +153,9 @@ func (st StateTransitionTestCase) IssuesCommand(command Command) StateTransition
 }
 
 func (st StateTransitionTestCase) DeletionRequested() StateTransitionTestCase {
-	st.Experiment.DeletionTimestamp = &metav1.Time{time.UnixMilli(1)}
+	st.Experiment.DeletionTimestamp = &metav1.Time{
+		Time: time.UnixMilli(1),
+	}
 	return st
 }
 
