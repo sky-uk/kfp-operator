@@ -8,6 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -46,7 +47,7 @@ var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
 		run, err := rcr.constructRunForRunConfiguration(runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(run.GetLabels()[RunConfigurationConstants.RunConfigurationNameLabelKey]).To(Equal(runConfiguration.GetName()))
+		Expect(run.GetLabels()[workflowfactory.RunConfigurationConstants.RunConfigurationNameLabelKey]).To(Equal(runConfiguration.GetName()))
 	})
 })
 
