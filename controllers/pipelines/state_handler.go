@@ -77,7 +77,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.P
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(provider, resource)
 
 		if err != nil {
-			failureMessage := workflowconstants.WorkflowConstants.ConstructionFailedError
+			failureMessage := workflowconstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 			return []Command{
@@ -99,7 +99,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.P
 	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(provider, resource)
 
 	if err != nil {
-		failureMessage := workflowconstants.WorkflowConstants.ConstructionFailedError
+		failureMessage := workflowconstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{
@@ -133,7 +133,7 @@ func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Pro
 	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(provider, resource)
 
 	if err != nil {
-		failureMessage := workflowconstants.WorkflowConstants.ConstructionFailedError
+		failureMessage := workflowconstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{
@@ -165,7 +165,7 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipe
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(provider, resource)
 
 		if err != nil {
-			failureMessage := workflowconstants.WorkflowConstants.ConstructionFailedError
+			failureMessage := workflowconstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 			return []Command{
@@ -182,7 +182,7 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipe
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(provider, resource)
 
 		if err != nil {
-			failureMessage := workflowconstants.WorkflowConstants.ConstructionFailedError
+			failureMessage := workflowconstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 			return []Command{
@@ -239,8 +239,8 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
 
-		result, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.WorkflowConstants.ProviderOutputParameterName)
-		provider := workflowutil.GetWorkflowParameter(workflow, workflowconstants.WorkflowConstants.ProviderNameParameterName)
+		result, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.ProviderOutputParameterName)
+		provider := workflowutil.GetWorkflowParameter(workflow, workflowconstants.ProviderNameParameterName)
 
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"

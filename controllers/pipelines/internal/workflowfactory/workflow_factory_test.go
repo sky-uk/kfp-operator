@@ -25,8 +25,8 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		Expect(meta.Namespace).To(Equal(namespace))
 		Expect(meta.GetGenerateName()).To(Equal(owner.GetKind() + "-" + owner.GetName() + "-"))
 
-		Expect(meta.Labels[workflowconstants.WorkflowConstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
-		Expect(meta.Labels[workflowconstants.WorkflowConstants.OwnerNameLabelKey]).To(Equal(owner.GetName()))
-		Expect(meta.Labels[workflowconstants.WorkflowConstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
+		Expect(meta.Labels[workflowconstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
+		Expect(meta.Labels[workflowconstants.OwnerNameLabelKey]).To(Equal(owner.GetName()))
+		Expect(meta.Labels[workflowconstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
 	})
 })

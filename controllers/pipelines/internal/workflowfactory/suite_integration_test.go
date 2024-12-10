@@ -136,7 +136,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	Eventually(testCtx.WorkflowByNameToMatch(types.NamespacedName{Name: workflow.Name, Namespace: workflow.Namespace},
 		func(g Gomega, workflow *argo.Workflow) {
 			g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-			output, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.WorkflowConstants.ProviderOutputParameterName)
+			output, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.ProviderOutputParameterName)
 			g.Expect(err).NotTo(HaveOccurred())
 			g.Expect(output.ProviderError).To(Equal(expectedOutput.ProviderError))
 			g.Expect(output.Id).To(Equal(expectedOutput.Id))

@@ -266,7 +266,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithMessage(workflowconstants.WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with version",
@@ -293,7 +293,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage(workflowconstants.WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Empty with id and version",
@@ -374,7 +374,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v2).
-					WithMessage(workflowconstants.WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no ProviderAndId",
@@ -391,7 +391,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v2).
-					WithMessage(workflowconstants.WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Succeeded with update but no ProviderAndId and no version",
@@ -422,7 +422,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v2).
-					WithMessage(workflowconstants.WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no ProviderAndId",
@@ -439,7 +439,7 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v2).
-					WithMessage(workflowconstants.WorkflowConstants.ConstructionFailedError).
+					WithMessage(workflowconstants.ConstructionFailedError).
 					WithSynchronizationState(apis.Failed)),
 		),
 		Check("Failed with update but no ProviderAndId and no version",

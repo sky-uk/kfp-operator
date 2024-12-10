@@ -51,8 +51,8 @@ func SetWorkflowProvider(workflow *argo.Workflow, provider pipelinesv1.Provider)
 		return nil, err
 	}
 
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: workflowconstants.WorkflowConstants.ProviderConfigParameterName, Value: argo.AnyStringPtr(providerStr)})
-	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: workflowconstants.WorkflowConstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider.Name)})
+	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: workflowconstants.ProviderConfigParameterName, Value: argo.AnyStringPtr(providerStr)})
+	workflow.Spec.Arguments.Parameters = append(workflow.Spec.Arguments.Parameters, argo.Parameter{Name: workflowconstants.ProviderNameParameterName, Value: argo.AnyStringPtr(provider.Name)})
 
 	return workflow, nil
 }
@@ -76,7 +76,7 @@ func SetProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.W
 		workflow,
 		[]argo.Parameter{
 			{
-				Name:  workflowconstants.WorkflowConstants.ProviderOutputParameterName,
+				Name:  workflowconstants.ProviderOutputParameterName,
 				Value: argo.AnyStringPtr("id: " + output.Id + "\nproviderError: " + output.ProviderError),
 			},
 		},

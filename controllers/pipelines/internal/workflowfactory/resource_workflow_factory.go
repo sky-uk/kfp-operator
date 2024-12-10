@@ -99,19 +99,19 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  workflowconstants.WorkflowConstants.ResourceKindParameterName,
+						Name:  workflowconstants.ResourceKindParameterName,
 						Value: argo.AnyStringPtr(resource.GetKind()),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ResourceDefinitionParameterName,
+						Name:  workflowconstants.ResourceDefinitionParameterName,
 						Value: argo.AnyStringPtr(resourceDefinition),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ProviderNameParameterName,
+						Name:  workflowconstants.ProviderNameParameterName,
 						Value: argo.AnyStringPtr(provider.Name),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ProviderConfigParameterName,
+						Name:  workflowconstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},
@@ -143,23 +143,23 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  workflowconstants.WorkflowConstants.ResourceKindParameterName,
+						Name:  workflowconstants.ResourceKindParameterName,
 						Value: argo.AnyStringPtr(resource.GetKind()),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ResourceDefinitionParameterName,
+						Name:  workflowconstants.ResourceDefinitionParameterName,
 						Value: argo.AnyStringPtr(resourceDefinition),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ResourceIdParameterName,
+						Name:  workflowconstants.ResourceIdParameterName,
 						Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ProviderNameParameterName,
+						Name:  workflowconstants.ProviderNameParameterName,
 						Value: argo.AnyStringPtr(provider.Name),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ProviderConfigParameterName,
+						Name:  workflowconstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},
@@ -186,19 +186,19 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
 					{
-						Name:  workflowconstants.WorkflowConstants.ResourceKindParameterName,
+						Name:  workflowconstants.ResourceKindParameterName,
 						Value: argo.AnyStringPtr(resource.GetKind()),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ResourceIdParameterName,
+						Name:  workflowconstants.ResourceIdParameterName,
 						Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ProviderNameParameterName,
+						Name:  workflowconstants.ProviderNameParameterName,
 						Value: argo.AnyStringPtr(provider.Name),
 					},
 					{
-						Name:  workflowconstants.WorkflowConstants.ProviderConfigParameterName,
+						Name:  workflowconstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 				},

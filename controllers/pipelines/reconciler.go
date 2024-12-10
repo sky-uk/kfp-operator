@@ -35,9 +35,9 @@ func (br ResourceReconciler[R]) loadProvider(ctx context.Context, namespace stri
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(resource pipelinesv1.Resource) func(client.Object) []reconcile.Request {
 	return func(workflow client.Object) []reconcile.Request {
-		kind, hasKind := workflow.GetLabels()[workflowconstants.WorkflowConstants.OwnerKindLabelKey]
-		ownerName, hasOwnerName := workflow.GetLabels()[workflowconstants.WorkflowConstants.OwnerNameLabelKey]
-		ownerNamespace, hasOwnerNamespace := workflow.GetLabels()[workflowconstants.WorkflowConstants.OwnerNamespaceLabelKey]
+		kind, hasKind := workflow.GetLabels()[workflowconstants.OwnerKindLabelKey]
+		ownerName, hasOwnerName := workflow.GetLabels()[workflowconstants.OwnerNameLabelKey]
+		ownerNamespace, hasOwnerNamespace := workflow.GetLabels()[workflowconstants.OwnerNamespaceLabelKey]
 		if !hasKind || !hasOwnerName || !hasOwnerNamespace || kind != resource.GetKind() {
 			return nil
 		}
