@@ -39,6 +39,8 @@ var _ = Context("VaiEventingServer", func() {
 		inChan                chan StreamMessage[string]
 		outChan               chan StreamMessage[*common.RunCompletionEventData]
 		errChan               chan error
+		handlerCall           chan any
+		onCompHandlers        OnCompleteHandlers
 	)
 
 	BeforeEach(func() {
@@ -57,7 +59,15 @@ var _ = Context("VaiEventingServer", func() {
 			out:               outChan,
 			errorOut:          errChan,
 		}
-
+		handlerCall = make(chan any, 1)
+		onCompHandlers = OnCompleteHandlers{
+			OnSuccessHandler: func() {
+				handlerCall <- "success_called"
+			},
+			OnFailureHandler: func() {
+				handlerCall <- "failure_called"
+			},
+		}
 	})
 
 	AfterEach(func() {
@@ -464,18 +474,9 @@ var _ = Context("VaiEventingServer", func() {
 		})
 	})
 
-	Describe("start", func() {
+	Describe("Start", func() {
 		When("runCompletionEventDataForRun errors", func() {
 			It("fails to find the pipeline job", func() {
-				handlerCall := make(chan any, 1)
-				onCompHandlers := OnCompleteHandlers{
-					OnSuccessHandler: func() {
-						handlerCall <- "success_called"
-					},
-					OnFailureHandler: func() {
-						handlerCall <- "failure_called"
-					},
-				}
 				expectedErr := status.New(codes.NotFound, "not found").Err()
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 				eventingFlow.Start()
@@ -484,6 +485,44 @@ var _ = Context("VaiEventingServer", func() {
 
 				Eventually(handlerCall).Should(Receive(Equal("success_called")))
 				Eventually(errChan).Should(Receive(Equal(expectedErr)))
+			})
+
+			It("errors when fetching the pipeline job", func() {
+				expectedErr := errors.New("an error")
+				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
+				eventingFlow.Start()
+
+				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
+
+				Eventually(handlerCall).Should(Receive(Equal("failure_called")))
+				Eventually(errChan).Should(Receive(Equal(expectedErr)))
+			})
+		})
+
+		When("runCompletionEventDataForRun succeeds", func() {
+			It("sends the message to the out channel", func() {
+				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
+					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
+				}, nil)
+				inMessage := "a-run-id"
+
+				eventingFlow.Start()
+				eventingFlow.in <- StreamMessage[string]{Message: inMessage, OnCompleteHandlers: onCompHandlers}
+
+				expectedRunCompletionEventData := &common.RunCompletionEventData{
+					Status:                "succeeded",
+					PipelineName:          common.NamespacedName{Name: "", Namespace: ""},
+					RunConfigurationName:  nil,
+					RunName:               nil,
+					RunId:                 inMessage,
+					ServingModelArtifacts: []common.Artifact{},
+					PipelineComponents:    []common.PipelineComponent{},
+					Provider:              eventingFlow.ProviderConfig.Name,
+				}
+
+				Eventually(outChan).Should(Receive(WithTransform(func(msg StreamMessage[*common.RunCompletionEventData]) interface{} {
+					return msg.Message
+				}, BeEquivalentTo(expectedRunCompletionEventData))))
 			})
 		})
 	})

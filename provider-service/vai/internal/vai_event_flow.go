@@ -85,7 +85,6 @@ func (vef *VaiEventFlow) Error(inlet streams.Inlet[error]) {
 }
 
 func NewVaiEventFlow(ctx context.Context, config *VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *VaiEventFlow {
-
 	vaiEventFlow := VaiEventFlow{
 		ProviderConfig:    *config,
 		PipelineJobClient: pipelineJobClient,
