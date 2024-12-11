@@ -1,8 +1,9 @@
 package main
 
 import (
-	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"context"
+
+	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -14,8 +15,9 @@ import (
 
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 
-	"google.golang.org/api/option"
 	"os"
+
+	"google.golang.org/api/option"
 )
 
 func main() {
@@ -60,6 +62,10 @@ func main() {
 	go handleErrorInSourceOperations(source)
 
 	flow := vai.NewVaiEventFlow(ctx, vaiConfig, pipelineJobClient)
+
+	go func() {
+		flow.Start()
+	}()
 
 	sink := sinks.NewWebhookSink(ctx, resty.New(), config.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
 
