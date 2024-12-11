@@ -60,11 +60,8 @@ func getRequestBody(ctx context.Context, request *http.Request) ([]byte, error) 
 	} else if len(body) == 0 {
 		return nil, errors.New("request body is empty")
 	}
-	return body, nil
-}
 
-type DataWrapper struct {
-	Data common.RunCompletionEventData `json:"data"`
+	return body, nil
 }
 
 func (rcf RunCompletionFeed) extractRunCompletionEvent(request *http.Request) (*common.RunCompletionEvent, error) {
@@ -73,12 +70,12 @@ func (rcf RunCompletionFeed) extractRunCompletionEvent(request *http.Request) (*
 		return nil, err
 	}
 
-	runDataWrapper := &DataWrapper{}
-	if err := json.Unmarshal(body, runDataWrapper); err != nil {
+	rced := common.RunCompletionEventData{}
+	if err := json.Unmarshal(body, &rced); err != nil {
 		return nil, err
 	}
 
-	rce, err := rcf.eventProcessor.ToRunCompletionEvent(rcf.ctx, runDataWrapper.Data)
+	rce, err := rcf.eventProcessor.ToRunCompletionEvent(rcf.ctx, rced)
 	if err != nil {
 		return nil, err
 	} else if rce == nil {
@@ -93,7 +90,7 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 	switch request.Method {
 	case http.MethodPost:
 		if request.Header.Get(HttpHeaderContentType) != HttpContentTypeJSON {
-			logger.Error(errors.New("RunCompletionFeed call failed"), "invalid %s [%s], want `%s`", HttpHeaderContentType, request.Header.Get(HttpHeaderContentType), HttpContentTypeJSON)
+			logger.Error(errors.New("RunCompletionFeed call failed"), fmt.Sprintf("invalid %s [%s], want `%s`", HttpHeaderContentType, request.Header.Get(HttpHeaderContentType), HttpContentTypeJSON))
 			http.Error(response, fmt.Sprintf("invalid %s, want `%s`", HttpHeaderContentType, HttpContentTypeJSON), http.StatusUnsupportedMediaType)
 			return
 		}
@@ -104,7 +101,7 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			return
 		} else {
 			for _, handler := range rcf.eventHandlers {
-				err := handler.handle(rcf.ctx, *event)
+				err := handler.Handle(rcf.ctx, *event)
 				if err != nil {
 					logger.Error(err, "Run completion event handler operation failed")
 					http.Error(response, err.Error(), http.StatusInternalServerError)

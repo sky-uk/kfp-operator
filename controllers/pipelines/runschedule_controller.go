@@ -51,7 +51,7 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	provider, err := r.loadProvider(ctx, r.Config.WorkflowNamespace, runSchedule.Spec.Provider)
 	if err != nil {
-		logger.Error(err, "Failed to load provider %v", provider)
+		logger.Error(err, "Failed to load provider", "provider", provider)
 		return ctrl.Result{}, err
 	}
 
