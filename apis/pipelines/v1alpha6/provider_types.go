@@ -13,6 +13,7 @@ import (
 type ProviderSpec struct {
 	Type          ProviderType `json:"type" yaml:"type"`
 	Image         string       `json:"image" yaml:"image"`
+	CliImage      string       `json:"cliImage" yaml:"cliImage"`
 	ExecutionMode string       `json:"executionMode" yaml:"executionMode"`
 	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	ServiceAccount      string                           `json:"serviceAccount" yaml:"serviceAccount"`
@@ -22,11 +23,6 @@ type ProviderSpec struct {
 }
 
 type ProviderType string
-
-const (
-	KFP ProviderType = "KFP"
-	VAI ProviderType = "VAI"
-)
 
 func (ps Provider) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
