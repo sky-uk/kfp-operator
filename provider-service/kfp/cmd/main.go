@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -37,7 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	source, err := sources.NewWorkflowSource(ctx, config.Pod.Namespace, *k8sClient)
+	source, err := sources.NewWorkflowSource(ctx, providerConfig.Parameters.KfpNamespace, *k8sClient)
 	if err != nil {
 		panic(err)
 	}
