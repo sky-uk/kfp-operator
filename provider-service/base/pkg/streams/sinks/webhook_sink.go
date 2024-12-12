@@ -35,14 +35,14 @@ func (hws WebhookSink) SendEvents() {
 		if message.Message != nil {
 			err = hws.send(*message.Message)
 			if err != nil {
-				logger.Error(err, "Failed to send event", "event", fmt.Sprintf("%+v", message.Message))
+				logger.Error(err, "failed to send event", "event", fmt.Sprintf("%+v", message.Message))
 				message.OnFailure()
 			} else {
-				logger.Info("Successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
+				logger.Info("successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
 				message.OnSuccess()
 			}
 		} else {
-			logger.Info("Discarding empty message")
+			logger.Info("discarding empty message")
 		}
 	}
 }
@@ -60,8 +60,8 @@ func (hws WebhookSink) send(rced common.RunCompletionEventData) error {
 
 	if response.StatusCode() != 200 {
 		logger := common.LoggerFromContext(hws.context)
-		logger.Info("Error returned from Webhook", "status", response.Status(), "body", response.Body(), "event", rced)
-		return fmt.Errorf("KFP Operator error response received with http status code: [%s]", response.Status())
+		logger.Info("error returned from Webhook", "status", response.Status(), "body", response.Body(), "event", rced)
+		return fmt.Errorf("webhook error response received with http status code: [%s]", response.Status())
 	}
 
 	return nil

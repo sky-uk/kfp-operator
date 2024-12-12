@@ -25,6 +25,6 @@ func (ls ErrorSink) In() chan<- error {
 func (ls ErrorSink) Log() {
 	logger := common.LoggerFromContext(ls.context)
 	for err := range ls.in {
-		logger.Error(err, "Failed to handle event")
+		logger.Error(err, "failed to handle event")
 	}
 }

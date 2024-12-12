@@ -23,7 +23,7 @@ func main() {
 
 	config, err := configLoader.LoadConfig(ctx)
 	if err != nil {
-		logger.Error(err, "Failed loading configuration")
+		logger.Error(err, "failed loading configuration")
 		panic(err)
 	}
 
@@ -35,31 +35,31 @@ func main() {
 
 	providerConfig, err := kfp.LoadProviderConfig(ctx, *k8sClient, config.ProviderName, config.Pod.Namespace)
 	if err != nil {
-		logger.Error(err, "Failed to load provider config", "provider", config.ProviderName, "namespace", config.Pod.Namespace)
+		logger.Error(err, "failed to load provider config", "provider", config.ProviderName, "namespace", config.Pod.Namespace)
 		os.Exit(1)
 	}
 
 	source, err := sources.NewWorkflowSource(ctx, config.Pod.Namespace, *k8sClient)
 	if err != nil {
-		logger.Error(err, "Failed to create workflow event source")
+		logger.Error(err, "failed to create workflow event source")
 		os.Exit(1)
 	}
 
 	kfpApi, err := kfp.CreateKfpApi(ctx, *providerConfig)
 	if err != nil {
-		logger.Error(err, "Failed to create kfp api client")
+		logger.Error(err, "failed to create kfp api client")
 		os.Exit(1)
 	}
 
 	kfpMetadataStore, err := kfp.CreateMetadataStore(ctx, *providerConfig)
 	if err != nil {
-		logger.Error(err, "Failed to create kfp metadata store client")
+		logger.Error(err, "failed to create kfp metadata store client")
 		os.Exit(1)
 	}
 
 	flow, err := kfp.NewKfpEventFlow(ctx, *providerConfig, kfpApi, kfpMetadataStore)
 	if err != nil {
-		logger.Error(err, "Failed to create kfp event flow")
+		logger.Error(err, "failed to create kfp event flow")
 		os.Exit(1)
 	}
 

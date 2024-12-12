@@ -24,11 +24,11 @@ func LoadConfig(ctx context.Context) (*Config, error) {
 	config, err := load()
 
 	if err != nil {
-		logger.Error(err, "Failed to load config file")
+		logger.Error(err, "failed to load config file")
 		return nil, err
 	}
 
-	logger.Info(fmt.Sprintf("Loaded config: %+v", config))
+	logger.Info(fmt.Sprintf("loaded config: %+v", config))
 	return config, nil
 }
 

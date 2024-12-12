@@ -29,7 +29,7 @@ func main() {
 
 	config, err := configLoader.LoadConfig(ctx)
 	if err != nil {
-		logger.Error(err, "Failed loading configuration")
+		logger.Error(err, "failed loading configuration")
 		os.Exit(1)
 	}
 
@@ -56,7 +56,7 @@ func main() {
 
 	source, err := sources.NewPubSubSource(ctx, vaiConfig.Parameters.VaiProject, vaiConfig.Parameters.EventsourcePipelineEventsSubscription)
 	if err != nil {
-		logger.Error(err, "Failed to create VAI event data source")
+		logger.Error(err, "failed to create VAI event data source")
 		os.Exit(1)
 	}
 	go handleErrorInSourceOperations(source)
@@ -68,13 +68,15 @@ func main() {
 	}()
 
 	sink := sinks.NewWebhookSink(ctx, resty.New(), config.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
+	errorSink := sinks.NewErrorSink(ctx, make(chan error))
 
-	logger.Info("Starting VAI Event Flow")
+	logger.Info("starting vai event flow")
 	flow.From(source).To(sink)
+	flow.Error(errorSink)
 
 	// block till terminated
 	<-ctx.Done()
-	logger.Info("VAI Event Flow is terminating")
+	logger.Info("vai event flow is terminating")
 }
 
 func handleErrorInSourceOperations(source *sources.PubSubSource) {

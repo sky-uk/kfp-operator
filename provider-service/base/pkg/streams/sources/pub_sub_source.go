@@ -44,7 +44,6 @@ func NewPubSubSource(ctx context.Context, project string, subscription string) (
 	runsSubscription := pubSubClient.Subscription(subscription)
 	exists, err := runsSubscription.Exists(ctx)
 	if err != nil || !exists {
-		logger.Error(err, "Subscription err")
 		return nil, fmt.Errorf("subscription %s does not exist on topic", subscription)
 	}
 
@@ -56,7 +55,7 @@ func NewPubSubSource(ctx context.Context, project string, subscription string) (
 
 	go func() {
 		if err := pubSubSource.subscribe(ctx, runsSubscription); err != nil {
-			logger.Error(err, "Failed to subscribe", "subscription", subscription)
+			logger.Error(err, "failed to subscribe", "subscription", subscription)
 			pubSubSource.errOut <- err
 			return
 		}

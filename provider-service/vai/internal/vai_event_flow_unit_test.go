@@ -475,8 +475,8 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	Describe("Start", func() {
-		When("runCompletionEventDataForRun errors", func() {
-			It("fails to find the pipeline job", func() {
+		When("runCompletionEventDataForRun errors with NotFound", func() {
+			It("acks the message and outputs to error sink", func() {
 				expectedErr := status.New(codes.NotFound, "not found").Err()
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 				eventingFlow.Start()
@@ -486,8 +486,9 @@ var _ = Context("VaiEventingServer", func() {
 				Eventually(handlerCall).Should(Receive(Equal("success_called")))
 				Eventually(errChan).Should(Receive(Equal(expectedErr)))
 			})
-
-			It("errors when fetching the pipeline job", func() {
+		})
+		When("runCompletionEventDataForRun errors", func() {
+			It("nacks the message and outputs to error sink", func() {
 				expectedErr := errors.New("an error")
 				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
 				eventingFlow.Start()
