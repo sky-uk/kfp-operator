@@ -5,7 +5,7 @@ metadata:
   name: {{ $providerName }}
   namespace: {{ include "kfp-operator-provider.namespace" . }}
 spec:
-  image: {{ include "kfp-operator-provider.image" $ }}
+  cliImage: {{ include "kfp-operator-provider.cliImage" $ }}
   executionMode: {{ .Values.provider.executionMode }}
   serviceAccount: {{ .Values.provider.serviceAccount.name }}
   defaultBeamArgs:
