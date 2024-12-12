@@ -27,28 +27,20 @@ data:
       defaultProviderValues:
         labels:
           app: provider
-        replicas: {{ .Values.providers.replicas }}
+        replicas: {{ .Values.provider.replicas }}
         podTemplateSpec:
-          serviceAccountName: {{ .Values.service.serviceAccount.name }}
           securityContext:
             runAsNonRoot: true
           containers:
           - name: provider-service
-            image: {{ include "kfp-operator-provider-service.image" $ }}
             securityContext:
               allowPrivilegeEscalation: false
             resources:
-              {{- $.Values.service.resources | toYaml | nindent 10 }}
+              {{- $.Values.provider.resources | toYaml | nindent 10 }}
             env:
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            volumeMounts:
-              - name: config
-                mountPath: /etc/provider-service/config.yaml
-                subPath: config.yaml
-          volumes:
-            - name: config
-              configMap:
-                name: {{ $providerName }}-{{ include "kfp-operator-provider.resource-prefix" . }}-service-config
+            - name: OPERATORWEBHOOK
+              value: `{{ include "kfp-operator.fullname" . }}-controller-manager.{{ .Values.namespace.name }}:{{.Values.manager.runcompletionWebhook.servicePort}}/events`
