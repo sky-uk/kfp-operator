@@ -18,7 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// ProviderReconciler reconciles a Provider object
 type ProviderReconciler struct {
 	StateHandler[*pipelinesv1.Provider]
 	ResourceReconciler[*pipelinesv1.Provider]
@@ -50,9 +49,10 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	logger.V(2).Info("found provider", "resource", provider)
+	providerVersion := provider.ComputeVersion()
+	logger.V(2).Info("found provider", "resource", provider, "version", providerVersion)
 
-	providerServiceName := fmt.Sprintf("provider-%s-service", req.Name)
+	providerServiceName := fmt.Sprintf("provider-%s-service-%s", req.Name, providerVersion)
 	providerServiceDeployment, err := r.fetchProviderServiceDeployment(ctx, providerServiceName, req.Namespace)
 	if err != nil {
 		logger.Error(err, "unable to fetch provider service deployment")
@@ -60,7 +60,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	if providerServiceDeployment == nil {
-		providerServiceDeployment = constructProviderServiceDeployment(providerServiceName, req.Namespace, provider)
+		providerServiceDeployment = constructProviderDeployment(providerServiceName, req.Namespace, provider, r.Config)
 		if err := r.EC.Client.Create(ctx, providerServiceDeployment); err != nil {
 			logger.Error(err, "unable to create provider service deployment")
 			return ctrl.Result{}, err
@@ -103,41 +103,41 @@ func (r *ProviderReconciler) fetchProviderServiceDeployment(ctx context.Context,
 	return deployment, nil
 }
 
-func constructProviderServiceDeployment(name, namespace string, provider *pipelinesv1.Provider) *appsv1.Deployment {
-	var replicas int32 = 1
+func constructProviderDeployment(name, namespace string, provider *pipelinesv1.Provider, config config.KfpControllerConfigSpec) *appsv1.Deployment {
+	replicas := int32(config.DefaultProviderValues.Replicas)
+
+	podTemplate := config.DefaultProviderValues.PodTemplateSpec
+
+	const targetContainer = "provider-service" //TODO: make configurable from config
+	for _, container := range podTemplate.Spec.Containers {
+		if container.Name == targetContainer {
+			container.Image = provider.Spec.Image
+			container.Env = append(container.Env, v1.EnvVar{
+				Name:  "PROVIDERNAME",
+				Value: provider.Name,
+			})
+		}
+	}
+
+	const providerLabelKey = "provider"
+	podTemplate.ObjectMeta.Labels[providerLabelKey] = provider.Name
+	podTemplate.Spec.ServiceAccountName = provider.Spec.ServiceAccount
+
+	labels := config.DefaultProviderValues.Labels
+	labels[providerLabelKey] = provider.Name
+
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      fmt.Sprintf("provider-%s", name),
 			Namespace: namespace,
-			Labels: map[string]string{
-				"app":      "provider-service",
-				"provider": provider.GetName(),
-			},
+			Labels:    labels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"app":      "provider-service",
-					"provider": provider.GetName(),
-				},
+				MatchLabels: labels,
 			},
 			Replicas: &replicas,
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"app":      "provider-service",
-						"provider": provider.GetName(),
-					},
-				},
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{
-						{
-							Name:  "provider-service",
-							Image: provider.Spec.Image,
-						},
-					},
-				},
-			},
+			Template: podTemplate,
 		},
 	}
 }

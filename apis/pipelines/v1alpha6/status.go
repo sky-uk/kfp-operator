@@ -60,4 +60,5 @@ type Status struct {
 	Version              string                    `json:"version,omitempty"`
 	ObservedGeneration   int64                     `json:"observedGeneration,omitempty"`
 	Conditions           Conditions                `json:"conditions,omitempty"`
+	Serving              string                    `json:"serving,omitempty"`
 }
