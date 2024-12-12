@@ -40,7 +40,7 @@ var labels = struct {
 	RunNamespace:              "run-namespace",
 }
 
-type VaiEventFlow struct {
+type EventFlow struct {
 	ProviderConfig    VAIProviderConfig
 	PipelineJobClient PipelineJobClient
 	context           context.Context
@@ -49,19 +49,19 @@ type VaiEventFlow struct {
 	errorOut          chan error
 }
 
-func (vef *VaiEventFlow) In() chan<- StreamMessage[string] {
+func (vef *EventFlow) In() chan<- StreamMessage[string] {
 	return vef.in
 }
 
-func (vef *VaiEventFlow) Out() <-chan StreamMessage[*common.RunCompletionEventData] {
+func (vef *EventFlow) Out() <-chan StreamMessage[*common.RunCompletionEventData] {
 	return vef.out
 }
 
-func (vef *VaiEventFlow) ErrOut() <-chan error {
+func (vef *EventFlow) ErrOut() <-chan error {
 	return vef.errorOut
 }
 
-func (vef *VaiEventFlow) From(outlet streams.Outlet[StreamMessage[string]]) streams.Flow[StreamMessage[string], StreamMessage[*common.RunCompletionEventData], error] {
+func (vef *EventFlow) From(outlet streams.Outlet[StreamMessage[string]]) streams.Flow[StreamMessage[string], StreamMessage[*common.RunCompletionEventData], error] {
 	go func() {
 		for message := range outlet.Out() {
 			vef.In() <- message
@@ -70,7 +70,7 @@ func (vef *VaiEventFlow) From(outlet streams.Outlet[StreamMessage[string]]) stre
 	return vef
 }
 
-func (vef *VaiEventFlow) To(inlet streams.Inlet[StreamMessage[*common.RunCompletionEventData]]) {
+func (vef *EventFlow) To(inlet streams.Inlet[StreamMessage[*common.RunCompletionEventData]]) {
 	go func() {
 		for message := range vef.out {
 			inlet.In() <- message
@@ -78,14 +78,14 @@ func (vef *VaiEventFlow) To(inlet streams.Inlet[StreamMessage[*common.RunComplet
 	}()
 }
 
-func (vef *VaiEventFlow) Error(inlet streams.Inlet[error]) {
+func (vef *EventFlow) Error(inlet streams.Inlet[error]) {
 	for errorMessage := range vef.errorOut {
 		inlet.In() <- errorMessage
 	}
 }
 
-func NewVaiEventFlow(ctx context.Context, config *VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *VaiEventFlow {
-	vaiEventFlow := VaiEventFlow{
+func NewEventFlow(ctx context.Context, config *VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *EventFlow {
+	vaiEventFlow := EventFlow{
 		ProviderConfig:    *config,
 		PipelineJobClient: pipelineJobClient,
 		context:           ctx,
@@ -97,7 +97,7 @@ func NewVaiEventFlow(ctx context.Context, config *VAIProviderConfig, pipelineJob
 	return &vaiEventFlow
 }
 
-func (vef *VaiEventFlow) Start() {
+func (vef *EventFlow) Start() {
 	go func() {
 		logger := common.LoggerFromContext(vef.context)
 		for msg := range vef.in {
@@ -131,7 +131,7 @@ type PipelineJobClient interface {
 	) (*aiplatformpb.PipelineJob, error)
 }
 
-func (vef *VaiEventFlow) runCompletionEventDataForRun(runId string) (*common.RunCompletionEventData, error) {
+func (vef *EventFlow) runCompletionEventDataForRun(runId string) (*common.RunCompletionEventData, error) {
 	job, err := vef.PipelineJobClient.GetPipelineJob(vef.context, &aiplatformpb.GetPipelineJobRequest{
 		Name: vef.ProviderConfig.pipelineJobName(runId),
 	})
@@ -215,7 +215,7 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifac
 	return servingModelArtifacts
 }
 
-func (vef *VaiEventFlow) toRunCompletionEventData(job *aiplatformpb.PipelineJob, runId string) (*common.RunCompletionEventData, error) {
+func (vef *EventFlow) toRunCompletionEventData(job *aiplatformpb.PipelineJob, runId string) (*common.RunCompletionEventData, error) {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {

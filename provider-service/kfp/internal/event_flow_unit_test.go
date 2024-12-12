@@ -100,7 +100,7 @@ var _ = Context("Eventing Flow", func() {
 		It("Doesn't emit an event when the workflow has not finished", func() {
 			workflow := &unstructured.Unstructured{}
 
-			eventingServer := KfpEventFlow{
+			eventingServer := EventFlow{
 				Logger: logr.Discard(),
 			}
 
@@ -116,7 +116,7 @@ var _ = Context("Eventing Flow", func() {
 			mockMetadataStore := MockMetadataStore{}
 			mockKfpApi := MockKfpApi{}
 
-			eventingServer := KfpEventFlow{
+			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
 				MetadataStore: &mockMetadataStore,
 				KfpApi:        &mockKfpApi,
@@ -134,7 +134,7 @@ var _ = Context("Eventing Flow", func() {
 
 			mockMetadataStore := MockMetadataStore{}
 
-			eventingServer := KfpEventFlow{
+			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
 				MetadataStore: &mockMetadataStore,
 			}
@@ -155,7 +155,7 @@ var _ = Context("Eventing Flow", func() {
 			mockMetadataStore := MockMetadataStore{}
 			mockKfpApi := MockKfpApi{}
 
-			eventingServer := KfpEventFlow{
+			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
 				MetadataStore: &mockMetadataStore,
 				KfpApi:        &mockKfpApi,
@@ -179,7 +179,7 @@ var _ = Context("Eventing Flow", func() {
 		mockMetadataStore := MockMetadataStore{}
 		mockKfpApi := MockKfpApi{}
 
-		eventingServer := KfpEventFlow{
+		eventingServer := EventFlow{
 			Logger:        logr.Discard(),
 			MetadataStore: &mockMetadataStore,
 			KfpApi:        &mockKfpApi,

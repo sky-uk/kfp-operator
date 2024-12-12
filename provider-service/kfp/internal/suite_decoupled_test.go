@@ -56,85 +56,6 @@ const (
 	webhookUrl       = "/operator-webhook"
 )
 
-func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Run Completion EventSource Decoupled Suite")
-}
-
-func deleteAllWorkflows(ctx context.Context) error {
-	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{})
-}
-
-func workflowLabel(ctx context.Context, name string, key string) (string, error) {
-	resource, err := k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return "", err
-	}
-
-	return resource.GetLabels()[key], nil
-}
-
-func updateLabel(ctx context.Context, name string, key string, value string) (*unstructured.Unstructured, error) {
-	resource, err := k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	updatedLabels := resource.GetLabels()
-	updatedLabels[key] = value
-	resource.SetLabels(updatedLabels)
-
-	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Update(ctx, resource, metav1.UpdateOptions{})
-}
-
-func updatePhase(ctx context.Context, name string, phase argo.WorkflowPhase) (*unstructured.Unstructured, error) {
-	return updateLabel(ctx, name, workflowPhaseLabel, string(phase))
-}
-
-func createWorkflowInPhase(ctx context.Context, pipelineName string, runId string, phase argo.WorkflowPhase) (*unstructured.Unstructured, error) {
-	wf := unstructured.Unstructured{
-		Object: map[string]interface{}{
-			"spec": map[string]interface{}{},
-		},
-	}
-	wf.SetGroupVersionKind(argo.WorkflowSchemaGroupVersionKind)
-	wf.SetName(rand.String(10))
-	wf.SetLabels(map[string]string{
-		workflowPhaseLabel: string(phase),
-		pipelineRunIdLabel: runId,
-	})
-	wf.SetAnnotations(map[string]string{
-		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
-	})
-
-	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Create(ctx, &wf, metav1.CreateOptions{})
-}
-
-func createAndTriggerPhaseUpdate(ctx context.Context, pipelineName string, runId string, from argo.WorkflowPhase, to argo.WorkflowPhase) (*unstructured.Unstructured, error) {
-	wf, err := createWorkflowInPhase(ctx, pipelineName, runId, from)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatePhase(ctx, wf.GetName(), to)
-}
-
-func triggerUpdate(ctx context.Context, name string) error {
-	_, err := updateLabel(ctx, name, rand.String(5), rand.String(5))
-
-	return err
-}
-
-func expectedNumberOfEventsOccurred(ctx context.Context, expectedNumberOfEvents int) {
-	const Marker = "marker"
-
-	_, err := createAndTriggerPhaseUpdate(ctx, "p-name", Marker, argo.WorkflowRunning, argo.WorkflowSucceeded)
-
-	Expect(err).ToNot(HaveOccurred())
-	Eventually(func() string { return getEventData().RunId }).Should(Equal(Marker))
-	Eventually(func() int { return numberOfEvents }).Should(Equal(expectedNumberOfEvents + 1))
-}
-
 var _ = BeforeSuite(func() {
 	ctx := context.Background()
 
@@ -164,7 +85,7 @@ var _ = BeforeSuite(func() {
 	eventSource, err = sources.NewWorkflowSource(context.Background(), defaultNamespace, pkg.K8sClient{Client: k8sClient})
 	Expect(err).ToNot(HaveOccurred())
 
-	eventFlow, err = NewKfpEventFlow(context.Background(), *config, &mockKfpApi, &mockMetadataStore)
+	eventFlow, err = NewEventFlow(context.Background(), *config, &mockKfpApi, &mockMetadataStore)
 	Expect(err).ToNot(HaveOccurred())
 })
 
@@ -318,3 +239,82 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		})
 	})
 })
+
+func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Run Completion EventSource Decoupled Suite")
+}
+
+func deleteAllWorkflows(ctx context.Context) error {
+	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{})
+}
+
+func workflowLabel(ctx context.Context, name string, key string) (string, error) {
+	resource, err := k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	return resource.GetLabels()[key], nil
+}
+
+func updateLabel(ctx context.Context, name string, key string, value string) (*unstructured.Unstructured, error) {
+	resource, err := k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	updatedLabels := resource.GetLabels()
+	updatedLabels[key] = value
+	resource.SetLabels(updatedLabels)
+
+	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Update(ctx, resource, metav1.UpdateOptions{})
+}
+
+func updatePhase(ctx context.Context, name string, phase argo.WorkflowPhase) (*unstructured.Unstructured, error) {
+	return updateLabel(ctx, name, workflowPhaseLabel, string(phase))
+}
+
+func createWorkflowInPhase(ctx context.Context, pipelineName string, runId string, phase argo.WorkflowPhase) (*unstructured.Unstructured, error) {
+	wf := unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"spec": map[string]interface{}{},
+		},
+	}
+	wf.SetGroupVersionKind(argo.WorkflowSchemaGroupVersionKind)
+	wf.SetName(rand.String(10))
+	wf.SetLabels(map[string]string{
+		workflowPhaseLabel: string(phase),
+		pipelineRunIdLabel: runId,
+	})
+	wf.SetAnnotations(map[string]string{
+		pipelineSpecAnnotationName: fmt.Sprintf(`{"name": "%s"}`, pipelineName),
+	})
+
+	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).Create(ctx, &wf, metav1.CreateOptions{})
+}
+
+func createAndTriggerPhaseUpdate(ctx context.Context, pipelineName string, runId string, from argo.WorkflowPhase, to argo.WorkflowPhase) (*unstructured.Unstructured, error) {
+	wf, err := createWorkflowInPhase(ctx, pipelineName, runId, from)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatePhase(ctx, wf.GetName(), to)
+}
+
+func triggerUpdate(ctx context.Context, name string) error {
+	_, err := updateLabel(ctx, name, rand.String(5), rand.String(5))
+
+	return err
+}
+
+func expectedNumberOfEventsOccurred(ctx context.Context, expectedNumberOfEvents int) {
+	const Marker = "marker"
+
+	_, err := createAndTriggerPhaseUpdate(ctx, "p-name", Marker, argo.WorkflowRunning, argo.WorkflowSucceeded)
+
+	Expect(err).ToNot(HaveOccurred())
+	Eventually(func() string { return getEventData().RunId }).Should(Equal(Marker))
+	Eventually(func() int { return numberOfEvents }).Should(Equal(expectedNumberOfEvents + 1))
+}

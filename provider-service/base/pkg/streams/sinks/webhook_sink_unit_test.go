@@ -24,29 +24,20 @@ func TestSinksUnitSuite(t *testing.T) {
 var _ = Context("SendEvents", func() {
 	var logger, _ = common.NewLogger(zapcore.DebugLevel)
 	var ctx = logr.NewContext(context.Background(), logger)
-	runCompletionEventData := common.RunCompletionEventData{
-		Status:                "",
-		PipelineName:          common.NamespacedName{},
-		RunConfigurationName:  nil,
-		RunName:               nil,
-		RunId:                 "",
-		ServingModelArtifacts: nil,
-		PipelineComponents:    nil,
-		Provider:              "",
+	runCompletionEventData := common.RunCompletionEventData{}
+
+	handlerCall := make(chan any, 1)
+	onCompHandlers := OnCompleteHandlers{
+		OnSuccessHandler: func() {
+			handlerCall <- "success_called"
+		},
+		OnFailureHandler: func() {
+			handlerCall <- "failure_called"
+		},
 	}
 
-	When("webhook sink receives StreamMessage", func() {
-		handlerCall := make(chan any, 1)
-		onCompHandlers := OnCompleteHandlers{
-			OnSuccessHandler: func() {
-				handlerCall <- "success_called"
-			},
-			OnFailureHandler: func() {
-				handlerCall <- "failure_called"
-			},
-		}
-
-		It("sends RunCompletionEventData to the webhook successfully", func() {
+	When("webhook sink receives a valid StreamMessage", func() {
+		It("sends RunCompletionEventData to the webhook successfully and triggers the message OnSuccessHandler", func() {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
@@ -66,12 +57,15 @@ var _ = Context("SendEvents", func() {
 			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("POST %s", webhookUrl)] }).Should(Equal(1))
 			Eventually(handlerCall).Should(Receive(Equal("success_called")))
 		})
+	})
 
-		It("fails to send RunCompletionEventData to the webhook", func() {
+	When("webhook sink receives an invalid StreamMessage", func() {
+		It("should call its `OnFailureHandler` function", func() {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
-			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(500, ""))
+			someNon200ResponseCode := 500
+			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(someNon200ResponseCode, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}

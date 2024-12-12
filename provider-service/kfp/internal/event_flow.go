@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-type KfpEventFlow struct {
+type EventFlow struct {
 	ProviderConfig KfpProviderConfig
 	MetadataStore  MetadataStore
 	KfpApi         KfpApi
@@ -37,37 +37,37 @@ type PipelineSpec struct {
 	Name string `json:"name"`
 }
 
-func (kef *KfpEventFlow) In() chan<- StreamMessage[*unstructured.Unstructured] {
-	return kef.in
+func (ef *EventFlow) In() chan<- StreamMessage[*unstructured.Unstructured] {
+	return ef.in
 }
 
-func (kef *KfpEventFlow) Out() <-chan StreamMessage[*common.RunCompletionEventData] {
-	return kef.out
+func (ef *EventFlow) Out() <-chan StreamMessage[*common.RunCompletionEventData] {
+	return ef.out
 }
 
-func (kef *KfpEventFlow) ErrOut() <-chan error {
-	return kef.errorOut
+func (ef *EventFlow) ErrOut() <-chan error {
+	return ef.errorOut
 }
 
-func (kef *KfpEventFlow) From(outlet Outlet[StreamMessage[*unstructured.Unstructured]]) Flow[StreamMessage[*unstructured.Unstructured], StreamMessage[*common.RunCompletionEventData], error] {
+func (ef *EventFlow) From(outlet Outlet[StreamMessage[*unstructured.Unstructured]]) Flow[StreamMessage[*unstructured.Unstructured], StreamMessage[*common.RunCompletionEventData], error] {
 	go func() {
 		for message := range outlet.Out() {
-			kef.In() <- message
+			ef.In() <- message
 		}
 	}()
-	return kef
+	return ef
 }
 
-func (kef *KfpEventFlow) To(inlet Inlet[StreamMessage[*common.RunCompletionEventData]]) {
+func (ef *EventFlow) To(inlet Inlet[StreamMessage[*common.RunCompletionEventData]]) {
 	go func() {
-		for message := range kef.out {
+		for message := range ef.out {
 			inlet.In() <- message
 		}
 	}()
 }
 
-func (kef *KfpEventFlow) Error(inlet Inlet[error]) {
-	for errorMessage := range kef.errorOut {
+func (ef *EventFlow) Error(inlet Inlet[error]) {
+	for errorMessage := range ef.errorOut {
 		inlet.In() <- errorMessage
 	}
 }
@@ -92,10 +92,10 @@ func CreateMetadataStore(ctx context.Context, config KfpProviderConfig) (Metadat
 	return metadataStore, nil
 }
 
-func NewKfpEventFlow(ctx context.Context, config KfpProviderConfig, kfpApi KfpApi, metadataStore MetadataStore) (*KfpEventFlow, error) {
+func NewEventFlow(ctx context.Context, config KfpProviderConfig, kfpApi KfpApi, metadataStore MetadataStore) (*EventFlow, error) {
 	logger := common.LoggerFromContext(ctx)
 
-	flow := &KfpEventFlow{
+	flow := &EventFlow{
 		ProviderConfig: config,
 		MetadataStore:  metadataStore,
 		KfpApi:         kfpApi,
@@ -111,20 +111,20 @@ func NewKfpEventFlow(ctx context.Context, config KfpProviderConfig, kfpApi KfpAp
 	return flow, nil
 }
 
-func (kef *KfpEventFlow) subscribeAndConvert() {
-	for msg := range kef.in {
-		runCompletionEvent, err := kef.toRunCompletionEventData(msg)
+func (ef *EventFlow) subscribeAndConvert() {
+	for msg := range ef.in {
+		runCompletionEvent, err := ef.toRunCompletionEventData(msg)
 		if err != nil {
 			msg.OnFailureHandler()
-			kef.errorOut <- err
+			ef.errorOut <- err
 		} else {
-			kef.out <- runCompletionEvent
+			ef.out <- runCompletionEvent
 		}
 	}
 }
 
-func (kef *KfpEventFlow) toRunCompletionEventData(message StreamMessage[*unstructured.Unstructured]) (StreamMessage[*common.RunCompletionEventData], error) {
-	runCompletionEventData, err := kef.eventForWorkflow(kef.context, message.Message)
+func (ef *EventFlow) toRunCompletionEventData(message StreamMessage[*unstructured.Unstructured]) (StreamMessage[*common.RunCompletionEventData], error) {
+	runCompletionEventData, err := ef.eventForWorkflow(ef.context, message.Message)
 	if err != nil {
 		message.OnFailureHandler()
 		return StreamMessage[*common.RunCompletionEventData]{}, err
@@ -135,25 +135,25 @@ func (kef *KfpEventFlow) toRunCompletionEventData(message StreamMessage[*unstruc
 	}, nil
 }
 
-func (kef *KfpEventFlow) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEventData, error) {
+func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructured.Unstructured) (*common.RunCompletionEventData, error) {
 	status, hasFinished := runCompletionStatus(workflow)
 	if !hasFinished {
-		kef.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
+		ef.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
 		return nil, nil
 	}
 
 	workflowName := workflow.GetName()
 
-	modelArtifacts, err := kef.MetadataStore.GetServingModelArtifact(ctx, workflowName)
+	modelArtifacts, err := ef.MetadataStore.GetServingModelArtifact(ctx, workflowName)
 	if err != nil {
-		kef.Logger.Error(err, "failed to retrieve serving model artifact")
+		ef.Logger.Error(err, "failed to retrieve serving model artifact")
 		return nil, err
 	}
 
 	runId := workflow.GetLabels()[pipelineRunIdLabel]
-	resourceReferences, err := kef.KfpApi.GetResourceReferences(ctx, runId)
+	resourceReferences, err := ef.KfpApi.GetResourceReferences(ctx, runId)
 	if err != nil {
-		kef.Logger.Error(err, "failed to retrieve resource references")
+		ef.Logger.Error(err, "failed to retrieve resource references")
 		return nil, err
 	}
 
@@ -161,7 +161,7 @@ func (kef *KfpEventFlow) eventForWorkflow(ctx context.Context, workflow *unstruc
 	if resourceReferences.PipelineName.Empty() {
 		pipelineName := getPipelineName(workflow)
 		if pipelineName == "" {
-			kef.Logger.Info("failed to get pipeline name from workflow")
+			ef.Logger.Info("failed to get pipeline name from workflow")
 			return nil, nil
 		}
 
@@ -176,7 +176,7 @@ func (kef *KfpEventFlow) eventForWorkflow(ctx context.Context, workflow *unstruc
 		RunId:                 runId,
 		ServingModelArtifacts: modelArtifacts,
 		PipelineComponents:    nil,
-		Provider:              kef.ProviderConfig.Name,
+		Provider:              ef.ProviderConfig.Name,
 	}, nil
 }
 
@@ -202,13 +202,11 @@ func getPipelineNameFromAnnotation(workflow *unstructured.Unstructured) string {
 }
 
 func getPipelineName(workflow *unstructured.Unstructured) (name string) {
-	name = getPipelineNameFromAnnotation(workflow)
-
-	if name == "" {
+	if name = getPipelineNameFromAnnotation(workflow); name == "" {
 		name = getPipelineNameFromEntrypoint(workflow)
 	}
 
-	return
+	return name
 }
 
 func getPipelineNameFromEntrypoint(workflow *unstructured.Unstructured) string {

@@ -49,9 +49,9 @@ func (vaipc VAIProviderConfig) pipelineUri(pipelineName common.NamespacedName, p
 }
 
 func (vaipc VAIProviderConfig) getMaxConcurrentRunCountOrDefault() int64 {
-	const DefaultMaxConcurrentRunCount = 10
+	const defaultMaxConcurrentRunCount = 10
 	if vaipc.Parameters.MaxConcurrentRunCount <= 0 {
-		return DefaultMaxConcurrentRunCount
+		return defaultMaxConcurrentRunCount
 	} else {
 		return vaipc.Parameters.MaxConcurrentRunCount
 	}

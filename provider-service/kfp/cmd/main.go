@@ -11,7 +11,6 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	kfp "github.com/sky-uk/kfp-operator/provider-service/kfp/internal"
 	"go.uber.org/zap/zapcore"
-	"os"
 )
 
 func main() {
@@ -19,48 +18,43 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	ctx := logr.NewContext(context.Background(), logger)
 
 	config, err := configLoader.LoadConfig(ctx)
 	if err != nil {
-		logger.Error(err, "failed loading configuration")
 		panic(err)
 	}
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {
-		logger.Error(err, "failed to initialise K8s Client")
-		os.Exit(1)
+		panic(err)
 	}
 
 	providerConfig, err := kfp.LoadProviderConfig(ctx, *k8sClient, config.ProviderName, config.Pod.Namespace)
 	if err != nil {
 		logger.Error(err, "failed to load provider config", "provider", config.ProviderName, "namespace", config.Pod.Namespace)
-		os.Exit(1)
+		panic(err)
 	}
 
 	source, err := sources.NewWorkflowSource(ctx, config.Pod.Namespace, *k8sClient)
 	if err != nil {
-		logger.Error(err, "failed to create workflow event source")
-		os.Exit(1)
+		panic(err)
 	}
 
 	kfpApi, err := kfp.CreateKfpApi(ctx, *providerConfig)
 	if err != nil {
-		logger.Error(err, "failed to create kfp api client")
-		os.Exit(1)
+		panic(err)
 	}
 
 	kfpMetadataStore, err := kfp.CreateMetadataStore(ctx, *providerConfig)
 	if err != nil {
-		logger.Error(err, "failed to create kfp metadata store client")
-		os.Exit(1)
+		panic(err)
 	}
 
-	flow, err := kfp.NewKfpEventFlow(ctx, *providerConfig, kfpApi, kfpMetadataStore)
+	flow, err := kfp.NewEventFlow(ctx, *providerConfig, kfpApi, kfpMetadataStore)
 	if err != nil {
-		logger.Error(err, "failed to create kfp event flow")
-		os.Exit(1)
+		panic(err)
 	}
 
 	sink := sinks.NewWebhookSink(ctx, resty.New(), config.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))

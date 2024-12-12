@@ -19,7 +19,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"net"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"testing"
 	"time"
@@ -92,7 +91,7 @@ var _ = Context("Webhook Sink", Ordered, func() {
 			err = rcf.Start(port)
 			if err != nil {
 				logger.Error(err, "problem starting run completion feed")
-				os.Exit(1)
+				panic(err)
 			}
 		}()
 	})
@@ -101,7 +100,7 @@ var _ = Context("Webhook Sink", Ordered, func() {
 		cancel()
 	})
 
-	handlerCall := make(chan any)
+	var handlerCall chan any
 
 	BeforeEach(func() {
 		handlerCall = make(chan any)
@@ -116,8 +115,8 @@ var _ = Context("Webhook Sink", Ordered, func() {
 		},
 	}
 
-	When("it is valid", func() {
-		It("should get success response from webhook", func() {
+	When("message is valid and successfully sends to the webhook", func() {
+		It("should call its `OnSuccessHandler` function", func() {
 			inChan := make(chan StreamMessage[*common.RunCompletionEventData])
 
 			_ = NewWebhookSink(ctx, httpClient, fmt.Sprintf("http://localhost:%d/events", port), inChan)
@@ -140,8 +139,8 @@ var _ = Context("Webhook Sink", Ordered, func() {
 		})
 	})
 
-	When("it is invalid", func() {
-		It("should send request to webhook", func() {
+	When("message is invalid", func() {
+		It("should call its `OnFailureHandler` function", func() {
 			inChan := make(chan StreamMessage[*common.RunCompletionEventData])
 
 			_ = NewWebhookSink(ctx, httpClient, fmt.Sprintf("http://localhost:%d/events", port), inChan)

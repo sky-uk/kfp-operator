@@ -15,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -31,6 +30,7 @@ var (
 const (
 	pipelineRunIdLabel           = "pipeline/runid"
 	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
+	disableCacheResync           = 0
 )
 
 type WorkflowSource struct {
@@ -54,8 +54,7 @@ func NewWorkflowSource(ctx context.Context, namespace string, k8sClient K8sClien
 
 	go func() {
 		if err := workflowSource.start(ctx, namespace); err != nil {
-			logger.Error(err, "failed to start KFP event source")
-			os.Exit(1)
+			panic(err)
 		}
 	}()
 
@@ -92,7 +91,7 @@ func (ws *WorkflowSource) start(ctx context.Context, namespace string) error {
 
 	factory := dynamicinformer.NewFilteredDynamicSharedInformerFactory(
 		ws.K8sClient.Client,
-		0,
+		disableCacheResync,
 		namespace,
 		func(listOptions *metav1.ListOptions) {
 			*listOptions = workflowListOptions

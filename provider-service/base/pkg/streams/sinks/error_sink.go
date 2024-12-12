@@ -18,13 +18,13 @@ func NewErrorSink(ctx context.Context, inChan chan error) *ErrorSink {
 	return errorSink
 }
 
-func (ls ErrorSink) In() chan<- error {
-	return ls.in
+func (es ErrorSink) In() chan<- error {
+	return es.in
 }
 
-func (ls ErrorSink) Log() {
-	logger := common.LoggerFromContext(ls.context)
-	for err := range ls.in {
+func (es ErrorSink) Log() {
+	logger := common.LoggerFromContext(es.context)
+	for err := range es.in {
 		logger.Error(err, "failed to handle event")
 	}
 }

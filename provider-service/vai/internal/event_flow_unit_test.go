@@ -35,7 +35,7 @@ var _ = Context("VaiEventingServer", func() {
 	var (
 		mockCtrl              *gomock.Controller
 		mockPipelineJobClient *MockPipelineJobClient
-		eventingFlow          VaiEventFlow
+		eventingFlow          EventFlow
 		inChan                chan StreamMessage[string]
 		outChan               chan StreamMessage[*common.RunCompletionEventData]
 		errChan               chan error
@@ -49,7 +49,7 @@ var _ = Context("VaiEventingServer", func() {
 		inChan = make(chan StreamMessage[string])
 		outChan = make(chan StreamMessage[*common.RunCompletionEventData])
 		errChan = make(chan error)
-		eventingFlow = VaiEventFlow{
+		eventingFlow = EventFlow{
 			ProviderConfig: VAIProviderConfig{
 				Name: common.RandomString(),
 			},
@@ -87,7 +87,6 @@ var _ = Context("VaiEventingServer", func() {
 		Entry("Paused", aiplatformpb.PipelineState_PIPELINE_STATE_PAUSED),
 	)
 
-	//flow
 	DescribeTable("toRunCompletionEventData for job that has completed", func(pipelineState aiplatformpb.PipelineState, status common.RunCompletionStatus) {
 		runConfigurationName := common.RandomNamespacedName()
 		pipelineName := common.RandomNamespacedName()
@@ -157,7 +156,6 @@ var _ = Context("VaiEventingServer", func() {
 		Entry("Pending", aiplatformpb.PipelineState_PIPELINE_STATE_CANCELLED, common.RunCompletionStatuses.Failed),
 	)
 
-	//flow
 	Describe("artifactsFilterData", func() {
 		When("The job is missing the component", func() {
 			It("Produces no artifacts", func() {
@@ -222,7 +220,6 @@ var _ = Context("VaiEventingServer", func() {
 		})
 	})
 
-	//flow
 	Describe("Legacy: modelServingArtifactsForJob", func() {
 		When("The job has an output with an artifact that doesn't match the SchemaTitle", func() {
 			It("Produces no servingModelArtifacts", func() {
@@ -450,7 +447,6 @@ var _ = Context("VaiEventingServer", func() {
 		})
 	})
 
-	//flow
 	Describe("runCompletionEventDataForRun", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
@@ -487,6 +483,7 @@ var _ = Context("VaiEventingServer", func() {
 				Eventually(errChan).Should(Receive(Equal(expectedErr)))
 			})
 		})
+
 		When("runCompletionEventDataForRun errors", func() {
 			It("nacks the message and outputs to error sink", func() {
 				expectedErr := errors.New("an error")

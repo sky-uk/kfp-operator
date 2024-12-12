@@ -15,8 +15,6 @@ import (
 
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 
-	"os"
-
 	"google.golang.org/api/option"
 )
 
@@ -29,14 +27,12 @@ func main() {
 
 	config, err := configLoader.LoadConfig(ctx)
 	if err != nil {
-		logger.Error(err, "failed loading configuration")
-		os.Exit(1)
+		panic(err)
 	}
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {
-		logger.Error(err, "failed to initialise K8s Client")
-		os.Exit(1)
+		panic(err)
 	}
 
 	vaiConfig := &vai.VAIProviderConfig{
@@ -45,23 +41,23 @@ func main() {
 
 	if err := LoadProvider(ctx, k8sClient.Client, config.ProviderName, config.Pod.Namespace, vaiConfig); err != nil {
 		logger.Error(err, "failed to load provider", "name", config.ProviderName, "namespace", config.Pod.Namespace)
-		os.Exit(1)
+		panic(err)
 	}
 
 	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(vaiConfig.VaiEndpoint()))
 	if err != nil {
 		logger.Error(err, "failed to create VAI pipeline client", "endpoint", vaiConfig.VaiEndpoint())
-		os.Exit(1)
+		panic(err)
 	}
 
 	source, err := sources.NewPubSubSource(ctx, vaiConfig.Parameters.VaiProject, vaiConfig.Parameters.EventsourcePipelineEventsSubscription)
 	if err != nil {
 		logger.Error(err, "failed to create VAI event data source")
-		os.Exit(1)
+		panic(err)
 	}
 	go handleErrorInSourceOperations(source)
 
-	flow := vai.NewVaiEventFlow(ctx, vaiConfig, pipelineJobClient)
+	flow := vai.NewEventFlow(ctx, vaiConfig, pipelineJobClient)
 
 	go func() {
 		flow.Start()
@@ -81,7 +77,6 @@ func main() {
 
 func handleErrorInSourceOperations(source *sources.PubSubSource) {
 	for err := range source.ErrorOut() {
-		println(err)
-		os.Exit(1)
+		panic(err)
 	}
 }

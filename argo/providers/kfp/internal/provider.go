@@ -38,11 +38,7 @@ type ResourceReferences struct {
 	Artifacts            []pipelinesv1.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
-var kfpApiConstants = struct {
-	KfpResourceNotFoundCode int32
-}{
-	KfpResourceNotFoundCode: 5,
-}
+const KfpResourceNotFoundCode = 5
 
 type KfpProvider struct{}
 
@@ -409,7 +405,7 @@ func (kfpp KfpProvider) DeleteExperiment(ctx context.Context, providerConfig Kfp
 }
 
 func ignoreNotFound(err error, code int32) error {
-	if code == kfpApiConstants.KfpResourceNotFoundCode {
+	if code == KfpResourceNotFoundCode {
 		return nil
 	}
 	return err
