@@ -3,6 +3,9 @@ package sources
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -15,8 +18,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/tools/cache"
-	"strconv"
-	"strings"
 )
 
 var (
@@ -103,7 +104,7 @@ func (ws *WorkflowSource) start(ctx context.Context, namespace string) error {
 	handlerFuncs := cache.ResourceEventHandlerFuncs{}
 	handlerFuncs.UpdateFunc = func(oldObj, newObj interface{}) {
 		wf := newObj.(*unstructured.Unstructured)
-		ws.Logger.Info("sending run completion event data", "event", wf)
+		ws.Logger.Info("received workflow update event", "workflow", wf.GetName())
 
 		select {
 		case ws.out <- StreamMessage[*unstructured.Unstructured]{
