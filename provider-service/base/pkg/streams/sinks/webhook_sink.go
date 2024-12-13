@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
@@ -31,9 +32,8 @@ func (hws WebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData]
 func (hws WebhookSink) SendEvents() {
 	logger := common.LoggerFromContext(hws.context)
 	for message := range hws.in {
-		var err error
 		if message.Message != nil {
-			err = hws.send(*message.Message)
+			err := hws.send(*message.Message)
 			if err != nil {
 				logger.Error(err, "failed to send event", "event", fmt.Sprintf("%+v", message.Message))
 				message.OnFailure()
