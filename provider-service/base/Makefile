@@ -13,7 +13,6 @@ integration-test:
 	go test ./... -v -tags=integration
 	docker compose down
 
-# Wait for the Pub/Sub emulator to become healthy
 wait-for-pubsub:
 	@echo "Checking if Pub/Sub Emulator is healthy..."
 	@while [[ "$$(docker inspect --format='{{.State.Health.Status}}' pubsub 2>/dev/null)" != "healthy" ]]; do \
