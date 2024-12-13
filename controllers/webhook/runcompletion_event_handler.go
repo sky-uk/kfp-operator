@@ -6,5 +6,5 @@ import (
 )
 
 type RunCompletionEventHandler interface {
-	handle(ctx context.Context, event common.RunCompletionEvent) error
+	Handle(ctx context.Context, event common.RunCompletionEvent) error
 }

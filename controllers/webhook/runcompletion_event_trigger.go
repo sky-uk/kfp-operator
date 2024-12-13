@@ -43,7 +43,7 @@ func NewRuntimeCompletionEventTrigger(ctx context.Context, endpoint config.Endpo
 	}
 }
 
-func (rcet RunCompletionEventTrigger) handle(ctx context.Context, event common.RunCompletionEvent) error {
+func (rcet RunCompletionEventTrigger) Handle(ctx context.Context, event common.RunCompletionEvent) error {
 	runCompletionEvent, err := RunCompletionEventToProto(event)
 	if err != nil {
 		return err

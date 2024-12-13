@@ -22,7 +22,7 @@ func (pef ProcessEventFeedFunc) ProcessEventFeed(ctx context.Context, in *pb.Run
 	return pef(ctx, in, opts...)
 }
 
-var _ = Context("handle", func() {
+var _ = Context("Handle", func() {
 	var ctx = logr.NewContext(context.Background(), logr.Discard())
 
 	When("called", func() {
@@ -45,7 +45,7 @@ var _ = Context("handle", func() {
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := trigger.handle(ctx, rce)
+			err := trigger.Handle(ctx, rce)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -65,7 +65,7 @@ var _ = Context("handle", func() {
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := trigger.handle(ctx, rce)
+			err := trigger.Handle(ctx, rce)
 			Expect(err).To(Equal(testError))
 		})
 	})
