@@ -115,6 +115,12 @@ Finally, bring down the environment after your tests:
 make integration-test-down
 ```
 
+## Run locally
+
+Running `make minikube-up NAME=provider` (set `provider` to the name of your chosen provider e.g. `NAME=vai`) will spin up a local K8s cluster with the operator deployed along with your chosen provider.
+
+You can optionally perform additional provider setup and teardown steps by including a `provider-setup.sh` and `provider-teardown.sh` script.
+
 ## Coding Guidelines
 
 ### Logging

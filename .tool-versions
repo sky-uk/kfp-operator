@@ -4,3 +4,4 @@ protoc 21.12
 hugo extended_0.135.0
 golang 1.20
 nodejs 22.9.0
+minikube 1.31.2

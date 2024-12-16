@@ -1,6 +1,7 @@
 include common.mk
 include version.mk
 include newline.mk
+include minikube.mk
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
