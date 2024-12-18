@@ -1,6 +1,6 @@
 //go:build integration
 
-package pipelines
+package workflowfactory
 
 import (
 	. "github.com/onsi/ginkgo/v2"

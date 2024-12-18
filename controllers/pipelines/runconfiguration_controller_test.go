@@ -8,6 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )
@@ -16,7 +17,17 @@ var _ = Context("aggregateState", func() {
 	DescribeTable("calculates based on sub states", func(subStates []apis.SynchronizationState, expectedState apis.SynchronizationState, expectedMessage string) {
 		runSchedules := make([]pipelinesv1.RunSchedule, len(subStates))
 		for i, state := range subStates {
-			runSchedules[i] = pipelinesv1.RunSchedule{Status: pipelinesv1.Status{SynchronizationState: state, Conditions: []metav1.Condition{{Type: pipelinesv1.ConditionTypes.SynchronizationSucceeded, Message: string(state)}}}}
+			runSchedules[i] = pipelinesv1.RunSchedule{
+				Status: pipelinesv1.Status{
+					SynchronizationState: state,
+					Conditions: []metav1.Condition{
+						{
+							Type:    pipelinesv1.ConditionTypes.SynchronizationSucceeded,
+							Message: string(state),
+						},
+					},
+				},
+			}
 		}
 
 		state, message := aggregateState(runSchedules)
@@ -46,7 +57,7 @@ var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
 		run, err := rcr.constructRunForRunConfiguration(runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(run.GetLabels()[RunConfigurationConstants.RunConfigurationNameLabelKey]).To(Equal(runConfiguration.GetName()))
+		Expect(run.GetLabels()[workflowfactory.RunConfigurationConstants.RunConfigurationNameLabelKey]).To(Equal(runConfiguration.GetName()))
 	})
 })
 

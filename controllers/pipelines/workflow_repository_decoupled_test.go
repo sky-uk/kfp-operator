@@ -9,6 +9,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -56,10 +57,10 @@ var _ = Context("WorkflowRepository K8s integration", Serial, func() {
 			owner := randomResource()
 			workflow := randomWorkflow()
 
-			Expect(workflowRepository.CreateWorkflowForResource(ctx, workflow, owner)).To(Succeed())
-			Expect(workflowRepository.GetByLabels(ctx, workflow.GetLabels())).To(Not(BeEmpty()))
-			Expect(workflowRepository.MarkWorkflowAsProcessed(ctx, workflow)).To(Succeed())
-			Expect(workflowRepository.GetByLabels(ctx, workflow.GetLabels())).To(BeEmpty())
+			Expect(workflowRepository.CreateWorkflowForResource(Ctx, workflow, owner)).To(Succeed())
+			Expect(workflowRepository.GetByLabels(Ctx, workflow.GetLabels())).To(Not(BeEmpty()))
+			Expect(workflowRepository.MarkWorkflowAsProcessed(Ctx, workflow)).To(Succeed())
+			Expect(workflowRepository.GetByLabels(Ctx, workflow.GetLabels())).To(BeEmpty())
 		})
 	})
 })

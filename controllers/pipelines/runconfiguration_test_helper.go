@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 )
 
 func createSucceededRcWithSchedule() *pipelinesv1.RunConfiguration {
@@ -40,11 +41,11 @@ func createSucceededRcWith(modifyRc func(runConfiguration *pipelinesv1.RunConfig
 }
 
 func createStableRcWith(modifyRc func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration, synchronizationState apis.SynchronizationState) *pipelinesv1.RunConfiguration {
-	runConfiguration := pipelinesv1.RandomRunConfiguration(provider.Name)
+	runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
 	runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{}
 	runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
 	modifiedRc := modifyRc(runConfiguration)
-	Expect(k8sClient.Create(ctx, modifiedRc)).To(Succeed())
+	Expect(K8sClient.Create(Ctx, modifiedRc)).To(Succeed())
 
 	Eventually(matchRunConfiguration(modifiedRc, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
 		g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(modifiedRc.Generation))
@@ -59,27 +60,27 @@ func createStableRcWith(modifyRc func(runConfiguration *pipelinesv1.RunConfigura
 func createRcWithLatestRun(succeeded pipelinesv1.RunReference) *pipelinesv1.RunConfiguration {
 	referencedRc := createSucceededRc()
 	referencedRc.Status.LatestRuns.Succeeded = succeeded
-	Expect(k8sClient.Status().Update(ctx, referencedRc)).To(Succeed())
+	Expect(K8sClient.Status().Update(Ctx, referencedRc)).To(Succeed())
 
 	return referencedRc
 }
 
 func matchRunConfiguration(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gomega, *pipelinesv1.RunConfiguration)) func(Gomega) {
 	return func(g Gomega) {
-		g.Expect(k8sClient.Get(ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
+		g.Expect(K8sClient.Get(Ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
 		matcher(g, runConfiguration)
 	}
 }
 
 func updateOwnedSchedules(runConfiguration *pipelinesv1.RunConfiguration, updateFn func(schedule *pipelinesv1.RunSchedule)) error {
-	ownedSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
+	ownedSchedules, err := findOwnedRunSchedules(Ctx, K8sClient, runConfiguration)
 	if err != nil {
 		return err
 	}
 
 	for _, ownedSchedule := range ownedSchedules {
 		updateFn(&ownedSchedule)
-		Expect(k8sClient.Status().Update(ctx, &ownedSchedule)).To(Succeed())
+		Expect(K8sClient.Status().Update(Ctx, &ownedSchedule)).To(Succeed())
 	}
 
 	return nil
@@ -87,7 +88,7 @@ func updateOwnedSchedules(runConfiguration *pipelinesv1.RunConfiguration, update
 
 func matchSchedules(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gomega, *pipelinesv1.RunSchedule)) func(Gomega) {
 	return func(g Gomega) {
-		ownedSchedules, err := findOwnedRunSchedules(ctx, k8sClient, runConfiguration)
+		ownedSchedules, err := findOwnedRunSchedules(Ctx, K8sClient, runConfiguration)
 		g.Expect(err).NotTo(HaveOccurred())
 		g.Expect(ownedSchedules).NotTo(BeEmpty())
 		for _, ownedSchedule := range ownedSchedules {

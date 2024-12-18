@@ -1,13 +1,19 @@
 //go:build unit
 
-package pipelines
+package workflowutil
 
 import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"testing"
 )
+
+func TestWorkflowUtilsUnitSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Pipeline Controllers Workflow Utils Unit Suite")
+}
 
 var _ = Describe("Utils", func() {
 	When("getWorkflowOutput is called with a workflow that has an output with the given key", func() {
@@ -31,7 +37,7 @@ var _ = Describe("Utils", func() {
 					},
 				},
 			}
-			result, error := getWorkflowOutput(&workflow, "aKey")
+			result, error := GetWorkflowOutput(&workflow, "aKey")
 			Expect(error).NotTo(HaveOccurred())
 			Expect(result.Id).To(Equal("aValue"))
 		})
@@ -57,7 +63,7 @@ var _ = Describe("Utils", func() {
 				},
 			}
 
-			inProgress, succeeded, failed := latestWorkflowByPhase([]argo.Workflow{
+			inProgress, succeeded, failed := LatestWorkflowByPhase([]argo.Workflow{
 				expectedInProgress, expectedSucceeded, expectedFailed,
 			})
 
@@ -87,7 +93,7 @@ var _ = Describe("Utils", func() {
 				},
 			}
 
-			_, succeeded, _ := latestWorkflowByPhase([]argo.Workflow{
+			_, succeeded, _ := LatestWorkflowByPhase([]argo.Workflow{
 				expectedSucceededNewest, expectedSucceededOldest,
 			})
 
@@ -97,7 +103,7 @@ var _ = Describe("Utils", func() {
 
 	When("latestWorkflowByPhase is called with no workflows", func() {
 		It("returns all empty values", func() {
-			inProgress, succeeded, failed := latestWorkflowByPhase([]argo.Workflow{})
+			inProgress, succeeded, failed := LatestWorkflowByPhase([]argo.Workflow{})
 			Expect(inProgress).To(BeNil())
 			Expect(succeeded).To(BeNil())
 			Expect(failed).To(BeNil())

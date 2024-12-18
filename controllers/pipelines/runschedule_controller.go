@@ -7,6 +7,7 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -18,11 +19,15 @@ type RunScheduleReconciler struct {
 	ResourceReconciler[*pipelinesv1.RunSchedule]
 }
 
-func NewRunScheduleReconciler(ec K8sExecutionContext, workflowRepository WorkflowRepository, config config.KfpControllerConfigSpec) *RunScheduleReconciler {
+func NewRunScheduleReconciler(
+	ec K8sExecutionContext,
+	workflowRepository WorkflowRepository,
+	config config.KfpControllerConfigSpec,
+) *RunScheduleReconciler {
 	return &RunScheduleReconciler{
 		StateHandler: StateHandler[*pipelinesv1.RunSchedule]{
 			WorkflowRepository: workflowRepository,
-			WorkflowFactory:    RunScheduleWorkflowFactory(config),
+			WorkflowFactory:    workflowfactory.RunScheduleWorkflowFactory(config),
 		},
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.RunSchedule]{
 			EC:     ec,
