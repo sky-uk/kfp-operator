@@ -2,7 +2,7 @@ package main
 
 import (
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
-	stub "github.com/sky-uk/kfp-operator/argo/providers/stub/internal"
+	"github.com/sky-uk/kfp-operator/argo/providers/stub"
 )
 
 func main() {
