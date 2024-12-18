@@ -65,7 +65,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
  		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
  		kubectl apply -f -
-	go test ./... -tags=integration --timeout 20m
+	go test -v ./... -tags=integration --timeout 20m
 
 integration-test-down:
 	(cat config/testing/pids | xargs kill) || true
@@ -84,10 +84,13 @@ test-argo:
 test-triggers:
 	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
 
-test-all: test helm-test-operator helm-test-provider test-argo test-triggers
+test-all: test helm-test-operator helm-test-provider test-argo test-triggers integration-test-all
 
-integration-test-all: integration-test
+integration-test-all: 
+	$(MAKE) integration-test-up 
 	$(MAKE) -C argo/kfp-compiler integration-test
+	@trap 'echo "Test failed, running cleanup..."; $(MAKE) integration-test-down; exit 1' ERR; \
+	$(MAKE) integration-test
 
 ##@ Build
 
