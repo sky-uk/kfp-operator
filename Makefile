@@ -55,7 +55,13 @@ integration-test-up:
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
-	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=10m
+	kubectl get pods -n argo  -o jsonpath="Name: {.metadata.name} Status: {.status.phase}"
+	sleep 60
+	kubectl get pods -n argo  -o jsonpath="Name: {.metadata.name} Status: {.status.phase}"
+	sleep 60
+	kubectl get pods -n argo  -o jsonpath="Name: {.metadata.name} Status: {.status.phase}"
+	sleep 60
+	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=1m
 	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! > config/testing/pids
 
