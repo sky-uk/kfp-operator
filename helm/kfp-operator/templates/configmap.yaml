@@ -24,3 +24,23 @@ data:
       runCompletionFeed:
         port: {{ .Values.manager.runcompletionWebhook.servicePort }}
         endpoints: {{- if gt (len .Values.manager.runcompletionWebhook.endpoints) 0 }}{{- .Values.manager.runcompletionWebhook.endpoints | toYaml | nindent 8 }}{{ else }} []{{ end }}
+      defaultProviderValues:
+        labels:
+          app: provider
+        replicas: {{ .Values.provider.replicas }}
+        podTemplateSpec:
+          securityContext:
+            runAsNonRoot: true
+          containers:
+          - name: provider-service
+            securityContext:
+              allowPrivilegeEscalation: false
+            resources:
+              {{- $.Values.provider.resources | toYaml | nindent 10 }}
+            env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: OPERATORWEBHOOK
+              value: `{{ include "kfp-operator.fullname" . }}-controller-manager.{{ .Values.namespace.name }}:{{.Values.manager.runcompletionWebhook.servicePort}}/events`
