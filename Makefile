@@ -49,13 +49,27 @@ git-status-check:
 decoupled-test: manifests generate ## Run decoupled acceptance tests
 	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
 
+meh:
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
 integration-test-up:
-	minikube start -p kfp-operator-tests
+	minikube start -p kfp-operator-tests --registry-mirror="https://mirror.gcr.io" --driver=docker --cpus='4' --memory='4g' --force-systemd
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
-	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=5m
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
+	sleep 60
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
+	sleep 60
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
+	sleep 60
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
+	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=1m
 	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! > config/testing/pids
 
@@ -65,7 +79,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
  		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
  		kubectl apply -f -
-	go test ./... -tags=integration --timeout 20m
+	go test -v ./... -tags=integration --timeout 20m
 
 integration-test-down:
 	(cat config/testing/pids | xargs kill) || true
@@ -84,10 +98,13 @@ test-argo:
 test-triggers:
 	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
 
-test-all: test helm-test-operator helm-test-provider test-argo test-triggers
+test-all: test helm-test-operator helm-test-provider test-argo test-triggers integration-test-all
 
-integration-test-all: integration-test
-	$(MAKE) -C argo/kfp-compiler integration-test
+integration-test-all:
+	$(MAKE) integration-test-up
+#	$(MAKE) -C argo/kfp-compiler integration-test
+	@trap 'echo "Test failed, running cleanup..."; $(MAKE) integration-test-down; exit 1' ERR; \
+	$(MAKE) integration-test
 
 ##@ Build
 
