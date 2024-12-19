@@ -61,3 +61,13 @@ statusFeedback:
 
 logging:
   verbosity: # info
+
+provider:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 250m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi

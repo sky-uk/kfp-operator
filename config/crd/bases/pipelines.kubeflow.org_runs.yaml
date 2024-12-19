@@ -395,8 +395,6 @@ spec:
                   name:
                     type: string
                 type: object
-              serving:
-                type: string
               synchronizationState:
                 type: string
               version:
