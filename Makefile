@@ -49,23 +49,26 @@ git-status-check:
 decoupled-test: manifests generate ## Run decoupled acceptance tests
 	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
 
+meh:
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
 integration-test-up:
 	minikube start -p kfp-operator-tests --registry-mirror="https://mirror.gcr.io" --driver=docker --cpus='4' --memory='4g' --force-systemd
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
-	@POD_STATUSES=$$(kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}')
-	@echo POD_STATUSES: $(POD_STATUSES)
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
 	sleep 60
-	@POD_STATUSES=$$(kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}')
-	@echo POD_STATUSES: $(POD_STATUSES)
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
 	sleep 60
-	@POD_STATUSES=$$(kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}')
-	@echo POD_STATUSES: $(POD_STATUSES)
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
 	sleep 60
-	@POD_STATUSES=$$(kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}')
-	@echo POD_STATUSES: $(POD_STATUSES)
+	@kubectl get pods -n argo -l app=workflow-controller -o jsonpath='{range .items[*]}Name: {.metadata.name} Status: {.status.phase}{"\n"}{end}'
+
 	kubectl wait -n argo deployment/workflow-controller --for condition=available --timeout=1m
 	# Proxy K8s API
 	kubectl proxy --port=8080 & echo $$! > config/testing/pids
