@@ -2,30 +2,65 @@ package server
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
+func readinessHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
 
-func Start(
-	ctx context.Context,
-	config config.Server,
-) error {
-	server := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", config.Host, config.Port),
-		Handler: http.HandlerFunc(handler),
+func livenessHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
+func New() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", livenessHandler)
+	mux.HandleFunc("/readyz", readinessHandler)
+
+	return mux
+}
+
+// Start starts the HTTP server and gracefully handles shutdown
+func Start(ctx context.Context, addr string) error {
+	logger := common.LoggerFromContext(ctx)
+	// Create a server with the provided address and handler
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: New(),
 	}
 
-	l := common.LoggerFromContext(ctx)
+	// Start the server in a goroutine
+	go func() {
+		logger.Info("Starting HTTP server on %s", addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error(err, "ListenAndServe", "failed")
+		}
+	}()
 
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		l.Error(err, "HTTP server failed")
+	// Wait for termination signal (Ctrl+C, kill, etc.)
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	// Wait for a signal to gracefully shutdown the server
+	<-sigCh
+	logger.Info("Shutting down server...")
+
+	// Graceful shutdown with a timeout
+	shutdownCtx, shutdownCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Error(err, "shutdown", "forced")
 	}
+	logger.Info("Server gracefully stopped")
 
 	return nil
 }
