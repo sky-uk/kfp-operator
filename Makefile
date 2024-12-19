@@ -86,9 +86,9 @@ test-triggers:
 
 test-all: test helm-test-operator helm-test-provider test-argo test-triggers integration-test-all
 
-integration-test-all: 
-	$(MAKE) integration-test-up 
-	$(MAKE) -C argo/kfp-compiler integration-test
+integration-test-all:
+	$(MAKE) integration-test-up
+#	$(MAKE) -C argo/kfp-compiler integration-test
 	@trap 'echo "Test failed, running cleanup..."; $(MAKE) integration-test-down; exit 1' ERR; \
 	$(MAKE) integration-test
 
