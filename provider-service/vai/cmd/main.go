@@ -11,6 +11,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	vai "github.com/sky-uk/kfp-operator/provider-service/vai/internal"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/server"
 	"go.uber.org/zap/zapcore"
 
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
@@ -29,6 +30,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	server.Start(ctx, config.Server)
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {
