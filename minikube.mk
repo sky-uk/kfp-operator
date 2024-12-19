@@ -59,7 +59,7 @@ minikube-start:
 
 minikube-up:
 	@if [ -z ${NAME} ]; then \
-		echo "You must specify the name of the provider you want to install"; \
+		echo "You must specify the name of the provider you want to install by setting NAME=<provider>, e.g. NAME=vai"; \
 		exit 1; \
 	fi
 	$(MAKE) minikube-start

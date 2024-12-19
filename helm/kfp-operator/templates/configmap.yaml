@@ -36,7 +36,7 @@ data:
             securityContext:
               allowPrivilegeEscalation: false
             resources:
-              {{- $.Values.provider.resources | toYaml | nindent 10 }}
+              {{- $.Values.provider.resources | toYaml | nindent 14 }}
             env:
             - name: POD_NAMESPACE
               valueFrom:
