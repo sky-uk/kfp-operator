@@ -129,6 +129,12 @@ func newHandler(resources []resource.HttpHandledResource) http.Handler {
 			r.Delete("/{id}", deleteHandler(resource))
 		})
 	}
+}
+
+func New() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/livez", livenessHandler)
+	mux.HandleFunc("/readyz", readinessHandler)
 
 	return mux
 }
