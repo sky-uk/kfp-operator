@@ -27,8 +27,12 @@ func (e *ConnectionError) Error() string {
 	return e.Message
 }
 
+type NatsConn interface {
+	Publish(subject string, data []byte) error
+}
+
 type NatsPublisher struct {
-	NatsConn *nats.Conn
+	NatsConn NatsConn
 	Subject  string
 }
 
@@ -36,7 +40,7 @@ type DataWrapper struct {
 	Data common.RunCompletionEvent `json:"data"`
 }
 
-func NewNatsPublisher(ctx context.Context, nc *nats.Conn, subject string) *NatsPublisher {
+func New(ctx context.Context, nc *nats.Conn, subject string) *NatsPublisher {
 	logger := common.LoggerFromContext(ctx)
 
 	logger.Info("New nats publisher:", "Subject", subject, "Server", nc.ConnectedUrl())
