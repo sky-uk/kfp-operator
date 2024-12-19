@@ -10,8 +10,10 @@ import (
 	configLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/server"
 	vai "github.com/sky-uk/kfp-operator/provider-service/vai/internal"
 	"go.uber.org/zap/zapcore"
+	"os"
 
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 
@@ -69,6 +71,13 @@ func main() {
 	logger.Info("starting vai event flow")
 	flow.From(source).To(sink)
 	flow.Error(errorSink)
+
+	go func() {
+		err = server.Start(ctx, config.Server)
+		if err != nil {
+			os.Exit(1)
+		}
+	}()
 
 	// block till terminated
 	<-ctx.Done()
