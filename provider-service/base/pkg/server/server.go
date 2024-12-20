@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	chi "github.com/go-chi/chi/v5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 )
@@ -24,9 +25,9 @@ func livenessHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func New() http.Handler {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/livez", livenessHandler)
-	mux.HandleFunc("/readyz", readinessHandler)
+	mux := chi.NewRouter()
+	mux.Get("/livez", livenessHandler)
+	mux.Get("/readyz", readinessHandler)
 
 	return mux
 }
