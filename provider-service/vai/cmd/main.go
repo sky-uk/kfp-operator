@@ -8,10 +8,10 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	configLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	vai "github.com/sky-uk/kfp-operator/provider-service/vai/internal"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/server"
 	"go.uber.org/zap/zapcore"
 
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
