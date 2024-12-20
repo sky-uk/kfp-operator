@@ -88,7 +88,7 @@ test-triggers:
 test-provider-service:
 	$(MAKE) -C provider-service test
 
-test-all: test helm-test-operator helm-test-provider test-argo test-triggers
+test-all: test helm-test-operator helm-test-provider test-argo test-triggers test-provider-service
 
 integration-test-all: integration-test
 	$(MAKE) -C argo/kfp-compiler integration-test
