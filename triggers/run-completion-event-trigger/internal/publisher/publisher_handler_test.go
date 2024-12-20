@@ -47,7 +47,7 @@ var _ = Describe("PublisherHandler", func() {
 	})
 
 	Context("Publish", func() {
-		When("rce mashalling and NatsConn.Publish are successful", func() {
+		When("run completion event marshalling and NatsConn.Publish are successful", func() {
 			It("should not error", func() {
 				eventData, _ := json.Marshal(DataWrapper{Data: event})
 				mockNatsConn.On("Publish", subject, mock.MatchedBy(func(data []byte) bool {
