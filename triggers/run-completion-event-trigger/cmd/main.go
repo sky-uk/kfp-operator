@@ -43,7 +43,7 @@ func main() {
 	}
 	defer nc.Close()
 
-	natsPublisher := publisher.New(ctx, nc, config.NATSConfig.Subject)
+	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
 
 	s := grpc.NewServer()
 	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Context: ctx, Config: config, Publisher: natsPublisher})
