@@ -2,6 +2,11 @@ build:
 	$(MAKE) -C kfp build
 	$(MAKE) -C vai build
 
+unit-test:
+	$(MAKE) -C base unit-test
+	$(MAKE) -C kfp unit-test
+	$(MAKE) -C vai unit-test
+
 test:
 	$(MAKE) -C base test
 	$(MAKE) -C kfp test
