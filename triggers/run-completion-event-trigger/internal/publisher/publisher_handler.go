@@ -27,8 +27,12 @@ func (e *ConnectionError) Error() string {
 	return e.Message
 }
 
+type natsConn interface {
+	Publish(subject string, data []byte) error
+}
+
 type NatsPublisher struct {
-	NatsConn *nats.Conn
+	NatsConn natsConn
 	Subject  string
 }
 

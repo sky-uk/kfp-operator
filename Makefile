@@ -73,6 +73,7 @@ integration-test-down:
 
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
+	$(MAKE) -C provider-service unit-test
 
 test: fmt vet unit-test decoupled-test
 
@@ -84,7 +85,10 @@ test-argo:
 test-triggers:
 	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
 
-test-all: test helm-test-operator helm-test-provider test-argo test-triggers
+test-provider-service:
+	$(MAKE) -C provider-service test
+
+test-all: test helm-test-operator helm-test-provider test-argo test-triggers test-provider-service
 
 integration-test-all: integration-test
 	$(MAKE) -C argo/kfp-compiler integration-test
