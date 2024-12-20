@@ -24,10 +24,35 @@ func livenessHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Application is live."))
 }
 
+func postHandler(w http.ResponseWriter, r *http.Request) {
+	// run
+	t := chi.URLParam(r, "type")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Application is live."))
+}
+
+func putHandler(w http.ResponseWriter, r *http.Request) {
+	t := chi.URLParam(r, "type")
+	id := chi.URLParam(r, "id")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Application is live."))
+}
+
+func deleteHandler(w http.ResponseWriter, r *http.Request) {
+	t := chi.URLParam(r, "type")
+	id := chi.URLParam(r, "id")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Application is live."))
+}
+
 func New() http.Handler {
 	mux := chi.NewRouter()
 	mux.Get("/livez", livenessHandler)
 	mux.Get("/readyz", readinessHandler)
+
+	mux.Post("/resource/pipeline", postHandler)
+	mux.Put("/resource/pipeline/{id}", putHandler)
+	mux.Delete("/resource/pipeline/{id}", deleteHandler)
 
 	return mux
 }
