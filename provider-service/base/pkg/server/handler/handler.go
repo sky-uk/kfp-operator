@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 )
 
@@ -23,19 +24,28 @@ type RunScheduleResource struct {
 type RunResource struct {
 }
 
-type Resource int
-
 const (
-	Pipeline Resource = iota
-	Experiment
-	RunSchedule
-	Run
+	Pipeline = "pipeline"
+	Experiment = "experiment"
+	RunSchedule = "runschedule"
+	Run = "run"
 )
 
+func validateType(s string) bool {
+	switch s {
+	case Pipeline, Experiment, RunSchedule, Run:
+		return true
+	default:
+		return false
+	}
+}
+
 func createResource(
-	w http.ResponseWriter,
 	r *http.Request,
-	resource Resource,
-) string {
-	return "foo"
+	resource string,
+) (string, error) {
+	if validateType(resource) {
+		return "foo", nil
+	}
+	return "", errors.New("placeholder")
 }
