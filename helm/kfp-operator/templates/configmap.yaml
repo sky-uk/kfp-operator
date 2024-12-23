@@ -43,4 +43,4 @@ data:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: OPERATORWEBHOOK
-              value: `{{ include "kfp-operator.fullname" . }}-controller-manager.{{ .Values.namespace.name }}:{{.Values.manager.runcompletionWebhook.servicePort}}/events`
+              value: {{ include "kfp-operator.fullname" . }}-controller-manager.{{ .Values.namespace.name }}:{{.Values.manager.runcompletionWebhook.servicePort}}/events
