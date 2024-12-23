@@ -2,6 +2,8 @@ package internal
 
 import (
 	"context"
+	"errors"
+
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/file"
 )
@@ -12,7 +14,10 @@ type VAIProvider struct {
 	fileHandler file.FileHandler
 }
 
-func NewProvider(ctx context.Context, config VAIProviderConfig) (*VAIProvider, error) {
+func NewProvider(
+	ctx context.Context,
+	config VAIProviderConfig,
+) (*VAIProvider, error) {
 	fh, err := file.NewGcsFileHandler(ctx, config.Parameters.GcsEndpoint)
 	if err != nil {
 		return nil, err
@@ -25,7 +30,9 @@ func NewProvider(ctx context.Context, config VAIProviderConfig) (*VAIProvider, e
 	}, nil
 }
 
-func (vaip *VAIProvider) CreatePipeline(pd resource.PipelineDefinition) (string, error) {
+func (vaip *VAIProvider) CreatePipeline(
+	pd resource.PipelineDefinition,
+) (string, error) {
 	pipelineId, err := vaip.UpdatePipeline(pd, "")
 	if err != nil {
 		return "", err
@@ -33,7 +40,10 @@ func (vaip *VAIProvider) CreatePipeline(pd resource.PipelineDefinition) (string,
 	return pipelineId, nil
 }
 
-func (vaip *VAIProvider) UpdatePipeline(pd resource.PipelineDefinition, id string) (string, error) {
+func (vaip *VAIProvider) UpdatePipeline(
+	pd resource.PipelineDefinition,
+	id string,
+) (string, error) {
 	pipelineId, err := pd.Name.String()
 	if err != nil {
 		return "", err
@@ -73,11 +83,16 @@ func (vaip *VAIProvider) DeleteRun(id string) error {
 	return nil
 }
 
-func (vaip *VAIProvider) CreateRunSchedule(rsd resource.RunScheduleDefinition) (string, error) {
+func (vaip *VAIProvider) CreateRunSchedule(
+	rsd resource.RunScheduleDefinition,
+) (string, error) {
 	return "", nil
 }
 
-func (vaip *VAIProvider) UpdateRunSchedule(rsd resource.RunScheduleDefinition, id string) (string, error) {
+func (vaip *VAIProvider) UpdateRunSchedule(
+	rsd resource.RunScheduleDefinition,
+	id string,
+) (string, error) {
 	return "", nil
 }
 
@@ -85,14 +100,19 @@ func (vaip *VAIProvider) DeleteRunSchedule(id string) error {
 	return nil
 }
 
-func (vaip *VAIProvider) CreateExperiment(ed resource.ExperimentDefinition) (string, error) {
-	return "", nil
+func (vaip *VAIProvider) CreateExperiment(
+	_ resource.ExperimentDefinition,
+) (string, error) {
+	return "", errors.New("not implemented")
 }
 
-func (vaip *VAIProvider) UpdateExperiment(ed resource.ExperimentDefinition, id string) (string, error) {
-	return "", nil
+func (vaip *VAIProvider) UpdateExperiment(
+	_ resource.ExperimentDefinition,
+	_ string,
+) (string, error) {
+	return "", errors.New("not implemented")
 }
 
-func (vaip *VAIProvider) DeleteExperiment(id string) error {
-	return nil
+func (vaip *VAIProvider) DeleteExperiment(_ string) error {
+	return errors.New("not implemented")
 }
