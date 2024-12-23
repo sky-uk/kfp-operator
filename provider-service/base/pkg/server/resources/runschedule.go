@@ -1,6 +1,8 @@
 package resources
 
-type RunSchedule struct{}
+type RunSchedule struct {
+	Provider Provider
+}
 
 func (rs *RunSchedule) Name() string {
 	return "runschedule"

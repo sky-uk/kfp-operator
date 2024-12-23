@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resources"
 	"io"
 	"net/http"
@@ -81,12 +80,12 @@ func putHandler(a resources.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func New() http.Handler {
+func New(resources []resources.HttpHandledResource) http.Handler {
 	mux := chi.NewRouter()
 	mux.Get("/livez", livenessHandler)
 	mux.Get("/readyz", readinessHandler)
 
-	for _, resource := range resources.ResourceTypes {
+	for _, resource := range resources {
 		mux.Route("/resource/"+resource.Name(), func(r chi.Router) {
 			r.Post("/", postHandler(resource))
 			r.Put("/{id}", putHandler(resource))
@@ -98,13 +97,20 @@ func New() http.Handler {
 }
 
 // Start starts the HTTP server and gracefully handles shutdown
-func Start[Config any](ctx context.Context, cfg config.Server, provider base.Provider[Config]) error {
+func Start(ctx context.Context, cfg config.Server, provider resources.Provider) error {
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	logger := common.LoggerFromContext(ctx)
+
+	httpResources := []resources.HttpHandledResource{
+		&resources.Pipeline{Provider: provider},
+		&resources.Run{Provider: provider},
+		&resources.RunSchedule{Provider: provider},
+		&resources.Experiment{Provider: provider},
+	}
 	// Create a server with the provided address and handler
 	srv := &http.Server{
 		Addr:    addr,
-		Handler: New(),
+		Handler: New(httpResources),
 	}
 
 	// Start the server in a goroutine

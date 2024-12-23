@@ -1,13 +1,11 @@
 package resources
 
 import (
-	"context"
 	"encoding/json"
 )
 
 type Pipeline struct {
-	ctx      context.Context
-	provider Provider
+	Provider Provider
 }
 
 func (p *Pipeline) Name() string {
@@ -21,7 +19,7 @@ func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
 		return ResponseBody{}, err
 	}
 
-	id, err := p.provider.CreatePipeline(p.ctx, definition, "")
+	id, err := p.Provider.CreatePipeline(definition)
 	if err != nil {
 		return ResponseBody{}, err
 	}
@@ -37,7 +35,7 @@ func (p *Pipeline) Update(id string, body []byte) error {
 		return err
 	}
 
-	_, err := p.provider.UpdatePipeline(p.ctx, definition, id, "")
+	_, err := p.Provider.UpdatePipeline(definition, id)
 	if err != nil {
 		return err
 	}
@@ -45,7 +43,7 @@ func (p *Pipeline) Update(id string, body []byte) error {
 }
 
 func (p *Pipeline) Delete(id string) error {
-	if err := p.provider.DeletePipeline(p.ctx, id); err != nil {
+	if err := p.Provider.DeletePipeline(id); err != nil {
 		return err
 	}
 	return nil
