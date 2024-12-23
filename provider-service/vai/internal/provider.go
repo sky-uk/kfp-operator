@@ -5,25 +5,24 @@ import (
 	"context"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resources"
 	"google.golang.org/api/option"
-	"io"
 )
 
 type VAIProvider struct {
-	ctx       context.Context
-	config    VAIProviderConfig
-	gcsClient *storage.Client
+	ctx         context.Context
+	config      VAIProviderConfig
+	fileHandler FileHandler
 }
 
 func NewProvider(ctx context.Context, config VAIProviderConfig) (*VAIProvider, error) {
-	gcsClient, err := gcsClient(ctx, config)
+	gcsFileHandler, err := NewGcsFileHandler(ctx, config.Parameters.GcsEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	return &VAIProvider{
-		ctx:       ctx,
-		config:    config,
-		gcsClient: gcsClient,
+		ctx:         ctx,
+		config:      config,
+		fileHandler: &gcsFileHandler,
 	}, nil
 }
 
@@ -46,21 +45,17 @@ func (vaip *VAIProvider) UpdatePipeline(pd resources.PipelineDefinition, id stri
 		return pipelineId, err
 	}
 
-	writer := vaip.gcsClient.Bucket(vaip.config.Parameters.PipelineBucket).Object(storageObject).NewWriter(vaip.ctx)
-
-	_, err = io.Writer(writer).Write(pd.Manifest)
-	if err != nil {
+	if err = vaip.fileHandler.Write(pd.Manifest, vaip.config.Parameters.PipelineBucket, storageObject); err != nil {
 		return "", err
-	}
-
-	if err = writer.Close(); err != nil {
-		return "pipelineId", err
 	}
 
 	return pipelineId, nil
 }
 
 func (vaip *VAIProvider) DeletePipeline(id string) error {
+	if err := vaip.fileHandler.Delete(id, vaip.config.Parameters.PipelineBucket); err != nil {
+		return err
+	}
 	return nil
 }
 
