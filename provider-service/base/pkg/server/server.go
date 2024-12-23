@@ -2,7 +2,11 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resources"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,25 +28,57 @@ func livenessHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Application is live."))
 }
 
-func postHandler(w http.ResponseWriter, r *http.Request) {
-	// run
-	t := chi.URLParam(r, "type")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Application is live."))
+func postHandler(a resources.HttpHandledResource) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+			return
+		}
+		defer r.Body.Close()
+
+		resp, err := a.Create(body)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, _ = w.Write([]byte(resp.Id))
+	}
 }
 
-func putHandler(w http.ResponseWriter, r *http.Request) {
-	t := chi.URLParam(r, "type")
-	id := chi.URLParam(r, "id")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Application is live."))
+func deleteHandler(a resources.HttpHandledResource) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		err := a.Delete(id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
 }
 
-func deleteHandler(w http.ResponseWriter, r *http.Request) {
-	t := chi.URLParam(r, "type")
-	id := chi.URLParam(r, "id")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Application is live."))
+func putHandler(a resources.HttpHandledResource) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+			return
+		}
+		defer r.Body.Close()
+
+		err = a.Update(id, body)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
 }
 
 func New() http.Handler {
@@ -50,15 +86,19 @@ func New() http.Handler {
 	mux.Get("/livez", livenessHandler)
 	mux.Get("/readyz", readinessHandler)
 
-	mux.Post("/resource/pipeline", postHandler)
-	mux.Put("/resource/pipeline/{id}", putHandler)
-	mux.Delete("/resource/pipeline/{id}", deleteHandler)
+	for _, resource := range resources.ResourceTypes {
+		mux.Route("/resource/"+resource.Name(), func(r chi.Router) {
+			r.Post("/", postHandler(resource))
+			r.Put("/{id}", putHandler(resource))
+			r.Delete("/{id}", deleteHandler(resource))
+		})
+	}
 
 	return mux
 }
 
 // Start starts the HTTP server and gracefully handles shutdown
-func Start(ctx context.Context, cfg config.Server) error {
+func Start[Config any](ctx context.Context, cfg config.Server, provider base.Provider[Config]) error {
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	logger := common.LoggerFromContext(ctx)
 	// Create a server with the provided address and handler
@@ -70,7 +110,7 @@ func Start(ctx context.Context, cfg config.Server) error {
 	// Start the server in a goroutine
 	go func() {
 		logger.Info("Starting HTTP server on %s", addr)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error(err, "ListenAndServe", "failed")
 		}
 	}()
