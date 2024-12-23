@@ -1,6 +1,8 @@
 package resources
 
-type Run struct{}
+type Run struct {
+	Provider Provider
+}
 
 func (rs *Run) Name() string {
 	return "run"

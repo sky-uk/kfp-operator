@@ -32,7 +32,15 @@ func main() {
 		panic(err)
 	}
 
-	server.Start(ctx, config.Server)
+	//TODO: Update the config to be passed in by controller on deployment creation
+	provider, err := vai.NewProvider(ctx, vai.VAIProviderConfig{})
+	if err != nil {
+		panic(err)
+	}
+
+	if err = server.Start(ctx, config.Server, provider); err != nil {
+		panic(err)
+	}
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {

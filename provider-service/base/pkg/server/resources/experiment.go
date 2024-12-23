@@ -1,6 +1,8 @@
 package resources
 
-type Experiment struct{}
+type Experiment struct {
+	Provider Provider
+}
 
 func (e *Experiment) Name() string {
 	return "experiment"

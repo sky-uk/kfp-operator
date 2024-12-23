@@ -1,19 +1,20 @@
 package resources
 
 import (
-	"context"
+	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type PipelineDefinition struct {
-	Name          common.NamespacedName `yaml:"name"`
-	Version       string                `yaml:"version"`
-	Image         string                `yaml:"image"`
-	TfxComponents string                `yaml:"tfxComponents"`
-	Env           []apis.NamedValue     `yaml:"env"`
-	BeamArgs      []apis.NamedValue     `yaml:"beamArgs"`
+	Name          common.NamespacedName `json:"name" yaml:"name"`
+	Version       string                `json:"version" yaml:"version"`
+	Image         string                `json:"image" yaml:"image"`
+	TfxComponents string                `json:"tfxComponents" yaml:"tfxComponents"`
+	Env           []apis.NamedValue     `json:"env" yaml:"env"`
+	BeamArgs      []apis.NamedValue     `json:"beamArgs" yaml:"beamArgs"`
+	Manifest      json.RawMessage       `json:"manifest,omitempty"`
 }
 
 type ExperimentDefinition struct {
@@ -46,18 +47,18 @@ type RunScheduleDefinition struct {
 }
 
 type Provider interface {
-	CreatePipeline(ctx context.Context, pd PipelineDefinition, manifest map[string]interface{}) (string, error)
-	UpdatePipeline(ctx context.Context, pd PipelineDefinition, id string, manifest map[string]interface{}) (string, error)
-	DeletePipeline(ctx context.Context, id string) error
+	CreatePipeline(pd PipelineDefinition) (string, error)
+	UpdatePipeline(pd PipelineDefinition, id string) (string, error)
+	DeletePipeline(id string) error
 
-	CreateRun(ctx context.Context, rcd RunDefinition) (string, error)
-	DeleteRun(ctx context.Context, id string) error
+	CreateRun(rcd RunDefinition) (string, error)
+	DeleteRun(id string) error
 
-	CreateRunSchedule(ctx context.Context, rsd RunScheduleDefinition) (string, error)
-	UpdateRunSchedule(ctx context.Context, rsd RunScheduleDefinition, id string) (string, error)
-	DeleteRunSchedule(ctx context.Context, id string) error
+	CreateRunSchedule(rsd RunScheduleDefinition) (string, error)
+	UpdateRunSchedule(rsd RunScheduleDefinition, id string) (string, error)
+	DeleteRunSchedule(id string) error
 
-	CreateExperiment(ctx context.Context, ed ExperimentDefinition) (string, error)
-	UpdateExperiment(ctx context.Context, ed ExperimentDefinition, id string) (string, error)
-	DeleteExperiment(ctx context.Context, id string) error
+	CreateExperiment(ed ExperimentDefinition) (string, error)
+	UpdateExperiment(ed ExperimentDefinition, id string) (string, error)
+	DeleteExperiment(id string) error
 }

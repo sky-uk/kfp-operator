@@ -7,12 +7,7 @@ type HttpHandledResource interface {
 	Delete(id string) error
 }
 
-var ResourceTypes = []HttpHandledResource{
-	&Run{},
-	&RunSchedule{},
-	&Pipeline{},
-	&Experiment{},
-}
+var ResourceTypes = []HttpHandledResource{}
 
 //
 //const (
