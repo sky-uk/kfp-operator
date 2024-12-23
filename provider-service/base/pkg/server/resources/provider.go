@@ -1,10 +1,10 @@
-package server
+package resources
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/argo/common"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/apis"
+	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type PipelineDefinition struct {
@@ -45,19 +45,19 @@ type RunScheduleDefinition struct {
 	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
-type Provider[Config any] interface {
-	CreatePipeline(ctx context.Context, cfg Config, pd PipelineDefinition, pipelineFilePath string) (string, error)
-	UpdatePipeline(ctx context.Context, cfg Config, pd PipelineDefinition, id string, pipelineFilePath string) (string, error)
-	DeletePipeline(ctx context.Context, cfg Config, id string) error
+type Provider interface {
+	CreatePipeline(ctx context.Context, pd PipelineDefinition, manifest map[string]interface{}) (string, error)
+	UpdatePipeline(ctx context.Context, pd PipelineDefinition, id string, manifest map[string]interface{}) (string, error)
+	DeletePipeline(ctx context.Context, id string) error
 
-	CreateRun(ctx context.Context, cfg Config, rcd RunDefinition) (string, error)
-	DeleteRun(ctx context.Context, cfg Config, id string) error
+	CreateRun(ctx context.Context, rcd RunDefinition) (string, error)
+	DeleteRun(ctx context.Context, id string) error
 
-	CreateRunSchedule(ctx context.Context, cfg Config, rsd RunScheduleDefinition) (string, error)
-	UpdateRunSchedule(ctx context.Context, cfg Config, rsd RunScheduleDefinition, id string) (string, error)
-	DeleteRunSchedule(ctx context.Context, cfg Config, id string) error
+	CreateRunSchedule(ctx context.Context, rsd RunScheduleDefinition) (string, error)
+	UpdateRunSchedule(ctx context.Context, rsd RunScheduleDefinition, id string) (string, error)
+	DeleteRunSchedule(ctx context.Context, id string) error
 
-	CreateExperiment(ctx context.Context, cfg Config, ed ExperimentDefinition) (string, error)
-	UpdateExperiment(ctx context.Context, cfg Config, ed ExperimentDefinition, id string) (string, error)
-	DeleteExperiment(ctx context.Context, cfg Config, id string) error
+	CreateExperiment(ctx context.Context, ed ExperimentDefinition) (string, error)
+	UpdateExperiment(ctx context.Context, ed ExperimentDefinition, id string) (string, error)
+	DeleteExperiment(ctx context.Context, id string) error
 }
