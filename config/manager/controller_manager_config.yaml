@@ -41,4 +41,4 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         - name: OPERATORWEBHOOK
-          value: `kfp-operator-controller-manager.kfp-operator-system:8082/events`
+          value: kfp-operator-controller-manager.kfp-operator-system:8082/events
