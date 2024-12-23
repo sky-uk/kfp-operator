@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resources"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"io"
 	"net/http"
 	"os"
@@ -27,7 +27,7 @@ func livenessHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Application is live."))
 }
 
-func postHandler(a resources.HttpHandledResource) http.HandlerFunc {
+func postHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		body, err := io.ReadAll(r.Body)
@@ -47,7 +47,7 @@ func postHandler(a resources.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func deleteHandler(a resources.HttpHandledResource) http.HandlerFunc {
+func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		err := a.Delete(id)
@@ -59,7 +59,7 @@ func deleteHandler(a resources.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func putHandler(a resources.HttpHandledResource) http.HandlerFunc {
+func putHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 
@@ -80,7 +80,7 @@ func putHandler(a resources.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func New(resources []resources.HttpHandledResource) http.Handler {
+func New(resources []resource.HttpHandledResource) http.Handler {
 	mux := chi.NewRouter()
 	mux.Get("/livez", livenessHandler)
 	mux.Get("/readyz", readinessHandler)
@@ -97,15 +97,15 @@ func New(resources []resources.HttpHandledResource) http.Handler {
 }
 
 // Start starts the HTTP server and gracefully handles shutdown
-func Start(ctx context.Context, cfg config.Server, provider resources.Provider) error {
+func Start(ctx context.Context, cfg config.Server, provider resource.Provider) error {
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	logger := common.LoggerFromContext(ctx)
 
-	httpResources := []resources.HttpHandledResource{
-		&resources.Pipeline{Provider: provider},
-		&resources.Run{Provider: provider},
-		&resources.RunSchedule{Provider: provider},
-		&resources.Experiment{Provider: provider},
+	httpResources := []resource.HttpHandledResource{
+		&resource.Pipeline{Provider: provider},
+		&resource.Run{Provider: provider},
+		&resource.RunSchedule{Provider: provider},
+		&resource.Experiment{Provider: provider},
 	}
 	// Create a server with the provided address and handler
 	srv := &http.Server{

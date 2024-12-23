@@ -1,4 +1,4 @@
-package resources
+package resource
 
 type RunSchedule struct {
 	Provider Provider

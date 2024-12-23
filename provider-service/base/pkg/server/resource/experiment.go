@@ -1,4 +1,4 @@
-package resources
+package resource
 
 type Experiment struct {
 	Provider Provider
