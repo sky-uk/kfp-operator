@@ -1,16 +1,13 @@
-package internal
+package file
 
 import (
+	"cloud.google.com/go/storage"
 	"context"
 	"errors"
 	"fmt"
-
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-
 	"io"
-
-	"cloud.google.com/go/storage"
 )
 
 type FileHandler interface {
