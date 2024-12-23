@@ -1,4 +1,4 @@
-package resources
+package resource
 
 type HttpHandledResource interface {
 	Name() string
