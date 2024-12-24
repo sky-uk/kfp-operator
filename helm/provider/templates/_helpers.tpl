@@ -43,3 +43,4 @@ Provider Deployment Image
 {{- define "kfp-operator-provider-service.image" -}}
 {{ include "kfp-operator-provider.trimmedContainerRegistry" . }}kfp-operator-{{ .Values.provider.type }}-provider-service:{{ .Chart.AppVersion }}
 {{- end }}
+
