@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"regexp"
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
@@ -15,9 +14,9 @@ import (
 )
 
 type FileHandler interface {
-	Write(p []byte, location string, fileName string) error
-	Delete(id string, location string) error
-	Read(templateUri string) (map[string]any, error)
+	Write(p []byte, bucket string, filePath string) error
+	Delete(id string, bucket string) error
+	Read(bucket string, filePath string) (map[string]any, error)
 }
 
 type GcsFileHandler struct {
@@ -44,8 +43,10 @@ func NewGcsFileHandler(
 	return GcsFileHandler{ctx: ctx, gcsClient: *client}, err
 }
 
-func (g *GcsFileHandler) Write(p []byte, location string, fileName string) error {
-	writer := g.gcsClient.Bucket(location).Object(fileName).NewWriter(g.ctx)
+// Write writes bytes into the location inferred by GCS bucket name and
+// file path (relative to GCS bucket location).
+func (g *GcsFileHandler) Write(p []byte, bucket string, filePath string) error {
+	writer := g.gcsClient.Bucket(bucket).Object(filePath).NewWriter(g.ctx)
 
 	_, err := io.Writer(writer).Write(p)
 	if err != nil {
@@ -58,10 +59,11 @@ func (g *GcsFileHandler) Write(p []byte, location string, fileName string) error
 	return nil
 }
 
-func (g *GcsFileHandler) Delete(id string, location string) error {
+// Delete deletes all files inferred by the GCS bucket name and id.
+func (g *GcsFileHandler) Delete(id string, bucket string) error {
 	query := &storage.Query{Prefix: fmt.Sprintf("%s/", id)}
 
-	it := g.gcsClient.Bucket(location).Objects(g.ctx, query)
+	it := g.gcsClient.Bucket(bucket).Objects(g.ctx, query)
 	for {
 		attrs, err := it.Next()
 		if errors.Is(err, iterator.Done) {
@@ -71,7 +73,7 @@ func (g *GcsFileHandler) Delete(id string, location string) error {
 			return err
 		}
 
-		err = g.gcsClient.Bucket(location).Object(attrs.Name).Delete(g.ctx)
+		err = g.gcsClient.Bucket(bucket).Object(attrs.Name).Delete(g.ctx)
 		if err != nil {
 			return err
 		}
@@ -79,13 +81,13 @@ func (g *GcsFileHandler) Delete(id string, location string) error {
 	return nil
 }
 
-func (g *GcsFileHandler) Read(templateUri string) (map[string]any, error) {
-	gcsBucket, gcsPath, err := extractBucketAndObjectFromGCSPath(templateUri)
-	if err != nil {
-		return nil, err
-	}
-
-	reader, err := g.gcsClient.Bucket(gcsBucket).Object(gcsPath).NewReader(g.ctx)
+// Read reads and returns the ??? from the location inferred by the GCS bucket
+// name and file path.
+func (g *GcsFileHandler) Read(
+	bucket string,
+	filePath string,
+) (map[string]any, error) {
+	reader, err := g.gcsClient.Bucket(bucket).Object(filePath).NewReader(g.ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -103,13 +105,4 @@ func (g *GcsFileHandler) Read(templateUri string) (map[string]any, error) {
 	}
 
 	return raw, nil
-}
-
-func extractBucketAndObjectFromGCSPath(gcsPath string) (string, string, error) {
-	r := regexp.MustCompile(`gs://([^/]+)/(.+)`)
-	matched := r.FindStringSubmatch(gcsPath)
-	if len(matched) != 3 {
-		return "", "", errors.New(fmt.Sprintf("invalid gs URI [%s]", gcsPath))
-	}
-	return matched[1], matched[2], nil
 }
