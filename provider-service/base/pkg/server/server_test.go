@@ -5,11 +5,13 @@ package server
 import (
 	"testing"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
 	"io"
 	"net/http"
 	"net/http/httptest"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 
 func TestServerUnitSuite(t *testing.T) {
@@ -21,7 +23,7 @@ var _ = Describe("Http Server Endpoints", Ordered, func() {
 	var testServer *httptest.Server
 
 	BeforeAll(func() {
-		testServer = httptest.NewServer(New())
+		testServer = httptest.NewServer(New([]resource.HttpHandledResource{}))
 	})
 
 	AfterAll(func() {
