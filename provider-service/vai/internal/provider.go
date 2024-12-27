@@ -89,23 +89,6 @@ func (vaip *VAIProvider) DeletePipeline(id string) error {
 }
 
 func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
-	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
-	for name, value := range rd.RuntimeParameters {
-		params[name] = &aiplatformpb.Value{
-			Value: &aiplatformpb.Value_StringValue{
-				StringValue: value,
-			},
-		}
-	}
-
-	templateUri, err := vaip.config.pipelineUri(
-		rd.PipelineName,
-		rd.PipelineVersion,
-	)
-	if err != nil {
-		return "", err
-	}
-
 	pipelinePath, err := vaip.config.pipelineStorageObject(
 		rd.PipelineName,
 		rd.PipelineVersion,
@@ -114,37 +97,14 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		return "", err
 	}
 
-	// skip extractBucketAndObjectFromGCSPath
 	raw, err := vaip.fileHandler.Read(
 		vaip.config.Parameters.PipelineBucket,
 		pipelinePath,
 	)
-	pipelineSpec, err := structpb.NewStruct(
-		raw["pipelineSpec"].(map[string]interface{}),
-	)
+
+	job, err := vaip.mkPipelineJob(rd, raw)
 	if err != nil {
 		return "", err
-	}
-
-	job := &aiplatformpb.PipelineJob{
-		DisplayName:  raw["displayName"].(string),
-		PipelineSpec: pipelineSpec,
-		Labels:       runLabelsFromRunDefinition(rd),
-		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
-			Parameters:         params,
-			GcsOutputDirectory: raw["runtimeConfig"].(map[string]any)["gcsOutputDirectory"].(string),
-		},
-		ServiceAccount: vaip.config.Parameters.VaiJobServiceAccount,
-		TemplateUri:    templateUri,
-	}
-
-	labels := raw["labels"].(map[string]any)
-	if job.Labels == nil {
-		// redundant?
-		job.Labels = map[string]string{}
-	}
-	for k, v := range labels {
-		job.Labels[k] = v.(string)
 	}
 
 	runId := fmt.Sprintf("%s-%s", rd.Name.Namespace, rd.Name.Name)
@@ -233,4 +193,58 @@ func runLabelsFromRunDefinition(
 	}
 
 	return runLabels
+}
+
+// for CreateRun
+func (vaip *VAIProvider) mkPipelineJob(
+	rd resource.RunDefinition,
+	raw map[string]any,
+) (*aiplatformpb.PipelineJob, error) {
+	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
+	for name, value := range rd.RuntimeParameters {
+		params[name] = &aiplatformpb.Value{
+			Value: &aiplatformpb.Value_StringValue{
+				StringValue: value,
+			},
+		}
+	}
+
+	// TODO: see if pipelinePath can be passed in instead.
+	templateUri, err := vaip.config.pipelineUri(
+		rd.PipelineName,
+		rd.PipelineVersion,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	pipelineSpec, err := structpb.NewStruct(
+		raw["pipelineSpec"].(map[string]interface{}),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	job := &aiplatformpb.PipelineJob{
+		DisplayName:  raw["displayName"].(string),
+		PipelineSpec: pipelineSpec,
+		Labels:       runLabelsFromRunDefinition(rd),
+		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+			Parameters:         params,
+			GcsOutputDirectory: raw["runtimeConfig"].(map[string]any)["gcsOutputDirectory"].(string),
+		},
+		ServiceAccount: vaip.config.Parameters.VaiJobServiceAccount,
+		TemplateUri:    templateUri,
+	}
+
+	labels := raw["labels"].(map[string]any)
+	if job.Labels == nil {
+		// redundant?
+		job.Labels = map[string]string{}
+	}
+	for k, v := range labels {
+		job.Labels[k] = v.(string)
+	}
+
+	return job, nil
 }
