@@ -105,7 +105,7 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		pipelinePath,
 	)
 
-	job, err := vaip.jobBuilder.MkPipelineJob(rd)
+	job, err := vaip.jobBuilder.MkRunPipelineJob(rd)
 	if err != nil {
 		return "", err
 	}
