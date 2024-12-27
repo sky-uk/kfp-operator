@@ -39,7 +39,6 @@ func NewGcsFileHandler(
 	} else {
 		client, err = storage.NewClient(ctx)
 	}
-
 	return GcsFileHandler{ctx: ctx, gcsClient: *client}, err
 }
 
@@ -55,7 +54,6 @@ func (g *GcsFileHandler) Write(p []byte, bucket string, filePath string) error {
 	if err = writer.Close(); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -103,6 +101,5 @@ func (g *GcsFileHandler) Read(
 	if err != nil {
 		return nil, err
 	}
-
 	return raw, nil
 }
