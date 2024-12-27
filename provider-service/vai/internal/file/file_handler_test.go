@@ -17,93 +17,72 @@ func TestGcsFileHandlerUnitSuite(t *testing.T) {
 	RunSpecs(t, "VAI GCS File Handler Unit Suite")
 }
 
-var _ = Describe("GcsFileHandler", func() {
+var _ = Describe("GcsFileHandler", Ordered, func() {
 	var (
+		ctx     context.Context
 		server  *fakestorage.Server
 		handler GcsFileHandler
-		ctx     context.Context
 
-		bucketName string
-		filePath   string
-		testData   map[string]any
-		testBytes  []byte
+		bucket    string
+		filePath  string
+		testData  map[string]any
+		testBytes []byte
 	)
 
-	BeforeEach(func() {
-		// Start the fake GCS server
-		// server = fakestorage.NewServer(nil)
-		server, err := fakestorage.NewServerWithOptions(
-			fakestorage.Options{
-				Scheme: "http",
-			},
-		)
+	BeforeAll(func() {
+		var err error
+		server = fakestorage.NewServer(nil)
 		Expect(err).ShouldNot(HaveOccurred())
 
 		ctx = context.Background()
 
-		handler, err = NewGcsFileHandler(ctx, server.URL())
+		// fake GCS server doesn't share data between different clients
+		// (required for a round-trip test), so the same client must be used
+		// throughout.
+		handler = GcsFileHandler{ctx, *server.Client()}
 		Expect(err).ShouldNot(HaveOccurred())
-		// Test data setup
-		bucketName = "test-bucket"
+
+		bucket = "test-bucket"
 		filePath = "test-folder/test-file.json"
 		testData = map[string]any{"key": "value"}
 		testBytes, _ = json.Marshal(testData)
 
-		// Create a bucket
-		err = server.Client().Bucket(bucketName).Create(ctx, "test-project", nil)
+		err = server.Client().Bucket(bucket).Create(ctx, "test-project", nil)
 		Expect(err).ShouldNot(HaveOccurred())
 	})
 
-	AfterEach(func() {
+	AfterAll(func() {
 		server.Stop()
 	})
 
-	Describe("Write", func() {
-		It("should write data to the specified bucket and file path", func() {
-			err := handler.Write(testBytes, bucketName, filePath)
-			Expect(err).ShouldNot(HaveOccurred())
+	Context("Write, Read And Delete round trip", func() {
+		When("Write", func() {
+			It("should write data to the specified bucket and file path", func() {
+				err := handler.Write(testBytes, bucket, filePath)
+				Expect(err).ShouldNot(HaveOccurred())
 
-			// Verify the file exists in the fake GCS server
-			obj, err := server.Client().Bucket(bucketName).Object(filePath).Attrs(ctx)
-			Expect(err).ShouldNot(HaveOccurred())
-			Expect(obj.Name).To(Equal(filePath))
+				obj, err := server.Client().Bucket(bucket).Object(filePath).Attrs(ctx)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(obj.Name).To(Equal(filePath))
+
+			})
+		})
+		When("Read", func() {
+			It("should extract the written data from the bucket", func() {
+				readData, err := handler.Read(bucket, filePath)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(readData).To(Equal(testData))
+			})
+		})
+		When("Delete", func() {
+			It("should delete the file in the bucket", func() {
+				err := handler.Delete("test-folder", bucket)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				readData, err := handler.Read(bucket, filePath)
+				Expect(err).Should(HaveOccurred())
+				Expect(readData).Should(BeNil())
+			})
 		})
 	})
-
-	// Describe("Read", func() {
-	// 	BeforeEach(func() {
-	// 		// Preload the object into the fake GCS server
-	// 		writer := server.Client().Bucket(bucketName).Object(filePath).NewWriter(ctx)
-	// 		_, err := io.WriteString(writer, string(testBytes))
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	// 		err = writer.Close()
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	// 	})
-	//
-	// 	It("should read data from the specified bucket and file path", func() {
-	// 		readData, err := handler.Read(bucketName, filePath)
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	// 		Expect(readData).To(Equal(testData))
-	// 	})
-	// })
-	//
-	// Describe("Delete", func() {
-	// 	BeforeEach(func() {
-	// 		// Preload the object into the fake GCS server
-	// 		writer := server.Client().Bucket(bucketName).Object(filePath).NewWriter(ctx)
-	// 		_, err := io.WriteString(writer, string(testBytes))
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	// 		err = writer.Close()
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	// 	})
-	//
-	// 	It("should delete objects with the specified prefix", func() {
-	// 		err := handler.Delete("test-folder", bucketName)
-	// 		Expect(err).ShouldNot(HaveOccurred())
-	//
-	// 		// Verify the file no longer exists
-	// 		_, err = server.Client().Bucket(bucketName).Object(filePath).Attrs(ctx)
-	// 		Expect(err).Should(HaveOccurred())
-	// 	})
-	// })
 })
