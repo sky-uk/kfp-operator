@@ -18,6 +18,7 @@ type VAIProvider struct {
 	config         VAIProviderConfig
 	fileHandler    file.FileHandler
 	pipelineClient aiplatform.PipelineClient
+	scheduleClient aiplatform.ScheduleClient
 	jobBuilder     JobBuilder
 }
 
@@ -34,12 +35,24 @@ func NewProvider(
 		ctx,
 		option.WithEndpoint(config.VaiEndpoint()),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	sc, err := aiplatform.NewScheduleClient(
+		ctx,
+		option.WithEndpoint(config.VaiEndpoint()),
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	return &VAIProvider{
 		ctx:            ctx,
 		config:         config,
 		fileHandler:    &fh,
 		pipelineClient: *pc,
+		scheduleClient: *sc,
 		jobBuilder: JobBuilder{
 			serviceAccount: config.Parameters.VaiJobServiceAccount,
 			pipelineBucket: config.Parameters.PipelineBucket,
@@ -104,14 +117,16 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		vaip.config.Parameters.PipelineBucket,
 		pipelinePath,
 	)
+	if err != nil {
+		return "", err
+	}
 
 	job, err := vaip.jobBuilder.MkRunPipelineJob(rd)
 	if err != nil {
 		return "", err
 	}
 
-	err = vaip.enrich(job, raw)
-	if err != nil {
+	if err := vaip.enrich(job, raw); err != nil {
 		return "", err
 	}
 
@@ -138,6 +153,31 @@ func (vaip *VAIProvider) DeleteRun(_ string) error {
 func (vaip *VAIProvider) CreateRunSchedule(
 	rsd resource.RunScheduleDefinition,
 ) (string, error) {
+	pipelinePath, err := vaip.config.pipelineStorageObject(
+		rsd.PipelineName,
+		rsd.PipelineVersion,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	raw, err := vaip.fileHandler.Read(
+		vaip.config.Parameters.PipelineBucket,
+		pipelinePath,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd)
+	if err != nil {
+		return "", nil
+	}
+
+	if err := vaip.enrich(job, raw); err != nil {
+		return "", nil
+	}
+
 	return "", nil
 }
 
