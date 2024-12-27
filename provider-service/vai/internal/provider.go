@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/file"
 	"google.golang.org/api/option"
@@ -20,6 +18,7 @@ type VAIProvider struct {
 	config         VAIProviderConfig
 	fileHandler    file.FileHandler
 	pipelineClient aiplatform.PipelineClient
+	jobBuilder     JobBuilder
 }
 
 func NewProvider(
@@ -41,6 +40,10 @@ func NewProvider(
 		config:         config,
 		fileHandler:    &fh,
 		pipelineClient: *pc,
+		jobBuilder: JobBuilder{
+			serviceAccount: config.Parameters.VaiJobServiceAccount,
+			pipelineBucket: config.Parameters.PipelineBucket,
+		},
 	}, nil
 }
 
@@ -102,7 +105,7 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		pipelinePath,
 	)
 
-	job, err := vaip.mkPipelineJob(rd)
+	job, err := vaip.jobBuilder.MkPipelineJob(rd)
 	if err != nil {
 		return "", err
 	}
@@ -164,74 +167,6 @@ func (vaip *VAIProvider) UpdateExperiment(
 
 func (vaip *VAIProvider) DeleteExperiment(_ string) error {
 	return errors.New("not implemented")
-}
-
-func runLabelsFromPipeline(
-	pipelineName common.NamespacedName,
-	pipelineVersion string,
-) map[string]string {
-	return map[string]string{
-		labels.PipelineName:      pipelineName.Name,
-		labels.PipelineNamespace: pipelineName.Namespace,
-		labels.PipelineVersion:   strings.ReplaceAll(pipelineVersion, ".", "-"),
-	}
-}
-
-func runLabelsFromRunDefinition(
-	rd resource.RunDefinition,
-) map[string]string {
-	runLabels := runLabelsFromPipeline(
-		rd.PipelineName,
-		rd.PipelineVersion,
-	)
-
-	if !rd.RunConfigurationName.Empty() {
-		runLabels[labels.RunConfigurationName] =
-			rd.RunConfigurationName.Name
-		runLabels[labels.RunConfigurationNamespace] =
-			rd.RunConfigurationName.Namespace
-	}
-
-	if !rd.Name.Empty() {
-		runLabels[labels.RunName] = rd.Name.Name
-		runLabels[labels.RunNamespace] = rd.Name.Namespace
-	}
-
-	return runLabels
-}
-
-// for CreateRun
-func (vaip *VAIProvider) mkPipelineJob(
-	rd resource.RunDefinition,
-) (*aiplatformpb.PipelineJob, error) {
-	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
-	for name, value := range rd.RuntimeParameters {
-		params[name] = &aiplatformpb.Value{
-			Value: &aiplatformpb.Value_StringValue{
-				StringValue: value,
-			},
-		}
-	}
-
-	// TODO: see if pipelinePath can be passed in instead.
-	templateUri, err := vaip.config.pipelineUri(
-		rd.PipelineName,
-		rd.PipelineVersion,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	job := &aiplatformpb.PipelineJob{
-		Labels: runLabelsFromRunDefinition(rd),
-		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
-			Parameters: params,
-		},
-		ServiceAccount: vaip.config.Parameters.VaiJobServiceAccount,
-		TemplateUri:    templateUri,
-	}
-
-	return job, nil
 }
 
 // replacement for enrichJobWithSpecFromTemplateUri
