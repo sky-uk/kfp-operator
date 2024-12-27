@@ -87,7 +87,7 @@ func (r *ProviderReconciler) constructProviderServiceDeployment(provider *pipeli
 	const targetContainer = "provider-service" //TODO: make configurable from config
 	for _, container := range podTemplate.Spec.Containers {
 		if container.Name == targetContainer {
-			container.Image = provider.Spec.Image
+			container.Image = provider.Spec.ServiceImage
 			container.Env = append(container.Env, v1.EnvVar{
 				Name:  "PROVIDERNAME",
 				Value: provider.Name,

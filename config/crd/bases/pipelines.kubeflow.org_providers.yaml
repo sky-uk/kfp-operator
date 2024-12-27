@@ -193,8 +193,6 @@ spec:
                 type: array
               executionMode:
                 type: string
-              image:
-                type: string
               parameters:
                 additionalProperties:
                   x-kubernetes-preserve-unknown-fields: true
@@ -204,14 +202,16 @@ spec:
               serviceAccount:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                 type: string
+              serviceImage:
+                type: string
               type:
                 type: string
             required:
             - cliImage
             - executionMode
-            - image
             - pipelineRootStorage
             - serviceAccount
+            - serviceImage
             - type
             type: object
           status:
