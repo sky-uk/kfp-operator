@@ -14,7 +14,7 @@ type JobBuilder struct {
 	pipelineBucket string
 }
 
-func (b JobBuilder) MkPipelineJob(
+func (b JobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
@@ -43,7 +43,35 @@ func (b JobBuilder) MkPipelineJob(
 		ServiceAccount: b.serviceAccount,
 		TemplateUri:    templateUri,
 	}
+	return job, nil
+}
 
+func (b JobBuilder) MkRunSchedulePipelineJob(
+	rsd resource.RunScheduleDefinition,
+) (*aiplatformpb.PipelineJob, error) {
+	params := make(map[string]*aiplatformpb.Value, len(rsd.RuntimeParameters))
+	for name, value := range rsd.RuntimeParameters {
+		params[name] = &aiplatformpb.Value{
+			Value: &aiplatformpb.Value_StringValue{
+				StringValue: value,
+			},
+		}
+	}
+
+	// Note: unable to migrate from `Parameters` to `ParameterValues` at this point as `PipelineJob.pipeline_spec.schema_version` used by TFX is 2.0.0 see deprecated comment
+	templateUri, err := b.pipelineUri(rsd.PipelineName, rsd.PipelineVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	job := &aiplatformpb.PipelineJob{
+		Labels:         b.runLabelsFromSchedule(rsd),
+		TemplateUri:    templateUri,
+		ServiceAccount: b.serviceAccount,
+		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+			Parameters: params,
+		},
+	}
 	return job, nil
 }
 
@@ -100,6 +128,19 @@ func (b JobBuilder) runLabelsFromRunDefinition(
 	if !rd.Name.Empty() {
 		runLabels[labels.RunName] = rd.Name.Name
 		runLabels[labels.RunNamespace] = rd.Name.Namespace
+	}
+
+	return runLabels
+}
+
+func (b JobBuilder) runLabelsFromSchedule(
+	rsd resource.RunScheduleDefinition,
+) map[string]string {
+	runLabels := b.runLabelsFromPipeline(rsd.PipelineName, rsd.PipelineVersion)
+
+	if !rsd.RunConfigurationName.Empty() {
+		runLabels[labels.RunConfigurationName] = rsd.RunConfigurationName.Name
+		runLabels[labels.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
 	}
 
 	return runLabels
