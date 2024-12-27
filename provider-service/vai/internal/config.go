@@ -32,6 +32,8 @@ func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
 	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
 }
 
+// returns namespaceName/pipelineVersion
+// e.g. namespace/name/pipelineVersion
 func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName common.NamespacedName, pipelineVersion string) (string, error) {
 	namespaceName, err := pipelineName.String()
 	if err != nil {
