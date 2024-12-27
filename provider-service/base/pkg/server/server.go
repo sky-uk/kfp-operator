@@ -107,13 +107,11 @@ func Start(ctx context.Context, cfg config.Server, provider resource.Provider) e
 		&resource.RunSchedule{Provider: provider},
 		&resource.Experiment{Provider: provider},
 	}
-	// Create a server with the provided address and handler
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: New(httpResources),
 	}
 
-	// Start the server in a goroutine
 	go func() {
 		logger.Info("Starting HTTP server on %s", addr)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
