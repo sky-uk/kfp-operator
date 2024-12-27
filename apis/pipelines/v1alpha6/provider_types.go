@@ -33,7 +33,7 @@ type ProviderList struct {
 
 type ProviderSpec struct {
 	Type          ProviderType `json:"type" yaml:"type"`
-	Image         string       `json:"image" yaml:"image"`
+	ServiceImage  string       `json:"serviceImage" yaml:"serviceImage"`
 	CliImage      string       `json:"cliImage" yaml:"cliImage"`
 	ExecutionMode string       `json:"executionMode" yaml:"executionMode"`
 	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
@@ -47,7 +47,7 @@ type ProviderType string
 
 func (ps Provider) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(ps.Spec.Image)
+	oh.WriteStringField(ps.Spec.ServiceImage)
 	return oh.Sum()
 }
 
