@@ -51,7 +51,7 @@ type Provider interface {
 	UpdatePipeline(pd PipelineDefinition, id string) (string, error)
 	DeletePipeline(id string) error
 
-	CreateRun(rcd RunDefinition) (string, error)
+	CreateRun(rd RunDefinition) (string, error)
 	DeleteRun(id string) error
 
 	CreateRunSchedule(rsd RunScheduleDefinition) (string, error)
