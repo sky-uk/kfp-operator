@@ -102,7 +102,12 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		pipelinePath,
 	)
 
-	job, err := vaip.mkPipelineJob(rd, raw)
+	job, err := vaip.mkPipelineJob(rd)
+	if err != nil {
+		return "", err
+	}
+
+	err = vaip.enrich(job, raw)
 	if err != nil {
 		return "", err
 	}
@@ -198,7 +203,6 @@ func runLabelsFromRunDefinition(
 // for CreateRun
 func (vaip *VAIProvider) mkPipelineJob(
 	rd resource.RunDefinition,
-	raw map[string]any,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
 	for name, value := range rd.RuntimeParameters {
@@ -218,33 +222,42 @@ func (vaip *VAIProvider) mkPipelineJob(
 		return nil, err
 	}
 
-	pipelineSpec, err := structpb.NewStruct(
-		raw["pipelineSpec"].(map[string]interface{}),
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	job := &aiplatformpb.PipelineJob{
-		DisplayName:  raw["displayName"].(string),
-		PipelineSpec: pipelineSpec,
-		Labels:       runLabelsFromRunDefinition(rd),
+		Labels: runLabelsFromRunDefinition(rd),
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
-			Parameters:         params,
-			GcsOutputDirectory: raw["runtimeConfig"].(map[string]any)["gcsOutputDirectory"].(string),
+			Parameters: params,
 		},
 		ServiceAccount: vaip.config.Parameters.VaiJobServiceAccount,
 		TemplateUri:    templateUri,
 	}
 
-	labels := raw["labels"].(map[string]any)
+	return job, nil
+}
+
+// replacement for enrichJobWithSpecFromTemplateUri
+func (vaip *VAIProvider) enrich(
+	job *aiplatformpb.PipelineJob,
+	raw map[string]any,
+) error {
+	pipelineSpec, err := structpb.NewStruct(raw["pipelineSpec"].(map[string]interface{}))
+	if err != nil {
+		return err
+	}
+	job.PipelineSpec = pipelineSpec
+
+	displayName := raw["displayName"].(string)
+	job.DisplayName = displayName
+
+	labels := raw["labels"].(map[string]interface{})
 	if job.Labels == nil {
-		// redundant?
 		job.Labels = map[string]string{}
 	}
 	for k, v := range labels {
 		job.Labels[k] = v.(string)
 	}
 
-	return job, nil
+	gcsOutputDirectory := raw["runtimeConfig"].(map[string]interface{})["gcsOutputDirectory"].(string)
+
+	job.RuntimeConfig.GcsOutputDirectory = gcsOutputDirectory
+	return nil
 }
