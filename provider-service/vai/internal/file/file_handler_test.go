@@ -19,10 +19,9 @@ func TestGcsFileHandlerUnitSuite(t *testing.T) {
 
 var _ = Describe("GcsFileHandler", Ordered, func() {
 	var (
-		ctx     context.Context
-		server  *fakestorage.Server
-		handler GcsFileHandler
-
+		ctx       context.Context
+		server    *fakestorage.Server
+		handler   GcsFileHandler
 		bucket    string
 		filePath  string
 		testData  map[string]any
@@ -64,7 +63,6 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 				obj, err := server.Client().Bucket(bucket).Object(filePath).Attrs(ctx)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(obj.Name).To(Equal(filePath))
-
 			})
 		})
 		When("Read", func() {
