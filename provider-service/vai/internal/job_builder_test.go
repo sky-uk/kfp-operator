@@ -121,5 +121,13 @@ var _ = Describe("JobBuilder", func() {
 				Expect(runLabels).NotTo(HaveKey(labels.RunConfigurationNamespace))
 			})
 		})
+
+		It("replaces fullstops with dashes in pipelineVersion", func() {
+			input := randomBasicRunDefinition()
+			input.PipelineVersion = "0.4.0"
+			runLabels := jb.runLabelsFromRunDefinition(input)
+
+			Expect(runLabels[labels.PipelineVersion]).To(Equal("0-4-0"))
+		})
 	})
 })
