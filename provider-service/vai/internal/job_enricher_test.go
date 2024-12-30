@@ -9,37 +9,35 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-func newJob() aiplatformpb.PipelineJob {
-	return aiplatformpb.PipelineJob{
-		Labels:        map[string]string{"key": "value"},
-		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{},
-	}
-}
-func newRaw() map[string]any {
-	return map[string]any{
-		"displayName": "test-display-name",
-		"pipelineSpec": map[string]any{
-			"key": "value",
-		},
-		"labels": map[string]any{
-			"label-key-from-raw": "label-value-from-raw",
-		},
-		"runtimeConfig": map[string]any{
-			"gcsOutputDirectory": "gs://test-bucket",
-		},
-	}
-}
-
 var _ = Describe("JobEnricher", func() {
+	var job aiplatformpb.PipelineJob
+	var raw map[string]any
 	var je = JobEnricher{}
 
-	Context("enrich", func() {
+	BeforeEach(func() {
+		job = aiplatformpb.PipelineJob{
+			Labels:        map[string]string{"key": "value"},
+			RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{},
+		}
+
+		raw = map[string]any{
+			"displayName": "test-display-name",
+			"pipelineSpec": map[string]any{
+				"key": "value",
+			},
+			"labels": map[string]any{
+				"label-key-from-raw": "label-value-from-raw",
+			},
+			"runtimeConfig": map[string]any{
+				"gcsOutputDirectory": "gs://test-bucket",
+			},
+		}
+	})
+
+	Context("enrich", Ordered, func() {
 		When("something", func() {
 			It("do something", func() {
-				job := newJob()
-				raw := newRaw()
-
-				err := je.enrich(&job, newRaw())
+				_, err := je.enrich(&job, raw)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.DisplayName).To(Equal(raw["displayName"]))
 				pipelineSpec, err := structpb.NewStruct(
@@ -60,10 +58,9 @@ var _ = Describe("JobEnricher", func() {
 		})
 		When("job has no label field", func() {
 			It("should set the label field to an empty map", func() {
-				job := newJob()
 				job.Labels = nil
 
-				err := je.enrich(&job, newRaw())
+				_, err := je.enrich(&job, raw)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.Labels).To(Equal(map[string]string{
 					"label-key-from-raw": "label-value-from-raw",
@@ -72,63 +69,51 @@ var _ = Describe("JobEnricher", func() {
 		})
 		When("displayName is not a string", func() {
 			It("should return error", func() {
-				job := newJob()
-				raw := newRaw()
 				raw["displayName"] = 123
 
-				err := je.enrich(&job, raw)
+				_, err := je.enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 		When("pipelineSpec is not a map", func() {
 			It("should return error", func() {
-				job := newJob()
-				raw := newRaw()
 				raw["pipelineSpec"] = 123
 
-				err := je.enrich(&job, raw)
+				_, err := je.enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 		When("labels is not a map", func() {
 			It("should return error", func() {
-				job := newJob()
-				raw := newRaw()
 				raw["labels"] = 123
 
-				err := je.enrich(&job, raw)
+				_, err := je.enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 		When("runtimeConfig is not a map", func() {
 			It("should return error", func() {
-				job := newJob()
-				raw := newRaw()
 				raw["runtimeConfig"] = 123
 
-				err := je.enrich(&job, raw)
+				_, err := je.enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 		When("runtimeConfig.gcsOutputDirectory is not a string", func() {
 			It("should return error", func() {
-				job := newJob()
-				raw := newRaw()
 				raw["runtimeConfig"] = map[string]any{
 					"gcsOutputDirectory": 123,
 				}
 
-				err := je.enrich(&job, raw)
+				_, err := je.enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 		When("job has no RuntimeConfig", func() {
 			It("should return error", func() {
-				job := newJob()
 				job.RuntimeConfig = nil
-				raw := newRaw()
 
-				err := je.enrich(&job, raw)
+				_, err := je.enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
