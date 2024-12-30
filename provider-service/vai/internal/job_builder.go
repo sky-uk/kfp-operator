@@ -14,10 +14,12 @@ import (
 type JobBuilder struct {
 	serviceAccount string
 	pipelineBucket string
+	enricher       JobEnricher
 }
 
 func (b JobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
+	raw map[string]any,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
 	for name, value := range rd.RuntimeParameters {
@@ -45,11 +47,18 @@ func (b JobBuilder) MkRunPipelineJob(
 		ServiceAccount: b.serviceAccount,
 		TemplateUri:    templateUri,
 	}
-	return job, nil
+
+	enrichedJob, err := b.enricher.enrich(job, raw)
+	if err != nil {
+		return nil, err
+	}
+
+	return enrichedJob, nil
 }
 
 func (b JobBuilder) MkRunSchedulePipelineJob(
 	rsd resource.RunScheduleDefinition,
+	raw map[string]any,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rsd.RuntimeParameters))
 	for name, value := range rsd.RuntimeParameters {
@@ -74,7 +83,13 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 			Parameters: params,
 		},
 	}
-	return job, nil
+
+	enrichedJob, err := b.enricher.enrich(job, raw)
+	if err != nil {
+		return nil, err
+	}
+
+	return enrichedJob, nil
 }
 
 func (b JobBuilder) MKSchedule(
