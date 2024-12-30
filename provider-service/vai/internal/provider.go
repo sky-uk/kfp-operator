@@ -12,7 +12,6 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type VAIProvider struct {
@@ -123,12 +122,8 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunPipelineJob(rd)
+	job, err := vaip.jobBuilder.MkRunPipelineJob(rd, raw)
 	if err != nil {
-		return "", err
-	}
-
-	if err := vaip.enrich(job, raw); err != nil {
 		return "", err
 	}
 
@@ -171,12 +166,8 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd)
+	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd, raw)
 	if err != nil {
-		return "", nil
-	}
-
-	if err := vaip.enrich(job, raw); err != nil {
 		return "", nil
 	}
 
@@ -243,32 +234,4 @@ func (vaip *VAIProvider) UpdateExperiment(
 
 func (vaip *VAIProvider) DeleteExperiment(_ string) error {
 	return errors.New("not implemented")
-}
-
-// replacement for enrichJobWithSpecFromTemplateUri
-func (vaip *VAIProvider) enrich(
-	job *aiplatformpb.PipelineJob,
-	raw map[string]any,
-) error {
-	pipelineSpec, err := structpb.NewStruct(raw["pipelineSpec"].(map[string]interface{}))
-	if err != nil {
-		return err
-	}
-	job.PipelineSpec = pipelineSpec
-
-	displayName := raw["displayName"].(string)
-	job.DisplayName = displayName
-
-	labels := raw["labels"].(map[string]interface{})
-	if job.Labels == nil {
-		job.Labels = map[string]string{}
-	}
-	for k, v := range labels {
-		job.Labels[k] = v.(string)
-	}
-
-	gcsOutputDirectory := raw["runtimeConfig"].(map[string]interface{})["gcsOutputDirectory"].(string)
-
-	job.RuntimeConfig.GcsOutputDirectory = gcsOutputDirectory
-	return nil
 }
