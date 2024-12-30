@@ -6,7 +6,9 @@ import (
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type JobBuilder struct {
@@ -73,6 +75,40 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 		},
 	}
 	return job, nil
+}
+
+func (b JobBuilder) MKSchedule(
+	rsd resource.RunScheduleDefinition,
+	pipelineJob *aiplatformpb.PipelineJob,
+	parent string,
+	maxConcurrentRunCount int64,
+) (*aiplatformpb.Schedule, error) {
+	cron, err := ParseCron(rsd.Schedule.CronExpression)
+	if err != nil {
+		return nil, err
+	}
+
+	schedule := &aiplatformpb.Schedule{
+		TimeSpecification: &aiplatformpb.Schedule_Cron{Cron: cron.PrintStandard()},
+		Request: &aiplatformpb.Schedule_CreatePipelineJobRequest{
+			CreatePipelineJobRequest: &aiplatformpb.CreatePipelineJobRequest{
+				Parent:      parent,
+				PipelineJob: pipelineJob,
+			},
+		},
+		DisplayName:           fmt.Sprintf("rc-%s-%s", rsd.Name.Namespace, rsd.Name.Name),
+		MaxConcurrentRunCount: int64(maxConcurrentRunCount),
+		AllowQueueing:         true,
+	}
+
+	if rsd.Schedule.StartTime != nil {
+		schedule.StartTime = timestamppb.New(rsd.Schedule.StartTime.Time)
+	}
+
+	if rsd.Schedule.EndTime != nil {
+		schedule.EndTime = timestamppb.New(rsd.Schedule.EndTime.Time)
+	}
+	return schedule, nil
 }
 
 // returns namespaceName/pipelineVersion
