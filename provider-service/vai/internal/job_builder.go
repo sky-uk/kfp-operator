@@ -14,12 +14,10 @@ import (
 type JobBuilder struct {
 	serviceAccount string
 	pipelineBucket string
-	enricher       JobEnricher
 }
 
 func (b JobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
-	raw map[string]any,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
 	for name, value := range rd.RuntimeParameters {
@@ -48,17 +46,11 @@ func (b JobBuilder) MkRunPipelineJob(
 		TemplateUri:    templateUri,
 	}
 
-	enrichedJob, err := b.enricher.enrich(job, raw)
-	if err != nil {
-		return nil, err
-	}
-
-	return enrichedJob, nil
+	return job, nil
 }
 
 func (b JobBuilder) MkRunSchedulePipelineJob(
 	rsd resource.RunScheduleDefinition,
-	raw map[string]any,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rsd.RuntimeParameters))
 	for name, value := range rsd.RuntimeParameters {
@@ -69,7 +61,9 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 		}
 	}
 
-	// Note: unable to migrate from `Parameters` to `ParameterValues` at this point as `PipelineJob.pipeline_spec.schema_version` used by TFX is 2.0.0 see deprecated comment
+	// Note: unable to migrate from `Parameters` to `ParameterValues` at this
+	// point as `PipelineJob.pipeline_spec.schema_version` used by TFX
+	// is 2.0.0 see deprecated comment.
 	templateUri, err := b.pipelineUri(rsd.PipelineName, rsd.PipelineVersion)
 	if err != nil {
 		return nil, err
@@ -84,12 +78,7 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 		},
 	}
 
-	enrichedJob, err := b.enricher.enrich(job, raw)
-	if err != nil {
-		return nil, err
-	}
-
-	return enrichedJob, nil
+	return job, nil
 }
 
 func (b JobBuilder) MKSchedule(
