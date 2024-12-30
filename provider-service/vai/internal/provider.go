@@ -10,6 +10,8 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/file"
 	"google.golang.org/api/option"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -207,7 +209,23 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 }
 
 func (vaip *VAIProvider) DeleteRunSchedule(id string) error {
-	return nil
+	schedule, err := vaip.scheduleClient.DeleteSchedule(
+		vaip.ctx,
+		&aiplatformpb.DeleteScheduleRequest{
+			Name: id,
+		},
+	)
+	if err != nil {
+		return ignoreNotFound(err)
+	}
+	return ignoreNotFound(schedule.Wait(vaip.ctx))
+}
+
+func ignoreNotFound(err error) error {
+	if status.Code(err) == codes.NotFound {
+		return nil
+	}
+	return err
 }
 
 func (vaip *VAIProvider) CreateExperiment(
