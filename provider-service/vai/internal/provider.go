@@ -21,6 +21,7 @@ type VAIProvider struct {
 	pipelineClient aiplatform.PipelineClient
 	scheduleClient aiplatform.ScheduleClient
 	jobBuilder     JobBuilder
+	jobEnricher    JobEnricher
 }
 
 func NewProvider(
@@ -58,6 +59,7 @@ func NewProvider(
 			serviceAccount: config.Parameters.VaiJobServiceAccount,
 			pipelineBucket: config.Parameters.PipelineBucket,
 		},
+		jobEnricher: JobEnricher{},
 	}, nil
 }
 
@@ -122,7 +124,12 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunPipelineJob(rd, raw)
+	job, err := vaip.jobBuilder.MkRunPipelineJob(rd)
+	if err != nil {
+		return "", err
+	}
+
+	enrichedJob, err := vaip.jobEnricher.enrich(job, raw)
 	if err != nil {
 		return "", err
 	}
@@ -132,7 +139,7 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 	req := &aiplatformpb.CreatePipelineJobRequest{
 		Parent:        vaip.config.parent(),
 		PipelineJobId: fmt.Sprintf("%s-%s", runId, rd.Version),
-		PipelineJob:   job,
+		PipelineJob:   enrichedJob,
 	}
 
 	_, err = vaip.pipelineClient.CreatePipelineJob(vaip.ctx, req)
@@ -166,14 +173,19 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd, raw)
+	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd)
+	if err != nil {
+		return "", nil
+	}
+
+	enrichedJob, err := vaip.jobEnricher.enrich(job, raw)
 	if err != nil {
 		return "", nil
 	}
 
 	schedule, err := vaip.jobBuilder.MKSchedule(
 		rsd,
-		job,
+		enrichedJob,
 		vaip.config.parent(),
 		vaip.config.getMaxConcurrentRunCountOrDefault(),
 	)
