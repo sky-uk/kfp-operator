@@ -8,6 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -28,10 +29,10 @@ func (b JobBuilder) MkRunPipelineJob(
 		}
 	}
 
-	// TODO: see if pipelinePath can be passed in instead.
-	templateUri, err := b.pipelineUri(
+	templateUri, err := util.PipelineUri(
 		rd.PipelineName,
 		rd.PipelineVersion,
+		b.pipelineBucket,
 	)
 	if err != nil {
 		return nil, err
@@ -63,7 +64,11 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 	// Note: unable to migrate from `Parameters` to `ParameterValues` at this
 	// point as `PipelineJob.pipeline_spec.schema_version` used by TFX
 	// is 2.0.0 see deprecated comment.
-	templateUri, err := b.pipelineUri(rsd.PipelineName, rsd.PipelineVersion)
+	templateUri, err := util.PipelineUri(
+		rsd.PipelineName,
+		rsd.PipelineVersion,
+		b.pipelineBucket,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +84,7 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 	return job, nil
 }
 
-func (b JobBuilder) MKSchedule(
+func (b JobBuilder) MkSchedule(
 	rsd resource.RunScheduleDefinition,
 	pipelineJob *aiplatformpb.PipelineJob,
 	parent string,
@@ -111,30 +116,6 @@ func (b JobBuilder) MKSchedule(
 		schedule.EndTime = timestamppb.New(rsd.Schedule.EndTime.Time)
 	}
 	return schedule, nil
-}
-
-// returns namespaceName/pipelineVersion
-// e.g. namespace/name/pipelineVersion
-func (b JobBuilder) pipelineStorageObject(
-	pipelineName common.NamespacedName,
-	pipelineVersion string,
-) (string, error) {
-	namespaceName, err := pipelineName.String()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s/%s", namespaceName, pipelineVersion), nil
-}
-
-func (b JobBuilder) pipelineUri(
-	pipelineName common.NamespacedName,
-	pipelineVersion string,
-) (string, error) {
-	pipelineUri, err := b.pipelineStorageObject(pipelineName, pipelineVersion)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("gs://%s/%s", b.pipelineBucket, pipelineUri), nil
 }
 
 func (b JobBuilder) runLabelsFromPipeline(

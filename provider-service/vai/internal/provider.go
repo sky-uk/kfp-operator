@@ -9,6 +9,7 @@ import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/file"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -82,7 +83,7 @@ func (vaip *VAIProvider) UpdatePipeline(
 		return "", err
 	}
 
-	storageObject, err := vaip.config.pipelineStorageObject(pd.Name, pd.Version)
+	storageObject, err := util.PipelineStorageObject(pd.Name, pd.Version)
 	if err != nil {
 		return pipelineId, err
 	}
@@ -108,7 +109,7 @@ func (vaip *VAIProvider) DeletePipeline(id string) error {
 }
 
 func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
-	pipelinePath, err := vaip.config.pipelineStorageObject(
+	pipelinePath, err := util.PipelineStorageObject(
 		rd.PipelineName,
 		rd.PipelineVersion,
 	)
@@ -157,7 +158,7 @@ func (vaip *VAIProvider) DeleteRun(_ string) error {
 func (vaip *VAIProvider) CreateRunSchedule(
 	rsd resource.RunScheduleDefinition,
 ) (string, error) {
-	pipelinePath, err := vaip.config.pipelineStorageObject(
+	pipelinePath, err := util.PipelineStorageObject(
 		rsd.PipelineName,
 		rsd.PipelineVersion,
 	)
@@ -183,7 +184,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		return "", nil
 	}
 
-	schedule, err := vaip.jobBuilder.MKSchedule(
+	schedule, err := vaip.jobBuilder.MkSchedule(
 		rsd,
 		enrichedJob,
 		vaip.config.parent(),
