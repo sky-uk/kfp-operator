@@ -45,7 +45,6 @@ func (b JobBuilder) MkRunPipelineJob(
 		ServiceAccount: b.serviceAccount,
 		TemplateUri:    templateUri,
 	}
-
 	return job, nil
 }
 
@@ -77,7 +76,6 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 			Parameters: params,
 		},
 	}
-
 	return job, nil
 }
 
