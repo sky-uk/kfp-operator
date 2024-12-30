@@ -178,7 +178,25 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		return "", nil
 	}
 
-	return "", nil
+	schedule, err := vaip.jobBuilder.MKSchedule(
+		rsd,
+		job,
+		vaip.config.parent(),
+		vaip.config.getMaxConcurrentRunCountOrDefault(),
+	)
+
+	createdSchedule, err := vaip.scheduleClient.CreateSchedule(
+		vaip.ctx,
+		&aiplatformpb.CreateScheduleRequest{
+			Parent:   vaip.config.parent(),
+			Schedule: schedule,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return createdSchedule.Name, nil
 }
 
 func (vaip *VAIProvider) UpdateRunSchedule(
