@@ -3,6 +3,8 @@
 package internal
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
@@ -39,95 +41,151 @@ func randomRunScheduleDefinition() resource.RunScheduleDefinition {
 }
 
 var _ = Describe("JobBuilder", func() {
-	var jb = JobBuilder{}
+	var jb = JobBuilder{
+		serviceAccount: "service-account",
+		pipelineBucket: "pipeline-bucket",
+	}
 
 	Context("runLabelsFromRunDefinition", func() {
 		When("RunConfigurationName and RunName is present", func() {
 			It("generates run labels with RunConfigurationName and RunName", func() {
-				input := randomBasicRunDefinition()
-				runLabels := jb.runLabelsFromRunDefinition(input)
+				rd := randomBasicRunDefinition()
+				rl := jb.runLabelsFromRunDefinition(rd)
 
-				Expect(runLabels[labels.PipelineName]).To(Equal(input.PipelineName.Name))
-				Expect(runLabels[labels.PipelineNamespace]).To(Equal(input.PipelineName.Namespace))
-				Expect(runLabels[labels.PipelineVersion]).To(Equal(input.PipelineVersion))
-				Expect(runLabels[labels.RunConfigurationName]).To(Equal(input.RunConfigurationName.Name))
-				Expect(runLabels[labels.RunConfigurationNamespace]).To(Equal(input.RunConfigurationName.Namespace))
-				Expect(runLabels[labels.RunName]).To(Equal(input.Name.Name))
-				Expect(runLabels[labels.RunNamespace]).To(Equal(input.Name.Namespace))
+				Expect(rl[labels.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[labels.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[labels.PipelineVersion]).To(Equal(rd.PipelineVersion))
+				Expect(rl[labels.RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
+				Expect(rl[labels.RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
+				Expect(rl[labels.RunName]).To(Equal(rd.Name.Name))
+				Expect(rl[labels.RunNamespace]).To(Equal(rd.Name.Namespace))
 			})
 		})
 		When("RunConfigurationName is empty", func() {
 			It("generates run labels with RunName", func() {
-				input := randomBasicRunDefinition()
-				input.RunConfigurationName = common.NamespacedName{}
-				runLabels := jb.runLabelsFromRunDefinition(input)
+				rd := randomBasicRunDefinition()
+				rd.RunConfigurationName = common.NamespacedName{}
+				rl := jb.runLabelsFromRunDefinition(rd)
 
-				Expect(runLabels[labels.PipelineName]).To(Equal(input.PipelineName.Name))
-				Expect(runLabels[labels.PipelineNamespace]).To(Equal(input.PipelineName.Namespace))
-				Expect(runLabels[labels.PipelineVersion]).To(Equal(input.PipelineVersion))
-				Expect(runLabels[labels.RunName]).To(Equal(input.Name.Name))
-				Expect(runLabels[labels.RunNamespace]).To(Equal(input.Name.Namespace))
-				Expect(runLabels).NotTo(HaveKey(labels.RunConfigurationName))
-				Expect(runLabels).NotTo(HaveKey(labels.RunConfigurationNamespace))
+				Expect(rl[labels.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[labels.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[labels.PipelineVersion]).To(Equal(rd.PipelineVersion))
+				Expect(rl[labels.RunName]).To(Equal(rd.Name.Name))
+				Expect(rl[labels.RunNamespace]).To(Equal(rd.Name.Namespace))
+				Expect(rl).NotTo(HaveKey(labels.RunConfigurationName))
+				Expect(rl).NotTo(HaveKey(labels.RunConfigurationNamespace))
 			})
 		})
 		When("RunName is empty", func() {
 			It("generates run labels with RunName", func() {
-				input := randomBasicRunDefinition()
-				input.Name = common.NamespacedName{}
-				runLabels := jb.runLabelsFromRunDefinition(input)
+				rd := randomBasicRunDefinition()
+				rd.Name = common.NamespacedName{}
+				rl := jb.runLabelsFromRunDefinition(rd)
 
-				Expect(runLabels[labels.PipelineName]).To(Equal(input.PipelineName.Name))
-				Expect(runLabels[labels.PipelineNamespace]).To(Equal(input.PipelineName.Namespace))
-				Expect(runLabels[labels.PipelineVersion]).To(Equal(input.PipelineVersion))
-				Expect(runLabels[labels.RunConfigurationName]).To(Equal(input.RunConfigurationName.Name))
-				Expect(runLabels[labels.RunConfigurationNamespace]).To(Equal(input.RunConfigurationName.Namespace))
-				Expect(runLabels).NotTo(HaveKey(labels.RunName))
-				Expect(runLabels).NotTo(HaveKey(labels.RunNamespace))
+				Expect(rl[labels.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[labels.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[labels.PipelineVersion]).To(Equal(rd.PipelineVersion))
+				Expect(rl[labels.RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
+				Expect(rl[labels.RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
+				Expect(rl).NotTo(HaveKey(labels.RunName))
+				Expect(rl).NotTo(HaveKey(labels.RunNamespace))
 			})
 		})
 		It("replaces fullstops with dashes in pipelineVersion", func() {
-			input := randomBasicRunDefinition()
-			input.PipelineVersion = "0.4.0"
-			runLabels := jb.runLabelsFromRunDefinition(input)
+			rd := randomBasicRunDefinition()
+			rd.PipelineVersion = "0.4.0"
+			rl := jb.runLabelsFromRunDefinition(rd)
 
-			Expect(runLabels[labels.PipelineVersion]).To(Equal("0-4-0"))
+			Expect(rl[labels.PipelineVersion]).To(Equal("0-4-0"))
 		})
 	})
 
 	Context("runLabelsFromSchedule", func() {
 		When("RunConfigurationName is present", func() {
 			It("generates run labels with RunConfiguration name and namespace", func() {
-				input := randomRunScheduleDefinition()
-				runLabels := jb.runLabelsFromSchedule(input)
+				rsd := randomRunScheduleDefinition()
+				rl := jb.runLabelsFromSchedule(rsd)
 
-				Expect(runLabels[labels.PipelineName]).To(Equal(input.PipelineName.Name))
-				Expect(runLabels[labels.PipelineNamespace]).To(Equal(input.PipelineName.Namespace))
-				Expect(runLabels[labels.PipelineVersion]).To(Equal(input.PipelineVersion))
-				Expect(runLabels[labels.RunConfigurationName]).To(Equal(input.RunConfigurationName.Name))
-				Expect(runLabels[labels.RunConfigurationNamespace]).To(Equal(input.RunConfigurationName.Namespace))
+				Expect(rl[labels.PipelineName]).To(Equal(rsd.PipelineName.Name))
+				Expect(rl[labels.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
+				Expect(rl[labels.PipelineVersion]).To(Equal(rsd.PipelineVersion))
+				Expect(rl[labels.RunConfigurationName]).To(Equal(rsd.RunConfigurationName.Name))
+				Expect(rl[labels.RunConfigurationNamespace]).To(Equal(rsd.RunConfigurationName.Namespace))
 			})
 		})
 		When("RunConfigurationName is empty", func() {
 			It("generates run labels without RunConfiguration name and namespace", func() {
-				input := randomRunScheduleDefinition()
-				input.RunConfigurationName = common.NamespacedName{}
-				runLabels := jb.runLabelsFromSchedule(input)
+				rsd := randomRunScheduleDefinition()
+				rsd.RunConfigurationName = common.NamespacedName{}
+				rl := jb.runLabelsFromSchedule(rsd)
 
-				Expect(runLabels[labels.PipelineName]).To(Equal(input.PipelineName.Name))
-				Expect(runLabels[labels.PipelineNamespace]).To(Equal(input.PipelineName.Namespace))
-				Expect(runLabels[labels.PipelineVersion]).To(Equal(input.PipelineVersion))
-				Expect(runLabels).NotTo(HaveKey(labels.RunConfigurationName))
-				Expect(runLabels).NotTo(HaveKey(labels.RunConfigurationNamespace))
+				Expect(rl[labels.PipelineName]).To(Equal(rsd.PipelineName.Name))
+				Expect(rl[labels.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
+				Expect(rl[labels.PipelineVersion]).To(Equal(rsd.PipelineVersion))
+				Expect(rl).NotTo(HaveKey(labels.RunConfigurationName))
+				Expect(rl).NotTo(HaveKey(labels.RunConfigurationNamespace))
 			})
 		})
 
 		It("replaces fullstops with dashes in pipelineVersion", func() {
-			input := randomBasicRunDefinition()
-			input.PipelineVersion = "0.4.0"
-			runLabels := jb.runLabelsFromRunDefinition(input)
+			rd := randomBasicRunDefinition()
+			rd.PipelineVersion = "0.4.0"
+			rl := jb.runLabelsFromRunDefinition(rd)
 
-			Expect(runLabels[labels.PipelineVersion]).To(Equal("0-4-0"))
+			Expect(rl[labels.PipelineVersion]).To(Equal("0-4-0"))
+		})
+	})
+
+	Context("MkRunPipelineJob", func() {
+		When("templateUri is valid", func() {
+			It("should make a run pipeline job", func() {
+				rd := randomBasicRunDefinition()
+				job, err := jb.MkRunPipelineJob(rd)
+				expectedTemplateUri := fmt.Sprintf(
+					"gs://%s/%s/%s/%s",
+					jb.pipelineBucket,
+					rd.PipelineName.Namespace,
+					rd.PipelineName.Name,
+					rd.PipelineVersion,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				for k, v := range job.RuntimeConfig.Parameters {
+					Expect(v.GetStringValue).To(Equal(rd.RuntimeParameters[k]))
+				}
+				// TODO: assert labels
+				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
+				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
+			})
+		})
+		When("templateUri is invalid", func() {
+			It("should return erro", func() {
+				rd := randomBasicRunDefinition()
+				rd.PipelineName.Name = ""
+				_, err := jb.MkRunPipelineJob(rd)
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	Context("MkRunSchedulePipelineJob", func() {
+		When("templateUri is valid", func() {
+			It("should make a run schedule pipeline job", func() {
+				rsd := randomRunScheduleDefinition()
+				job, err := jb.MkRunSchedulePipelineJob(rsd)
+				expectedTemplateUri := fmt.Sprintf(
+					"gs://%s/%s/%s/%s",
+					jb.pipelineBucket,
+					rsd.PipelineName.Namespace,
+					rsd.PipelineName.Name,
+					rsd.PipelineVersion,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
+				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
+			})
 		})
 	})
 })
