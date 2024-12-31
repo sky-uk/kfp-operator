@@ -2,10 +2,8 @@ package internal
 
 import (
 	"fmt"
-	"strings"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
@@ -15,6 +13,7 @@ import (
 type JobBuilder struct {
 	serviceAccount string
 	pipelineBucket string
+	labelGen       LabelGen
 }
 
 func (b JobBuilder) MkRunPipelineJob(
@@ -38,8 +37,13 @@ func (b JobBuilder) MkRunPipelineJob(
 		return nil, err
 	}
 
+	labels, err := b.labelGen.GenerateLabels(rd)
+	if err != nil {
+		return nil, err
+	}
+
 	job := &aiplatformpb.PipelineJob{
-		Labels: b.runLabelsFromRunDefinition(rd),
+		Labels: labels,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: params,
 		},
@@ -73,13 +77,18 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 		return nil, err
 	}
 
+	labels, err := b.labelGen.GenerateLabels(rsd)
+	if err != nil {
+		return nil, err
+	}
+
 	job := &aiplatformpb.PipelineJob{
-		Labels:         b.runLabelsFromSchedule(rsd),
-		TemplateUri:    templateUri,
+		Labels:         labels,
 		ServiceAccount: b.serviceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: params,
 		},
+		TemplateUri: templateUri,
 	}
 	return job, nil
 }
@@ -116,51 +125,4 @@ func (b JobBuilder) MkSchedule(
 		schedule.EndTime = timestamppb.New(rsd.Schedule.EndTime.Time)
 	}
 	return schedule, nil
-}
-
-func (b JobBuilder) runLabelsFromPipeline(
-	pipelineName common.NamespacedName,
-	pipelineVersion string,
-) map[string]string {
-	return map[string]string{
-		labels.PipelineName:      pipelineName.Name,
-		labels.PipelineNamespace: pipelineName.Namespace,
-		labels.PipelineVersion:   strings.ReplaceAll(pipelineVersion, ".", "-"),
-	}
-}
-
-func (b JobBuilder) runLabelsFromRunDefinition(
-	rd resource.RunDefinition,
-) map[string]string {
-	runLabels := b.runLabelsFromPipeline(
-		rd.PipelineName,
-		rd.PipelineVersion,
-	)
-
-	if !rd.RunConfigurationName.Empty() {
-		runLabels[labels.RunConfigurationName] =
-			rd.RunConfigurationName.Name
-		runLabels[labels.RunConfigurationNamespace] =
-			rd.RunConfigurationName.Namespace
-	}
-
-	if !rd.Name.Empty() {
-		runLabels[labels.RunName] = rd.Name.Name
-		runLabels[labels.RunNamespace] = rd.Name.Namespace
-	}
-
-	return runLabels
-}
-
-func (b JobBuilder) runLabelsFromSchedule(
-	rsd resource.RunScheduleDefinition,
-) map[string]string {
-	runLabels := b.runLabelsFromPipeline(rsd.PipelineName, rsd.PipelineVersion)
-
-	if !rsd.RunConfigurationName.Empty() {
-		runLabels[labels.RunConfigurationName] = rsd.RunConfigurationName.Name
-		runLabels[labels.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
-	}
-
-	return runLabels
 }
