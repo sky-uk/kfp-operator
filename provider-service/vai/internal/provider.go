@@ -59,6 +59,7 @@ func NewProvider(
 		jobBuilder: JobBuilder{
 			serviceAccount: config.Parameters.VaiJobServiceAccount,
 			pipelineBucket: config.Parameters.PipelineBucket,
+			labelGen:       DefaultLabelGen{},
 		},
 		jobEnricher: JobEnricher{},
 	}, nil
