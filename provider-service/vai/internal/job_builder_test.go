@@ -5,11 +5,13 @@ package internal
 import (
 	"fmt"
 
+	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -126,6 +128,84 @@ var _ = Describe("JobBuilder", func() {
 				_, err := jb.MkRunSchedulePipelineJob(rsd)
 
 				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	Context("MkSchedule", func() {
+		It("should make a Schedule", func() {
+			rsd := randomRunScheduleDefinition()
+			expectedCron := aiplatformpb.Schedule_Cron{Cron: "1 2 * 1 2"}
+			rsd.Schedule.CronExpression = expectedCron.Cron
+
+			expectedPipelineJob := aiplatformpb.PipelineJob{Name: "test"}
+			schedule, err := jb.MkSchedule(
+				rsd,
+				&expectedPipelineJob,
+				"parent",
+				1000,
+			)
+
+			expectedPipelineJobReq := aiplatformpb.Schedule_CreatePipelineJobRequest{
+				CreatePipelineJobRequest: &aiplatformpb.CreatePipelineJobRequest{
+					Parent:      "parent",
+					PipelineJob: &expectedPipelineJob,
+				},
+			}
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(schedule.TimeSpecification).To(Equal(&expectedCron))
+			Expect(schedule.Request).To(Equal(&expectedPipelineJobReq))
+			Expect(schedule.DisplayName).To(Equal(fmt.Sprintf("rc-%s-%s", rsd.Name.Namespace, rsd.Name.Name)))
+			Expect(schedule.StartTime).To(Equal(timestamppb.New(now.Time)))
+			Expect(schedule.EndTime).To(Equal(timestamppb.New(now.Time)))
+			Expect(schedule.MaxConcurrentRunCount).To(Equal(int64(1000)))
+			Expect(schedule.AllowQueueing).To(BeTrue())
+		})
+		When("schedule cron expression is invalid", func() {
+			It("returns an error", func() {
+				rsd := randomRunScheduleDefinition()
+				rsd.Schedule.CronExpression = "invalid cron"
+
+				_, err := jb.MkSchedule(
+					rsd,
+					&aiplatformpb.PipelineJob{Name: "test"},
+					"parent",
+					1000,
+				)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+		When("run definition schedule start time is empty", func() {
+			It("should create a scheudle without start time", func() {
+				rsd := randomRunScheduleDefinition()
+				rsd.Schedule.StartTime = nil
+				schedule, err := jb.MkSchedule(
+					rsd,
+					&aiplatformpb.PipelineJob{Name: "test"},
+					"parent",
+					1000,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(schedule.StartTime).To(BeNil())
+				Expect(schedule.EndTime).To(Equal(timestamppb.New(now.Time)))
+			})
+		})
+		When("run definition schedule end time is empty", func() {
+			It("should create a scheudle without end time", func() {
+				rsd := randomRunScheduleDefinition()
+				rsd.Schedule.EndTime = nil
+				schedule, err := jb.MkSchedule(
+					rsd,
+					&aiplatformpb.PipelineJob{Name: "test"},
+					"parent",
+					1000,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(schedule.StartTime).To(Equal(timestamppb.New(now.Time)))
+				Expect(schedule.EndTime).To(BeNil())
 			})
 		})
 	})
