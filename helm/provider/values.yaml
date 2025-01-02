@@ -39,3 +39,6 @@ service:
     requests:
       cpu: 100m
       memory: 200Mi
+  server:
+    host: localhost
+    port: 8181
