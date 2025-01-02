@@ -18,27 +18,26 @@ spec:
     port: 8082
     endpoints: []
   defaultProviderValues:
-    labels:
-      app: provider
     replicas: 1
     podTemplateSpec:
-      securityContext:
-        runAsNonRoot: true
-      containers:
-      - name: provider-service
+      spec:
         securityContext:
-          allowPrivilegeEscalation: false
-        resources:
-          limits:
-            cpu: 500m
-            memory: 256Mi
-          requests:
-            cpu: 250m
-            memory: 128Mi
-        env:
-        - name: POD_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: OPERATORWEBHOOK
-          value: kfp-operator-controller-manager.kfp-operator-system:8082/events
+          runAsNonRoot: true
+        containers:
+        - name: provider-service
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 250m
+              memory: 128Mi
+          env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: OPERATORWEBHOOK
+            value: kfp-operator-controller-manager.kfp-operator-system:8082/events
