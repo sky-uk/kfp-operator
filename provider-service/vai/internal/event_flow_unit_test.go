@@ -32,11 +32,11 @@ func artifact() *aiplatformpb.Artifact {
 	}
 }
 
-type MockPipelineJobClient2 struct {
+type MockPipelineJobClient struct {
 	mock.Mock
 }
 
-func (m *MockPipelineJobClient2) GetPipelineJob(
+func (m *MockPipelineJobClient) GetPipelineJob(
 	ctx context.Context,
 	req *aiplatformpb.GetPipelineJobRequest,
 	opts ...gax.CallOption,
@@ -47,7 +47,7 @@ func (m *MockPipelineJobClient2) GetPipelineJob(
 
 var _ = Context("VaiEventingServer", func() {
 	var (
-		mockPipelineJobClient *MockPipelineJobClient2
+		mockPipelineJobClient *MockPipelineJobClient
 		eventingFlow          EventFlow
 		inChan                chan StreamMessage[string]
 		outChan               chan StreamMessage[*common.RunCompletionEventData]
@@ -57,7 +57,7 @@ var _ = Context("VaiEventingServer", func() {
 	)
 
 	BeforeEach(func() {
-		mockPipelineJobClient = &MockPipelineJobClient2{}
+		mockPipelineJobClient = &MockPipelineJobClient{}
 		inChan = make(chan StreamMessage[string])
 		outChan = make(chan StreamMessage[*common.RunCompletionEventData])
 		errChan = make(chan error)
@@ -459,7 +459,12 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
 				expectedErr := errors.New("an error")
-				mockPipelineJobClient.On("GetPipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&aiplatformpb.PipelineJob{}, expectedErr)
+				mockPipelineJobClient.On(
+					"GetPipelineJob",
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+				).Return(&aiplatformpb.PipelineJob{}, expectedErr)
 				event, err := eventingFlow.runCompletionEventDataForRun(common.RandomString())
 				Expect(event).To(BeNil())
 				Expect(err).To(Equal(expectedErr))
@@ -470,7 +475,9 @@ var _ = Context("VaiEventingServer", func() {
 			It("Returns a RunCompletionEvent", func() {
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything, mock.Anything, mock.Anything,
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
 				).Return(
 					&aiplatformpb.PipelineJob{
 						State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
@@ -488,7 +495,12 @@ var _ = Context("VaiEventingServer", func() {
 		When("runCompletionEventDataForRun errors with NotFound", func() {
 			It("acks the message and outputs to error sink", func() {
 				expectedErr := status.New(codes.NotFound, "not found").Err()
-				mockPipelineJobClient.On("GetPipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&aiplatformpb.PipelineJob{}, expectedErr)
+				mockPipelineJobClient.On(
+					"GetPipelineJob",
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+				).Return(&aiplatformpb.PipelineJob{}, expectedErr)
 				eventingFlow.Start()
 
 				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
@@ -501,7 +513,12 @@ var _ = Context("VaiEventingServer", func() {
 		When("runCompletionEventDataForRun errors", func() {
 			It("nacks the message and outputs to error sink", func() {
 				expectedErr := errors.New("an error")
-				mockPipelineJobClient.On("GetPipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&aiplatformpb.PipelineJob{}, expectedErr)
+				mockPipelineJobClient.On(
+					"GetPipelineJob",
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+				).Return(&aiplatformpb.PipelineJob{}, expectedErr)
 				eventingFlow.Start()
 
 				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
@@ -515,7 +532,9 @@ var _ = Context("VaiEventingServer", func() {
 			It("sends the message to the out channel", func() {
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything, mock.Anything, mock.Anything,
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
 				).Return(
 					&aiplatformpb.PipelineJob{
 						State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
