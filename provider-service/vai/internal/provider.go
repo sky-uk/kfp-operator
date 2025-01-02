@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/googleapis/gax-go/v2"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -15,12 +16,25 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type ScheduleClient interface {
+	CreateSchedule(
+		ctx context.Context,
+		req *aiplatformpb.CreateScheduleRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.Schedule, error)
+	DeleteSchedule(
+		ctx context.Context,
+		req *aiplatformpb.DeleteScheduleRequest,
+		opts ...gax.CallOption,
+	) (*aiplatform.DeleteScheduleOperation, error)
+}
+
 type VAIProvider struct {
 	ctx            context.Context
 	config         VAIProviderConfig
 	fileHandler    file.FileHandler
-	pipelineClient aiplatform.PipelineClient
-	scheduleClient aiplatform.ScheduleClient
+	pipelineClient PipelineJobClient
+	scheduleClient ScheduleClient
 	jobBuilder     JobBuilder
 	jobEnricher    JobEnricher
 }
@@ -54,14 +68,14 @@ func NewProvider(
 		ctx:            ctx,
 		config:         config,
 		fileHandler:    &fh,
-		pipelineClient: *pc,
-		scheduleClient: *sc,
-		jobBuilder: JobBuilder{
+		pipelineClient: pc,
+		scheduleClient: sc,
+		jobBuilder: DefaultJobBuilder{
 			serviceAccount: config.Parameters.VaiJobServiceAccount,
 			pipelineBucket: config.Parameters.PipelineBucket,
 			labelGen:       DefaultLabelGen{},
 		},
-		jobEnricher: JobEnricher{},
+		jobEnricher: DefaultJobEnricher{},
 	}, nil
 }
 
@@ -77,7 +91,7 @@ func (vaip *VAIProvider) CreatePipeline(
 
 func (vaip *VAIProvider) UpdatePipeline(
 	pd resource.PipelineDefinition,
-	id string,
+	_ string,
 ) (string, error) {
 	pipelineId, err := pd.Name.String()
 	if err != nil {
@@ -131,7 +145,7 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		return "", err
 	}
 
-	enrichedJob, err := vaip.jobEnricher.enrich(job, raw)
+	enrichedJob, err := vaip.jobEnricher.Enrich(job, raw)
 	if err != nil {
 		return "", err
 	}
@@ -180,7 +194,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		return "", nil
 	}
 
-	enrichedJob, err := vaip.jobEnricher.enrich(job, raw)
+	enrichedJob, err := vaip.jobEnricher.Enrich(job, raw)
 	if err != nil {
 		return "", nil
 	}

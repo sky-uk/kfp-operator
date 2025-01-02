@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO extract to different file as it's shared
 func randomBasicRunDefinition() resource.RunDefinition {
 	return resource.RunDefinition{
 		Name:                 common.RandomNamespacedName(),
@@ -60,7 +61,7 @@ func (lg MockLabelGen) GenerateLabels(value any) (map[string]string, error) {
 }
 
 var _ = Describe("JobBuilder", func() {
-	var jb = JobBuilder{
+	var jb = DefaultJobBuilder{
 		serviceAccount: "service-account",
 		pipelineBucket: "pipeline-bucket",
 		labelGen:       MockLabelGen{},

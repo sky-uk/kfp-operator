@@ -123,10 +123,16 @@ func (vef *EventFlow) Start() {
 	}()
 }
 
+// TODO extract this to a different file somewhere as it's shared
 type PipelineJobClient interface {
 	GetPipelineJob(
 		ctx context.Context,
 		req *aiplatformpb.GetPipelineJobRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.PipelineJob, error)
+	CreatePipelineJob(
+		ctx context.Context,
+		req *aiplatformpb.CreatePipelineJobRequest,
 		opts ...gax.CallOption,
 	) (*aiplatformpb.PipelineJob, error)
 }
