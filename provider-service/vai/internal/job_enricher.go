@@ -7,9 +7,16 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-type JobEnricher struct{}
+type JobEnricher interface {
+	Enrich(
+		job *aiplatformpb.PipelineJob,
+		raw map[string]any,
+	) (*aiplatformpb.PipelineJob, error)
+}
 
-func (je JobEnricher) enrich(
+type DefaultJobEnricher struct{}
+
+func (je DefaultJobEnricher) Enrich(
 	job *aiplatformpb.PipelineJob,
 	raw map[string]any,
 ) (*aiplatformpb.PipelineJob, error) {
