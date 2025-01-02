@@ -91,6 +91,8 @@ var _ = Describe("Provider", func() {
 		mockFileHandler = MockFileHandler{}
 		mockPipelineClient = NewMockPipelineJobClient(mockCtrl)
 		mockScheduleClient = NewMockScheduleClient(mockCtrl)
+		mockJobBuilder = MockJobBuilder{}
+		mockJobEnricher = MockJobEnricher{}
 		vaiProvider = VAIProvider{
 			ctx:            context.Background(),
 			config:         VAIProviderConfig{},
@@ -104,7 +106,7 @@ var _ = Describe("Provider", func() {
 
 	Context("CreatePipeline", func() {
 		When("creating a pipeline", func() {
-			It("should return the pipeline ID when it succeeds", func() {
+			It("should return the pipeline ID", func() {
 				mockFileHandler.On("Write", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 				pipelineDefinition := randomPipelineDefinition()
@@ -114,7 +116,7 @@ var _ = Describe("Provider", func() {
 				Expect(pipelineId).To(Equal(fmt.Sprintf("%s/%s", pipelineDefinition.Name.Namespace, pipelineDefinition.Name.Name)))
 			})
 
-			It("return an error when it fails", func() {
+			It("return an error when the file handler write fails", func() {
 				mockFileHandler.On("Write", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed"))
 
 				pipelineDefinition := randomPipelineDefinition()
@@ -128,7 +130,7 @@ var _ = Describe("Provider", func() {
 
 	Context("UpdatePipeline", func() {
 		When("updating a pipeline", func() {
-			It("should return the pipeline ID when it succeeds", func() {
+			It("should return the pipeline ID", func() {
 				mockFileHandler.On("Write", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 				pipelineDefinition := randomPipelineDefinition()
@@ -138,7 +140,7 @@ var _ = Describe("Provider", func() {
 				Expect(pipelineId).To(Equal(fmt.Sprintf("%s/%s", pipelineDefinition.Name.Namespace, pipelineDefinition.Name.Name)))
 			})
 
-			It("return an error when it fails", func() {
+			It("return an error when the file handler write fails", func() {
 				mockFileHandler.On("Write", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed"))
 
 				pipelineDefinition := randomPipelineDefinition()
@@ -152,15 +154,77 @@ var _ = Describe("Provider", func() {
 
 	Context("DeletePipeline", func() {
 		When("deleting a pipeline", func() {
-			It("should not return an error when it succeeds", func() {
+			It("should not return an error", func() {
 				mockFileHandler.On("Delete", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 				err := vaiProvider.DeletePipeline("")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("return an error when it fails", func() {
+			It("return an error when the file handler delete fails", func() {
 				mockFileHandler.On("Delete", "pipelineId", mock.Anything, mock.Anything).Return(errors.New("failed"))
 				err := vaiProvider.DeletePipeline("pipelineId")
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+		})
+	})
+
+	Context("CreateRun", func() {
+		When("creating a run", func() {
+			It("return a run ID", func() {
+				runDefinition := randomBasicRunDefinition()
+				pipelineJob := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(pipelineJob, nil)
+				mockPipelineClient.EXPECT().CreatePipelineJob(gomock.Any(), gomock.Any()).Return(&pipelineJob, nil)
+				runId, err := vaiProvider.CreateRun(runDefinition)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(runId).To(Equal(fmt.Sprintf("%s-%s", runDefinition.Name.Namespace, runDefinition.Name.Name)))
+			})
+
+			It("return an error when the file handler read fails", func() {
+				runDefinition := randomBasicRunDefinition()
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(runDefinition)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the job builder fails", func() {
+				runDefinition := randomBasicRunDefinition()
+				pipelineJob := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(pipelineJob, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(runDefinition)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the job enricher fails", func() {
+				runDefinition := randomBasicRunDefinition()
+				pipelineJob := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(pipelineJob, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(runDefinition)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the pipeline client fails", func() {
+				runDefinition := randomBasicRunDefinition()
+				pipelineJob := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(pipelineJob, nil)
+				mockPipelineClient.EXPECT().CreatePipelineJob(gomock.Any(), gomock.Any()).Return(&pipelineJob, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(runDefinition)
+
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
 			})
