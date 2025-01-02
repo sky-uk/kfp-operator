@@ -10,13 +10,28 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type JobBuilder struct {
+type JobBuilder interface {
+	MkRunPipelineJob(
+		rd resource.RunDefinition,
+	) (*aiplatformpb.PipelineJob, error)
+	MkRunSchedulePipelineJob(
+		rsd resource.RunScheduleDefinition,
+	) (*aiplatformpb.PipelineJob, error)
+	MkSchedule(
+		rsd resource.RunScheduleDefinition,
+		pipelineJob *aiplatformpb.PipelineJob,
+		parent string,
+		maxConcurrentRunCount int64,
+	) (*aiplatformpb.Schedule, error)
+}
+
+type DefaultJobBuilder struct {
 	serviceAccount string
 	pipelineBucket string
 	labelGen       LabelGen
 }
 
-func (b JobBuilder) MkRunPipelineJob(
+func (b DefaultJobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
@@ -53,7 +68,7 @@ func (b JobBuilder) MkRunPipelineJob(
 	return job, nil
 }
 
-func (b JobBuilder) MkRunSchedulePipelineJob(
+func (b DefaultJobBuilder) MkRunSchedulePipelineJob(
 	rsd resource.RunScheduleDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rsd.RuntimeParameters))
@@ -93,7 +108,7 @@ func (b JobBuilder) MkRunSchedulePipelineJob(
 	return job, nil
 }
 
-func (b JobBuilder) MkSchedule(
+func (b DefaultJobBuilder) MkSchedule(
 	rsd resource.RunScheduleDefinition,
 	pipelineJob *aiplatformpb.PipelineJob,
 	parent string,

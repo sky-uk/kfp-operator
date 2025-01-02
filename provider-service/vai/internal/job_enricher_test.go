@@ -12,7 +12,7 @@ import (
 var _ = Describe("JobEnricher", func() {
 	var job aiplatformpb.PipelineJob
 	var raw map[string]any
-	var je = JobEnricher{}
+	var je = DefaultJobEnricher{}
 
 	BeforeEach(func() {
 		job = aiplatformpb.PipelineJob{
@@ -34,10 +34,10 @@ var _ = Describe("JobEnricher", func() {
 		}
 	})
 
-	Context("enrich", Ordered, func() {
+	Context("Enrich", Ordered, func() {
 		When("something", func() {
 			It("do something", func() {
-				_, err := je.enrich(&job, raw)
+				_, err := je.Enrich(&job, raw)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.DisplayName).To(Equal(raw["displayName"]))
 				pipelineSpec, err := structpb.NewStruct(
@@ -60,7 +60,7 @@ var _ = Describe("JobEnricher", func() {
 			It("should set the label field to an empty map", func() {
 				job.Labels = nil
 
-				_, err := je.enrich(&job, raw)
+				_, err := je.Enrich(&job, raw)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.Labels).To(Equal(map[string]string{
 					"label-key-from-raw": "label-value-from-raw",
@@ -71,7 +71,7 @@ var _ = Describe("JobEnricher", func() {
 			It("should return error", func() {
 				raw["displayName"] = 123
 
-				_, err := je.enrich(&job, raw)
+				_, err := je.Enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -79,7 +79,7 @@ var _ = Describe("JobEnricher", func() {
 			It("should return error", func() {
 				raw["pipelineSpec"] = 123
 
-				_, err := je.enrich(&job, raw)
+				_, err := je.Enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -87,7 +87,7 @@ var _ = Describe("JobEnricher", func() {
 			It("should return error", func() {
 				raw["labels"] = 123
 
-				_, err := je.enrich(&job, raw)
+				_, err := je.Enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -95,7 +95,7 @@ var _ = Describe("JobEnricher", func() {
 			It("should return error", func() {
 				raw["runtimeConfig"] = 123
 
-				_, err := je.enrich(&job, raw)
+				_, err := je.Enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -105,7 +105,7 @@ var _ = Describe("JobEnricher", func() {
 					"gcsOutputDirectory": 123,
 				}
 
-				_, err := je.enrich(&job, raw)
+				_, err := je.Enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -113,7 +113,7 @@ var _ = Describe("JobEnricher", func() {
 			It("should return error", func() {
 				job.RuntimeConfig = nil
 
-				_, err := je.enrich(&job, raw)
+				_, err := je.Enrich(&job, raw)
 				Expect(err).To(HaveOccurred())
 			})
 		})
