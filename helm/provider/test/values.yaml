@@ -1,6 +1,0 @@
-provider:
-  name: test-provider
-  serviceAccount:
-    name: test-provider-sa
-  configuration:
-    defaultBeamArgs: []

@@ -24,9 +24,6 @@ minikube-install-operator:
 	$(MAKE) docker-push docker-push-triggers
 	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
 
-minikube-helm-install-provider: helm-package-provider
-	$(HELM) install -f $(NAME).yaml provider-$(NAME) dist/provider-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
-
 minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
@@ -34,7 +31,6 @@ minikube-install-provider:
 	$(MAKE) -C argo/providers docker-push
 	$(MAKE) -C argo/providers/stub docker-push
 	$(MAKE) -C provider-service docker-push
-	$(MAKE) minikube-helm-install-provider VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES} NAME=${NAME}
 	$(MAKE) minikube-provider-setup
 
 minikube-provider-setup:
