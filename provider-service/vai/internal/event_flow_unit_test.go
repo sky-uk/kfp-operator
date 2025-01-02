@@ -7,11 +7,12 @@ import (
 	"errors"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/golang/mock/gomock"
+	"github.com/googleapis/gax-go/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -31,10 +32,22 @@ func artifact() *aiplatformpb.Artifact {
 	}
 }
 
+type MockPipelineJobClient2 struct {
+	mock.Mock
+}
+
+func (m *MockPipelineJobClient2) GetPipelineJob(
+	ctx context.Context,
+	req *aiplatformpb.GetPipelineJobRequest,
+	opts ...gax.CallOption,
+) (*aiplatformpb.PipelineJob, error) {
+	args := m.Called(ctx, req, opts)
+	return args.Get(0).(*aiplatformpb.PipelineJob), args.Error(1)
+}
+
 var _ = Context("VaiEventingServer", func() {
 	var (
-		mockCtrl              *gomock.Controller
-		mockPipelineJobClient *MockPipelineJobClient
+		mockPipelineJobClient *MockPipelineJobClient2
 		eventingFlow          EventFlow
 		inChan                chan StreamMessage[string]
 		outChan               chan StreamMessage[*common.RunCompletionEventData]
@@ -44,8 +57,7 @@ var _ = Context("VaiEventingServer", func() {
 	)
 
 	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-		mockPipelineJobClient = NewMockPipelineJobClient(mockCtrl)
+		mockPipelineJobClient = &MockPipelineJobClient2{}
 		inChan = make(chan StreamMessage[string])
 		outChan = make(chan StreamMessage[*common.RunCompletionEventData])
 		errChan = make(chan error)
@@ -68,10 +80,6 @@ var _ = Context("VaiEventingServer", func() {
 				handlerCall <- "failure_called"
 			},
 		}
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
 	})
 
 	DescribeTable("toRunCompletionEventData for job that has not completed", func(state aiplatformpb.PipelineState) {
@@ -451,7 +459,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
 				expectedErr := errors.New("an error")
-				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
+				mockPipelineJobClient.On("GetPipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&aiplatformpb.PipelineJob{}, expectedErr)
 				event, err := eventingFlow.runCompletionEventDataForRun(common.RandomString())
 				Expect(event).To(BeNil())
 				Expect(err).To(Equal(expectedErr))
@@ -460,9 +468,15 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("GetPipelineJob returns a PipelineJob", func() {
 			It("Returns a RunCompletionEvent", func() {
-				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
-					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
-				}, nil)
+				mockPipelineJobClient.On(
+					"GetPipelineJob",
+					mock.Anything, mock.Anything, mock.Anything,
+				).Return(
+					&aiplatformpb.PipelineJob{
+						State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
+					},
+					nil,
+				)
 				event, err := eventingFlow.runCompletionEventDataForRun(common.RandomString())
 				Expect(event).NotTo(BeNil())
 				Expect(err).To(BeNil())
@@ -474,7 +488,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("runCompletionEventDataForRun errors with NotFound", func() {
 			It("acks the message and outputs to error sink", func() {
 				expectedErr := status.New(codes.NotFound, "not found").Err()
-				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
+				mockPipelineJobClient.On("GetPipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&aiplatformpb.PipelineJob{}, expectedErr)
 				eventingFlow.Start()
 
 				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
@@ -487,7 +501,7 @@ var _ = Context("VaiEventingServer", func() {
 		When("runCompletionEventDataForRun errors", func() {
 			It("nacks the message and outputs to error sink", func() {
 				expectedErr := errors.New("an error")
-				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
+				mockPipelineJobClient.On("GetPipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&aiplatformpb.PipelineJob{}, expectedErr)
 				eventingFlow.Start()
 
 				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
@@ -499,9 +513,15 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("runCompletionEventDataForRun succeeds", func() {
 			It("sends the message to the out channel", func() {
-				mockPipelineJobClient.EXPECT().GetPipelineJob(gomock.Any(), gomock.Any()).Return(&aiplatformpb.PipelineJob{
-					State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
-				}, nil)
+				mockPipelineJobClient.On(
+					"GetPipelineJob",
+					mock.Anything, mock.Anything, mock.Anything,
+				).Return(
+					&aiplatformpb.PipelineJob{
+						State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
+					},
+					nil,
+				)
 				inMessage := "a-run-id"
 
 				eventingFlow.Start()
