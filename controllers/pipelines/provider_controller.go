@@ -3,11 +3,15 @@ package pipelines
 import (
 	"context"
 	"fmt"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	appsv1 "k8s.io/api/apps/v1"
@@ -47,22 +51,36 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	var provider = &pipelinesv1.Provider{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, provider); err != nil {
-		logger.Error(err, "unable to fetch provider")
+		logger.Error(err, "unable to get provider")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	logger.Info("found provider", "resource", provider)
 
-	desiredProviderDeployment, err := r.constructProviderServiceDeployment(provider, req.Namespace, r.Config)
+	desiredDeployment, err := r.constructDeployment(provider, req.Namespace, *r.Config.DeepCopy())
 	if err != nil {
 		logger.Error(err, "unable to construct provider service deployment")
 		return ctrl.Result{}, err
 	}
-	logger.Info("created provider deployment", "deployment", desiredProviderDeployment)
 
-	if err := r.EC.Client.Patch(ctx, desiredProviderDeployment, client.Apply, client.FieldOwner("provider-controller-provider")); err != nil {
-		logger.Error(err, "unable to update provider service deployment")
+	deploy, err := r.getDeployment(ctx, req.Namespace, provider.Name, *provider)
+	if err != nil && !apierrors.IsNotFound(err) {
+		logger.Error(err, "unable to get existing deployment")
 		return ctrl.Result{}, err
+	}
+
+	logger.Info("desired provider deployment", "deployment", desiredDeployment)
+
+	if deploy != nil {
+		logger.Info("found existing provider deployment", "deployment", deploy)
+		//TODO: implement updating existing deployment
+	} else {
+		if err := r.EC.Client.Create(ctx, desiredDeployment); err != nil {
+			logger.Error(err, "unable to create provider service deployment")
+			return ctrl.Result{}, err
+		}
+
+		logger.Info("created provider deployment", "deployment", desiredDeployment)
 	}
 
 	duration := time.Since(startTime)
@@ -79,34 +97,52 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ProviderReconciler) constructProviderServiceDeployment(provider *pipelinesv1.Provider, namespace string, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
+func (r *ProviderReconciler) getDeployment(ctx context.Context, namespace string, providerName string, provider pipelinesv1.Provider) (*appsv1.Deployment, error) {
+	dl := &appsv1.DeploymentList{}
+	err := r.EC.Client.NonCached.List(ctx, dl, &client.ListOptions{
+		Namespace:     namespace,
+		LabelSelector: labelSelector(map[string]string{"owner-name": fmt.Sprintf("provider-%s", providerName)}),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	for _, deploy := range dl.Items {
+		if metav1.IsControlledBy(&deploy, &provider) {
+			return &deploy, nil
+		}
+	}
+	return nil, apierrors.NewNotFound(schema.GroupResource{}, "")
+}
+
+func labelSelector(labelMap map[string]string) labels.Selector {
+	return labels.SelectorFromSet(labelMap)
+}
+
+func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider, namespace string, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
+	matchLabels := map[string]string{"app": fmt.Sprintf("provider-%s", provider.Name)}
+	ownerLabels := map[string]string{"owner-name": fmt.Sprintf("provider-%s", provider.Name)}
+	deploymentLabels := pipelines.MapConcat(pipelines.MapConcat(config.DefaultProviderValues.Labels, matchLabels), ownerLabels)
 	replicas := int32(config.DefaultProviderValues.Replicas)
 
 	podTemplate := config.DefaultProviderValues.PodTemplateSpec
-
-	const targetContainer = "provider-service" //TODO: make configurable from config
-	for _, container := range podTemplate.Spec.Containers {
-		if container.Name == targetContainer {
-			container.Image = provider.Spec.ServiceImage
-			container.Env = append(container.Env, v1.EnvVar{
-				Name:  "PROVIDERNAME",
-				Value: provider.Name,
-			})
-		}
-	}
-
+	podTemplate = populateMainContainer(*podTemplate.DeepCopy(), provider)
 	podTemplate.Spec.ServiceAccountName = provider.Spec.ServiceAccount
-	labels := config.DefaultProviderValues.Labels
+	podTemplate.ObjectMeta.Labels = pipelines.MapConcat(podTemplate.ObjectMeta.Labels, matchLabels)
 
 	deployment := &appsv1.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Deployment",
+			APIVersion: "apps/v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("provider-%s-", provider.Name),
 			Namespace:    namespace,
-			Labels:       labels,
+			Labels:       deploymentLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
-				MatchLabels: labels,
+				MatchLabels: matchLabels,
 			},
 			Replicas: &replicas,
 			Template: podTemplate,
@@ -117,4 +153,18 @@ func (r *ProviderReconciler) constructProviderServiceDeployment(provider *pipeli
 		return nil, err
 	}
 	return deployment, nil
+}
+
+func populateMainContainer(podTemplate v1.PodTemplateSpec, provider *pipelinesv1.Provider) v1.PodTemplateSpec {
+	targetContainer := "provider-service" //TODO: make configurable from config
+	for i, container := range podTemplate.Spec.Containers {
+		if container.Name == targetContainer {
+			podTemplate.Spec.Containers[i].Image = provider.Spec.ServiceImage
+			podTemplate.Spec.Containers[i].Env = append(podTemplate.Spec.Containers[i].Env, v1.EnvVar{
+				Name:  "PROVIDERNAME",
+				Value: provider.Name,
+			})
+		}
+	}
+	return podTemplate
 }
