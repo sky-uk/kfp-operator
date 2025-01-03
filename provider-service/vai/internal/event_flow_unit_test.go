@@ -42,12 +42,9 @@ func (m *MockPipelineJobClient) GetPipelineJob(
 	opts ...gax.CallOption,
 ) (*aiplatformpb.PipelineJob, error) {
 	args := m.Called(ctx, req, opts)
-	arg0 := args.Get(0)
 
 	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 == nil {
-		pipelineJob = nil
-	} else {
+	if arg0 := args.Get(0); arg0 != nil {
 		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
 	}
 
