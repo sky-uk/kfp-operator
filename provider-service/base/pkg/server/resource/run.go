@@ -4,7 +4,7 @@ type Run struct {
 	Provider Provider
 }
 
-func (rs *Run) Name() string {
+func (rs *Run) Type() string {
 	return "run"
 }
 

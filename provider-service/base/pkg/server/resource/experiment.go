@@ -4,7 +4,7 @@ type Experiment struct {
 	Provider Provider
 }
 
-func (e *Experiment) Name() string {
+func (e *Experiment) Type() string {
 	return "experiment"
 }
 
