@@ -51,6 +51,19 @@ func (m *MockPipelineJobClient) GetPipelineJob(
 	return pipelineJob, args.Error(1)
 }
 
+func (m *MockPipelineJobClient) CreatePipelineJob(
+	ctx context.Context,
+	req *aiplatformpb.CreatePipelineJobRequest,
+	opts ...gax.CallOption,
+) (*aiplatformpb.PipelineJob, error) {
+	args := m.Called(ctx, req, opts)
+	var pipelineJob *aiplatformpb.PipelineJob
+	if arg1 := args.Get(0); arg1 != nil {
+		pipelineJob = arg1.(*aiplatformpb.PipelineJob)
+	}
+	return pipelineJob, args.Error(1)
+}
+
 var _ = Context("VaiEventingServer", func() {
 	var (
 		mockPipelineJobClient *MockPipelineJobClient
