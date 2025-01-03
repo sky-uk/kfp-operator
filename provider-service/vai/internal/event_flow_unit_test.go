@@ -42,7 +42,16 @@ func (m *MockPipelineJobClient) GetPipelineJob(
 	opts ...gax.CallOption,
 ) (*aiplatformpb.PipelineJob, error) {
 	args := m.Called(ctx, req, opts)
-	return args.Get(0).(*aiplatformpb.PipelineJob), args.Error(1)
+	arg0 := args.Get(0)
+
+	var pipelineJob *aiplatformpb.PipelineJob
+	if arg0 == nil {
+		pipelineJob = nil
+	} else {
+		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
+	}
+
+	return pipelineJob, args.Error(1)
 }
 
 var _ = Context("VaiEventingServer", func() {
@@ -464,7 +473,7 @@ var _ = Context("VaiEventingServer", func() {
 					mock.Anything,
 					mock.Anything,
 					mock.Anything,
-				).Return(&aiplatformpb.PipelineJob{}, expectedErr)
+				).Return(nil, expectedErr)
 				event, err := eventingFlow.runCompletionEventDataForRun(common.RandomString())
 				Expect(event).To(BeNil())
 				Expect(err).To(Equal(expectedErr))
@@ -500,7 +509,7 @@ var _ = Context("VaiEventingServer", func() {
 					mock.Anything,
 					mock.Anything,
 					mock.Anything,
-				).Return(&aiplatformpb.PipelineJob{}, expectedErr)
+				).Return(nil, expectedErr)
 				eventingFlow.Start()
 
 				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
@@ -518,7 +527,7 @@ var _ = Context("VaiEventingServer", func() {
 					mock.Anything,
 					mock.Anything,
 					mock.Anything,
-				).Return(&aiplatformpb.PipelineJob{}, expectedErr)
+				).Return(nil, expectedErr)
 				eventingFlow.Start()
 
 				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
