@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/googleapis/gax-go/v2"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
@@ -14,6 +15,7 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 type ScheduleClient interface {
@@ -22,11 +24,18 @@ type ScheduleClient interface {
 		req *aiplatformpb.CreateScheduleRequest,
 		opts ...gax.CallOption,
 	) (*aiplatformpb.Schedule, error)
+
 	DeleteSchedule(
 		ctx context.Context,
 		req *aiplatformpb.DeleteScheduleRequest,
 		opts ...gax.CallOption,
 	) (*aiplatform.DeleteScheduleOperation, error)
+
+	UpdateSchedule(
+		ctx context.Context,
+		req *aiplatformpb.UpdateScheduleRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.Schedule, error)
 }
 
 type VAIProvider struct {
@@ -225,9 +234,60 @@ func (vaip *VAIProvider) CreateRunSchedule(
 
 func (vaip *VAIProvider) UpdateRunSchedule(
 	rsd resource.RunScheduleDefinition,
-	id string,
+	_ string,
 ) (string, error) {
-	return "", nil
+	pipelinePath, err := util.PipelineStorageObject(
+		rsd.PipelineName,
+		rsd.PipelineVersion,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	raw, err := vaip.fileHandler.Read(
+		vaip.config.Parameters.PipelineBucket,
+		pipelinePath,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd)
+	if err != nil {
+		return "", err
+	}
+
+	enrichedJob, err := vaip.jobEnricher.Enrich(job, raw)
+	if err != nil {
+		return "", err
+	}
+
+	schedule, err := vaip.jobBuilder.MkSchedule(
+		rsd,
+		enrichedJob,
+		vaip.config.parent(),
+		vaip.config.getMaxConcurrentRunCountOrDefault(),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	updateSchedule, err := vaip.scheduleClient.UpdateSchedule(
+		vaip.ctx,
+		&aiplatformpb.UpdateScheduleRequest{
+			Schedule: schedule,
+			UpdateMask: &fieldmaskpb.FieldMask{
+				Paths: []string{
+					"schedule",
+				},
+			},
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return updateSchedule.Name, nil
 }
 
 func (vaip *VAIProvider) DeleteRunSchedule(id string) error {

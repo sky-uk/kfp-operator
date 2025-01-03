@@ -97,6 +97,18 @@ func (m *MockScheduleClient) DeleteSchedule(
 	}
 	return operation, args.Error(1)
 }
+func (m *MockScheduleClient) UpdateSchedule(
+	ctx context.Context,
+	req *aiplatformpb.UpdateScheduleRequest,
+	opts ...gax.CallOption,
+) (*aiplatformpb.Schedule, error) {
+	args := m.Called(ctx, req, opts)
+	var schedule *aiplatformpb.Schedule
+	if arg1 := args.Get(0); arg1 != nil {
+		schedule = arg1.(*aiplatformpb.Schedule)
+	}
+	return schedule, args.Error(1)
+}
 
 type MockFileHandler struct{ mock.Mock }
 
@@ -357,6 +369,83 @@ var _ = Describe("Provider", func() {
 				mockJobBuilder.On("MkSchedule", mock.Anything, &pj, mock.Anything, mock.Anything).Return(&aiplatformpb.Schedule{}, nil)
 				mockScheduleClient.On("CreateSchedule", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("failed"))
 				_, err := vaiProvider.CreateRunSchedule(rsd)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+		})
+	})
+
+	Context("UpdateRunSchedule", func() {
+		When("updating a run schedule", func() {
+			It("returns a schedule name", func() {
+				rsd := randomRunScheduleDefinition()
+				pj := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
+				mockJobBuilder.On("MkSchedule", mock.Anything, &pj, mock.Anything, mock.Anything).Return(&aiplatformpb.Schedule{}, nil)
+				schedule := aiplatformpb.Schedule{}
+				mockScheduleClient.On("UpdateSchedule", mock.Anything, mock.Anything, mock.Anything).Return(&schedule, nil)
+				scheduleName, err := vaiProvider.UpdateRunSchedule(rsd, "")
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(scheduleName).To(Equal(schedule.Name))
+			})
+
+			It("return an error when the file handler read fails", func() {
+				rsd := randomRunScheduleDefinition()
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, errors.New("failed"))
+				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the job builder fails to build a pipeline job", func() {
+				rsd := randomRunScheduleDefinition()
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(nil, errors.New("failed"))
+				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the job enricher fails", func() {
+				rsd := randomRunScheduleDefinition()
+				pj := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(nil, errors.New("failed"))
+				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the job builder fails to build a schedule", func() {
+				rsd := randomRunScheduleDefinition()
+				pj := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
+				mockJobBuilder.On("MkSchedule", mock.Anything, &pj, mock.Anything, mock.Anything).Return(nil, errors.New("failed"))
+				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the schedule client fails", func() {
+				rsd := randomRunScheduleDefinition()
+				pj := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
+				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
+				mockJobBuilder.On("MkSchedule", mock.Anything, &pj, mock.Anything, mock.Anything).Return(&aiplatformpb.Schedule{}, nil)
+				mockScheduleClient.On("UpdateSchedule", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("failed"))
+				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
