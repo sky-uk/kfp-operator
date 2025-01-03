@@ -19,45 +19,57 @@ import (
 
 type MockJobBuilder struct{ mock.Mock }
 
-func (m MockJobBuilder) MkRunPipelineJob(rd resource.RunDefinition) (*aiplatformpb.PipelineJob, error) {
+func (m *MockJobBuilder) MkRunPipelineJob(rd resource.RunDefinition) (*aiplatformpb.PipelineJob, error) {
 	args := m.Called(rd)
-	pipelineJob := args.Get(0).(aiplatformpb.PipelineJob)
-	return &pipelineJob, args.Error(1)
+	var pipelineJob *aiplatformpb.PipelineJob
+	if arg0 := args.Get(0); arg0 != nil {
+		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
+	}
+	return pipelineJob, args.Error(1)
 }
 
-func (m MockJobBuilder) MkRunSchedulePipelineJob(rsd resource.RunScheduleDefinition) (*aiplatformpb.PipelineJob, error) {
+func (m *MockJobBuilder) MkRunSchedulePipelineJob(rsd resource.RunScheduleDefinition) (*aiplatformpb.PipelineJob, error) {
 	args := m.Called(rsd)
-	pipelineJob := args.Get(0).(aiplatformpb.PipelineJob)
-	return &pipelineJob, args.Error(1)
+	var pipelineJob *aiplatformpb.PipelineJob
+	if arg0 := args.Get(0); arg0 != nil {
+		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
+	}
+	return pipelineJob, args.Error(1)
 }
 
-func (m MockJobBuilder) MkSchedule(rsd resource.RunScheduleDefinition, pipelineJob *aiplatformpb.PipelineJob, parent string, maxConcurrentRunCount int64) (*aiplatformpb.Schedule, error) {
+func (m *MockJobBuilder) MkSchedule(rsd resource.RunScheduleDefinition, pipelineJob *aiplatformpb.PipelineJob, parent string, maxConcurrentRunCount int64) (*aiplatformpb.Schedule, error) {
 	args := m.Called(rsd, pipelineJob, parent, maxConcurrentRunCount)
-	schedule := args.Get(0).(aiplatformpb.Schedule)
-	return &schedule, args.Error(1)
+	var schedule *aiplatformpb.Schedule
+	if arg0 := args.Get(0); arg0 != nil {
+		schedule = arg0.(*aiplatformpb.Schedule)
+	}
+	return schedule, args.Error(1)
 }
 
 type MockJobEnricher struct{ mock.Mock }
 
-func (m MockJobEnricher) Enrich(job *aiplatformpb.PipelineJob, raw map[string]any) (*aiplatformpb.PipelineJob, error) {
+func (m *MockJobEnricher) Enrich(job *aiplatformpb.PipelineJob, raw map[string]any) (*aiplatformpb.PipelineJob, error) {
 	args := m.Called(job, raw)
-	pipelineJob := args.Get(0).(aiplatformpb.PipelineJob)
-	return &pipelineJob, args.Error(1)
+	var pipelineJob *aiplatformpb.PipelineJob
+	if arg0 := args.Get(0); arg0 != nil {
+		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
+	}
+	return pipelineJob, args.Error(1)
 }
 
 type MockFileHandler struct{ mock.Mock }
 
-func (m MockFileHandler) Write(p []byte, bucket string, filePath string) error {
+func (m *MockFileHandler) Write(p []byte, bucket string, filePath string) error {
 	args := m.Called(p, bucket, filePath)
 	return args.Error(0)
 }
 
-func (m MockFileHandler) Delete(id string, bucket string) error {
+func (m *MockFileHandler) Delete(id string, bucket string) error {
 	args := m.Called(id, bucket)
 	return args.Error(0)
 }
 
-func (m MockFileHandler) Read(bucket string, filePath string) (map[string]any, error) {
+func (m *MockFileHandler) Read(bucket string, filePath string) (map[string]any, error) {
 	args := m.Called(bucket, filePath)
 	return args.Get(0).(map[string]any), args.Error(1)
 }
@@ -175,8 +187,8 @@ var _ = Describe("Provider", func() {
 				runDefinition := randomBasicRunDefinition()
 				pipelineJob := aiplatformpb.PipelineJob{}
 				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(pipelineJob, nil)
-				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(pipelineJob, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(&pipelineJob, nil)
 				mockPipelineClient.EXPECT().CreatePipelineJob(gomock.Any(), gomock.Any()).Return(&pipelineJob, nil)
 				runId, err := vaiProvider.CreateRun(runDefinition)
 
@@ -197,7 +209,7 @@ var _ = Describe("Provider", func() {
 				runDefinition := randomBasicRunDefinition()
 				pipelineJob := aiplatformpb.PipelineJob{}
 				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(pipelineJob, errors.New("failed"))
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, errors.New("failed"))
 				_, err := vaiProvider.CreateRun(runDefinition)
 
 				Expect(err).To(HaveOccurred())
@@ -208,8 +220,8 @@ var _ = Describe("Provider", func() {
 				runDefinition := randomBasicRunDefinition()
 				pipelineJob := aiplatformpb.PipelineJob{}
 				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(pipelineJob, nil)
-				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(pipelineJob, errors.New("failed"))
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(&pipelineJob, errors.New("failed"))
 				_, err := vaiProvider.CreateRun(runDefinition)
 
 				Expect(err).To(HaveOccurred())
@@ -220,8 +232,8 @@ var _ = Describe("Provider", func() {
 				runDefinition := randomBasicRunDefinition()
 				pipelineJob := aiplatformpb.PipelineJob{}
 				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(pipelineJob, nil)
-				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(pipelineJob, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(&pipelineJob, nil)
 				mockPipelineClient.EXPECT().CreatePipelineJob(gomock.Any(), gomock.Any()).Return(&pipelineJob, errors.New("failed"))
 				_, err := vaiProvider.CreateRun(runDefinition)
 
