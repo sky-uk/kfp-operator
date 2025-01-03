@@ -90,7 +90,7 @@ func StubProvider[R pipelinesv1.Resource](
 			Namespace: TestNamespace,
 		},
 		Spec: pipelinesv1.ProviderSpec{
-			Image:          "kfp-operator-stub-provider",
+			ServiceImage:   "kfp-operator-stub-provider",
 			ExecutionMode:  "none",
 			ServiceAccount: "default",
 			Parameters: map[string]*apiextensionsv1.JSON{
@@ -98,7 +98,7 @@ func StubProvider[R pipelinesv1.Resource](
 				"expectedOutput": {Raw: expectedOutputJson},
 			},
 		},
-		Status: pipelinesv1.ProviderStatus{},
+		Status: pipelinesv1.Status{},
 	}
 	return provider, stubbedOutput
 }
