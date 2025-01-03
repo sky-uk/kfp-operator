@@ -191,12 +191,12 @@ func (vaip *VAIProvider) CreateRunSchedule(
 
 	job, err := vaip.jobBuilder.MkRunSchedulePipelineJob(rsd)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	enrichedJob, err := vaip.jobEnricher.Enrich(job, raw)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	schedule, err := vaip.jobBuilder.MkSchedule(
@@ -205,6 +205,9 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		vaip.config.parent(),
 		vaip.config.getMaxConcurrentRunCountOrDefault(),
 	)
+	if err != nil {
+		return "", err
+	}
 
 	createdSchedule, err := vaip.scheduleClient.CreateSchedule(
 		vaip.ctx,
