@@ -8,7 +8,7 @@ type Pipeline struct {
 	Provider Provider
 }
 
-func (p *Pipeline) Name() string {
+func (p *Pipeline) Type() string {
 	return "pipeline"
 }
 

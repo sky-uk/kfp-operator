@@ -12,17 +12,17 @@ import (
 	"net/http"
 )
 
-func readinessHandler(w http.ResponseWriter, r *http.Request) {
+func readinessHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Application is ready."))
 }
 
-func livenessHandler(w http.ResponseWriter, r *http.Request) {
+func livenessHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Application is live."))
 }
 
-func postHandler(a resource.HttpHandledResource) http.HandlerFunc {
+func createHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		body, err := io.ReadAll(r.Body)
@@ -54,7 +54,7 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func putHandler(a resource.HttpHandledResource) http.HandlerFunc {
+func updateHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 
@@ -81,9 +81,9 @@ func New(resources []resource.HttpHandledResource) http.Handler {
 	mux.Get("/readyz", readinessHandler)
 
 	for _, resource := range resources {
-		mux.Route("/resource/"+resource.Name(), func(r chi.Router) {
-			r.Post("/", postHandler(resource))
-			r.Put("/{id}", putHandler(resource))
+		mux.Route("/resource/"+resource.Type(), func(r chi.Router) {
+			r.Post("/", createHandler(resource))
+			r.Put("/{id}", updateHandler(resource))
 			r.Delete("/{id}", deleteHandler(resource))
 		})
 	}
@@ -101,6 +101,7 @@ func Start(ctx context.Context, cfg config.Server, provider resource.Provider) e
 		&resource.RunSchedule{Provider: provider},
 		&resource.Experiment{Provider: provider},
 	}
+
 	srv := &http.Server{
 		Addr:    addr,
 		Handler: New(httpResources),

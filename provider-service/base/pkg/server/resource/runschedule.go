@@ -4,7 +4,7 @@ type RunSchedule struct {
 	Provider Provider
 }
 
-func (rs *RunSchedule) Name() string {
+func (rs *RunSchedule) Type() string {
 	return "runschedule"
 }
 
