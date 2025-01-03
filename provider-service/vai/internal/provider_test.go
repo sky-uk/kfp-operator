@@ -3,12 +3,14 @@
 package internal
 
 import (
-	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+
+	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/golang/mock/gomock"
+	"github.com/googleapis/gax-go/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -57,6 +59,23 @@ func (m *MockJobEnricher) Enrich(job *aiplatformpb.PipelineJob, raw map[string]a
 	return pipelineJob, args.Error(1)
 }
 
+type MockPipelineJobClient2 struct {
+	mock.Mock
+}
+
+func(m *MockPipelineJobClient2) CreatePipelineJob(
+	ctx context.Context,
+	req *aiplatformpb.CreatePipelineJobRequest,
+	opts ...gax.CallOption,
+) (*aiplatformpb.PipelineJob, error) {
+	args := m.Called(ctx, req, opts)
+	var pipelineJob *aiplatformpb.PipelineJob
+	if arg1 := args.Get(0); arg1 != nil {
+		pipelineJob = arg1.(*aiplatformpb.PipelineJob)
+	}
+	return pipelineJob, args.Error(1)
+}
+
 type MockFileHandler struct{ mock.Mock }
 
 func (m *MockFileHandler) Write(p []byte, bucket string, filePath string) error {
@@ -71,7 +90,11 @@ func (m *MockFileHandler) Delete(id string, bucket string) error {
 
 func (m *MockFileHandler) Read(bucket string, filePath string) (map[string]any, error) {
 	args := m.Called(bucket, filePath)
-	return args.Get(0).(map[string]any), args.Error(1)
+	var data map[string]any
+	if arg0 := args.Get(0); arg0 != nil {
+		data = arg0.(map[string]any)
+	}
+	return data, args.Error(1)
 }
 
 // TODO extract to somewhere common
@@ -89,9 +112,8 @@ func randomPipelineDefinition() resource.PipelineDefinition {
 
 var _ = Describe("Provider", func() {
 	var (
-		mockCtrl           *gomock.Controller
 		mockFileHandler    MockFileHandler
-		mockPipelineClient *MockPipelineJobClient
+		mockPipelineClient MockPipelineJobClient2
 		mockScheduleClient *MockScheduleClient
 		mockJobBuilder     MockJobBuilder
 		mockJobEnricher    MockJobEnricher
@@ -99,9 +121,8 @@ var _ = Describe("Provider", func() {
 	)
 
 	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
 		mockFileHandler = MockFileHandler{}
-		mockPipelineClient = NewMockPipelineJobClient(mockCtrl)
+		mockPipelineClient = MockPipelineJobClient2{}
 		mockScheduleClient = NewMockScheduleClient(mockCtrl)
 		mockJobBuilder = MockJobBuilder{}
 		mockJobEnricher = MockJobEnricher{}
@@ -109,7 +130,7 @@ var _ = Describe("Provider", func() {
 			ctx:            context.Background(),
 			config:         VAIProviderConfig{},
 			fileHandler:    &mockFileHandler,
-			pipelineClient: mockPipelineClient,
+			pipelineClient: &mockPipelineClient,
 			scheduleClient: mockScheduleClient,
 			jobBuilder:     &mockJobBuilder,
 			jobEnricher:    &mockJobEnricher,
@@ -189,7 +210,7 @@ var _ = Describe("Provider", func() {
 				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, nil)
 				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(&pipelineJob, nil)
-				mockPipelineClient.EXPECT().CreatePipelineJob(gomock.Any(), gomock.Any()).Return(&pipelineJob, nil)
+				mockPipelineClient.On("CreatePipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&pipelineJob, nil)
 				runId, err := vaiProvider.CreateRun(runDefinition)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -234,7 +255,70 @@ var _ = Describe("Provider", func() {
 				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, nil)
 				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(&pipelineJob, nil)
-				mockPipelineClient.EXPECT().CreatePipelineJob(gomock.Any(), gomock.Any()).Return(&pipelineJob, errors.New("failed"))
+				mockPipelineClient.On("CreatePipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&pipelineJob, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(runDefinition)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+		})
+	})
+
+	Context("CreateRunSchedule", func() {
+		When("creating a run schedule", func() {
+			It("return a schedule name", func() {
+				runDefinition := randomRunScheduleDefinition()
+				pipelineJob := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunSchedulePipelineJob", runDefinition).Return(&pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(&pipelineJob, nil)
+				mockPipelineClient.On("CreatePipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&pipelineJob, nil)
+				mockJobBuilder.On("MkRunSchedule", mock.Anything, &pipelineJob, mock.Anything, mock.Anything).Return(&aiplatformpb.Schedule{}, nil)
+				runId, err := vaiProvider.CreateRunSchedule(runDefinition)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(runId).To(Equal(fmt.Sprintf("%s-%s", runDefinition.Name.Namespace, runDefinition.Name.Name)))
+			})
+
+			It("return an error when the file handler read fails", func() {
+				runDefinition := randomBasicRunDefinition()
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(runDefinition)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the job builder fails", func() {
+				runDefinition := randomBasicRunDefinition()
+				pipelineJob := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(runDefinition)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the job enricher fails", func() {
+				runDefinition := randomBasicRunDefinition()
+				pipelineJob := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(&pipelineJob, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(runDefinition)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("failed"))
+			})
+
+			It("return an error when the pipeline client fails", func() {
+				runDefinition := randomBasicRunDefinition()
+				pipelineJob := aiplatformpb.PipelineJob{}
+				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockJobBuilder.On("MkRunPipelineJob", runDefinition).Return(&pipelineJob, nil)
+				mockJobEnricher.On("Enrich", &pipelineJob, map[string]any{}).Return(&pipelineJob, nil)
+				mockPipelineClient.On("CreatePipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&pipelineJob, errors.New("failed"))
 				_, err := vaiProvider.CreateRun(runDefinition)
 
 				Expect(err).To(HaveOccurred())
