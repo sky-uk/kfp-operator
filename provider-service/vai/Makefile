@@ -12,7 +12,7 @@ test: unit-test
 
 ##@ Build
 
-build: generate
+build:
 	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/vai-provider-service cmd/main.go
 
 ##@ Containers
