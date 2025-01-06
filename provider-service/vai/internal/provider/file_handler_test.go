@@ -1,21 +1,15 @@
 //go:build unit
 
-package file
+package provider
 
 import (
 	"context"
 	"encoding/json"
-	"testing"
 
 	"github.com/fsouza/fake-gcs-server/fakestorage"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
-
-func TestGcsFileHandlerUnitSuite(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "VAI GCS File Handler Unit Suite")
-}
 
 var _ = Describe("GcsFileHandler", Ordered, func() {
 	var (

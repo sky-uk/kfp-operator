@@ -13,6 +13,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	vaiConfig "github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/runcompletion"
+	vai "github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider"
 	"go.uber.org/zap/zapcore"
 
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
@@ -37,7 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	vaiConfig := &vaiConfig.VAIProviderConfig{
+	vaiConfig := vaiConfig.VAIProviderConfig{
 		Name: config.ProviderName,
 	}
 
@@ -69,11 +70,7 @@ func main() {
 	}
 	go handleErrorInSourceOperations(source)
 
-<<<<<<< HEAD
-	flow := runcompletion.NewEventFlow(ctx, vaiConfig, pipelineJobClient)
-=======
-	flow := vai.NewEventFlow(ctx, &vaiConfig, pipelineJobClient)
->>>>>>> 478ce2b (fix order of vai provider initialisation)
+	flow := runcompletion.NewEventFlow(ctx, &vaiConfig, pipelineJobClient)
 
 	go func() {
 		flow.Start()

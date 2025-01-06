@@ -1,11 +1,12 @@
 //go:build unit
 
-package internal
+package provider
 
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 )
 
 var _ = Describe("DefaultLabelGen", func() {
@@ -43,13 +44,13 @@ var _ = Describe("DefaultLabelGen", func() {
 				rd := randomBasicRunDefinition()
 				rl := lg.runLabelsFromRunDefinition(rd)
 
-				Expect(rl[labels.PipelineName]).To(Equal(rd.PipelineName.Name))
-				Expect(rl[labels.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
-				Expect(rl[labels.PipelineVersion]).To(Equal(rd.PipelineVersion))
-				Expect(rl[labels.RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
-				Expect(rl[labels.RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
-				Expect(rl[labels.RunName]).To(Equal(rd.Name.Name))
-				Expect(rl[labels.RunNamespace]).To(Equal(rd.Name.Namespace))
+				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
+				Expect(rl[label.RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
+				Expect(rl[label.RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
+				Expect(rl[label.RunName]).To(Equal(rd.Name.Name))
+				Expect(rl[label.RunNamespace]).To(Equal(rd.Name.Namespace))
 			})
 		})
 		When("RunConfigurationName is empty", func() {
@@ -58,13 +59,13 @@ var _ = Describe("DefaultLabelGen", func() {
 				rd.RunConfigurationName = common.NamespacedName{}
 				rl := lg.runLabelsFromRunDefinition(rd)
 
-				Expect(rl[labels.PipelineName]).To(Equal(rd.PipelineName.Name))
-				Expect(rl[labels.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
-				Expect(rl[labels.PipelineVersion]).To(Equal(rd.PipelineVersion))
-				Expect(rl[labels.RunName]).To(Equal(rd.Name.Name))
-				Expect(rl[labels.RunNamespace]).To(Equal(rd.Name.Namespace))
-				Expect(rl).NotTo(HaveKey(labels.RunConfigurationName))
-				Expect(rl).NotTo(HaveKey(labels.RunConfigurationNamespace))
+				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
+				Expect(rl[label.RunName]).To(Equal(rd.Name.Name))
+				Expect(rl[label.RunNamespace]).To(Equal(rd.Name.Namespace))
+				Expect(rl).NotTo(HaveKey(label.RunConfigurationName))
+				Expect(rl).NotTo(HaveKey(label.RunConfigurationNamespace))
 			})
 		})
 		When("RunName is empty", func() {
@@ -73,13 +74,13 @@ var _ = Describe("DefaultLabelGen", func() {
 				rd.Name = common.NamespacedName{}
 				rl := lg.runLabelsFromRunDefinition(rd)
 
-				Expect(rl[labels.PipelineName]).To(Equal(rd.PipelineName.Name))
-				Expect(rl[labels.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
-				Expect(rl[labels.PipelineVersion]).To(Equal(rd.PipelineVersion))
-				Expect(rl[labels.RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
-				Expect(rl[labels.RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
-				Expect(rl).NotTo(HaveKey(labels.RunName))
-				Expect(rl).NotTo(HaveKey(labels.RunNamespace))
+				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
+				Expect(rl[label.RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
+				Expect(rl[label.RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
+				Expect(rl).NotTo(HaveKey(label.RunName))
+				Expect(rl).NotTo(HaveKey(label.RunNamespace))
 			})
 		})
 		It("replaces fullstops with dashes in pipelineVersion", func() {
@@ -87,7 +88,7 @@ var _ = Describe("DefaultLabelGen", func() {
 			rd.PipelineVersion = "0.4.0"
 			rl := lg.runLabelsFromRunDefinition(rd)
 
-			Expect(rl[labels.PipelineVersion]).To(Equal("0-4-0"))
+			Expect(rl[label.PipelineVersion]).To(Equal("0-4-0"))
 		})
 	})
 
@@ -97,11 +98,11 @@ var _ = Describe("DefaultLabelGen", func() {
 				rsd := randomRunScheduleDefinition()
 				rl := lg.runLabelsFromSchedule(rsd)
 
-				Expect(rl[labels.PipelineName]).To(Equal(rsd.PipelineName.Name))
-				Expect(rl[labels.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
-				Expect(rl[labels.PipelineVersion]).To(Equal(rsd.PipelineVersion))
-				Expect(rl[labels.RunConfigurationName]).To(Equal(rsd.RunConfigurationName.Name))
-				Expect(rl[labels.RunConfigurationNamespace]).To(Equal(rsd.RunConfigurationName.Namespace))
+				Expect(rl[label.PipelineName]).To(Equal(rsd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rsd.PipelineVersion))
+				Expect(rl[label.RunConfigurationName]).To(Equal(rsd.RunConfigurationName.Name))
+				Expect(rl[label.RunConfigurationNamespace]).To(Equal(rsd.RunConfigurationName.Namespace))
 			})
 		})
 		When("RunConfigurationName is empty", func() {
@@ -110,11 +111,11 @@ var _ = Describe("DefaultLabelGen", func() {
 				rsd.RunConfigurationName = common.NamespacedName{}
 				rl := lg.runLabelsFromSchedule(rsd)
 
-				Expect(rl[labels.PipelineName]).To(Equal(rsd.PipelineName.Name))
-				Expect(rl[labels.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
-				Expect(rl[labels.PipelineVersion]).To(Equal(rsd.PipelineVersion))
-				Expect(rl).NotTo(HaveKey(labels.RunConfigurationName))
-				Expect(rl).NotTo(HaveKey(labels.RunConfigurationNamespace))
+				Expect(rl[label.PipelineName]).To(Equal(rsd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rsd.PipelineVersion))
+				Expect(rl).NotTo(HaveKey(label.RunConfigurationName))
+				Expect(rl).NotTo(HaveKey(label.RunConfigurationNamespace))
 			})
 		})
 
@@ -123,7 +124,7 @@ var _ = Describe("DefaultLabelGen", func() {
 			rd.PipelineVersion = "0.4.0"
 			rl := lg.runLabelsFromRunDefinition(rd)
 
-			Expect(rl[labels.PipelineVersion]).To(Equal("0-4-0"))
+			Expect(rl[label.PipelineVersion]).To(Equal("0-4-0"))
 		})
 	})
 })

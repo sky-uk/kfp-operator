@@ -1,4 +1,4 @@
-package internal
+package provider
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 )
 
 type LabelGen interface {
@@ -35,9 +36,9 @@ func (lg DefaultLabelGen) runLabelsFromPipeline(
 	pipelineVersion string,
 ) map[string]string {
 	return map[string]string{
-		labels.PipelineName:      pipelineName.Name,
-		labels.PipelineNamespace: pipelineName.Namespace,
-		labels.PipelineVersion:   strings.ReplaceAll(pipelineVersion, ".", "-"),
+		label.PipelineName:      pipelineName.Name,
+		label.PipelineNamespace: pipelineName.Namespace,
+		label.PipelineVersion:   strings.ReplaceAll(pipelineVersion, ".", "-"),
 	}
 }
 
@@ -50,15 +51,15 @@ func (lg DefaultLabelGen) runLabelsFromRunDefinition(
 	)
 
 	if !rd.RunConfigurationName.Empty() {
-		runLabels[labels.RunConfigurationName] =
+		runLabels[label.RunConfigurationName] =
 			rd.RunConfigurationName.Name
-		runLabels[labels.RunConfigurationNamespace] =
+		runLabels[label.RunConfigurationNamespace] =
 			rd.RunConfigurationName.Namespace
 	}
 
 	if !rd.Name.Empty() {
-		runLabels[labels.RunName] = rd.Name.Name
-		runLabels[labels.RunNamespace] = rd.Name.Namespace
+		runLabels[label.RunName] = rd.Name.Name
+		runLabels[label.RunNamespace] = rd.Name.Namespace
 	}
 
 	return runLabels
@@ -70,8 +71,8 @@ func (lg DefaultLabelGen) runLabelsFromSchedule(
 	runLabels := lg.runLabelsFromPipeline(rsd.PipelineName, rsd.PipelineVersion)
 
 	if !rsd.RunConfigurationName.Empty() {
-		runLabels[labels.RunConfigurationName] = rsd.RunConfigurationName.Name
-		runLabels[labels.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
+		runLabels[label.RunConfigurationName] = rsd.RunConfigurationName.Name
+		runLabels[label.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
 	}
 
 	return runLabels

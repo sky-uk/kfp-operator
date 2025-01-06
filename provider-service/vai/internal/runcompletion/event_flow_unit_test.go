@@ -1,6 +1,10 @@
 //go:build unit
 
+<<<<<<<< HEAD:provider-service/vai/internal/runcompletion/event_flow_unit_test.go
 package runcompletion
+========
+package event
+>>>>>>>> 9d2f597 (Move files into more logical packages):provider-service/vai/internal/event/event_flow_unit_test.go
 
 import (
 	"context"

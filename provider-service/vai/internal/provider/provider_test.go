@@ -1,6 +1,6 @@
 //go:build unit
 
-package internal
+package provider
 
 import (
 	"bytes"
@@ -9,131 +9,19 @@ import (
 	"errors"
 	"fmt"
 
-	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/googleapis/gax-go/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
-type MockJobBuilder struct{ mock.Mock }
-
-func (m *MockJobBuilder) MkRunPipelineJob(
-	rd resource.RunDefinition,
-) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(rd)
-	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
-	}
-	return pipelineJob, args.Error(1)
-}
-
-func (m *MockJobBuilder) MkRunSchedulePipelineJob(
-	rsd resource.RunScheduleDefinition,
-) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(rsd)
-	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
-	}
-	return pipelineJob, args.Error(1)
-}
-
-func (m *MockJobBuilder) MkSchedule(
-	rsd resource.RunScheduleDefinition,
-	pipelineJob *aiplatformpb.PipelineJob,
-	parent string, maxConcurrentRunCount int64,
-) (*aiplatformpb.Schedule, error) {
-	args := m.Called(rsd, pipelineJob, parent, maxConcurrentRunCount)
-	var schedule *aiplatformpb.Schedule
-	if arg0 := args.Get(0); arg0 != nil {
-		schedule = arg0.(*aiplatformpb.Schedule)
-	}
-	return schedule, args.Error(1)
-}
-
-type MockJobEnricher struct{ mock.Mock }
-
-func (m *MockJobEnricher) Enrich(
-	job *aiplatformpb.PipelineJob,
-	raw map[string]any,
-) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(job, raw)
-	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
-	}
-	return pipelineJob, args.Error(1)
-}
-
-type MockScheduleClient struct{ mock.Mock }
-
-func (m *MockScheduleClient) CreateSchedule(
-	ctx context.Context,
-	req *aiplatformpb.CreateScheduleRequest,
-	opts ...gax.CallOption,
-) (*aiplatformpb.Schedule, error) {
-	args := m.Called(ctx, req, opts)
-	var schedule *aiplatformpb.Schedule
-	if arg1 := args.Get(0); arg1 != nil {
-		schedule = arg1.(*aiplatformpb.Schedule)
-	}
-	return schedule, args.Error(1)
-}
-
-func (m *MockScheduleClient) DeleteSchedule(
-	ctx context.Context,
-	req *aiplatformpb.DeleteScheduleRequest,
-	opts ...gax.CallOption,
-) (*aiplatform.DeleteScheduleOperation, error) {
-	args := m.Called(ctx, req, opts)
-	var operation *aiplatform.DeleteScheduleOperation
-	if arg1 := args.Get(0); arg1 != nil {
-		operation = arg1.(*aiplatform.DeleteScheduleOperation)
-	}
-	return operation, args.Error(1)
-}
-func (m *MockScheduleClient) UpdateSchedule(
-	ctx context.Context,
-	req *aiplatformpb.UpdateScheduleRequest,
-	opts ...gax.CallOption,
-) (*aiplatformpb.Schedule, error) {
-	args := m.Called(ctx, req, opts)
-	var schedule *aiplatformpb.Schedule
-	if arg1 := args.Get(0); arg1 != nil {
-		schedule = arg1.(*aiplatformpb.Schedule)
-	}
-	return schedule, args.Error(1)
-}
-
-type MockFileHandler struct{ mock.Mock }
-
-func (m *MockFileHandler) Write(p []byte, bucket string, filePath string) error {
-	args := m.Called(p, bucket, filePath)
-	return args.Error(0)
-}
-
-func (m *MockFileHandler) Delete(id string, bucket string) error {
-	args := m.Called(id, bucket)
-	return args.Error(0)
-}
-
-func (m *MockFileHandler) Read(bucket string, filePath string) (map[string]any, error) {
-	args := m.Called(bucket, filePath)
-	var data map[string]any
-	if arg0 := args.Get(0); arg0 != nil {
-		data = arg0.(map[string]any)
-	}
-	return data, args.Error(1)
-}
-
-// TODO extract to somewhere common
+// TODO: extract to somewhere common
 func randomPipelineDefinition() resource.PipelineDefinition {
 	return resource.PipelineDefinition{
 		Name:          common.RandomNamespacedName(),
@@ -148,23 +36,23 @@ func randomPipelineDefinition() resource.PipelineDefinition {
 
 var _ = Describe("Provider", func() {
 	var (
-		mockFileHandler    MockFileHandler
-		mockPipelineClient MockPipelineJobClient
-		mockScheduleClient MockScheduleClient
-		mockJobBuilder     MockJobBuilder
-		mockJobEnricher    MockJobEnricher
+		mockFileHandler    mocks.MockFileHandler
+		mockPipelineClient mocks.MockPipelineJobClient
+		mockScheduleClient mocks.MockScheduleClient
+		mockJobBuilder     mocks.MockJobBuilder
+		mockJobEnricher    mocks.MockJobEnricher
 		vaiProvider        VAIProvider
 	)
 
 	BeforeEach(func() {
-		mockFileHandler = MockFileHandler{}
-		mockPipelineClient = MockPipelineJobClient{}
-		mockScheduleClient = MockScheduleClient{}
-		mockJobBuilder = MockJobBuilder{}
-		mockJobEnricher = MockJobEnricher{}
+		mockFileHandler = mocks.MockFileHandler{}
+		mockPipelineClient = mocks.MockPipelineJobClient{}
+		mockScheduleClient = mocks.MockScheduleClient{}
+		mockJobBuilder = mocks.MockJobBuilder{}
+		mockJobEnricher = mocks.MockJobEnricher{}
 		vaiProvider = VAIProvider{
 			ctx:            context.Background(),
-			config:         VAIProviderConfig{},
+			config:         config.VAIProviderConfig{},
 			fileHandler:    &mockFileHandler,
 			pipelineClient: &mockPipelineClient,
 			scheduleClient: &mockScheduleClient,
@@ -297,7 +185,7 @@ var _ = Describe("Provider", func() {
 					"CreatePipelineJob",
 					mock.Anything,
 					&aiplatformpb.CreatePipelineJobRequest{
-						Parent:        vaiProvider.config.parent(),
+						Parent:        vaiProvider.config.Parent(),
 						PipelineJobId: fmt.Sprintf("%s-%s-%s", rd.Name.Namespace, rd.Name.Name, rd.Version),
 						PipelineJob:   &pj,
 					},
@@ -377,14 +265,14 @@ var _ = Describe("Provider", func() {
 					"MkSchedule",
 					rsd,
 					&pj,
-					vaiProvider.config.parent(),
-					vaiProvider.config.getMaxConcurrentRunCountOrDefault(),
+					vaiProvider.config.Parent(),
+					vaiProvider.config.GetMaxConcurrentRunCountOrDefault(),
 				).Return(&schedule, nil)
 				mockScheduleClient.On(
 					"CreateSchedule",
 					mock.Anything,
 					&aiplatformpb.CreateScheduleRequest{
-						Parent:   vaiProvider.config.parent(),
+						Parent:   vaiProvider.config.Parent(),
 						Schedule: &schedule,
 					},
 					mock.Anything,
@@ -476,7 +364,7 @@ var _ = Describe("Provider", func() {
 					"MkSchedule",
 					rsd,
 					&pj,
-					vaiProvider.config.parent(),
+					vaiProvider.config.Parent(),
 					mock.Anything,
 				).Return(&aiplatformpb.Schedule{}, nil)
 				schedule := aiplatformpb.Schedule{}

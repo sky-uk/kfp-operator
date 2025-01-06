@@ -1,16 +1,15 @@
-package internal
+package provider
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	"github.com/googleapis/gax-go/v2"
-
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/file"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
@@ -18,41 +17,21 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
-type ScheduleClient interface {
-	CreateSchedule(
-		ctx context.Context,
-		req *aiplatformpb.CreateScheduleRequest,
-		opts ...gax.CallOption,
-	) (*aiplatformpb.Schedule, error)
-
-	DeleteSchedule(
-		ctx context.Context,
-		req *aiplatformpb.DeleteScheduleRequest,
-		opts ...gax.CallOption,
-	) (*aiplatform.DeleteScheduleOperation, error)
-
-	UpdateSchedule(
-		ctx context.Context,
-		req *aiplatformpb.UpdateScheduleRequest,
-		opts ...gax.CallOption,
-	) (*aiplatformpb.Schedule, error)
-}
-
 type VAIProvider struct {
 	ctx            context.Context
-	config         VAIProviderConfig
-	fileHandler    file.FileHandler
-	pipelineClient PipelineJobClient
-	scheduleClient ScheduleClient
+	config         config.VAIProviderConfig
+	fileHandler    FileHandler
+	pipelineClient client.PipelineJobClient
+	scheduleClient client.ScheduleClient
 	jobBuilder     JobBuilder
 	jobEnricher    JobEnricher
 }
 
 func NewProvider(
 	ctx context.Context,
-	config VAIProviderConfig,
+	config config.VAIProviderConfig,
 ) (*VAIProvider, error) {
-	fh, err := file.NewGcsFileHandler(ctx, config.Parameters.GcsEndpoint)
+	fh, err := NewGcsFileHandler(ctx, config.Parameters.GcsEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +141,7 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 	runId := fmt.Sprintf("%s-%s", rd.Name.Namespace, rd.Name.Name)
 
 	req := &aiplatformpb.CreatePipelineJobRequest{
-		Parent:        vaip.config.parent(),
+		Parent:        vaip.config.Parent(),
 		PipelineJobId: fmt.Sprintf("%s-%s", runId, rd.Version),
 		PipelineJob:   enrichedJob,
 	}
@@ -211,8 +190,8 @@ func (vaip *VAIProvider) CreateRunSchedule(
 	schedule, err := vaip.jobBuilder.MkSchedule(
 		rsd,
 		enrichedJob,
-		vaip.config.parent(),
-		vaip.config.getMaxConcurrentRunCountOrDefault(),
+		vaip.config.Parent(),
+		vaip.config.GetMaxConcurrentRunCountOrDefault(),
 	)
 	if err != nil {
 		return "", err
@@ -221,7 +200,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 	createdSchedule, err := vaip.scheduleClient.CreateSchedule(
 		vaip.ctx,
 		&aiplatformpb.CreateScheduleRequest{
-			Parent:   vaip.config.parent(),
+			Parent:   vaip.config.Parent(),
 			Schedule: schedule,
 		},
 	)
@@ -265,8 +244,8 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 	schedule, err := vaip.jobBuilder.MkSchedule(
 		rsd,
 		enrichedJob,
-		vaip.config.parent(),
-		vaip.config.getMaxConcurrentRunCountOrDefault(),
+		vaip.config.Parent(),
+		vaip.config.GetMaxConcurrentRunCountOrDefault(),
 	)
 	if err != nil {
 		return "", err
