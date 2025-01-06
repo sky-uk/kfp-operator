@@ -5,11 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/googleapis/gax-go/v2"
-
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/file"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
 	"google.golang.org/api/option"
@@ -18,32 +17,12 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
-type ScheduleClient interface {
-	CreateSchedule(
-		ctx context.Context,
-		req *aiplatformpb.CreateScheduleRequest,
-		opts ...gax.CallOption,
-	) (*aiplatformpb.Schedule, error)
-
-	DeleteSchedule(
-		ctx context.Context,
-		req *aiplatformpb.DeleteScheduleRequest,
-		opts ...gax.CallOption,
-	) (*aiplatform.DeleteScheduleOperation, error)
-
-	UpdateSchedule(
-		ctx context.Context,
-		req *aiplatformpb.UpdateScheduleRequest,
-		opts ...gax.CallOption,
-	) (*aiplatformpb.Schedule, error)
-}
-
 type VAIProvider struct {
 	ctx            context.Context
 	config         VAIProviderConfig
 	fileHandler    file.FileHandler
-	pipelineClient PipelineJobClient
-	scheduleClient ScheduleClient
+	pipelineClient client.PipelineJobClient
+	scheduleClient client.ScheduleClient
 	jobBuilder     JobBuilder
 	jobEnricher    JobEnricher
 }

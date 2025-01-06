@@ -9,14 +9,13 @@ import (
 	"errors"
 	"fmt"
 
-	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/googleapis/gax-go/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
@@ -72,67 +71,6 @@ func (m *MockJobEnricher) Enrich(
 	return pipelineJob, args.Error(1)
 }
 
-type MockScheduleClient struct{ mock.Mock }
-
-func (m *MockScheduleClient) CreateSchedule(
-	ctx context.Context,
-	req *aiplatformpb.CreateScheduleRequest,
-	opts ...gax.CallOption,
-) (*aiplatformpb.Schedule, error) {
-	args := m.Called(ctx, req, opts)
-	var schedule *aiplatformpb.Schedule
-	if arg1 := args.Get(0); arg1 != nil {
-		schedule = arg1.(*aiplatformpb.Schedule)
-	}
-	return schedule, args.Error(1)
-}
-
-func (m *MockScheduleClient) DeleteSchedule(
-	ctx context.Context,
-	req *aiplatformpb.DeleteScheduleRequest,
-	opts ...gax.CallOption,
-) (*aiplatform.DeleteScheduleOperation, error) {
-	args := m.Called(ctx, req, opts)
-	var operation *aiplatform.DeleteScheduleOperation
-	if arg1 := args.Get(0); arg1 != nil {
-		operation = arg1.(*aiplatform.DeleteScheduleOperation)
-	}
-	return operation, args.Error(1)
-}
-func (m *MockScheduleClient) UpdateSchedule(
-	ctx context.Context,
-	req *aiplatformpb.UpdateScheduleRequest,
-	opts ...gax.CallOption,
-) (*aiplatformpb.Schedule, error) {
-	args := m.Called(ctx, req, opts)
-	var schedule *aiplatformpb.Schedule
-	if arg1 := args.Get(0); arg1 != nil {
-		schedule = arg1.(*aiplatformpb.Schedule)
-	}
-	return schedule, args.Error(1)
-}
-
-type MockFileHandler struct{ mock.Mock }
-
-func (m *MockFileHandler) Write(p []byte, bucket string, filePath string) error {
-	args := m.Called(p, bucket, filePath)
-	return args.Error(0)
-}
-
-func (m *MockFileHandler) Delete(id string, bucket string) error {
-	args := m.Called(id, bucket)
-	return args.Error(0)
-}
-
-func (m *MockFileHandler) Read(bucket string, filePath string) (map[string]any, error) {
-	args := m.Called(bucket, filePath)
-	var data map[string]any
-	if arg0 := args.Get(0); arg0 != nil {
-		data = arg0.(map[string]any)
-	}
-	return data, args.Error(1)
-}
-
 // TODO extract to somewhere common
 func randomPipelineDefinition() resource.PipelineDefinition {
 	return resource.PipelineDefinition{
@@ -148,18 +86,18 @@ func randomPipelineDefinition() resource.PipelineDefinition {
 
 var _ = Describe("Provider", func() {
 	var (
-		mockFileHandler    MockFileHandler
-		mockPipelineClient MockPipelineJobClient
-		mockScheduleClient MockScheduleClient
+		mockFileHandler    mocks.MockFileHandler
+		mockPipelineClient mocks.MockPipelineJobClient
+		mockScheduleClient mocks.MockScheduleClient
 		mockJobBuilder     MockJobBuilder
 		mockJobEnricher    MockJobEnricher
 		vaiProvider        VAIProvider
 	)
 
 	BeforeEach(func() {
-		mockFileHandler = MockFileHandler{}
-		mockPipelineClient = MockPipelineJobClient{}
-		mockScheduleClient = MockScheduleClient{}
+		mockFileHandler = mocks.MockFileHandler{}
+		mockPipelineClient = mocks.MockPipelineJobClient{}
+		mockScheduleClient = mocks.MockScheduleClient{}
 		mockJobBuilder = MockJobBuilder{}
 		mockJobEnricher = MockJobEnricher{}
 		vaiProvider = VAIProvider{
