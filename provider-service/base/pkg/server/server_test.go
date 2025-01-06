@@ -413,5 +413,142 @@ var _ = Describe("Http Server Endpoints", func() {
 				})
 			})
 		})
+
+		Context("/{id} PUT request updateHandler", func() {
+			When("succeeds", func() {
+				It("returns 200 with valid response body", func() {
+					id := "mock-id"
+					payload := []byte(`{"name": "test"}`)
+					handledResource.On(
+						"Update",
+						mock.MatchedBy(func(s string) bool {
+							return s == id
+						}),
+						mock.MatchedBy(func(p []byte) bool {
+							return bytes.Equal(p, payload)
+						}),
+					).Return(nil)
+
+					req := httptest.NewRequest(
+						http.MethodPut,
+						"/resource/"+resourceType+"/"+id,
+						bytes.NewReader(payload),
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(body).To(BeEmpty())
+				})
+			})
+
+			When("request body fails to be read", func() {
+				It("returns 500 with error response body", func() {
+					req := httptest.NewRequest(
+						http.MethodPut,
+						"/resource/"+resourceType+"/mock-id",
+						io.NopCloser(&failReader{}),
+					)
+					w := httptest.NewRecorder()
+
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(body)).To(ContainSubstring("Failed to read request body"))
+				})
+			})
+
+			When("handledResource Update fails", func() {
+				It("returns 500 with error response body", func() {
+					id := "mock-id"
+					response := "failed to update"
+					payload := []byte(`{"name": "test"}`)
+					handledResource.On(
+						"Update",
+						mock.MatchedBy(func(s string) bool {
+							return s == id
+						}),
+						mock.MatchedBy(func(p []byte) bool {
+							return bytes.Equal(p, payload)
+						}),
+					).Return(errors.New(response))
+					req := httptest.NewRequest(
+						http.MethodPut,
+						"/resource/"+resourceType+"/"+id,
+						bytes.NewReader(payload),
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(body)).To(ContainSubstring(response))
+				})
+			})
+		})
+
+		Context("/{id} DELETE request deleteHandler", func() {
+			When("succeeds", func() {
+				It("returns 200", func() {
+					id := "mock-id"
+					handledResource.On(
+						"Delete",
+						mock.MatchedBy(func(s string) bool {
+							return s == id
+						}),
+					).Return(nil)
+
+					req := httptest.NewRequest(
+						http.MethodDelete,
+						"/resource/"+resourceType+"/"+id,
+						nil,
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(body).To(BeEmpty())
+				})
+			})
+
+			When("handledResource Delete fails", func() {
+				It("returns 500 with error response body", func() {
+					id := "mock-id"
+					response := "failed to delete"
+					handledResource.On(
+						"Delete",
+						mock.MatchedBy(func(s string) bool {
+							return s == id
+						}),
+					).Return(errors.New(response))
+					req := httptest.NewRequest(
+						http.MethodDelete,
+						"/resource/"+resourceType+"/"+id,
+						nil,
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(body)).To(ContainSubstring(response))
+				})
+			})
+		})
 	})
 })
