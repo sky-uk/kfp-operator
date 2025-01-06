@@ -11,6 +11,7 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -43,28 +44,11 @@ func randomRunScheduleDefinition() resource.RunScheduleDefinition {
 	}
 }
 
-type MockLabelGen struct{}
-
-func (lg MockLabelGen) GenerateLabels(value any) (map[string]string, error) {
-	switch v := value.(type) {
-	case resource.RunDefinition:
-		return map[string]string{
-			"rd-key": "rd-value",
-		}, nil
-	case resource.RunScheduleDefinition:
-		return map[string]string{
-			"rsd-key": "rsd-value",
-		}, nil
-	default:
-		return nil, fmt.Errorf("Unexpected value of type %T", v)
-	}
-}
-
 var _ = Describe("JobBuilder", func() {
 	var jb = DefaultJobBuilder{
 		serviceAccount: "service-account",
 		pipelineBucket: "pipeline-bucket",
-		labelGen:       MockLabelGen{},
+		labelGen:       mocks.MockLabelGen{},
 	}
 
 	Context("MkRunPipelineJob", func() {

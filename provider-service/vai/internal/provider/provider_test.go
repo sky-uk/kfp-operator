@@ -21,58 +21,7 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
-type MockJobBuilder struct{ mock.Mock }
-
-func (m *MockJobBuilder) MkRunPipelineJob(
-	rd resource.RunDefinition,
-) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(rd)
-	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
-	}
-	return pipelineJob, args.Error(1)
-}
-
-func (m *MockJobBuilder) MkRunSchedulePipelineJob(
-	rsd resource.RunScheduleDefinition,
-) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(rsd)
-	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
-	}
-	return pipelineJob, args.Error(1)
-}
-
-func (m *MockJobBuilder) MkSchedule(
-	rsd resource.RunScheduleDefinition,
-	pipelineJob *aiplatformpb.PipelineJob,
-	parent string, maxConcurrentRunCount int64,
-) (*aiplatformpb.Schedule, error) {
-	args := m.Called(rsd, pipelineJob, parent, maxConcurrentRunCount)
-	var schedule *aiplatformpb.Schedule
-	if arg0 := args.Get(0); arg0 != nil {
-		schedule = arg0.(*aiplatformpb.Schedule)
-	}
-	return schedule, args.Error(1)
-}
-
-type MockJobEnricher struct{ mock.Mock }
-
-func (m *MockJobEnricher) Enrich(
-	job *aiplatformpb.PipelineJob,
-	raw map[string]any,
-) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(job, raw)
-	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
-	}
-	return pipelineJob, args.Error(1)
-}
-
-// TODO extract to somewhere common
+// TODO: extract to somewhere common
 func randomPipelineDefinition() resource.PipelineDefinition {
 	return resource.PipelineDefinition{
 		Name:          common.RandomNamespacedName(),
@@ -90,8 +39,8 @@ var _ = Describe("Provider", func() {
 		mockFileHandler    mocks.MockFileHandler
 		mockPipelineClient mocks.MockPipelineJobClient
 		mockScheduleClient mocks.MockScheduleClient
-		mockJobBuilder     MockJobBuilder
-		mockJobEnricher    MockJobEnricher
+		mockJobBuilder     mocks.MockJobBuilder
+		mockJobEnricher    mocks.MockJobEnricher
 		vaiProvider        VAIProvider
 	)
 
@@ -99,8 +48,8 @@ var _ = Describe("Provider", func() {
 		mockFileHandler = mocks.MockFileHandler{}
 		mockPipelineClient = mocks.MockPipelineJobClient{}
 		mockScheduleClient = mocks.MockScheduleClient{}
-		mockJobBuilder = MockJobBuilder{}
-		mockJobEnricher = MockJobEnricher{}
+		mockJobBuilder = mocks.MockJobBuilder{}
+		mockJobEnricher = mocks.MockJobEnricher{}
 		vaiProvider = VAIProvider{
 			ctx:            context.Background(),
 			config:         config.VAIProviderConfig{},
