@@ -3,6 +3,7 @@
 package internal
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -17,6 +18,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 type MockJobBuilder struct{ mock.Mock }
@@ -198,9 +200,25 @@ var _ = Describe("Provider", func() {
 	Context("UpdatePipeline", func() {
 		When("updating a pipeline", func() {
 			It("should return the pipeline ID", func() {
-				mockFileHandler.On("Write", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-
 				pd := randomPipelineDefinition()
+				mockFileHandler.On(
+					"Write",
+					mock.MatchedBy(func(j json.RawMessage) bool {
+						return bytes.Equal(j, pd.Manifest)
+					}),
+					mock.MatchedBy(func(s string) bool {
+						return s == vaiProvider.config.Parameters.PipelineBucket
+					}),
+					mock.MatchedBy(func(s string) bool {
+						return s == fmt.Sprintf(
+							"%s/%s/%s",
+							pd.Name.Namespace,
+							pd.Name.Name,
+							pd.Version,
+						)
+					}),
+				).Return(nil)
+
 				pid, err := vaiProvider.UpdatePipeline(pd, "")
 
 				Expect(err).ToNot(HaveOccurred())
@@ -210,9 +228,14 @@ var _ = Describe("Provider", func() {
 			})
 
 			It("return an error when the file handler write fails", func() {
-				mockFileHandler.On("Write", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed"))
-
 				pd := randomPipelineDefinition()
+				mockFileHandler.On(
+					"Write",
+					mock.Anything,
+					mock.Anything,
+					mock.Anything,
+				).Return(errors.New("failed"))
+
 				_, err := vaiProvider.CreatePipeline(pd)
 
 				Expect(err).To(HaveOccurred())
@@ -224,13 +247,28 @@ var _ = Describe("Provider", func() {
 	Context("DeletePipeline", func() {
 		When("deleting a pipeline", func() {
 			It("should not return an error", func() {
-				mockFileHandler.On("Delete", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-				err := vaiProvider.DeletePipeline("")
+				id := "id"
+				mockFileHandler.On(
+					"Delete",
+					mock.MatchedBy(func(s string) bool {
+						return s == id
+					}),
+					mock.MatchedBy(func(s string) bool {
+						return s == vaiProvider.config.Parameters.PipelineBucket
+					}),
+					mock.Anything,
+				).Return(nil)
+				err := vaiProvider.DeletePipeline(id)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("return an error when the file handler delete fails", func() {
-				mockFileHandler.On("Delete", "pipelineId", mock.Anything, mock.Anything).Return(errors.New("failed"))
+				mockFileHandler.On(
+					"Delete",
+					"pipelineId",
+					mock.Anything,
+					mock.Anything,
+				).Return(errors.New("failed"))
 				err := vaiProvider.DeletePipeline("pipelineId")
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -243,10 +281,28 @@ var _ = Describe("Provider", func() {
 			It("return a run ID", func() {
 				rd := randomBasicRunDefinition()
 				pj := aiplatformpb.PipelineJob{}
-				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockFileHandler.On(
+					"Read",
+					vaiProvider.config.Parameters.PipelineBucket,
+					fmt.Sprintf(
+						"%s/%s/%s",
+						rd.PipelineName.Namespace,
+						rd.PipelineName.Name,
+						rd.PipelineVersion,
+					),
+				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunPipelineJob", rd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
-				mockPipelineClient.On("CreatePipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(&pj, nil)
+				mockPipelineClient.On(
+					"CreatePipelineJob",
+					mock.Anything,
+					&aiplatformpb.CreatePipelineJobRequest{
+						Parent:        vaiProvider.config.parent(),
+						PipelineJobId: fmt.Sprintf("%s-%s-%s", rd.Name.Namespace, rd.Name.Name, rd.Version),
+						PipelineJob:   &pj,
+					},
+					mock.Anything,
+				).Return(&pj, nil)
 				runId, err := vaiProvider.CreateRun(rd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -304,12 +360,35 @@ var _ = Describe("Provider", func() {
 			It("returns a schedule name", func() {
 				rsd := randomRunScheduleDefinition()
 				pj := aiplatformpb.PipelineJob{}
-				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				schedule := aiplatformpb.Schedule{}
+				mockFileHandler.On(
+					"Read",
+					vaiProvider.config.Parameters.PipelineBucket,
+					fmt.Sprintf(
+						"%s/%s/%s",
+						rsd.PipelineName.Namespace,
+						rsd.PipelineName.Name,
+						rsd.PipelineVersion,
+					),
+				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
-				mockJobBuilder.On("MkSchedule", mock.Anything, &pj, mock.Anything, mock.Anything).Return(&aiplatformpb.Schedule{}, nil)
-				schedule := aiplatformpb.Schedule{}
-				mockScheduleClient.On("CreateSchedule", mock.Anything, mock.Anything, mock.Anything).Return(&schedule, nil)
+				mockJobBuilder.On(
+					"MkSchedule",
+					rsd,
+					&pj,
+					vaiProvider.config.parent(),
+					vaiProvider.config.getMaxConcurrentRunCountOrDefault(),
+				).Return(&schedule, nil)
+				mockScheduleClient.On(
+					"CreateSchedule",
+					mock.Anything,
+					&aiplatformpb.CreateScheduleRequest{
+						Parent:   vaiProvider.config.parent(),
+						Schedule: &schedule,
+					},
+					mock.Anything,
+				).Return(&schedule, nil)
 				scheduleName, err := vaiProvider.CreateRunSchedule(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -381,12 +460,39 @@ var _ = Describe("Provider", func() {
 			It("returns a schedule name", func() {
 				rsd := randomRunScheduleDefinition()
 				pj := aiplatformpb.PipelineJob{}
-				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
+				mockFileHandler.On(
+					"Read",
+					vaiProvider.config.Parameters.PipelineBucket,
+					fmt.Sprintf(
+						"%s/%s/%s",
+						rsd.PipelineName.Namespace,
+						rsd.PipelineName.Name,
+						rsd.PipelineVersion,
+					),
+				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
-				mockJobBuilder.On("MkSchedule", mock.Anything, &pj, mock.Anything, mock.Anything).Return(&aiplatformpb.Schedule{}, nil)
+				mockJobBuilder.On(
+					"MkSchedule",
+					rsd,
+					&pj,
+					vaiProvider.config.parent(),
+					mock.Anything,
+				).Return(&aiplatformpb.Schedule{}, nil)
 				schedule := aiplatformpb.Schedule{}
-				mockScheduleClient.On("UpdateSchedule", mock.Anything, mock.Anything, mock.Anything).Return(&schedule, nil)
+				mockScheduleClient.On(
+					"UpdateSchedule",
+					mock.Anything,
+					&aiplatformpb.UpdateScheduleRequest{
+						Schedule: &schedule,
+						UpdateMask: &fieldmaskpb.FieldMask{
+							Paths: []string{
+								"schedule",
+							},
+						},
+					},
+					mock.Anything,
+				).Return(&schedule, nil)
 				scheduleName, err := vaiProvider.UpdateRunSchedule(rsd, "")
 
 				Expect(err).ToNot(HaveOccurred())
