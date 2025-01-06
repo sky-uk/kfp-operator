@@ -32,16 +32,6 @@ func main() {
 		panic(err)
 	}
 
-	//TODO: Update the config to be passed in by controller on deployment creation
-	provider, err := vai.NewProvider(ctx, vai.VAIProviderConfig{})
-	if err != nil {
-		panic(err)
-	}
-
-	if err = server.Start(ctx, config.Server, provider); err != nil {
-		panic(err)
-	}
-
 	k8sClient, err := NewK8sClient()
 	if err != nil {
 		panic(err)
@@ -51,8 +41,18 @@ func main() {
 		Name: config.ProviderName,
 	}
 
-	if err := LoadProvider(ctx, k8sClient.Client, config.ProviderName, config.Pod.Namespace, vaiConfig); err != nil {
+	if err := LoadProvider(ctx, k8sClient.Client, config.ProviderName, config.Pod.Namespace, &vaiConfig); err != nil {
 		logger.Error(err, "failed to load provider", "name", config.ProviderName, "namespace", config.Pod.Namespace)
+		panic(err)
+	}
+
+	//TODO: Update the config to be passed in by controller on deployment creation
+	provider, err := vai.NewProvider(ctx, vaiConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = server.Start(ctx, config.Server, provider); err != nil {
 		panic(err)
 	}
 
@@ -69,7 +69,11 @@ func main() {
 	}
 	go handleErrorInSourceOperations(source)
 
+<<<<<<< HEAD
 	flow := runcompletion.NewEventFlow(ctx, vaiConfig, pipelineJobClient)
+=======
+	flow := vai.NewEventFlow(ctx, &vaiConfig, pipelineJobClient)
+>>>>>>> 478ce2b (fix order of vai provider initialisation)
 
 	go func() {
 		flow.Start()
