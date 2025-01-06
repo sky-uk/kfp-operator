@@ -1,6 +1,6 @@
 //go:build unit
 
-package internal
+package provider
 
 import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"

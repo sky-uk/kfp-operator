@@ -1,6 +1,6 @@
 //go:build unit
 
-package internal
+package provider
 
 import (
 	"bytes"
@@ -15,6 +15,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -102,7 +103,7 @@ var _ = Describe("Provider", func() {
 		mockJobEnricher = MockJobEnricher{}
 		vaiProvider = VAIProvider{
 			ctx:            context.Background(),
-			config:         VAIProviderConfig{},
+			config:         config.VAIProviderConfig{},
 			fileHandler:    &mockFileHandler,
 			pipelineClient: &mockPipelineClient,
 			scheduleClient: &mockScheduleClient,
@@ -235,7 +236,7 @@ var _ = Describe("Provider", func() {
 					"CreatePipelineJob",
 					mock.Anything,
 					&aiplatformpb.CreatePipelineJobRequest{
-						Parent:        vaiProvider.config.parent(),
+						Parent:        vaiProvider.config.Parent(),
 						PipelineJobId: fmt.Sprintf("%s-%s-%s", rd.Name.Namespace, rd.Name.Name, rd.Version),
 						PipelineJob:   &pj,
 					},
@@ -315,14 +316,14 @@ var _ = Describe("Provider", func() {
 					"MkSchedule",
 					rsd,
 					&pj,
-					vaiProvider.config.parent(),
-					vaiProvider.config.getMaxConcurrentRunCountOrDefault(),
+					vaiProvider.config.Parent(),
+					vaiProvider.config.GetMaxConcurrentRunCountOrDefault(),
 				).Return(&schedule, nil)
 				mockScheduleClient.On(
 					"CreateSchedule",
 					mock.Anything,
 					&aiplatformpb.CreateScheduleRequest{
-						Parent:   vaiProvider.config.parent(),
+						Parent:   vaiProvider.config.Parent(),
 						Schedule: &schedule,
 					},
 					mock.Anything,
@@ -414,7 +415,7 @@ var _ = Describe("Provider", func() {
 					"MkSchedule",
 					rsd,
 					&pj,
-					vaiProvider.config.parent(),
+					vaiProvider.config.Parent(),
 					mock.Anything,
 				).Return(&aiplatformpb.Schedule{}, nil)
 				schedule := aiplatformpb.Schedule{}
