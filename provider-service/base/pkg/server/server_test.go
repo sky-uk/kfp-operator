@@ -122,7 +122,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(w, req)
 					resp := w.Result()
 
-					Expect(resp.StatusCode).To(Equal(200))
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(Equal(response))
@@ -140,7 +140,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(w, req)
 					resp := w.Result()
 
-					Expect(resp.StatusCode).To(Equal(500))
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring("Failed to read request body"))
@@ -164,7 +164,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(w, req)
 					resp := w.Result()
 
-					Expect(resp.StatusCode).To(Equal(500))
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring(response))
@@ -196,7 +196,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(w, req)
 					resp := w.Result()
 
-					Expect(resp.StatusCode).To(Equal(200))
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
@@ -216,7 +216,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(w, req)
 					resp := w.Result()
 
-					Expect(resp.StatusCode).To(Equal(500))
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
 
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
@@ -247,7 +247,61 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(w, req)
 					resp := w.Result()
 
-					Expect(resp.StatusCode).To(Equal(500))
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(body)).To(ContainSubstring(response))
+				})
+			})
+		})
+
+		Context("/{id} DELETE request deleteHandler", func() {
+			When("succeeds", func() {
+				It("returns 200", func() {
+					id := "mock-id"
+					handledResource.On(
+						"Delete",
+						mock.MatchedBy(func(s string) bool {
+							return s == id
+						}),
+					).Return(nil)
+
+					req := httptest.NewRequest(
+						http.MethodDelete,
+						"/resource/"+resourceType+"/"+id,
+						nil,
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(body).To(BeEmpty())
+				})
+			})
+
+			When("handledResource Delete fails", func() {
+				It("returns 500 with error response body", func() {
+					id := "mock-id"
+					response := "failed to delete"
+					handledResource.On(
+						"Delete",
+						mock.MatchedBy(func(s string) bool {
+							return s == id
+						}),
+					).Return(errors.New(response))
+					req := httptest.NewRequest(
+						http.MethodDelete,
+						"/resource/"+resourceType+"/"+id,
+						nil,
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring(response))
