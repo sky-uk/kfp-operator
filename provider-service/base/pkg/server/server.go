@@ -33,12 +33,16 @@ func createHandler(a resource.HttpHandledResource) http.HandlerFunc {
 		defer r.Body.Close()
 
 		resp, err := a.Create(body)
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		_, _ = w.Write([]byte(resp.Id))
+
+		_, err = w.Write([]byte(resp.Id))
+		if err != nil {
+			http.Error(w, "Failed to write response body id", http.StatusInternalServerError)
+			return
+		}
 	}
 }
 

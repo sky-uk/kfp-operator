@@ -22,7 +22,7 @@ type Pod struct {
 
 type Server struct {
 	Host string `mapstructure:"host"`
-	Port int `mapstructure:"port"`
+	Port int    `mapstructure:"port"`
 }
 
 func LoadConfig(ctx context.Context) (*Config, error) {
