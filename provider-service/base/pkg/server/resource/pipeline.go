@@ -5,7 +5,7 @@ import (
 )
 
 type Pipeline struct {
-	Provider Provider
+	Provider PipelineProvider
 }
 
 func (p *Pipeline) Type() string {

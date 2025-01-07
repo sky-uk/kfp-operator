@@ -47,17 +47,30 @@ type RunScheduleDefinition struct {
 }
 
 type Provider interface {
+	PipelineProvider
+	RunProvider
+	RunScheduleProvider
+	ExperimentProvider
+}
+
+type PipelineProvider interface {
 	CreatePipeline(pd PipelineDefinition) (string, error)
 	UpdatePipeline(pd PipelineDefinition, id string) (string, error)
 	DeletePipeline(id string) error
+}
 
+type RunProvider interface {
 	CreateRun(rd RunDefinition) (string, error)
 	DeleteRun(id string) error
+}
 
+type RunScheduleProvider interface {
 	CreateRunSchedule(rsd RunScheduleDefinition) (string, error)
 	UpdateRunSchedule(rsd RunScheduleDefinition, id string) (string, error)
 	DeleteRunSchedule(id string) error
+}
 
+type ExperimentProvider interface {
 	CreateExperiment(ed ExperimentDefinition) (string, error)
 	UpdateExperiment(ed ExperimentDefinition, id string) (string, error)
 	DeleteExperiment(id string) error

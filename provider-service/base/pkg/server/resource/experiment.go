@@ -3,7 +3,7 @@ package resource
 import "encoding/json"
 
 type Experiment struct {
-	Provider Provider
+	Provider ExperimentProvider
 }
 
 func (e *Experiment) Type() string {

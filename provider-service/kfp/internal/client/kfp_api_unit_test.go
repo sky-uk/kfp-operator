@@ -1,6 +1,6 @@
 //go:build unit
 
-package internal
+package client
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 )
 
@@ -36,6 +37,7 @@ var _ = Context("KFP API", func() {
 			It("Errors", func() {
 				mockRunServiceClient.On(
 					"GetRun",
+					&go_client.GetRunRequest{RunId: runId},
 					&go_client.GetRunRequest{RunId: runId},
 				).Return(nil, errors.New("failed"))
 
@@ -69,7 +71,7 @@ var _ = Context("KFP API", func() {
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())
-				Expect(resourceReferences).To(Equal(ResourceReferences{}))
+				Expect(resourceReferences).To(Equal(resource.References{}))
 			})
 		})
 
@@ -98,7 +100,7 @@ var _ = Context("KFP API", func() {
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())
-				Expect(resourceReferences).To(Equal(ResourceReferences{}))
+				Expect(resourceReferences).To(Equal(resource.References{}))
 			})
 		})
 

@@ -3,7 +3,7 @@ package resource
 import "encoding/json"
 
 type Run struct {
-	Provider Provider
+	Provider RunProvider
 }
 
 func (rs *Run) Type() string {

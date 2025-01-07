@@ -1,6 +1,6 @@
 //go:build unit
 
-package internal
+package client
 
 import (
 	"context"
