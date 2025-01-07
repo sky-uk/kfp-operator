@@ -14,7 +14,7 @@ import (
 )
 
 type FileHandler interface {
-	Write(p []byte, bucket string, filePath string) error
+	Write(content []byte, bucket string, filePath string) error
 	Delete(id string, bucket string) error
 	Read(bucket string, filePath string) (map[string]any, error)
 }
@@ -39,15 +39,20 @@ func NewGcsFileHandler(
 	} else {
 		client, err = storage.NewClient(ctx)
 	}
+
+	if err != nil {
+		return GcsFileHandler{}, err
+	}
+
 	return GcsFileHandler{ctx: ctx, gcsClient: *client}, err
 }
 
 // Write writes bytes into the location inferred by GCS bucket name and
 // file path (relative to GCS bucket location).
-func (g *GcsFileHandler) Write(p []byte, bucket string, filePath string) error {
+func (g *GcsFileHandler) Write(content []byte, bucket string, filePath string) error {
 	writer := g.gcsClient.Bucket(bucket).Object(filePath).NewWriter(g.ctx)
 
-	_, err := io.Writer(writer).Write(p)
+	_, err := io.Writer(writer).Write(content)
 	if err != nil {
 		return err
 	}
