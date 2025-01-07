@@ -2,7 +2,9 @@ package pipelines
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"hash"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sort"
 )
 
@@ -36,6 +38,15 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 	}
 
 	oh.WriteFieldSeparator()
+}
+
+func (oh ObjectHasher) WriteObject(obj metav1.Object) error {
+	bytes, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	oh.h.Write(bytes)
+	return nil
 }
 
 type KV interface {
