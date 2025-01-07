@@ -3,10 +3,11 @@ package pipelines
 import (
 	"context"
 	"fmt"
+	"time"
+
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -20,6 +21,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+)
+
+const (
+	OwnerNameLabel         = "owner-name"
+	AppLabel               = "app"
+	ResourceHashAnnotation = "resource-hash"
 )
 
 type ProviderReconciler struct {
@@ -63,7 +70,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	deploy, err := r.getDeployment(ctx, req.Namespace, provider.Name, *provider)
+	existingDeployment, err := r.getDeployment(ctx, req.Namespace, provider.Name, *provider)
 	if err != nil && !apierrors.IsNotFound(err) {
 		logger.Error(err, "unable to get existing deployment")
 		return ctrl.Result{}, err
@@ -71,11 +78,20 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	logger.Info("desired provider deployment", "deployment", desiredDeployment)
 
-	if deploy != nil {
-		logger.Info("found existing provider deployment", "deployment", deploy)
-		//TODO: implement updating existing deployment
+	if existingDeployment != nil {
+		logger.Info("found existing provider deployment", "deployment", existingDeployment)
+		if existingDeployment.Annotations != nil && existingDeployment.Annotations[ResourceHashAnnotation] != desiredDeployment.Annotations[ResourceHashAnnotation] {
+			logger.Info("resource hash mismatch, updating deployment")
+			existingDeployment.Spec = desiredDeployment.Spec
+			existingDeployment.SetLabels(desiredDeployment.Labels)
+			existingDeployment.Annotations[ResourceHashAnnotation] = desiredDeployment.Annotations[ResourceHashAnnotation]
+			if err = r.EC.Client.Update(ctx, existingDeployment); err != nil {
+				logger.Error(err, "unable to update provider service deployment", "deployment", desiredDeployment)
+				return ctrl.Result{}, err
+			}
+		}
 	} else {
-		if err := r.EC.Client.Create(ctx, desiredDeployment); err != nil {
+		if err = r.EC.Client.Create(ctx, desiredDeployment); err != nil {
 			logger.Error(err, "unable to create provider service deployment")
 			return ctrl.Result{}, err
 		}
@@ -101,7 +117,7 @@ func (r *ProviderReconciler) getDeployment(ctx context.Context, namespace string
 	dl := &appsv1.DeploymentList{}
 	err := r.EC.Client.NonCached.List(ctx, dl, &client.ListOptions{
 		Namespace:     namespace,
-		LabelSelector: labelSelector(map[string]string{"owner-name": fmt.Sprintf("provider-%s", providerName)}),
+		LabelSelector: labelSelector(map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", providerName)}),
 	})
 
 	if err != nil {
@@ -120,8 +136,8 @@ func labelSelector(labelMap map[string]string) labels.Selector {
 }
 
 func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider, namespace string, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
-	matchLabels := map[string]string{"app": fmt.Sprintf("provider-%s", provider.Name)}
-	ownerLabels := map[string]string{"owner-name": fmt.Sprintf("provider-%s", provider.Name)}
+	matchLabels := map[string]string{AppLabel: fmt.Sprintf("provider-%s", provider.Name)}
+	ownerLabels := map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", provider.Name)}
 	deploymentLabels := pipelines.MapConcat(pipelines.MapConcat(config.DefaultProviderValues.Labels, matchLabels), ownerLabels)
 	replicas := int32(config.DefaultProviderValues.Replicas)
 
@@ -148,10 +164,14 @@ func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider,
 			Template: podTemplate,
 		},
 	}
-	err := ctrl.SetControllerReference(provider, deployment, r.Scheme)
-	if err != nil {
+
+	if err := ctrl.SetControllerReference(provider, deployment, r.Scheme); err != nil {
 		return nil, err
 	}
+	if err := setResourceHashAnnotation(deployment); err != nil {
+		return nil, err
+	}
+
 	return deployment, nil
 }
 
@@ -167,4 +187,19 @@ func populateMainContainer(podTemplate v1.PodTemplateSpec, provider *pipelinesv1
 		}
 	}
 	return podTemplate
+}
+
+func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
+	hasher := pipelines.NewObjectHasher()
+	err := hasher.WriteObject(deployment)
+	if err != nil {
+		return err
+	}
+
+	if deployment.Annotations == nil {
+		deployment.Annotations = make(map[string]string)
+	}
+	deployment.Annotations[ResourceHashAnnotation] = fmt.Sprintf("%x", hasher.Sum())
+
+	return nil
 }
