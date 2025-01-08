@@ -15,8 +15,10 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Provider = getProviderAnnotation(src)
+	dst.Spec.Provider.Name = getProviderAnnotation(src)
+	dst.Spec.Provider.Namespace = getProviderNamespaceAnnotation(src)
 	removeProviderAnnotation(dst)
+	removeProviderNamespaceAnnotation(dst)
 	dst.Spec.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
 		Version: src.Spec.Pipeline.Version,
@@ -31,7 +33,7 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
-	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId)
+	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId, dst.Spec.Provider.Namespace)
 
 	return nil
 }
@@ -40,7 +42,8 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunSchedule)
 	v1alpha6Remainder := hub.RunScheduleConversionRemainder{}
 	dst.ObjectMeta = src.ObjectMeta
-	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
+	setProviderAnnotation(src.Spec.Provider.Name, &dst.ObjectMeta)
+	setProviderNamespaceAnnotation(src.Spec.Provider.Namespace, &dst.ObjectMeta)
 	dst.Spec.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
 		Version: src.Spec.Pipeline.Version,

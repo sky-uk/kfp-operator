@@ -26,6 +26,7 @@ var _ = Context("Run Conversion", PropertyBased, func() {
 		Specify("converts to and from the same object", func() {
 			src := RandomRun()
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
+			setProviderNamespaceAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.Run{}
 			dst := &Run{}
 

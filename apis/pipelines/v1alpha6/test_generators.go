@@ -28,7 +28,10 @@ func RandomPipeline(provider string) *Pipeline {
 
 func RandomPipelineSpec(provider string) PipelineSpec {
 	return PipelineSpec{
-		Provider:      provider,
+		Provider: common.NamespacedName{
+			Name:      provider,
+			Namespace: "default",
+		},
 		Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
 		Env:           RandomNamedValues(),
@@ -165,7 +168,10 @@ func RandomOutputArtifact() OutputArtifact {
 
 func RandomRunScheduleSpec(provider string) RunScheduleSpec {
 	return RunScheduleSpec{
-		Provider:          provider,
+		Provider: common.NamespacedName{
+			Name:      provider,
+			Namespace: "default",
+		},
 		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		ExperimentName:    RandomString(),
 		RuntimeParameters: RandomNamedValues(),
@@ -207,7 +213,10 @@ func WithValueFrom(runSpec *RunSpec) {
 
 func RandomRunSpec(provider string) RunSpec {
 	return RunSpec{
-		Provider:       provider,
+		Provider: common.NamespacedName{
+			Name:      provider,
+			Namespace: "default",
+		},
 		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		ExperimentName: RandomString(),
 		RuntimeParameters: RandomList(func() RuntimeParameter {
@@ -242,7 +251,10 @@ func RandomExperiment(provider string) *Experiment {
 
 func RandomExperimentSpec(provider string) ExperimentSpec {
 	return ExperimentSpec{
-		Provider:    provider,
+		Provider: common.NamespacedName{
+			Name:      provider,
+			Namespace: "default",
+		},
 		Description: RandomString(),
 	}
 }
@@ -252,8 +264,11 @@ func RandomStatus() Status {
 		SynchronizationState: RandomSynchronizationState(),
 		Version:              RandomString(),
 		Provider: ProviderAndId{
-			Name: RandomString(),
-			Id:   RandomString(),
+			Name: common.NamespacedName{
+				Name:      RandomString(),
+				Namespace: "default",
+			},
+			Id: RandomString(),
 		},
 		ObservedGeneration: rand.Int63(),
 	}

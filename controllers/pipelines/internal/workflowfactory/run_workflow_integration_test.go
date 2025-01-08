@@ -27,7 +27,7 @@ var _ = Context("Run Resource Workflows", Serial, func() {
 	})
 
 	var newRun = func() *pipelinesv1.Run {
-		return withIntegrationTestFields(pipelinesv1.RandomRun(TestProvider))
+		return withIntegrationTestFields(pipelinesv1.RandomRun(TestProvider.Name))
 	}
 
 	newRunWithProviderId := func(providerId string) *pipelinesv1.Run {

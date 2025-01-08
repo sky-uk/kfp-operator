@@ -392,7 +392,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("setting the provider", func() {
 		It("stores the provider in the status", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
-			runConfiguration.Spec.Run.Provider = Provider.Name
+			runConfiguration.Spec.Run.Provider.Name = Provider.Name
+			runConfiguration.Spec.Run.Provider.Namespace = Provider.Name
 			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
@@ -403,7 +404,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		It("passes the provider to owned resources", func() {
 			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
-			runConfiguration.Spec.Run.Provider = Provider.Name
+			runConfiguration.Spec.Run.Provider.Name = Provider.Name
 			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
 				Schedules: []pipelinesv1.Schedule{pipelinesv1.RandomSchedule()},
 				OnChange:  []pipelinesv1.OnChangeType{pipelinesv1.OnChangeTypes.Pipeline},
@@ -422,7 +423,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("changing the provider", func() {
 		It("fails the resource", func() {
 			runConfiguration := createSucceededRcWithSchedule()
-			runConfiguration.Spec.Run.Provider = apis.RandomLowercaseString()
+			runConfiguration.Spec.Run.Provider.Name = apis.RandomLowercaseString()
 			Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {

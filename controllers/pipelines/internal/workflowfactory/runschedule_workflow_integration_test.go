@@ -22,7 +22,7 @@ var _ = Context("RunSchedule Resource Workflows", Serial, func() {
 	})
 
 	var newRunSchedule = func() *pipelinesv1.RunSchedule {
-		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule(TestProvider))
+		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule(TestProvider.Name))
 	}
 
 	newRunScheduleWithProviderId := func(providerId string) *pipelinesv1.RunSchedule {
