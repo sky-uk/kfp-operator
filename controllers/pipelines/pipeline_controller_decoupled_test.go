@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
@@ -18,7 +19,12 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
-			pipeline := pipelineshub.RandomPipeline(Provider.Name)
+			pipeline := pipelineshub.RandomPipeline(
+				common.NamespacedName{
+					Name:      Provider.Name,
+					Namespace: Provider.Namespace,
+				},
+			)
 			pipeline.Spec.Framework.Type = TestFramework
 			pipelineHelper := Create(pipeline)
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {
@@ -39,7 +45,12 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(pipelineHelper.Update(func(pipeline *pipelineshub.Pipeline) {
-				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.Name)
+				pipeline.Spec = pipelineshub.RandomPipelineSpec(
+					common.NamespacedName{
+						Name:      Provider.Name,
+						Namespace: Provider.Namespace,
+					},
+				)
 				pipeline.Spec.Framework.Type = TestFramework
 			})).To(Succeed())
 

@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 var _ = Context("Run Conversion", PropertyBased, func() {
@@ -21,11 +22,13 @@ var _ = Context("Run Conversion", PropertyBased, func() {
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+			Expect(getProviderNamespaceAnnotation(dst)).To(Equal(DefaultWorkflowNamespace))
 		})
 
 		Specify("converts to and from the same object", func() {
 			src := RandomRun()
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
+			setProviderNamespaceAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.Run{}
 			dst := &Run{}
 
@@ -38,7 +41,12 @@ var _ = Context("Run Conversion", PropertyBased, func() {
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
-			src := hub.RandomRun(apis.RandomLowercaseString())
+			src := hub.RandomRun(
+				common.NamespacedName{
+					Name:      common.RandomString(),
+					Namespace: common.RandomString(),
+				},
+			)
 			intermediate := &Run{}
 			dst := &hub.Run{}
 

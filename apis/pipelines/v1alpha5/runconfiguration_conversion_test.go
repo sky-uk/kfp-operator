@@ -22,6 +22,7 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+			Expect(getProviderNamespaceAnnotation(dst)).To(Equal(DefaultWorkflowNamespace))
 		})
 
 		Specify("converts to and from the same object", func() {
@@ -33,6 +34,7 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 				},
 			}
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
+			setProviderNamespaceAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.RunConfiguration{}
 			dst := &RunConfiguration{}
 
@@ -44,7 +46,7 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
-			src := hub.RandomRunConfiguration(apis.RandomLowercaseString())
+			src := hub.RandomRunConfiguration(common.RandomNamespacedName())
 			hub.WithValueFrom(&src.Spec.Run)
 			intermediate := &RunConfiguration{}
 			dst := &hub.RunConfiguration{}

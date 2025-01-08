@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 )
 
@@ -41,7 +42,12 @@ func createSucceededRcWith(modifyRc func(runConfiguration *pipelineshub.RunConfi
 }
 
 func createStableRcWith(modifyRc func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration, synchronizationState apis.SynchronizationState) *pipelineshub.RunConfiguration {
-	runConfiguration := pipelineshub.RandomRunConfiguration(Provider.Name)
+	runConfiguration := pipelineshub.RandomRunConfiguration(
+		common.NamespacedName{
+			Name:      Provider.Name,
+			Namespace: Provider.Namespace,
+		},
+	)
 	runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{}
 	runConfiguration.Spec.Triggers = pipelineshub.Triggers{}
 	modifiedRc := modifyRc(runConfiguration)
