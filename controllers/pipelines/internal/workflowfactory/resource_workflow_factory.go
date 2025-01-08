@@ -57,10 +57,17 @@ type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] str
 
 func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
 	owner pipelinesv1.Resource,
+	workflowNamespace string,
 ) *metav1.ObjectMeta {
+	var namespace string
+	if workflows.Config.WorkflowNamespace != "" {
+		namespace = workflows.Config.WorkflowNamespace
+	} else {
+		namespace = workflowNamespace
+	}
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", owner.GetKind(), owner.GetName()),
-		Namespace:    workflows.Config.WorkflowNamespace,
+		Namespace:    namespace,
 		Labels:       workflowconstants.CommonWorkflowLabels(owner),
 	}
 }
@@ -94,7 +101,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider.Namespace),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -138,7 +145,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider.Namespace),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -181,7 +188,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 	}
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider.Namespace),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
