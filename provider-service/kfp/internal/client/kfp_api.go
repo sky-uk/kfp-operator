@@ -17,8 +17,8 @@ type KfpApi interface {
 }
 
 type GrpcKfpApi struct {
-	RunServiceClient RunServiceClient
-	JobServiceClient JobServiceClient
+	RunServiceClient
+	JobServiceClient
 }
 
 func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) (resource.References, error) {

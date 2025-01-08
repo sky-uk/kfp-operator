@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:provider-service/vai/internal/runcompletion/event_flow.go
 package runcompletion
-========
-package event
->>>>>>>> 9d2f597 (Move files into more logical packages):provider-service/vai/internal/event/event_flow.go
 
 import (
 	"context"

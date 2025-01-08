@@ -3,25 +3,26 @@ package provider
 import (
 	"context"
 	"errors"
+
 	"github.com/kubeflow/pipelines/backend/api/go_client"
+	"github.com/kubeflow/pipelines/backend/api/go_http_client/job_client/job_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_client/pipeline_service"
 	baseResource "github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
-	baseUtils "github.com/sky-uk/kfp-operator/provider-service/base/pkg/utils"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/utils"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/yaml.v2"
 )
 
 type KfpProvider struct {
+	ctx               context.Context
+	config            config.KfpProviderConfig
 	FileHandler       FileHandler
 	pipelineService   PipelineService
 	experimentService ExperimentService
-	GrpcKfpApi        client.GrpcKfpApi
-	context           context.Context
-	config            config.KfpProviderConfig
+	jobServiceClient  client.JobServiceClient
 }
 
 func (kfpp *KfpProvider) CreatePipeline(
@@ -58,10 +59,13 @@ func (kfpp *KfpProvider) UpdatePipeline(
 }
 
 func (kfpp *KfpProvider) DeletePipeline(id string) error {
-	_, err := kfpp.pipelineService.DeletePipeline(&pipeline_service.DeletePipelineParams{
-		ID:      id,
-		Context: kfpp.context,
-	}, nil)
+	_, err := kfpp.pipelineService.DeletePipeline(
+		&pipeline_service.DeletePipelineParams{
+			ID:      id,
+			Context: kfpp.ctx,
+		},
+		nil,
+	)
 
 	if err != nil {
 		var deletePipelineError *pipeline_service.DeletePipelineDefault
@@ -76,7 +80,7 @@ func (kfpp *KfpProvider) DeletePipeline(id string) error {
 func (kfpp *KfpProvider) CreateRunSchedule(
 	rsd baseResource.RunScheduleDefinition,
 ) (string, error) {
-	pipelineName, err := baseUtils.ResourceNameFromNamespacedName(rsd.PipelineName)
+	pipelineName, err := util.ResourceNameFromNamespacedName(rsd.PipelineName)
 	if err != nil {
 		return "", err
 	}
@@ -108,7 +112,7 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	jobName, err := baseUtils.ResourceNameFromNamespacedName(rsd.Name)
+	jobName, err := util.ResourceNameFromNamespacedName(rsd.Name)
 	if err != nil {
 		return "", err
 	}
@@ -118,7 +122,7 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 		jobParameters = append(jobParameters, &go_client.Parameter{Name: name, Value: value})
 	}
 
-	jobResult, err := kfpp.GrpcKfpApi.JobServiceClient.CreateJob(kfpp.context, &go_client.CreateJobRequest{
+	jobResult, err := kfpp.jobServiceClient.CreateJob(kfpp.ctx, &go_client.CreateJobRequest{
 		Job: &go_client.Job{
 			Id:          "",
 			Name:        jobName,
@@ -161,29 +165,76 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 
 func (kfpp *KfpProvider) UpdateRunSchedule(
 	rsd baseResource.RunScheduleDefinition,
-	_ string,
+	id string,
 ) (string, error) {
-	return "", nil
+	if err := kfpp.DeleteRunSchedule(id); err != nil {
+		return id, err
+	}
+
+	return kfpp.CreateRunSchedule(rsd)
 }
 
 func (kfpp *KfpProvider) DeleteRunSchedule(id string) error {
-	return nil
+	_, err := kfpp.jobServiceClient.DeleteJob(
+		kfpp.ctx,
+		&go_client.DeleteJobRequest{
+			Id: id,
+		},
+		nil,
+	)
+
+	if err != nil {
+		var deleteJobError *job_service.DeleteJobDefault
+		if errors.As(err, &deleteJobError) {
+			return ignoreNotFound(err, deleteJobError.Payload.Code)
+		}
+	}
+
+	return err
 }
 
 func (kfpp *KfpProvider) CreateExperiment(
-	_ baseResource.ExperimentDefinition,
+	ed baseResource.ExperimentDefinition,
 ) (string, error) {
-	return "", nil
+	experimentName, err := util.ResourceNameFromNamespacedName(ed.Name)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := kfpp.experimentService.CreateExperiment(
+		kfpp.ctx,
+		&go_client.CreateExperimentRequest{
+			Experiment: &go_client.Experiment{
+				Name:        experimentName,
+				Description: ed.Description,
+			},
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return result.Id, nil
 }
 
 func (kfpp *KfpProvider) UpdateExperiment(
-	_ baseResource.ExperimentDefinition,
-	_ string,
+	ed baseResource.ExperimentDefinition,
+	id string,
 ) (string, error) {
-	return "", nil
+	if err := kfpp.DeleteExperiment(id); err != nil {
+		return id, err
+	}
+
+	return kfpp.CreateExperiment(ed)
 }
 
-func (kfpp *KfpProvider) DeleteExperiment(_ string) error {
+func (kfpp *KfpProvider) DeleteExperiment(id string) error {
+	kfpp.experimentService.DeleteExperiment(
+		kfpp.ctx,
+		&go_client.DeleteExperimentRequest{
+			Id: id,
+		},
+	)
 	return nil
 }
 
@@ -196,8 +247,10 @@ func ignoreNotFound(err error, code int32) error {
 	return err
 }
 
-func createAPICronSchedule(rsd baseResource.RunScheduleDefinition) (*go_client.CronSchedule, error) {
-	cronExpression, err := utils.ParseCron(rsd.Schedule.CronExpression)
+func createAPICronSchedule(
+	rsd baseResource.RunScheduleDefinition,
+) (*go_client.CronSchedule, error) {
+	cronExpression, err := util.ParseCron(rsd.Schedule.CronExpression)
 	if err != nil {
 		return nil, err
 	}

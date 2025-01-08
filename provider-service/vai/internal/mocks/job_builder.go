@@ -33,7 +33,8 @@ func (m *MockJobBuilder) MkRunSchedulePipelineJob(
 func (m *MockJobBuilder) MkSchedule(
 	rsd resource.RunScheduleDefinition,
 	pipelineJob *aiplatformpb.PipelineJob,
-	parent string, maxConcurrentRunCount int64,
+	parent string,
+	maxConcurrentRunCount int64,
 ) (*aiplatformpb.Schedule, error) {
 	args := m.Called(rsd, pipelineJob, parent, maxConcurrentRunCount)
 	var schedule *aiplatformpb.Schedule

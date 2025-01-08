@@ -27,11 +27,11 @@ func (m *MockPipelineJobClient) GetPipelineJob(
 }
 
 func (m *MockPipelineJobClient) CreatePipelineJob(
-	ctx context.Context,
+	_ context.Context,
 	req *aiplatformpb.CreatePipelineJobRequest,
-	opts ...gax.CallOption,
+	_ ...gax.CallOption,
 ) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(ctx, req, opts)
+	args := m.Called(req)
 	var pipelineJob *aiplatformpb.PipelineJob
 	if arg1 := args.Get(0); arg1 != nil {
 		pipelineJob = arg1.(*aiplatformpb.PipelineJob)

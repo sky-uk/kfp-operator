@@ -1,7 +1,8 @@
-package utils
+package util
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"regexp"
 	"strings"
 )
@@ -43,4 +44,8 @@ func ParseCron(schedule string) (CronSchedule, error) {
 			fields: fields,
 		}, nil
 	}
+}
+
+func ResourceNameFromNamespacedName(namespacedName common.NamespacedName) (string, error) {
+	return namespacedName.SeparatedString("-")
 }
