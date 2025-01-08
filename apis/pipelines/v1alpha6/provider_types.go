@@ -2,6 +2,7 @@ package v1alpha6
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -54,6 +55,13 @@ func (p *Provider) SetStatus(status Status) {
 
 func (p *Provider) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
+		Name:      p.Name,
+		Namespace: p.Namespace,
+	}
+}
+
+func (p Provider) GetCommonNamespacedName() common.NamespacedName {
+	return common.NamespacedName{
 		Name:      p.Name,
 		Namespace: p.Namespace,
 	}

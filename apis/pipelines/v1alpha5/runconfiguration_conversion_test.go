@@ -33,6 +33,7 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 				},
 			}
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
+			setProviderNamespaceAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.RunConfiguration{}
 			dst := &RunConfiguration{}
 

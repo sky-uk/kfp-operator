@@ -16,14 +16,17 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Spec.Provider = getProviderAnnotation(src)
-	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId)
+	dst.Spec.Provider.Name = getProviderAnnotation(src)
+	dst.Spec.Provider.Namespace = getProviderNamespaceAnnotation(src)
+	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId, dst.Spec.Provider.Namespace)
 
 	removeProviderAnnotation(dst)
+	removeProviderNamespaceAnnotation(dst)
 
 	return nil
 }
 
+// v1alpha6 to v1alpha5
 func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Run)
 	dstApiVersion := dst.APIVersion
@@ -32,7 +35,8 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	if err != nil {
 		return err
 	}
-	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
+	setProviderAnnotation(src.Spec.Provider.Name, &dst.ObjectMeta)
+	setProviderNamespaceAnnotation(src.Spec.Provider.Namespace, &dst.ObjectMeta)
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 

@@ -1,5 +1,5 @@
 apiVersion: argoproj.io/v1alpha1
-kind: WorkflowTemplate
+kind: ClusterWorkflowTemplate
 metadata:
   name: compiled-workflow-steps
   namespace: kfp-operator-system
