@@ -12,7 +12,7 @@ require (
 	github.com/onsi/gomega v1.25.0
 	github.com/sky-uk/kfp-operator v0.6.0
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20241107144142-477120a374b9
-	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-00010101000000-000000000000
+	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-20250103114820-8f4b70f756df
 	go.uber.org/zap v1.24.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2

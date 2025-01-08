@@ -38,7 +38,6 @@ var _ = Context("KFP API", func() {
 				mockRunServiceClient.On(
 					"GetRun",
 					&go_client.GetRunRequest{RunId: runId},
-					&go_client.GetRunRequest{RunId: runId},
 				).Return(nil, errors.New("failed"))
 
 				_, err := kfpApi.GetResourceReferences(context.Background(), runId)

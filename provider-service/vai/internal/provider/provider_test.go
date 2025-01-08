@@ -183,13 +183,11 @@ var _ = Describe("Provider", func() {
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockPipelineClient.On(
 					"CreatePipelineJob",
-					mock.Anything,
 					&aiplatformpb.CreatePipelineJobRequest{
 						Parent:        vaiProvider.config.Parent(),
 						PipelineJobId: fmt.Sprintf("%s-%s-%s", rd.Name.Namespace, rd.Name.Name, rd.Version),
 						PipelineJob:   &pj,
 					},
-					mock.Anything,
 				).Return(&pj, nil)
 				runId, err := vaiProvider.CreateRun(rd)
 
@@ -234,7 +232,7 @@ var _ = Describe("Provider", func() {
 				mockFileHandler.On("Read", mock.Anything, mock.Anything).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunPipelineJob", rd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
-				mockPipelineClient.On("CreatePipelineJob", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("failed"))
+				mockPipelineClient.On("CreatePipelineJob", mock.Anything).Return(nil, errors.New("failed"))
 				_, err := vaiProvider.CreateRun(rd)
 
 				Expect(err).To(HaveOccurred())
@@ -270,12 +268,10 @@ var _ = Describe("Provider", func() {
 				).Return(&schedule, nil)
 				mockScheduleClient.On(
 					"CreateSchedule",
-					mock.Anything,
 					&aiplatformpb.CreateScheduleRequest{
 						Parent:   vaiProvider.config.Parent(),
 						Schedule: &schedule,
 					},
-					mock.Anything,
 				).Return(&schedule, nil)
 				scheduleName, err := vaiProvider.CreateRunSchedule(rsd)
 
@@ -334,7 +330,7 @@ var _ = Describe("Provider", func() {
 				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockJobBuilder.On("MkSchedule", mock.Anything, &pj, mock.Anything, mock.Anything).Return(&aiplatformpb.Schedule{}, nil)
-				mockScheduleClient.On("CreateSchedule", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("failed"))
+				mockScheduleClient.On("CreateSchedule", mock.Anything).Return(nil, errors.New("failed"))
 				_, err := vaiProvider.CreateRunSchedule(rsd)
 
 				Expect(err).To(HaveOccurred())
@@ -370,7 +366,6 @@ var _ = Describe("Provider", func() {
 				schedule := aiplatformpb.Schedule{}
 				mockScheduleClient.On(
 					"UpdateSchedule",
-					mock.Anything,
 					&aiplatformpb.UpdateScheduleRequest{
 						Schedule: &schedule,
 						UpdateMask: &fieldmaskpb.FieldMask{
@@ -379,7 +374,6 @@ var _ = Describe("Provider", func() {
 							},
 						},
 					},
-					mock.Anything,
 				).Return(&schedule, nil)
 				scheduleName, err := vaiProvider.UpdateRunSchedule(rsd, "")
 
@@ -438,7 +432,7 @@ var _ = Describe("Provider", func() {
 				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockJobBuilder.On("MkSchedule", mock.Anything, &pj, mock.Anything, mock.Anything).Return(&aiplatformpb.Schedule{}, nil)
-				mockScheduleClient.On("UpdateSchedule", mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("failed"))
+				mockScheduleClient.On("UpdateSchedule", mock.Anything).Return(nil, errors.New("failed"))
 				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
 
 				Expect(err).To(HaveOccurred())

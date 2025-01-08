@@ -1,10 +1,6 @@
 //go:build unit
 
-<<<<<<<< HEAD:provider-service/vai/internal/runcompletion/event_flow_unit_test.go
 package runcompletion
-========
-package event
->>>>>>>> 9d2f597 (Move files into more logical packages):provider-service/vai/internal/event/event_flow_unit_test.go
 
 import (
 	"context"
@@ -19,6 +15,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/runcompletion"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -46,7 +43,7 @@ func artifact() *aiplatformpb.Artifact {
 var _ = Context("VaiEventingServer", func() {
 	var (
 		mockPipelineJobClient *mocks.MockPipelineJobClient
-		eventingFlow          EventFlow
+		eventingFlow          runcompletion.EventFlow
 		inChan                chan StreamMessage[string]
 		outChan               chan StreamMessage[*common.RunCompletionEventData]
 		errChan               chan error
@@ -59,7 +56,7 @@ var _ = Context("VaiEventingServer", func() {
 		inChan = make(chan StreamMessage[string])
 		outChan = make(chan StreamMessage[*common.RunCompletionEventData])
 		errChan = make(chan error)
-		eventingFlow = EventFlow{
+		eventingFlow = runcompletion.EventFlow{
 			ProviderConfig: config.VAIProviderConfig{
 				Name: common.RandomString(),
 			},

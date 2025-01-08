@@ -12,11 +12,11 @@ import (
 type MockScheduleClient struct{ mock.Mock }
 
 func (m *MockScheduleClient) CreateSchedule(
-	ctx context.Context,
+	_ context.Context,
 	req *aiplatformpb.CreateScheduleRequest,
-	opts ...gax.CallOption,
+	_ ...gax.CallOption,
 ) (*aiplatformpb.Schedule, error) {
-	args := m.Called(ctx, req, opts)
+	args := m.Called(req)
 	var schedule *aiplatformpb.Schedule
 	if arg1 := args.Get(0); arg1 != nil {
 		schedule = arg1.(*aiplatformpb.Schedule)
@@ -25,11 +25,11 @@ func (m *MockScheduleClient) CreateSchedule(
 }
 
 func (m *MockScheduleClient) DeleteSchedule(
-	ctx context.Context,
+	_ context.Context,
 	req *aiplatformpb.DeleteScheduleRequest,
-	opts ...gax.CallOption,
+	_ ...gax.CallOption,
 ) (*aiplatform.DeleteScheduleOperation, error) {
-	args := m.Called(ctx, req, opts)
+	args := m.Called(req)
 	var operation *aiplatform.DeleteScheduleOperation
 	if arg1 := args.Get(0); arg1 != nil {
 		operation = arg1.(*aiplatform.DeleteScheduleOperation)
@@ -37,11 +37,11 @@ func (m *MockScheduleClient) DeleteSchedule(
 	return operation, args.Error(1)
 }
 func (m *MockScheduleClient) UpdateSchedule(
-	ctx context.Context,
+	_ context.Context,
 	req *aiplatformpb.UpdateScheduleRequest,
-	opts ...gax.CallOption,
+	_ ...gax.CallOption,
 ) (*aiplatformpb.Schedule, error) {
-	args := m.Called(ctx, req, opts)
+	args := m.Called(req)
 	var schedule *aiplatformpb.Schedule
 	if arg1 := args.Get(0); arg1 != nil {
 		schedule = arg1.(*aiplatformpb.Schedule)
