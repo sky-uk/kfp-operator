@@ -117,6 +117,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
+	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		return nil, err
+	}
+
 	params := []argo.Parameter{
 		{
 			Name:  workflowconstants.ResourceKindParameterName,
@@ -128,7 +133,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		},
 		{
 			Name:  workflowconstants.ProviderNameParameterName,
-			Value: argo.AnyStringPtr(provider.Name),
+			Value: argo.AnyStringPtr(namespacedProvider),
 		},
 		{
 			Name:  workflowconstants.ProviderConfigParameterName,
@@ -178,6 +183,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	if err != nil {
 		return nil, err
 	}
+
+	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		return nil, err
+	}
 	params := []argo.Parameter{
 		{
 			Name:  workflowconstants.ResourceKindParameterName,
@@ -193,7 +203,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		},
 		{
 			Name:  workflowconstants.ProviderNameParameterName,
-			Value: argo.AnyStringPtr(provider.Name),
+			Value: argo.AnyStringPtr(namespacedProvider),
 		},
 		{
 			Name:  workflowconstants.ProviderConfigParameterName,
@@ -239,6 +249,12 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 		return nil, err
 	}
 
+	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		fmt.Println("ResourceWorkflowFactory: err: ", err)
+		return nil, err
+	}
+
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
 		Spec: argo.WorkflowSpec{
@@ -254,7 +270,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 					},
 					{
 						Name:  workflowconstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(provider.Name),
+						Value: argo.AnyStringPtr(namespacedProvider),
 					},
 					{
 						Name:  workflowconstants.ProviderConfigParameterName,

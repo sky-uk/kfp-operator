@@ -15,11 +15,12 @@ func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.Provider = getProviderAnnotation(src)
+	dst.Spec.Provider = namespaceToProvider(src)
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId)
+	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId, dst.Spec.Provider.Namespace)
 
 	removeProviderAnnotation(dst)
+	removeProviderNamespaceAnnotation(dst)
 
 	return nil
 }
@@ -33,7 +34,8 @@ func (dst *Experiment) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
-	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
+	setProviderAnnotation(src.Spec.Provider.Name, &dst.ObjectMeta)
+	setProviderNamespaceAnnotation(src.Spec.Provider.Namespace, &dst.ObjectMeta)
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 

@@ -3,15 +3,19 @@ package v1alpha5
 import (
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var DefaultProvider string
+var DefaultWorkflowNamespace string
 
 var ResourceAnnotations = struct {
-	Provider string
+	Provider          string
+	ProviderNamespace string
 }{
-	Provider: apis.Group + "/provider",
+	Provider:          apis.Group + "/provider",
+	ProviderNamespace: apis.Group + "/providerNamespace",
 }
 
 func convertArtifactsTo(outputArtifact []OutputArtifact) []hub.OutputArtifact {
@@ -51,7 +55,7 @@ func convertArtifactsFrom(hubArtifacts []hub.OutputArtifact) []OutputArtifact {
 }
 
 func getProviderAnnotation(resource v1.Object) string {
-	if provider, hasProvider := resource.GetAnnotations()[ResourceAnnotations.Provider]; hasProvider {
+	if provider, ok := resource.GetAnnotations()[ResourceAnnotations.Provider]; ok {
 		return provider
 	}
 	return DefaultProvider
@@ -65,16 +69,47 @@ func removeProviderAnnotation(resource v1.Object) {
 	delete(resource.GetAnnotations(), ResourceAnnotations.Provider)
 }
 
-func convertProviderAndIdTo(providerAndId ProviderAndId) hub.ProviderAndId {
+func getProviderNamespaceAnnotation(resource v1.Object) string {
+	if providerNamespace, ok := resource.GetAnnotations()[ResourceAnnotations.ProviderNamespace]; ok {
+		return providerNamespace
+	}
+	return ""
+}
+
+func setProviderNamespaceAnnotation(namespace string, resource *v1.ObjectMeta) {
+	v1.SetMetaDataAnnotation(resource, ResourceAnnotations.ProviderNamespace, namespace)
+}
+
+func removeProviderNamespaceAnnotation(resource v1.Object) {
+	delete(resource.GetAnnotations(), ResourceAnnotations.ProviderNamespace)
+}
+
+func convertProviderAndIdTo(providerAndId ProviderAndId, namespace string) hub.ProviderAndId {
 	return hub.ProviderAndId{
-		Name: providerAndId.Provider,
-		Id:   providerAndId.Id,
+		Name: common.NamespacedName{
+			Name:      providerAndId.Provider,
+			Namespace: namespace,
+		},
+		Id: providerAndId.Id,
 	}
 }
 
 func convertProviderAndIdFrom(providerAndId hub.ProviderAndId) ProviderAndId {
 	return ProviderAndId{
-		Provider: providerAndId.Name,
+		Provider: providerAndId.Name.Name,
 		Id:       providerAndId.Id,
+	}
+}
+
+// TODO: rename because it's not adding anything, but computing
+func namespaceToProvider(resource v1.Object) common.NamespacedName {
+	provider := getProviderAnnotation(resource)
+	providerNamespace := getProviderNamespaceAnnotation(resource)
+	if providerNamespace == "" {
+		providerNamespace = DefaultWorkflowNamespace
+	}
+	return common.NamespacedName{
+		Name:      provider,
+		Namespace: providerNamespace,
 	}
 }
