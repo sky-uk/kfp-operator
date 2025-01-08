@@ -3,12 +3,14 @@
 package v1alpha6
 
 import (
+	"strings"
+
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"strings"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 func namedValueSort(a, b apis.NamedValue) bool {
@@ -33,7 +35,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object when the framework is tfx", func() {
-			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src := hub.RandomPipeline(common.RandomNamespacedName())
 			hub.AddTfxValues(&src.Spec)
 
 			intermediate := &Pipeline{}
@@ -46,7 +48,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 		})
 
 		Specify("converts to and from the same object when the framework is not tfx", func() {
-			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src := hub.RandomPipeline(common.RandomNamespacedName())
 			src.Spec.Framework.Type = "some-other-framework"
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}

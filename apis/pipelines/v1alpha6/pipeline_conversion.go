@@ -20,6 +20,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
+	dst.Spec.Provider = addWorkflowNamespaceToProvider(src.Spec.Provider)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	tfxComponents := src.Spec.TfxComponents

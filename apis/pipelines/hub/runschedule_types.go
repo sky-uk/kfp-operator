@@ -5,17 +5,18 @@ import (
 
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type RunScheduleSpec struct {
-	Provider          string             `json:"provider" yaml:"provider"`
-	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
-	ExperimentName    string             `json:"experimentName,omitempty"`
-	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
-	Schedule          Schedule           `json:"schedule,omitempty"`
+	Provider          common.NamespacedName `json:"provider" yaml:"provider"`
+	Pipeline          PipelineIdentifier    `json:"pipeline,omitempty"`
+	ExperimentName    string                `json:"experimentName,omitempty"`
+	RuntimeParameters []apis.NamedValue     `json:"runtimeParameters,omitempty"`
+	Artifacts         []OutputArtifact      `json:"artifacts,omitempty"`
+	Schedule          Schedule              `json:"schedule,omitempty"`
 }
 
 type Schedule struct {

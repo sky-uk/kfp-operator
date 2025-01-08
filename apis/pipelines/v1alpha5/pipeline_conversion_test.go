@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"strings"
 )
 
@@ -26,11 +27,13 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+			Expect(getProviderNamespaceAnnotation(dst)).To(Equal(DefaultWorkflowNamespace))
 		})
 
 		Specify("converts to and from the same object", func() {
 			src := RandomPipeline()
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
+			setProviderNamespaceAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.Pipeline{}
 			dst := &Pipeline{}
 
@@ -43,7 +46,12 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object when the framework is tfx", func() {
-			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src := hub.RandomPipeline(
+				common.NamespacedName{
+					Name:      common.RandomString(),
+					Namespace: common.RandomString(),
+				},
+			)
 			hub.AddTfxValues(&src.Spec)
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}
@@ -55,7 +63,12 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 		})
 
 		Specify("converts to and from the same object when the framework is not tfx", func() {
-			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src := hub.RandomPipeline(
+				common.NamespacedName{
+					Name:      common.RandomString(),
+					Namespace: common.RandomString(),
+				},
+			)
 			src.Spec.Framework.Type = "some-other-framework"
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}
