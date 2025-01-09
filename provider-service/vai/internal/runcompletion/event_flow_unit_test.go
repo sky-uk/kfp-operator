@@ -15,7 +15,6 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/runcompletion"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -43,7 +42,7 @@ func artifact() *aiplatformpb.Artifact {
 var _ = Context("VaiEventingServer", func() {
 	var (
 		mockPipelineJobClient *mocks.MockPipelineJobClient
-		eventingFlow          runcompletion.EventFlow
+		eventingFlow          EventFlow
 		inChan                chan StreamMessage[string]
 		outChan               chan StreamMessage[*common.RunCompletionEventData]
 		errChan               chan error
@@ -56,7 +55,7 @@ var _ = Context("VaiEventingServer", func() {
 		inChan = make(chan StreamMessage[string])
 		outChan = make(chan StreamMessage[*common.RunCompletionEventData])
 		errChan = make(chan error)
-		eventingFlow = runcompletion.EventFlow{
+		eventingFlow = EventFlow{
 			ProviderConfig: config.VAIProviderConfig{
 				Name: common.RandomString(),
 			},

@@ -11,10 +11,10 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"io"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"net/http"
 	"path/filepath"
 	"time"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-resty/resty/v2"

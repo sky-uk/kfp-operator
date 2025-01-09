@@ -17,8 +17,8 @@ type DefaultPipelineUploadService struct {
 }
 
 type FileHandler interface {
-	Write(content []byte, pipelineName string, filePath string) error
-	Update(id string, content []byte, version string, filePath string) error
+	Write(content []byte, pipelineName string, filePath string) (string, error)
+	Update(id string, content []byte, version string, filePath string) (string, error)
 	Delete(id string, pipelineName string) error
 	Read(pipelineName string, filePath string) (map[string]any, error)
 }
@@ -84,7 +84,7 @@ func (fh *DefaultFileHandler) Update(
 ) (string, error) {
 	reader := bytes.NewReader(content)
 	uploadFile := runtime.NamedReader(pipelineFilePath, reader)
-	result, err := fh.pipelineUploadService.UploadPipelineVersion(
+	_, err := fh.pipelineUploadService.UploadPipelineVersion(
 		&pipeline_upload_service.UploadPipelineVersionParams{
 			Name:       &version,
 			Uploadfile: uploadFile,
@@ -97,5 +97,5 @@ func (fh *DefaultFileHandler) Update(
 		return "", err
 	}
 
-	return result.Payload.ID, nil
+	return id, nil
 }
