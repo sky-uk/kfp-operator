@@ -9,13 +9,18 @@ type MockRunScheduleProvider struct {
 	mock.Mock
 }
 
-func (m *MockRunScheduleProvider) CreateRunSchedule(ed resource.RunScheduleDefinition) (string, error) {
-	args := m.Called(ed)
+func (m *MockRunScheduleProvider) CreateRunSchedule(
+	rsd resource.RunScheduleDefinition,
+) (string, error) {
+	args := m.Called(rsd)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockRunScheduleProvider) UpdateRunSchedule(ed resource.RunScheduleDefinition, id string) (string, error) {
-	args := m.Called(ed, id)
+func (m *MockRunScheduleProvider) UpdateRunSchedule(
+	rsd resource.RunScheduleDefinition,
+	id string,
+) (string, error) {
+	args := m.Called(rsd, id)
 	return args.String(0), args.Error(1)
 }
 
