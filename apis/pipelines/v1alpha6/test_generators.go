@@ -55,7 +55,8 @@ func RandomProviderSpec() ProviderSpec {
 	}
 
 	return ProviderSpec{
-		CliImage:            "kfp-operator-stub-provider",
+		ServiceImage:        fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
+		CliImage:            fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		ExecutionMode:       "none",
 		ServiceAccount:      "default",
 		DefaultBeamArgs:     RandomNamedValues(),

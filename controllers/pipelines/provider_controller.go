@@ -11,6 +11,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
@@ -67,32 +68,68 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	desiredDeployment, err := r.constructDeployment(provider, req.Namespace, *r.Config.DeepCopy())
 	if err != nil {
 		logger.Error(err, "unable to construct provider service deployment")
-		return ctrl.Result{}, err
-	}
-
-	existingDeployment, err := r.getDeployment(ctx, req.Namespace, provider.Name, *provider)
-	if err != nil && !apierrors.IsNotFound(err) {
-		logger.Error(err, "unable to get existing deployment")
+		provider.Status.SynchronizationState = apis.Failed
+		if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+			logger.Error(err, "unable to update provider resource status", "provider", provider)
+		}
 		return ctrl.Result{}, err
 	}
 
 	logger.Info("desired provider deployment", "deployment", desiredDeployment)
 
+	existingDeployment, err := r.getDeployment(ctx, req.Namespace, provider.Name, *provider)
+	if err != nil && !apierrors.IsNotFound(err) {
+		logger.Error(err, "unable to get existing deployment")
+		provider.Status.SynchronizationState = apis.Failed
+		if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+			logger.Error(err, "unable to update provider resource status", "provider", provider)
+		}
+		return ctrl.Result{}, err
+	}
+
 	if existingDeployment != nil {
+		if deploymentFailed(existingDeployment) {
+			provider.Status.SynchronizationState = apis.Failed
+			// TODO: Set condition and reason to deployment failure reason
+			if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+				logger.Error(err, "unable to update provider resource status", "provider", provider)
+			}
+		} else if deploymentSucceeded(existingDeployment) {
+			provider.Status.SynchronizationState = apis.Succeeded
+			if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+				logger.Error(err, "unable to update provider resource status", "provider", provider)
+			}
+		}
+
 		logger.Info("found existing provider deployment", "deployment", existingDeployment)
 		if existingDeployment.Annotations != nil && existingDeployment.Annotations[ResourceHashAnnotation] != desiredDeployment.Annotations[ResourceHashAnnotation] {
+
 			logger.Info("resource hash mismatch, updating deployment")
 			existingDeployment.Spec = desiredDeployment.Spec
 			existingDeployment.SetLabels(desiredDeployment.Labels)
 			existingDeployment.Annotations[ResourceHashAnnotation] = desiredDeployment.Annotations[ResourceHashAnnotation]
+
 			if err = r.EC.Client.Update(ctx, existingDeployment); err != nil {
 				logger.Error(err, "unable to update provider service deployment", "deployment", desiredDeployment)
+				provider.Status.SynchronizationState = apis.Failed
+				if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+					logger.Error(err, "unable to update provider resource status", "provider", provider)
+				}
 				return ctrl.Result{}, err
 			}
 		}
 	} else {
+		provider.Status.SynchronizationState = apis.Creating
+		if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+			logger.Error(err, "unable to update provider resource status", "provider", provider)
+		}
+
 		if err = r.EC.Client.Create(ctx, desiredDeployment); err != nil {
 			logger.Error(err, "unable to create provider service deployment")
+			provider.Status.SynchronizationState = apis.Failed
+			if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+				logger.Error(err, "unable to update provider resource status", "provider", provider)
+			}
 			return ctrl.Result{}, err
 		}
 
@@ -202,4 +239,24 @@ func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
 	deployment.Annotations[ResourceHashAnnotation] = fmt.Sprintf("%x", hasher.Sum())
 
 	return nil
+}
+
+func deploymentFailed(deployment *appsv1.Deployment) bool {
+	deploymentNotProgressing := pipelines.Exists(deployment.Status.Conditions, func(c appsv1.DeploymentCondition) bool {
+		return c.Type == appsv1.DeploymentProgressing && c.Status == v1.ConditionFalse
+	})
+	deploymentReplicaFailure := pipelines.Exists(deployment.Status.Conditions, func(c appsv1.DeploymentCondition) bool {
+		return c.Type == appsv1.DeploymentReplicaFailure && c.Status == v1.ConditionTrue
+	})
+	return deploymentNotProgressing || deploymentReplicaFailure
+}
+
+func deploymentSucceeded(deployment *appsv1.Deployment) bool {
+	deploymentProgressing := pipelines.Exists(deployment.Status.Conditions, func(c appsv1.DeploymentCondition) bool {
+		return c.Type == appsv1.DeploymentProgressing && c.Status == v1.ConditionTrue
+	})
+	deploymentAvailable := pipelines.Exists(deployment.Status.Conditions, func(c appsv1.DeploymentCondition) bool {
+		return c.Type == appsv1.DeploymentAvailable && c.Status == v1.ConditionTrue
+	})
+	return deploymentProgressing && deploymentAvailable
 }
