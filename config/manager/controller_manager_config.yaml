@@ -21,10 +21,12 @@ spec:
     replicas: 1
     podTemplateSpec:
       spec:
+        volumes: []
         securityContext:
           runAsNonRoot: true
         containers:
         - name: provider-service
+          volumeMounts: []
           securityContext:
             allowPrivilegeEscalation: false
           resources:
