@@ -11,7 +11,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	vaiConfig "github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/event"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/runcompletion"
 	"go.uber.org/zap/zapcore"
 
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
@@ -58,7 +58,7 @@ func main() {
 	}
 	go handleErrorInSourceOperations(source)
 
-	flow := event.NewEventFlow(ctx, vaiConfig, pipelineJobClient)
+	flow := runcompletion.NewEventFlow(ctx, vaiConfig, pipelineJobClient)
 
 	go func() {
 		flow.Start()

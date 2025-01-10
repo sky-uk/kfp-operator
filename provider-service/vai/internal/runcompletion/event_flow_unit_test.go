@@ -1,6 +1,6 @@
 //go:build unit
 
-package event
+package runcompletion
 
 import (
 	"context"
