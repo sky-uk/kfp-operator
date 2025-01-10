@@ -1,4 +1,4 @@
-package internal
+package config
 
 import (
 	"fmt"
@@ -24,12 +24,12 @@ func (vaipc VAIProviderConfig) VaiEndpoint() string {
 	return fmt.Sprintf("%s-aiplatform.googleapis.com:443", vaipc.Parameters.VaiLocation)
 }
 
-func (vaipc VAIProviderConfig) parent() string {
+func (vaipc VAIProviderConfig) Parent() string {
 	return fmt.Sprintf(`projects/%s/locations/%s`, vaipc.Parameters.VaiProject, vaipc.Parameters.VaiLocation)
 }
 
-func (vaipc VAIProviderConfig) pipelineJobName(name string) string {
-	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.parent(), name)
+func (vaipc VAIProviderConfig) PipelineJobName(name string) string {
+	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.Parent(), name)
 }
 
 func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName common.NamespacedName, pipelineVersion string) (string, error) {
@@ -48,7 +48,7 @@ func (vaipc VAIProviderConfig) pipelineUri(pipelineName common.NamespacedName, p
 	return fmt.Sprintf("gs://%s/%s", vaipc.Parameters.PipelineBucket, pipelineUri), nil
 }
 
-func (vaipc VAIProviderConfig) getMaxConcurrentRunCountOrDefault() int64 {
+func (vaipc VAIProviderConfig) GetMaxConcurrentRunCountOrDefault() int64 {
 	const defaultMaxConcurrentRunCount = 10
 	if vaipc.Parameters.MaxConcurrentRunCount <= 0 {
 		return defaultMaxConcurrentRunCount

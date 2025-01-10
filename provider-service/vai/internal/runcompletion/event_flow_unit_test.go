@@ -1,22 +1,29 @@
 //go:build unit
 
-package internal
+package runcompletion
 
 import (
 	"context"
 	"errors"
+	"testing"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/googleapis/gax-go/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
-	"github.com/stretchr/testify/mock"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+func TestUnitSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "VAI Event Flow Unit Suite")
+}
 
 func artifact() *aiplatformpb.Artifact {
 	return &aiplatformpb.Artifact{
@@ -32,28 +39,9 @@ func artifact() *aiplatformpb.Artifact {
 	}
 }
 
-type MockPipelineJobClient struct {
-	mock.Mock
-}
-
-func (m *MockPipelineJobClient) GetPipelineJob(
-	ctx context.Context,
-	req *aiplatformpb.GetPipelineJobRequest,
-	opts ...gax.CallOption,
-) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(ctx, req, opts)
-
-	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
-	}
-
-	return pipelineJob, args.Error(1)
-}
-
 var _ = Context("VaiEventingServer", func() {
 	var (
-		mockPipelineJobClient *MockPipelineJobClient
+		mockPipelineJobClient *mocks.MockPipelineJobClient
 		eventingFlow          EventFlow
 		inChan                chan StreamMessage[string]
 		outChan               chan StreamMessage[*common.RunCompletionEventData]
@@ -63,12 +51,12 @@ var _ = Context("VaiEventingServer", func() {
 	)
 
 	BeforeEach(func() {
-		mockPipelineJobClient = &MockPipelineJobClient{}
+		mockPipelineJobClient = &mocks.MockPipelineJobClient{}
 		inChan = make(chan StreamMessage[string])
 		outChan = make(chan StreamMessage[*common.RunCompletionEventData])
 		errChan = make(chan error)
 		eventingFlow = EventFlow{
-			ProviderConfig: VAIProviderConfig{
+			ProviderConfig: config.VAIProviderConfig{
 				Name: common.RandomString(),
 			},
 			PipelineJobClient: mockPipelineJobClient,
@@ -109,12 +97,12 @@ var _ = Context("VaiEventingServer", func() {
 		Expect(eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{
 			Name: pipelineRunName.Name,
 			Labels: map[string]string{
-				labels.RunConfigurationName:      runConfigurationName.Name,
-				labels.RunConfigurationNamespace: runConfigurationName.Namespace,
-				labels.PipelineName:              pipelineName.Name,
-				labels.PipelineNamespace:         pipelineName.Namespace,
-				labels.RunName:                   pipelineRunName.Name,
-				labels.RunNamespace:              pipelineRunName.Namespace,
+				label.RunConfigurationName:      runConfigurationName.Name,
+				label.RunConfigurationNamespace: runConfigurationName.Namespace,
+				label.PipelineName:              pipelineName.Name,
+				label.PipelineNamespace:         pipelineName.Namespace,
+				label.RunName:                   pipelineRunName.Name,
+				label.RunNamespace:              pipelineRunName.Namespace,
 			},
 			State: pipelineState,
 			JobDetail: &aiplatformpb.PipelineJobDetail{
@@ -464,14 +452,16 @@ var _ = Context("VaiEventingServer", func() {
 	Describe("runCompletionEventDataForRun", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
+				runId := common.RandomString()
+				expectedReq := aiplatformpb.GetPipelineJobRequest{
+					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
+				}
 				expectedErr := errors.New("an error")
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything,
-					mock.Anything,
-					mock.Anything,
+					&expectedReq,
 				).Return(nil, expectedErr)
-				event, err := eventingFlow.runCompletionEventDataForRun(common.RandomString())
+				event, err := eventingFlow.runCompletionEventDataForRun(runId)
 				Expect(event).To(BeNil())
 				Expect(err).To(Equal(expectedErr))
 			})
@@ -479,18 +469,20 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("GetPipelineJob returns a PipelineJob", func() {
 			It("Returns a RunCompletionEvent", func() {
+				runId := common.RandomString()
+				expectedReq := aiplatformpb.GetPipelineJobRequest{
+					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
+				}
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything,
-					mock.Anything,
-					mock.Anything,
+					&expectedReq,
 				).Return(
 					&aiplatformpb.PipelineJob{
 						State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
 					},
 					nil,
 				)
-				event, err := eventingFlow.runCompletionEventDataForRun(common.RandomString())
+				event, err := eventingFlow.runCompletionEventDataForRun(runId)
 				Expect(event).NotTo(BeNil())
 				Expect(err).To(BeNil())
 			})
@@ -500,16 +492,18 @@ var _ = Context("VaiEventingServer", func() {
 	Describe("Start", func() {
 		When("runCompletionEventDataForRun errors with NotFound", func() {
 			It("acks the message and outputs to error sink", func() {
+				runId := common.RandomString()
+				expectedReq := aiplatformpb.GetPipelineJobRequest{
+					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
+				}
 				expectedErr := status.New(codes.NotFound, "not found").Err()
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything,
-					mock.Anything,
-					mock.Anything,
+					&expectedReq,
 				).Return(nil, expectedErr)
 				eventingFlow.Start()
 
-				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
+				eventingFlow.in <- StreamMessage[string]{Message: runId, OnCompleteHandlers: onCompHandlers}
 
 				Eventually(handlerCall).Should(Receive(Equal("success_called")))
 				Eventually(errChan).Should(Receive(Equal(expectedErr)))
@@ -518,16 +512,18 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("runCompletionEventDataForRun errors", func() {
 			It("nacks the message and outputs to error sink", func() {
+				runId := common.RandomString()
+				expectedReq := aiplatformpb.GetPipelineJobRequest{
+					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
+				}
 				expectedErr := errors.New("an error")
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything,
-					mock.Anything,
-					mock.Anything,
+					&expectedReq,
 				).Return(nil, expectedErr)
 				eventingFlow.Start()
 
-				eventingFlow.in <- StreamMessage[string]{Message: "a-run-id", OnCompleteHandlers: onCompHandlers}
+				eventingFlow.in <- StreamMessage[string]{Message: runId, OnCompleteHandlers: onCompHandlers}
 
 				Eventually(handlerCall).Should(Receive(Equal("failure_called")))
 				Eventually(errChan).Should(Receive(Equal(expectedErr)))
@@ -536,28 +532,29 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("runCompletionEventDataForRun succeeds", func() {
 			It("sends the message to the out channel", func() {
+				runId := common.RandomString()
+				expectedReq := aiplatformpb.GetPipelineJobRequest{
+					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
+				}
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything,
-					mock.Anything,
-					mock.Anything,
+					&expectedReq,
 				).Return(
 					&aiplatformpb.PipelineJob{
 						State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
 					},
 					nil,
 				)
-				inMessage := "a-run-id"
 
 				eventingFlow.Start()
-				eventingFlow.in <- StreamMessage[string]{Message: inMessage, OnCompleteHandlers: onCompHandlers}
+				eventingFlow.in <- StreamMessage[string]{Message: runId, OnCompleteHandlers: onCompHandlers}
 
 				expectedRunCompletionEventData := &common.RunCompletionEventData{
 					Status:                "succeeded",
 					PipelineName:          common.NamespacedName{Name: "", Namespace: ""},
 					RunConfigurationName:  nil,
 					RunName:               nil,
-					RunId:                 inMessage,
+					RunId:                 runId,
 					ServingModelArtifacts: []common.Artifact{},
 					PipelineComponents:    []common.PipelineComponent{},
 					Provider:              eventingFlow.ProviderConfig.Name,
