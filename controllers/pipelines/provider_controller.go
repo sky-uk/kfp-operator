@@ -11,6 +11,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/runtime"
 
+	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
@@ -67,14 +68,24 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	desiredDeployment, err := r.constructDeployment(provider, req.Namespace, *r.Config.DeepCopy())
 	if err != nil {
 		logger.Error(err, "unable to construct provider service deployment")
+		provider.Status.SynchronizationState = apis.Failed
+		if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+			logger.Error(err, "unable to update provider resource status", "provider", provider)
+		}
 		return ctrl.Result{}, err
 	}
 
 	existingDeployment, err := r.getDeployment(ctx, req.Namespace, provider.Name, *provider)
 	if err != nil && !apierrors.IsNotFound(err) {
 		logger.Error(err, "unable to get existing deployment")
+		provider.Status.SynchronizationState = apis.Failed
+		if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+			logger.Error(err, "unable to update provider resource status", "provider", provider)
+		}
 		return ctrl.Result{}, err
 	}
+
+	// TODO: If the Deployment is in a failed state, set the SynchronizationState on the Provider resource to Failed
 
 	logger.Info("desired provider deployment", "deployment", desiredDeployment)
 
@@ -87,16 +98,30 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			existingDeployment.Annotations[ResourceHashAnnotation] = desiredDeployment.Annotations[ResourceHashAnnotation]
 			if err = r.EC.Client.Update(ctx, existingDeployment); err != nil {
 				logger.Error(err, "unable to update provider service deployment", "deployment", desiredDeployment)
+				provider.Status.SynchronizationState = apis.Failed
+				if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+					logger.Error(err, "unable to update provider resource status", "provider", provider)
+				}
 				return ctrl.Result{}, err
 			}
 		}
 	} else {
 		if err = r.EC.Client.Create(ctx, desiredDeployment); err != nil {
 			logger.Error(err, "unable to create provider service deployment")
+			provider.Status.SynchronizationState = apis.Failed
+			if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+				logger.Error(err, "unable to update provider resource status", "provider", provider)
+			}
 			return ctrl.Result{}, err
 		}
 
 		logger.Info("created provider deployment", "deployment", desiredDeployment)
+	}
+
+	// TODO: We've going to do this a lot, so probably move to helper function
+	provider.Status.SynchronizationState = apis.Succeeded
+	if err = r.EC.Client.Status().Update(ctx, provider); err != nil {
+		logger.Error(err, "unable to update provider resource status", "provider", provider)
 	}
 
 	duration := time.Since(startTime)
