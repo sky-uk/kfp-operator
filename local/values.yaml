@@ -41,3 +41,16 @@ statusFeedback:
 providers:
   - kfp
   - vai
+
+provider:
+  env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /etc/gcloud/key-file.json
+  volumes:
+    - name: gcp-credentials
+      secret:
+        secretName: gcp-credentials
+  volumeMounts:
+    - name: gcp-credentials
+      mountPath: /etc/gcloud
+      readOnly: true
