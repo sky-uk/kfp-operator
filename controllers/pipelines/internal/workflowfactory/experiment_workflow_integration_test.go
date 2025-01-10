@@ -22,7 +22,7 @@ var _ = Context("Experiment Resource Workflows", Serial, func() {
 	})
 
 	var newExperiment = func() *pipelinesv1.Experiment {
-		return withIntegrationTestFields(pipelinesv1.RandomExperiment(TestProvider))
+		return withIntegrationTestFields(pipelinesv1.RandomExperiment(TestProvider.Name))
 	}
 
 	newExperimentWithProviderId := func(providerId string) *pipelinesv1.Experiment {

@@ -8,12 +8,13 @@ import (
 	. "github.com/docker/distribution/reference"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type PipelineSpec struct {
-	Provider      string            `json:"provider" yaml:"provider"`
+	Provider      common.NamespacedName `json:"provider" yaml:"provider"`
 	Image         string            `json:"image" yaml:"image"`
 	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
 	Env           []apis.NamedValue `json:"env,omitempty" yaml:"env"`

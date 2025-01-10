@@ -27,7 +27,7 @@ var _ = Context("Pipeline Resource Workflows", Serial, func() {
 	)
 
 	var newPipeline = func() *pipelinesv1.Pipeline {
-		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline(TestProvider))
+		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline(TestProvider.Name))
 		pipeline.Spec.Image = "kfp-operator-stub-provider"
 
 		return pipeline

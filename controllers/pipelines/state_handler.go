@@ -8,6 +8,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
@@ -33,7 +34,7 @@ func (st *StateHandler[R]) stateTransition(
 	resource R,
 ) (commands []Command) {
 	resourceProvider := resource.GetStatus().Provider.Name
-	if resourceProvider != "" && resourceProvider != provider.Name {
+	if !resourceProvider.Empty() && resourceProvider != provider.GetCommonNamespacedName() {
 		commands = []Command{*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
 			WithMessage(StateHandlerConstants.ProviderChangedError)}
 	} else {
@@ -270,19 +271,27 @@ var deletedForNonEmptyId = IdVerifier{
 
 func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status pipelinesv1.Status, workflows []argo.Workflow, states IdVerifier) []Command {
 	logger := log.FromContext(ctx)
-
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
-
-		result, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.ProviderOutputParameterName)
-		provider := workflowutil.GetWorkflowParameter(workflow, workflowconstants.ProviderNameParameterName)
-
-		if err != nil {
+		var handleWorkflowErr = func(err error) *SetStatus {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
 		}
 
-		providerAndId := pipelinesv1.ProviderAndId{Name: provider, Id: result.Id}
+		result, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.ProviderOutputParameterName)
+		if err != nil {
+			return handleWorkflowErr(err)
+		}
+
+		provider := workflowutil.GetWorkflowParameter(workflow, workflowconstants.ProviderNameParameterName)
+		namespacedProvider, err := common.NamespacedNameFromString(provider)
+		fmt.Println("provider:", provider)
+		fmt.Println("namedSpacedFromString provider:", namespacedProvider)
+		if err != nil {
+			return handleWorkflowErr(err)
+		}
+
+		providerAndId := pipelinesv1.ProviderAndId{Name: namespacedProvider, Id: result.Id}
 
 		if result.ProviderError != "" {
 			logger.Error(err, fmt.Sprintf("%s, failing resource", result.ProviderError))

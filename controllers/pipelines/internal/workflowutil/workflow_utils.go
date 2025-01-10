@@ -66,11 +66,18 @@ func SetWorkflowProvider(
 			Value: argo.AnyStringPtr(providerStr),
 		},
 	)
+
+	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		fmt.Println("WorkflowUtils: err: ", err)
+		return nil, err
+	}
+
 	workflow.Spec.Arguments.Parameters = append(
 		workflow.Spec.Arguments.Parameters,
 		argo.Parameter{
 			Name:  workflowconstants.ProviderNameParameterName,
-			Value: argo.AnyStringPtr(provider.Name),
+			Value: argo.AnyStringPtr(namespacedProvider),
 		},
 	)
 
