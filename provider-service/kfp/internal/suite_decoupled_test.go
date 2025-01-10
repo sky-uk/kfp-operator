@@ -6,14 +6,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"io"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"net/http"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-resty/resty/v2"
@@ -78,7 +80,7 @@ var _ = BeforeSuite(func() {
 	eventSource, err = sources.NewWorkflowSource(ctx, defaultNamespace, pkg.K8sClient{Client: k8sClient})
 	Expect(err).ToNot(HaveOccurred())
 
-	config := &KfpProviderConfig{
+	config := &config.KfpProviderConfig{
 		Name: providerName,
 	}
 

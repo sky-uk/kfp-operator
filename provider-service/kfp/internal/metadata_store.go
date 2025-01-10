@@ -5,10 +5,15 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/ml_metadata"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/hashicorp/go-bexpr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/ml_metadata"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -27,7 +32,7 @@ type MetadataStore interface {
 }
 
 type GrpcMetadataStore struct {
-	MetadataStoreServiceClient ml_metadata.MetadataStoreServiceClient
+	MetadataStoreServiceClient client.MetadataStoreServiceClient
 }
 
 func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error) {
@@ -156,4 +161,25 @@ func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]inter
 	}
 
 	return out
+}
+
+func CreateMetadataStore(ctx context.Context, config config.KfpProviderConfig) (MetadataStore, error) {
+	logger := common.LoggerFromContext(ctx)
+	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
+	if err != nil {
+		logger.Error(err, "failed to connect to metadata store", "address", config.Parameters.GrpcMetadataStoreAddress)
+		return nil, err
+	}
+	return metadataStore, nil
+}
+
+func ConnectToMetadataStore(address string) (*GrpcMetadataStore, error) {
+	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &GrpcMetadataStore{
+		MetadataStoreServiceClient: ml_metadata.NewMetadataStoreServiceClient(conn),
+	}, nil
 }
