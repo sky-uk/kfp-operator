@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type VAIProviderConfig struct {
@@ -30,22 +29,6 @@ func (vaipc VAIProviderConfig) Parent() string {
 
 func (vaipc VAIProviderConfig) PipelineJobName(name string) string {
 	return fmt.Sprintf("%s/pipelineJobs/%s", vaipc.Parent(), name)
-}
-
-func (vaipc VAIProviderConfig) pipelineStorageObject(pipelineName common.NamespacedName, pipelineVersion string) (string, error) {
-	namespaceName, err := pipelineName.String()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s/%s", namespaceName, pipelineVersion), nil
-}
-
-func (vaipc VAIProviderConfig) pipelineUri(pipelineName common.NamespacedName, pipelineVersion string) (string, error) {
-	pipelineUri, err := vaipc.pipelineStorageObject(pipelineName, pipelineVersion)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("gs://%s/%s", vaipc.Parameters.PipelineBucket, pipelineUri), nil
 }
 
 func (vaipc VAIProviderConfig) GetMaxConcurrentRunCountOrDefault() int64 {
