@@ -4,41 +4,40 @@ package internal
 
 import (
 	"context"
-	"fmt"
-	"github.com/golang/mock/gomock"
+	"errors"
+
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 )
 
 var _ = Context("KFP API", func() {
 	var (
-		mockCtrl             *gomock.Controller
-		mockRunServiceClient *MockRunServiceClient
-		mockJobServiceClient *MockJobServiceClient
+		mockRunServiceClient mocks.MockRunServiceClient
+		mockJobServiceClient mocks.MockJobServiceClient
 		kfpApi               GrpcKfpApi
 		runId                string
 	)
 
 	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-		mockRunServiceClient = NewMockRunServiceClient(mockCtrl)
-		mockJobServiceClient = NewMockJobServiceClient(mockCtrl)
-		kfpApi = GrpcKfpApi{RunServiceClient: mockRunServiceClient, JobServiceClient: mockJobServiceClient}
+		mockRunServiceClient = mocks.MockRunServiceClient{}
+		mockJobServiceClient = mocks.MockJobServiceClient{}
+		kfpApi = GrpcKfpApi{
+			RunServiceClient: &mockRunServiceClient,
+			JobServiceClient: &mockJobServiceClient,
+		}
 		runId = common.RandomString()
-	})
-
-	AfterEach(func() {
-		mockCtrl.Finish()
 	})
 
 	Describe("GetResourceReferences", func() {
 		When("GetRun errors", func() {
 			It("Errors", func() {
-				mockRunServiceClient.EXPECT().
-					GetRun(gomock.Any(), gomock.Eq(&go_client.GetRunRequest{RunId: runId})).
-					Return(nil, fmt.Errorf("an error"))
+				mockRunServiceClient.On(
+					"GetRun",
+					&go_client.GetRunRequest{RunId: runId},
+				).Return(nil, errors.New("failed"))
 
 				_, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(HaveOccurred())
@@ -63,9 +62,10 @@ var _ = Context("KFP API", func() {
 					},
 				}
 
-				mockRunServiceClient.EXPECT().
-					GetRun(gomock.Any(), gomock.Eq(&go_client.GetRunRequest{RunId: runId})).
-					Return(&mockRunDetail, nil)
+				mockRunServiceClient.On(
+					"GetRun",
+					&go_client.GetRunRequest{RunId: runId},
+				).Return(&mockRunDetail, nil)
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())
@@ -91,9 +91,10 @@ var _ = Context("KFP API", func() {
 					},
 				}
 
-				mockRunServiceClient.EXPECT().
-					GetRun(gomock.Any(), gomock.Eq(&go_client.GetRunRequest{RunId: runId})).
-					Return(&mockRunDetail, nil)
+				mockRunServiceClient.On(
+					"GetRun",
+					&go_client.GetRunRequest{RunId: runId},
+				).Return(&mockRunDetail, nil)
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())
@@ -134,13 +135,15 @@ var _ = Context("KFP API", func() {
 					},
 				}
 
-				mockRunServiceClient.EXPECT().
-					GetRun(gomock.Any(), gomock.Eq(&go_client.GetRunRequest{RunId: runId})).
-					Return(&runDetail, nil)
+				mockRunServiceClient.On(
+					"GetRun",
+					&go_client.GetRunRequest{RunId: runId},
+				).Return(&runDetail, nil)
 
-				mockJobServiceClient.EXPECT().
-					GetJob(gomock.Any(), gomock.Eq(&go_client.GetJobRequest{Id: jobId})).
-					Return(&go_client.Job{}, nil)
+				mockJobServiceClient.On(
+					"GetJob",
+					&go_client.GetJobRequest{Id: jobId},
+				).Return(&go_client.Job{}, nil)
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())
@@ -177,13 +180,15 @@ var _ = Context("KFP API", func() {
 					Description: "runConfigurationName: " + common.UnsafeValue(runConfigurationName.String()),
 				}
 
-				mockRunServiceClient.EXPECT().
-					GetRun(gomock.Any(), gomock.Eq(&go_client.GetRunRequest{RunId: runId})).
-					Return(&runDetail, nil)
+				mockRunServiceClient.On(
+					"GetRun",
+					&go_client.GetRunRequest{RunId: runId},
+				).Return(&runDetail, nil)
 
-				mockJobServiceClient.EXPECT().
-					GetJob(gomock.Any(), gomock.Eq(&go_client.GetJobRequest{Id: jobId})).
-					Return(&jobDetail, nil)
+				mockJobServiceClient.On(
+					"GetJob",
+					&go_client.GetJobRequest{Id: jobId},
+				).Return(&jobDetail, nil)
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())

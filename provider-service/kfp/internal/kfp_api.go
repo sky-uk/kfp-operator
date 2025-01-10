@@ -6,6 +6,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"gopkg.in/yaml.v2"
 )
 
@@ -14,8 +15,8 @@ type KfpApi interface {
 }
 
 type GrpcKfpApi struct {
-	RunServiceClient go_client.RunServiceClient
-	JobServiceClient go_client.JobServiceClient
+	RunServiceClient client.RunServiceClient
+	JobServiceClient client.JobServiceClient
 }
 
 type ResourceReferences struct {

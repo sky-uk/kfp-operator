@@ -9,14 +9,14 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/ml_metadata"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 type EventFlow struct {
-	ProviderConfig KfpProviderConfig
+	ProviderConfig config.KfpProviderConfig
 	MetadataStore  MetadataStore
 	KfpApi         KfpApi
 	Logger         logr.Logger
@@ -72,7 +72,7 @@ func (ef *EventFlow) Error(inlet Inlet[error]) {
 	}
 }
 
-func CreateKfpApi(ctx context.Context, config KfpProviderConfig) (KfpApi, error) {
+func CreateKfpApi(ctx context.Context, config config.KfpProviderConfig) (KfpApi, error) {
 	logger := common.LoggerFromContext(ctx)
 	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
 	if err != nil {
@@ -82,17 +82,7 @@ func CreateKfpApi(ctx context.Context, config KfpProviderConfig) (KfpApi, error)
 	return kfpApi, nil
 }
 
-func CreateMetadataStore(ctx context.Context, config KfpProviderConfig) (MetadataStore, error) {
-	logger := common.LoggerFromContext(ctx)
-	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
-	if err != nil {
-		logger.Error(err, "failed to connect to metadata store", "address", config.Parameters.GrpcMetadataStoreAddress)
-		return nil, err
-	}
-	return metadataStore, nil
-}
-
-func NewEventFlow(ctx context.Context, config KfpProviderConfig, kfpApi KfpApi, metadataStore MetadataStore) (*EventFlow, error) {
+func NewEventFlow(ctx context.Context, config config.KfpProviderConfig, kfpApi KfpApi, metadataStore MetadataStore) (*EventFlow, error) {
 	logger := common.LoggerFromContext(ctx)
 
 	flow := &EventFlow{
@@ -217,17 +207,6 @@ func getPipelineNameFromEntrypoint(workflow *unstructured.Unstructured) string {
 	}
 
 	return name
-}
-
-func ConnectToMetadataStore(address string) (*GrpcMetadataStore, error) {
-	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
-	}
-
-	return &GrpcMetadataStore{
-		MetadataStoreServiceClient: ml_metadata.NewMetadataStoreServiceClient(conn),
-	}, nil
 }
 
 func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {

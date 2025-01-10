@@ -7,10 +7,11 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
-	configLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
+	baseConfigLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	kfp "github.com/sky-uk/kfp-operator/provider-service/kfp/internal"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -22,7 +23,7 @@ func main() {
 
 	ctx := logr.NewContext(context.Background(), logger)
 
-	config, err := configLoader.LoadConfig(ctx)
+	baseConfig, err := baseConfigLoader.LoadConfig(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -32,9 +33,9 @@ func main() {
 		panic(err)
 	}
 
-	providerConfig, err := kfp.LoadProviderConfig(ctx, *k8sClient, config.ProviderName, config.Pod.Namespace)
+	providerConfig, err := config.LoadProviderConfig(ctx, *k8sClient, baseConfig.ProviderName, baseConfig.Pod.Namespace)
 	if err != nil {
-		logger.Error(err, "failed to load provider config", "provider", config.ProviderName, "namespace", config.Pod.Namespace)
+		logger.Error(err, "failed to load provider config", "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
 		panic(err)
 	}
 
@@ -58,7 +59,7 @@ func main() {
 		panic(err)
 	}
 
-	sink := sinks.NewWebhookSink(ctx, resty.New(), config.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
+	sink := sinks.NewWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
 	errorSink := sinks.NewErrorSink(ctx, make(chan error))
 
 	connectedFlow := flow.From(source)

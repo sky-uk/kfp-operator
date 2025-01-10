@@ -6,11 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -183,7 +185,7 @@ var _ = Context("Eventing Flow", func() {
 			Logger:        logr.Discard(),
 			MetadataStore: &mockMetadataStore,
 			KfpApi:        &mockKfpApi,
-			ProviderConfig: KfpProviderConfig{
+			ProviderConfig: config.KfpProviderConfig{
 				Name: "kfp",
 			},
 		}
