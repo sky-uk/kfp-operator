@@ -3,9 +3,12 @@
 package pipelines
 
 import (
+	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/apis"
+	v1 "k8s.io/api/apps/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Context("ObjectHasher", func() {
@@ -196,6 +199,24 @@ var _ = Context("ObjectHasher", func() {
 
 				Expect(oh1.Sum()).To(Equal(oh2.Sum()))
 			}
+		})
+	})
+
+	var _ = Describe("WriteObject", func() {
+
+		Specify("Different objects should have different hashes", func() {
+			oh1 := NewObjectHasher()
+			oh1.WriteObject(&v1.Deployment{
+				ObjectMeta: metav1.ObjectMeta{Name: "foo"},
+			})
+
+			oh2 := NewObjectHasher()
+			oh1.WriteObject(&v1.Deployment{
+				ObjectMeta: metav1.ObjectMeta{Name: "bar"},
+			})
+
+			fmt.Printf("%x", oh1.Sum())
+			Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
 		})
 	})
 })
