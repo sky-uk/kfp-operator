@@ -100,13 +100,9 @@ var _ = BeforeSuite(func() {
 	Expect(NewRunConfigurationReconciler(ec, k8sManager.GetScheme(), TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewRunScheduleReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewExperimentReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewProviderReconciler(ec, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
-
-	Provider = pipelinesv1.RandomProvider()
-	Provider.Name = apis.RandomLowercaseString()
-	Provider.Namespace = TestConfig.WorkflowNamespace
-	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
@@ -137,6 +133,17 @@ var _ = BeforeEach(func() {
 	for _, r := range allPipelines.Items {
 		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
+
+	allProviders := &pipelinesv1.ProviderList{}
+	Expect(K8sClient.List(Ctx, allProviders)).To(Succeed())
+	for _, r := range allProviders.Items {
+		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
+	}
+
+	Provider = pipelinesv1.RandomProvider()
+	Provider.Name = apis.RandomLowercaseString()
+	Provider.Namespace = TestConfig.WorkflowNamespace
+	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
 })
 
 var _ = AfterSuite(func() {

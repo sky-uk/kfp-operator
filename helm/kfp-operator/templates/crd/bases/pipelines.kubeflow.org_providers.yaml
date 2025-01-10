@@ -157,7 +157,7 @@ spec:
       status: {}
   {{- end }}
   - additionalPrinterColumns:
-    - jsonPath: .status.conditions[?(@.type == 'Synchronized')].reason
+    - jsonPath: .status.synchronizationState
       name: SynchronizationState
       type: string
     name: v1alpha6

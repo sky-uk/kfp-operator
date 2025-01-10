@@ -13,7 +13,7 @@ import (
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName="mlprv"
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type == 'Synchronized')].reason"
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 // +kubebuilder:storageversion
 // +kubebuilder:pruning:PreserveUnknownFields
 type Provider struct {
