@@ -28,10 +28,12 @@ data:
         replicas: {{ .Values.provider.replicas }}
         podTemplateSpec:
           spec:
+            volumes: {{- if .Values.provider.volumes }}{{- toYaml .Values.provider.volumes | nindent 12 }}{{ else }} []{{ end }}
             securityContext:
               runAsNonRoot: true
             containers:
             - name: provider-service
+              volumeMounts: {{- if .Values.provider.volumeMounts }}{{- toYaml .Values.provider.volumeMounts | nindent 14 }}{{ else }} []{{ end }}
               securityContext:
                 allowPrivilegeEscalation: false
               resources:
@@ -43,3 +45,4 @@ data:
                     fieldPath: metadata.namespace
               - name: OPERATORWEBHOOK
                 value: {{ include "kfp-operator.fullname" . }}-controller-manager.{{ .Values.namespace.name }}:{{.Values.manager.runcompletionWebhook.servicePort}}/events
+              {{- if .Values.provider.env }}{{- $.Values.provider.env | toYaml | nindent 14 }}{{ end }}

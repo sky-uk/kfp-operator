@@ -54,7 +54,7 @@ func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerCo
 func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	startTime := time.Now()
-	logger.V(2).Info("reconciliation started")
+	logger.Info("reconciliation started", "request", req)
 
 	var provider = &pipelinesv1.Provider{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, provider); err != nil {
@@ -100,7 +100,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	duration := time.Since(startTime)
-	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
+	logger.Info("reconciliation ended", logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
