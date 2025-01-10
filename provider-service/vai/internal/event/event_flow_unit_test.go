@@ -1,22 +1,30 @@
 //go:build unit
 
-package internal
+package event
 
 import (
 	"context"
 	"errors"
+	"testing"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/googleapis/gax-go/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 )
+
+func TestUnitSuite(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "VAI Event Flow Unit Suite")
+}
 
 func artifact() *aiplatformpb.Artifact {
 	return &aiplatformpb.Artifact{
@@ -32,28 +40,9 @@ func artifact() *aiplatformpb.Artifact {
 	}
 }
 
-type MockPipelineJobClient struct {
-	mock.Mock
-}
-
-func (m *MockPipelineJobClient) GetPipelineJob(
-	ctx context.Context,
-	req *aiplatformpb.GetPipelineJobRequest,
-	opts ...gax.CallOption,
-) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(ctx, req, opts)
-
-	var pipelineJob *aiplatformpb.PipelineJob
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
-	}
-
-	return pipelineJob, args.Error(1)
-}
-
 var _ = Context("VaiEventingServer", func() {
 	var (
-		mockPipelineJobClient *MockPipelineJobClient
+		mockPipelineJobClient *mocks.MockPipelineJobClient
 		eventingFlow          EventFlow
 		inChan                chan StreamMessage[string]
 		outChan               chan StreamMessage[*common.RunCompletionEventData]
@@ -63,12 +52,12 @@ var _ = Context("VaiEventingServer", func() {
 	)
 
 	BeforeEach(func() {
-		mockPipelineJobClient = &MockPipelineJobClient{}
+		mockPipelineJobClient = &mocks.MockPipelineJobClient{}
 		inChan = make(chan StreamMessage[string])
 		outChan = make(chan StreamMessage[*common.RunCompletionEventData])
 		errChan = make(chan error)
 		eventingFlow = EventFlow{
-			ProviderConfig: VAIProviderConfig{
+			ProviderConfig: config.VAIProviderConfig{
 				Name: common.RandomString(),
 			},
 			PipelineJobClient: mockPipelineJobClient,
@@ -109,12 +98,12 @@ var _ = Context("VaiEventingServer", func() {
 		Expect(eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{
 			Name: pipelineRunName.Name,
 			Labels: map[string]string{
-				labels.RunConfigurationName:      runConfigurationName.Name,
-				labels.RunConfigurationNamespace: runConfigurationName.Namespace,
-				labels.PipelineName:              pipelineName.Name,
-				labels.PipelineNamespace:         pipelineName.Namespace,
-				labels.RunName:                   pipelineRunName.Name,
-				labels.RunNamespace:              pipelineRunName.Namespace,
+				label.RunConfigurationName:      runConfigurationName.Name,
+				label.RunConfigurationNamespace: runConfigurationName.Namespace,
+				label.PipelineName:              pipelineName.Name,
+				label.PipelineNamespace:         pipelineName.Namespace,
+				label.RunName:                   pipelineRunName.Name,
+				label.RunNamespace:              pipelineRunName.Namespace,
 			},
 			State: pipelineState,
 			JobDetail: &aiplatformpb.PipelineJobDetail{
@@ -468,8 +457,6 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
 					mock.Anything,
-					mock.Anything,
-					mock.Anything,
 				).Return(nil, expectedErr)
 				event, err := eventingFlow.runCompletionEventDataForRun(common.RandomString())
 				Expect(event).To(BeNil())
@@ -481,8 +468,6 @@ var _ = Context("VaiEventingServer", func() {
 			It("Returns a RunCompletionEvent", func() {
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything,
-					mock.Anything,
 					mock.Anything,
 				).Return(
 					&aiplatformpb.PipelineJob{
@@ -504,8 +489,6 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
 					mock.Anything,
-					mock.Anything,
-					mock.Anything,
 				).Return(nil, expectedErr)
 				eventingFlow.Start()
 
@@ -522,8 +505,6 @@ var _ = Context("VaiEventingServer", func() {
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
 					mock.Anything,
-					mock.Anything,
-					mock.Anything,
 				).Return(nil, expectedErr)
 				eventingFlow.Start()
 
@@ -538,8 +519,6 @@ var _ = Context("VaiEventingServer", func() {
 			It("sends the message to the out channel", func() {
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
-					mock.Anything,
-					mock.Anything,
 					mock.Anything,
 				).Return(
 					&aiplatformpb.PipelineJob{

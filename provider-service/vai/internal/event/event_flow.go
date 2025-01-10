@@ -1,4 +1,4 @@
-package internal
+package event
 
 import (
 	"context"
@@ -6,10 +6,12 @@ import (
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/googleapis/gax-go/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -22,27 +24,9 @@ const (
 	PipelineJobNotFinishedErr      = "expected pipeline job to have finished"
 )
 
-var labels = struct {
-	PipelineName              string
-	PipelineNamespace         string
-	PipelineVersion           string
-	RunConfigurationName      string
-	RunConfigurationNamespace string
-	RunName                   string
-	RunNamespace              string
-}{
-	PipelineName:              "pipeline-name",
-	PipelineNamespace:         "pipeline-namespace",
-	PipelineVersion:           "pipeline-version",
-	RunConfigurationName:      "runconfiguration-name",
-	RunConfigurationNamespace: "runconfiguration-namespace",
-	RunName:                   "run-name",
-	RunNamespace:              "run-namespace",
-}
-
 type EventFlow struct {
-	ProviderConfig    VAIProviderConfig
-	PipelineJobClient PipelineJobClient
+	ProviderConfig    config.VAIProviderConfig
+	PipelineJobClient client.PipelineJobClient
 	context           context.Context
 	in                chan StreamMessage[string]
 	out               chan StreamMessage[*common.RunCompletionEventData]
@@ -84,7 +68,7 @@ func (vef *EventFlow) Error(inlet streams.Inlet[error]) {
 	}
 }
 
-func NewEventFlow(ctx context.Context, config *VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *EventFlow {
+func NewEventFlow(ctx context.Context, config *config.VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *EventFlow {
 	vaiEventFlow := EventFlow{
 		ProviderConfig:    *config,
 		PipelineJobClient: pipelineJobClient,
@@ -123,17 +107,9 @@ func (vef *EventFlow) Start() {
 	}()
 }
 
-type PipelineJobClient interface {
-	GetPipelineJob(
-		ctx context.Context,
-		req *aiplatformpb.GetPipelineJobRequest,
-		opts ...gax.CallOption,
-	) (*aiplatformpb.PipelineJob, error)
-}
-
 func (vef *EventFlow) runCompletionEventDataForRun(runId string) (*common.RunCompletionEventData, error) {
 	job, err := vef.PipelineJobClient.GetPipelineJob(vef.context, &aiplatformpb.GetPipelineJobRequest{
-		Name: vef.ProviderConfig.pipelineJobName(runId),
+		Name: vef.ProviderConfig.PipelineJobName(runId),
 	})
 	if err != nil {
 		common.LoggerFromContext(vef.context).Error(err, "failed to fetch pipeline job")
@@ -226,19 +202,19 @@ func (vef *EventFlow) toRunCompletionEventData(job *aiplatformpb.PipelineJob, ru
 
 	var pipelineName common.NamespacedName
 
-	pipelineName.Name = job.Labels[labels.PipelineName]
-	if pipelineNamespace, ok := job.Labels[labels.PipelineNamespace]; ok {
+	pipelineName.Name = job.Labels[label.PipelineName]
+	if pipelineNamespace, ok := job.Labels[label.PipelineNamespace]; ok {
 		pipelineName.Namespace = pipelineNamespace
 	}
 
 	runName := common.NamespacedName{
-		Name:      job.Labels[labels.RunName],
-		Namespace: job.Labels[labels.RunNamespace],
+		Name:      job.Labels[label.RunName],
+		Namespace: job.Labels[label.RunNamespace],
 	}
 
 	runConfigurationName := common.NamespacedName{
-		Name:      job.Labels[labels.RunConfigurationName],
-		Namespace: job.Labels[labels.RunConfigurationNamespace],
+		Name:      job.Labels[label.RunConfigurationName],
+		Namespace: job.Labels[label.RunConfigurationNamespace],
 	}
 
 	return &common.RunCompletionEventData{
