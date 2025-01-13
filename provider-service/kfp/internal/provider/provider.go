@@ -199,30 +199,6 @@ func (kfpp *KfpProvider) DeleteRunSchedule(id string) error {
 	return err
 }
 
-func (kfpp *KfpProvider) CreateExperiment(
-	ed baseResource.ExperimentDefinition,
-) (string, error) {
-	experimentName, err := util.ResourceNameFromNamespacedName(ed.Name)
-	if err != nil {
-		return "", err
-	}
-
-	result, err := kfpp.experimentService.CreateExperiment(
-		kfpp.ctx,
-		&go_client.CreateExperimentRequest{
-			Experiment: &go_client.Experiment{
-				Name:        experimentName,
-				Description: ed.Description,
-			},
-		},
-	)
-	if err != nil {
-		return "", err
-	}
-
-	return result.Id, nil
-}
-
 func (kfpp *KfpProvider) UpdateExperiment(
 	ed baseResource.ExperimentDefinition,
 	id string,
@@ -231,17 +207,11 @@ func (kfpp *KfpProvider) UpdateExperiment(
 		return id, err
 	}
 
-	return kfpp.CreateExperiment(ed)
+	return kfpp.experimentService.CreateExperiment(ed.Name, ed.Description)
 }
 
 func (kfpp *KfpProvider) DeleteExperiment(id string) error {
-	kfpp.experimentService.DeleteExperiment(
-		kfpp.ctx,
-		&go_client.DeleteExperimentRequest{
-			Id: id,
-		},
-	)
-	return nil
+	return kfpp.experimentService.DeleteExperiment(id)
 }
 
 const KfpResourceNotFoundCode = 5
