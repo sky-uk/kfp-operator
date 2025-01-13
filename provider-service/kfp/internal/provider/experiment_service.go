@@ -11,12 +11,26 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 )
 
-type ExperimentService struct {
-	context context.Context
-	client.ExperimentServiceClient
+type ExperimentService interface {
+	CreateExperiment(
+		experiment common.NamespacedName,
+		description string,
+	) (string, error)
+
+	DeleteExperiment(id string) error
+
+	ExperimentIdByName(experiment common.NamespacedName) (string, error)
 }
 
-func NewExperimentService(ctx context.Context, providerConfig config.KfpProviderConfig) (*ExperimentService, error) {
+type DefaultExperimentService struct {
+	ctx    context.Context
+	client client.ExperimentServiceClient
+}
+
+func NewExperimentService(
+	ctx context.Context,
+	providerConfig config.KfpProviderConfig,
+) (*DefaultExperimentService, error) {
 	// apiUrl, err := url.Parse(providerConfig.Parameters.RestKfpApiUrl)
 	// if err != nil {
 	// 	return nil, err
@@ -28,7 +42,7 @@ func NewExperimentService(ctx context.Context, providerConfig config.KfpProvider
 	// grpc connection so that the ExperimentService also has access.
 	// event flow uses GrpcKfpApi, but not the experiment service - which is
 	// why they are separate.
-	return &ExperimentService{
+	return &DefaultExperimentService{
 		// Client: experiment_client.NewHTTPClientWithConfig(
 		// 	strfmt.NewFormats(), &experiment_client.TransportConfig{
 		// 		Host:     apiUrl.Host,
@@ -37,18 +51,56 @@ func NewExperimentService(ctx context.Context, providerConfig config.KfpProvider
 		// 	},
 		// ).ExperimentService,
 
-		context: ctx,
+		ctx: ctx,
 	}, nil
 }
 
-func (es *ExperimentService) ExperimentIdByName(experimentNamespacedName common.NamespacedName) (string, error) {
-	experimentName, err := util.ResourceNameFromNamespacedName(experimentNamespacedName)
+func (es *DefaultExperimentService) CreateExperiment(
+	experiment common.NamespacedName,
+	description string,
+) (string, error) {
+	experimentName, err := util.ResourceNameFromNamespacedName(experiment)
+	if err != nil {
+		return "", nil
+	}
+
+	result, err := es.client.CreateExperiment(
+		es.ctx,
+		&go_client.CreateExperimentRequest{
+			Experiment: &go_client.Experiment{
+				Name:        experimentName,
+				Description: description,
+			},
+		},
+	)
 	if err != nil {
 		return "", err
 	}
 
-	experimentResult, err := es.ListExperiment(
-		es.context,
+	return result.Id, nil
+}
+
+// TODO: test
+func (es *DefaultExperimentService) DeleteExperiment(id string) error {
+	es.client.DeleteExperiment(
+		es.ctx,
+		&go_client.DeleteExperimentRequest{
+			Id: id,
+		},
+	)
+	return nil
+}
+
+func (es *DefaultExperimentService) ExperimentIdByName(
+	experiment common.NamespacedName,
+) (string, error) {
+	experimentName, err := util.ResourceNameFromNamespacedName(experiment)
+	if err != nil {
+		return "", err
+	}
+
+	experimentResult, err := es.client.ListExperiment(
+		es.ctx,
 		&go_client.ListExperimentsRequest{
 			Filter: *byNameFilter(experimentName),
 		},
