@@ -11,3 +11,4 @@ spec:
       targetPort: {{ .Values.service.server.port }}
   selector:
     app: {{ include "kfp-operator-provider.resource-prefix" . }}-service
+    provider: {{ $providerName }}
