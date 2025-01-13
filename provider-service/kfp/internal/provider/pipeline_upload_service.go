@@ -12,26 +12,30 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 )
 
+type PipelineUploadService interface {
+	UploadPipeline(
+		content []byte,
+		pipelineName string,
+		filePath string,
+	) (string, error)
+
+	UploadPipelineVersion(
+		id string,
+		content []byte,
+		version string,
+		filePath string,
+	) error
+}
+
 type DefaultPipelineUploadService struct {
-	restKfpApiUrl string
-}
-
-type FileHandler interface {
-	Write(content []byte, pipelineName string, filePath string) (string, error)
-	Update(id string, content []byte, version string, filePath string) (string, error)
-	Delete(id string, pipelineName string) error
-	Read(pipelineName string, filePath string) (map[string]any, error)
-}
-
-type DefaultFileHandler struct {
 	ctx                   context.Context
 	pipelineUploadService client.PipelineUploadService
 }
 
-func NewFileHandler(
+func NewPipelineUploadService(
 	ctx context.Context,
 	restKfpApiUrl string,
-) (*DefaultFileHandler, error) {
+) (*DefaultPipelineUploadService, error) {
 	apiUrl, err := url.Parse(restKfpApiUrl)
 	if err != nil {
 		return nil, err
@@ -46,26 +50,25 @@ func NewFileHandler(
 		},
 	).PipelineUploadService
 
-	return &DefaultFileHandler{
+	return &DefaultPipelineUploadService{
 		ctx:                   ctx,
 		pipelineUploadService: pipelineUploadService,
 	}, nil
-
 }
 
-// Write writes the ??? from ??? and returns the upload result payload ID.
-func (fh *DefaultFileHandler) Write(
+// UploadPipeline writes the ??? from ??? and returns the upload result payload ID.
+func (us *DefaultPipelineUploadService) UploadPipeline(
 	content []byte,
 	pipelineName string,
 	pipelineFilePath string,
 ) (string, error) {
 	reader := bytes.NewReader(content)
 	uploadFile := runtime.NamedReader(pipelineFilePath, reader)
-	result, err := fh.pipelineUploadService.UploadPipeline(
+	result, err := us.pipelineUploadService.UploadPipeline(
 		&pipeline_upload_service.UploadPipelineParams{
 			Name:       &pipelineName,
 			Uploadfile: uploadFile,
-			Context:    fh.ctx,
+			Context:    us.ctx,
 		},
 		nil,
 	)
@@ -76,26 +79,26 @@ func (fh *DefaultFileHandler) Write(
 	return result.Payload.ID, nil
 }
 
-func (fh *DefaultFileHandler) Update(
+func (us *DefaultPipelineUploadService) UploadPipelineVersion(
 	id string,
 	content []byte,
 	version string,
 	pipelineFilePath string,
-) (string, error) {
+) error {
 	reader := bytes.NewReader(content)
 	uploadFile := runtime.NamedReader(pipelineFilePath, reader)
-	_, err := fh.pipelineUploadService.UploadPipelineVersion(
+	_, err := us.pipelineUploadService.UploadPipelineVersion(
 		&pipeline_upload_service.UploadPipelineVersionParams{
 			Name:       &version,
-			Uploadfile: uploadFile,
-			Context:    fh.ctx,
 			Pipelineid: &id,
+			Uploadfile: uploadFile,
+			Context:    us.ctx,
 		},
 		nil,
 	)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return id, nil
+	return nil
 }

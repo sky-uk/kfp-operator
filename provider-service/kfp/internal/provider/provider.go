@@ -17,12 +17,12 @@ import (
 )
 
 type KfpProvider struct {
-	ctx               context.Context
-	config            config.KfpProviderConfig
-	FileHandler       FileHandler
-	pipelineService   PipelineService
-	experimentService ExperimentService
-	jobServiceClient  client.JobServiceClient
+	ctx                   context.Context
+	config                config.KfpProviderConfig
+	pipelineUploadService PipelineUploadService
+	pipelineService       PipelineService
+	experimentService     ExperimentService
+	jobServiceClient      client.JobServiceClient
 }
 
 func (kfpp *KfpProvider) CreatePipeline(
@@ -34,7 +34,7 @@ func (kfpp *KfpProvider) CreatePipeline(
 	}
 
 	//TODO: What should filePath be here???
-	result, err := kfpp.FileHandler.Write(pd.Manifest, pipelineId, "/")
+	result, err := kfpp.pipelineUploadService.UploadPipeline(pd.Manifest, pipelineId, "/")
 	if err != nil {
 		return "", err
 	}
@@ -48,12 +48,17 @@ func (kfpp *KfpProvider) UpdatePipeline(
 ) (string, error) {
 	//TODO: What should filePath be here???
 	// returning a result is pointless because it's just id again. Remove?
-	result, err := kfpp.FileHandler.Update(id, pd.Manifest, pd.Version, "/")
+	err := kfpp.pipelineUploadService.UploadPipelineVersion(
+		id,
+		pd.Manifest,
+		pd.Version,
+		"/",
+	)
 	if err != nil {
 		return "", err
 	}
 
-	return result, nil
+	return id, nil
 }
 
 func (kfpp *KfpProvider) DeletePipeline(id string) error {
@@ -88,7 +93,10 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	pipelineVersionId, err := kfpp.pipelineService.PipelineVersionIdForName(rsd.PipelineVersion, pipelineId)
+	pipelineVersionId, err := kfpp.pipelineService.PipelineVersionIdForName(
+		rsd.PipelineVersion,
+		pipelineId,
+	)
 	if err != nil {
 		return "", err
 	}
