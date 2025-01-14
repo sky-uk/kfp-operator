@@ -170,6 +170,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 	rsd resource.RunScheduleDefinition,
 ) (string, error) {
 	logger := common.LoggerFromContext(vaip.ctx)
+
 	pipelinePath, err := util.PipelineStorageObject(
 		rsd.PipelineName,
 		rsd.PipelineVersion,
@@ -214,7 +215,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		},
 	)
 	if err != nil {
-		logger.Error(err, "CreateScheduleRequest failed", "parent", vaip.config.Parent())
+		logger.Error(err, "CreateScheduleRequest failed")
 		return "", err
 	}
 
@@ -225,6 +226,8 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 	rsd resource.RunScheduleDefinition,
 	_ string,
 ) (string, error) {
+	logger := common.LoggerFromContext(vaip.ctx)
+
 	pipelinePath, err := util.PipelineStorageObject(
 		rsd.PipelineName,
 		rsd.PipelineVersion,
@@ -273,6 +276,7 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 		},
 	)
 	if err != nil {
+		logger.Error(err, "UpdateScheduleRequest failed", "parent", vaip.config.Parent())
 		return "", err
 	}
 
