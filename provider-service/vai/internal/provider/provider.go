@@ -68,9 +68,9 @@ func NewProvider(
 }
 
 func (vaip *VAIProvider) CreatePipeline(
-	pd resource.PipelineDefinition,
+	pdw resource.PipelineDefinitionWrapper,
 ) (string, error) {
-	pipelineId, err := vaip.UpdatePipeline(pd, "")
+	pipelineId, err := vaip.UpdatePipeline(pdw, "")
 	if err != nil {
 		return "", err
 	}
@@ -78,21 +78,24 @@ func (vaip *VAIProvider) CreatePipeline(
 }
 
 func (vaip *VAIProvider) UpdatePipeline(
-	pd resource.PipelineDefinition,
+	pdw resource.PipelineDefinitionWrapper,
 	_ string,
 ) (string, error) {
-	pipelineId, err := pd.Name.String()
+	pipelineId, err := pdw.PipelineDefinition.Name.String()
 	if err != nil {
 		return "", err
 	}
 
-	storageObject, err := util.PipelineStorageObject(pd.Name, pd.Version)
+	storageObject, err := util.PipelineStorageObject(
+		pdw.PipelineDefinition.Name,
+		pdw.PipelineDefinition.Version,
+	)
 	if err != nil {
 		return pipelineId, err
 	}
 
 	if err = vaip.fileHandler.Write(
-		pd.Manifest,
+		pdw.Manifest,
 		vaip.config.Parameters.PipelineBucket,
 		storageObject,
 	); err != nil {

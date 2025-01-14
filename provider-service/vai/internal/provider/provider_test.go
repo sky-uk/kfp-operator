@@ -30,7 +30,13 @@ func randomPipelineDefinition() resource.PipelineDefinition {
 		TfxComponents: common.RandomString(),
 		Env:           make([]apis.NamedValue, 0),
 		BeamArgs:      make([]apis.NamedValue, 0),
-		Manifest:      json.RawMessage{},
+	}
+}
+
+func randomPipelineDefinitionWrapper() resource.PipelineDefinitionWrapper {
+	return resource.PipelineDefinitionWrapper{
+		PipelineDefinition: randomPipelineDefinition(),
+		Manifest:           json.RawMessage{},
 	}
 }
 
@@ -66,18 +72,22 @@ var _ = Describe("Provider", func() {
 			It("should return the pipeline ID", func() {
 				mockFileHandler.On("Write", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
-				pd := randomPipelineDefinition()
-				pid, err := vaiProvider.CreatePipeline(pd)
+				pdw := randomPipelineDefinitionWrapper()
+				pid, err := vaiProvider.CreatePipeline(pdw)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(pid).To(Equal(fmt.Sprintf("%s/%s", pd.Name.Namespace, pd.Name.Name)))
+				Expect(pid).To(Equal(fmt.Sprintf(
+					"%s/%s",
+					pdw.PipelineDefinition.Name.Namespace,
+					pdw.PipelineDefinition.Name.Name,
+				)))
 			})
 
 			It("return an error when the file handler write fails", func() {
 				mockFileHandler.On("Write", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("failed"))
 
-				pd := randomPipelineDefinition()
-				_, err := vaiProvider.CreatePipeline(pd)
+				pdw := randomPipelineDefinitionWrapper()
+				_, err := vaiProvider.CreatePipeline(pdw)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -88,11 +98,11 @@ var _ = Describe("Provider", func() {
 	Context("UpdatePipeline", func() {
 		When("updating a pipeline", func() {
 			It("should return the pipeline ID", func() {
-				pd := randomPipelineDefinition()
+				pdw := randomPipelineDefinitionWrapper()
 				mockFileHandler.On(
 					"Write",
 					mock.MatchedBy(func(j json.RawMessage) bool {
-						return bytes.Equal(j, pd.Manifest)
+						return bytes.Equal(j, pdw.Manifest)
 					}),
 					mock.MatchedBy(func(s string) bool {
 						return s == vaiProvider.config.Parameters.PipelineBucket
@@ -100,23 +110,23 @@ var _ = Describe("Provider", func() {
 					mock.MatchedBy(func(s string) bool {
 						return s == fmt.Sprintf(
 							"%s/%s/%s",
-							pd.Name.Namespace,
-							pd.Name.Name,
-							pd.Version,
+							pdw.PipelineDefinition.Name.Namespace,
+							pdw.PipelineDefinition.Name.Name,
+							pdw.PipelineDefinition.Version,
 						)
 					}),
 				).Return(nil)
 
-				pid, err := vaiProvider.UpdatePipeline(pd, "")
+				pid, err := vaiProvider.UpdatePipeline(pdw, "")
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(pid).To(Equal(fmt.Sprintf(
-					"%s/%s", pd.Name.Namespace, pd.Name.Name,
+					"%s/%s", pdw.PipelineDefinition.Name.Namespace, pdw.PipelineDefinition.Name.Name,
 				)))
 			})
 
 			It("return an error when the file handler write fails", func() {
-				pd := randomPipelineDefinition()
+				pdw := randomPipelineDefinitionWrapper()
 				mockFileHandler.On(
 					"Write",
 					mock.Anything,
@@ -124,7 +134,7 @@ var _ = Describe("Provider", func() {
 					mock.Anything,
 				).Return(errors.New("failed"))
 
-				_, err := vaiProvider.CreatePipeline(pd)
+				_, err := vaiProvider.CreatePipeline(pdw)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))

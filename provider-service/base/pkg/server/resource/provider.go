@@ -14,7 +14,13 @@ type PipelineDefinition struct {
 	TfxComponents string                `json:"tfxComponents" yaml:"tfxComponents"`
 	Env           []apis.NamedValue     `json:"env" yaml:"env"`
 	BeamArgs      []apis.NamedValue     `json:"beamArgs" yaml:"beamArgs"`
-	Manifest      json.RawMessage       `json:"manifest,omitempty"`
+}
+
+// Manifest represents the output of the python compile step, and describes what
+// vertex ai or kubeflow pipelines should do.
+type PipelineDefinitionWrapper struct {
+	PipelineDefinition PipelineDefinition `json:"pipelineDefinition"`
+	Manifest           json.RawMessage    `json:"manifest,omitempty"`
 }
 
 type ExperimentDefinition struct {
@@ -54,8 +60,8 @@ type Provider interface {
 }
 
 type PipelineProvider interface {
-	CreatePipeline(pd PipelineDefinition) (string, error)
-	UpdatePipeline(pd PipelineDefinition, id string) (string, error)
+	CreatePipeline(pd PipelineDefinitionWrapper) (string, error)
+	UpdatePipeline(pd PipelineDefinitionWrapper, id string) (string, error)
 	DeletePipeline(id string) error
 }
 

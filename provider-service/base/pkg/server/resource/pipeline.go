@@ -13,7 +13,7 @@ func (p *Pipeline) Type() string {
 }
 
 func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
-	definition := PipelineDefinition{}
+	definition := PipelineDefinitionWrapper{}
 	err := json.Unmarshal(body, &definition)
 	if err != nil {
 		return ResponseBody{}, err
@@ -30,7 +30,7 @@ func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
 }
 
 func (p *Pipeline) Update(id string, body []byte) error {
-	definition := PipelineDefinition{}
+	definition := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &definition); err != nil {
 		return err
 	}

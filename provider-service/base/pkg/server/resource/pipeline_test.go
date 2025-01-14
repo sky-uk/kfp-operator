@@ -24,7 +24,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 	Context("Create", func() {
 		When("valid json passed, and provider returns success", func() {
 			It("returns the id of the resource", func() {
-				pipeline := PipelineDefinition{}
+				pipeline := PipelineDefinitionWrapper{}
 
 				jsonPipeline, err := json.Marshal(pipeline)
 
@@ -54,7 +54,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 
 		When("provider errors", func() {
 			It("errors", func() {
-				pipeline := PipelineDefinition{}
+				pipeline := PipelineDefinitionWrapper{}
 				jsonPipeline, err := json.Marshal(pipeline)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -73,7 +73,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 	Context("Update", func() {
 		When("valid json passed, and provider operations succeed", func() {
 			It("returns no error", func() {
-				pipeline := PipelineDefinition{}
+				pipeline := PipelineDefinitionWrapper{}
 
 				jsonPipeline, err := json.Marshal(pipeline)
 				Expect(err).ToNot(HaveOccurred())
@@ -97,7 +97,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 
 		When("provider errors", func() {
 			It("errors", func() {
-				pipeline := PipelineDefinition{}
+				pipeline := PipelineDefinitionWrapper{}
 				jsonExperiment, err := json.Marshal(pipeline)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -143,12 +143,12 @@ type MockPipelineProvider struct {
 	mock.Mock
 }
 
-func (m *MockPipelineProvider) CreatePipeline(pd PipelineDefinition) (string, error) {
+func (m *MockPipelineProvider) CreatePipeline(pd PipelineDefinitionWrapper) (string, error) {
 	args := m.Called(pd)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockPipelineProvider) UpdatePipeline(pd PipelineDefinition, id string) (string, error) {
+func (m *MockPipelineProvider) UpdatePipeline(pd PipelineDefinitionWrapper, id string) (string, error) {
 	args := m.Called(pd, id)
 	return args.String(0), args.Error(1)
 }
