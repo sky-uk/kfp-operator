@@ -128,7 +128,7 @@ func (b DefaultJobBuilder) MkSchedule(
 			},
 		},
 		DisplayName:           fmt.Sprintf("rc-%s-%s", rsd.Name.Namespace, rsd.Name.Name),
-		MaxConcurrentRunCount: int64(maxConcurrentRunCount),
+		MaxConcurrentRunCount: maxConcurrentRunCount,
 		AllowQueueing:         true,
 	}
 
