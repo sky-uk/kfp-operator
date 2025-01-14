@@ -7,6 +7,7 @@ import (
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
@@ -115,6 +116,8 @@ func (vaip *VAIProvider) DeletePipeline(id string) error {
 }
 
 func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
+	logger := common.LoggerFromContext(vaip.ctx)
+
 	pipelinePath, err := util.PipelineStorageObject(
 		rd.PipelineName,
 		rd.PipelineVersion,
@@ -142,15 +145,17 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 	}
 
 	runId := fmt.Sprintf("%s-%s", rd.Name.Namespace, rd.Name.Name)
+	pipelineJobId := fmt.Sprintf("%s-%s", runId, rd.Version)
 
 	req := &aiplatformpb.CreatePipelineJobRequest{
 		Parent:        vaip.config.Parent(),
-		PipelineJobId: fmt.Sprintf("%s-%s", runId, rd.Version),
+		PipelineJobId: pipelineJobId,
 		PipelineJob:   enrichedJob,
 	}
 
 	_, err = vaip.pipelineClient.CreatePipelineJob(vaip.ctx, req)
 	if err != nil {
+		logger.Error(err, "CreatePipelineJob failed", "pipelineJobId", pipelineJobId)
 		return "", err
 	}
 
