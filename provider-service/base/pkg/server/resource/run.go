@@ -6,7 +6,7 @@ import (
 )
 
 type Run struct {
-	Logger logr.Logger
+	Logger   logr.Logger
 	Provider RunProvider
 }
 

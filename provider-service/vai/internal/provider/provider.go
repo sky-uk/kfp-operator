@@ -218,6 +218,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		logger.Error(err, "CreateScheduleRequest failed")
 		return "", err
 	}
+	logger.Info("CreateScheduleRequest succeeded", "schedule name", createdSchedule.Name)
 
 	return createdSchedule.Name, nil
 }
