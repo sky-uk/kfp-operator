@@ -169,6 +169,7 @@ func (vaip *VAIProvider) DeleteRun(_ string) error {
 func (vaip *VAIProvider) CreateRunSchedule(
 	rsd resource.RunScheduleDefinition,
 ) (string, error) {
+	logger := common.LoggerFromContext(vaip.ctx)
 	pipelinePath, err := util.PipelineStorageObject(
 		rsd.PipelineName,
 		rsd.PipelineVersion,
@@ -213,6 +214,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		},
 	)
 	if err != nil {
+		logger.Error(err, "CreateScheduleRequest failed", "parent", vaip.config.Parent())
 		return "", err
 	}
 
