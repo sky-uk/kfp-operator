@@ -26,32 +26,32 @@ type KfpProvider struct {
 }
 
 func (kfpp *KfpProvider) CreatePipeline(
-	pd baseResource.PipelineDefinition,
+	pdw baseResource.PipelineDefinitionWrapper,
 ) (string, error) {
-	pipelineId, err := pd.Name.String()
+	pipelineId, err := pdw.PipelineDefinition.Name.String()
 	if err != nil {
 		return "", err
 	}
 
 	//TODO: What should filePath be here???
-	result, err := kfpp.pipelineUploadService.UploadPipeline(pd.Manifest, pipelineId, "/")
+	result, err := kfpp.pipelineUploadService.UploadPipeline(pdw.Manifest, pipelineId, "/")
 	if err != nil {
 		return "", err
 	}
 
-	return kfpp.UpdatePipeline(pd, result)
+	return kfpp.UpdatePipeline(pdw, result)
 }
 
 func (kfpp *KfpProvider) UpdatePipeline(
-	pd baseResource.PipelineDefinition,
+	pdw baseResource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
 	//TODO: What should filePath be here???
 	// returning a result is pointless because it's just id again. Remove?
 	err := kfpp.pipelineUploadService.UploadPipelineVersion(
 		id,
-		pd.Manifest,
-		pd.Version,
+		pdw.Manifest,
+		pdw.PipelineDefinition.Version,
 		"/",
 	)
 	if err != nil {

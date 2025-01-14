@@ -25,7 +25,7 @@ var _ = Describe("ExperimentService", func() {
 
 	BeforeEach(func() {
 		mockExperimentServiceClient = mocks.MockExperimentServiceClient{}
-		experimentService = ExperimentService{
+		experimentService = &DefaultExperimentService{
 			context.Background(),
 			&mockExperimentServiceClient,
 		}
