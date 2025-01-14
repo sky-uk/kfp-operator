@@ -101,7 +101,7 @@ func Start(ctx context.Context, cfg config.Server, provider resource.Provider) e
 
 	httpResources := []resource.HttpHandledResource{
 		&resource.Pipeline{Provider: provider},
-		&resource.Run{Provider: provider},
+		&resource.Run{Logger: logger, Provider: provider},
 		&resource.RunSchedule{Provider: provider},
 		&resource.Experiment{Provider: provider},
 	}

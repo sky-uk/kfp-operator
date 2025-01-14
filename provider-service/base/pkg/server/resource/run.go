@@ -1,8 +1,12 @@
 package resource
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/go-logr/logr"
+)
 
 type Run struct {
+	Logger logr.Logger
 	Provider RunProvider
 }
 
@@ -20,8 +24,10 @@ func (rs *Run) Create(body []byte) (ResponseBody, error) {
 
 	id, err := rs.Provider.CreateRun(definition)
 	if err != nil {
+		rs.Logger.Error(err, "CreateRun failed")
 		return ResponseBody{}, err
 	}
+	rs.Logger.Info("CreateRun succeeded", "response id", id)
 
 	return ResponseBody{
 		Id: id,
