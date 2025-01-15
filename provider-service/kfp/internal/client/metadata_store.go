@@ -1,15 +1,13 @@
-package internal
+package client
 
 import (
 	"context"
 	"fmt"
-	"strings"
-
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/ml_metadata"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"strings"
 
 	"github.com/hashicorp/go-bexpr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
@@ -32,7 +30,7 @@ type MetadataStore interface {
 }
 
 type GrpcMetadataStore struct {
-	MetadataStoreServiceClient client.MetadataStoreServiceClient
+	MetadataStoreServiceClient MetadataStoreServiceClient
 }
 
 func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error) {

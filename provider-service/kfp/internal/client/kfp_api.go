@@ -1,37 +1,32 @@
-package internal
+package client
 
 import (
 	"context"
+	resource "github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/kubeflow/pipelines/backend/api/go_client"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"gopkg.in/yaml.v2"
 )
 
 type KfpApi interface {
-	GetResourceReferences(ctx context.Context, runId string) (ResourceReferences, error)
+	GetResourceReferences(ctx context.Context, runId string) (resource.References, error)
 }
 
 type GrpcKfpApi struct {
-	RunServiceClient client.RunServiceClient
-	JobServiceClient client.JobServiceClient
+	RunServiceClient
+	JobServiceClient
 }
 
-type ResourceReferences struct {
-	PipelineName         common.NamespacedName        `yaml:"pipelineName"`
-	RunConfigurationName common.NamespacedName        `yaml:"runConfigurationName"`
-	RunName              common.NamespacedName        `yaml:"runName"`
-	Artifacts            []pipelinesv1.OutputArtifact `yaml:"artifacts,omitempty"`
-}
-
-func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) (ResourceReferences, error) {
-	resourceReferences := ResourceReferences{}
+func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) (resource.References, error) {
+	resourceReferences := resource.References{}
 
 	runDetail, err := gka.RunServiceClient.GetRun(ctx, &go_client.GetRunRequest{RunId: runId})
 	if err != nil {
-		return ResourceReferences{}, err
+		return resource.References{}, err
 	}
 	resourceReferences, ok, err := gka.GetResourceReferencesFromDescription(runDetail.Run.Description)
 	if ok || err != nil {
@@ -42,7 +37,7 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 		if ref.GetKey().GetType() == go_client.ResourceType_JOB && ref.GetRelationship() == go_client.Relationship_CREATOR {
 			job, err := gka.JobServiceClient.GetJob(ctx, &go_client.GetJobRequest{Id: ref.GetKey().GetId()})
 			if err != nil {
-				return ResourceReferences{}, err
+				return resource.References{}, err
 			}
 			resourceReferences, ok, err = gka.GetResourceReferencesFromDescription(job.Description)
 			if ok || err != nil {
@@ -67,12 +62,34 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	return resourceReferences, nil
 }
 
-func (gka *GrpcKfpApi) GetResourceReferencesFromDescription(description string) (ResourceReferences, bool, error) {
+func (gka *GrpcKfpApi) GetResourceReferencesFromDescription(description string) (resource.References, bool, error) {
 	if description == "" {
-		return ResourceReferences{}, false, nil
+		return resource.References{}, false, nil
 	}
 
-	resourceReferences := ResourceReferences{}
+	resourceReferences := resource.References{}
 	err := yaml.Unmarshal([]byte(description), &resourceReferences)
 	return resourceReferences, true, err
+}
+
+func CreateKfpApi(ctx context.Context, config config.KfpProviderConfig) (KfpApi, error) {
+	logger := common.LoggerFromContext(ctx)
+	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
+	if err != nil {
+		logger.Error(err, "failed to connect to Kubeflow API", "address", config.Parameters.GrpcKfpApiAddress)
+		return nil, err
+	}
+	return kfpApi, nil
+}
+
+func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
+	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &GrpcKfpApi{
+		RunServiceClient: go_client.NewRunServiceClient(conn),
+		JobServiceClient: go_client.NewJobServiceClient(conn),
+	}, nil
 }

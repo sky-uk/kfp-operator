@@ -1,6 +1,6 @@
 //go:build decoupled || unit
 
-package internal
+package mocks
 
 import (
 	"context"
@@ -27,6 +27,11 @@ func (mms *MockMetadataStore) reset() {
 	mms.err = nil
 }
 
+func (mms *MockMetadataStore) Reset() {
+	mms.reset()
+}
+
+// We expose these private methods to have access to the generated implementation in the test suite.
 func (mms *MockMetadataStore) returnArtifactForPipeline() []common.Artifact {
 	mms.results = []common.Artifact{
 		{
@@ -39,7 +44,15 @@ func (mms *MockMetadataStore) returnArtifactForPipeline() []common.Artifact {
 	return mms.results
 }
 
+func (mms *MockMetadataStore) ReturnArtifactForPipeline() []common.Artifact {
+	return mms.returnArtifactForPipeline()
+}
+
 func (mms *MockMetadataStore) error(err error) {
 	mms.results = nil
 	mms.err = err
+}
+
+func (mms *MockMetadataStore) Error(err error) {
+	mms.error(err)
 }
