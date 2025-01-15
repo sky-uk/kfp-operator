@@ -27,15 +27,12 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				runSchedule := RunScheduleDefinition{}
 
 				jsonRunSchedule, err := json.Marshal(runSchedule)
-
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
-
 				mockProvider.On("CreateRunSchedule", runSchedule).Return(id, nil)
 
 				response, err := underTest.Create(jsonRunSchedule)
-
 				Expect(err).ToNot(HaveOccurred())
 				Expect(response).To(Equal(ResponseBody{Id: id}))
 			})
@@ -46,7 +43,6 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				invalidJson := []byte(`/n`)
 
 				response, err := underTest.Create(invalidJson)
-
 				Expect(err).To(HaveOccurred())
 				Expect(response).To(Equal(ResponseBody{}))
 			})
@@ -55,15 +51,14 @@ var _ = Describe("RunSchedule", Ordered, func() {
 		When("provider errors", func() {
 			It("errors", func() {
 				runSchedule := RunScheduleDefinition{}
+
 				jsonRunSchedule, err := json.Marshal(runSchedule)
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
-
 				mockProvider.On("CreateRunSchedule", runSchedule).Return("", expectedErr)
 
 				response, err := underTest.Create(jsonRunSchedule)
-
 				Expect(err).To(Equal(expectedErr))
 				Expect(response).To(Equal(ResponseBody{Id: ""}))
 			})
@@ -79,7 +74,6 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
-
 				mockProvider.On("UpdateRunSchedule", runSchedule, id).Return(id, nil)
 
 				err = underTest.Update(id, jsonRunSchedule)
@@ -102,13 +96,10 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
-
 				id := "some-id"
-
 				mockProvider.On("UpdateRunSchedule", runSchedule, id).Return("", expectedErr)
 
 				err = underTest.Update(id, jsonExperiment)
-
 				Expect(err).To(Equal(expectedErr))
 			})
 		})
@@ -121,7 +112,6 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				mockProvider.On("DeleteRunSchedule", id).Return(nil)
 
 				err := underTest.Delete(id)
-
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})

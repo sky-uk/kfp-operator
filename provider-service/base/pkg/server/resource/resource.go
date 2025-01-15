@@ -6,3 +6,7 @@ type HttpHandledResource interface {
 	Update(id string, body []byte) error
 	Delete(id string) error
 }
+
+type ResponseBody struct {
+	Id string `json:"id"`
+}

@@ -131,7 +131,7 @@ var _ = Describe("Http Server Endpoints", func() {
 			})
 
 			When("request body fails to be read", func() {
-				It("returns 500 with error response body", func() {
+				It("returns 400 with error response body", func() {
 					req := httptest.NewRequest(
 						http.MethodPost,
 						"/resource/"+resourceType,
@@ -141,7 +141,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(w, req)
 					resp := w.Result()
 
-					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+					Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring("Failed to read request body"))

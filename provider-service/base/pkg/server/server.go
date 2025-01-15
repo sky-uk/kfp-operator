@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -29,7 +30,7 @@ func createHandler(a resource.HttpHandledResource) http.HandlerFunc {
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+			http.Error(w, "Failed to read request body", http.StatusBadRequest)
 			return
 		}
 		defer r.Body.Close()
@@ -89,6 +90,9 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 
 func New(resources []resource.HttpHandledResource) http.Handler {
 	mux := chi.NewRouter()
+	mux.Use(middleware.Logger)
+	mux.Use(middleware.Recoverer)
+
 	mux.Get("/livez", livenessHandler)
 	mux.Get("/readyz", readinessHandler)
 
