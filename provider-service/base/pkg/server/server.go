@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
-	"io"
-	"net/http"
 )
 
 func readinessHandler(w http.ResponseWriter, _ *http.Request) {
@@ -46,22 +48,14 @@ func createHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		err := a.Delete(id)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-	}
-}
-
 func updateHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-
+		decodedId, err := url.PathUnescape(id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
@@ -69,9 +63,23 @@ func updateHandler(a resource.HttpHandledResource) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		err = a.Update(id, body)
+		if err := a.Update(decodedId, body); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
 
+func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		decodedId, err := url.PathUnescape(id)
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := a.Delete(decodedId); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
