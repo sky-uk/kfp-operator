@@ -2,3 +2,6 @@ providerName: local
 operatorWebhook: http://localhost:8080/events
 pod:
   namespace: provider-namespace
+server:
+  host: localhost
+  port: 8181

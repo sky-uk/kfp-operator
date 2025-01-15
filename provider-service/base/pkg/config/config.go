@@ -13,10 +13,16 @@ type Config struct {
 	ProviderName    string `mapstructure:"providerName"`
 	OperatorWebhook string `mapstructure:"operatorWebhook"`
 	Pod             Pod    `mapstructure:"pod"`
+	Server          Server `mapstructure:"server"`
 }
 
 type Pod struct {
 	Namespace string `mapstructure:"namespace"`
+}
+
+type Server struct {
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }
 
 func LoadConfig(ctx context.Context) (*Config, error) {
