@@ -127,7 +127,7 @@ components:
     id:
       name: id
       in: path
-      description: Id of the resource.
+      description: URI-encoded Id of the resource.
       required: true
       schema:
         type: string
