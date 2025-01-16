@@ -41,6 +41,7 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 			return
 		}
 
+		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(resp.Id))
 		if err != nil {
 			http.Error(w, "Failed to write response body id", http.StatusInternalServerError)
@@ -59,16 +60,22 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+			http.Error(w, "Failed to read request body", http.StatusBadRequest)
 			return
 		}
 		defer r.Body.Close()
 
-		if err := hr.Update(decodedId, body); err != nil {
+		resp, err := hr.Update(decodedId, body)
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusOK)
+
+		_, err = w.Write([]byte(resp.Id))
+		if err != nil {
+			http.Error(w, "Failed to write response body id", http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -84,7 +91,7 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 

@@ -26,17 +26,19 @@ func (e *Experiment) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (e *Experiment) Update(id string, body []byte) error {
+func (e *Experiment) Update(id string, body []byte) (ResponseBody, error) {
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
-		return err
+		return ResponseBody{}, err
 	}
 
-	_, err := e.Provider.UpdateExperiment(ed, id)
+	respId, err := e.Provider.UpdateExperiment(ed, id)
 	if err != nil {
-		return err
+		return ResponseBody{}, err
 	}
-	return nil
+	return ResponseBody{
+		Id: respId,
+	}, nil
 }
 
 func (e *Experiment) Delete(id string) error {

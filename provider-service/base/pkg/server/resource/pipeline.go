@@ -28,17 +28,19 @@ func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (p *Pipeline) Update(id string, body []byte) error {
+func (p *Pipeline) Update(id string, body []byte) (ResponseBody, error) {
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
-		return err
+		return ResponseBody{}, err
 	}
 
-	_, err := p.Provider.UpdatePipeline(pdw, id)
+	respId, err := p.Provider.UpdatePipeline(pdw, id)
 	if err != nil {
-		return err
+		return ResponseBody{}, err
 	}
-	return nil
+	return ResponseBody{
+		Id: respId,
+	}, err
 }
 
 func (p *Pipeline) Delete(id string) error {

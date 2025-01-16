@@ -1,7 +1,0 @@
-providerName: local
-operatorWebhook: http://localhost:8080/events
-pod:
-  namespace: i-am-test-config-override
-server:
-  host: localhost
-  port: 8181

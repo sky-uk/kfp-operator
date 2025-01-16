@@ -33,8 +33,8 @@ func (r *Run) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (*Run) Update(_ string, _ []byte) error {
-	return nil
+func (*Run) Update(_ string, _ []byte) (ResponseBody, error) {
+	return ResponseBody{}, nil
 }
 
 func (r *Run) Delete(id string) error {

@@ -26,17 +26,19 @@ func (rs *RunSchedule) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (rs *RunSchedule) Update(id string, body []byte) error {
+func (rs *RunSchedule) Update(id string, body []byte) (ResponseBody, error) {
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
-		return err
+		return ResponseBody{}, err
 	}
 
-	_, err := rs.Provider.UpdateRunSchedule(rsd, id)
+	respId, err := rs.Provider.UpdateRunSchedule(rsd, id)
 	if err != nil {
-		return err
+		return ResponseBody{}, err
 	}
-	return nil
+	return ResponseBody{
+		Id: respId,
+	}, nil
 }
 
 func (rs *RunSchedule) Delete(id string) error {

@@ -60,8 +60,15 @@ paths:
               - $ref: '#/components/schemas/Experiment'
               - $ref: '#/components/schemas/RunSchedule'
       responses:
-        '204':
+        '200':
           description: Resource updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
         '400':
           description: Bad request, invalid input.
         '404':
@@ -137,7 +144,7 @@ components:
       properties:
         pipelineDefinition:
           type: object
-          properties: 
+          properties:
             name:
               type: string
             version:

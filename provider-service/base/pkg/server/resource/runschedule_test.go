@@ -74,18 +74,21 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
-				mockProvider.On("UpdateRunSchedule", rsd, id).Return(id, nil)
+				updatedId := "some-update-id"
+				mockProvider.On("UpdateRunSchedule", rsd, id).Return(updatedId, nil)
 
-				err = rs.Update(id, jsonRunSchedule)
+				resp, err := rs.Update(id, jsonRunSchedule)
 				Expect(err).ToNot(HaveOccurred())
+				Expect(resp.Id).To(Equal(updatedId))
 			})
 		})
 
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-				err := rs.Update("some-id", invalidJson)
+				resp, err := rs.Update("some-id", invalidJson)
 				Expect(err).To(HaveOccurred())
+				Expect(resp.Id).To(BeEmpty())
 			})
 		})
 
@@ -99,8 +102,9 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				id := "some-id"
 				mockProvider.On("UpdateRunSchedule", rsd, id).Return("", expectedErr)
 
-				err = rs.Update(id, jsonExperiment)
+				resp, err := rs.Update(id, jsonExperiment)
 				Expect(err).To(Equal(expectedErr))
+				Expect(resp.Id).To(BeEmpty())
 			})
 		})
 	})

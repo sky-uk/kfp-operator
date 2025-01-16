@@ -39,9 +39,16 @@ func (m *MockHandledResource) Create(body []byte) (resource.ResponseBody, error)
 	return response, args.Error(1)
 }
 
-func (m *MockHandledResource) Update(id string, body []byte) error {
+func (m *MockHandledResource) Update(
+	id string,
+	body []byte,
+) (resource.ResponseBody, error) {
 	args := m.Called(id, body)
-	return args.Error(0)
+	var response resource.ResponseBody
+	if arg0 := args.Get(0); arg0 != nil {
+		response = arg0.(resource.ResponseBody)
+	}
+	return response, args.Error(1)
 }
 
 func (m *MockHandledResource) Delete(id string) error {
@@ -106,7 +113,7 @@ var _ = Describe("Http Server Endpoints", func() {
 	Context("/resource/{resource.Type()}", func() {
 		Context("/ POST request createHandler", func() {
 			When("succeeds", func() {
-				It("returns 200 with valid response body", func() {
+				It("returns 201 with valid response body", func() {
 					response := "mocked-id"
 					handledResource.On("Create", payload).Return(
 						resource.ResponseBody{
@@ -124,7 +131,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(rr, req)
 					resp := rr.Result()
 
-					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(Equal(response))
@@ -178,8 +185,12 @@ var _ = Describe("Http Server Endpoints", func() {
 			When("succeeds", func() {
 				It("returns 200 with valid response body", func() {
 					id := "mock-id/bla"
+					response := "response-id"
+					handledResource.On("Update", id, payload).Return(
+						resource.ResponseBody{Id: response},
+						nil,
+					)
 					encodedId := url.PathEscape(id)
-					handledResource.On("Update", id, payload).Return(nil)
 					req := httptest.NewRequest(
 						http.MethodPut,
 						"/resource/"+resourceType+"/"+encodedId,
@@ -193,7 +204,7 @@ var _ = Describe("Http Server Endpoints", func() {
 
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
-					Expect(body).To(BeEmpty())
+					Expect(string(body)).To(ContainSubstring(response))
 				})
 			})
 
@@ -221,7 +232,7 @@ var _ = Describe("Http Server Endpoints", func() {
 			})
 
 			When("request body fails to be read", func() {
-				It("returns 500 with error response body", func() {
+				It("returns 400 with error response body", func() {
 					req := httptest.NewRequest(
 						http.MethodPut,
 						"/resource/"+resourceType+"/mock-id",
@@ -232,7 +243,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(rr, req)
 					resp := rr.Result()
 
-					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+					Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
@@ -244,7 +255,10 @@ var _ = Describe("Http Server Endpoints", func() {
 				It("returns 500 with error response body", func() {
 					id := "mock-id"
 					response := "failed to update"
-					handledResource.On("Update", id, payload).Return(errors.New(response))
+					handledResource.On("Update", id, payload).Return(
+						nil,
+						errors.New(response),
+					)
 					req := httptest.NewRequest(
 						http.MethodPut,
 						"/resource/"+resourceType+"/"+id,
@@ -264,7 +278,7 @@ var _ = Describe("Http Server Endpoints", func() {
 
 		Context("/{id} DELETE request deleteHandler", func() {
 			When("succeeds", func() {
-				It("returns 200", func() {
+				It("returns 204", func() {
 					id := "mock-id/bla"
 					encodedId := url.PathEscape(id)
 					handledResource.On("Delete", id).Return(nil)
@@ -278,7 +292,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(rr, req)
 					resp := rr.Result()
 
-					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
 					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(body).To(BeEmpty())
