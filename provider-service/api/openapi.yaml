@@ -135,28 +135,31 @@ components:
     Pipeline:
       type: object
       properties:
-        name:
-          type: string
-        version:
-          type: string
-        image:
-          type: string
-        tfxComponents:
-          type: string
-        env:
+        pipelineDefinition:
           type: object
-          properties:
+          properties: 
             name:
               type: string
-            value:
+            version:
               type: string
-        beamArgs:
-          type: object
-          properties:
-            name:
+            image:
               type: string
-            value:
+            tfxComponents:
               type: string
+            env:
+              type: object
+              properties:
+                name:
+                  type: string
+                value:
+                  type: string
+            beamArgs:
+              type: object
+              properties:
+                name:
+                  type: string
+                value:
+                  type: string
         manifest:
           type: object
     Experiment:
