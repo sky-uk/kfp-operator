@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/provider-service/vai
 
-go 1.20
+go 1.21
 
 require (
 	cloud.google.com/go/aiplatform v1.48.0
