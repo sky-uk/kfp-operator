@@ -14,8 +14,7 @@ func (*Pipeline) Type() string {
 
 func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
 	pdw := PipelineDefinitionWrapper{}
-	err := json.Unmarshal(body, &pdw)
-	if err != nil {
+	if err := json.Unmarshal(body, &pdw); err != nil {
 		return ResponseBody{}, err
 	}
 

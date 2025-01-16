@@ -14,20 +14,19 @@ func (*Run) Type() string {
 	return "run"
 }
 
-func (rs *Run) Create(body []byte) (ResponseBody, error) {
+func (r *Run) Create(body []byte) (ResponseBody, error) {
 	rd := RunDefinition{}
 
-	err := json.Unmarshal(body, &rd)
-	if err != nil {
+	if err := json.Unmarshal(body, &rd); err != nil {
 		return ResponseBody{}, err
 	}
 
-	id, err := rs.Provider.CreateRun(rd)
+	id, err := r.Provider.CreateRun(rd)
 	if err != nil {
-		rs.Logger.Error(err, "CreateRun failed")
+		r.Logger.Error(err, "CreateRun failed")
 		return ResponseBody{}, err
 	}
-	rs.Logger.Info("CreateRun succeeded", "response id", id)
+	r.Logger.Info("CreateRun succeeded", "response id", id)
 
 	return ResponseBody{
 		Id: id,
@@ -38,8 +37,8 @@ func (*Run) Update(_ string, _ []byte) error {
 	return nil
 }
 
-func (rs *Run) Delete(id string) error {
-	if err := rs.Provider.DeleteRun(id); err != nil {
+func (r *Run) Delete(id string) error {
+	if err := r.Provider.DeleteRun(id); err != nil {
 		return err
 	}
 	return nil

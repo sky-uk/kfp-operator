@@ -12,8 +12,7 @@ func (*RunSchedule) Type() string {
 
 func (rs *RunSchedule) Create(body []byte) (ResponseBody, error) {
 	rsd := RunScheduleDefinition{}
-	err := json.Unmarshal(body, &rsd)
-	if err != nil {
+	if err := json.Unmarshal(body, &rsd); err != nil {
 		return ResponseBody{}, err
 	}
 

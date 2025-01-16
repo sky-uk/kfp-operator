@@ -12,8 +12,7 @@ func (*Experiment) Type() string {
 
 func (e *Experiment) Create(body []byte) (ResponseBody, error) {
 	ed := ExperimentDefinition{}
-	err := json.Unmarshal(body, &ed)
-	if err != nil {
+	if err := json.Unmarshal(body, &ed); err != nil {
 		return ResponseBody{}, err
 	}
 
