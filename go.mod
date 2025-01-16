@@ -1,6 +1,8 @@
 module github.com/sky-uk/kfp-operator
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require (
 	github.com/argoproj/argo-workflows/v3 v3.3.9
