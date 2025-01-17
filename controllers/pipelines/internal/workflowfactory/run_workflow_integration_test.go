@@ -22,7 +22,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 	})
 
 	var newRun = func() *pipelinesv1.Run {
-		return withIntegrationTestFields(pipelinesv1.RandomRun(TestProvider))
+		return withIntegrationTestFields(pipelinesv1.RandomRun(TestProvider.Name))
 	}
 
 	DescribeTable("Run Workflows", AssertWorkflow[*pipelinesv1.Run],

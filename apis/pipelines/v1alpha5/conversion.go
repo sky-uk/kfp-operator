@@ -3,15 +3,18 @@ package v1alpha5
 import (
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var DefaultProvider string
 
 var ResourceAnnotations = struct {
-	Provider string
+	Provider          string
+	ProviderNamespace string
 }{
-	Provider: apis.Group + "/provider",
+	Provider:          apis.Group + "/provider",
+	ProviderNamespace: apis.Group + "/providerNamespace",
 }
 
 func convertArtifactsTo(outputArtifact []OutputArtifact) []hub.OutputArtifact {
@@ -65,16 +68,34 @@ func removeProviderAnnotation(resource v1.Object) {
 	delete(resource.GetAnnotations(), ResourceAnnotations.Provider)
 }
 
-func convertProviderAndIdTo(providerAndId ProviderAndId) hub.ProviderAndId {
+func getProviderNamespaceAnnotation(resource v1.Object) string {
+	if providerNamespace, hasProviderNamespace := resource.GetAnnotations()[ResourceAnnotations.ProviderNamespace]; hasProviderNamespace {
+		return providerNamespace
+	}
+	return ""
+}
+
+func setProviderNamespaceAnnotation(namespace string, resource *v1.ObjectMeta) {
+	v1.SetMetaDataAnnotation(resource, ResourceAnnotations.ProviderNamespace, namespace)
+}
+
+func removeProviderNamespaceAnnotation(resource v1.Object) {
+	delete(resource.GetAnnotations(), ResourceAnnotations.ProviderNamespace)
+}
+
+func convertProviderAndIdTo(providerAndId ProviderAndId, namespace string) hub.ProviderAndId {
 	return hub.ProviderAndId{
-		Name: providerAndId.Provider,
-		Id:   providerAndId.Id,
+		Name: common.NamespacedName{
+			Name:      providerAndId.Provider,
+			Namespace: namespace,
+		},
+		Id: providerAndId.Id,
 	}
 }
 
 func convertProviderAndIdFrom(providerAndId hub.ProviderAndId) ProviderAndId {
 	return ProviderAndId{
-		Provider: providerAndId.Name,
+		Provider: providerAndId.Name.Name,
 		Id:       providerAndId.Id,
 	}
 }

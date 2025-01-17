@@ -26,6 +26,7 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 		Specify("converts to and from the same object", func() {
 			src := RandomRunSchedule()
 			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
+			setProviderNamespaceAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.RunSchedule{}
 			dst := &RunSchedule{}
 

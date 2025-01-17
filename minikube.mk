@@ -12,6 +12,9 @@ minikube-install-dependencies:
 	openssl x509 -req -in ./local/kfp-operator-webhook.csr -signkey ./local/kfp-operator-webhook.key -out ./local/kfp-operator-webhook.crt \
 	  -extensions v3_req -extfile <(echo "[v3_req]"; echo "subjectAltName=DNS:kfp-operator-webhook-service.kfp-operator-system.svc,DNS:kfp-operator-webhook-service")
 	kubectl create namespace kfp-operator-system
+	kubectl create namespace provider-vai
+	kubectl create namespace provider-kfp
+	kubectl create namespace mlops
 	kubectl create secret tls webhook-server-cert --cert=./local/kfp-operator-webhook.crt --key=./local/kfp-operator-webhook.key --namespace kfp-operator-system
 
 minikube-helm-install-operator: helm-package-operator ./local/values.yaml
