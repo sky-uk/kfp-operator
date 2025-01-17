@@ -86,10 +86,12 @@ var _ = Describe("Http Server Endpoints", func() {
 		When("called", func() {
 			It("should be OK", func() {
 				resp, err := http.Get(server.URL + "/readyz")
+
 				Expect(err).ToNot(HaveOccurred())
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				body, err := io.ReadAll(resp.Body)
+
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(body)).To(Equal("Application is ready."))
 			})
@@ -100,10 +102,12 @@ var _ = Describe("Http Server Endpoints", func() {
 		When("called", func() {
 			It("should be OK", func() {
 				resp, err := http.Get(server.URL + "/livez")
+
 				Expect(err).ToNot(HaveOccurred())
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 				body, err := io.ReadAll(resp.Body)
+
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(body)).To(Equal("Application is live."))
 			})
@@ -132,7 +136,9 @@ var _ = Describe("Http Server Endpoints", func() {
 					resp := rr.Result()
 
 					Expect(resp.StatusCode).To(Equal(http.StatusCreated))
+
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(Equal(response))
 				})
@@ -150,13 +156,40 @@ var _ = Describe("Http Server Endpoints", func() {
 					resp := rr.Result()
 
 					Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring("Failed to read request body"))
 				})
 			})
 
 			When("handledResource Create fails", func() {
+				When("the error is UserError", func() {
+					It("returns 400 with error response body", func() {
+						response := "failed to create"
+						handledResource.On("Create", payload).Return(
+							nil,
+							&resource.UserError{E: errors.New(response)},
+						)
+
+						req := httptest.NewRequest(
+							http.MethodPost,
+							"/resource/"+resourceType,
+							bytes.NewReader(payload),
+						)
+						rr := httptest.NewRecorder()
+						server.Config.Handler.ServeHTTP(rr, req)
+						resp := rr.Result()
+
+						Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+
+						body, err := io.ReadAll(resp.Body)
+
+						Expect(err).ToNot(HaveOccurred())
+						Expect(string(body)).To(ContainSubstring(response))
+					})
+				})
 				It("returns 500 with error response body", func() {
 					response := "failed to create"
 					handledResource.On("Create", payload).Return(
@@ -174,7 +207,9 @@ var _ = Describe("Http Server Endpoints", func() {
 					resp := rr.Result()
 
 					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring(response))
 				})
@@ -203,6 +238,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring(response))
 				})
@@ -226,6 +262,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(body).To(ContainSubstring(`invalid URL escape "%"`))
 				})
@@ -246,12 +283,38 @@ var _ = Describe("Http Server Endpoints", func() {
 					Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring("Failed to read request body"))
 				})
 			})
 
 			When("handledResource Update fails", func() {
+				When("the error is UserError", func() {
+					It("returns 400 with error response body", func() {
+						id := "mock-id"
+						response := "failed to update"
+						handledResource.On("Update", id, payload).Return(
+							nil,
+							&resource.UserError{E: errors.New(response)},
+						)
+						req := httptest.NewRequest(
+							http.MethodPut,
+							"/resource/"+resourceType+"/"+id,
+							bytes.NewReader(payload),
+						)
+						rr := httptest.NewRecorder()
+						server.Config.Handler.ServeHTTP(rr, req)
+						resp := rr.Result()
+
+						Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+
+						body, err := io.ReadAll(resp.Body)
+
+						Expect(err).ToNot(HaveOccurred())
+						Expect(string(body)).To(ContainSubstring(response))
+					})
+				})
 				It("returns 500 with error response body", func() {
 					id := "mock-id"
 					response := "failed to update"
@@ -269,7 +332,9 @@ var _ = Describe("Http Server Endpoints", func() {
 					resp := rr.Result()
 
 					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring(response))
 				})
@@ -293,7 +358,9 @@ var _ = Describe("Http Server Endpoints", func() {
 					resp := rr.Result()
 
 					Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(body).To(BeEmpty())
 				})
@@ -317,6 +384,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(body).To(ContainSubstring(`invalid URL escape "%"`))
 				})
@@ -337,7 +405,9 @@ var _ = Describe("Http Server Endpoints", func() {
 					resp := rr.Result()
 
 					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+
 					body, err := io.ReadAll(resp.Body)
+
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring(response))
 				})

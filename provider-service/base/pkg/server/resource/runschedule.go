@@ -13,7 +13,7 @@ func (*RunSchedule) Type() string {
 func (rs *RunSchedule) Create(body []byte) (ResponseBody, error) {
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
-		return ResponseBody{}, err
+		return ResponseBody{}, &UserError{err}
 	}
 
 	id, err := rs.Provider.CreateRunSchedule(rsd)
@@ -29,7 +29,7 @@ func (rs *RunSchedule) Create(body []byte) (ResponseBody, error) {
 func (rs *RunSchedule) Update(id string, body []byte) (ResponseBody, error) {
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
-		return ResponseBody{}, err
+		return ResponseBody{}, &UserError{err}
 	}
 
 	respId, err := rs.Provider.UpdateRunSchedule(rsd, id)

@@ -43,7 +43,8 @@ var _ = Describe("Pipeline", Ordered, func() {
 				invalidJson := []byte(`/n`)
 				response, err := p.Create(invalidJson)
 
-				Expect(err).To(HaveOccurred())
+				var expectedErr *UserError
+				Expect(errors.As(err, &expectedErr)).To(BeTrue())
 				Expect(response).To(Equal(ResponseBody{}))
 			})
 		})
@@ -88,7 +89,8 @@ var _ = Describe("Pipeline", Ordered, func() {
 				invalidJson := []byte(`/n`)
 				resp, err := p.Update("some-id", invalidJson)
 
-				Expect(err).To(HaveOccurred())
+				var expectedErr *UserError
+				Expect(errors.As(err, &expectedErr)).To(BeTrue())
 				Expect(resp).To(Equal(ResponseBody{}))
 			})
 		})

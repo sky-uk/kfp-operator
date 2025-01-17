@@ -13,7 +13,7 @@ func (*Experiment) Type() string {
 func (e *Experiment) Create(body []byte) (ResponseBody, error) {
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
-		return ResponseBody{}, err
+		return ResponseBody{}, &UserError{err}
 	}
 
 	id, err := e.Provider.CreateExperiment(ed)
@@ -29,7 +29,7 @@ func (e *Experiment) Create(body []byte) (ResponseBody, error) {
 func (e *Experiment) Update(id string, body []byte) (ResponseBody, error) {
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
-		return ResponseBody{}, err
+		return ResponseBody{}, &UserError{err}
 	}
 
 	respId, err := e.Provider.UpdateExperiment(ed, id)

@@ -15,7 +15,7 @@ func (*Pipeline) Type() string {
 func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
-		return ResponseBody{}, err
+		return ResponseBody{}, &UserError{err}
 	}
 
 	id, err := p.Provider.CreatePipeline(pdw)
@@ -31,7 +31,7 @@ func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
 func (p *Pipeline) Update(id string, body []byte) (ResponseBody, error) {
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
-		return ResponseBody{}, err
+		return ResponseBody{}, &UserError{err}
 	}
 
 	respId, err := p.Provider.UpdatePipeline(pdw, id)

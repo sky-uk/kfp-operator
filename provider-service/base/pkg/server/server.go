@@ -27,7 +27,6 @@ func livenessHandler(w http.ResponseWriter, _ *http.Request) {
 
 func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Failed to read request body", http.StatusBadRequest)
@@ -37,14 +36,24 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 
 		resp, err := hr.Create(body)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			var userErr *resource.UserError
+			if errors.As(err, &userErr) {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(resp.Id))
 		if err != nil {
-			http.Error(w, "Failed to write response body id", http.StatusInternalServerError)
+			http.Error(
+				w,
+				"Failed to write response body id",
+				http.StatusInternalServerError,
+			)
 			return
 		}
 	}
@@ -67,13 +76,23 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 
 		resp, err := hr.Update(decodedId, body)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			var userErr *resource.UserError
+			if errors.As(err, &userErr) {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		_, err = w.Write([]byte(resp.Id))
 		if err != nil {
-			http.Error(w, "Failed to write response body id", http.StatusInternalServerError)
+			http.Error(
+				w,
+				"Failed to write response body id",
+				http.StatusInternalServerError,
+			)
 			return
 		}
 	}

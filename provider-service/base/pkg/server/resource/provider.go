@@ -81,3 +81,11 @@ type ExperimentProvider interface {
 	UpdateExperiment(ed ExperimentDefinition, id string) (string, error)
 	DeleteExperiment(id string) error
 }
+
+type UserError struct {
+	E error
+}
+
+func (e *UserError) Error() string {
+	return e.E.Error()
+}

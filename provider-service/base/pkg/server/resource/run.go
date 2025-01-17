@@ -18,7 +18,7 @@ func (r *Run) Create(body []byte) (ResponseBody, error) {
 	rd := RunDefinition{}
 
 	if err := json.Unmarshal(body, &rd); err != nil {
-		return ResponseBody{}, err
+		return ResponseBody{}, &UserError{err}
 	}
 
 	id, err := r.Provider.CreateRun(rd)

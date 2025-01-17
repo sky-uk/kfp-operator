@@ -43,7 +43,8 @@ var _ = Describe("Run", Ordered, func() {
 				invalidJson := []byte(`/n`)
 				response, err := r.Create(invalidJson)
 
-				Expect(err).To(HaveOccurred())
+				var expectedErr *UserError
+				Expect(errors.As(err, &expectedErr)).To(BeTrue())
 				Expect(response).To(Equal(ResponseBody{}))
 			})
 		})
