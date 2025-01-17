@@ -29,7 +29,7 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Failed to read request body", http.StatusBadRequest)
+			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
 			return
 		}
 		defer r.Body.Close()
@@ -69,7 +69,7 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Failed to read request body", http.StatusBadRequest)
+			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
 			return
 		}
 		defer r.Body.Close()
