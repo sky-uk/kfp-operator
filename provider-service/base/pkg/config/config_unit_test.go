@@ -25,6 +25,10 @@ var _ = Context("load", func() {
 		Pod: Pod{
 			Namespace: "provider-namespace",
 		},
+		Server: Server{
+			Host: "localhost",
+			Port: 8181,
+		},
 	}
 
 	When("given the default config", func() {

@@ -1,0 +1,238 @@
+openapi: 3.0.3
+info:
+  title: Provider Resource Management
+  description: Provider API for managing resources.
+  version: 0.0.1
+paths:
+  /resource/{type}:
+    post:
+      tags:
+      - Resource Operations
+      summary: Create a new resource
+      description: Creates a resource using the provided body specification.
+      operationId: createResource
+      parameters:
+      - $ref: '#/components/parameters/type'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - $ref: '#/components/schemas/Pipeline'
+              - $ref: '#/components/schemas/Run'
+              - $ref: '#/components/schemas/Experiment'
+              - $ref: '#/components/schemas/RunSchedule'
+      responses:
+        '201':
+          description: Resource created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '400':
+          description: Bad request, malformed.
+        '422':
+          description: Request well formed, but the content is incorrect for the given endpoint.
+        '500':
+          description: Internal error or downstream error from provider.
+  /resource/{type}/{id}:
+    put:
+      tags:
+      - Resource Operations
+      summary: Update an existing resource
+      description: Updates a resource with the given { id } using the provided body specification.
+      operationId: updateResource
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/type'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - $ref: '#/components/schemas/Pipeline'
+              - $ref: '#/components/schemas/Run'
+              - $ref: '#/components/schemas/Experiment'
+              - $ref: '#/components/schemas/RunSchedule'
+      responses:
+        '200':
+          description: Resource updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        '400':
+          description: Bad request, invalid input.
+        '404':
+          description: Resource not found.
+        '422':
+          description: Request well formed, but the content is incorrect for the given endpoint.
+        '500':
+          description: Internal error or downstream error from provider.
+    delete:
+      tags:
+      - Resource Operations
+      summary: Delete an existing resource
+      description: Deletes a resource identified by its name passed as a path parameter.
+      operationId: deleteResource
+      parameters:
+      - $ref: '#/components/parameters/id'
+      - $ref: '#/components/parameters/type'
+      responses:
+        '204':
+          description: Resource deleted successfully.
+        '404':
+          description: Resource not found.
+        '500':
+          description: Internal error or downstream error from provider.
+  /livez:
+    get:
+      tags:
+      - Kubernetes Lifecycle
+      summary: Kubernetes liveness probe endpoint
+      description: Endpoint to check if the application is running.
+      operationId: livenessProbe
+      responses:
+        '204':
+          description: Application is live.
+        '503':
+          description: Application is not live.
+  /readyz:
+    get:
+      tags:
+      - Kubernetes Lifecycle
+      summary: Kubernetes readiness probe endpoint
+      description: Endpoint to check if the application is ready to serve requests.
+      operationId: readinessProbe
+      responses:
+        '204':
+          description: Application is ready.
+        '503':
+          description: Application is not ready.
+components:
+  parameters:
+    type:
+      name: type
+      in: path
+      description: The type of the resource.
+      required: true
+      schema:
+        oneOf:
+        - enum:
+          - pipeline
+          - run
+          - runschedule
+          - experiment
+    id:
+      name: id
+      in: path
+      description: URI-encoded Id of the resource.
+      required: true
+      schema:
+        type: string
+  schemas:
+    Pipeline:
+      type: object
+      properties:
+        pipelineDefinition:
+          type: object
+          properties:
+            name:
+              type: string
+            version:
+              type: string
+            image:
+              type: string
+            tfxComponents:
+              type: string
+            env:
+              type: object
+              properties:
+                name:
+                  type: string
+                value:
+                  type: string
+            beamArgs:
+              type: object
+              properties:
+                name:
+                  type: string
+                value:
+                  type: string
+        manifest:
+          type: object
+    Experiment:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        description:
+          type: string
+    RunSchedule:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        pipelineName:
+          type: string
+        pipelineVersion:
+          type: string
+        runConfigurationName:
+          type: string
+        experimentName:
+          type: string
+        schedule:
+          type: string
+        runtimeParameters:
+          type: object
+          additionalProperties:
+            type: string
+        artifacts:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              path:
+                type: string
+    Run:
+      type: object
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        pipelineName:
+          type: string
+        pipelineVersion:
+          type: string
+        runConfigurationName:
+          type: string
+        experimentName:
+          type: string
+        runtimeParameters:
+          type: object
+          additionalProperties:
+            type: string
+        artifacts:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              path:
+                type: string
