@@ -17,6 +17,7 @@ type RunCompletionEventTrigger struct {
 	EndPoint          config.Endpoint
 	Client            pb.RunCompletionEventTriggerClient
 	ConnectionHandler func() error
+	ctx               context.Context
 }
 
 func NewRuntimeCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint) RunCompletionEventTrigger {
@@ -40,15 +41,16 @@ func NewRuntimeCompletionEventTrigger(ctx context.Context, endpoint config.Endpo
 			}
 			return nil
 		},
+		ctx: ctx,
 	}
 }
 
-func (rcet RunCompletionEventTrigger) Handle(ctx context.Context, event common.RunCompletionEvent) error {
+func (rcet RunCompletionEventTrigger) Handle(event common.RunCompletionEvent) error {
 	runCompletionEvent, err := RunCompletionEventToProto(event)
 	if err != nil {
 		return err
 	}
-	_, err = rcet.Client.ProcessEventFeed(ctx, runCompletionEvent)
+	_, err = rcet.Client.ProcessEventFeed(rcet.ctx, runCompletionEvent)
 	return err
 }
 

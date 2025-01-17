@@ -2,7 +2,7 @@ package webhook
 
 import (
 	"context"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,6 +24,7 @@ func completionStateForRunCompletionStatus(rcs common.RunCompletionStatus) *pipe
 
 type StatusUpdater struct {
 	K8sClient client.Client
+	ctx       context.Context
 }
 
 func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdater, error) {
@@ -42,28 +43,27 @@ func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdate
 		return StatusUpdater{}, err
 	}
 	logger.Info("StatusUpdater created")
-	return StatusUpdater{k8sClient}, nil
+	return StatusUpdater{k8sClient, ctx}, nil
 }
 
 func (su StatusUpdater) Handle(
-	ctx context.Context,
 	event common.RunCompletionEvent,
 ) error {
 	if event.RunName != nil {
-		if err := su.completeRun(ctx, event); err != nil {
+		if err := su.completeRun(event); err != nil {
 			return err
 		}
 	}
 	if event.RunConfigurationName != nil {
-		if err := su.completeRunConfiguration(ctx, event); err != nil {
+		if err := su.completeRunConfiguration(event); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (su StatusUpdater) completeRun(ctx context.Context, event common.RunCompletionEvent) error {
-	logger := log.FromContext(ctx)
+func (su StatusUpdater) completeRun(event common.RunCompletionEvent) error {
+	logger := log.FromContext(su.ctx)
 
 	if event.RunName.Namespace == "" {
 		logger.Info(
@@ -77,13 +77,14 @@ func (su StatusUpdater) completeRun(ctx context.Context, event common.RunComplet
 	run := pipelinesv1.Run{}
 
 	if err := su.K8sClient.Get(
-		ctx,
+		su.ctx,
 		types.NamespacedName{
 			Namespace: event.RunName.Namespace,
 			Name:      event.RunName.Name,
 		},
 		&run,
 	); err != nil {
+		logger.Error(err, "Error getting Run resource", "event", event)
 		if errors.IsNotFound(err) {
 			logger.Info(
 				"RunCompletionEvent's Run was not found. Skipping.",
@@ -100,8 +101,12 @@ func (su StatusUpdater) completeRun(ctx context.Context, event common.RunComplet
 	}
 
 	if completionState := completionStateForRunCompletionStatus(event.Status); completionState != nil {
-		run.Status.CompletionState = *completionState
-		if err := su.K8sClient.Status().Update(ctx, &run); err != nil {
+
+		if err := su.K8sClient.Update(su.ctx, &run); err != nil {
+			logger.Info("Current Resource", "Version", run.GetResourceVersion())
+
+			logger.Error(err, "Error updating Run resource", "run", run)
+
 			if errors.IsNotFound(err) {
 				logger.Info(
 					"RunCompletionEvent's Run was not found. Skipping.",
@@ -121,10 +126,9 @@ func (su StatusUpdater) completeRun(ctx context.Context, event common.RunComplet
 }
 
 func (su StatusUpdater) completeRunConfiguration(
-	ctx context.Context,
 	event common.RunCompletionEvent,
 ) error {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(su.ctx)
 
 	if event.Status != common.RunCompletionStatuses.Succeeded ||
 		event.RunConfigurationName.Namespace == "" {
@@ -139,7 +143,7 @@ func (su StatusUpdater) completeRunConfiguration(
 	rc := pipelinesv1.RunConfiguration{}
 
 	if err := su.K8sClient.Get(
-		ctx,
+		su.ctx,
 		types.NamespacedName{
 			Namespace: event.RunConfigurationName.Namespace,
 			Name:      event.RunConfigurationName.Name,
@@ -164,7 +168,7 @@ func (su StatusUpdater) completeRunConfiguration(
 	rc.Status.LatestRuns.Succeeded.ProviderId = event.RunId
 	rc.Status.LatestRuns.Succeeded.Artifacts = event.Artifacts
 
-	if err := su.K8sClient.Status().Update(ctx, &rc); err != nil {
+	if err := su.K8sClient.Update(su.ctx, &rc); err != nil {
 		if errors.IsNotFound(err) {
 			logger.Info(
 				"RunCompletionEvent's RunConfiguration was not found. Skipping.",

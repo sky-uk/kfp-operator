@@ -27,109 +27,9 @@ rules:
   - pipelines.kubeflow.org
   resources:
   - experiments
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
-  - experiments/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
-  - experiments/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
   - pipelines
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
-  - pipelines/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
-  - pipelines/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
   - runconfigurations
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
-  - runconfigurations/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
-  - runconfigurations/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
   - runs
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
-  - runs/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
-  - runs/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - pipelines.kubeflow.org
-  resources:
   - runschedules
   verbs:
   - create
@@ -142,12 +42,20 @@ rules:
 - apiGroups:
   - pipelines.kubeflow.org
   resources:
+  - experiments/finalizers
+  - pipelines/finalizers
+  - runconfigurations/finalizers
+  - runs/finalizers
   - runschedules/finalizers
   verbs:
   - update
 - apiGroups:
   - pipelines.kubeflow.org
   resources:
+  - experiments/status
+  - pipelines/status
+  - runconfigurations/status
+  - runs/status
   - runschedules/status
   verbs:
   - get

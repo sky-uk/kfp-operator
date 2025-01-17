@@ -5,6 +5,7 @@ package pipelines
 import (
 	"context"
 	"path/filepath"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"testing"
 	"time"
 
@@ -62,14 +63,18 @@ var _ = BeforeSuite(func() {
 	Expect(K8sClient).NotTo(BeNil())
 
 	webhookInstallOptions := &testEnv.WebhookInstallOptions
-	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
-		Scheme:             scheme.Scheme,
-		Host:               webhookInstallOptions.LocalServingHost,
-		Port:               webhookInstallOptions.LocalServingPort,
-		CertDir:            webhookInstallOptions.LocalServingCertDir,
-		LeaderElection:     false,
-		MetricsBindAddress: "0",
+	webhook := webhook.NewServer(webhook.Options{
+		Host:    webhookInstallOptions.LocalServingHost,
+		Port:    webhookInstallOptions.LocalServingPort,
+		CertDir: webhookInstallOptions.LocalServingCertDir,
 	})
+
+	k8sManager, err = ctrl.NewManager(cfg, ctrl.Options{
+		Scheme:         scheme.Scheme,
+		WebhookServer:  webhook,
+		LeaderElection: false,
+	})
+
 	Expect(err).ToNot(HaveOccurred())
 
 	optInClient := controllers.NewOptInClient(k8sManager)
