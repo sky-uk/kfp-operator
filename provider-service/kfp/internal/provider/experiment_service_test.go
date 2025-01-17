@@ -31,6 +31,85 @@ var _ = Describe("ExperimentService", func() {
 		}
 	})
 
+	Context("CreateExperimient", func() {
+		It("should return experiment result id ", func() {
+			expectedId := "expected-result-id"
+			mockExperimentServiceClient.On(
+				"CreateExperiment",
+				&go_client.CreateExperimentRequest{
+					Experiment: &go_client.Experiment{
+						Name:        "namespace-name",
+						Description: "description",
+					},
+				},
+			).Return(&go_client.Experiment{Id: expectedId}, nil)
+			res, err := experimentService.CreateExperiment(nsn, "description")
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal(expectedId))
+		})
+
+		When("experiment namespaced name is invalid", func() {
+			It("should return error", func() {
+				invalidNsn := common.NamespacedName{
+					Namespace: "namespace",
+				}
+				res, err := experimentService.CreateExperiment(invalidNsn, "foo")
+
+				Expect(err).To(HaveOccurred())
+				Expect(res).To(BeEmpty())
+			})
+		})
+
+		When("experimentServiceClient CreateExperiment errors", func() {
+			It("should return error", func() {
+				mockExperimentServiceClient.On(
+					"CreateExperiment",
+					&go_client.CreateExperimentRequest{
+						Experiment: &go_client.Experiment{
+							Name:        "namespace-name",
+							Description: "description",
+						},
+					},
+				).Return(nil, errors.New("failed"))
+				res, err := experimentService.CreateExperiment(nsn, "description")
+
+				Expect(err).To(HaveOccurred())
+				Expect(res).To(BeEmpty())
+			})
+		})
+	})
+
+	Context("DeleteExperiment", func() {
+		It("should not error", func() {
+			id := "delete-experiment-id"
+			mockExperimentServiceClient.On(
+				"DeleteExperiment",
+				&go_client.DeleteExperimentRequest{
+					Id: id,
+				},
+			).Return(nil)
+			err := experimentService.DeleteExperiment(id)
+
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		When("experimentServiceClient DeleteExperiment errors", func() {
+			It("should return error", func() {
+				id := "delete-experiment-id"
+				mockExperimentServiceClient.On(
+					"DeleteExperiment",
+					&go_client.DeleteExperimentRequest{
+						Id: id,
+					},
+				).Return(errors.New("failed"))
+				err := experimentService.DeleteExperiment(id)
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
 	Context("ExperimentIdByName", func() {
 		It("should return the experiment result id", func() {
 			expectedResult := go_client.ListExperimentsResponse{

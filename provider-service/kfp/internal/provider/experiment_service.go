@@ -61,7 +61,7 @@ func (es *DefaultExperimentService) CreateExperiment(
 ) (string, error) {
 	experimentName, err := util.ResourceNameFromNamespacedName(experiment)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	result, err := es.client.CreateExperiment(
@@ -80,14 +80,17 @@ func (es *DefaultExperimentService) CreateExperiment(
 	return result.Id, nil
 }
 
-// TODO: test
 func (es *DefaultExperimentService) DeleteExperiment(id string) error {
-	es.client.DeleteExperiment(
+	_, err := es.client.DeleteExperiment(
 		es.ctx,
 		&go_client.DeleteExperimentRequest{
 			Id: id,
 		},
 	)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -32,11 +32,7 @@ func (m *MockExperimentServiceClient) DeleteExperiment(
 	_ ...grpc.CallOption,
 ) (*emptypb.Empty, error) {
 	args := m.Called(in)
-	var msg *emptypb.Empty
-	if arg0 := args.Get(0); arg0 != nil {
-		msg = arg0.(*emptypb.Empty)
-	}
-	return msg, args.Error(1)
+	return &emptypb.Empty{}, args.Error(0)
 }
 
 func (m *MockExperimentServiceClient) ListExperiment(
