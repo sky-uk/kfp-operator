@@ -16,11 +16,11 @@ type PipelineDefinition struct {
 	BeamArgs      []apis.NamedValue     `json:"beamArgs" yaml:"beamArgs"`
 }
 
-// Manifest represents the output of the python compile step, and describes what
-// vertex ai or kubeflow pipelines should do.
+// CompiledManifest represents the output of the python compile step, and
+// describes what vertex ai or kubeflow pipelines should do.
 type PipelineDefinitionWrapper struct {
 	PipelineDefinition PipelineDefinition `json:"pipelineDefinition"`
-	Manifest           json.RawMessage    `json:"manifest,omitempty"`
+	CompiledPipeline   json.RawMessage    `json:"manifest,omitempty"`
 }
 
 type ExperimentDefinition struct {
