@@ -26,12 +26,13 @@ var _ = Describe("Experiment", Ordered, func() {
 			It("returns the id of the resource", func() {
 				ed := ExperimentDefinition{}
 				jsonExperiment, err := json.Marshal(ed)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
-
 				mockProvider.On("CreateExperiment", ed).Return(id, nil)
 				response, err := exp.Create(jsonExperiment)
+
 				Expect(err).ToNot(HaveOccurred())
 				Expect(response).To(Equal(ResponseBody{Id: id}))
 			})
@@ -40,7 +41,6 @@ var _ = Describe("Experiment", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-
 				response, err := exp.Create(invalidJson)
 
 				Expect(err).To(HaveOccurred())
@@ -52,16 +52,15 @@ var _ = Describe("Experiment", Ordered, func() {
 			It("errors", func() {
 				ed := ExperimentDefinition{}
 				jsonExperiment, err := json.Marshal(ed)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
-
 				mockProvider.On("CreateExperiment", ed).Return("", expectedErr)
-
 				response, err := exp.Create(jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(response).To(Equal(ResponseBody{Id: ""}))
+				Expect(response).To(Equal(ResponseBody{}))
 			})
 		})
 	})
@@ -71,6 +70,7 @@ var _ = Describe("Experiment", Ordered, func() {
 			It("returns no error", func() {
 				ed := ExperimentDefinition{}
 				jsonExperiment, err := json.Marshal(ed)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
@@ -79,7 +79,7 @@ var _ = Describe("Experiment", Ordered, func() {
 				resp, err := exp.Update(id, jsonExperiment)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(resp.Id).To(Equal(updatedId))
+				Expect(resp).To(Equal(ResponseBody{Id: updatedId}))
 			})
 		})
 
@@ -89,7 +89,7 @@ var _ = Describe("Experiment", Ordered, func() {
 				resp, err := exp.Update("some-id", invalidJson)
 
 				Expect(err).To(HaveOccurred())
-				Expect(resp.Id).To(BeEmpty())
+				Expect(resp).To(Equal(ResponseBody{}))
 			})
 		})
 
@@ -97,6 +97,7 @@ var _ = Describe("Experiment", Ordered, func() {
 			It("errors", func() {
 				ed := ExperimentDefinition{}
 				jsonExperiment, err := json.Marshal(ed)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
@@ -105,7 +106,7 @@ var _ = Describe("Experiment", Ordered, func() {
 				resp, err := exp.Update(id, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(resp.Id).To(BeEmpty())
+				Expect(resp).To(Equal(ResponseBody{}))
 			})
 		})
 	})
@@ -116,6 +117,7 @@ var _ = Describe("Experiment", Ordered, func() {
 				id := "some-id"
 				mockProvider.On("DeleteExperiment", id).Return(nil)
 				err := exp.Delete(id)
+
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -125,8 +127,8 @@ var _ = Describe("Experiment", Ordered, func() {
 				id := "some-id"
 				expectedErr := errors.New("some-error")
 				mockProvider.On("DeleteExperiment", id).Return(expectedErr)
-
 				err := exp.Delete(id)
+
 				Expect(err).To(Equal(expectedErr))
 			})
 		})

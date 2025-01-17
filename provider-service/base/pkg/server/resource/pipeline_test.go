@@ -26,6 +26,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 			It("returns the id of the resource", func() {
 				pdw := PipelineDefinitionWrapper{}
 				jsonPipeline, err := json.Marshal(pdw)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
@@ -51,6 +52,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 			It("errors", func() {
 				pdw := PipelineDefinitionWrapper{}
 				jsonPipeline, err := json.Marshal(pdw)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
@@ -67,8 +69,8 @@ var _ = Describe("Pipeline", Ordered, func() {
 		When("valid json passed, and provider operations succeed", func() {
 			It("returns no error", func() {
 				pdw := PipelineDefinitionWrapper{}
-
 				jsonPipeline, err := json.Marshal(pdw)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
@@ -77,7 +79,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 				resp, err := p.Update(id, jsonPipeline)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(resp.Id).To(Equal(updatedId))
+				Expect(resp).To(Equal(ResponseBody{Id: updatedId}))
 			})
 		})
 
@@ -85,8 +87,9 @@ var _ = Describe("Pipeline", Ordered, func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
 				resp, err := p.Update("some-id", invalidJson)
+
 				Expect(err).To(HaveOccurred())
-				Expect(resp.Id).To(BeEmpty())
+				Expect(resp).To(Equal(ResponseBody{}))
 			})
 		})
 
@@ -94,16 +97,16 @@ var _ = Describe("Pipeline", Ordered, func() {
 			It("errors", func() {
 				pdw := PipelineDefinitionWrapper{}
 				jsonExperiment, err := json.Marshal(pdw)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
 				id := "some-id"
 				mockProvider.On("UpdatePipeline", pdw, id).Return("", expectedErr)
-
 				resp, err := p.Update(id, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(resp.Id).To(BeEmpty())
+				Expect(resp).To(Equal(ResponseBody{}))
 			})
 		})
 	})
@@ -124,8 +127,8 @@ var _ = Describe("Pipeline", Ordered, func() {
 				id := "some-id"
 				expectedErr := errors.New("some-error")
 				mockProvider.On("DeletePipeline", id).Return(expectedErr)
-
 				err := p.Delete(id)
+
 				Expect(err).To(Equal(expectedErr))
 			})
 		})

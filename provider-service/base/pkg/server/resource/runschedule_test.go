@@ -25,14 +25,14 @@ var _ = Describe("RunSchedule", Ordered, func() {
 		When("valid json passed, and provider returns success", func() {
 			It("returns the id of the resource", func() {
 				rsd := RunScheduleDefinition{}
-
 				jsonRunSchedule, err := json.Marshal(rsd)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
 				mockProvider.On("CreateRunSchedule", rsd).Return(id, nil)
-
 				response, err := rs.Create(jsonRunSchedule)
+
 				Expect(err).ToNot(HaveOccurred())
 				Expect(response).To(Equal(ResponseBody{Id: id}))
 			})
@@ -41,8 +41,8 @@ var _ = Describe("RunSchedule", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-
 				response, err := rs.Create(invalidJson)
+
 				Expect(err).To(HaveOccurred())
 				Expect(response).To(Equal(ResponseBody{}))
 			})
@@ -51,16 +51,16 @@ var _ = Describe("RunSchedule", Ordered, func() {
 		When("provider errors", func() {
 			It("errors", func() {
 				rsd := RunScheduleDefinition{}
-
 				jsonRunSchedule, err := json.Marshal(rsd)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
 				mockProvider.On("CreateRunSchedule", rsd).Return("", expectedErr)
-
 				response, err := rs.Create(jsonRunSchedule)
+
 				Expect(err).To(Equal(expectedErr))
-				Expect(response).To(Equal(ResponseBody{Id: ""}))
+				Expect(response).To(Equal(ResponseBody{}))
 			})
 		})
 	})
@@ -69,17 +69,17 @@ var _ = Describe("RunSchedule", Ordered, func() {
 		When("valid json passed, and provider operations succeed", func() {
 			It("returns no error", func() {
 				rsd := RunScheduleDefinition{}
-
 				jsonRunSchedule, err := json.Marshal(rsd)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
 				updatedId := "some-update-id"
 				mockProvider.On("UpdateRunSchedule", rsd, id).Return(updatedId, nil)
-
 				resp, err := rs.Update(id, jsonRunSchedule)
+
 				Expect(err).ToNot(HaveOccurred())
-				Expect(resp.Id).To(Equal(updatedId))
+				Expect(resp).To(Equal(ResponseBody{Id: updatedId}))
 			})
 		})
 
@@ -87,8 +87,9 @@ var _ = Describe("RunSchedule", Ordered, func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
 				resp, err := rs.Update("some-id", invalidJson)
+
 				Expect(err).To(HaveOccurred())
-				Expect(resp.Id).To(BeEmpty())
+				Expect(resp).To(Equal(ResponseBody{}))
 			})
 		})
 
@@ -96,15 +97,16 @@ var _ = Describe("RunSchedule", Ordered, func() {
 			It("errors", func() {
 				rsd := RunScheduleDefinition{}
 				jsonExperiment, err := json.Marshal(rsd)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
 				id := "some-id"
 				mockProvider.On("UpdateRunSchedule", rsd, id).Return("", expectedErr)
-
 				resp, err := rs.Update(id, jsonExperiment)
+
 				Expect(err).To(Equal(expectedErr))
-				Expect(resp.Id).To(BeEmpty())
+				Expect(resp).To(Equal(ResponseBody{}))
 			})
 		})
 	})
@@ -114,8 +116,8 @@ var _ = Describe("RunSchedule", Ordered, func() {
 			It("return no error", func() {
 				id := "some-id"
 				mockProvider.On("DeleteRunSchedule", id).Return(nil)
-
 				err := rs.Delete(id)
+
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -125,8 +127,8 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				id := "some-id"
 				expectedErr := errors.New("some-error")
 				mockProvider.On("DeleteRunSchedule", id).Return(expectedErr)
-
 				err := rs.Delete(id)
+
 				Expect(err).To(Equal(expectedErr))
 			})
 		})

@@ -25,15 +25,12 @@ var _ = Describe("Run", Ordered, func() {
 		When("valid json passed, and provider returns success", func() {
 			It("returns the id of the resource", func() {
 				rd := RunDefinition{}
-
 				jsonRun, err := json.Marshal(rd)
 
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
-
 				mockProvider.On("CreateRun", rd).Return(id, nil)
-
 				response, err := r.Create(jsonRun)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -44,7 +41,6 @@ var _ = Describe("Run", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-
 				response, err := r.Create(invalidJson)
 
 				Expect(err).To(HaveOccurred())
@@ -56,16 +52,15 @@ var _ = Describe("Run", Ordered, func() {
 			It("errors", func() {
 				rd := RunDefinition{}
 				jsonRun, err := json.Marshal(rd)
+
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
-
 				mockProvider.On("CreateRun", rd).Return("", expectedErr)
-
 				response, err := r.Create(jsonRun)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(response).To(Equal(ResponseBody{Id: ""}))
+				Expect(response).To(Equal(ResponseBody{}))
 			})
 		})
 	})
@@ -75,7 +70,6 @@ var _ = Describe("Run", Ordered, func() {
 			It("return no error", func() {
 				id := "some-id"
 				mockProvider.On("DeleteRun", id).Return(nil)
-
 				err := r.Delete(id)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -87,8 +81,8 @@ var _ = Describe("Run", Ordered, func() {
 				id := "some-id"
 				expectedErr := errors.New("some-error")
 				mockProvider.On("DeleteRun", id).Return(expectedErr)
-
 				err := r.Delete(id)
+
 				Expect(err).To(Equal(expectedErr))
 			})
 		})
