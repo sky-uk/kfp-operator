@@ -6,6 +6,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/stretchr/testify/mock"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type MockJobServiceClient struct {
@@ -36,4 +37,17 @@ func (m *MockJobServiceClient) CreateJob(
 		job = arg0.(*go_client.Job)
 	}
 	return job, args.Error(1)
+}
+
+func (m *MockJobServiceClient) DeleteJob(
+	_ context.Context,
+	in *go_client.DeleteJobRequest,
+	_ ...grpc.CallOption,
+) (*emptypb.Empty, error) {
+	args := m.Called(in)
+	var msg *emptypb.Empty
+	if arg0 := args.Get(0); arg0 != nil {
+		msg = arg0.(*emptypb.Empty)
+	}
+	return msg, args.Error(1)
 }

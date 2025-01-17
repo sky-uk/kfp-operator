@@ -145,7 +145,7 @@ var _ = Describe("Http Server Endpoints", func() {
 			})
 
 			When("request body fails to be read", func() {
-				It("returns 500 with error response body", func() {
+				It("returns 400 with error response body", func() {
 					req := httptest.NewRequest(
 						http.MethodPost,
 						"/resource/"+resourceType,
@@ -408,6 +408,165 @@ var _ = Describe("Http Server Endpoints", func() {
 
 					body, err := io.ReadAll(resp.Body)
 
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(body)).To(ContainSubstring(response))
+				})
+			})
+		})
+
+		Context("/{id} PUT request updateHandler", func() {
+			When("succeeds", func() {
+				It("returns 200 with valid response body", func() {
+					id := "mock-id/bla"
+					encodedId := url.PathEscape(id)
+					payload := []byte(`{"name": "test"}`)
+					handledResource.On("Update", id, payload).Return(nil)
+					req := httptest.NewRequest(
+						http.MethodPut,
+						"/resource/"+resourceType+"/"+encodedId,
+						bytes.NewReader(payload),
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(body).To(BeEmpty())
+				})
+			})
+
+			When("request id fails to decode", func() {
+				It("returns 400 with error response body", func() {
+					invalidId := "mock-id-broken%"
+					payload := []byte(`{"name": "test"}`)
+					req := httptest.NewRequest(
+						http.MethodPut,
+						"/to-be-overriden",
+						bytes.NewReader(payload),
+					)
+					// cannot set a URL that fails decoding in httptest.NewRequest
+					// because it gets validated at construction.
+					req.URL.Path = "/resource/" + resourceType + "/" + invalidId
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(body).To(ContainSubstring(`invalid URL escape "%"`))
+				})
+			})
+
+			When("request body fails to be read", func() {
+				It("returns 500 with error response body", func() {
+					req := httptest.NewRequest(
+						http.MethodPut,
+						"/resource/"+resourceType+"/mock-id",
+						io.NopCloser(&failReader{}),
+					)
+					w := httptest.NewRecorder()
+
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(body)).To(ContainSubstring("Failed to read request body"))
+				})
+			})
+
+			When("handledResource Update fails", func() {
+				It("returns 500 with error response body", func() {
+					id := "mock-id"
+					response := "failed to update"
+					payload := []byte(`{"name": "test"}`)
+					handledResource.On("Update", id, payload).Return(errors.New(response))
+					req := httptest.NewRequest(
+						http.MethodPut,
+						"/resource/"+resourceType+"/"+id,
+						bytes.NewReader(payload),
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(string(body)).To(ContainSubstring(response))
+				})
+			})
+		})
+
+		Context("/{id} DELETE request deleteHandler", func() {
+			When("succeeds", func() {
+				It("returns 200", func() {
+					id := "mock-id/bla"
+					encodedId := url.PathEscape(id)
+					handledResource.On("Delete", id).Return(nil)
+
+					req := httptest.NewRequest(
+						http.MethodDelete,
+						"/resource/"+resourceType+"/"+encodedId,
+						nil,
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(body).To(BeEmpty())
+				})
+			})
+
+			When("request id fails to decode", func() {
+				It("returns 400 with error response body", func() {
+					invalidId := "mock-id-broken%"
+					req := httptest.NewRequest(
+						http.MethodDelete,
+						"/to-be-overriden",
+						nil,
+					)
+					// cannot set a URL that fails decoding in httptest.NewRequest
+					// because it gets validated at construction.
+					req.URL.Path = "/resource/" + resourceType + "/" + invalidId
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+
+					body, err := io.ReadAll(resp.Body)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(body).To(ContainSubstring(`invalid URL escape "%"`))
+				})
+			})
+
+			When("handledResource Delete fails", func() {
+				It("returns 500 with error response body", func() {
+					id := "mock-id"
+					response := "failed to delete"
+					handledResource.On("Delete", id).Return(errors.New(response))
+					req := httptest.NewRequest(
+						http.MethodDelete,
+						"/resource/"+resourceType+"/"+id,
+						nil,
+					)
+					w := httptest.NewRecorder()
+					server.Config.Handler.ServeHTTP(w, req)
+					resp := w.Result()
+
+					Expect(resp.StatusCode).To(Equal(http.StatusInternalServerError))
+					body, err := io.ReadAll(resp.Body)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(string(body)).To(ContainSubstring(response))
 				})

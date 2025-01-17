@@ -9,20 +9,20 @@ import (
 
 type MetadataStoreServiceClient interface {
 	GetArtifactType(
-		_ context.Context,
+		ctx context.Context,
 		in *ml_metadata.GetArtifactTypeRequest,
-		_ ...grpc.CallOption,
+		opts ...grpc.CallOption,
 	) (*ml_metadata.GetArtifactTypeResponse, error)
 
 	GetArtifactsByContext(
-		_ context.Context,
+		ctx context.Context,
 		in *ml_metadata.GetArtifactsByContextRequest,
-		_ ...grpc.CallOption,
+		opts ...grpc.CallOption,
 	) (*ml_metadata.GetArtifactsByContextResponse, error)
 
 	GetContextByTypeAndName(
-		_ context.Context,
+		ctx context.Context,
 		in *ml_metadata.GetContextByTypeAndNameRequest,
-		_ ...grpc.CallOption,
+		opts ...grpc.CallOption,
 	) (*ml_metadata.GetContextByTypeAndNameResponse, error)
 }

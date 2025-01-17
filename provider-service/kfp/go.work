@@ -5,4 +5,5 @@ use (
 	../base
 	../..
 	../../argo/common
+	../../argo/providers
 )

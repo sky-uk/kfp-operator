@@ -1,21 +1,20 @@
 //go:build decoupled
 
-package internal
+package event
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"path/filepath"
-	"testing"
-	"time"
-
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
+	"io"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"net/http"
+	"path/filepath"
+	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-resty/resty/v2"
@@ -34,8 +33,8 @@ import (
 )
 
 var (
-	mockMetadataStore MockMetadataStore
-	mockKfpApi        MockKfpApi
+	mockMetadataStore mocks.MockMetadataStore
+	mockKfpApi        mocks.MockKfpApi
 	k8sClient         dynamic.Interface
 	eventSource       *sources.WorkflowSource
 	webhookSink       *sinks.WebhookSink
@@ -63,7 +62,7 @@ var _ = BeforeSuite(func() {
 
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths: []string{
-			filepath.Join("..", "..", "..", "", "config", "crd", "external"),
+			filepath.Join("..", "..", "..", "..", "", "config", "crd", "external"),
 		},
 		ErrorIfCRDPathMissing: true,
 	}
@@ -74,8 +73,8 @@ var _ = BeforeSuite(func() {
 	k8sClient, err = dynamic.NewForConfig(k8sConfig)
 	Expect(err).NotTo(HaveOccurred())
 
-	mockMetadataStore = MockMetadataStore{}
-	mockKfpApi = MockKfpApi{}
+	mockMetadataStore = mocks.MockMetadataStore{}
+	mockKfpApi = mocks.MockKfpApi{}
 
 	eventSource, err = sources.NewWorkflowSource(ctx, defaultNamespace, pkg.K8sClient{Client: k8sClient})
 	Expect(err).ToNot(HaveOccurred())
@@ -100,8 +99,8 @@ func WithTestContext(fun func(context.Context)) {
 	defer cancel()
 
 	Expect(deleteAllWorkflows(ctx)).To(Succeed())
-	mockMetadataStore.reset()
-	mockKfpApi.reset()
+	mockMetadataStore.Reset()
+	mockKfpApi.Reset()
 	client := resty.New()
 	httpmock.ActivateNonDefault(client.GetClient())
 	httpmock.RegisterResponder(
@@ -135,13 +134,13 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run succeeds and a model has been pushed", func() {
 		It("Triggers an event with serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
-				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
 				runId := common.RandomString()
 
-				servingModelArtifacts := mockMetadataStore.returnArtifactForPipeline()
+				servingModelArtifacts := mockMetadataStore.ReturnArtifactForPipeline()
 
 				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
@@ -170,7 +169,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run succeeds and no model has been pushed and no RunConfiguration is found", func() {
 		It("Triggers an event without a serving model artifacts", func() {
 			WithTestContext(func(ctx context.Context) {
-				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
@@ -201,7 +200,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run fails", func() {
 		It("Triggers an event", func() {
 			WithTestContext(func(ctx context.Context) {
-				resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+				resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
@@ -241,11 +240,6 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 		})
 	})
 })
-
-func TestModelUpdateEventSourceDecoupledSuite(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Run Completion EventSource Decoupled Suite")
-}
 
 func deleteAllWorkflows(ctx context.Context) error {
 	return k8sClient.Resource(argoWorkflowsGvr).Namespace(defaultNamespace).DeleteCollection(ctx, metav1.DeleteOptions{}, metav1.ListOptions{})
