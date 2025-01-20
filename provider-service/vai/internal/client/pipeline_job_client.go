@@ -13,4 +13,10 @@ type PipelineJobClient interface {
 		req *aiplatformpb.GetPipelineJobRequest,
 		opts ...gax.CallOption,
 	) (*aiplatformpb.PipelineJob, error)
+
+	CreatePipelineJob(
+		ctx context.Context,
+		req *aiplatformpb.CreatePipelineJobRequest,
+		opts ...gax.CallOption,
+	) (*aiplatformpb.PipelineJob, error)
 }
