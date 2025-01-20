@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -10,8 +9,9 @@ import (
 	baseConfigLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
-	kfp "github.com/sky-uk/kfp-operator/provider-service/kfp/internal"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/event"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -44,17 +44,17 @@ func main() {
 		panic(err)
 	}
 
-	kfpApi, err := kfp.CreateKfpApi(ctx, *providerConfig)
+	kfpApi, err := client.CreateKfpApi(ctx, *providerConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	kfpMetadataStore, err := kfp.CreateMetadataStore(ctx, *providerConfig)
+	kfpMetadataStore, err := client.CreateMetadataStore(ctx, *providerConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	flow, err := kfp.NewEventFlow(ctx, *providerConfig, kfpApi, kfpMetadataStore)
+	flow, err := event.NewEventFlow(ctx, *providerConfig, kfpApi, kfpMetadataStore)
 	if err != nil {
 		panic(err)
 	}

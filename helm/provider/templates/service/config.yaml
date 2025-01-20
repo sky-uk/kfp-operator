@@ -10,3 +10,6 @@ data:
     operatorWebhook: http://{{ .Values.kfpOperator.fullname}}-runcompletion-webhook-service/events
     pod:
       namespace: "To be overridden by env var POD_NAMESPACE"
+    server:
+      host: {{ .Values.service.server.host }}
+      port: {{ .Values.service.server.port }}

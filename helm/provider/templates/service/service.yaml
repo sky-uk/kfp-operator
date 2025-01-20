@@ -1,0 +1,14 @@
+{{- $providerName := .Values.provider.name }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kfp-operator-provider.resource-prefix" $ }}-{{ $providerName }}-service
+  namespace: {{ include "kfp-operator-provider.namespace" $ }}
+spec:
+  ports:
+    - port: {{ .Values.service.server.port }}
+      protocol: TCP
+      targetPort: {{ .Values.service.server.port }}
+  selector:
+    app: {{ include "kfp-operator-provider.resource-prefix" . }}-service
+    provider: {{ $providerName }}

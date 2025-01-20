@@ -1,24 +1,22 @@
-package internal
+package event
 
 import (
 	"context"
 	"encoding/json"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
-	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 type EventFlow struct {
 	ProviderConfig config.KfpProviderConfig
-	MetadataStore  MetadataStore
-	KfpApi         KfpApi
+	MetadataStore  client.MetadataStore
+	KfpApi         client.KfpApi
 	Logger         logr.Logger
 	context        context.Context
 	in             chan StreamMessage[*unstructured.Unstructured]
@@ -72,17 +70,7 @@ func (ef *EventFlow) Error(inlet Inlet[error]) {
 	}
 }
 
-func CreateKfpApi(ctx context.Context, config config.KfpProviderConfig) (KfpApi, error) {
-	logger := common.LoggerFromContext(ctx)
-	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
-	if err != nil {
-		logger.Error(err, "failed to connect to Kubeflow API", "address", config.Parameters.GrpcKfpApiAddress)
-		return nil, err
-	}
-	return kfpApi, nil
-}
-
-func NewEventFlow(ctx context.Context, config config.KfpProviderConfig, kfpApi KfpApi, metadataStore MetadataStore) (*EventFlow, error) {
+func NewEventFlow(ctx context.Context, config config.KfpProviderConfig, kfpApi client.KfpApi, metadataStore client.MetadataStore) (*EventFlow, error) {
 	logger := common.LoggerFromContext(ctx)
 
 	flow := &EventFlow{
@@ -207,16 +195,4 @@ func getPipelineNameFromEntrypoint(workflow *unstructured.Unstructured) string {
 	}
 
 	return name
-}
-
-func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
-	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
-	}
-
-	return &GrpcKfpApi{
-		RunServiceClient: go_client.NewRunServiceClient(conn),
-		JobServiceClient: go_client.NewJobServiceClient(conn),
-	}, nil
 }

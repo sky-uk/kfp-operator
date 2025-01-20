@@ -1,6 +1,6 @@
 //go:build unit
 
-package internal
+package event
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -115,8 +116,8 @@ var _ = Context("Eventing Flow", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 
-			mockMetadataStore := MockMetadataStore{}
-			mockKfpApi := MockKfpApi{}
+			mockMetadataStore := mocks.MockMetadataStore{}
+			mockKfpApi := mocks.MockKfpApi{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -134,7 +135,7 @@ var _ = Context("Eventing Flow", func() {
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 			setPipelineNameInSpec(workflow, common.RandomString())
 
-			mockMetadataStore := MockMetadataStore{}
+			mockMetadataStore := mocks.MockMetadataStore{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -142,7 +143,7 @@ var _ = Context("Eventing Flow", func() {
 			}
 
 			expectedError := errors.New("an error occurred")
-			mockMetadataStore.error(expectedError)
+			mockMetadataStore.Error(expectedError)
 
 			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 			Expect(event).To(BeNil())
@@ -154,8 +155,8 @@ var _ = Context("Eventing Flow", func() {
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 			setPipelineNameInSpec(workflow, common.RandomString())
 
-			mockMetadataStore := MockMetadataStore{}
-			mockKfpApi := MockKfpApi{}
+			mockMetadataStore := mocks.MockMetadataStore{}
+			mockKfpApi := mocks.MockKfpApi{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
@@ -164,7 +165,7 @@ var _ = Context("Eventing Flow", func() {
 			}
 
 			expectedError := errors.New("an error occurred")
-			mockKfpApi.error(expectedError)
+			mockKfpApi.Error(expectedError)
 
 			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 			Expect(event).To(BeNil())
@@ -178,8 +179,8 @@ var _ = Context("Eventing Flow", func() {
 		setPipelineNameInSpec(workflow, common.RandomString())
 		workflow.SetName(common.RandomString())
 
-		mockMetadataStore := MockMetadataStore{}
-		mockKfpApi := MockKfpApi{}
+		mockMetadataStore := mocks.MockMetadataStore{}
+		mockKfpApi := mocks.MockKfpApi{}
 
 		eventingServer := EventFlow{
 			Logger:        logr.Discard(),
@@ -190,8 +191,8 @@ var _ = Context("Eventing Flow", func() {
 			},
 		}
 
-		artifacts := mockMetadataStore.returnArtifactForPipeline()
-		resourceReferences := mockKfpApi.returnResourceReferencesForRun()
+		artifacts := mockMetadataStore.ReturnArtifactForPipeline()
+		resourceReferences := mockKfpApi.ReturnResourceReferencesForRun()
 		event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
 
 		Expect(event.ServingModelArtifacts).To(Equal(artifacts))
