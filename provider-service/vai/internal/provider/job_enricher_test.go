@@ -35,26 +35,24 @@ var _ = Describe("JobEnricher", func() {
 	})
 
 	Context("Enrich", Ordered, func() {
-		When("something", func() {
-			It("do something", func() {
-				_, err := je.Enrich(&job, raw)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(job.DisplayName).To(Equal(raw["displayName"]))
-				pipelineSpec, err := structpb.NewStruct(
-					map[string]any{
-						"key": "value",
-					},
-				)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(job.PipelineSpec).To(Equal(pipelineSpec))
-				Expect(job.Labels).To(Equal(
-					map[string]string{
-						"key":                "value",
-						"label-key-from-raw": "label-value-from-raw",
-					},
-				))
-				Expect(job.RuntimeConfig.GcsOutputDirectory).To(Equal("gs://test-bucket"))
-			})
+		It("should enrich the pipeline job with values from the raw map", func() {
+			_, err := je.Enrich(&job, raw)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(job.DisplayName).To(Equal(raw["displayName"]))
+			pipelineSpec, err := structpb.NewStruct(
+				map[string]any{
+					"key": "value",
+				},
+			)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(job.PipelineSpec).To(Equal(pipelineSpec))
+			Expect(job.Labels).To(Equal(
+				map[string]string{
+					"key":                "value",
+					"label-key-from-raw": "label-value-from-raw",
+				},
+			))
+			Expect(job.RuntimeConfig.GcsOutputDirectory).To(Equal("gs://test-bucket"))
 		})
 		When("job has no label field", func() {
 			It("should set the label field to an empty map", func() {
