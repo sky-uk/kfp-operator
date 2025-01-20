@@ -44,7 +44,7 @@ func NewGcsFileHandler(
 		return GcsFileHandler{}, err
 	}
 
-	return GcsFileHandler{ctx: ctx, gcsClient: *client}, err
+	return GcsFileHandler{ctx: ctx, gcsClient: *client}, nil
 }
 
 // Write writes bytes into the location inferred by GCS bucket name and
