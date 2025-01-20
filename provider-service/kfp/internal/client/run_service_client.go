@@ -13,4 +13,10 @@ type RunServiceClient interface {
 		in *go_client.GetRunRequest,
 		opts ...grpc.CallOption,
 	) (*go_client.RunDetail, error)
+
+	CreateRun(
+		ctx context.Context,
+		in *go_client.CreateRunRequest,
+		opts ...grpc.CallOption,
+	) (*go_client.RunDetail, error)
 }

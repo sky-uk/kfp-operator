@@ -8,9 +8,11 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	configLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	vaiConfig "github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
+	vai "github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/runcompletion"
 	"go.uber.org/zap/zapcore"
 
@@ -36,12 +38,22 @@ func main() {
 		panic(err)
 	}
 
-	vaiConfig := &vaiConfig.VAIProviderConfig{
+	vaiConfig := vaiConfig.VAIProviderConfig{
 		Name: config.ProviderName,
 	}
 
-	if err := LoadProvider(ctx, k8sClient.Client, config.ProviderName, config.Pod.Namespace, vaiConfig); err != nil {
+	if err := LoadProvider(ctx, k8sClient.Client, config.ProviderName, config.Pod.Namespace, &vaiConfig); err != nil {
 		logger.Error(err, "failed to load provider", "name", config.ProviderName, "namespace", config.Pod.Namespace)
+		panic(err)
+	}
+
+	//TODO: Update the config to be passed in by controller on deployment creation
+	provider, err := vai.NewProvider(ctx, vaiConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = server.Start(ctx, config.Server, provider); err != nil {
 		panic(err)
 	}
 
@@ -58,7 +70,7 @@ func main() {
 	}
 	go handleErrorInSourceOperations(source)
 
-	flow := runcompletion.NewEventFlow(ctx, vaiConfig, pipelineJobClient)
+	flow := runcompletion.NewEventFlow(ctx, &vaiConfig, pipelineJobClient)
 
 	go func() {
 		flow.Start()
