@@ -1,6 +1,6 @@
 //go:build unit
 
-package internal
+package event
 
 import (
 	"testing"
@@ -11,5 +11,5 @@ import (
 
 func TestUnitSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "KFP Provider Unit Suite")
+	RunSpecs(t, "KFP Provider Event Unit Suite")
 }
