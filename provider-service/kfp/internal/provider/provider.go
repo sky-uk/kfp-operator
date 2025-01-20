@@ -6,7 +6,6 @@ import (
 
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/job_client/job_service"
-	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_client/pipeline_service"
 	baseResource "github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
@@ -62,22 +61,7 @@ func (kfpp *KfpProvider) UpdatePipeline(
 }
 
 func (kfpp *KfpProvider) DeletePipeline(id string) error {
-	_, err := kfpp.pipelineService.DeletePipeline(
-		&pipeline_service.DeletePipelineParams{
-			ID:      id,
-			Context: kfpp.ctx,
-		},
-		nil,
-	)
-
-	if err != nil {
-		var deletePipelineError *pipeline_service.DeletePipelineDefault
-		if errors.As(err, &deletePipelineError) {
-			return ignoreNotFound(err, deletePipelineError.Payload.Code)
-		}
-	}
-
-	return err
+	return kfpp.pipelineService.DeletePipeline(id)
 }
 
 func (kfpp *KfpProvider) CreateRunSchedule(
@@ -102,6 +86,9 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 	}
 
 	experimentVersion, err := kfpp.experimentService.ExperimentIdByName(rsd.ExperimentName)
+	if err != nil {
+		return "", err
+	}
 
 	apiCronSchedule, err := createAPICronSchedule(rsd)
 	if err != nil {
