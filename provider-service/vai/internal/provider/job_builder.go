@@ -33,7 +33,7 @@ type DefaultJobBuilder struct {
 
 // MkRunPipelineJob creates a vai pipeline job for a run that can be submitted
 // to a vai pipeline job client.
-func (b DefaultJobBuilder) MkRunPipelineJob(
+func (jb DefaultJobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
@@ -48,13 +48,13 @@ func (b DefaultJobBuilder) MkRunPipelineJob(
 	templateUri, err := util.PipelineUri(
 		rd.PipelineName,
 		rd.PipelineVersion,
-		b.pipelineBucket,
+		jb.pipelineBucket,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	labels, err := b.labelGen.GenerateLabels(rd)
+	labels, err := jb.labelGen.GenerateLabels(rd)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (b DefaultJobBuilder) MkRunPipelineJob(
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: params,
 		},
-		ServiceAccount: b.serviceAccount,
+		ServiceAccount: jb.serviceAccount,
 		TemplateUri:    templateUri,
 	}
 	return job, nil
@@ -72,7 +72,7 @@ func (b DefaultJobBuilder) MkRunPipelineJob(
 
 // MkRunScheudlePipelineJob creates a vai pipeline job for a run schedule that
 // can be used to create a vai schedule.
-func (b DefaultJobBuilder) MkRunSchedulePipelineJob(
+func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 	rsd resource.RunScheduleDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rsd.RuntimeParameters))
@@ -90,20 +90,20 @@ func (b DefaultJobBuilder) MkRunSchedulePipelineJob(
 	templateUri, err := util.PipelineUri(
 		rsd.PipelineName,
 		rsd.PipelineVersion,
-		b.pipelineBucket,
+		jb.pipelineBucket,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	labels, err := b.labelGen.GenerateLabels(rsd)
+	labels, err := jb.labelGen.GenerateLabels(rsd)
 	if err != nil {
 		return nil, err
 	}
 
 	job := &aiplatformpb.PipelineJob{
 		Labels:         labels,
-		ServiceAccount: b.serviceAccount,
+		ServiceAccount: jb.serviceAccount,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
 			Parameters: params,
 		},
@@ -114,7 +114,7 @@ func (b DefaultJobBuilder) MkRunSchedulePipelineJob(
 
 // MkSchedule create a vai schedule using a vai pipeline job that can be
 // submitted to a vai schedule client.
-func (b DefaultJobBuilder) MkSchedule(
+func (jb DefaultJobBuilder) MkSchedule(
 	rsd resource.RunScheduleDefinition,
 	pipelineJob *aiplatformpb.PipelineJob,
 	parent string,
