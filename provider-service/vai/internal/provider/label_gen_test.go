@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider/testutil"
 )
 
 var _ = Describe("DefaultLabelGen", func() {
@@ -15,7 +16,7 @@ var _ = Describe("DefaultLabelGen", func() {
 	Context("GenerateLabels", func() {
 		When("value is RunDefinition", func() {
 			It("should not error", func() {
-				rd := randomBasicRunDefinition()
+				rd := testutil.RandomBasicRunDefinition()
 				_, err := lg.GenerateLabels(rd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -23,7 +24,7 @@ var _ = Describe("DefaultLabelGen", func() {
 		})
 		When("value is RunScheduleDefinition", func() {
 			It("should not error", func() {
-				rsd := randomRunScheduleDefinition()
+				rsd := testutil.RandomRunScheduleDefinition()
 				_, err := lg.GenerateLabels(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -41,7 +42,7 @@ var _ = Describe("DefaultLabelGen", func() {
 	Context("runLabelsFromRunDefinition", func() {
 		When("RunConfigurationName and RunName is present", func() {
 			It("generates run labels with RunConfigurationName and RunName", func() {
-				rd := randomBasicRunDefinition()
+				rd := testutil.RandomBasicRunDefinition()
 				rl := lg.runLabelsFromRunDefinition(rd)
 
 				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
@@ -55,7 +56,7 @@ var _ = Describe("DefaultLabelGen", func() {
 		})
 		When("RunConfigurationName is empty", func() {
 			It("generates run labels with RunName", func() {
-				rd := randomBasicRunDefinition()
+				rd := testutil.RandomBasicRunDefinition()
 				rd.RunConfigurationName = common.NamespacedName{}
 				rl := lg.runLabelsFromRunDefinition(rd)
 
@@ -70,7 +71,7 @@ var _ = Describe("DefaultLabelGen", func() {
 		})
 		When("RunName is empty", func() {
 			It("generates run labels with RunName", func() {
-				rd := randomBasicRunDefinition()
+				rd := testutil.RandomBasicRunDefinition()
 				rd.Name = common.NamespacedName{}
 				rl := lg.runLabelsFromRunDefinition(rd)
 
@@ -84,7 +85,7 @@ var _ = Describe("DefaultLabelGen", func() {
 			})
 		})
 		It("replaces fullstops with dashes in pipelineVersion", func() {
-			rd := randomBasicRunDefinition()
+			rd := testutil.RandomBasicRunDefinition()
 			rd.PipelineVersion = "0.4.0"
 			rl := lg.runLabelsFromRunDefinition(rd)
 
@@ -95,7 +96,7 @@ var _ = Describe("DefaultLabelGen", func() {
 	Context("runLabelsFromSchedule", func() {
 		When("RunConfigurationName is present", func() {
 			It("generates run labels with RunConfiguration name and namespace", func() {
-				rsd := randomRunScheduleDefinition()
+				rsd := testutil.RandomRunScheduleDefinition()
 				rl := lg.runLabelsFromSchedule(rsd)
 
 				Expect(rl[label.PipelineName]).To(Equal(rsd.PipelineName.Name))
@@ -107,7 +108,7 @@ var _ = Describe("DefaultLabelGen", func() {
 		})
 		When("RunConfigurationName is empty", func() {
 			It("generates run labels without RunConfiguration name and namespace", func() {
-				rsd := randomRunScheduleDefinition()
+				rsd := testutil.RandomRunScheduleDefinition()
 				rsd.RunConfigurationName = common.NamespacedName{}
 				rl := lg.runLabelsFromSchedule(rsd)
 
@@ -120,7 +121,7 @@ var _ = Describe("DefaultLabelGen", func() {
 		})
 
 		It("replaces fullstops with dashes in pipelineVersion", func() {
-			rd := randomBasicRunDefinition()
+			rd := testutil.RandomBasicRunDefinition()
 			rd.PipelineVersion = "0.4.0"
 			rl := lg.runLabelsFromRunDefinition(rd)
 
