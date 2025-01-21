@@ -25,7 +25,12 @@ func (kfpp *KfpProvider) CreatePipeline(
 	}
 
 	//TODO: What should filePath be here???
-	result, err := kfpp.pipelineUploadService.UploadPipeline(pdw.CompiledPipeline, pipelineId, "/")
+	// it's not set anywhere so maybe it should just empty string
+	result, err := kfpp.pipelineUploadService.UploadPipeline(
+		pdw.CompiledPipeline,
+		pipelineId,
+		"",
+	)
 	if err != nil {
 		return "", err
 	}
@@ -43,7 +48,7 @@ func (kfpp *KfpProvider) UpdatePipeline(
 		id,
 		pdw.CompiledPipeline,
 		pdw.PipelineDefinition.Version,
-		"/",
+		"",
 	)
 	if err != nil {
 		return "", err
