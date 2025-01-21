@@ -13,9 +13,9 @@ type MockJobServiceClient struct {
 	mock.Mock
 }
 
-func (m *MockJobServiceClient) GetJob(
+func (m *MockJobServiceClient) CreateJob(
 	_ context.Context,
-	in *go_client.GetJobRequest,
+	in *go_client.CreateJobRequest,
 	_ ...grpc.CallOption,
 ) (*go_client.Job, error) {
 	args := m.Called(in)
@@ -26,9 +26,9 @@ func (m *MockJobServiceClient) GetJob(
 	return job, args.Error(1)
 }
 
-func (m *MockJobServiceClient) CreateJob(
+func (m *MockJobServiceClient) GetJob(
 	_ context.Context,
-	in *go_client.CreateJobRequest,
+	in *go_client.GetJobRequest,
 	_ ...grpc.CallOption,
 ) (*go_client.Job, error) {
 	args := m.Called(in)
