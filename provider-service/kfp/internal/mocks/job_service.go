@@ -17,7 +17,7 @@ func (m *MockJobService) CreateJob(rsd resource.RunScheduleDefinition,
 	args := m.Called(rsd, pipelineId, pipelineVersionId, experimentVersion)
 	var res string
 	if args.Get(0) != nil {
-		res = args.Get(0).(string)
+		res = args.String(0)
 	}
 	return res, args.Error(1)
 }
@@ -26,7 +26,7 @@ func (m *MockJobService) GetJob(id string) (string, error) {
 	args := m.Called(id)
 	var res string
 	if args.Get(0) != nil {
-		res = args.Get(0).(string)
+		res = args.String(0)
 	}
 	return res, args.Error(1)
 }

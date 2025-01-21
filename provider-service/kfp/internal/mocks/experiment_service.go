@@ -9,7 +9,10 @@ type MockExperimentService struct {
 	mock.Mock
 }
 
-func (m *MockExperimentService) CreateExperiment(experiment common.NamespacedName, description string) (string, error) {
+func (m *MockExperimentService) CreateExperiment(
+	experiment common.NamespacedName,
+	description string,
+) (string, error) {
 	args := m.Called(experiment, description)
 	var res string
 	if args.Get(0) != nil {
@@ -23,7 +26,9 @@ func (m *MockExperimentService) DeleteExperiment(id string) error {
 	return args.Error(0)
 }
 
-func (m *MockExperimentService) ExperimentIdByName(experiment common.NamespacedName) (string, error) {
+func (m *MockExperimentService) ExperimentIdByName(
+	experiment common.NamespacedName,
+) (string, error) {
 	args := m.Called(experiment)
 	var res string
 	if args.Get(0) != nil {

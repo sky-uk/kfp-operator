@@ -15,8 +15,8 @@ func (m *MockPipelineUploadService) UploadPipeline(
 ) (string, error) {
 	args := m.Called(content, pipelineName, filePath)
 	var res string
-	if arg0 := args.Get(0); arg0 != nil {
-		res = arg0.(string)
+	if args.Get(0) != nil {
+		res = args.String(0)
 	}
 	return res, args.Error(1)
 }

@@ -52,7 +52,7 @@ func (kfpp *KfpProvider) UpdatePipeline(
 	); err != nil {
 		return "", err
 	}
-	
+
 	return id, nil
 }
 
