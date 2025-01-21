@@ -9,7 +9,9 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
+	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -27,6 +29,32 @@ var _ = Describe("DefaultJobService", func() {
 			context.Background(),
 			&mockJobServiceClient,
 		}
+	})
+
+	Context("CreateJob", func() {
+		It("should return a job id", func() {
+			rsd := testutil.RandomRunScheduleDefinition()
+			pipelineId := "pipeline-id"
+			pipelineVersionId := "pipeline-version-id"
+			experimentVersion := "experiment-version"
+
+			expectedId := "expected-job-id"
+			mockJobServiceClient.On(
+				"CreateJob",
+				// TODO: assert on a CreateJobRequest
+				mock.Anything,
+			).Return(&go_client.Job{Id: expectedId}, nil)
+
+			res, err := jobService.CreateJob(
+				rsd,
+				pipelineId,
+				pipelineVersionId,
+				experimentVersion,
+			)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(res).To(Equal(expectedId))
+		})
 	})
 
 	Context("GetJob", func() {
