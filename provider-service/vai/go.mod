@@ -16,7 +16,7 @@ require (
 	google.golang.org/api v0.171.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.35.1
-	sigs.k8s.io/structured-merge-diff/v4 v4.4.2 //indirect
+	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 //indirect
 )
 
 require (
