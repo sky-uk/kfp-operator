@@ -89,6 +89,9 @@ func (js *DefaultJobService) CreateJob(
 			NoCatchup: true,
 		},
 	})
+	if err != nil {
+		return "", err
+	}
 
 	return job.Id, nil
 }
