@@ -10,11 +10,17 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"gopkg.in/yaml.v2"
 )
 
 type JobService interface {
-	CreateJob() (string, error)
+	CreateJob(
+		rsd baseResource.RunScheduleDefinition,
+		pipelineId string,
+		pipelineVersionId string,
+		experimentVersion string,
+	) (string, error)
 	GetJob(id string) (string, error)
 	DeleteJob(id string) error
 }
@@ -123,4 +129,27 @@ func (js *DefaultJobService) DeleteJob(id string) error {
 	}
 
 	return nil
+}
+
+func createAPICronSchedule(
+	rsd baseResource.RunScheduleDefinition,
+) (*go_client.CronSchedule, error) {
+	cronExpression, err := util.ParseCron(rsd.Schedule.CronExpression)
+	if err != nil {
+		return nil, err
+	}
+
+	schedule := &go_client.CronSchedule{
+		Cron: cronExpression.PrintGo(),
+	}
+
+	if rsd.Schedule.StartTime != nil {
+		schedule.StartTime = timestamppb.New(rsd.Schedule.StartTime.Time)
+	}
+
+	if rsd.Schedule.EndTime != nil {
+		schedule.EndTime = timestamppb.New(rsd.Schedule.EndTime.Time)
+	}
+
+	return schedule, nil
 }
