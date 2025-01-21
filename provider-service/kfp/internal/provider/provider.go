@@ -44,16 +44,15 @@ func (kfpp *KfpProvider) UpdatePipeline(
 ) (string, error) {
 	//TODO: What should filePath be here???
 	// returning a result is pointless because it's just id again. Remove?
-	err := kfpp.pipelineUploadService.UploadPipelineVersion(
+	if err := kfpp.pipelineUploadService.UploadPipelineVersion(
 		id,
 		pdw.CompiledPipeline,
 		pdw.PipelineDefinition.Version,
 		"",
-	)
-	if err != nil {
+	); err != nil {
 		return "", err
 	}
-
+	
 	return id, nil
 }
 

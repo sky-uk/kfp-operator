@@ -1,6 +1,8 @@
 package testutil
 
 import (
+	"encoding/json"
+	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
@@ -23,5 +25,31 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 			StartTime:      &Now,
 			EndTime:        &Now,
 		},
+	}
+}
+
+func RandomPipelineDefinition() resource.PipelineDefinition {
+	return resource.PipelineDefinition{
+		Name:          common.RandomNamespacedName(),
+		Version:       common.RandomString(),
+		Image:         common.RandomString(),
+		TfxComponents: common.RandomString(),
+		Env:           make([]apis.NamedValue, 0),
+		BeamArgs:      make([]apis.NamedValue, 0),
+	}
+}
+
+func RandomPipelineDefinitionWrapper() resource.PipelineDefinitionWrapper {
+	return resource.PipelineDefinitionWrapper{
+		PipelineDefinition: RandomPipelineDefinition(),
+		CompiledPipeline:   json.RawMessage{},
+	}
+}
+
+func RandomExperimentDefinition() resource.ExperimentDefinition {
+	return resource.ExperimentDefinition{
+		Name:        common.RandomNamespacedName(),
+		Version:     common.RandomString(),
+		Description: common.RandomString(),
 	}
 }

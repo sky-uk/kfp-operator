@@ -1,11 +1,10 @@
 package mocks
 
 import (
-	context "context"
-
+	"context"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/stretchr/testify/mock"
-	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
