@@ -80,11 +80,10 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if existingDeployment != nil {
 		logger.Info("found existing provider deployment", "deployment", existingDeployment)
-		if existingDeployment.Annotations != nil && existingDeployment.Annotations[ResourceHashAnnotation] != desiredDeployment.Annotations[ResourceHashAnnotation] {
+
+		if deploymentIsOutOfSync(existingDeployment, desiredDeployment) {
 			logger.Info("resource hash mismatch, updating deployment")
-			existingDeployment.Spec = desiredDeployment.Spec
-			existingDeployment.SetLabels(desiredDeployment.Labels)
-			existingDeployment.Annotations[ResourceHashAnnotation] = desiredDeployment.Annotations[ResourceHashAnnotation]
+			existingDeployment = syncDeployment(existingDeployment, desiredDeployment)
 			if err = r.EC.Client.Update(ctx, existingDeployment); err != nil {
 				logger.Error(err, "unable to update provider service deployment", "deployment", desiredDeployment)
 				return ctrl.Result{}, err
@@ -111,28 +110,6 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(provider).
 		Owns(&appsv1.Deployment{}).
 		Complete(r)
-}
-
-func (r *ProviderReconciler) getDeployment(ctx context.Context, namespace string, providerName string, provider pipelinesv1.Provider) (*appsv1.Deployment, error) {
-	dl := &appsv1.DeploymentList{}
-	err := r.EC.Client.NonCached.List(ctx, dl, &client.ListOptions{
-		Namespace:     namespace,
-		LabelSelector: labelSelector(map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", providerName)}),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-	for _, deploy := range dl.Items {
-		if metav1.IsControlledBy(&deploy, &provider) {
-			return &deploy, nil
-		}
-	}
-	return nil, apierrors.NewNotFound(schema.GroupResource{}, "")
-}
-
-func labelSelector(labelMap map[string]string) labels.Selector {
-	return labels.SelectorFromSet(labelMap)
 }
 
 func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider, namespace string, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
@@ -202,4 +179,40 @@ func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
 	deployment.Annotations[ResourceHashAnnotation] = fmt.Sprintf("%x", hasher.Sum())
 
 	return nil
+}
+
+func (r *ProviderReconciler) getDeployment(ctx context.Context, namespace string, providerName string, provider pipelinesv1.Provider) (*appsv1.Deployment, error) {
+	dl := &appsv1.DeploymentList{}
+	err := r.EC.Client.NonCached.List(ctx, dl, &client.ListOptions{
+		Namespace:     namespace,
+		LabelSelector: labelSelector(map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", providerName)}),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	for _, deploy := range dl.Items {
+		if metav1.IsControlledBy(&deploy, &provider) {
+			return &deploy, nil
+		}
+	}
+	return nil, apierrors.NewNotFound(schema.GroupResource{}, "")
+}
+
+func labelSelector(labelMap map[string]string) labels.Selector {
+	return labels.SelectorFromSet(labelMap)
+}
+
+func deploymentIsOutOfSync(existingDeployment, desiredDeployment *appsv1.Deployment) bool {
+	return existingDeployment.Annotations != nil && existingDeployment.Annotations[ResourceHashAnnotation] != desiredDeployment.Annotations[ResourceHashAnnotation]
+}
+
+func syncDeployment(existingDeployment, desiredDeployment *appsv1.Deployment) *appsv1.Deployment {
+	syncedDeployment := existingDeployment.DeepCopy()
+
+	syncedDeployment.Spec = desiredDeployment.Spec
+	syncedDeployment.SetLabels(desiredDeployment.Labels)
+	syncedDeployment.Annotations[ResourceHashAnnotation] = desiredDeployment.Annotations[ResourceHashAnnotation]
+
+	return syncedDeployment
 }
