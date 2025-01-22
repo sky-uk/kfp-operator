@@ -62,13 +62,16 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	logger.Info("found provider", "resource", provider)
 
-	desiredDeployment, err := r.constructDeployment(provider, req.Namespace, *r.Config.DeepCopy())
+	desiredDeployment, err := constructDeployment(provider, *r.Config.DeepCopy())
 	if err != nil {
 		logger.Error(err, "unable to construct provider service deployment")
 		return ctrl.Result{}, err
 	}
+	if err := ctrl.SetControllerReference(provider, desiredDeployment, r.Scheme); err != nil {
+		return ctrl.Result{}, err
+	}
 
-	existingDeployment, err := r.getDeployment(ctx, req.Namespace, provider.Name, *provider)
+	existingDeployment, err := r.getDeployment(ctx, *provider)
 	if err != nil && !apierrors.IsNotFound(err) {
 		logger.Error(err, "unable to get existing deployment")
 		return ctrl.Result{}, err
@@ -110,7 +113,7 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider, namespace string, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
+func constructDeployment(provider *pipelinesv1.Provider, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
 	matchLabels := map[string]string{AppLabel: fmt.Sprintf("provider-%s", provider.Name)}
 	ownerLabels := map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", provider.Name)}
 	deploymentLabels := pipelines.MapConcat(pipelines.MapConcat(config.DefaultProviderValues.Labels, matchLabels), ownerLabels)
@@ -129,7 +132,7 @@ func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("provider-%s-", provider.Name),
-			Namespace:    namespace,
+			Namespace:    provider.Namespace,
 			Labels:       deploymentLabels,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -141,9 +144,6 @@ func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider,
 		},
 	}
 
-	if err := ctrl.SetControllerReference(provider, deployment, r.Scheme); err != nil {
-		return nil, err
-	}
 	if err := setResourceHashAnnotation(deployment); err != nil {
 		return nil, err
 	}
@@ -179,11 +179,11 @@ func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
 	return nil
 }
 
-func (r *ProviderReconciler) getDeployment(ctx context.Context, namespace string, providerName string, provider pipelinesv1.Provider) (*appsv1.Deployment, error) {
+func (r *ProviderReconciler) getDeployment(ctx context.Context, provider pipelinesv1.Provider) (*appsv1.Deployment, error) {
 	dl := &appsv1.DeploymentList{}
 	err := r.EC.Client.NonCached.List(ctx, dl, &client.ListOptions{
-		Namespace:     namespace,
-		LabelSelector: labelSelector(map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", providerName)}),
+		Namespace:     provider.Namespace,
+		LabelSelector: labelSelector(map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", provider.Name)}),
 	})
 
 	if err != nil {
