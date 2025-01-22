@@ -30,14 +30,12 @@ const (
 )
 
 type ProviderReconciler struct {
-	StateHandler[*pipelinesv1.Provider]
 	ResourceReconciler[*pipelinesv1.Provider]
 	Scheme *runtime.Scheme
 }
 
 func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerConfigSpec) *ProviderReconciler {
 	return &ProviderReconciler{
-		StateHandler: StateHandler[*pipelinesv1.Provider]{},
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.Provider]{
 			EC:     ec,
 			Config: config,
