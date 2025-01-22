@@ -5,15 +5,69 @@ import (
 	baseResource "github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type KfpProvider struct {
 	ctx                   context.Context
-	config                config.KfpProviderConfig
+	config                *config.KfpProviderConfig
 	pipelineUploadService PipelineUploadService
 	pipelineService       PipelineService
+	runService            RunService
 	experimentService     ExperimentService
 	jobService            JobService
+}
+
+func NewKfpProvider(
+	ctx context.Context,
+	providerConfig *config.KfpProviderConfig,
+) (*KfpProvider, error) {
+	pipelineUploadService, err := NewPipelineUploadService(
+		ctx,
+		providerConfig.Parameters.RestKfpApiUrl,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err := grpc.NewClient(
+		providerConfig.Parameters.GrpcKfpApiAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	pipelineService, err := NewPipelineService(ctx, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	runService, err := NewRunService(ctx, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	experimentService, err := NewExperimentService(ctx, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	jobService, err := NewJobService(ctx, conn)
+	if err != nil {
+		return nil, err
+	}
+
+	return &KfpProvider{
+		ctx:                   ctx,
+		config:                providerConfig,
+		pipelineUploadService: pipelineUploadService,
+		pipelineService:       pipelineService,
+		runService:            runService,
+		experimentService:     experimentService,
+		jobService:            jobService,
+	}, nil
 }
 
 func (kfpp *KfpProvider) CreatePipeline(
@@ -58,6 +112,49 @@ func (kfpp *KfpProvider) UpdatePipeline(
 
 func (kfpp *KfpProvider) DeletePipeline(id string) error {
 	return kfpp.pipelineService.DeletePipeline(id)
+}
+
+func (kfpp *KfpProvider) CreateRun(rd baseResource.RunDefinition) (string, error) {
+	pipelineName, err := util.ResourceNameFromNamespacedName(rd.PipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineId, err := kfpp.pipelineService.PipelineIdForName(pipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineVersionId, err := kfpp.pipelineService.PipelineVersionIdForName(
+		rd.PipelineVersion,
+		pipelineId,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	experimentVersion, err := kfpp.experimentService.ExperimentIdByName(rd.ExperimentName)
+	if err != nil {
+		return "", err
+	}
+
+	runId, err := kfpp.runService.CreateRun(
+		rd,
+		pipelineId,
+		pipelineVersionId,
+		experimentVersion,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return runId, nil
+}
+
+func (kfpp *KfpProvider) DeleteRun(_ string) error {
+	// Not implemented for KFP provider
+	// Required to satisfy the `Provider` interface
+	return nil
 }
 
 func (kfpp *KfpProvider) CreateRunSchedule(

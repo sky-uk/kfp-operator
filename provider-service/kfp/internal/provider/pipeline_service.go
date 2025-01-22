@@ -28,7 +28,7 @@ func NewPipelineService(
 ) (PipelineService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
-			"no gRPC connection was provided to start experiment service",
+			"no gRPC connection was provided to start pipeline service",
 		)
 	}
 

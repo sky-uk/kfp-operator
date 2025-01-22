@@ -31,7 +31,7 @@ var _ = Describe("ExperimentService", func() {
 		}
 	})
 
-	Context("CreateExperimient", func() {
+	Context("CreateExperiment", func() {
 		It("should return experiment result id ", func() {
 			expectedId := "expected-result-id"
 			mockExperimentServiceClient.On(

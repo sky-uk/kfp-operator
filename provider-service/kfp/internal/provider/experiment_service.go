@@ -71,9 +71,7 @@ func (es *DefaultExperimentService) CreateExperiment(
 func (es *DefaultExperimentService) DeleteExperiment(id string) error {
 	_, err := es.client.DeleteExperiment(
 		es.ctx,
-		&go_client.DeleteExperimentRequest{
-			Id: id,
-		},
+		&go_client.DeleteExperimentRequest{Id: id},
 	)
 	if err != nil {
 		return err

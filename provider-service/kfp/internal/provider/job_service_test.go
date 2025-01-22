@@ -49,26 +49,25 @@ var _ = Describe("DefaultJobService", func() {
 				"key-1": "value-1",
 				"key-2": "value-2",
 			}
-
 			expectedName := fmt.Sprintf(
 				"%s-%s",
 				rsd.Name.Namespace,
 				rsd.Name.Name,
 			)
-
 			expectedDescription, err := yaml.Marshal(resource.References{
 				PipelineName:         rsd.PipelineName,
 				RunConfigurationName: rsd.RunConfigurationName,
 				Artifacts:            rsd.Artifacts,
 			})
+
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedRuntimeParams := []*go_client.Parameter{
 				{Name: "key-1", Value: "value-1"},
 				{Name: "key-2", Value: "value-2"},
 			}
-
 			expectedCron, err := createAPICronSchedule(rsd)
+
 			Expect(err).ToNot(HaveOccurred())
 
 			expectedId := "expected-job-id"

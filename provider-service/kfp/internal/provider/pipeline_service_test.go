@@ -15,13 +15,17 @@ import (
 )
 
 var _ = Describe("PipelineService", func() {
+	const (
+		pipelineId  = "pipeline-id"
+		versionId   = "version-id"
+		versionName = "version-name"
+	)
+
 	var (
 		mockPipelineServiceClient mocks.MockPipelineServiceClient
 		pipelineService           PipelineService
-		pipelineId                = "pipeline-id"
-		versionId                 = "version-id"
-		versionName               = "version-name"
 	)
+
 	BeforeEach(func() {
 		mockPipelineServiceClient = mocks.MockPipelineServiceClient{}
 		pipelineService = &DefaultPipelineService{

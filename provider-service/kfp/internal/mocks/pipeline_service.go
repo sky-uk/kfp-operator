@@ -13,20 +13,17 @@ func (m *MockPipelineService) DeletePipeline(id string) error {
 	return args.Error(0)
 }
 
-func (m *MockPipelineService) PipelineIdForName(pipelineName string) (string, error) {
+func (m *MockPipelineService) PipelineIdForName(
+	pipelineName string,
+) (string, error) {
 	args := m.Called(pipelineName)
-	var res string
-	if args.Get(0) != nil {
-		res = args.String(0)
-	}
-	return res, args.Error(1)
+	return args.String(0), args.Error(1)
 }
 
-func (m *MockPipelineService) PipelineVersionIdForName(versionName string, pipelineId string) (string, error) {
+func (m *MockPipelineService) PipelineVersionIdForName(
+	versionName string,
+	pipelineId string,
+) (string, error) {
 	args := m.Called(versionName, pipelineId)
-	var res string
-	if args.Get(0) != nil {
-		res = args.String(0)
-	}
-	return res, args.Error(1)
+	return args.String(0), args.Error(1)
 }

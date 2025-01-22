@@ -16,6 +16,7 @@ var _ = Describe("Provider", func() {
 		provider                  *KfpProvider
 		mockPipelineService       mocks.MockPipelineService
 		mockPipelineUploadService mocks.MockPipelineUploadService
+		mockRunService            mocks.MockRunService
 		mockExperimentService     mocks.MockExperimentService
 		mockJobService            mocks.MockJobService
 	)
@@ -23,17 +24,106 @@ var _ = Describe("Provider", func() {
 	BeforeEach(func() {
 		mockPipelineService = mocks.MockPipelineService{}
 		mockPipelineUploadService = mocks.MockPipelineUploadService{}
+		mockRunService = mocks.MockRunService{}
 		mockExperimentService = mocks.MockExperimentService{}
 		mockJobService = mocks.MockJobService{}
 
 		provider = &KfpProvider{
 			ctx:                   nil,
-			config:                config.KfpProviderConfig{},
+			config:                &config.KfpProviderConfig{},
 			pipelineUploadService: &mockPipelineUploadService,
 			pipelineService:       &mockPipelineService,
+			runService:            &mockRunService,
 			experimentService:     &mockExperimentService,
 			jobService:            &mockJobService,
 		}
+	})
+
+	Context("Run", func() {
+		Context("CreateRun", func() {
+			const (
+				runId             = "run-id"
+				pipelineId        = "pipeline-id"
+				pipelineVersionId = "pipeline-version-id"
+				experimentId      = "experiment-id"
+			)
+			rd := testutil.RandomRunDefinition()
+			nsnStr, err := rd.PipelineName.SeparatedString("-")
+
+			Expect(err).ToNot(HaveOccurred())
+
+			It("should return run id if run is created", func() {
+				mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+				mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+				mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return(experimentId, nil)
+				mockRunService.On("CreateRun", rd, pipelineId, pipelineVersionId, experimentId).Return(runId, nil)
+				result, err := provider.CreateRun(rd)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(result).To(Equal(runId))
+			})
+
+			When("pipeline has invalid namespace name", func() {
+				It("should return error", func() {
+					copyRd := rd
+					copyRd.PipelineName.Name = ""
+					result, err := provider.CreateRun(copyRd)
+
+					Expect(err).To(HaveOccurred())
+					Expect(result).To(BeEmpty())
+				})
+			})
+
+			When("pipeline service PipelineIdForName errors", func() {
+				It("should return error", func() {
+					expectedErr := errors.New("failed")
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return("", expectedErr)
+					result, err := provider.CreateRun(rd)
+
+					Expect(err).To(Equal(expectedErr))
+					Expect(result).To(BeEmpty())
+				})
+			})
+
+			When("pipeline service PipelineVersionIdForName errors", func() {
+				It("should return error", func() {
+					expectedErr := errors.New("failed")
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return("", expectedErr)
+					result, err := provider.CreateRun(rd)
+
+					Expect(err).To(Equal(expectedErr))
+					Expect(result).To(BeEmpty())
+				})
+			})
+
+			When("experiment service ExperimentIdByName errors", func() {
+				It("should return error", func() {
+					expectedErr := errors.New("failed")
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return("", expectedErr)
+					result, err := provider.CreateRun(rd)
+
+					Expect(err).To(Equal(expectedErr))
+					Expect(result).To(BeEmpty())
+				})
+			})
+
+			When("run service CreateRun errors", func() {
+				It("should return error", func() {
+					expectedErr := errors.New("failed")
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return(experimentId, nil)
+					mockRunService.On("CreateRun", rd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
+					result, err := provider.CreateRun(rd)
+
+					Expect(err).To(Equal(expectedErr))
+					Expect(result).To(BeEmpty())
+				})
+			})
+		})
 	})
 
 	Context("Pipeline", func() {

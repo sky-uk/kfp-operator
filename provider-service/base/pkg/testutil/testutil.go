@@ -53,3 +53,14 @@ func RandomExperimentDefinition() resource.ExperimentDefinition {
 		Description: common.RandomString(),
 	}
 }
+
+func RandomRunDefinition() resource.RunDefinition {
+	return resource.RunDefinition{
+		Name: common.RandomNamespacedName(),
+		Version: common.RandomString(),
+		PipelineName: common.RandomNamespacedName(),
+		PipelineVersion: common.RandomString(),
+		RunConfigurationName: common.RandomNamespacedName(),
+		ExperimentName: common.RandomNamespacedName(),
+	}
+}

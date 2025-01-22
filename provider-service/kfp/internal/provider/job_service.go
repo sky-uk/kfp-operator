@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	"google.golang.org/grpc"
 
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	baseResource "github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -28,6 +30,19 @@ type JobService interface {
 type DefaultJobService struct {
 	ctx    context.Context
 	client client.JobServiceClient
+}
+
+func NewJobService(ctx context.Context, conn *grpc.ClientConn) (JobService, error) {
+	if conn == nil {
+		return nil, fmt.Errorf(
+			"no gRPC connection was provided to start job service",
+		)
+	}
+
+	return &DefaultJobService{
+		ctx:    ctx,
+		client: go_client.NewJobServiceClient(conn),
+	}, nil
 }
 
 // CreateJob creates a job and returns the job result id.

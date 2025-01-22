@@ -15,20 +15,12 @@ func (m *MockJobService) CreateJob(rsd resource.RunScheduleDefinition,
 	experimentVersion string,
 ) (string, error) {
 	args := m.Called(rsd, pipelineId, pipelineVersionId, experimentVersion)
-	var res string
-	if args.Get(0) != nil {
-		res = args.String(0)
-	}
-	return res, args.Error(1)
+	return args.String(0), args.Error(1)
 }
 
 func (m *MockJobService) GetJob(id string) (string, error) {
 	args := m.Called(id)
-	var res string
-	if args.Get(0) != nil {
-		res = args.String(0)
-	}
-	return res, args.Error(1)
+	return args.String(0), args.Error(1)
 }
 
 func (m *MockJobService) DeleteJob(id string) error {
