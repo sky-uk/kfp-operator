@@ -142,7 +142,8 @@ func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider,
 	replicas := int32(config.DefaultProviderValues.Replicas)
 
 	podTemplate := config.DefaultProviderValues.PodTemplateSpec
-	podTemplate = populateMainContainer(*podTemplate.DeepCopy(), provider)
+	serviceContainerName := config.DefaultProviderValues.ServiceContainerName
+	podTemplate = populateServiceContainer(serviceContainerName, *podTemplate.DeepCopy(), provider)
 	podTemplate.Spec.ServiceAccountName = provider.Spec.ServiceAccount
 	podTemplate.ObjectMeta.Labels = pipelines.MapConcat(podTemplate.ObjectMeta.Labels, matchLabels)
 
@@ -175,10 +176,9 @@ func (r *ProviderReconciler) constructDeployment(provider *pipelinesv1.Provider,
 	return deployment, nil
 }
 
-func populateMainContainer(podTemplate v1.PodTemplateSpec, provider *pipelinesv1.Provider) v1.PodTemplateSpec {
-	targetContainer := "provider-service" //TODO: make configurable from config
+func populateServiceContainer(serviceContainerName string, podTemplate v1.PodTemplateSpec, provider *pipelinesv1.Provider) v1.PodTemplateSpec {
 	for i, container := range podTemplate.Spec.Containers {
-		if container.Name == targetContainer {
+		if container.Name == serviceContainerName {
 			podTemplate.Spec.Containers[i].Image = provider.Spec.ServiceImage
 			podTemplate.Spec.Containers[i].Env = append(podTemplate.Spec.Containers[i].Env, v1.EnvVar{
 				Name:  "PROVIDERNAME",

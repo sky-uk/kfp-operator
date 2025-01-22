@@ -30,9 +30,10 @@ type KfpControllerConfigSpec struct {
 }
 
 type DefaultProviderValues struct {
-	Labels          map[string]string  `json:"labels,omitempty"`
-	Replicas        int                `json:"replicas,omitempty"`
-	PodTemplateSpec v1.PodTemplateSpec `json:"podTemplateSpec,omitempty"`
+	Labels               map[string]string  `json:"labels,omitempty"`
+	Replicas             int                `json:"replicas,omitempty"`
+	PodTemplateSpec      v1.PodTemplateSpec `json:"podTemplateSpec,omitempty"`
+	ServiceContainerName string             `json:"serviceContainerName,omitempty"`
 }
 
 type ServiceConfiguration struct {

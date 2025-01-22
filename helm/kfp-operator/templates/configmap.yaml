@@ -26,6 +26,7 @@ data:
         endpoints: {{- if gt (len .Values.manager.runcompletionWebhook.endpoints) 0 }}{{- .Values.manager.runcompletionWebhook.endpoints | toYaml | nindent 8 }}{{ else }} []{{ end }}
       defaultProviderValues:
         replicas: {{ .Values.provider.replicas }}
+        serviceContainerName: provider-service
         podTemplateSpec:
           spec:
             volumes: {{- if .Values.provider.volumes }}{{- toYaml .Values.provider.volumes | nindent 12 }}{{ else }} []{{ end }}

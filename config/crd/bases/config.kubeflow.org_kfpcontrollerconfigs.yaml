@@ -7914,6 +7914,8 @@ spec:
                     type: object
                   replicas:
                     type: integer
+                  serviceContainerName:
+                    type: string
                 type: object
               multiversion:
                 type: boolean
