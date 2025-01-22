@@ -3,14 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
-	"net/url"
 
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 )
 
@@ -27,23 +24,17 @@ type DefaultPipelineService struct {
 
 func NewPipelineService(
 	ctx context.Context,
-	providerConfig config.KfpProviderConfig,
-) (*DefaultPipelineService, error) {
-	apiUrl, err := url.Parse(providerConfig.Parameters.RestKfpApiUrl)
-	if err != nil {
-		return nil, err
+	conn *grpc.ClientConn,
+) (PipelineService, error) {
+	if conn == nil {
+		return nil, fmt.Errorf(
+			"no gRPC connection was provided to start experiment service",
+		)
 	}
-
-	conn, err := grpc.NewClient(apiUrl.String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, err
-	}
-
-	client := go_client.NewPipelineServiceClient(conn)
 
 	return &DefaultPipelineService{
 		ctx:    ctx,
-		client: client,
+		client: go_client.NewPipelineServiceClient(conn),
 	}, nil
 }
 
