@@ -1,10 +1,7 @@
 package v1alpha6
 
 import (
-	"fmt"
-
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,16 +39,9 @@ type ProviderSpec struct {
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
 
-func (ps Provider) ComputeHash() []byte {
-	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(ps.Spec.ServiceImage)
-	return oh.Sum()
-}
-
 func (ps Provider) ComputeVersion() string {
-	hash := ps.ComputeHash()[0:3]
-
-	return fmt.Sprintf("%x", hash)
+	// Not used by Provider controller but required to satisfy Resource interface
+	return ""
 }
 
 func (p *Provider) GetStatus() Status {
