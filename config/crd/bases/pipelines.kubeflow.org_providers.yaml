@@ -204,15 +204,12 @@ spec:
                 type: string
               serviceImage:
                 type: string
-              type:
-                type: string
             required:
             - cliImage
             - executionMode
             - pipelineRootStorage
             - serviceAccount
             - serviceImage
-            - type
             type: object
           status:
             properties:

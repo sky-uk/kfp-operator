@@ -194,8 +194,6 @@ spec:
                 type: string
               serviceImage:
                 type: string
-              type:
-                type: string
               cliImage:
                 type: string
               parameters:
@@ -213,7 +211,6 @@ spec:
             - pipelineRootStorage
             - serviceAccount
             - serviceImage
-            - type
             type: object
           status:
             properties:

@@ -32,18 +32,15 @@ type ProviderList struct {
 }
 
 type ProviderSpec struct {
-	Type          ProviderType `json:"type" yaml:"type"`
-	ServiceImage  string       `json:"serviceImage" yaml:"serviceImage"`
-	CliImage      string       `json:"cliImage" yaml:"cliImage"`
-	ExecutionMode string       `json:"executionMode" yaml:"executionMode"`
+	ServiceImage  string `json:"serviceImage" yaml:"serviceImage"`
+	CliImage      string `json:"cliImage" yaml:"cliImage"`
+	ExecutionMode string `json:"executionMode" yaml:"executionMode"`
 	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	ServiceAccount      string                           `json:"serviceAccount" yaml:"serviceAccount"`
 	DefaultBeamArgs     []apis.NamedValue                `json:"defaultBeamArgs,omitempty" yaml:"defaultBeamArgs,omitempty"`
 	PipelineRootStorage string                           `json:"pipelineRootStorage" yaml:"pipelineRootStorage"`
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
-
-type ProviderType string
 
 func (ps Provider) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
