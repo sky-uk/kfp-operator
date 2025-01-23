@@ -71,17 +71,21 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
+	logger.Info("constructed desired provider deployment", "deployment", desiredDeployment)
+
 	existingDeployment, err := r.getDeployment(ctx, *provider)
 	if err != nil && !apierrors.IsNotFound(err) {
 		logger.Error(err, "unable to get existing deployment")
 		return ctrl.Result{}, err
 	}
 
-	logger.Info("desired provider deployment", "deployment", desiredDeployment)
-
 	if existingDeployment != nil {
 		logger.Info("found existing provider deployment", "deployment", existingDeployment)
 
+		if err := setResourceHashAnnotation(existingDeployment); err != nil {
+			logger.Error(err, "unable to set resource hash annotation on existing deployment")
+			return ctrl.Result{}, err
+		}
 		if deploymentIsOutOfSync(existingDeployment, desiredDeployment) {
 			logger.Info("resource hash mismatch, updating deployment")
 			existingDeployment = syncDeployment(existingDeployment, desiredDeployment)
