@@ -100,11 +100,11 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 		},
 		nil,
 	)
-
-	logger.Info("fetching experiments", "experiment name", experiment)
-
 	if err != nil {
 		return "", err
+	}
+	if experimentResult == nil {
+		return "", fmt.Errorf("Did not receive a ListExperimentsResponse")
 	}
 
 	numExperiments := len(experimentResult.Experiments)
