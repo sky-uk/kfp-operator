@@ -100,10 +100,14 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 		)
 		return "", fmt.Errorf("gRPC client is not initialized")
 	}
+	filter := *byNameFilter(experimentName)
+
+	logger.Info("filter is %s", filter)
+
 	experimentResult, err := es.client.ListExperiment(
 		es.ctx,
 		&go_client.ListExperimentsRequest{
-			Filter: *byNameFilter(experimentName),
+			Filter: filter,
 		},
 		nil,
 	)
