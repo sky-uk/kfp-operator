@@ -43,6 +43,7 @@ func NewExperimentService(
 	}, nil
 }
 
+// CreateExperiment creates an experiment and returns an experiment id
 func (es *DefaultExperimentService) CreateExperiment(
 	experiment common.NamespacedName,
 	description string,
@@ -68,6 +69,7 @@ func (es *DefaultExperimentService) CreateExperiment(
 	return result.Id, nil
 }
 
+// Delete Experiment deletes an experiment by experiment id
 func (es *DefaultExperimentService) DeleteExperiment(id string) error {
 	_, err := es.client.DeleteExperiment(
 		es.ctx,
