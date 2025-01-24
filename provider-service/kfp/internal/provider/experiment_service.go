@@ -85,10 +85,13 @@ func (es *DefaultExperimentService) DeleteExperiment(id string) error {
 func (es *DefaultExperimentService) ExperimentIdByName(
 	experiment common.NamespacedName,
 ) (string, error) {
+	logger := common.LoggerFromContext(es.ctx)
 	experimentName, err := util.ResourceNameFromNamespacedName(experiment)
 	if err != nil {
 		return "", err
 	}
+
+	logger.Info("fetching experiments", "experiment name", experiment)
 
 	experimentResult, err := es.client.ListExperiment(
 		es.ctx,
@@ -97,6 +100,9 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 		},
 		nil,
 	)
+
+	logger.Info("fetching experiments", "experiment name", experiment)
+
 	if err != nil {
 		return "", err
 	}
