@@ -102,7 +102,7 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 	}
 	filter := *byNameFilter(experimentName)
 
-	logger.Info("filter is %s", filter)
+	logger.Info("the filter is", "filter", filter)
 
 	experimentResult, err := es.client.ListExperiment(
 		es.ctx,
