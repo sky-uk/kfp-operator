@@ -16,14 +16,12 @@ type PipelineUploadService interface {
 	UploadPipeline(
 		content []byte,
 		pipelineName string,
-		filePath string,
 	) (string, error)
 
 	UploadPipelineVersion(
 		id string,
 		content []byte,
 		version string,
-		filePath string,
 	) error
 }
 
@@ -31,6 +29,8 @@ type DefaultPipelineUploadService struct {
 	ctx                   context.Context
 	pipelineUploadService client.PipelineUploadService
 }
+
+const uploadPipelineFilePath string = "resource.json"
 
 func NewPipelineUploadService(
 	ctx context.Context,
@@ -63,10 +63,9 @@ func NewPipelineUploadService(
 func (us *DefaultPipelineUploadService) UploadPipeline(
 	content []byte,
 	pipelineName string,
-	pipelineFilePath string,
 ) (string, error) {
 	reader := bytes.NewReader(content)
-	uploadFile := runtime.NamedReader(pipelineFilePath, reader)
+	uploadFile := runtime.NamedReader(uploadPipelineFilePath, reader)
 	result, err := us.pipelineUploadService.UploadPipeline(
 		&pipeline_upload_service.UploadPipelineParams{
 			Name:       &pipelineName,
@@ -86,10 +85,9 @@ func (us *DefaultPipelineUploadService) UploadPipelineVersion(
 	id string,
 	content []byte,
 	version string,
-	pipelineFilePath string,
 ) error {
 	reader := bytes.NewReader(content)
-	uploadFile := runtime.NamedReader(pipelineFilePath, reader)
+	uploadFile := runtime.NamedReader(uploadPipelineFilePath, reader)
 	_, err := us.pipelineUploadService.UploadPipelineVersion(
 		&pipeline_upload_service.UploadPipelineVersionParams{
 			Name:       &version,

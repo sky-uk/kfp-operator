@@ -20,10 +20,9 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 		mockPipelineUploadServiceClient mocks.MockPipelineUploadServiceClient
 		pipelineUploadService           DefaultPipelineUploadService
 
-		content          = []byte{86}
-		pipelineName     = "pipeline-name"
-		pipelineFilePath = "pipeline-file-path"
-		uploadFile       = runtime.NamedReader(pipelineFilePath, bytes.NewReader(content))
+		content      = []byte{86}
+		pipelineName = "pipeline-name"
+		uploadFile   = runtime.NamedReader(uploadPipelineFilePath, bytes.NewReader(content))
 	)
 
 	BeforeEach(func() {
@@ -57,7 +56,6 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 				result, err := pipelineUploadService.UploadPipeline(
 					content,
 					pipelineName,
-					pipelineFilePath,
 				)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -79,7 +77,6 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 				result, err := pipelineUploadService.UploadPipeline(
 					content,
 					pipelineName,
-					pipelineFilePath,
 				)
 
 				Expect(err).To(HaveOccurred())
@@ -114,7 +111,6 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					id,
 					content,
 					version,
-					pipelineFilePath,
 				)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -137,7 +133,6 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					id,
 					content,
 					version,
-					pipelineFilePath,
 				)
 
 				Expect(err).To(HaveOccurred())

@@ -83,7 +83,6 @@ func (kfpp *KfpProvider) CreatePipeline(
 	pipelineId, err := kfpp.pipelineUploadService.UploadPipeline(
 		pdw.CompiledPipeline,
 		pipelineName,
-		"resource.json",
 	)
 	if err != nil {
 		return "", err
@@ -102,7 +101,6 @@ func (kfpp *KfpProvider) UpdatePipeline(
 		id,
 		pdw.CompiledPipeline,
 		pdw.PipelineDefinition.Version,
-		"resource.json",
 	); err != nil {
 		return "", err
 	}
