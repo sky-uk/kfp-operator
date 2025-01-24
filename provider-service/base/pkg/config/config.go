@@ -41,10 +41,10 @@ func LoadConfig(ctx context.Context) (*Config, error) {
 }
 
 func load() (*Config, error) {
-	err := initConfig()
-	if err != nil {
+	if err := initConfig(); err != nil {
 		return nil, fmt.Errorf("failed to initialise viper config %w", err)
 	}
+
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
 
@@ -60,14 +60,16 @@ func load() (*Config, error) {
 func initConfig() error {
 	var config Config
 	viper.SetConfigType("json")
+
 	jsonBytes, err := json.Marshal(config)
 	if err != nil {
 		return err
 	}
+
 	reader := bytes.NewReader(jsonBytes)
-	err = viper.ReadConfig(reader)
-	if err != nil {
+	if err = viper.ReadConfig(reader); err != nil {
 		return err
 	}
+
 	return nil
 }

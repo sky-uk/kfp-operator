@@ -64,6 +64,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		logger.Error(err, "unable to construct provider deployment")
 		return ctrl.Result{}, err
 	}
+
 	if err := ctrl.SetControllerReference(provider, desiredDeployment, r.Scheme); err != nil {
 		logger.Error(err, "unable to set controller reference on deployment")
 		return ctrl.Result{}, err
@@ -84,6 +85,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			logger.Error(err, "unable to set resource hash annotation on existing deployment")
 			return ctrl.Result{}, err
 		}
+
 		if deploymentIsOutOfSync(existingDeployment, desiredDeployment) {
 			logger.Info("resource hash mismatch, updating deployment")
 			existingDeployment = syncDeployment(existingDeployment, desiredDeployment)
@@ -168,8 +170,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate v1.PodTem
 
 func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
 	hasher := NewObjectHasher()
-	err := hasher.WriteObject(deployment)
-	if err != nil {
+	if err := hasher.WriteObject(deployment); err != nil {
 		return err
 	}
 
@@ -183,10 +184,9 @@ func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
 
 func (r *ProviderReconciler) getDeployment(ctx context.Context, provider pipelinesv1.Provider) (*appsv1.Deployment, error) {
 	dl := &appsv1.DeploymentList{}
-	err := r.EC.Client.NonCached.List(ctx, dl, &client.ListOptions{
+	if err := r.EC.Client.NonCached.List(ctx, dl, &client.ListOptions{
 		Namespace: provider.Namespace,
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
 
