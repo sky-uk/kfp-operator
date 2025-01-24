@@ -73,23 +73,23 @@ func NewKfpProvider(
 func (kfpp *KfpProvider) CreatePipeline(
 	pdw baseResource.PipelineDefinitionWrapper,
 ) (string, error) {
-	pipelineId, err := pdw.PipelineDefinition.Name.String()
+	pipelineName, err := pdw.PipelineDefinition.Name.String()
 	if err != nil {
 		return "", err
 	}
 
 	//TODO: What should filePath be here???
 	// it's not set anywhere so maybe it should just empty string
-	result, err := kfpp.pipelineUploadService.UploadPipeline(
+	pipelineId, err := kfpp.pipelineUploadService.UploadPipeline(
 		pdw.CompiledPipeline,
-		pipelineId,
+		pipelineName,
 		"resource.json",
 	)
 	if err != nil {
 		return "", err
 	}
 
-	return kfpp.UpdatePipeline(pdw, result)
+	return kfpp.UpdatePipeline(pdw, pipelineId)
 }
 
 func (kfpp *KfpProvider) UpdatePipeline(

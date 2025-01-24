@@ -56,7 +56,10 @@ func NewPipelineUploadService(
 	}, nil
 }
 
-// UploadPipeline writes the ??? from ??? and returns the upload result payload ID.
+// UploadPipeline uploads the compiled pipeline content and returns the upload
+// result payload ID - which represents the generated pipeline id.
+// pipelineFilePath file extension and content data time must align and be
+// recognized by pipeline_upload_service.
 func (us *DefaultPipelineUploadService) UploadPipeline(
 	content []byte,
 	pipelineName string,
