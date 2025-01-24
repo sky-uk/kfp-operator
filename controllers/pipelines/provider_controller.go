@@ -208,6 +208,9 @@ func syncDeployment(existingDeployment, desiredDeployment *appsv1.Deployment) *a
 
 	syncedDeployment.Spec = desiredDeployment.Spec
 	syncedDeployment.SetLabels(desiredDeployment.Labels)
+	if syncedDeployment.Annotations == nil {
+		syncedDeployment.Annotations = make(map[string]string)
+	}
 	syncedDeployment.Annotations[ResourceHashAnnotation] = desiredDeployment.Annotations[ResourceHashAnnotation]
 
 	return syncedDeployment

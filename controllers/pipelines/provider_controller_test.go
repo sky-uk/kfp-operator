@@ -97,4 +97,78 @@ var _ = Context("Provider Controller", func() {
 			Expect(actualDeployment.ObjectMeta).To(Equal(expectedDeployment.ObjectMeta))
 		})
 	})
+
+	var _ = Describe("syncDeployment", func() {
+		Specify("Should update the existing Deployment to match the desired Deployment, but leave the Status unchanged", func() {
+			existingDeployment := appsv1.Deployment{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Deployment",
+					APIVersion: "apps/v1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"replace-me": "this-label-has-no-place-here",
+					},
+				},
+				Spec: appsv1.DeploymentSpec{
+					Template: v1.PodTemplateSpec{
+						Spec: v1.PodSpec{
+							Containers: []v1.Container{
+								{
+									Name:  "container",
+									Image: "unwanted-image",
+								},
+							},
+						},
+					},
+				},
+				Status: appsv1.DeploymentStatus{
+					Conditions: []appsv1.DeploymentCondition{
+						{
+							Type:   appsv1.DeploymentProgressing,
+							Status: v1.ConditionTrue,
+						},
+						{
+							Type:   appsv1.DeploymentAvailable,
+							Status: v1.ConditionTrue,
+						},
+					},
+					CollisionCount: new(int32),
+				},
+			}
+
+			desiredDeployment := appsv1.Deployment{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "Deployment",
+					APIVersion: "apps/v1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"proper-label": "this-is-the-right-label",
+					},
+				},
+				Spec: appsv1.DeploymentSpec{
+					Template: v1.PodTemplateSpec{
+						Spec: v1.PodSpec{
+							Containers: []v1.Container{
+								{
+									Name:  "container",
+									Image: "correct-image",
+								},
+							},
+						},
+					},
+				},
+				Status: appsv1.DeploymentStatus{},
+			}
+			setResourceHashAnnotation(&desiredDeployment)
+
+			syncedDeployment := syncDeployment(&existingDeployment, &desiredDeployment)
+
+			Expect(syncedDeployment.Spec).To(Equal(desiredDeployment.Spec))
+			Expect(syncedDeployment.Labels).To(Equal(desiredDeployment.Labels))
+			Expect(syncedDeployment.Annotations[ResourceHashAnnotation]).To(Equal(desiredDeployment.Annotations[ResourceHashAnnotation]))
+			Expect(syncedDeployment.Status).To(Equal(existingDeployment.Status))
+		})
+	})
 })
