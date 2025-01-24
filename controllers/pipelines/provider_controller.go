@@ -64,10 +64,11 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	desiredDeployment, err := constructDeployment(provider, *r.Config.DeepCopy())
 	if err != nil {
-		logger.Error(err, "unable to construct provider service deployment")
+		logger.Error(err, "unable to construct provider deployment")
 		return ctrl.Result{}, err
 	}
 	if err := ctrl.SetControllerReference(provider, desiredDeployment, r.Scheme); err != nil {
+		logger.Error(err, "unable to set controller reference on deployment")
 		return ctrl.Result{}, err
 	}
 
