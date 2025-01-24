@@ -104,6 +104,10 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 		return "", err
 	}
 	if experimentResult == nil {
+		logger.Error(
+			fmt.Errorf("Did not receive a ListExperimentsResponse"),
+			"no ListExperimentsResponse",
+		)
 		return "", fmt.Errorf("Did not receive a ListExperimentsResponse")
 	}
 
