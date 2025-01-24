@@ -24,7 +24,6 @@ import (
 )
 
 const (
-	OwnerNameLabel         = "owner-name"
 	AppLabel               = "app"
 	ResourceHashAnnotation = "resource-hash"
 )
@@ -120,8 +119,7 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func constructDeployment(provider *pipelinesv1.Provider, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
 	matchLabels := map[string]string{AppLabel: fmt.Sprintf("provider-%s", provider.Name)}
-	ownerLabels := map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", provider.Name)}
-	deploymentLabels := MapConcat(MapConcat(config.DefaultProviderValues.Labels, matchLabels), ownerLabels)
+	deploymentLabels := MapConcat(config.DefaultProviderValues.Labels, matchLabels)
 	replicas := int32(config.DefaultProviderValues.Replicas)
 
 	podTemplate := config.DefaultProviderValues.PodTemplateSpec
@@ -187,23 +185,19 @@ func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
 func (r *ProviderReconciler) getDeployment(ctx context.Context, provider pipelinesv1.Provider) (*appsv1.Deployment, error) {
 	dl := &appsv1.DeploymentList{}
 	err := r.EC.Client.NonCached.List(ctx, dl, &client.ListOptions{
-		Namespace:     provider.Namespace,
-		LabelSelector: labelSelector(map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", provider.Name)}),
+		Namespace: provider.Namespace,
 	})
-
 	if err != nil {
 		return nil, err
 	}
+
 	for _, deploy := range dl.Items {
 		if metav1.IsControlledBy(&deploy, &provider) {
 			return &deploy, nil
 		}
 	}
-	return nil, apierrors.NewNotFound(schema.GroupResource{}, "")
-}
 
-func labelSelector(labelMap map[string]string) labels.Selector {
-	return labels.SelectorFromSet(labelMap)
+	return nil, apierrors.NewNotFound(schema.GroupResource{}, "")
 }
 
 func deploymentIsOutOfSync(existingDeployment, desiredDeployment *appsv1.Deployment) bool {

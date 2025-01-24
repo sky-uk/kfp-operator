@@ -52,8 +52,7 @@ var _ = Context("Provider Controller", func() {
 					GenerateName: "provider-my-provider-",
 					Namespace:    provider.Namespace,
 					Labels: map[string]string{
-						"app":        "provider-my-provider",
-						"owner-name": "provider-my-provider",
+						"app": "provider-my-provider",
 					},
 				},
 				Spec: appsv1.DeploymentSpec{
