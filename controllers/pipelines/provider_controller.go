@@ -6,7 +6,6 @@ import (
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -163,6 +162,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate v1.PodTem
 				Value: provider.Name,
 			})
 		}
+		break
 	}
 	return podTemplate
 }
