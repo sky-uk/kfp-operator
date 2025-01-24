@@ -114,7 +114,7 @@ func (ps *DefaultPipelineService) PipelineVersionIdForName(
 // https://github.com/kubeflow/pipelines/blob/master/backend/api/v1beta1/filter.proto
 func byNameFilter(name string) *string {
 	filter := fmt.Sprintf(
-		`{"predicates": [{"op": EQUALS, "key": "name", "string_value": "%s"}]}`,
+		`{"predicates": [{"op": "EQUALS", "key": "name", "string_value": "%s"}]}`,
 		name,
 	)
 	return &filter
