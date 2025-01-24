@@ -104,6 +104,17 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 
 	logger.Info("the filter is", "filter", filter)
 
+	logger.Info("listing ALL experiments first...")
+
+	checkEmptyList, err := es.client.ListExperiment(
+		es.ctx,
+		&go_client.ListExperimentsRequest{},
+		nil,
+	)
+	if checkEmptyList != nil {
+		logger.Info("experiments are", "experiments", checkEmptyList.Experiments)
+	}
+
 	experimentResult, err := es.client.ListExperiment(
 		es.ctx,
 		&go_client.ListExperimentsRequest{
