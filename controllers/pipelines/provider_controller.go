@@ -118,7 +118,8 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func constructDeployment(provider *pipelinesv1.Provider, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
-	matchLabels := map[string]string{AppLabel: fmt.Sprintf("provider-%s", provider.Name)}
+	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
+	matchLabels := map[string]string{AppLabel: prefixedProviderName}
 	deploymentLabels := MapConcat(config.DefaultProviderValues.Labels, matchLabels)
 	replicas := int32(config.DefaultProviderValues.Replicas)
 
@@ -134,7 +135,7 @@ func constructDeployment(provider *pipelinesv1.Provider, config config.KfpContro
 			APIVersion: "apps/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: fmt.Sprintf("provider-%s-", provider.Name),
+			GenerateName: fmt.Sprintf("%s-", prefixedProviderName),
 			Namespace:    provider.Namespace,
 			Labels:       deploymentLabels,
 		},
