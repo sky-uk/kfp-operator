@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	. "github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	appsv1 "k8s.io/api/apps/v1"
@@ -121,14 +121,14 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func constructDeployment(provider *pipelinesv1.Provider, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
 	matchLabels := map[string]string{AppLabel: fmt.Sprintf("provider-%s", provider.Name)}
 	ownerLabels := map[string]string{OwnerNameLabel: fmt.Sprintf("provider-%s", provider.Name)}
-	deploymentLabels := pipelines.MapConcat(pipelines.MapConcat(config.DefaultProviderValues.Labels, matchLabels), ownerLabels)
+	deploymentLabels := MapConcat(MapConcat(config.DefaultProviderValues.Labels, matchLabels), ownerLabels)
 	replicas := int32(config.DefaultProviderValues.Replicas)
 
 	podTemplate := config.DefaultProviderValues.PodTemplateSpec
 	serviceContainerName := config.DefaultProviderValues.ServiceContainerName
 	podTemplate = populateServiceContainer(serviceContainerName, *podTemplate.DeepCopy(), provider)
 	podTemplate.Spec.ServiceAccountName = provider.Spec.ServiceAccount
-	podTemplate.ObjectMeta.Labels = pipelines.MapConcat(podTemplate.ObjectMeta.Labels, matchLabels)
+	podTemplate.ObjectMeta.Labels = MapConcat(podTemplate.ObjectMeta.Labels, matchLabels)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -170,7 +170,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate v1.PodTem
 }
 
 func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
-	hasher := pipelines.NewObjectHasher()
+	hasher := NewObjectHasher()
 	err := hasher.WriteObject(deployment)
 	if err != nil {
 		return err
