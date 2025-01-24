@@ -93,6 +93,13 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 
 	logger.Info("fetching experiments", "experiment name", experiment)
 
+	if es.client == nil {
+		logger.Error(
+			fmt.Errorf("gRPC client is not initialized"),
+			"no gRPC client",
+		)
+		return "", fmt.Errorf("gRPC client is not initialized")
+	}
 	experimentResult, err := es.client.ListExperiment(
 		es.ctx,
 		&go_client.ListExperimentsRequest{
@@ -101,6 +108,7 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 		nil,
 	)
 	if err != nil {
+		logger.Error(err, "failed to fetch experiments")
 		return "", err
 	}
 	if experimentResult == nil {
