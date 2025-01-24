@@ -136,8 +136,8 @@ var _ = Describe("Provider", func() {
 
 		Context("CreatePipeline", func() {
 			It("should return id if pipeline is created", func() {
-				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr, "").Return(id, nil)
-				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version, "").Return(nil)
+				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr, "resource.json").Return(id, nil)
+				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version, "resource.json").Return(nil)
 				result, err := provider.CreatePipeline(pdw)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -155,7 +155,7 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if UploadPipeline fails", func() {
 				expectedErr := errors.New("failed")
-				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr, "").Return("", expectedErr)
+				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr, "resource.json").Return("", expectedErr)
 				result, err := provider.CreatePipeline(pdw)
 
 				Expect(err).To(Equal(expectedErr))
@@ -164,8 +164,8 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if UpdatePipelineVersion fails", func() {
 				expectedErr := errors.New("failed")
-				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr, "").Return(id, nil)
-				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version, "").Return(expectedErr)
+				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr, "resource.json").Return(id, nil)
+				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version, "resource.json").Return(expectedErr)
 				result, err := provider.CreatePipeline(pdw)
 
 				Expect(err).To(Equal(expectedErr))
@@ -175,7 +175,7 @@ var _ = Describe("Provider", func() {
 
 		Context("UpdatePipeline", func() {
 			It("should return id if pipeline is updated", func() {
-				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version, "").Return(nil)
+				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version, "resource.json").Return(nil)
 				result, err := provider.UpdatePipeline(pdw, id)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -185,7 +185,7 @@ var _ = Describe("Provider", func() {
 			When("pipeline upload service errors", func() {
 				It("should return empty id and err", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version, "").Return(expectedErr)
+					mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version, "resource.json").Return(expectedErr)
 					result, err := provider.UpdatePipeline(pdw, id)
 
 					Expect(err).To(Equal(expectedErr))
