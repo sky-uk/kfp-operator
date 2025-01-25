@@ -125,8 +125,11 @@ func constructDeployment(provider *pipelinesv1.Provider, config config.KfpContro
 	replicas := int32(config.DefaultProviderValues.Replicas)
 
 	podTemplate := config.DefaultProviderValues.PodTemplateSpec
-	serviceContainerName := config.DefaultProviderValues.ServiceContainerName
-	podTemplate = populateServiceContainer(serviceContainerName, *podTemplate.DeepCopy(), provider)
+	populatedPodTemplate, err := populateServiceContainer(config.DefaultProviderValues.ServiceContainerName, *podTemplate.DeepCopy(), provider)
+	if err != nil {
+		return nil, err
+	}
+	podTemplate = *populatedPodTemplate
 	podTemplate.Spec.ServiceAccountName = provider.Spec.ServiceAccount
 	podTemplate.ObjectMeta.Labels = MapConcat(podTemplate.ObjectMeta.Labels, matchLabels)
 
@@ -156,18 +159,26 @@ func constructDeployment(provider *pipelinesv1.Provider, config config.KfpContro
 	return deployment, nil
 }
 
-func populateServiceContainer(serviceContainerName string, podTemplate v1.PodTemplateSpec, provider *pipelinesv1.Provider) v1.PodTemplateSpec {
-	for i, container := range podTemplate.Spec.Containers {
-		if container.Name == serviceContainerName {
-			podTemplate.Spec.Containers[i].Image = provider.Spec.ServiceImage
-			podTemplate.Spec.Containers[i].Env = append(podTemplate.Spec.Containers[i].Env, v1.EnvVar{
+func populateServiceContainer(serviceContainerName string, podTemplate v1.PodTemplateSpec, provider *pipelinesv1.Provider) (*v1.PodTemplateSpec, error) {
+	if !Exists(podTemplate.Spec.Containers, func(c v1.Container) bool {
+		return c.Name == serviceContainerName
+	}) {
+
+		return nil, fmt.Errorf("unable to populate service container: container with name %s not found on deployment", serviceContainerName)
+	}
+
+	podTemplate.Spec.Containers = Map(podTemplate.Spec.Containers, func(c v1.Container) v1.Container {
+		if c.Name == serviceContainerName {
+			c.Image = provider.Spec.ServiceImage
+			c.Env = append(c.Env, v1.EnvVar{
 				Name:  "PROVIDERNAME",
 				Value: provider.Name,
 			})
 		}
-		break
-	}
-	return podTemplate
+		return c
+	})
+
+	return &podTemplate, nil
 }
 
 func setResourceHashAnnotation(deployment *appsv1.Deployment) error {

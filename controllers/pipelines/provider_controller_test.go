@@ -96,6 +96,37 @@ var _ = Context("Provider Controller", func() {
 			Expect(actualDeployment.Spec.Template.Spec.Containers).To(Equal(expectedDeployment.Spec.Template.Spec.Containers))
 			Expect(actualDeployment.ObjectMeta).To(Equal(expectedDeployment.ObjectMeta))
 		})
+
+		Specify("Should error if the specified service container name doesn't match any containers on the deployment", func() {
+			config := config.KfpControllerConfigSpec{
+				DefaultProviderValues: config.DefaultProviderValues{
+					ServiceContainerName: "wrong-container-name",
+					PodTemplateSpec: v1.PodTemplateSpec{
+						ObjectMeta: metav1.ObjectMeta{},
+						Spec: v1.PodSpec{
+							Containers: []v1.Container{
+								{
+									Name: "correct-container-name",
+								},
+							},
+						},
+					},
+				},
+			}
+
+			provider := pipelinesv1.Provider{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "my-provider",
+					Namespace: "my-ns",
+				},
+				Spec: pipelinesv1.ProviderSpec{
+					ServiceImage: "image",
+				},
+			}
+
+			_, err := constructDeployment(&provider, config)
+			Expect(err).To(HaveOccurred())
+		})
 	})
 
 	var _ = Describe("syncDeployment", func() {
