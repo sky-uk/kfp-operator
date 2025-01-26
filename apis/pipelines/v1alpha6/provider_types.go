@@ -30,7 +30,7 @@ type ProviderList struct {
 
 type ProviderSpec struct {
 	ServiceImage  string `json:"serviceImage" yaml:"serviceImage"`
-	CliImage      string `json:"cliImage" yaml:"cliImage"`
+	Image         string `json:"image" yaml:"image"`
 	ExecutionMode string `json:"executionMode" yaml:"executionMode"`
 	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	ServiceAccount      string                           `json:"serviceAccount" yaml:"serviceAccount"`

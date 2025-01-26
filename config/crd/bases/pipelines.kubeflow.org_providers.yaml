@@ -177,8 +177,6 @@ spec:
             type: object
           spec:
             properties:
-              cliImage:
-                type: string
               defaultBeamArgs:
                 items:
                   properties:
@@ -193,6 +191,8 @@ spec:
                 type: array
               executionMode:
                 type: string
+              image:
+                type: string
               parameters:
                 additionalProperties:
                   x-kubernetes-preserve-unknown-fields: true
@@ -205,8 +205,8 @@ spec:
               serviceImage:
                 type: string
             required:
-            - cliImage
             - executionMode
+            - image
             - pipelineRootStorage
             - serviceAccount
             - serviceImage

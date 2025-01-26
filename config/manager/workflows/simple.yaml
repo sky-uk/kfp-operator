@@ -115,7 +115,7 @@ spec:
         arguments:
           parameters:
           - name: field
-            value: cliImage
+            value: image
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
     - - name: select-provider-sa
@@ -173,7 +173,7 @@ spec:
         arguments:
           parameters:
           - name: field
-            value: cliImage
+            value: image
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
     - - name: select-provider-sa

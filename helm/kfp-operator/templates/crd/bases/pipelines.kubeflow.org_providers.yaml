@@ -194,7 +194,7 @@ spec:
                 type: string
               serviceImage:
                 type: string
-              cliImage:
+              image:
                 type: string
               parameters:
                 additionalProperties:
@@ -206,8 +206,8 @@ spec:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                 type: string
             required:
-            - cliImage
             - executionMode
+            - image
             - pipelineRootStorage
             - serviceAccount
             - serviceImage
