@@ -103,12 +103,10 @@ var _ = Describe("Provider", func() {
 					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
 					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
 					mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return("", expectedErr)
-					// the empty string is passed in as the experiment version/id in CreateRun
-					mockRunService.On("CreateRun", rd, pipelineId, pipelineVersionId, "").Return(runId, nil)
 					result, err := provider.CreateRun(rd)
 
-					Expect(err).ToNot(HaveOccurred())
-					Expect(result).To(Equal(runId))
+					Expect(err).To(HaveOccurred())
+					Expect(result).To(BeEmpty())
 				})
 			})
 
