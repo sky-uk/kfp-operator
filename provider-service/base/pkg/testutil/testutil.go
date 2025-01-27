@@ -1,3 +1,4 @@
+//go:build decoupled || unit
 package testutil
 
 import (

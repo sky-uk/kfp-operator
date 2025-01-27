@@ -20,7 +20,7 @@ type RunService interface {
 		rd baseResource.RunDefinition,
 		pipelineId string,
 		pipelineVersionId string,
-		experimentVersion string,
+		experimentId string,
 	) (string, error)
 }
 
@@ -45,11 +45,12 @@ func NewRunService(
 	}, nil
 }
 
+// CreateRun creates a run and returns the generated run id.
 func (drs DefaultRunService) CreateRun(
 	rd baseResource.RunDefinition,
 	pipelineId string,
 	pipelineVersionId string,
-	experimentVersion string,
+	experimentId string,
 ) (string, error) {
 	jobParameters := make([]*go_client.Parameter, 0, len(rd.RuntimeParameters))
 	for name, value := range rd.RuntimeParameters {
@@ -88,7 +89,7 @@ func (drs DefaultRunService) CreateRun(
 				{
 					Key: &go_client.ResourceKey{
 						Type: go_client.ResourceType_EXPERIMENT,
-						Id:   experimentVersion,
+						Id:   experimentId,
 					},
 					Relationship: go_client.Relationship_OWNER,
 				},

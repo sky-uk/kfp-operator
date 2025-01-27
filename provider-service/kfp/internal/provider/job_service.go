@@ -23,7 +23,7 @@ type JobService interface {
 		rsd baseResource.RunScheduleDefinition,
 		pipelineId string,
 		pipelineVersionId string,
-		experimentVersion string,
+		experimentId string,
 	) (string, error)
 	GetJob(id string) (string, error)
 	DeleteJob(id string) error
@@ -52,7 +52,7 @@ func (js *DefaultJobService) CreateJob(
 	rsd baseResource.RunScheduleDefinition,
 	pipelineId string,
 	pipelineVersionId string,
-	experimentVersion string,
+	experimentId string,
 ) (string, error) {
 	// needed to write metadata of the job as no other field is possible
 	runScheduleAsDescription, err := yaml.Marshal(resource.References{
@@ -97,7 +97,7 @@ func (js *DefaultJobService) CreateJob(
 				{
 					Key: &go_client.ResourceKey{
 						Type: go_client.ResourceType_EXPERIMENT,
-						Id:   experimentVersion,
+						Id:   experimentId,
 					},
 					Relationship: go_client.Relationship_OWNER,
 				},
@@ -134,6 +134,7 @@ func (js *DefaultJobService) GetJob(id string) (string, error) {
 	return job.Description, nil
 }
 
+// DeleteJob deletes a job by job id. Does not error if there is no such job id.
 func (js *DefaultJobService) DeleteJob(id string) error {
 	_, err := js.client.DeleteJob(js.ctx, &go_client.DeleteJobRequest{Id: id})
 	if err != nil {

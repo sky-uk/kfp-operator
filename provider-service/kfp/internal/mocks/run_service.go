@@ -13,8 +13,8 @@ func (m *MockRunService) CreateRun(
 	rd resource.RunDefinition,
 	pipelineId string,
 	pipelineVersionId string,
-	experimentVersion string,
+	experimentId string,
 ) (string, error) {
-	args := m.Called(rd, pipelineId, pipelineVersionId, experimentVersion)
+	args := m.Called(rd, pipelineId, pipelineVersionId, experimentId)
 	return args.String(0), args.Error(1)
 }
