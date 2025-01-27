@@ -20,7 +20,7 @@ func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(p.Ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
-		logger.Error(err, "Create failed to unmarshal PipelineDefinitionWrapper")
+		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while creating Pipeline")
 		return ResponseBody{}, &UserError{err}
 	}
 
@@ -40,7 +40,7 @@ func (p *Pipeline) Update(id string, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(p.Ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
-		logger.Error(err, "Update failed to unmarshal PipelineDefinitionWrapper")
+		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while updating Pipeline")
 		return ResponseBody{}, &UserError{err}
 	}
 

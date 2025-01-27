@@ -20,7 +20,7 @@ func (e *Experiment) Create(body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(e.Ctx)
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
-		logger.Error(err, "Create failed to unmarshal ExperimentDefinition")
+		logger.Error(err, "Failed to unmarshal ExperimentDefinition while creating Experiment")
 		return ResponseBody{}, &UserError{err}
 	}
 
@@ -40,7 +40,7 @@ func (e *Experiment) Update(id string, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(e.Ctx)
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
-		logger.Error(err, "Update failed to unmarshal ExperimentDefinition")
+		logger.Error(err, "Failed to unmarshal ExperimentDefinition while updating Experiment")
 		return ResponseBody{}, &UserError{err}
 	}
 

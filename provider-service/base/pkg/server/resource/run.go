@@ -21,7 +21,7 @@ func (r *Run) Create(body []byte) (ResponseBody, error) {
 	rd := RunDefinition{}
 
 	if err := json.Unmarshal(body, &rd); err != nil {
-		logger.Error(err, "Create failed to unmarshal RunDefinition")
+		logger.Error(err, "Failed to unmarshal RunDefinition while creating Run")
 		return ResponseBody{}, &UserError{err}
 	}
 

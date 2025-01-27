@@ -20,7 +20,7 @@ func (rs *RunSchedule) Create(body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(rs.Ctx)
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
-		logger.Error(err, "Create failed to unmarshal RunScheduleDefinition")
+		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while creating RunSchedule")
 		return ResponseBody{}, &UserError{err}
 	}
 
@@ -40,7 +40,7 @@ func (rs *RunSchedule) Update(id string, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(rs.Ctx)
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
-		logger.Error(err, "Update failed to unmarshal RunScheduleDefinition")
+		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while updating RunSchedule")
 		return ResponseBody{}, &UserError{err}
 	}
 
