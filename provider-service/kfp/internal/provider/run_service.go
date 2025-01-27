@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	baseResource "github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
@@ -53,6 +55,11 @@ func (drs DefaultRunService) CreateRun(
 	for name, value := range rd.RuntimeParameters {
 		jobParameters = append(jobParameters, &go_client.Parameter{Name: name, Value: value})
 	}
+	// Sort the parameters by name for consistent ordering
+	// Soley for making testing easier.
+	sort.Slice(jobParameters, func(i, j int) bool {
+		return jobParameters[i].Name < jobParameters[j].Name
+	})
 
 	runAsDescription, err := yaml.Marshal(resource.References{
 		RunName:              rd.Name,
