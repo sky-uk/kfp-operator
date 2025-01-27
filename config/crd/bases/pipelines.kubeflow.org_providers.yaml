@@ -139,6 +139,15 @@ spec:
                   - type
                   type: object
                 type: array
+              observedGeneration:
+                format: int64
+                type: integer
+              providerId:
+                type: string
+              synchronizationState:
+                type: string
+              version:
+                type: string
             type: object
         type: object
         x-kubernetes-preserve-unknown-fields: true
@@ -147,7 +156,7 @@ spec:
     subresources:
       status: {}
   - additionalPrinterColumns:
-    - jsonPath: .status.conditions[?(@.type == 'Synchronized')].reason
+    - jsonPath: .status.synchronizationState
       name: SynchronizationState
       type: string
     name: v1alpha6
@@ -168,6 +177,8 @@ spec:
             type: object
           spec:
             properties:
+              cliImage:
+                type: string
               defaultBeamArgs:
                 items:
                   properties:
@@ -182,8 +193,6 @@ spec:
                 type: array
               executionMode:
                 type: string
-              image:
-                type: string
               parameters:
                 additionalProperties:
                   x-kubernetes-preserve-unknown-fields: true
@@ -193,11 +202,17 @@ spec:
               serviceAccount:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                 type: string
+              serviceImage:
+                type: string
+              type:
+                type: string
             required:
+            - cliImage
             - executionMode
-            - image
             - pipelineRootStorage
             - serviceAccount
+            - serviceImage
+            - type
             type: object
           status:
             properties:
@@ -269,6 +284,20 @@ spec:
                   - type
                   type: object
                 type: array
+              observedGeneration:
+                format: int64
+                type: integer
+              provider:
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                type: object
+              synchronizationState:
+                type: string
+              version:
+                type: string
             type: object
         type: object
         x-kubernetes-preserve-unknown-fields: true

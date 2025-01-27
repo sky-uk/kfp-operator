@@ -12,8 +12,9 @@ import (
 )
 
 type ResourceTestHelper[R pipelinesv1.Resource] struct {
-	WorkflowTestHelper[R]
 	Resource R
+	WorkflowTestHelper[R]
+	DeploymentTestHelper[R]
 }
 
 func Create[R pipelinesv1.Resource](resource R) ResourceTestHelper[R] {
@@ -22,6 +23,9 @@ func Create[R pipelinesv1.Resource](resource R) ResourceTestHelper[R] {
 	return ResourceTestHelper[R]{
 		Resource: resource,
 		WorkflowTestHelper: WorkflowTestHelper[R]{
+			Resource: resource,
+		},
+		DeploymentTestHelper: DeploymentTestHelper[R]{
 			Resource: resource,
 		},
 	}

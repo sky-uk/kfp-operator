@@ -14,11 +14,11 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: manager-providers-viewer-rolebinding
+  name: manager-deployments-manager-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: providers-viewer-role
+  name: deployment-manager-role
 subjects:
   - kind: ServiceAccount
     name: controller-manager

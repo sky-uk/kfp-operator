@@ -4,6 +4,7 @@ package pipelines
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -16,11 +17,13 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/external"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -48,6 +51,7 @@ var _ = BeforeSuite(func() {
 		},
 	}
 
+	ctrl.SetLogger(zap.New(zap.WriteTo(os.Stdout), zap.UseDevMode(true)))
 	cfg, err := testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
@@ -93,6 +97,19 @@ var _ = BeforeSuite(func() {
 		WorkflowNamespace: "default",
 		DefaultProvider:   apis.RandomLowercaseString(),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
+		DefaultProviderValues: config.DefaultProviderValues{
+			Replicas: 1,
+			PodTemplateSpec: v1.PodTemplateSpec{
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							// TODO: the container name should be coming from config (currently hardcoded in production code)
+							Name: "provider-service",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	Expect(NewPipelineReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
@@ -100,13 +117,9 @@ var _ = BeforeSuite(func() {
 	Expect(NewRunConfigurationReconciler(ec, k8sManager.GetScheme(), TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewRunScheduleReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewExperimentReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewProviderReconciler(ec, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
-
-	Provider = pipelinesv1.RandomProvider()
-	Provider.Name = apis.RandomLowercaseString()
-	Provider.Namespace = TestConfig.WorkflowNamespace
-	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
@@ -137,6 +150,17 @@ var _ = BeforeEach(func() {
 	for _, r := range allPipelines.Items {
 		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
+
+	allProviders := &pipelinesv1.ProviderList{}
+	Expect(K8sClient.List(Ctx, allProviders)).To(Succeed())
+	for _, r := range allProviders.Items {
+		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
+	}
+
+	Provider = pipelinesv1.RandomProvider()
+	Provider.Name = apis.RandomLowercaseString()
+	Provider.Namespace = TestConfig.WorkflowNamespace
+	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
 })
 
 var _ = AfterSuite(func() {
