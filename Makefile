@@ -88,7 +88,7 @@ test-triggers:
 test-provider-service:
 	$(MAKE) -C provider-service test
 
-test-all: test helm-test-operator helm-test-provider test-argo test-triggers test-provider-service
+test-all: test helm-test-operator test-argo test-triggers test-provider-service
 
 integration-test-all: integration-test
 	$(MAKE) -C argo/kfp-compiler integration-test
@@ -145,10 +145,7 @@ kustomize: ## Download kustomize locally if necessary.
 helm-package-operator: helm-cmd helm-test-operator
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-package-provider: helm-cmd helm-test-provider
-	$(HELM) package helm/provider --version $(VERSION) --app-version $(VERSION) -d dist
-
-helm-package: helm-package-operator helm-package-provider
+helm-package: helm-package-operator
 
 helm-install-operator: helm-package-operator values.yaml
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
@@ -158,18 +155,6 @@ helm-uninstall-operator:
 
 helm-upgrade-operator: helm-package-operator values.yaml
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
-
-# NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
-helm-install-provider: helm-package-provider
-	$(HELM) install -f $(NAME).yaml provider-$(NAME) dist/provider-$(VERSION).tgz
-
-# NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
-helm-uninstall-provider:
-	$(HELM) uninstall provider-$(NAME)
-
-# NAME needs to be passed as an argument to the make target to point at the specific values file for the provider being installed
-helm-upgrade-provider: helm-package-provider
-	$(HELM) upgrade -f $(NAME).yaml provider-$(NAME) dist/provider-$(VERSION).tgz
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
 helm-publish:
@@ -186,10 +171,8 @@ define helm-upload
 @echo "Publishing Helm chart to $(1)"
 @if [[ "$(1)" == "oci://"* ]]; then \
 	helm push dist/kfp-operator-$(VERSION).tgz $(1)/kfp-operator; \
-	helm push dist/provider-$(VERSION).tgz $(1)/provider; \
 else \
 	curl --fail --netrc-file $(NETRC_FILE) -T dist/kfp-operator-$(VERSION).tgz $(1); \
-	curl --fail --netrc-file $(NETRC_FILE) -T dist/provider-$(VERSION).tgz $(1); \
 fi
 $(NEWLINE)
 endef
@@ -207,10 +190,6 @@ helm-test-operator: manifests helm-cmd kustomize yq dyff
 	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
 	rm -rf $(TMP)
-
-helm-test-provider: helm-cmd
-	$(eval TMP := $(shell mktemp -d))
-	$(HELM) template helm/provider -f helm/provider/test/values.yaml > $(TMP)/helm
 
 ##@ Containers
 

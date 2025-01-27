@@ -62,15 +62,17 @@ func init() {
 }
 
 func main() {
+	opts := zap.Options{
+		Development: false,
+	}
+	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+
 	var configFile string
 
 	flag.StringVar(&configFile, "config", "",
 		"The controller will load its initial configuration from this file. "+
 			"Omit this flag to use the default configuration values. "+
 			"Command-line flags override configuration from this file.")
-	opts := zap.Options{
-		Development: false,
-	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
@@ -89,7 +91,6 @@ func main() {
 	// TODO: This is temporary whilst have conversion from v1alpha5 to v1alpha6, this is to be removed once v1alpha5 is removed.
 	pipelinesv1alpha5.DefaultProvider = ctrlConfig.Spec.DefaultProvider
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 	var mgr ctrl.Manager
 
 	mgr, err = ctrl.NewManager(ctrl.GetConfigOrDie(), options)
@@ -134,6 +135,11 @@ func main() {
 
 	if err = pipelinescontrollers.NewRunConfigurationReconciler(ec, scheme, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
+		os.Exit(1)
+	}
+
+	if err = pipelinescontrollers.NewProviderReconciler(ec, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Provider")
 		os.Exit(1)
 	}
 

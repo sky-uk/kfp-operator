@@ -43,7 +43,7 @@ func RandomProvider() *Provider {
 			Namespace: "default",
 		},
 		Spec:   RandomProviderSpec(),
-		Status: RandomProviderStatus(),
+		Status: RandomStatus(),
 	}
 }
 
@@ -61,10 +61,6 @@ func RandomProviderSpec() ProviderSpec {
 		PipelineRootStorage: RandomLowercaseString(),
 		Parameters:          randomParameters,
 	}
-}
-
-func RandomProviderStatus() ProviderStatus {
-	return ProviderStatus{Conditions: RandomConditions()}
 }
 
 func RandomConditions() Conditions {

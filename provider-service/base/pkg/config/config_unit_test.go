@@ -3,12 +3,12 @@
 package config
 
 import (
+	"context"
 	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/spf13/viper"
 )
 
 func TestConfig(t *testing.T) {
@@ -17,23 +17,12 @@ func TestConfig(t *testing.T) {
 }
 
 var _ = Context("load", func() {
-	viper.AddConfigPath(".")
+	ctx := context.Background()
+	expectedConfig := Config{}
 
-	expectedConfig := Config{
-		ProviderName:    "local",
-		OperatorWebhook: "http://localhost:8080/events",
-		Pod: Pod{
-			Namespace: "provider-namespace",
-		},
-		Server: Server{
-			Host: "localhost",
-			Port: 8181,
-		},
-	}
-
-	When("given the default config", func() {
-		It("correctly loads config", func() {
-			config, err := load()
+	When("given no environment variable overrides", func() {
+		It("correctly initialises empty config", func() {
+			config, err := LoadConfig(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(config).To(Equal(&expectedConfig))
 		})
@@ -44,7 +33,7 @@ var _ = Context("load", func() {
 			err := os.Setenv("POD_NAMESPACE", "kfp-operator-system")
 			Expect(err).NotTo(HaveOccurred())
 			expectedConfig.Pod.Namespace = "kfp-operator-system"
-			config, err := load()
+			config, err := LoadConfig(ctx)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(config).To(Equal(&expectedConfig))
 		})

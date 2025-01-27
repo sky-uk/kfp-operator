@@ -1,7 +1,9 @@
 package config
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"strings"
@@ -30,7 +32,7 @@ func LoadConfig(ctx context.Context) (*Config, error) {
 	config, err := load()
 
 	if err != nil {
-		logger.Error(err, "failed to load config file")
+		logger.Error(err, "failed to load config")
 		return nil, err
 	}
 
@@ -39,12 +41,8 @@ func LoadConfig(ctx context.Context) (*Config, error) {
 }
 
 func load() (*Config, error) {
-	viper.SetConfigName("config")
-	viper.AddConfigPath("/etc/provider-service")
-	viper.AddConfigPath(".")
-
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("fatal error loading config %w", err)
+	if err := initConfig(); err != nil {
+		return nil, fmt.Errorf("failed to initialise viper config %w", err)
 	}
 
 	viper.AutomaticEnv()
@@ -56,4 +54,22 @@ func load() (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+// this initialises the config in Viper with default empty values so that they can be overridden with env vars
+func initConfig() error {
+	var config Config
+	viper.SetConfigType("json")
+
+	jsonBytes, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	reader := bytes.NewReader(jsonBytes)
+	if err = viper.ReadConfig(reader); err != nil {
+		return err
+	}
+
+	return nil
 }

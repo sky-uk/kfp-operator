@@ -44,18 +44,19 @@ func RandomProvider() *Provider {
 			Namespace: "default",
 		},
 		Spec:   RandomProviderSpec(),
-		Status: RandomProviderStatus(),
+		Status: RandomStatus(),
 	}
 }
 
 func RandomProviderSpec() ProviderSpec {
 	randomParameters := make(map[string]*apiextensionsv1.JSON)
-	for key, _ := range RandomMap() {
+	for key := range RandomMap() {
 		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(`{"key1": "value1", "key2": 1234}`)}
 	}
 
 	return ProviderSpec{
 		Image:               "kfp-operator-stub-provider",
+		ServiceImage:        "service-image",
 		ExecutionMode:       "none",
 		ServiceAccount:      "default",
 		DefaultBeamArgs:     RandomNamedValues(),
@@ -64,12 +65,8 @@ func RandomProviderSpec() ProviderSpec {
 	}
 }
 
-func RandomProviderStatus() ProviderStatus {
-	return ProviderStatus{Conditions: RandomConditions()}
-}
-
 func RandomConditions() Conditions {
-	return RandomList[metav1.Condition](RandomCondition)
+	return RandomList(RandomCondition)
 }
 
 func RandomCondition() metav1.Condition {

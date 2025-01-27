@@ -139,6 +139,15 @@ spec:
                   - type
                   type: object
                 type: array
+              version:
+                type: string
+              observedGeneration:
+                type: integer
+                format: int64
+              providerId:
+                type: string
+              synchronizationState:
+                type: string
             type: object
         type: object
         x-kubernetes-preserve-unknown-fields: true
@@ -183,6 +192,8 @@ spec:
                 type: array
               executionMode:
                 type: string
+              serviceImage:
+                type: string
               image:
                 type: string
               parameters:
@@ -199,6 +210,7 @@ spec:
             - image
             - pipelineRootStorage
             - serviceAccount
+            - serviceImage
             type: object
           status:
             properties:
@@ -270,6 +282,20 @@ spec:
                   - type
                   type: object
                 type: array
+              version:
+                type: string
+              observedGeneration:
+                type: integer
+                format: int64
+              synchronizationState:
+                type: string
+              provider:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  id:
+                    type: string
             type: object
         type: object
         x-kubernetes-preserve-unknown-fields: true
