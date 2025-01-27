@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	"sort"
+
 	"google.golang.org/grpc"
 
 	"github.com/kubeflow/pipelines/backend/api/go_client"
@@ -71,6 +73,11 @@ func (js *DefaultJobService) CreateJob(
 	for name, value := range rsd.RuntimeParameters {
 		jobParameters = append(jobParameters, &go_client.Parameter{Name: name, Value: value})
 	}
+	// Sort the parameters by name for consistent ordering
+	// Soley for making testing easier.
+	sort.Slice(jobParameters, func(i, j int) bool {
+		return jobParameters[i].Name < jobParameters[j].Name
+	})
 
 	apiCronSchedule, err := createAPICronSchedule(rsd)
 	if err != nil {
