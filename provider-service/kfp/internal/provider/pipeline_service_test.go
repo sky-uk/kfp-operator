@@ -90,6 +90,7 @@ var _ = Describe("PipelineService", func() {
 			})
 		})
 	})
+	
 	Context("PipelineIdForName", func() {
 		It("should return the pipeline ID if exactly one pipeline is found", func() {
 			expectedResult := go_client.ListPipelinesResponse{

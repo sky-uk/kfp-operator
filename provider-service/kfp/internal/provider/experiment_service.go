@@ -83,6 +83,8 @@ func (es *DefaultExperimentService) DeleteExperiment(id string) error {
 	return nil
 }
 
+// ExperimentIdByName gets the experiment id corresponding to the experiment name.
+// Expects to find exactly one such experiment.
 func (es *DefaultExperimentService) ExperimentIdByName(
 	experiment common.NamespacedName,
 ) (string, error) {
@@ -101,9 +103,9 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 		return "", err
 	}
 
-	numExperiments := len(experimentResult.Experiments)
-	if numExperiments != 1 {
-		return "", fmt.Errorf("found %d experiments, expected exactly one", numExperiments)
+	experimentCount := len(experimentResult.Experiments)
+	if experimentCount != 1 {
+		return "", fmt.Errorf("found %d experiments, expected exactly one", experimentCount)
 	}
 
 	return experimentResult.Experiments[0].Id, nil

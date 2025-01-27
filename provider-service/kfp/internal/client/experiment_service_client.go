@@ -1,4 +1,4 @@
-package client // Creates a new experiment.
+package client
 
 import (
 	"context"

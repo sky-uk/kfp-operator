@@ -12,9 +12,9 @@ type MockJobService struct {
 func (m *MockJobService) CreateJob(rsd resource.RunScheduleDefinition,
 	pipelineId string,
 	pipelineVersionId string,
-	experimentVersion string,
+	experimentId string,
 ) (string, error) {
-	args := m.Called(rsd, pipelineId, pipelineVersionId, experimentVersion)
+	args := m.Called(rsd, pipelineId, pipelineVersionId, experimentId)
 	return args.String(0), args.Error(1)
 }
 

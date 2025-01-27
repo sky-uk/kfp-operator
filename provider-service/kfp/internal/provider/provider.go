@@ -127,7 +127,7 @@ func (kfpp *KfpProvider) CreateRun(rd baseResource.RunDefinition) (string, error
 		return "", err
 	}
 
-	experimentVersion, err := kfpp.experimentService.ExperimentIdByName(rd.ExperimentName)
+	experimentId, err := kfpp.experimentService.ExperimentIdByName(rd.ExperimentName)
 	if err != nil {
 		return "", err
 	}
@@ -136,7 +136,7 @@ func (kfpp *KfpProvider) CreateRun(rd baseResource.RunDefinition) (string, error
 		rd,
 		pipelineId,
 		pipelineVersionId,
-		experimentVersion,
+		experimentId,
 	)
 	if err != nil {
 		return "", err
@@ -172,7 +172,7 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	experimentVersion, err := kfpp.experimentService.ExperimentIdByName(rsd.ExperimentName)
+	experimentId, err := kfpp.experimentService.ExperimentIdByName(rsd.ExperimentName)
 	if err != nil {
 		return "", err
 	}
@@ -181,7 +181,7 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 		rsd,
 		pipelineId,
 		pipelineVersionId,
-		experimentVersion,
+		experimentId,
 	)
 	if err != nil {
 		return "", err

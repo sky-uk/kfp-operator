@@ -39,6 +39,8 @@ func NewPipelineService(
 	}, nil
 }
 
+// DeletePipeline delete a pipline by pipeline id. Does no error if there is no
+// such pipeline id.
 func (ps *DefaultPipelineService) DeletePipeline(id string) error {
 	_, err := ps.client.DeletePipeline(
 		ps.ctx,
@@ -63,6 +65,8 @@ func (ps *DefaultPipelineService) DeletePipeline(id string) error {
 	return nil
 }
 
+// PipelineIdForName gets the pipeline id corresponding to the pipeline name.
+// Expects to find exactly one such pipeline.
 func (ps *DefaultPipelineService) PipelineIdForName(
 	pipelineName string,
 ) (string, error) {
@@ -83,6 +87,8 @@ func (ps *DefaultPipelineService) PipelineIdForName(
 	return res.Pipelines[0].Id, nil
 }
 
+// PipelineVersionIdForName gets the pipeline version corresponding to the
+// pipeline id. Expects to find exactly one such pipeline.
 func (ps *DefaultPipelineService) PipelineVersionIdForName(
 	versionName string,
 	pipelineId string,
