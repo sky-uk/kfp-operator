@@ -3,8 +3,10 @@
 package resource
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -18,7 +20,7 @@ var _ = Describe("Run", Ordered, func() {
 
 	BeforeEach(func() {
 		mockProvider = MockRunProvider{}
-		r = Run{Provider: &mockProvider}
+		r = Run{Ctx: context.Background(), Provider: &mockProvider}
 	})
 
 	Context("Create", func() {

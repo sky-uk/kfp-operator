@@ -20,7 +20,7 @@ type PipelineDefinition struct {
 // describes what vertex ai or kubeflow pipelines should do.
 type PipelineDefinitionWrapper struct {
 	PipelineDefinition PipelineDefinition `json:"pipelineDefinition"`
-	CompiledPipeline   json.RawMessage    `json:"manifest,omitempty"`
+	CompiledPipeline   json.RawMessage    `json:"compiledPipeline,omitempty"`
 }
 
 type ExperimentDefinition struct {

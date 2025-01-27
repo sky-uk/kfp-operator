@@ -1,12 +1,14 @@
 package resource
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/go-logr/logr"
+
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type Run struct {
-	Logger   logr.Logger
+	Ctx      context.Context
 	Provider RunProvider
 }
 
@@ -15,18 +17,20 @@ func (*Run) Type() string {
 }
 
 func (r *Run) Create(body []byte) (ResponseBody, error) {
+	logger := common.LoggerFromContext(r.Ctx)
 	rd := RunDefinition{}
 
 	if err := json.Unmarshal(body, &rd); err != nil {
+		logger.Error(err, "Create failed to unmarshal RunDefinition")
 		return ResponseBody{}, &UserError{err}
 	}
 
 	id, err := r.Provider.CreateRun(rd)
 	if err != nil {
-		r.Logger.Error(err, "CreateRun failed")
+		logger.Error(err, "CreateRun failed")
 		return ResponseBody{}, err
 	}
-	r.Logger.Info("CreateRun succeeded", "response id", id)
+	logger.Info("CreateRun succeeded", "response id", id)
 
 	return ResponseBody{
 		Id: id,
@@ -38,8 +42,11 @@ func (*Run) Update(_ string, _ []byte) (ResponseBody, error) {
 }
 
 func (r *Run) Delete(id string) error {
+	logger := common.LoggerFromContext(r.Ctx)
 	if err := r.Provider.DeleteRun(id); err != nil {
+		logger.Error(err, "DeleteRun failed", "id", id)
 		return err
 	}
+	logger.Info("DeleteRun succeeded", "id", id)
 	return nil
 }
