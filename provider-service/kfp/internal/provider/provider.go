@@ -131,9 +131,10 @@ func (kfpp *KfpProvider) CreateRun(rd baseResource.RunDefinition) (string, error
 		return "", err
 	}
 
-	// If no experiment is found, the error is ignored and empty string is
-	// passed on.
-	experimentVersion, _ := kfpp.experimentService.ExperimentIdByName(rd.ExperimentName)
+	experimentVersion, err := kfpp.experimentService.ExperimentIdByName(rd.ExperimentName)
+	if err != nil {
+		return "", err
+	}
 
 	runId, err := kfpp.runService.CreateRun(
 		rd,
