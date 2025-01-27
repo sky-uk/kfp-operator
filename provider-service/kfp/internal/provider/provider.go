@@ -78,8 +78,6 @@ func (kfpp *KfpProvider) CreatePipeline(
 		return "", err
 	}
 
-	//TODO: What should filePath be here???
-	// it's not set anywhere so maybe it should just empty string
 	pipelineId, err := kfpp.pipelineUploadService.UploadPipeline(
 		pdw.CompiledPipeline,
 		pipelineName,
@@ -95,8 +93,6 @@ func (kfpp *KfpProvider) UpdatePipeline(
 	pdw baseResource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
-	//TODO: What should filePath be here???
-	// returning a result is pointless because it's just id again. Remove?
 	if err := kfpp.pipelineUploadService.UploadPipelineVersion(
 		id,
 		pdw.CompiledPipeline,
