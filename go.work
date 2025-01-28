@@ -4,4 +4,7 @@ use (
 	.
 	./argo/providers
 	./argo/common
+    ./provider-service/base
+    ./provider-service/kfp
+    ./provider-service/vai
 )
