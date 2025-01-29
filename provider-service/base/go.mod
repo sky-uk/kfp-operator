@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/provider-service/base
 
-go 1.20
+go 1.21.13
 
 require (
 	cloud.google.com/go/pubsub v1.36.1
