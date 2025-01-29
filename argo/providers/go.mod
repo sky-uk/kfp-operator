@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/argo/providers
 
-go 1.20
+go 1.21.13
 
 require (
 	cloud.google.com/go/aiplatform v1.60.0
@@ -81,11 +81,11 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.2 // indirect
+	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
-	github.com/minio/minio-go/v7 v7.0.58 // indirect
+	github.com/minio/minio-go/v7 v7.0.66 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
