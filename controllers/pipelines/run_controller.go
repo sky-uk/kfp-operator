@@ -137,14 +137,17 @@ func (r *RunReconciler) markCompletedIfCompleted(ctx context.Context, run *pipel
 	return nil
 }
 
-func (r *RunReconciler) reconciliationRequestsForPipeline(pipeline client.Object) []reconcile.Request {
+func (r *RunReconciler) reconciliationRequestsForPipeline(
+	ctx context.Context,
+	pipeline client.Object,
+) []reconcile.Request {
 	referencingRuns := &pipelinesv1.RunList{}
 	listOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(pipelineRefField, pipeline.GetName()),
 		Namespace:     pipeline.GetNamespace(),
 	}
 
-	err := r.EC.Client.Cached.List(context.TODO(), referencingRuns, listOps)
+	err := r.EC.Client.Cached.List(ctx, referencingRuns, listOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
@@ -161,14 +164,17 @@ func (r *RunReconciler) reconciliationRequestsForPipeline(pipeline client.Object
 	return requests
 }
 
-func (r *RunReconciler) reconciliationRequestsForRunconfigurations(runConfiguration client.Object) []reconcile.Request {
+func (r *RunReconciler) reconciliationRequestsForRunconfigurations(
+	ctx context.Context,
+	runConfiguration client.Object,
+) []reconcile.Request {
 	referencingRuns := &pipelinesv1.RunList{}
 	listOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
 		Namespace:     runConfiguration.GetNamespace(),
 	}
 
-	err := r.EC.Client.Cached.List(context.TODO(), referencingRuns, listOps)
+	err := r.EC.Client.Cached.List(ctx, referencingRuns, listOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
