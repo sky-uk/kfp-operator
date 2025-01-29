@@ -7,6 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 func (rc *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
@@ -48,24 +49,24 @@ func (rc *RunConfiguration) validateRuntimeParameters() (errors field.ErrorList)
 	return
 }
 
-func (rc *RunConfiguration) validate() error {
+func (rc *RunConfiguration) validate() (admission.Warnings, error) {
 	errors := pipelines.Flatten(rc.validateRuntimeParameters(), rc.validateUniqueStructures())
 
 	if len(errors) > 0 {
-		return apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(), rc.Name, errors)
+		return nil, apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(), rc.Name, errors)
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (rc *RunConfiguration) ValidateCreate() error {
+func (rc *RunConfiguration) ValidateCreate() (admission.Warnings, error) {
 	return rc.validate()
 }
 
-func (rc *RunConfiguration) ValidateUpdate(_ runtime.Object) error {
+func (rc *RunConfiguration) ValidateUpdate(_ runtime.Object) (admission.Warnings, error) {
 	return rc.validate()
 }
 
-func (rc *RunConfiguration) ValidateDelete() error {
-	return nil
+func (rc *RunConfiguration) ValidateDelete() (admission.Warnings, error) {
+	return nil, nil
 }

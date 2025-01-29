@@ -13,8 +13,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 const (
@@ -81,7 +79,7 @@ func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context
 	return pipeline, nil
 }
 
-func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline func(client.Object) []reconcile.Request) (*builder.Builder, error) {
+func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, object client.Object, reconciliationRequestsForPipeline handler.MapFunc) (*builder.Builder, error) {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), object, pipelineRefField, func(rawObj client.Object) []string {
 		referencingResource := rawObj.(R)
 		return []string{referencingResource.GetPipeline().Name}
@@ -90,7 +88,7 @@ func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, co
 	}
 
 	return controllerBuilder.Watches(
-		&source.Kind{Type: &pipelinesv1.Pipeline{}},
+		&pipelinesv1.Pipeline{},
 		handler.EnqueueRequestsFromMapFunc(reconciliationRequestsForPipeline),
 		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 	), nil
