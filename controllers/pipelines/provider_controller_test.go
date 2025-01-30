@@ -3,13 +3,17 @@
 package pipelines
 
 import (
+	"context"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/controllers"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Context("Provider Controller", func() {
@@ -85,7 +89,8 @@ var _ = Context("Provider Controller", func() {
 					},
 				},
 			}
-			setResourceHashAnnotation(&expectedDeployment)
+			err := setResourceHashAnnotation(&expectedDeployment)
+			Expect(err).ToNot(HaveOccurred())
 
 			actualDeployment, err := constructDeployment(&provider, config)
 			Expect(err).ToNot(HaveOccurred())
@@ -192,7 +197,9 @@ var _ = Context("Provider Controller", func() {
 				},
 				Status: appsv1.DeploymentStatus{},
 			}
-			setResourceHashAnnotation(&desiredDeployment)
+
+			err := setResourceHashAnnotation(&desiredDeployment)
+			Expect(err).ToNot(HaveOccurred())
 
 			syncedDeployment := syncDeployment(&existingDeployment, &desiredDeployment)
 
@@ -200,6 +207,56 @@ var _ = Context("Provider Controller", func() {
 			Expect(syncedDeployment.Labels).To(Equal(desiredDeployment.Labels))
 			Expect(syncedDeployment.Annotations[ResourceHashAnnotation]).To(Equal(desiredDeployment.Annotations[ResourceHashAnnotation]))
 			Expect(syncedDeployment.Status).To(Equal(existingDeployment.Status))
+		})
+	})
+
+	var _ = Describe("updateProviderStatus", func() {
+		Specify("Should update the Provider status with the given conditions", func() {
+			ctx := context.Background()
+			scheme := runtime.NewScheme()
+			err := pipelinesv1.AddToScheme(scheme)
+			Expect(err).ToNot(HaveOccurred())
+			client := fake.NewClientBuilder().WithScheme(scheme).Build()
+
+			rc := ProviderReconciler{
+				ResourceReconciler: ResourceReconciler[*pipelinesv1.Provider]{
+					EC: K8sExecutionContext{
+						Client: controllers.OptInClient{
+							Writer:       client,
+							StatusClient: client,
+							Cached:       client,
+							NonCached:    client,
+						},
+						Scheme: scheme,
+					},
+					Config: config.KfpControllerConfigSpec{},
+				},
+				Scheme: scheme,
+			}
+
+			initialProvider := pipelinesv1.RandomProvider()
+			expectedStartGeneration := int64(0)
+			expectedEndGeneration := int64(1)
+
+			initialProvider.Status.ObservedGeneration = expectedStartGeneration
+			initialProvider.Generation = expectedEndGeneration
+
+			err = client.Create(ctx, initialProvider)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = client.Get(ctx, initialProvider.GetNamespacedName(), initialProvider)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(initialProvider.Status.ObservedGeneration).To(Equal(expectedStartGeneration))
+
+			err = rc.UpdateProviderStatus(ctx, initialProvider)
+			Expect(err).ToNot(HaveOccurred())
+
+			underTest := &pipelinesv1.Provider{}
+			err = client.Get(ctx, initialProvider.GetNamespacedName(), underTest)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(underTest.Status.ObservedGeneration).To(Equal(expectedEndGeneration))
+
 		})
 	})
 })
