@@ -13,7 +13,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 type ResourceReconciler[R pipelinesv1.Resource] struct {
@@ -39,8 +38,8 @@ func (br ResourceReconciler[R]) loadProvider(
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(
 	resource pipelinesv1.Resource,
-) func(client.Object) []reconcile.Request {
-	return func(workflow client.Object) []reconcile.Request {
+) handler.MapFunc {
+	return func(ctx context.Context, workflow client.Object) []reconcile.Request {
 		kind, hasKind := workflow.GetLabels()[workflowconstants.OwnerKindLabelKey]
 		ownerName, hasOwnerName := workflow.GetLabels()[workflowconstants.OwnerNameLabelKey]
 		ownerNamespace, hasOwnerNamespace := workflow.GetLabels()[workflowconstants.OwnerNamespaceLabelKey]
@@ -59,7 +58,8 @@ func (br ResourceReconciler[R]) setupWithManager(
 	controllerBuilder *builder.Builder,
 	resource R,
 ) *builder.Builder {
-	return controllerBuilder.Watches(&source.Kind{Type: &argo.Workflow{}},
+	return controllerBuilder.Watches(
+		&argo.Workflow{},
 		handler.EnqueueRequestsFromMapFunc(br.reconciliationRequestsForWorkflow(resource)),
 		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 	)

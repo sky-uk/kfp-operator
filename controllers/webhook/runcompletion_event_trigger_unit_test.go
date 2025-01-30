@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
@@ -23,8 +22,6 @@ func (pef ProcessEventFeedFunc) ProcessEventFeed(ctx context.Context, in *pb.Run
 }
 
 var _ = Context("Handle", func() {
-	var ctx = logr.NewContext(context.Background(), logr.Discard())
-
 	When("called", func() {
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
 		protoRce, _ := RunCompletionEventToProto(rce)
@@ -45,7 +42,7 @@ var _ = Context("Handle", func() {
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := trigger.Handle(ctx, rce)
+			err := trigger.Handle(rce)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -65,7 +62,7 @@ var _ = Context("Handle", func() {
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := trigger.Handle(ctx, rce)
+			err := trigger.Handle(rce)
 			Expect(err).To(Equal(testError))
 		})
 	})

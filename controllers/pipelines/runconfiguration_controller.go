@@ -256,14 +256,17 @@ func (r *RunConfigurationReconciler) syncStatus(
 	return
 }
 
-func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline client.Object) []reconcile.Request {
+func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(
+	ctx context.Context,
+	pipeline client.Object,
+) []reconcile.Request {
 	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
 	listOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(pipelineRefField, pipeline.GetName()),
 		Namespace:     pipeline.GetNamespace(),
 	}
 
-	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, listOps)
+	err := r.EC.Client.Cached.List(ctx, referencingRunConfigurations, listOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
@@ -281,6 +284,7 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(pipeline 
 }
 
 func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(
+	ctx context.Context,
 	runConfiguration client.Object,
 ) []reconcile.Request {
 	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
@@ -289,7 +293,7 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(
 		Namespace:     runConfiguration.GetNamespace(),
 	}
 
-	err := r.EC.Client.Cached.List(context.TODO(), referencingRunConfigurations, rcRefListOps)
+	err := r.EC.Client.Cached.List(ctx, referencingRunConfigurations, rcRefListOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
