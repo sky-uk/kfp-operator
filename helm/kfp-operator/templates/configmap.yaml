@@ -47,3 +47,7 @@ data:
               - name: OPERATORWEBHOOK
                 value: http://{{ include "kfp-operator.fullname" . }}-runcompletion-webhook-service.{{ .Values.namespace.name }}:80/events
               {{- if .Values.provider.env }}{{- $.Values.provider.env | toYaml | nindent 14 }}{{ end }}
+              - name: SERVER_HOST
+                value: localhost
+              - name: SERVER_PORT
+                value: 8181

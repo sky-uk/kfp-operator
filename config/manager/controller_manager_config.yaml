@@ -44,3 +44,7 @@ spec:
                 fieldPath: metadata.namespace
           - name: OPERATORWEBHOOK
             value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
+          - name: SERVER_HOST
+            value: localhost
+          - name: SERVER_PORT
+            value: 8181
