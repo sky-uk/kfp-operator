@@ -58,7 +58,12 @@ func load() (*Config, error) {
 
 // this initialises the config in Viper with default empty values so that they can be overridden with env vars
 func initConfig() error {
-	var config Config
+	config := Config{
+		Server: Server{
+			Host: "0.0.0.0",
+			Port: 8080,
+		},
+	}
 	viper.SetConfigType("json")
 
 	jsonBytes, err := json.Marshal(config)
