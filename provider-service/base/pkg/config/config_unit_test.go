@@ -18,13 +18,18 @@ func TestConfig(t *testing.T) {
 
 var _ = Context("load", func() {
 	ctx := context.Background()
-	expectedConfig := Config{}
+	defaultConfig := Config{
+		Server: Server{
+			Host: "0.0.0.0",
+			Port: 8080,
+		},
+	}
 
 	When("given no environment variable overrides", func() {
-		It("correctly initialises empty config", func() {
+		It("correctly initialises the default config", func() {
 			config, err := LoadConfig(ctx)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(config).To(Equal(&expectedConfig))
+			Expect(config).To(Equal(&defaultConfig))
 		})
 	})
 
@@ -32,10 +37,11 @@ var _ = Context("load", func() {
 		It("correctly overrides config value", func() {
 			err := os.Setenv("POD_NAMESPACE", "kfp-operator-system")
 			Expect(err).NotTo(HaveOccurred())
-			expectedConfig.Pod.Namespace = "kfp-operator-system"
+			expected := defaultConfig
+			expected.Pod.Namespace = "kfp-operator-system"
 			config, err := LoadConfig(ctx)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(config).To(Equal(&expectedConfig))
+			Expect(config).To(Equal(&expected))
 		})
 	})
 })
