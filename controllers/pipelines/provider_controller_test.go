@@ -210,7 +210,7 @@ var _ = Context("Provider Controller", func() {
 		})
 	})
 
-	var _ = Describe("updateProviderStatus", func() {
+	var _ = Describe("UpdateProviderStatus", func() {
 		Specify("Should update the Provider status with the given conditions", func() {
 			ctx := context.Background()
 			scheme := runtime.NewScheme()
