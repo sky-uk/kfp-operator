@@ -45,5 +45,5 @@ data:
                   fieldRef:
                     fieldPath: metadata.namespace
               - name: OPERATORWEBHOOK
-                value: {{ include "kfp-operator.fullname" . }}-controller-manager.{{ .Values.namespace.name }}:{{.Values.manager.runcompletionWebhook.servicePort}}/events
+                value: http://{{ include "kfp-operator.fullname" . }}-runcompletion-webhook-service.{{ .Values.namespace.name }}:80/events
               {{- if .Values.provider.env }}{{- $.Values.provider.env | toYaml | nindent 14 }}{{ end }}

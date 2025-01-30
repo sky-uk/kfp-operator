@@ -105,9 +105,23 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	duration := time.Since(startTime)
+
+	if err := r.UpdateProviderStatus(ctx, provider); err != nil {
+		logger.Error(err, "failed to update provider observedGeneration status")
+		return ctrl.Result{}, err
+	}
+
 	logger.Info("reconciliation ended", logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
+}
+
+func (r *ProviderReconciler) UpdateProviderStatus(ctx context.Context, provider *pipelinesv1.Provider) error {
+	provider.Status.ObservedGeneration = provider.Generation
+	if err := r.EC.Client.Status().Update(ctx, provider); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
