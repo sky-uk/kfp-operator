@@ -218,7 +218,7 @@ var _ = Context("Provider Controller", func() {
 			Expect(err).ToNot(HaveOccurred())
 			client := fake.NewClientBuilder().WithScheme(scheme).Build()
 
-			rc := ProviderReconciler{
+			pr := ProviderReconciler{
 				ResourceReconciler: ResourceReconciler[*pipelinesv1.Provider]{
 					EC: K8sExecutionContext{
 						Client: controllers.OptInClient{
@@ -248,7 +248,7 @@ var _ = Context("Provider Controller", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(initialProvider.Status.ObservedGeneration).To(Equal(expectedStartGeneration))
 
-			err = rc.UpdateProviderStatus(ctx, initialProvider)
+			err = pr.UpdateProviderStatus(ctx, initialProvider)
 			Expect(err).ToNot(HaveOccurred())
 
 			underTest := &pipelinesv1.Provider{}
