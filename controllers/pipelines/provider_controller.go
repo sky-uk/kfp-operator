@@ -113,6 +113,12 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 	// Build service
 	desiredSvc, err := r.buildService(r.Config, *desiredDeployment)
+
+	if err := ctrl.SetControllerReference(provider, desiredSvc, r.Scheme); err != nil {
+		logger.Error(err, "unable to set controller reference on service")
+		return ctrl.Result{}, err
+	}
+
 	// If existing service is nil => create expected service
 	if existingSvc != nil {
 		if svcIsOutOfSync(existingSvc, desiredSvc) {
@@ -157,6 +163,7 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(provider).
 		Owns(&appsv1.Deployment{}).
+		Owns(&v1.Service{}).
 		Complete(r)
 }
 
@@ -317,8 +324,8 @@ func (r *ProviderReconciler) buildService(
 	}}
 	svc := &v1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      deployment.Name,
-			Namespace: deployment.Namespace,
+			GenerateName: deployment.GenerateName,
+			Namespace:    deployment.Namespace,
 		},
 		Spec: v1.ServiceSpec{
 			Ports:    ports,
