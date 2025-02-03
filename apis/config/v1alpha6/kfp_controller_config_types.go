@@ -34,7 +34,7 @@ type DefaultProviderValues struct {
 	Replicas             int                `json:"replicas,omitempty"`
 	PodTemplateSpec      v1.PodTemplateSpec `json:"podTemplateSpec,omitempty"`
 	ServiceContainerName string             `json:"serviceContainerName,omitempty"`
-	ServicePort int `json:"servicePort,omitempty"`
+	ServicePort          int                `json:"servicePort,omitempty"`
 }
 
 type ServiceConfiguration struct {

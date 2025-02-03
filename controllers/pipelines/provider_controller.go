@@ -274,7 +274,7 @@ func syncDeployment(existingDeployment, desiredDeployment *appsv1.Deployment) *a
 func (r *ProviderReconciler) getService(ctx context.Context, provider pipelinesv1.Provider) (*v1.Service, error) {
 	sl := &v1.ServiceList{}
 	err := r.EC.Client.NonCached.List(ctx, sl, &client.ListOptions{
-		Namespace:     provider.Namespace,
+		Namespace: provider.Namespace,
 	})
 	if err != nil {
 		return nil, err
@@ -321,9 +321,9 @@ func (r *ProviderReconciler) buildService(
 			Namespace: deployment.Namespace,
 		},
 		Spec: v1.ServiceSpec{
-			Ports:     ports,
-			Type:      v1.ServiceTypeClusterIP,
-			Selector:  deployment.Labels,
+			Ports:    ports,
+			Type:     v1.ServiceTypeClusterIP,
+			Selector: deployment.Labels,
 		},
 	}
 
