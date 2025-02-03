@@ -89,7 +89,7 @@ var _ = Context("Provider Controller", func() {
 					},
 				},
 			}
-			err := setResourceHashAnnotation(&expectedDeployment)
+			err := setDeploymentHashAnnotation(&expectedDeployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			actualDeployment, err := constructDeployment(&provider, config)
@@ -198,7 +198,7 @@ var _ = Context("Provider Controller", func() {
 				Status: appsv1.DeploymentStatus{},
 			}
 
-			err := setResourceHashAnnotation(&desiredDeployment)
+			err := setDeploymentHashAnnotation(&desiredDeployment)
 			Expect(err).ToNot(HaveOccurred())
 
 			syncedDeployment := syncDeployment(&existingDeployment, &desiredDeployment)
