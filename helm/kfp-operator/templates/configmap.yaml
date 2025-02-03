@@ -27,6 +27,7 @@ data:
       defaultProviderValues:
         replicas: {{ .Values.provider.replicas }}
         serviceContainerName: provider-service
+        servicePort: 8080
         podTemplateSpec:
           spec:
             volumes: {{- if .Values.provider.volumes }}{{- toYaml .Values.provider.volumes | nindent 12 }}{{ else }} []{{ end }}

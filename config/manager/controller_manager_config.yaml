@@ -20,6 +20,7 @@ spec:
   defaultProviderValues:
     replicas: 1
     serviceContainerName: provider-service
+    servicePort: 8080
     podTemplateSpec:
       spec:
         volumes: []
