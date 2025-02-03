@@ -4,6 +4,7 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
@@ -13,39 +14,45 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var _ = Context("Provider Controller", func() {
-	var _ = Describe("constructDeployment", func() {
-		Specify("Should construct a Deployment with correct values given config and a Provider resource", func() {
-			config := config.KfpControllerConfigSpec{
-				DefaultProviderValues: config.DefaultProviderValues{
-					Replicas:             2,
-					ServiceContainerName: "container-name",
-					PodTemplateSpec: v1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{},
-						Spec: v1.PodSpec{
-							Containers: []v1.Container{
-								{
-									Name: "container-name",
-								},
-							},
+
+	servicePort := 9999
+
+	controllerConfig := config.KfpControllerConfigSpec{
+		DefaultProviderValues: config.DefaultProviderValues{
+			Replicas:             2,
+			ServiceContainerName: "container-name",
+			ServicePort:          servicePort,
+			PodTemplateSpec: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name: "container-name",
 						},
 					},
 				},
-			}
+			},
+		},
+	}
 
-			provider := pipelinesv1.Provider{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "my-provider",
-					Namespace: "my-ns",
-				},
-				Spec: pipelinesv1.ProviderSpec{
-					ServiceImage: "image",
-				},
-			}
+	provider := pipelinesv1.Provider{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-provider",
+			Namespace: "my-ns",
+		},
+		Spec: pipelinesv1.ProviderSpec{
+			ServiceImage: "image",
+		},
+	}
+	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 
+	var _ = Describe("constructDeployment", func() {
+		Specify("Should construct a Deployment with correct values given config and a Provider resource", func() {
 			replicas := int32(2)
 			expectedDeployment := appsv1.Deployment{
 				TypeMeta: metav1.TypeMeta{
@@ -92,7 +99,7 @@ var _ = Context("Provider Controller", func() {
 			err := setDeploymentHashAnnotation(&expectedDeployment)
 			Expect(err).ToNot(HaveOccurred())
 
-			actualDeployment, err := constructDeployment(&provider, config)
+			actualDeployment, err := constructDeployment(&provider, controllerConfig, prefixedProviderName)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(actualDeployment.Spec.Selector).To(Equal(expectedDeployment.Spec.Selector))
@@ -103,33 +110,11 @@ var _ = Context("Provider Controller", func() {
 		})
 
 		Specify("Should error if the specified service container name doesn't match any containers on the deployment", func() {
-			config := config.KfpControllerConfigSpec{
-				DefaultProviderValues: config.DefaultProviderValues{
-					ServiceContainerName: "wrong-container-name",
-					PodTemplateSpec: v1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{},
-						Spec: v1.PodSpec{
-							Containers: []v1.Container{
-								{
-									Name: "correct-container-name",
-								},
-							},
-						},
-					},
-				},
-			}
+			configCopy := controllerConfig
+			configCopy.DefaultProviderValues.ServiceContainerName = "wrong-container-name"
 
-			provider := pipelinesv1.Provider{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "my-provider",
-					Namespace: "my-ns",
-				},
-				Spec: pipelinesv1.ProviderSpec{
-					ServiceImage: "image",
-				},
-			}
+			_, err := constructDeployment(&provider, configCopy, prefixedProviderName)
 
-			_, err := constructDeployment(&provider, config)
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -210,7 +195,42 @@ var _ = Context("Provider Controller", func() {
 		})
 	})
 
-	var _ = Describe("UpdateProviderStatus", func() {
+	var _ = Describe("constructService", func() {
+		Specify("Should construct a Service with correct values given config and a Provider resource", func() {
+			expectedService := v1.Service{
+				TypeMeta: metav1.TypeMeta{},
+				ObjectMeta: metav1.ObjectMeta{
+					GenerateName: "provider-my-provider-",
+					Namespace:    provider.Namespace,
+				},
+				Spec: v1.ServiceSpec{
+					Selector: map[string]string{
+						"app": "provider-my-provider",
+					},
+					Ports: []v1.ServicePort{
+						{
+							Name:       "http",
+							Protocol:   v1.ProtocolTCP,
+							Port:       int32(servicePort),
+							TargetPort: intstr.FromInt(servicePort),
+						},
+					},
+					Type: v1.ServiceTypeClusterIP,
+				},
+
+				Status: v1.ServiceStatus{},
+			}
+			err := setSvcHashAnnotation(&expectedService)
+			Expect(err).ToNot(HaveOccurred())
+
+			actualService, err := constructService(controllerConfig, &provider, prefixedProviderName)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(actualService).To(Equal(&expectedService))
+		})
+	})
+
+	var _ = Describe("updateProviderStatus", func() {
 		Specify("Should update the Provider status with the given conditions", func() {
 			ctx := context.Background()
 			scheme := runtime.NewScheme()
@@ -248,7 +268,7 @@ var _ = Context("Provider Controller", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(initialProvider.Status.ObservedGeneration).To(Equal(expectedStartGeneration))
 
-			err = pr.UpdateProviderStatus(ctx, initialProvider)
+			err = pr.updateProviderStatus(ctx, initialProvider)
 			Expect(err).ToNot(HaveOccurred())
 
 			underTest := &pipelinesv1.Provider{}
