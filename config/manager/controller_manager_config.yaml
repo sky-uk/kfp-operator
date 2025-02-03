@@ -27,6 +27,10 @@ spec:
           runAsNonRoot: true
         containers:
         - name: provider-service
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
           volumeMounts: []
           securityContext:
             allowPrivilegeEscalation: false
@@ -44,3 +48,5 @@ spec:
                 fieldPath: metadata.namespace
           - name: OPERATORWEBHOOK
             value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
+          - name: SERVER_PORT
+            value: 8080

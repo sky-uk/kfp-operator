@@ -34,6 +34,10 @@ data:
               runAsNonRoot: true
             containers:
             - name: provider-service
+              ports:
+              - containerPort: 8080
+                name: http
+                protocol: TCP
               volumeMounts: {{- if .Values.provider.volumeMounts }}{{- toYaml .Values.provider.volumeMounts | nindent 14 }}{{ else }} []{{ end }}
               securityContext:
                 allowPrivilegeEscalation: false
@@ -46,4 +50,6 @@ data:
                     fieldPath: metadata.namespace
               - name: OPERATORWEBHOOK
                 value: http://{{ include "kfp-operator.fullname" . }}-runcompletion-webhook-service.{{ .Values.namespace.name }}:80/events
+              - name: SERVER_PORT
+                value: 8080
               {{- if .Values.provider.env }}{{- $.Values.provider.env | toYaml | nindent 14 }}{{ end }}
