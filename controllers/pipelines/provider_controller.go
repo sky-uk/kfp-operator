@@ -82,7 +82,11 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	return ctrl.Result{}, nil
 }
 
-func (r *ProviderReconciler) reconcileService(ctx context.Context, provider *pipelinesv1.Provider, prefixedProviderName string) error {
+func (r *ProviderReconciler) reconcileService(
+	ctx context.Context,
+	provider *pipelinesv1.Provider,
+	prefixedProviderName string,
+) error {
 	logger := log.FromContext(ctx)
 	existingSvc, err := r.getService(ctx, *provider)
 	if err != nil && !apierrors.IsNotFound(err) {
@@ -121,7 +125,11 @@ func (r *ProviderReconciler) reconcileService(ctx context.Context, provider *pip
 	return nil
 }
 
-func (r *ProviderReconciler) reconcileDeployment(ctx context.Context, provider *pipelinesv1.Provider, prefixedProviderName string) error {
+func (r *ProviderReconciler) reconcileDeployment(
+	ctx context.Context,
+	provider *pipelinesv1.Provider,
+	prefixedProviderName string,
+) error {
 	logger := log.FromContext(ctx)
 
 	desiredDeployment, err := constructDeployment(provider, *r.Config.DeepCopy(), prefixedProviderName)
@@ -187,7 +195,11 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func constructDeployment(provider *pipelinesv1.Provider, config config.KfpControllerConfigSpec, prefixedProviderName string) (*appsv1.Deployment, error) {
+func constructDeployment(
+	provider *pipelinesv1.Provider,
+	config config.KfpControllerConfigSpec,
+	prefixedProviderName string,
+) (*appsv1.Deployment, error) {
 	matchLabels := map[string]string{AppLabel: prefixedProviderName}
 	deploymentLabels := MapConcat(config.DefaultProviderValues.Labels, matchLabels)
 	replicas := int32(config.DefaultProviderValues.Replicas)
@@ -297,7 +309,10 @@ func syncDeployment(existingDeployment, desiredDeployment *appsv1.Deployment) *a
 	return syncedDeployment
 }
 
-func (r *ProviderReconciler) getService(ctx context.Context, provider pipelinesv1.Provider) (*v1.Service, error) {
+func (r *ProviderReconciler) getService(
+	ctx context.Context,
+	provider pipelinesv1.Provider,
+) (*v1.Service, error) {
 	sl := &v1.ServiceList{}
 	err := r.EC.Client.NonCached.List(ctx, sl, &client.ListOptions{
 		Namespace: provider.Namespace,
