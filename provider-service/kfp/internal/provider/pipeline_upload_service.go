@@ -26,7 +26,7 @@ type PipelineUploadService interface {
 }
 
 type DefaultPipelineUploadService struct {
-	ctx                   context.Context
+	ctx context.Context
 	// There is no gRPC client equivalent to the http client. The gRPC pipeline
 	// service has similar methods (CreatePipeline, CreatePipelineVersion), but
 	// require a URL to an already uploaded file rather than actually uploading

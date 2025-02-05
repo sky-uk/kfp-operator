@@ -91,6 +91,7 @@ func StubProvider[R pipelinesv1.Resource](
 		},
 		Spec: pipelinesv1.ProviderSpec{
 			ServiceImage:   "kfp-operator-stub-provider",
+			Image:          "kfp-operator-stub-provider",
 			ExecutionMode:  "none",
 			ServiceAccount: "default",
 			Parameters: map[string]*apiextensionsv1.JSON{

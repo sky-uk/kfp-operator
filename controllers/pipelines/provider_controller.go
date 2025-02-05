@@ -7,6 +7,7 @@ import (
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -50,7 +51,8 @@ func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerCo
 func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	startTime := time.Now()
-	logger.Info("reconciliation started", "request", req)
+
+	logger.V(2).Info("reconciliation started", "request", req)
 
 	var provider = &pipelinesv1.Provider{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, provider); err != nil {
@@ -58,65 +60,126 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	logger.Info("found provider", "resource", provider)
+	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 
-	desiredDeployment, err := constructDeployment(provider, *r.Config.DeepCopy())
-	if err != nil {
-		logger.Error(err, "unable to construct provider deployment")
+	if err := r.reconcileDeployment(ctx, provider, prefixedProviderName); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if err := ctrl.SetControllerReference(provider, desiredDeployment, r.Scheme); err != nil {
-		logger.Error(err, "unable to set controller reference on deployment")
+	if err := r.reconcileService(ctx, provider, prefixedProviderName); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	logger.Info("constructed desired provider deployment", "deployment", desiredDeployment)
-
-	existingDeployment, err := r.getDeployment(ctx, *provider)
-	if err != nil && !apierrors.IsNotFound(err) {
-		logger.Error(err, "unable to get existing deployment")
-		return ctrl.Result{}, err
-	}
-
-	if existingDeployment != nil {
-		logger.Info("found existing provider deployment", "deployment", existingDeployment)
-
-		if err := setResourceHashAnnotation(existingDeployment); err != nil {
-			logger.Error(err, "unable to set resource hash annotation on existing deployment")
-			return ctrl.Result{}, err
-		}
-
-		if deploymentIsOutOfSync(existingDeployment, desiredDeployment) {
-			logger.Info("resource hash mismatch, updating deployment")
-			existingDeployment = syncDeployment(existingDeployment, desiredDeployment)
-			if err = r.EC.Client.Update(ctx, existingDeployment); err != nil {
-				logger.Error(err, "unable to update provider service deployment", "deployment", desiredDeployment)
-				return ctrl.Result{}, err
-			}
-		}
-	} else {
-		if err = r.EC.Client.Create(ctx, desiredDeployment); err != nil {
-			logger.Error(err, "unable to create provider service deployment")
-			return ctrl.Result{}, err
-		}
-
-		logger.Info("created provider deployment", "deployment", desiredDeployment)
-	}
-
-	duration := time.Since(startTime)
-
-	if err := r.UpdateProviderStatus(ctx, provider); err != nil {
+	if err := r.updateProviderStatus(ctx, provider); err != nil {
 		logger.Error(err, "failed to update provider observedGeneration status")
 		return ctrl.Result{}, err
 	}
 
-	logger.Info("reconciliation ended", logkeys.Duration, duration)
+	duration := time.Since(startTime)
+	logger.Info(fmt.Sprintf("provider %s reconciliation successful", provider.Name), logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
 
-func (r *ProviderReconciler) UpdateProviderStatus(ctx context.Context, provider *pipelinesv1.Provider) error {
+func (r *ProviderReconciler) reconcileService(
+	ctx context.Context,
+	provider *pipelinesv1.Provider,
+	prefixedProviderName string,
+) error {
+	logger := log.FromContext(ctx)
+	existingSvc, err := r.getService(ctx, *provider)
+	if err != nil && !apierrors.IsNotFound(err) {
+		logger.Error(err, "unable to get existing service")
+		return err
+	}
+
+	desiredSvc, err := constructService(r.Config, provider, prefixedProviderName)
+	if err != nil {
+		logger.Error(err, "unable to construct provider service")
+		return err
+	}
+
+	if err := ctrl.SetControllerReference(provider, desiredSvc, r.Scheme); err != nil {
+		logger.Error(err, "unable to set controller reference on service")
+		return err
+	}
+
+	if existingSvc != nil {
+		if svcIsOutOfSync(existingSvc, desiredSvc) {
+			// Services have immutable fields, inorder to ensure that the service is updated, we delete the existing
+			// service and create a new one
+			if err := r.EC.Client.Delete(ctx, existingSvc); err != nil {
+				logger.Error(err, "unable to delete existing provider service")
+				return err
+			}
+			if err := r.EC.Client.Create(ctx, desiredSvc); err != nil {
+				logger.Error(err, "unable to create provider service")
+				return err
+			}
+		}
+	} else {
+		if err := r.EC.Client.Create(ctx, desiredSvc); err != nil {
+			logger.Error(err, "unable to create provider service")
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *ProviderReconciler) reconcileDeployment(
+	ctx context.Context,
+	provider *pipelinesv1.Provider,
+	prefixedProviderName string,
+) error {
+	logger := log.FromContext(ctx)
+
+	desiredDeployment, err := constructDeployment(provider, *r.Config.DeepCopy(), prefixedProviderName)
+	if err != nil {
+		logger.Error(err, "unable to construct provider deployment")
+		return err
+	}
+
+	if err := ctrl.SetControllerReference(provider, desiredDeployment, r.Scheme); err != nil {
+		logger.Error(err, "unable to set controller reference on deployment")
+		return err
+	}
+
+	logger.V(2).Info("constructed desired provider deployment", "deployment", desiredDeployment)
+
+	existingDeployment, err := r.getDeployment(ctx, *provider)
+	if err != nil && !apierrors.IsNotFound(err) {
+		logger.Error(err, "unable to get existing deployment")
+		return err
+	}
+
+	if existingDeployment != nil {
+		logger.V(2).Info("found existing provider deployment", "deployment", existingDeployment)
+
+		if err := setDeploymentHashAnnotation(existingDeployment); err != nil {
+			logger.Error(err, "unable to set resource hash annotation on existing deployment")
+			return err
+		}
+
+		if deploymentIsOutOfSync(existingDeployment, desiredDeployment) {
+			logger.V(2).Info("resource hash mismatch, updating deployment")
+			existingDeployment = syncDeployment(existingDeployment, desiredDeployment)
+			if err = r.EC.Client.Update(ctx, existingDeployment); err != nil {
+				logger.Error(err, "unable to update provider deployment", "deployment", desiredDeployment)
+				return err
+			}
+		}
+	} else {
+		if err = r.EC.Client.Create(ctx, desiredDeployment); err != nil {
+			logger.Error(err, "unable to create provider deployment")
+			return err
+		}
+
+		logger.V(2).Info("created provider deployment", "deployment", desiredDeployment)
+	}
+	return nil
+}
+
+func (r *ProviderReconciler) updateProviderStatus(ctx context.Context, provider *pipelinesv1.Provider) error {
 	provider.Status.ObservedGeneration = provider.Generation
 	if err := r.EC.Client.Status().Update(ctx, provider); err != nil {
 		return err
@@ -129,11 +192,15 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(provider).
 		Owns(&appsv1.Deployment{}).
+		Owns(&v1.Service{}).
 		Complete(r)
 }
 
-func constructDeployment(provider *pipelinesv1.Provider, config config.KfpControllerConfigSpec) (*appsv1.Deployment, error) {
-	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
+func constructDeployment(
+	provider *pipelinesv1.Provider,
+	config config.KfpControllerConfigSpec,
+	prefixedProviderName string,
+) (*appsv1.Deployment, error) {
 	matchLabels := map[string]string{AppLabel: prefixedProviderName}
 	deploymentLabels := MapConcat(config.DefaultProviderValues.Labels, matchLabels)
 	replicas := int32(config.DefaultProviderValues.Replicas)
@@ -166,7 +233,7 @@ func constructDeployment(provider *pipelinesv1.Provider, config config.KfpContro
 		},
 	}
 
-	if err := setResourceHashAnnotation(deployment); err != nil {
+	if err := setDeploymentHashAnnotation(deployment); err != nil {
 		return nil, err
 	}
 
@@ -195,7 +262,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate v1.PodTem
 	return &podTemplate, nil
 }
 
-func setResourceHashAnnotation(deployment *appsv1.Deployment) error {
+func setDeploymentHashAnnotation(deployment *appsv1.Deployment) error {
 	hasher := NewObjectHasher()
 	if err := hasher.WriteObject(deployment); err != nil {
 		return err
@@ -241,4 +308,71 @@ func syncDeployment(existingDeployment, desiredDeployment *appsv1.Deployment) *a
 	syncedDeployment.Annotations[ResourceHashAnnotation] = desiredDeployment.Annotations[ResourceHashAnnotation]
 
 	return syncedDeployment
+}
+
+func (r *ProviderReconciler) getService(
+	ctx context.Context,
+	provider pipelinesv1.Provider,
+) (*v1.Service, error) {
+	sl := &v1.ServiceList{}
+	err := r.EC.Client.NonCached.List(ctx, sl, &client.ListOptions{
+		Namespace: provider.Namespace,
+	})
+	if err != nil {
+		return nil, err
+	}
+	for _, svc := range sl.Items {
+		if metav1.IsControlledBy(&svc, &provider) {
+			return &svc, nil
+		}
+	}
+	return nil, apierrors.NewNotFound(schema.GroupResource{}, "")
+}
+
+func setSvcHashAnnotation(svc *v1.Service) error {
+	hasher := NewObjectHasher()
+	if err := hasher.WriteObject(svc); err != nil {
+		return err
+	}
+
+	if svc.Annotations == nil {
+		svc.Annotations = make(map[string]string)
+	}
+	svc.Annotations[ResourceHashAnnotation] = fmt.Sprintf("%x", hasher.Sum())
+
+	return nil
+}
+
+func svcIsOutOfSync(existingSvc, desiredSvc *v1.Service) bool {
+	return existingSvc.Annotations != nil && existingSvc.Annotations[ResourceHashAnnotation] != desiredSvc.Annotations[ResourceHashAnnotation]
+}
+
+func constructService(
+	config config.KfpControllerConfigSpec,
+	provider *pipelinesv1.Provider,
+	prefixedProviderName string,
+) (*v1.Service, error) {
+	ports := []v1.ServicePort{{
+		Name:       "http",
+		Port:       int32(config.DefaultProviderValues.ServicePort),
+		TargetPort: intstr.FromInt(config.DefaultProviderValues.ServicePort),
+		Protocol:   v1.ProtocolTCP,
+	}}
+	svc := &v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: fmt.Sprintf("%s-", prefixedProviderName),
+			Namespace:    provider.Namespace,
+		},
+		Spec: v1.ServiceSpec{
+			Ports:    ports,
+			Type:     v1.ServiceTypeClusterIP,
+			Selector: map[string]string{AppLabel: prefixedProviderName},
+		},
+	}
+
+	if err := setSvcHashAnnotation(svc); err != nil {
+		return nil, err
+	}
+
+	return svc, nil
 }

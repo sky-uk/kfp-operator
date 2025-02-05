@@ -7916,7 +7916,9 @@ spec:
                   replicas:
                     type: integer
                   serviceContainerName:
-                    type: string  
+                    type: string
+                  servicePort:
+                    type: integer
                 type: object
               multiversion:
                 type: boolean
