@@ -236,7 +236,10 @@ var _ = Context("Provider Controller", func() {
 			scheme := runtime.NewScheme()
 			err := pipelinesv1.AddToScheme(scheme)
 			Expect(err).ToNot(HaveOccurred())
-			client := fake.NewClientBuilder().WithScheme(scheme).Build()
+			client := fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithStatusSubresource(&pipelinesv1.Provider{}).
+				Build()
 
 			pr := ProviderReconciler{
 				ResourceReconciler: ResourceReconciler[*pipelinesv1.Provider]{
@@ -255,8 +258,8 @@ var _ = Context("Provider Controller", func() {
 			}
 
 			initialProvider := pipelinesv1.RandomProvider()
-			expectedStartGeneration := int64(0)
-			expectedEndGeneration := int64(1)
+			expectedStartGeneration := int64(1)
+			expectedEndGeneration := int64(2)
 
 			initialProvider.Status.ObservedGeneration = expectedStartGeneration
 			initialProvider.Generation = expectedEndGeneration
