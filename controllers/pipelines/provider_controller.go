@@ -70,13 +70,12 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	duration := time.Since(startTime)
-
 	if err := r.updateProviderStatus(ctx, provider); err != nil {
 		logger.Error(err, "failed to update provider observedGeneration status")
 		return ctrl.Result{}, err
 	}
 
+	duration := time.Since(startTime)
 	logger.Info(fmt.Sprintf("provider %s reconciliation successful", provider.Name), logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
@@ -107,6 +106,8 @@ func (r *ProviderReconciler) reconcileService(
 
 	if existingSvc != nil {
 		if svcIsOutOfSync(existingSvc, desiredSvc) {
+			// Services have immutable fields, inorder to ensure that the service is updated, we delete the existing
+			// service and create a new one
 			if err := r.EC.Client.Delete(ctx, existingSvc); err != nil {
 				logger.Error(err, "unable to delete existing provider service")
 				return err
