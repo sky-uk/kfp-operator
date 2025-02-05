@@ -131,7 +131,7 @@ yq: ## Download yq locally if necessary.
 HELM := $(PROJECT_DIR)/bin/helm
 # Can't be named helm because it's already a directory
 helm-cmd: ## Download helm locally if necessary.
-	$(call go-install,$(HELM),helm.sh/helm/v3/cmd/helm@v3.14.1)
+	$(call go-install,$(HELM),helm.sh/helm/v3/cmd/helm@v3.15.4)
 
 CONTROLLER_GEN = $(PROJECT_DIR)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
