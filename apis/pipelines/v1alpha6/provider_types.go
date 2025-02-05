@@ -39,7 +39,7 @@ type ProviderSpec struct {
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 }
 
-func (ps Provider) ComputeVersion() string {
+func (p *Provider) ComputeVersion() string {
 	// Not used by Provider controller but required to satisfy Resource interface
 	return ""
 }
@@ -52,15 +52,28 @@ func (p *Provider) SetStatus(status Status) {
 	p.Status = status
 }
 
-func (p Provider) GetNamespacedName() types.NamespacedName {
+func (p *Provider) GetNamespacedName() types.NamespacedName {
 	return types.NamespacedName{
 		Name:      p.Name,
 		Namespace: p.Namespace,
 	}
 }
 
-func (e Provider) GetKind() string {
+func (p *Provider) GetKind() string {
 	return "provider"
+}
+
+func (p *Provider) StatusWithCondition(message string) Status {
+	p.Status.Conditions = p.Status.Conditions.MergeIntoConditions(metav1.Condition{
+		LastTransitionTime: metav1.Now(),
+		Message:            message,
+		ObservedGeneration: p.Status.ObservedGeneration,
+		Type:               ConditionTypes.SynchronizationSucceeded,
+		Status:             ConditionStatusForSynchronizationState(p.Status.SynchronizationState),
+		Reason:             string(p.Status.SynchronizationState),
+	})
+
+	return p.Status
 }
 
 func init() {
