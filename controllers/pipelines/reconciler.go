@@ -15,12 +15,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+type ProviderLoader interface {
+	LoadProvider(
+		ctx context.Context,
+		namespace string,
+		desiredProvider string) (pipelinesv1.Provider, error)
+}
+
 type ResourceReconciler[R pipelinesv1.Resource] struct {
 	EC     K8sExecutionContext
 	Config config.KfpControllerConfigSpec
 }
 
-func (br ResourceReconciler[R]) loadProvider(
+func (br ResourceReconciler[R]) LoadProvider(
 	ctx context.Context,
 	namespace string,
 	desiredProvider string,
