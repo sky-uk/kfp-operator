@@ -218,7 +218,7 @@ docker-push-providers:
 ##@ Docs
 
 website:
-	$(MAKE) -C docs-gen
+	$(MAKE) -C docs-gen build
 
 docker-push-quickstart:
 	$(MAKE) -C docs-gen/includes/quickstart docker-push
