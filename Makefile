@@ -1,7 +1,8 @@
 include common.mk
-include version.mk
-include newline.mk
+include docker-targets.mk
 include minikube.mk
+include newline.mk
+include version.mk
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
@@ -192,8 +193,6 @@ helm-test-operator: manifests helm-cmd kustomize yq dyff
 	rm -rf $(TMP)
 
 ##@ Containers
-
-include docker-targets.mk
 
 docker-build-argo:
 	$(MAKE) -C argo/kfp-compiler docker-build
