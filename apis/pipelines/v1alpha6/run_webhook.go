@@ -8,6 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 func (r *Run) SetupWebhookWithManager(mgr ctrl.Manager) error {
@@ -20,10 +21,10 @@ func (r *Run) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 var _ webhook.Validator = &Run{}
 
-func (r *Run) ValidateCreate() error {
+func (r *Run) ValidateCreate() (admission.Warnings, error) {
 	for i, rp := range r.Spec.RuntimeParameters {
 		if rp.ValueFrom != nil && rp.Value != "" {
-			return apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
+			return nil, apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
 				r.Name, field.ErrorList{
 					field.Invalid(
 						field.NewPath("spec").Child("runtimeParameters").Index(i),
@@ -33,18 +34,18 @@ func (r *Run) ValidateCreate() error {
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (r *Run) ValidateUpdate(old runtime.Object) error {
+func (r *Run) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 	if !reflect.DeepEqual(r.Spec, old.(*Run).Spec) {
-		return apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
+		return nil, apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
 			r.Name, field.ErrorList{field.Forbidden(field.NewPath("spec"), "immutable")})
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (r *Run) ValidateDelete() error {
-	return nil
+func (r *Run) ValidateDelete() (admission.Warnings, error) {
+	return nil, nil
 }

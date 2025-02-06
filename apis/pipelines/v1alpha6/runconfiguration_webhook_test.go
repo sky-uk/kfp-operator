@@ -22,7 +22,8 @@ var _ = Context("RunConfiguration Webhook", func() {
 			},
 		}
 
-		Expect(errors.IsInvalid(runConfiguration.validate())).To(BeTrue())
+		_, err := runConfiguration.validate()
+		Expect(errors.IsInvalid(err)).To(BeTrue())
 	})
 
 	Specify("Duplicate onChange triggers fail the validation", func() {
@@ -37,7 +38,8 @@ var _ = Context("RunConfiguration Webhook", func() {
 			},
 		}
 
-		Expect(errors.IsInvalid(runConfiguration.validate())).To(BeTrue())
+		_, err := runConfiguration.validate()
+		Expect(errors.IsInvalid(err)).To(BeTrue())
 	})
 
 	Specify("Specifying Value and ValueFrom in the runtime parameters fails the validation", func() {
@@ -63,7 +65,8 @@ var _ = Context("RunConfiguration Webhook", func() {
 			},
 		}
 
-		Expect(errors.IsInvalid(runConfiguration.validate())).To(BeTrue())
+		_, err := runConfiguration.validate()
+		Expect(errors.IsInvalid(err)).To(BeTrue())
 	})
 
 	Specify("A valid spec passes the validation", func() {
@@ -92,6 +95,8 @@ var _ = Context("RunConfiguration Webhook", func() {
 			},
 		}
 
-		Expect(runConfiguration.validate()).To(Succeed())
+		warnings, err := runConfiguration.validate()
+		Expect(warnings).To(BeNil())
+		Expect(err).ToNot(HaveOccurred())
 	})
 })

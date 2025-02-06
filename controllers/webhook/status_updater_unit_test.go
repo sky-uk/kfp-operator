@@ -7,7 +7,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,7 +23,7 @@ var _ = Context("Handle", func() {
 	err := pipelinesv1.AddToScheme(scheme)
 	Expect(err).ToNot(HaveOccurred())
 
-	var client client.WithWatch
+	var client client.Client
 	var updater StatusUpdater
 
 	Context("event RunName is present", func() {
@@ -38,8 +38,11 @@ var _ = Context("Handle", func() {
 			run.Name = rce.RunName.Name
 			run.Namespace = rce.RunName.Namespace
 
-			client = fake.NewClientBuilder().WithScheme(scheme).Build()
-			updater = StatusUpdater{client}
+			client = fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithStatusSubresource(&pipelinesv1.Run{}).
+				Build()
+			updater = StatusUpdater{ctx, client}
 		})
 
 		When("Run resource is found", func() {
@@ -47,7 +50,7 @@ var _ = Context("Handle", func() {
 				err = client.Create(context.Background(), &run)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = updater.Handle(ctx, rce)
+				err = updater.Handle(rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = client.Get(ctx, run.GetNamespacedName(), &run)
@@ -59,7 +62,7 @@ var _ = Context("Handle", func() {
 
 		When("Run resource is not found", func() {
 			It("should not return error", func() {
-				err = updater.Handle(ctx, rce)
+				err = updater.Handle(rce)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -71,7 +74,7 @@ var _ = Context("Handle", func() {
 
 				expectedState := run.Status.CompletionState
 				rce.RunName.Namespace = ""
-				err = updater.Handle(ctx, rce)
+				err = updater.Handle(rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = client.Get(ctx, run.GetNamespacedName(), &run)
@@ -84,8 +87,8 @@ var _ = Context("Handle", func() {
 		When("k8s client operation fails", func() {
 			It("should return error", func() {
 				client = fake.NewClientBuilder().Build()
-				updater = StatusUpdater{client}
-				err = updater.Handle(ctx, rce)
+				updater = StatusUpdater{ctx, client}
+				err = updater.Handle(rce)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -96,8 +99,11 @@ var _ = Context("Handle", func() {
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
 
 		BeforeEach(func() {
-			client = fake.NewClientBuilder().WithScheme(scheme).Build()
-			updater = StatusUpdater{client}
+			client = fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithStatusSubresource(&pipelinesv1.RunConfiguration{}).
+				Build()
+			updater = StatusUpdater{ctx, client}
 
 			rce.Status = common.RunCompletionStatuses.Succeeded
 
@@ -112,7 +118,7 @@ var _ = Context("Handle", func() {
 				err = client.Create(context.Background(), &rc)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = updater.Handle(ctx, rce)
+				err = updater.Handle(rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = client.Get(ctx, rc.GetNamespacedName(), &rc)
@@ -129,7 +135,7 @@ var _ = Context("Handle", func() {
 				expectedProviderId := rc.Status.LatestRuns.Succeeded.ProviderId
 				expectedArtifacts := rc.Status.LatestRuns.Succeeded.Artifacts
 
-				err = updater.Handle(ctx, rce)
+				err = updater.Handle(rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(rc.Status.LatestRuns.Succeeded.ProviderId).
@@ -146,7 +152,7 @@ var _ = Context("Handle", func() {
 				expectedArtifacts := rc.Status.LatestRuns.Succeeded.Artifacts
 
 				rce.Status = common.RunCompletionStatuses.Failed
-				err = updater.Handle(ctx, rce)
+				err = updater.Handle(rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(rc.Status.LatestRuns.Succeeded.ProviderId).
@@ -166,7 +172,7 @@ var _ = Context("Handle", func() {
 				rce.Status = common.RunCompletionStatuses.Failed
 				err = client.Create(context.Background(), &rc)
 
-				err = updater.Handle(ctx, rce)
+				err = updater.Handle(rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(rc.Status.LatestRuns.Succeeded.ProviderId).
@@ -180,8 +186,8 @@ var _ = Context("Handle", func() {
 		When("k8s client operation fails", func() {
 			It("should return error", func() {
 				client = fake.NewClientBuilder().Build()
-				updater = StatusUpdater{client}
-				err = updater.Handle(ctx, rce)
+				updater = StatusUpdater{ctx, client}
+				err = updater.Handle(rce)
 				Expect(err).To(HaveOccurred())
 			})
 		})
