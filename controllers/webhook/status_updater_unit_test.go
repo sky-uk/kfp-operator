@@ -38,7 +38,10 @@ var _ = Context("Handle", func() {
 			run.Name = rce.RunName.Name
 			run.Namespace = rce.RunName.Namespace
 
-			client = fake.NewClientBuilder().WithScheme(scheme).Build()
+			client = fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithStatusSubresource(&pipelinesv1.Run{}).
+				Build()
 			updater = StatusUpdater{ctx, client}
 		})
 
@@ -96,7 +99,10 @@ var _ = Context("Handle", func() {
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
 
 		BeforeEach(func() {
-			client = fake.NewClientBuilder().WithScheme(scheme).Build()
+			client = fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithStatusSubresource(&pipelinesv1.RunConfiguration{}).
+				Build()
 			updater = StatusUpdater{ctx, client}
 
 			rce.Status = common.RunCompletionStatuses.Succeeded

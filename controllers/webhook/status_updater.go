@@ -101,7 +101,7 @@ func (su StatusUpdater) completeRun(event common.RunCompletionEvent) error {
 
 	if completionState := completionStateForRunCompletionStatus(event.Status); completionState != nil {
 		run.Status.CompletionState = *completionState
-		if err := su.K8sClient.Update(su.ctx, &run); err != nil {
+		if err := su.K8sClient.Status().Update(su.ctx, &run); err != nil {
 			if errors.IsNotFound(err) {
 				logger.Info(
 					"RunCompletionEvent's Run was not found. Skipping.",
@@ -163,7 +163,7 @@ func (su StatusUpdater) completeRunConfiguration(
 	rc.Status.LatestRuns.Succeeded.ProviderId = event.RunId
 	rc.Status.LatestRuns.Succeeded.Artifacts = event.Artifacts
 
-	if err := su.K8sClient.Update(su.ctx, &rc); err != nil {
+	if err := su.K8sClient.Status().Update(su.ctx, &rc); err != nil {
 		if errors.IsNotFound(err) {
 			logger.Info(
 				"RunCompletionEvent's RunConfiguration was not found. Skipping.",
