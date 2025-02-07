@@ -8,6 +8,8 @@ require (
 	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-00010101000000-000000000000
 	github.com/spf13/viper v1.19.0
 	go.uber.org/zap v1.24.0
+	github.com/onsi/ginkgo/v2 v2.9.5
+	github.com/onsi/gomega v1.27.7
 )
 
 replace (

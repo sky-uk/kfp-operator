@@ -34,6 +34,9 @@ func load() (*Config, error) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
 
 	var config Config
+	if err := viper.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("fatal error reading config: %w", err)
+	}
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("fatal error unmarshalling config %w", err)
 	}
