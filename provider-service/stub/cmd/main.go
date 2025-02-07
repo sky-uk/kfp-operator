@@ -27,4 +27,7 @@ func main() {
 	if err = server.Start(ctx, cfg.Server, provider); err != nil {
 		panic(err)
 	}
+
+	<-ctx.Done()
+	logger.Info("Main context is cancelled. Terminating application...")
 }
