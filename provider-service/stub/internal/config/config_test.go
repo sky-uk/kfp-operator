@@ -3,6 +3,7 @@
 package config
 
 import (
+	"net"
 	"os"
 	"testing"
 
@@ -19,7 +20,7 @@ func TestConfig(t *testing.T) {
 var _ = Context("load", func() {
 	defaultConfig := Config{
 		Server: baseConfig.Server{
-			Host: "localhost",
+			Host: net.IPv4zero.String(),
 			Port: 8080,
 		},
 	}
