@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
-	baseConfigLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
+	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
@@ -25,30 +27,32 @@ func main() {
 
 	ctx := logr.NewContext(context.Background(), logger)
 
-	baseConfig, err := baseConfigLoader.LoadConfig(ctx)
+	baseConfig, err := baseConfig.LoadConfig(ctx)
 	if err != nil {
 		panic(err)
 	}
+	logger.Info(fmt.Sprintf("loaded base config: %+v", baseConfig))
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {
 		panic(err)
 	}
 
-	providerConfig, err := config.LoadProviderConfig(ctx, *k8sClient, baseConfig.ProviderName, baseConfig.Pod.Namespace)
+	kfpProviderConfig, err := config.LoadKfpProviderConfig(baseConfig.ProviderName)
 	if err != nil {
 		logger.Error(err, "failed to load provider config", "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
 		panic(err)
 	}
+	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
 
-	go RunServer(ctx, providerConfig, baseConfig)
+	go RunServer(ctx, kfpProviderConfig, baseConfig)
 
-	go RunEventing(ctx, *k8sClient, baseConfig, providerConfig)
+	go RunEventing(ctx, *k8sClient, baseConfig, kfpProviderConfig)
 
 	<-ctx.Done()
 }
 
-func RunEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfigLoader.Config, providerConfig *config.KfpProviderConfig) {
+func RunEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfig.Config, providerConfig *config.KfpProviderConfig) {
 	kfpApi, err := client.CreateKfpApi(ctx, *providerConfig)
 	if err != nil {
 		panic(err)
@@ -77,7 +81,8 @@ func RunEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfi
 	connectedFlow.Error(errorSink)
 }
 
-func RunServer(ctx context.Context, kfpConfig *config.KfpProviderConfig, baseConfig *baseConfigLoader.Config) {
+// TODO: RunServer and RunEventing are only used in main.go, so they could be private?
+func RunServer(ctx context.Context, kfpConfig *config.KfpProviderConfig, baseConfig *baseConfig.Config) {
 	provider, err := kfp.NewKfpProvider(ctx, kfpConfig)
 	if err != nil {
 		panic(err)

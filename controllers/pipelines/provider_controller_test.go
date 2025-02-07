@@ -4,7 +4,9 @@ package pipelines
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
@@ -12,6 +14,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -280,6 +283,34 @@ var _ = Context("Provider Controller", func() {
 
 			Expect(underTest.Status.ObservedGeneration).To(Equal(expectedEndGeneration))
 
+		})
+	})
+
+	var _ = Describe("jsonToString", func() {
+		Specify("Should return a plain string given a JSON string (no extra quotes or escape chars!)", func() {
+			rawJson, err := json.Marshal("test")
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonStr := apiextensionsv1.JSON{
+				Raw: rawJson,
+			}
+
+			result := jsonToString(&jsonStr)
+
+			Expect(result).To(Equal("test"))
+		})
+
+		Specify("Should return a raw JSON string given a JSON object", func() {
+			rawJson, err := json.Marshal(`{"key1": "value1", "key2": 42}`)
+			Expect(err).ToNot(HaveOccurred())
+
+			jsonStr := apiextensionsv1.JSON{
+				Raw: rawJson,
+			}
+
+			result := jsonToString(&jsonStr)
+
+			Expect(result).To(Equal("{\"key1\": \"value1\", \"key2\": 42}"))
 		})
 	})
 })
