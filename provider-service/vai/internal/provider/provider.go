@@ -20,7 +20,7 @@ import (
 
 type VAIProvider struct {
 	ctx            context.Context
-	config         config.VAIProviderConfig
+	config         *config.VAIProviderConfig
 	fileHandler    FileHandler
 	pipelineClient client.PipelineJobClient
 	scheduleClient client.ScheduleClient
@@ -30,7 +30,7 @@ type VAIProvider struct {
 
 func NewProvider(
 	ctx context.Context,
-	config config.VAIProviderConfig,
+	config *config.VAIProviderConfig,
 ) (*VAIProvider, error) {
 	fh, err := NewGcsFileHandler(ctx, config.Parameters.GcsEndpoint)
 	if err != nil {

@@ -37,7 +37,7 @@ var _ = Describe("Provider", func() {
 		mockJobEnricher = mocks.MockJobEnricher{}
 		vaiProvider = VAIProvider{
 			ctx:            context.Background(),
-			config:         config.VAIProviderConfig{},
+			config:         &config.VAIProviderConfig{},
 			fileHandler:    &mockFileHandler,
 			pipelineClient: &mockPipelineClient,
 			scheduleClient: &mockScheduleClient,

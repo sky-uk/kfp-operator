@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"github.com/go-logr/logr"
@@ -33,22 +34,18 @@ func main() {
 		panic(err)
 	}
 
-	k8sClient, err := NewK8sClient()
-	if err != nil {
-		panic(err)
-	}
-
-	vaiConfig := vaiConfig.VAIProviderConfig{
+	vaiProviderConfig := &vaiConfig.VAIProviderConfig{
 		Name: config.ProviderName,
 	}
 
-	if err := LoadProvider(ctx, k8sClient.Client, config.ProviderName, config.Pod.Namespace, &vaiConfig); err != nil {
-		logger.Error(err, "failed to load provider", "name", config.ProviderName, "namespace", config.Pod.Namespace)
+	vaiProviderConfig, err = vaiConfig.LoadVAIProviderConfig()
+	if err != nil {
+		logger.Error(err, "failed to load provider config", "provider", config.ProviderName, "namespace", config.Pod.Namespace)
 		panic(err)
 	}
+	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", config.ProviderName, "namespace", config.Pod.Namespace)
 
-	//TODO: Update the config to be passed in by controller on deployment creation
-	provider, err := vai.NewProvider(ctx, vaiConfig)
+	provider, err := vai.NewProvider(ctx, vaiProviderConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -57,20 +54,20 @@ func main() {
 		panic(err)
 	}
 
-	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(vaiConfig.VaiEndpoint()))
+	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(vaiProviderConfig.VaiEndpoint()))
 	if err != nil {
-		logger.Error(err, "failed to create VAI pipeline client", "endpoint", vaiConfig.VaiEndpoint())
+		logger.Error(err, "failed to create VAI pipeline client", "endpoint", vaiProviderConfig.VaiEndpoint())
 		panic(err)
 	}
 
-	source, err := sources.NewPubSubSource(ctx, vaiConfig.Parameters.VaiProject, vaiConfig.Parameters.EventsourcePipelineEventsSubscription)
+	source, err := sources.NewPubSubSource(ctx, vaiProviderConfig.Parameters.VaiProject, vaiProviderConfig.Parameters.EventsourcePipelineEventsSubscription)
 	if err != nil {
 		logger.Error(err, "failed to create VAI event data source")
 		panic(err)
 	}
 	go handleErrorInSourceOperations(source)
 
-	flow := runcompletion.NewEventFlow(ctx, &vaiConfig, pipelineJobClient)
+	flow := runcompletion.NewEventFlow(ctx, vaiProviderConfig, pipelineJobClient)
 
 	go func() {
 		flow.Start()
