@@ -13,7 +13,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	kfpConfig "github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/event"
 	kfp "github.com/sky-uk/kfp-operator/provider-service/kfp/internal/provider"
 	"go.uber.org/zap/zapcore"
@@ -27,32 +27,38 @@ func main() {
 
 	ctx := logr.NewContext(context.Background(), logger)
 
-	baseConfig, err := baseConfig.LoadConfig(ctx)
+	serviceConfig, err := baseConfig.LoadConfig(baseConfig.Config{
+		Server: baseConfig.Server{
+			Host: "0.0.0.0",
+			Port: 8080,
+		},
+	})
 	if err != nil {
+		logger.Error(err, "failed to load config")
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("loaded base config: %+v", baseConfig))
+	logger.Info(fmt.Sprintf("loaded base config: %+v", serviceConfig))
 
-	kfpProviderConfig, err := config.LoadKfpProviderConfig(baseConfig.ProviderName)
+	kfpProviderConfig, err := baseConfig.LoadConfig(kfpConfig.KfpProviderConfig{Name: serviceConfig.ProviderName})
 	if err != nil {
-		logger.Error(err, "failed to load provider config", "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
+		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
+	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 
-	go runServer(ctx, kfpProviderConfig, baseConfig)
+	go runServer(ctx, kfpProviderConfig, serviceConfig)
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {
 		panic(err)
 	}
 
-	go runEventing(ctx, *k8sClient, baseConfig, kfpProviderConfig)
+	go runEventing(ctx, *k8sClient, serviceConfig, kfpProviderConfig)
 
 	<-ctx.Done()
 }
 
-func runServer(ctx context.Context, kfpConfig *config.KfpProviderConfig, baseConfig *baseConfig.Config) {
+func runServer(ctx context.Context, kfpConfig *kfpConfig.KfpProviderConfig, baseConfig *baseConfig.Config) {
 	provider, err := kfp.NewKfpProvider(ctx, kfpConfig)
 	if err != nil {
 		panic(err)
@@ -63,7 +69,7 @@ func runServer(ctx context.Context, kfpConfig *config.KfpProviderConfig, baseCon
 	}
 }
 
-func runEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfig.Config, providerConfig *config.KfpProviderConfig) {
+func runEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfig.Config, providerConfig *kfpConfig.KfpProviderConfig) {
 	kfpApi, err := client.CreateKfpApi(ctx, *providerConfig)
 	if err != nil {
 		panic(err)

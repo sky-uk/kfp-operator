@@ -12,7 +12,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
+	vaiConfig "github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	vai "github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/runcompletion"
 	"go.uber.org/zap/zapcore"
@@ -30,28 +30,33 @@ func main() {
 
 	ctx := logr.NewContext(context.Background(), logger)
 
-	baseConfig, err := baseConfig.LoadConfig(ctx)
+	serviceConfig, err := baseConfig.LoadConfig(baseConfig.Config{
+		Server: baseConfig.Server{
+			Host: "0.0.0.0",
+			Port: 8080,
+		},
+	})
 	if err != nil {
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("loaded base config: %+v", baseConfig))
+	logger.Info(fmt.Sprintf("loaded base config: %+v", serviceConfig))
 
-	vaiProviderConfig, err := config.LoadVAIProviderConfig(baseConfig.ProviderName)
+	vaiProviderConfig, err := baseConfig.LoadConfig(vaiConfig.VAIProviderConfig{Name: serviceConfig.ProviderName})
 	if err != nil {
-		logger.Error(err, "failed to load provider config", "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
+		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 		panic(err)
 	}
-	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
+	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 
-	go runServer(ctx, vaiProviderConfig, baseConfig)
+	go runServer(ctx, vaiProviderConfig, serviceConfig)
 
-	runEventing(ctx, logger, baseConfig, vaiProviderConfig)
+	runEventing(ctx, logger, serviceConfig, vaiProviderConfig)
 
 	<-ctx.Done()
 	logger.Info("vai event flow is terminating")
 }
 
-func runServer(ctx context.Context, vaiConfig *config.VAIProviderConfig, baseConfig *baseConfig.Config) {
+func runServer(ctx context.Context, vaiConfig *vaiConfig.VAIProviderConfig, baseConfig *baseConfig.Config) {
 	provider, err := vai.NewVAIProvider(ctx, vaiConfig)
 	if err != nil {
 		panic(err)
@@ -62,7 +67,7 @@ func runServer(ctx context.Context, vaiConfig *config.VAIProviderConfig, baseCon
 	}
 }
 
-func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig.Config, providerConfig *config.VAIProviderConfig) {
+func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig.Config, providerConfig *vaiConfig.VAIProviderConfig) {
 	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.VaiEndpoint()))
 	if err != nil {
 		logger.Error(err, "failed to create VAI pipeline client", "endpoint", providerConfig.VaiEndpoint())

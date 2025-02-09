@@ -1,12 +1,7 @@
 package config
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"strings"
-
-	"github.com/spf13/viper"
 )
 
 type VAIProviderConfig struct {
@@ -22,29 +17,6 @@ type Parameters struct {
 	PipelineBucket                        string `yaml:"pipelineBucket"`
 	EventsourcePipelineEventsSubscription string `yaml:"eventsourcePipelineEventsSubscription"`
 	MaxConcurrentRunCount                 int64  `yaml:"maxConcurrentRunCount"`
-}
-
-func LoadVAIProviderConfig(providerName string) (*VAIProviderConfig, error) {
-	viper.SetConfigType("json")
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
-
-	jsonBytes, err := json.Marshal(VAIProviderConfig{Name: providerName})
-	if err != nil {
-		return nil, err
-	}
-
-	reader := bytes.NewReader(jsonBytes)
-	if err = viper.ReadConfig(reader); err != nil {
-		return nil, err
-	}
-
-	var config VAIProviderConfig
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, err
-	}
-
-	return &config, nil
 }
 
 func (vaipc VAIProviderConfig) VaiEndpoint() string {

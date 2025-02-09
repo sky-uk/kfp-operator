@@ -2,10 +2,8 @@ package config
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -27,54 +25,25 @@ type Server struct {
 	Port int    `mapstructure:"port"`
 }
 
-func LoadConfig(ctx context.Context) (*Config, error) {
-	logger := common.LoggerFromContext(ctx)
-	config, err := load()
-
-	if err != nil {
-		logger.Error(err, "failed to load config")
-		return nil, err
-	}
-
-	logger.Info(fmt.Sprintf("loaded config: %+v", config))
-	return config, nil
-}
-
-func load() (*Config, error) {
-	if err := initConfig(); err != nil {
-		return nil, fmt.Errorf("failed to initialise viper config %w", err)
-	}
-
+func LoadConfig[T any](initConfig T) (*T, error) {
+	viper.SetConfigType("json")
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, fmt.Errorf("fatal error unmarshalling config %w", err)
-	}
-
-	return &config, nil
-}
-
-// this initialises the config in Viper with default empty values so that they can be overridden with env vars
-func initConfig() error {
-	config := Config{
-		Server: Server{
-			Host: "0.0.0.0",
-			Port: 8080,
-		},
-	}
-	viper.SetConfigType("json")
-
-	jsonBytes, err := json.Marshal(config)
+	jsonBytes, err := json.Marshal(initConfig)
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("failed to initialise config %w", err)
 	}
 
 	reader := bytes.NewReader(jsonBytes)
 	if err = viper.ReadConfig(reader); err != nil {
-		return err
+		return nil, fmt.Errorf("viper failed to read config %w", err)
 	}
 
-	return nil
+	var config T
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config %w", err)
+	}
+
+	return &config, nil
 }
