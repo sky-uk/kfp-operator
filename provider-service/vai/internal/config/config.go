@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// TODO: Rename to VaiProviderConfig
 type VAIProviderConfig struct {
 	Name       string     `yaml:"name"`
 	Parameters Parameters `yaml:"parameters"`
@@ -25,14 +24,12 @@ type Parameters struct {
 	MaxConcurrentRunCount                 int64  `yaml:"maxConcurrentRunCount"`
 }
 
-// TODO: the Name can be passed in (taken from base config)
-// TODO: Rename to LoadVaiProviderConfig
-func LoadVAIProviderConfig() (*VAIProviderConfig, error) {
+func LoadVAIProviderConfig(providerName string) (*VAIProviderConfig, error) {
 	viper.SetConfigType("json")
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
 
-	jsonBytes, err := json.Marshal(VAIProviderConfig{})
+	jsonBytes, err := json.Marshal(VAIProviderConfig{Name: providerName})
 	if err != nil {
 		return nil, err
 	}

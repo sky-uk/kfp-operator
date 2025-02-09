@@ -28,7 +28,7 @@ type VAIProvider struct {
 	jobEnricher    JobEnricher
 }
 
-func NewProvider(
+func NewVAIProvider(
 	ctx context.Context,
 	config *config.VAIProviderConfig,
 ) (*VAIProvider, error) {

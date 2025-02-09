@@ -33,11 +33,6 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded base config: %+v", baseConfig))
 
-	k8sClient, err := NewK8sClient()
-	if err != nil {
-		panic(err)
-	}
-
 	kfpProviderConfig, err := config.LoadKfpProviderConfig(baseConfig.ProviderName)
 	if err != nil {
 		logger.Error(err, "failed to load provider config", "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
@@ -45,14 +40,30 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
 
-	go RunServer(ctx, kfpProviderConfig, baseConfig)
+	go runServer(ctx, kfpProviderConfig, baseConfig)
 
-	go RunEventing(ctx, *k8sClient, baseConfig, kfpProviderConfig)
+	k8sClient, err := NewK8sClient()
+	if err != nil {
+		panic(err)
+	}
+
+	go runEventing(ctx, *k8sClient, baseConfig, kfpProviderConfig)
 
 	<-ctx.Done()
 }
 
-func RunEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfig.Config, providerConfig *config.KfpProviderConfig) {
+func runServer(ctx context.Context, kfpConfig *config.KfpProviderConfig, baseConfig *baseConfig.Config) {
+	provider, err := kfp.NewKfpProvider(ctx, kfpConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = server.Start(ctx, baseConfig.Server, provider); err != nil {
+		panic(err)
+	}
+}
+
+func runEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfig.Config, providerConfig *config.KfpProviderConfig) {
 	kfpApi, err := client.CreateKfpApi(ctx, *providerConfig)
 	if err != nil {
 		panic(err)
@@ -79,16 +90,4 @@ func RunEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfi
 	connectedFlow := flow.From(source)
 	connectedFlow.To(sink)
 	connectedFlow.Error(errorSink)
-}
-
-// TODO: RunServer and RunEventing are only used in main.go, so they could be private?
-func RunServer(ctx context.Context, kfpConfig *config.KfpProviderConfig, baseConfig *baseConfig.Config) {
-	provider, err := kfp.NewKfpProvider(ctx, kfpConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = server.Start(ctx, baseConfig.Server, provider); err != nil {
-		panic(err)
-	}
 }
