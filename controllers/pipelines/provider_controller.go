@@ -2,10 +2,8 @@ package pipelines
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/predicates"
 	"time"
 
@@ -15,8 +13,6 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
