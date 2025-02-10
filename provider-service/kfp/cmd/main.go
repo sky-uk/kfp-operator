@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
-	baseConfigLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
+	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	kfpConfig "github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/event"
 	kfp "github.com/sky-uk/kfp-operator/provider-service/kfp/internal/provider"
 	"go.uber.org/zap/zapcore"
@@ -25,30 +27,49 @@ func main() {
 
 	ctx := logr.NewContext(context.Background(), logger)
 
-	baseConfig, err := baseConfigLoader.LoadConfig(ctx)
+	serviceConfig, err := baseConfig.LoadConfig(baseConfig.Config{
+		Server: baseConfig.Server{
+			Host: "0.0.0.0",
+			Port: 8080,
+		},
+	})
 	if err != nil {
+		logger.Error(err, "failed to load config")
 		panic(err)
 	}
+	logger.Info(fmt.Sprintf("loaded base config: %+v", serviceConfig))
+
+	kfpProviderConfig, err := baseConfig.LoadConfig(kfpConfig.KfpProviderConfig{Name: serviceConfig.ProviderName})
+	if err != nil {
+		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
+		panic(err)
+	}
+	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
+
+	go runServer(ctx, kfpProviderConfig, serviceConfig)
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {
 		panic(err)
 	}
 
-	providerConfig, err := config.LoadProviderConfig(ctx, *k8sClient, baseConfig.ProviderName, baseConfig.Pod.Namespace)
-	if err != nil {
-		logger.Error(err, "failed to load provider config", "provider", baseConfig.ProviderName, "namespace", baseConfig.Pod.Namespace)
-		panic(err)
-	}
-
-	go RunServer(ctx, providerConfig, baseConfig)
-
-	go RunEventing(ctx, *k8sClient, baseConfig, providerConfig)
+	go runEventing(ctx, *k8sClient, serviceConfig, kfpProviderConfig)
 
 	<-ctx.Done()
 }
 
-func RunEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfigLoader.Config, providerConfig *config.KfpProviderConfig) {
+func runServer(ctx context.Context, kfpConfig *kfpConfig.KfpProviderConfig, baseConfig *baseConfig.Config) {
+	provider, err := kfp.NewKfpProvider(ctx, kfpConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = server.Start(ctx, baseConfig.Server, provider); err != nil {
+		panic(err)
+	}
+}
+
+func runEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfig.Config, providerConfig *kfpConfig.KfpProviderConfig) {
 	kfpApi, err := client.CreateKfpApi(ctx, *providerConfig)
 	if err != nil {
 		panic(err)
@@ -75,15 +96,4 @@ func RunEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfi
 	connectedFlow := flow.From(source)
 	connectedFlow.To(sink)
 	connectedFlow.Error(errorSink)
-}
-
-func RunServer(ctx context.Context, kfpConfig *config.KfpProviderConfig, baseConfig *baseConfigLoader.Config) {
-	provider, err := kfp.NewKfpProvider(ctx, kfpConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = server.Start(ctx, baseConfig.Server, provider); err != nil {
-		panic(err)
-	}
 }

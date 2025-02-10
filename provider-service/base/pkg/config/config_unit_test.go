@@ -3,7 +3,6 @@
 package config
 
 import (
-	"context"
 	"os"
 	"testing"
 
@@ -17,7 +16,6 @@ func TestConfig(t *testing.T) {
 }
 
 var _ = Context("load", func() {
-	ctx := context.Background()
 	defaultConfig := Config{
 		Server: Server{
 			Host: "0.0.0.0",
@@ -27,7 +25,7 @@ var _ = Context("load", func() {
 
 	When("given no environment variable overrides", func() {
 		It("correctly initialises the default config", func() {
-			config, err := LoadConfig(ctx)
+			config, err := LoadConfig(defaultConfig)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(config).To(Equal(&defaultConfig))
 		})
@@ -39,7 +37,7 @@ var _ = Context("load", func() {
 			Expect(err).NotTo(HaveOccurred())
 			expected := defaultConfig
 			expected.Pod.Namespace = "kfp-operator-system"
-			config, err := LoadConfig(ctx)
+			config, err := LoadConfig(defaultConfig)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(config).To(Equal(&expected))
 		})

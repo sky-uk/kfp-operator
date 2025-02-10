@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	configLoader "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
+	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
@@ -26,66 +27,72 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	ctx := logr.NewContext(context.Background(), logger)
 
-	config, err := configLoader.LoadConfig(ctx)
+	serviceConfig, err := baseConfig.LoadConfig(baseConfig.Config{
+		Server: baseConfig.Server{
+			Host: "0.0.0.0",
+			Port: 8080,
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+	logger.Info(fmt.Sprintf("loaded base config: %+v", serviceConfig))
+
+	vaiProviderConfig, err := baseConfig.LoadConfig(vaiConfig.VAIProviderConfig{Name: serviceConfig.ProviderName})
+	if err != nil {
+		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
+		panic(err)
+	}
+	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
+
+	go runServer(ctx, vaiProviderConfig, serviceConfig)
+
+	runEventing(ctx, logger, serviceConfig, vaiProviderConfig)
+
+	<-ctx.Done()
+	logger.Info("vai event flow is terminating")
+}
+
+func runServer(ctx context.Context, vaiConfig *vaiConfig.VAIProviderConfig, baseConfig *baseConfig.Config) {
+	provider, err := vai.NewVAIProvider(ctx, vaiConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	k8sClient, err := NewK8sClient()
+	if err = server.Start(ctx, baseConfig.Server, provider); err != nil {
+		panic(err)
+	}
+}
+
+func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig.Config, providerConfig *vaiConfig.VAIProviderConfig) {
+	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.VaiEndpoint()))
 	if err != nil {
+		logger.Error(err, "failed to create VAI pipeline client", "endpoint", providerConfig.VaiEndpoint())
 		panic(err)
 	}
 
-	vaiConfig := vaiConfig.VAIProviderConfig{
-		Name: config.ProviderName,
-	}
-
-	if err := LoadProvider(ctx, k8sClient.Client, config.ProviderName, config.Pod.Namespace, &vaiConfig); err != nil {
-		logger.Error(err, "failed to load provider", "name", config.ProviderName, "namespace", config.Pod.Namespace)
-		panic(err)
-	}
-
-	//TODO: Update the config to be passed in by controller on deployment creation
-	provider, err := vai.NewProvider(ctx, vaiConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = server.Start(ctx, config.Server, provider); err != nil {
-		panic(err)
-	}
-
-	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(vaiConfig.VaiEndpoint()))
-	if err != nil {
-		logger.Error(err, "failed to create VAI pipeline client", "endpoint", vaiConfig.VaiEndpoint())
-		panic(err)
-	}
-
-	source, err := sources.NewPubSubSource(ctx, vaiConfig.Parameters.VaiProject, vaiConfig.Parameters.EventsourcePipelineEventsSubscription)
+	source, err := sources.NewPubSubSource(ctx, providerConfig.Parameters.VaiProject, providerConfig.Parameters.EventsourcePipelineEventsSubscription)
 	if err != nil {
 		logger.Error(err, "failed to create VAI event data source")
 		panic(err)
 	}
 	go handleErrorInSourceOperations(source)
 
-	flow := runcompletion.NewEventFlow(ctx, &vaiConfig, pipelineJobClient)
+	flow := runcompletion.NewEventFlow(ctx, providerConfig, pipelineJobClient)
 
 	go func() {
 		flow.Start()
 	}()
 
-	sink := sinks.NewWebhookSink(ctx, resty.New(), config.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
+	sink := sinks.NewWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
 	errorSink := sinks.NewErrorSink(ctx, make(chan error))
 
 	logger.Info("starting vai event flow")
 	flow.From(source).To(sink)
 	flow.Error(errorSink)
-
-	// block till terminated
-	<-ctx.Done()
-	logger.Info("vai event flow is terminating")
 }
 
 func handleErrorInSourceOperations(source *sources.PubSubSource) {

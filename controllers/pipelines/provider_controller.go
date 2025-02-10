@@ -2,7 +2,9 @@ package pipelines
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -17,6 +19,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -248,18 +251,37 @@ func populateServiceContainer(serviceContainerName string, podTemplate v1.PodTem
 		return nil, fmt.Errorf("unable to populate service container: container with name %s not found on deployment", serviceContainerName)
 	}
 
+	paramsAsEnvVars := make([]v1.EnvVar, len(provider.Spec.Parameters))
+	for name, value := range provider.Spec.Parameters {
+		paramsAsEnvVars = append(paramsAsEnvVars, v1.EnvVar{Name: fmt.Sprintf("PARAMETERS_%s", strings.ToUpper(name)), Value: jsonToString(value)})
+	}
+
 	podTemplate.Spec.Containers = Map(podTemplate.Spec.Containers, func(c v1.Container) v1.Container {
 		if c.Name == serviceContainerName {
 			c.Image = provider.Spec.ServiceImage
-			c.Env = append(c.Env, v1.EnvVar{
-				Name:  "PROVIDERNAME",
-				Value: provider.Name,
-			})
+			c.Env = append(c.Env,
+				v1.EnvVar{
+					Name:  "PROVIDERNAME",
+					Value: provider.Name,
+				},
+			)
+			c.Env = append(c.Env, paramsAsEnvVars...)
 		}
 		return c
 	})
 
 	return &podTemplate, nil
+}
+
+func jsonToString(jsonValue *apiextensionsv1.JSON) string {
+	var s string
+	if jsonValue != nil {
+		// Attempts to unmarshal input into a string to remove extra quotes and escape chars if the input is, in fact, a string
+		if err := json.Unmarshal(jsonValue.Raw, &s); err != nil {
+			s = string(jsonValue.Raw)
+		}
+	}
+	return s
 }
 
 func setDeploymentHashAnnotation(deployment *appsv1.Deployment) error {
