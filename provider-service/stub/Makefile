@@ -18,5 +18,5 @@ vet: ## Run go vet against code.
 
 ##@ Build
 
-build:
+build: ## Build stub provider service binary
 	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/stub-provider-service cmd/main.go
