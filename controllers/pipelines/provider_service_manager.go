@@ -6,17 +6,18 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/predicates"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/provider/predicates"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sort"
 )
 
 type ServiceResourceManager interface {
@@ -24,7 +25,7 @@ type ServiceResourceManager interface {
 	Delete(ctx context.Context, old *corev1.Service) error
 	Get(ctx context.Context, owner *pipelinesv1.Provider) (*corev1.Service, error)
 	Equal(a, b *corev1.Service) bool
-	Construct(provider *pipelinesv1.Provider) (*corev1.Service, error)
+	Construct(provider *pipelinesv1.Provider) *corev1.Service
 }
 
 type ServiceManager struct {
@@ -75,7 +76,7 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelinesv1.Provider) (
 
 }
 
-func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) (*corev1.Service, error) {
+func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 
 	ports := []corev1.ServicePort{{
@@ -102,11 +103,27 @@ func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) (*corev1.Serv
 	}
 	svc.Annotations[predicates.ControllerManagedKey] = "true"
 
-	return svc, nil
+	return svc
 }
 
 func (sm ServiceManager) Equal(a, b *corev1.Service) bool {
-	return reflect.DeepEqual(a.Spec, b.Spec) &&
-		reflect.DeepEqual(a.Annotations, b.Annotations) &&
-		reflect.DeepEqual(a.Labels, b.Labels)
+	return equality.Semantic.DeepEqual(normalizeService(a), normalizeService(b))
+}
+
+// Normalize the Service before comparing
+func normalizeService(svc *corev1.Service) *corev1.Service {
+	normalized := svc.DeepCopy()
+
+	// Remove metadata fields that change every update
+	normalized.ObjectMeta.ResourceVersion = ""
+	normalized.ObjectMeta.Generation = 0
+	normalized.ObjectMeta.CreationTimestamp = metav1.Time{}
+	normalized.ObjectMeta.UID = ""
+
+	// Sort ports to avoid ordering issues
+	sort.SliceStable(normalized.Spec.Ports, func(i, j int) bool {
+		return normalized.Spec.Ports[i].Port < normalized.Spec.Ports[j].Port
+	})
+
+	return normalized
 }

@@ -5,48 +5,46 @@ package testutil
 import (
 	"context"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
 )
 
 type MockDeploymentManager struct {
-	CreateFunc    func() error
-	UpdateFunc    func() error
-	GetFunc       func() (*appsv1.Deployment, error)
-	EqualFunc     func() bool
-	ConstructFunc func() (*appsv1.Deployment, error)
+	mock.Mock
 }
 
-func (m *MockDeploymentManager) Create(_ context.Context, _ *appsv1.Deployment, _ *pipelinesv1.Provider) error {
-	if m.CreateFunc != nil {
-		return m.CreateFunc()
-	}
-	return nil
+func (m *MockDeploymentManager) Create(_ context.Context, deployment *appsv1.Deployment, provider *pipelinesv1.Provider) error {
+	args := m.Called(deployment, provider)
+	return args.Error(0)
 }
 
-func (m *MockDeploymentManager) Update(_ context.Context, _ *appsv1.Deployment, _ *appsv1.Deployment, _ *pipelinesv1.Provider) error {
-	if m.UpdateFunc != nil {
-		return m.UpdateFunc()
-	}
-	return nil
+func (m *MockDeploymentManager) Update(_ context.Context, old, new *appsv1.Deployment, provider *pipelinesv1.Provider) error {
+	args := m.Called(old, new, provider)
+	return args.Error(0)
 }
 
-func (m *MockDeploymentManager) Get(_ context.Context, _ *pipelinesv1.Provider) (*appsv1.Deployment, error) {
-	if m.GetFunc != nil {
-		return m.GetFunc()
+func (m *MockDeploymentManager) Get(_ context.Context, provider *pipelinesv1.Provider) (*appsv1.Deployment, error) {
+	args := m.Called(provider)
+	var deployment *appsv1.Deployment
+	if args.Get(0) != nil {
+		deployment = args.Get(0).(*appsv1.Deployment)
 	}
-	return &appsv1.Deployment{}, nil
+	return deployment, args.Error(1)
 }
 
-func (m *MockDeploymentManager) Equal(_, _ *appsv1.Deployment) bool {
-	if m.EqualFunc != nil {
-		return m.EqualFunc()
+func (m *MockDeploymentManager) Equal(a, b *appsv1.Deployment) bool {
+	args := m.Called(a, b)
+	if args.Get(0) != nil {
+		return args.Get(0).(bool)
 	}
-	return true
+	panic("mock not set")
 }
 
-func (m *MockDeploymentManager) Construct(_ *pipelinesv1.Provider) (*appsv1.Deployment, error) {
-	if m.ConstructFunc != nil {
-		return m.ConstructFunc()
+func (m *MockDeploymentManager) Construct(provider *pipelinesv1.Provider) (*appsv1.Deployment, error) {
+	args := m.Called(provider)
+	var deployment *appsv1.Deployment
+	if args.Get(0) != nil {
+		deployment = args.Get(0).(*appsv1.Deployment)
 	}
-	return &appsv1.Deployment{}, nil
+	return deployment, args.Error(1)
 }

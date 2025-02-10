@@ -8,18 +8,19 @@ import (
 	. "github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/predicates"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/provider/predicates"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sort"
 	"strings"
 )
 
@@ -92,9 +93,7 @@ func (dm DeploymentManager) Get(ctx context.Context, owner *pipelinesv1.Provider
 }
 
 func (dm DeploymentManager) Equal(a, b *appsv1.Deployment) bool {
-	return reflect.DeepEqual(a.Spec, b.Spec) &&
-		reflect.DeepEqual(a.Annotations, b.Annotations) &&
-		reflect.DeepEqual(a.Labels, b.Labels)
+	return equality.Semantic.DeepEqual(normalizeDeployment(a), normalizeDeployment(b))
 }
 
 func (dm DeploymentManager) Construct(provider *pipelinesv1.Provider) (*appsv1.Deployment, error) {
@@ -174,4 +173,23 @@ func jsonToString(jsonValue *apiextensionsv1.JSON) string {
 		}
 	}
 	return s
+}
+
+func normalizeDeployment(dep *appsv1.Deployment) *appsv1.Deployment {
+
+	// Remove metadata fields that change on every update
+	normalized := dep.DeepCopy()
+	normalized.ObjectMeta.ResourceVersion = ""
+	normalized.ObjectMeta.Generation = 0
+	normalized.ObjectMeta.CreationTimestamp = metav1.Time{}
+
+	// Sort container env variables to avoid ordering issues
+	for i := range normalized.Spec.Template.Spec.Containers {
+		sort.SliceStable(normalized.Spec.Template.Spec.Containers[i].Env, func(a, b int) bool {
+			return normalized.Spec.Template.Spec.Containers[i].Env[a].Name <
+				normalized.Spec.Template.Spec.Containers[i].Env[b].Name
+		})
+	}
+
+	return normalized
 }
