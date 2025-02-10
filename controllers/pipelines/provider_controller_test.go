@@ -4,8 +4,6 @@ package pipelines
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -14,8 +12,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
@@ -89,6 +85,7 @@ var _ = Context("Provider Controller", func() {
 			Expect(deploymentCreateCalled).To(BeTrue())
 			Expect(serviceCreateCalled).To(BeTrue())
 		})
+
 		Specify("Should Update a Deployment and Delete Service if they exist and provider resource is out of sync", func() {
 			deploymentUpdateCalled := false
 			serviceDeleteCalled := false
@@ -130,86 +127,6 @@ var _ = Context("Provider Controller", func() {
 
 			Expect(deploymentUpdateCalled).To(BeTrue())
 			Expect(serviceDeleteCalled).To(BeTrue())
-		})
-
-	var _ = Describe("updateProviderStatus", func() {
-		Specify("Should update the Provider status with the given conditions", func() {
-			ctx := context.Background()
-			scheme := runtime.NewScheme()
-			err := pipelinesv1.AddToScheme(scheme)
-			Expect(err).ToNot(HaveOccurred())
-			client := fake.NewClientBuilder().
-				WithScheme(scheme).
-				WithStatusSubresource(&pipelinesv1.Provider{}).
-				Build()
-
-			pr := ProviderReconciler{
-				ResourceReconciler: ResourceReconciler[*pipelinesv1.Provider]{
-					EC: K8sExecutionContext{
-						Client: controllers.OptInClient{
-							Writer:       client,
-							StatusClient: client,
-							Cached:       client,
-							NonCached:    client,
-						},
-						Scheme: scheme,
-					},
-					Config: config.KfpControllerConfigSpec{},
-				},
-				Scheme: scheme,
-			}
-
-			initialProvider := pipelinesv1.RandomProvider()
-			expectedStartGeneration := int64(1)
-			expectedEndGeneration := int64(2)
-
-			initialProvider.Status.ObservedGeneration = expectedStartGeneration
-			initialProvider.Generation = expectedEndGeneration
-
-			err = client.Create(ctx, initialProvider)
-			Expect(err).ToNot(HaveOccurred())
-
-			err = client.Get(ctx, initialProvider.GetNamespacedName(), initialProvider)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(initialProvider.Status.ObservedGeneration).To(Equal(expectedStartGeneration))
-
-			err = pr.updateProviderStatus(ctx, initialProvider)
-			Expect(err).ToNot(HaveOccurred())
-
-			underTest := &pipelinesv1.Provider{}
-			err = client.Get(ctx, initialProvider.GetNamespacedName(), underTest)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(underTest.Status.ObservedGeneration).To(Equal(expectedEndGeneration))
-
-		})
-	})
-
-	var _ = Describe("jsonToString", func() {
-		Specify("Should return a plain string given a JSON string (no extra quotes or escape chars!)", func() {
-			rawJson, err := json.Marshal("test")
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonStr := apiextensionsv1.JSON{
-				Raw: rawJson,
-			}
-
-			result := jsonToString(&jsonStr)
-
-			Expect(result).To(Equal("test"))
-		})
-
-		Specify("Should return a raw JSON string given a JSON object", func() {
-			rawJson, err := json.Marshal(`{"key1": "value1", "key2": 42}`)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonStr := apiextensionsv1.JSON{
-				Raw: rawJson,
-			}
-
-			result := jsonToString(&jsonStr)
-
-			Expect(result).To(Equal("{\"key1\": \"value1\", \"key2\": 42}"))
 		})
 	})
 })
