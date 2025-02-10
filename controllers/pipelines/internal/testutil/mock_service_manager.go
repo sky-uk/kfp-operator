@@ -5,48 +5,46 @@ package testutil
 import (
 	"context"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 )
 
 type MockServiceManager struct {
-	CreateFunc    func() error
-	DeleteFunc    func() error
-	GetFunc       func() (*corev1.Service, error)
-	EqualFunc     func() bool
-	ConstructFunc func() (*corev1.Service, error)
+	mock.Mock
 }
 
-func (m *MockServiceManager) Create(_ context.Context, _ *corev1.Service, _ *pipelinesv1.Provider) error {
-	if m.CreateFunc != nil {
-		return m.CreateFunc()
-	}
-	return nil
+func (m *MockServiceManager) Create(_ context.Context, service *corev1.Service, provider *pipelinesv1.Provider) error {
+	args := m.Called(service, provider)
+	return args.Error(0)
 }
 
-func (m *MockServiceManager) Delete(_ context.Context, _ *corev1.Service) error {
-	if m.DeleteFunc != nil {
-		return m.DeleteFunc()
-	}
-	return nil
+func (m *MockServiceManager) Delete(_ context.Context, service *corev1.Service) error {
+	args := m.Called(service)
+	return args.Error(0)
 }
 
-func (m *MockServiceManager) Get(_ context.Context, _ *pipelinesv1.Provider) (*corev1.Service, error) {
-	if m.GetFunc != nil {
-		return m.GetFunc()
+func (m *MockServiceManager) Get(_ context.Context, provider *pipelinesv1.Provider) (*corev1.Service, error) {
+	args := m.Called(provider)
+	var service *corev1.Service
+	if args.Get(0) != nil {
+		service = args.Get(0).(*corev1.Service)
 	}
-	return &corev1.Service{}, nil
+	return service, args.Error(1)
 }
 
-func (m *MockServiceManager) Equal(_, _ *corev1.Service) bool {
-	if m.EqualFunc != nil {
-		return m.EqualFunc()
+func (m *MockServiceManager) Equal(a, b *corev1.Service) bool {
+	args := m.Called(a, b)
+	if args.Get(0) != nil {
+		return args.Get(0).(bool)
 	}
-	return true
+	panic("mock not set")
 }
 
-func (m *MockServiceManager) Construct(_ *pipelinesv1.Provider) (*corev1.Service, error) {
-	if m.ConstructFunc != nil {
-		return m.ConstructFunc()
+func (m *MockServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Service {
+	args := m.Called(provider)
+
+	if args.Get(0) != nil {
+		return args.Get(0).(*corev1.Service)
 	}
-	return &corev1.Service{}, nil
+	panic("mock not set")
 }
