@@ -27,7 +27,7 @@ data:
       defaultProviderValues:
         replicas: {{ .Values.provider.replicas }}
         serviceContainerName: provider-service
-        servicePort: 8080
+        servicePort: {{ .Values.provider.servicePort }}
         podTemplateSpec:
           spec:
             volumes: {{- if .Values.provider.volumes }}{{- toYaml .Values.provider.volumes | nindent 12 }}{{ else }} []{{ end }}
@@ -36,7 +36,7 @@ data:
             containers:
             - name: provider-service
               ports:
-              - containerPort: 8080
+              - containerPort: {{ .Values.provider.servicePort }}
                 name: http
                 protocol: TCP
               volumeMounts: {{- if .Values.provider.volumeMounts }}{{- toYaml .Values.provider.volumeMounts | nindent 14 }}{{ else }} []{{ end }}
@@ -52,5 +52,5 @@ data:
               - name: OPERATORWEBHOOK
                 value: http://{{ include "kfp-operator.fullname" . }}-runcompletion-webhook-service.{{ .Values.namespace.name }}:80/events
               - name: SERVER_PORT
-                value: '8080'
+                value: '{{ .Values.provider.servicePort }}'
               {{- if .Values.provider.env }}{{- $.Values.provider.env | toYaml | nindent 14 }}{{ end }}
