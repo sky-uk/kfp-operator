@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/stub/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/stub/internal/provider"
@@ -19,7 +20,14 @@ func main() {
 
 	ctx := logr.NewContext(context.Background(), logger)
 	provider := provider.New(logger)
-	cfg, err := config.LoadConfig(ctx)
+	cfg, err := baseConfig.LoadConfig(
+		config.Config{
+			Server: baseConfig.Server{
+				Host: "0.0.0.0",
+				Port: 8080,
+			},
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
