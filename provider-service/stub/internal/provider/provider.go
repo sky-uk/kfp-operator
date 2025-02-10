@@ -1,11 +1,11 @@
 package provider
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	providerConst "github.com/sky-uk/kfp-operator/common/testutil/provider"
 )
 
 type StubProvider struct {
@@ -20,9 +20,9 @@ func (p *StubProvider) CreatePipeline(
 	pdw resource.PipelineDefinitionWrapper,
 ) (string, error) {
 	if strings.EqualFold(pdw.PipelineDefinition.Name.Name, "create-pipeline-fail") {
-		return "", errors.New("create pipeline failed")
+		return "", &providerConst.CreatePipelineError{}
 	} else {
-		return "create-pipeline-succeeded", nil
+		return providerConst.CreatePipelineSuccess, nil
 	}
 }
 
@@ -31,15 +31,15 @@ func (p *StubProvider) UpdatePipeline(
 	id string,
 ) (string, error) {
 	if strings.EqualFold(id, "update-pipeline-fail") {
-		return "", errors.New("update pipeline failed")
+		return "", &providerConst.UpdatePipelineError{}
 	} else {
-		return "update-pipeline-succeeded", nil
+		return providerConst.UpdatePipelineSucceeded, nil
 	}
 }
 
 func (p *StubProvider) DeletePipeline(id string) error {
 	if strings.EqualFold(id, "delete-pipeline-fail") {
-		return errors.New("delete pipeline failed")
+		return &providerConst.DeletePipelineError{}
 	} else {
 		return nil
 	}
@@ -49,15 +49,15 @@ func (p *StubProvider) CreateRun(
 	rd resource.RunDefinition,
 ) (string, error) {
 	if strings.EqualFold(rd.Name.Name, "create-run-fail") {
-		return "", errors.New("create run failed")
+		return "", &providerConst.CreateRunError{}
 	} else {
-		return "create-run-succeeded", nil
+		return providerConst.CreateRunSucceded, nil
 	}
 }
 
 func (p *StubProvider) DeleteRun(id string) error {
 	if strings.EqualFold(id, "delete-run-fail") {
-		return errors.New("delete run failed")
+		return &providerConst.DeleteRunError{}
 	} else {
 		return nil
 	}
@@ -67,9 +67,9 @@ func (p *StubProvider) CreateRunSchedule(
 	rsd resource.RunScheduleDefinition,
 ) (string, error) {
 	if strings.EqualFold(rsd.Name.Name, "create-runschedule-fail") {
-		return "", errors.New("create runschedule failed")
+		return "", &providerConst.CreateRunScheduleError{}
 	} else {
-		return "create-runschedule-succeeded", nil
+		return providerConst.CreateRunScheduleSucceeded, nil
 	}
 }
 
@@ -78,15 +78,15 @@ func (p *StubProvider) UpdateRunSchedule(
 	id string,
 ) (string, error) {
 	if strings.EqualFold(rsd.Name.Name, "update-runschedule-fail") {
-		return "", errors.New("update runschedule failed")
+		return "", &providerConst.UpdateRunScheduleError{}
 	} else {
-		return "update-runschedule-succeeded", nil
+		return providerConst.UpdateRunScheduleSucceeded, nil
 	}
 }
 
 func (p *StubProvider) DeleteRunSchedule(id string) error {
 	if strings.EqualFold(id, "delete-runschedule-fail") {
-		return errors.New("delete runschedule failed")
+		return &providerConst.DeleteRunScheduleError{}
 	} else {
 		return nil
 	}
@@ -96,9 +96,9 @@ func (p *StubProvider) CreateExperiment(
 	ed resource.ExperimentDefinition,
 ) (string, error) {
 	if strings.EqualFold(ed.Name.Name, "create-experiment-fail") {
-		return "", errors.New("create experiment failed")
+		return "", &providerConst.CreateExperimentError{}
 	} else {
-		return "create-experiment-succeeded", nil
+		return providerConst.CreateExperimentSucceeded, nil
 	}
 }
 
@@ -107,15 +107,15 @@ func (p *StubProvider) UpdateExperiment(
 	id string,
 ) (string, error) {
 	if strings.EqualFold(ed.Name.Name, "update-experiment-fail") {
-		return "", errors.New("update experiment failed")
+		return "", &providerConst.UpdateExperimentError{}
 	} else {
-		return "update-experiment-succeeded", nil
+		return providerConst.UpdateExperimentSucceeded, nil
 	}
 }
 
 func (p *StubProvider) DeleteExperiment(id string) error {
 	if strings.EqualFold(id, "delete-experiment-fail") {
-		return errors.New("delete experiment failed")
+		return &providerConst.DeleteExperimentError{}
 	} else {
 		return nil
 	}
