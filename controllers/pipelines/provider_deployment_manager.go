@@ -12,15 +12,14 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sort"
 	"strings"
 )
 
@@ -93,7 +92,9 @@ func (dm DeploymentManager) Get(ctx context.Context, owner *pipelinesv1.Provider
 }
 
 func (dm DeploymentManager) Equal(a, b *appsv1.Deployment) bool {
-	return equality.Semantic.DeepEqual(normalizeDeployment(a), normalizeDeployment(b))
+	return reflect.DeepEqual(a.Spec, b.Spec) &&
+		reflect.DeepEqual(a.Annotations, b.Annotations) &&
+		reflect.DeepEqual(a.Labels, b.Labels)
 }
 
 func (dm DeploymentManager) Construct(provider *pipelinesv1.Provider) (*appsv1.Deployment, error) {
@@ -142,7 +143,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 		return nil, fmt.Errorf("unable to populate service container: container with name %s not found on deployment", serviceContainerName)
 	}
 
-	paramsAsEnvVars := make([]corev1.EnvVar, len(provider.Spec.Parameters))
+	paramsAsEnvVars := []corev1.EnvVar{}
 	for name, value := range provider.Spec.Parameters {
 		paramsAsEnvVars = append(paramsAsEnvVars, corev1.EnvVar{Name: fmt.Sprintf("PARAMETERS_%s", strings.ToUpper(name)), Value: jsonToString(value)})
 	}
@@ -165,7 +166,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 }
 
 func jsonToString(jsonValue *apiextensionsv1.JSON) string {
-	var s string
+	s := ""
 	if jsonValue != nil {
 		// Attempts to unmarshal input into a string to remove extra quotes and escape chars if the input is, in fact, a string
 		if err := json.Unmarshal(jsonValue.Raw, &s); err != nil {
@@ -173,23 +174,4 @@ func jsonToString(jsonValue *apiextensionsv1.JSON) string {
 		}
 	}
 	return s
-}
-
-func normalizeDeployment(dep *appsv1.Deployment) *appsv1.Deployment {
-
-	// Remove metadata fields that change on every update
-	normalized := dep.DeepCopy()
-	normalized.ObjectMeta.ResourceVersion = ""
-	normalized.ObjectMeta.Generation = 0
-	normalized.ObjectMeta.CreationTimestamp = metav1.Time{}
-
-	// Sort container env variables to avoid ordering issues
-	for i := range normalized.Spec.Template.Spec.Containers {
-		sort.SliceStable(normalized.Spec.Template.Spec.Containers[i].Env, func(a, b int) bool {
-			return normalized.Spec.Template.Spec.Containers[i].Env[a].Name <
-				normalized.Spec.Template.Spec.Containers[i].Env[b].Name
-		})
-	}
-
-	return normalized
 }

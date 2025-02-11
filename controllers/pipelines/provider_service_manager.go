@@ -8,16 +8,15 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/provider/predicates"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sort"
 )
 
 type ServiceResourceManager interface {
@@ -107,23 +106,9 @@ func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Servi
 }
 
 func (sm ServiceManager) Equal(a, b *corev1.Service) bool {
-	return equality.Semantic.DeepEqual(normalizeService(a), normalizeService(b))
-}
-
-// Normalize the Service before comparing
-func normalizeService(svc *corev1.Service) *corev1.Service {
-	normalized := svc.DeepCopy()
-
-	// Remove metadata fields that change every update
-	normalized.ObjectMeta.ResourceVersion = ""
-	normalized.ObjectMeta.Generation = 0
-	normalized.ObjectMeta.CreationTimestamp = metav1.Time{}
-	normalized.ObjectMeta.UID = ""
-
-	// Sort ports to avoid ordering issues
-	sort.SliceStable(normalized.Spec.Ports, func(i, j int) bool {
-		return normalized.Spec.Ports[i].Port < normalized.Spec.Ports[j].Port
-	})
-
-	return normalized
+	// use reflect here as much of the spec on a k8s service may be defaulted by k8s cluster
+	// we don't want to compare these defaults against our generated struct as will always be different
+	return reflect.DeepEqual(a.Spec, b.Spec) &&
+		reflect.DeepEqual(a.Annotations, b.Annotations) &&
+		reflect.DeepEqual(a.Labels, b.Labels)
 }
