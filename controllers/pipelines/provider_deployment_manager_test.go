@@ -179,17 +179,30 @@ var _ = Context("Provider Deployment Manager", func() {
 	var _ = Describe("Construct", func() {
 
 		Specify("Should return the constructed deployment if it is successful", func() {
-			provider.Spec.Parameters = map[string]*apiextensionsv1.JSON{}
+			provider.Spec.Parameters = map[string]*apiextensionsv1.JSON{
+				"key1": {Raw: []byte(`"value1"`)},
+				"key2": {Raw: []byte(`1`)},
+			}
 
 			deployment, err := deploymentManager.Construct(provider)
 			Expect(err).ToNot(HaveOccurred())
 
 			providerSuffixedName := fmt.Sprintf("provider-%s", provider.Name)
 
-			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(Equal([]corev1.EnvVar{{
-				Name:  "PROVIDERNAME",
-				Value: provider.Name,
-			}}))
+			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(Equal([]corev1.EnvVar{
+				{
+					Name:  "PROVIDERNAME",
+					Value: provider.Name,
+				},
+				{
+					Name:  "PARAMETERS_KEY1",
+					Value: "value1",
+				},
+				{
+					Name:  "PARAMETERS_KEY2",
+					Value: "1",
+				},
+			}))
 			Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal(provider.Spec.ServiceImage))
 			Expect(deployment.Spec.Template.Labels).To(Equal(map[string]string{
 				"app": providerSuffixedName,
@@ -287,7 +300,7 @@ var _ = Context("Provider Deployment Manager", func() {
 		})
 
 		Specify("Should return a raw JSON string given a JSON object", func() {
-			rawJson, err := json.Marshal(`{"key1": "value1", "key2": 42}`)
+			rawJson, err := json.Marshal(`{"key1": "value1", "key2": 42, "key3": {"key4": "value4"}, "key5": ""}`)
 			Expect(err).ToNot(HaveOccurred())
 
 			jsonStr := apiextensionsv1.JSON{
@@ -296,7 +309,7 @@ var _ = Context("Provider Deployment Manager", func() {
 
 			result := jsonToString(&jsonStr)
 
-			Expect(result).To(Equal("{\"key1\": \"value1\", \"key2\": 42}"))
+			Expect(result).To(Equal(`{"key1": "value1", "key2": 42, "key3": {"key4": "value4"}, "key5": ""}`))
 		})
 	})
 
