@@ -4,7 +4,6 @@ go 1.22.11
 
 require (
 	github.com/go-logr/logr v1.4.1
-	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250206144534-40d416150c6b
 	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000
 	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.24.0
@@ -58,6 +57,7 @@ require (
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sky-uk/kfp-operator v0.6.0 // indirect
+	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250206144534-40d416150c6b // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
