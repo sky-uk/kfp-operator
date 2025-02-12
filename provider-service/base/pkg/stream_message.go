@@ -1,7 +1,5 @@
 package pkg
 
-import _ "github.com/sky-uk/kfp-operator/argo/common"
-
 type OnCompleteHandlers struct {
 	OnSuccessHandler func()
 	OnFailureHandler func()
