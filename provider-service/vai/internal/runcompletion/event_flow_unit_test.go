@@ -10,7 +10,8 @@ import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
+	"github.com/sky-uk/kfp-operator/common/testutil"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
@@ -57,7 +58,7 @@ var _ = Context("VaiEventingServer", func() {
 		errChan = make(chan error)
 		eventingFlow = EventFlow{
 			ProviderConfig: config.VAIProviderConfig{
-				Name: common.RandomString(),
+				Name: testutil.RandomString(),
 			},
 			PipelineJobClient: mockPipelineJobClient,
 			context:           context.Background(),
@@ -77,7 +78,7 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEventData for job that has not completed", func(state aiplatformpb.PipelineState) {
-		event, err := eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{State: state}, common.RandomString())
+		event, err := eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{State: state}, testutil.RandomString())
 		Expect(event).To(BeNil())
 		Expect(err).To(HaveOccurred())
 	},
@@ -90,9 +91,9 @@ var _ = Context("VaiEventingServer", func() {
 	)
 
 	DescribeTable("toRunCompletionEventData for job that has completed", func(pipelineState aiplatformpb.PipelineState, status common.RunCompletionStatus) {
-		runConfigurationName := common.RandomNamespacedName()
-		pipelineName := common.RandomNamespacedName()
-		pipelineRunName := common.RandomNamespacedName()
+		runConfigurationName := testutil.RandomNamespacedName()
+		pipelineName := testutil.RandomNamespacedName()
+		pipelineRunName := testutil.RandomNamespacedName()
 
 		Expect(eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{
 			Name: pipelineRunName.Name,
@@ -171,7 +172,7 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("The job has a component but no output", func() {
 			It("Produces empty pipeline component", func() {
-				componentName := common.RandomString()
+				componentName := testutil.RandomString()
 
 				Expect(artifactsFilterData(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
@@ -192,7 +193,7 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("The job has a component and output but no artifacts", func() {
 			It("Produces empty pipeline component", func() {
-				componentName := common.RandomString()
+				componentName := testutil.RandomString()
 
 				Expect(artifactsFilterData(&aiplatformpb.PipelineJob{
 					JobDetail: &aiplatformpb.PipelineJobDetail{
@@ -452,7 +453,7 @@ var _ = Context("VaiEventingServer", func() {
 	Describe("runCompletionEventDataForRun", func() {
 		When("GetPipelineJob errors", func() {
 			It("returns no event", func() {
-				runId := common.RandomString()
+				runId := testutil.RandomString()
 				expectedReq := aiplatformpb.GetPipelineJobRequest{
 					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
 				}
@@ -469,7 +470,7 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("GetPipelineJob returns a PipelineJob", func() {
 			It("Returns a RunCompletionEvent", func() {
-				runId := common.RandomString()
+				runId := testutil.RandomString()
 				expectedReq := aiplatformpb.GetPipelineJobRequest{
 					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
 				}
@@ -492,7 +493,7 @@ var _ = Context("VaiEventingServer", func() {
 	Describe("Start", func() {
 		When("runCompletionEventDataForRun errors with NotFound", func() {
 			It("acks the message and outputs to error sink", func() {
-				runId := common.RandomString()
+				runId := testutil.RandomString()
 				expectedReq := aiplatformpb.GetPipelineJobRequest{
 					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
 				}
@@ -512,7 +513,7 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("runCompletionEventDataForRun errors", func() {
 			It("nacks the message and outputs to error sink", func() {
-				runId := common.RandomString()
+				runId := testutil.RandomString()
 				expectedReq := aiplatformpb.GetPipelineJobRequest{
 					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
 				}
@@ -532,7 +533,7 @@ var _ = Context("VaiEventingServer", func() {
 
 		When("runCompletionEventDataForRun succeeds", func() {
 			It("sends the message to the out channel", func() {
-				runId := common.RandomString()
+				runId := testutil.RandomString()
 				expectedReq := aiplatformpb.GetPipelineJobRequest{
 					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
 				}
