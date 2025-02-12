@@ -22,7 +22,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/common"
-	"github.com/sky-uk/kfp-operator/common/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
@@ -139,7 +138,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
-				runId := testutil.RandomString()
+				runId := common.RandomString()
 
 				servingModelArtifacts := mockMetadataStore.ReturnArtifactForPipeline()
 
@@ -174,7 +173,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
-				runId := testutil.RandomString()
+				runId := common.RandomString()
 
 				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowSucceeded)
 				Expect(err).NotTo(HaveOccurred())
@@ -205,7 +204,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 				pipelineName, err := resourceReferences.PipelineName.String()
 				Expect(err).ToNot(HaveOccurred())
 
-				runId := testutil.RandomString()
+				runId := common.RandomString()
 
 				workflow, err := createAndTriggerPhaseUpdate(ctx, pipelineName, runId, argo.WorkflowRunning, argo.WorkflowFailed)
 				Expect(err).NotTo(HaveOccurred())
@@ -233,7 +232,7 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 	When("A pipeline run doesn't finish", func() {
 		It("Does not trigger an event", func() {
 			WithTestContext(func(ctx context.Context) {
-				_, err := createAndTriggerPhaseUpdate(ctx, testutil.RandomString(), testutil.RandomString(), argo.WorkflowPending, argo.WorkflowRunning)
+				_, err := createAndTriggerPhaseUpdate(ctx, common.RandomString(), common.RandomString(), argo.WorkflowPending, argo.WorkflowRunning)
 				Expect(err).NotTo(HaveOccurred())
 
 				expectedNumberOfEventsOccurred(ctx, 0)

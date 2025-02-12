@@ -13,6 +13,7 @@ require (
 	github.com/onsi/gomega v1.27.7
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65
 	github.com/sky-uk/kfp-operator/argo/providers v0.0.0-20250127163801-188c8090ec65
+	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 	github.com/thanhpk/randstr v1.0.4
@@ -27,6 +28,12 @@ require (
 	k8s.io/client-go v0.27.2
 	k8s.io/utils v0.0.0-20230209194617-a36077c30491
 	sigs.k8s.io/controller-runtime v0.15.0
+)
+
+replace (
+	github.com/sky-uk/kfp-operator/common => ./common
+	github.com/sky-uk/kfp-operator/provider-argo/common => ./argo/common
+	github.com/sky-uk/kfp-operator/provider-service/base => ./provider-service/base
 )
 
 require (

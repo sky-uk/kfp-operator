@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/common"
-	"github.com/sky-uk/kfp-operator/common/testutil"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
@@ -36,9 +35,9 @@ func runCompletionStatus(workflow *unstructured.Unstructured) (common.RunComplet
 var _ = Context("workflow source", func() {
 	Describe("jsonPatchPath", func() {
 		It("concatenates path segments", func() {
-			segment1 := testutil.RandomString()
-			segment2 := testutil.RandomString()
-			segment3 := testutil.RandomString()
+			segment1 := common.RandomString()
+			segment2 := common.RandomString()
+			segment3 := common.RandomString()
 
 			expectedPath := fmt.Sprintf("/%s/%s/%s", segment1, segment2, segment3)
 
@@ -46,8 +45,8 @@ var _ = Context("workflow source", func() {
 		})
 
 		It("escapes '/'", func() {
-			segment1 := testutil.RandomString()
-			segment2 := testutil.RandomString()
+			segment1 := common.RandomString()
+			segment2 := common.RandomString()
 
 			toBeEscaped := fmt.Sprintf("%s/%s", segment1, segment2)
 			escaped := fmt.Sprintf("/%s~1%s", segment1, segment2)
@@ -55,8 +54,8 @@ var _ = Context("workflow source", func() {
 		})
 
 		It("escapes '~'", func() {
-			segment1 := testutil.RandomString()
-			segment2 := testutil.RandomString()
+			segment1 := common.RandomString()
+			segment2 := common.RandomString()
 
 			toBeEscaped := fmt.Sprintf("%s~%s", segment1, segment2)
 			escaped := fmt.Sprintf("/%s~0%s", segment1, segment2)
