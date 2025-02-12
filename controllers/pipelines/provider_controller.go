@@ -62,14 +62,14 @@ func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerCo
 func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	provider := &pipelinesv1.Provider{}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(provider, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		For(provider).
 		Owns(&appsv1.Deployment{}, builder.WithPredicates(
-			predicate.GenerationChangedPredicate{},
 			predicates.DeploymentChangedPredicate{},
 		)).
 		Owns(&v1.Service{}, builder.WithPredicates(
 			predicates.ServiceChangedPredicate{},
 		)).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
 
