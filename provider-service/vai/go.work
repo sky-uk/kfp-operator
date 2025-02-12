@@ -4,5 +4,6 @@ use (
 	.
 	../..
 	../../argo/common
+	../../common
 	../base
 )

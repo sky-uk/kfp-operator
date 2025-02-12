@@ -11,7 +11,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -47,7 +47,7 @@ var _ = Context("Eventing Flow", func() {
 		})
 
 		It("returns the pipeline's name when the workflow has a pipeline spec annotation with the pipeline name", func() {
-			pipelineName := common.RandomString()
+			pipelineName := testutil.RandomString()
 			workflow := &unstructured.Unstructured{}
 			setPipelineNameInSpec(workflow, pipelineName)
 
@@ -73,7 +73,7 @@ var _ = Context("Eventing Flow", func() {
 		})
 
 		It("returns the pipeline's name when the workflow has an entrypoint'", func() {
-			pipelineName := common.RandomString()
+			pipelineName := testutil.RandomString()
 			workflow := &unstructured.Unstructured{}
 			setWorkflowEntryPoint(workflow, pipelineName)
 
@@ -82,8 +82,8 @@ var _ = Context("Eventing Flow", func() {
 		})
 	})
 
-	pipelineName := common.RandomString()
-	entrypoint := common.RandomString()
+	pipelineName := testutil.RandomString()
+	entrypoint := testutil.RandomString()
 
 	DescribeTable("getPipelineName", func(annotationValue string, entrypoint string, expected string) {
 		workflow := &unstructured.Unstructured{}
@@ -133,7 +133,7 @@ var _ = Context("Eventing Flow", func() {
 		It("errors when the artifact store errors", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
-			setPipelineNameInSpec(workflow, common.RandomString())
+			setPipelineNameInSpec(workflow, testutil.RandomString())
 
 			mockMetadataStore := mocks.MockMetadataStore{}
 
@@ -153,7 +153,7 @@ var _ = Context("Eventing Flow", func() {
 		It("errors when the KFP API errors", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
-			setPipelineNameInSpec(workflow, common.RandomString())
+			setPipelineNameInSpec(workflow, testutil.RandomString())
 
 			mockMetadataStore := mocks.MockMetadataStore{}
 			mockKfpApi := mocks.MockKfpApi{}
@@ -176,8 +176,8 @@ var _ = Context("Eventing Flow", func() {
 	DescribeTable("eventForWorkflow", func(phase argo.WorkflowPhase) {
 		workflow := &unstructured.Unstructured{}
 		setWorkflowPhase(workflow, phase)
-		setPipelineNameInSpec(workflow, common.RandomString())
-		workflow.SetName(common.RandomString())
+		setPipelineNameInSpec(workflow, testutil.RandomString())
+		workflow.SetName(testutil.RandomString())
 
 		mockMetadataStore := mocks.MockMetadataStore{}
 		mockKfpApi := mocks.MockKfpApi{}

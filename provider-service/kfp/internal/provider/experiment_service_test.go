@@ -9,7 +9,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/provider/util"
 )

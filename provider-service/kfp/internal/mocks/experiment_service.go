@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"github.com/stretchr/testify/mock"
 )
 

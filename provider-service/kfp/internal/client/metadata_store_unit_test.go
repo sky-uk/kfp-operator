@@ -10,7 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
+	"github.com/sky-uk/kfp-operator/common/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/ml_metadata"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"google.golang.org/grpc/codes"
@@ -23,7 +24,7 @@ var _ = Context("gRPC Metadata Store", func() {
 	var (
 		mockMetadataStoreServiceClient mocks.MockMetadataStoreServiceClient
 		store                          GrpcMetadataStore
-		workflowName                   = common.RandomString()
+		workflowName                   = testutil.RandomString()
 	)
 
 	BeforeEach(func() {
@@ -34,7 +35,7 @@ var _ = Context("gRPC Metadata Store", func() {
 	})
 
 	var givenContextId = func() int64 {
-		contextId := common.RandomInt64()
+		contextId := testutil.RandomInt64()
 		typeName := PipelineRunTypeName
 		mockMetadataStoreServiceClient.On(
 			"GetContextByTypeAndName",
@@ -54,9 +55,9 @@ var _ = Context("gRPC Metadata Store", func() {
 	}
 
 	Describe("GetArtifacts", func() {
-		artifactName := common.RandomString()
-		componentName := common.RandomString()
-		outputName := common.RandomString()
+		artifactName := testutil.RandomString()
+		componentName := testutil.RandomString()
+		outputName := testutil.RandomString()
 		artifactDefs := []pipelinesv1.OutputArtifact{{
 			Name: artifactName,
 			Path: pipelinesv1.ArtifactPath{
@@ -146,7 +147,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					&ml_metadata.GetArtifactsByContextResponse{
 						Artifacts: []*ml_metadata.Artifact{
 							{
-								Name:             pointer.String(common.RandomString()),
+								Name:             pointer.String(testutil.RandomString()),
 								Uri:              pointer.String(apis.RandomString()),
 								CustomProperties: validProperties,
 							},
@@ -217,11 +218,11 @@ var _ = Context("gRPC Metadata Store", func() {
 						Artifacts: []*ml_metadata.Artifact{
 							{
 								Name: pointer.String(artifactPath),
-								Uri:  pointer.String(common.RandomString()),
+								Uri:  pointer.String(testutil.RandomString()),
 								CustomProperties: map[string]*ml_metadata.Value{
-									common.RandomString(): {
+									testutil.RandomString(): {
 										Value: &ml_metadata.Value_StringValue{
-											StringValue: common.RandomString(),
+											StringValue: testutil.RandomString(),
 										},
 									},
 								},
@@ -238,7 +239,7 @@ var _ = Context("gRPC Metadata Store", func() {
 
 			It("returns matching artifacts", func() {
 				contextId := givenContextId()
-				artifactLocation := common.RandomString()
+				artifactLocation := testutil.RandomString()
 
 				mockMetadataStoreServiceClient.On(
 					"GetArtifactsByContext",
@@ -270,7 +271,7 @@ var _ = Context("gRPC Metadata Store", func() {
 
 	Describe("Legacy: GetServingModelArtifacts", func() {
 		var givenArtifactTypeIdId = func() int64 {
-			artifactId := common.RandomInt64()
+			artifactId := testutil.RandomInt64()
 			typeName := PushedModelArtifactType
 
 			mockMetadataStoreServiceClient.On(
@@ -390,8 +391,8 @@ var _ = Context("gRPC Metadata Store", func() {
 		When("GetArtifactsByContext does not return an artifact with the correct type", func() {
 			It("filters out invalid artifacts", func() {
 				givenArtifactTypeIdId()
-				anotherArtifactTypeId := common.RandomInt64()
-				artifactLocation := common.RandomString()
+				anotherArtifactTypeId := testutil.RandomInt64()
+				artifactLocation := testutil.RandomString()
 				contextId := givenContextId()
 				mockMetadataStoreServiceClient.On(
 					"GetArtifactsByContext",
@@ -406,7 +407,7 @@ var _ = Context("gRPC Metadata Store", func() {
 								CustomProperties: map[string]*ml_metadata.Value{
 									ArtifactNameCustomProperty: {
 										Value: &ml_metadata.Value_StringValue{
-											StringValue: common.RandomString(),
+											StringValue: testutil.RandomString(),
 										},
 									},
 								},
@@ -425,7 +426,7 @@ var _ = Context("gRPC Metadata Store", func() {
 			It("filters out invalid artifacts", func() {
 				artifactId := givenArtifactTypeIdId()
 				contextId := givenContextId()
-				artifactLocation := common.RandomString()
+				artifactLocation := testutil.RandomString()
 				mockMetadataStoreServiceClient.On(
 					"GetArtifactsByContext",
 					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
@@ -459,7 +460,7 @@ var _ = Context("gRPC Metadata Store", func() {
 			It("filters out invalid artifacts", func() {
 				artifactId := givenArtifactTypeIdId()
 				contextId := givenContextId()
-				artifactLocation := common.RandomString()
+				artifactLocation := testutil.RandomString()
 				mockMetadataStoreServiceClient.On(
 					"GetArtifactsByContext",
 					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
@@ -518,7 +519,7 @@ var _ = Context("gRPC Metadata Store", func() {
 			It("filters out invalid artifacts", func() {
 				artifactId := givenArtifactTypeIdId()
 				contextId := givenContextId()
-				artifactLocation := common.RandomString()
+				artifactLocation := testutil.RandomString()
 				mockMetadataStoreServiceClient.On(
 					"GetArtifactsByContext",
 					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
@@ -547,7 +548,7 @@ var _ = Context("gRPC Metadata Store", func() {
 									},
 									PushedCustomProperty: {
 										Value: &ml_metadata.Value_IntValue{
-											IntValue: common.RandomExceptOne(),
+											IntValue: testutil.RandomExceptOne(),
 										},
 									},
 								},
@@ -568,8 +569,8 @@ var _ = Context("gRPC Metadata Store", func() {
 			It("Returns all ServingModelLocations", func() {
 				artifactId := givenArtifactTypeIdId()
 				contextId := givenContextId()
-				firstArtifactLocation := common.RandomString()
-				secondArtifactLocation := common.RandomString()
+				firstArtifactLocation := testutil.RandomString()
+				secondArtifactLocation := testutil.RandomString()
 				mockMetadataStoreServiceClient.On(
 					"GetArtifactsByContext",
 					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
