@@ -7,16 +7,17 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/provider/predicates"
+	"golang.org/x/exp/maps"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"slices"
 )
 
 type ServiceResourceManager interface {
@@ -106,9 +107,7 @@ func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Servi
 }
 
 func (sm ServiceManager) Equal(a, b *corev1.Service) bool {
-	// use reflect here as much of the spec on a k8s service may be defaulted by k8s cluster
-	// we don't want to compare these defaults against our generated struct as will always be different
-	return reflect.DeepEqual(a.Spec, b.Spec) &&
-		reflect.DeepEqual(a.Annotations, b.Annotations) &&
-		reflect.DeepEqual(a.Labels, b.Labels)
+	return a.GenerateName == b.GenerateName &&
+		maps.Equal(a.Spec.Selector, b.Spec.Selector) &&
+		slices.Equal(a.Spec.Ports, b.Spec.Ports)
 }

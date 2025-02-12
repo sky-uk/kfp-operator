@@ -191,16 +191,16 @@ var _ = Context("Provider Deployment Manager", func() {
 
 			Expect(deployment.Spec.Template.Spec.Containers[0].Env).To(Equal([]corev1.EnvVar{
 				{
-					Name:  "PROVIDERNAME",
-					Value: provider.Name,
-				},
-				{
 					Name:  "PARAMETERS_KEY1",
 					Value: "value1",
 				},
 				{
 					Name:  "PARAMETERS_KEY2",
 					Value: "1",
+				},
+				{
+					Name:  "PROVIDERNAME",
+					Value: provider.Name,
 				},
 			}))
 			Expect(deployment.Spec.Template.Spec.Containers[0].Image).To(Equal(provider.Spec.ServiceImage))

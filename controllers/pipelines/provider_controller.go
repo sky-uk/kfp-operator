@@ -54,11 +54,6 @@ func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerCo
 	}
 }
 
-//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=providers,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=providers/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=providers/finalizers,verbs=update
-//+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
-
 func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	provider := &pipelinesv1.Provider{}
 	return ctrl.NewControllerManagedBy(mgr).
@@ -69,9 +64,19 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&v1.Service{}, builder.WithPredicates(
 			predicates.ServiceChangedPredicate{},
 		)).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithEventFilter(predicate.Or(
+			predicate.GenerationChangedPredicate{},
+			predicate.AnnotationChangedPredicate{},
+			predicate.LabelChangedPredicate{},
+			predicate.ResourceVersionChangedPredicate{},
+		)).
 		Complete(r)
 }
+
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=providers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=providers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=pipelines.kubeflow.org,resources=providers/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
