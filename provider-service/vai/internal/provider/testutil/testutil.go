@@ -7,7 +7,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

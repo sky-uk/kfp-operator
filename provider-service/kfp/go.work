@@ -3,7 +3,7 @@ go 1.22.11
 use (
 	.
 	../..
-	../../argo/common
 	../../argo/providers
+	../../common
 	../base
 )

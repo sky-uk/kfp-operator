@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"

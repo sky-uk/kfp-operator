@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 )

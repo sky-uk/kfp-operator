@@ -7,7 +7,7 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow"
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

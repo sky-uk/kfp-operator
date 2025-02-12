@@ -6,7 +6,7 @@ import (
 	"context"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 )
 
 type StubbedEventProcessor struct {
