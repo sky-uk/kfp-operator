@@ -5,16 +5,27 @@ import (
 )
 
 const (
-	CreatePipelineSuccess   = "create-pipeline-succeeded"
+	CreatePipelineSucceeded = "create-pipeline-succeeded"
+	CreatePipelineFail      = "create-pipeline-fail"
 	UpdatePipelineSucceeded = "update-pipeline-succeeded"
+	UpdatePipelineFail      = "update-pipeline-fail"
+	DeletePipelineFail      = "create-pipeline-fail"
 
-	CreateRunSucceded = "create-run-succeeded"
+	CreateRunSucceeded = "create-run-succeeded"
+	CreateRunFail      = "create-run-fail"
+	DeleteRunFail      = "delete-run-fail"
 
 	CreateRunScheduleSucceeded = "create-runschedule-succeeded"
+	CreateRunScheduleFail      = "create-runschedule-fail"
 	UpdateRunScheduleSucceeded = "update-runschedule-succeeded"
+	UpdateRunScheduleFail      = "update-runschedule-fail"
+	DeleteRunScheduledFail     = "delete-runschedule-fail"
 
 	CreateExperimentSucceeded = "create-experiment-succeeded"
+	CreateExperimentFail      = "create-experiment-fail"
 	UpdateExperimentSucceeded = "update-experiment-succeeded"
+	UpdateExperimentFail      = "update-experiment-fail"
+	DeleteExperimentFail      = "delete-experiment-fail"
 )
 
 func mkErrStr(action string, resourceType string) string {
