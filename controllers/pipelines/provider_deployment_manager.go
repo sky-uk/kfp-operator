@@ -12,14 +12,15 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sort"
 	"strings"
 )
 
@@ -92,9 +93,9 @@ func (dm DeploymentManager) Get(ctx context.Context, owner *pipelinesv1.Provider
 }
 
 func (dm DeploymentManager) Equal(a, b *appsv1.Deployment) bool {
-	return reflect.DeepEqual(a.Spec, b.Spec) &&
-		reflect.DeepEqual(a.Annotations, b.Annotations) &&
-		reflect.DeepEqual(a.Labels, b.Labels)
+	return a.GenerateName == b.GenerateName &&
+		a.Namespace == b.Namespace &&
+		equality.Semantic.DeepEqual(a.Spec, b.Spec)
 }
 
 func (dm DeploymentManager) Construct(provider *pipelinesv1.Provider) (*appsv1.Deployment, error) {
@@ -139,25 +140,25 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 	if !Exists(podTemplate.Spec.Containers, func(c corev1.Container) bool {
 		return c.Name == serviceContainerName
 	}) {
-
 		return nil, fmt.Errorf("unable to populate service container: container with name %s not found on deployment", serviceContainerName)
 	}
 
-	paramsAsEnvVars := []corev1.EnvVar{}
+	envVars := []corev1.EnvVar{{
+		Name:  "PROVIDERNAME",
+		Value: provider.Name,
+	}}
 	for name, value := range provider.Spec.Parameters {
-		paramsAsEnvVars = append(paramsAsEnvVars, corev1.EnvVar{Name: fmt.Sprintf("PARAMETERS_%s", strings.ToUpper(name)), Value: jsonToString(value)})
+		envVars = append(envVars, corev1.EnvVar{Name: fmt.Sprintf("PARAMETERS_%s", strings.ToUpper(name)), Value: jsonToString(value)})
 	}
+
+	sort.Slice(envVars, func(a, b int) bool {
+		return envVars[a].Name < envVars[b].Name
+	})
 
 	podTemplate.Spec.Containers = Map(podTemplate.Spec.Containers, func(c corev1.Container) corev1.Container {
 		if c.Name == serviceContainerName {
 			c.Image = provider.Spec.ServiceImage
-			c.Env = append(c.Env,
-				corev1.EnvVar{
-					Name:  "PROVIDERNAME",
-					Value: provider.Name,
-				},
-			)
-			c.Env = append(c.Env, paramsAsEnvVars...)
+			c.Env = append(c.Env, envVars...)
 		}
 		return c
 	})
