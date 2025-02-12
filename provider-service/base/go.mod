@@ -12,7 +12,6 @@ require (
 	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/onsi/gomega v1.27.7
 	github.com/sky-uk/kfp-operator v0.6.0
-	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65
 	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
@@ -81,6 +80,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect

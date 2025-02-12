@@ -2,7 +2,7 @@ package sinks
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 )
 
 type ErrorSink struct {
