@@ -5,6 +5,13 @@ help: ## Display this help.
 
 ##@ Development
 
+unit-test: ## Run unit tests
+	go test ./... -tags=unit
+
+test: unit-test ## Run all tests
+
+##@ Build
+
 fmt: ## Run go fmt against code.
 	go fmt ./...
 
