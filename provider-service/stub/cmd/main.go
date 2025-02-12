@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/stub/internal/config"
