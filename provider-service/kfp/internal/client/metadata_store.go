@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-bexpr"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

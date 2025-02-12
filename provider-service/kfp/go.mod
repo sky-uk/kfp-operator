@@ -14,7 +14,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/onsi/gomega v1.27.7
 	github.com/sky-uk/kfp-operator v0.6.0
-	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65
+	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000
 	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-20250103114820-8f4b70f756df
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.24.0
@@ -27,9 +27,11 @@ require (
 	sigs.k8s.io/controller-runtime v0.15.0
 )
 
-replace github.com/sky-uk/kfp-operator/provider-service/base => ../base
-
-replace github.com/sky-uk/kfp-operator => ../..
+replace (
+	github.com/sky-uk/kfp-operator => ../..
+	github.com/sky-uk/kfp-operator/common => ../../common
+	github.com/sky-uk/kfp-operator/provider-service/base => ../base
+)
 
 require (
 	cloud.google.com/go v0.112.1 // indirect
@@ -93,6 +95,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect

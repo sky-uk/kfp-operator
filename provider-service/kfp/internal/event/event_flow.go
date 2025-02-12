@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"

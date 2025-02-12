@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/kubeflow/pipelines/backend/api/go_client"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"gopkg.in/yaml.v2"
 )
 

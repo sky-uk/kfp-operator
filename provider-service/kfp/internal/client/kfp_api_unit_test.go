@@ -9,7 +9,8 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
+	"github.com/sky-uk/kfp-operator/common/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 )
@@ -29,7 +30,7 @@ var _ = Context("KFP API", func() {
 			RunServiceClient: &mockRunServiceClient,
 			JobServiceClient: &mockJobServiceClient,
 		}
-		runId = common.RandomString()
+		runId = testutil.RandomString()
 	})
 
 	Describe("GetResourceReferences", func() {
@@ -52,11 +53,11 @@ var _ = Context("KFP API", func() {
 						Id: runId,
 						ResourceReferences: []*go_client.ResourceReference{
 							{
-								Name:         common.RandomString(),
+								Name:         testutil.RandomString(),
 								Relationship: go_client.Relationship_UNKNOWN_RELATIONSHIP,
 								Key: &go_client.ResourceKey{
 									Type: go_client.ResourceType_JOB,
-									Id:   common.RandomString(),
+									Id:   testutil.RandomString(),
 								},
 							},
 						},
@@ -81,11 +82,11 @@ var _ = Context("KFP API", func() {
 						Id: runId,
 						ResourceReferences: []*go_client.ResourceReference{
 							{
-								Name:         common.RandomString(),
+								Name:         testutil.RandomString(),
 								Relationship: go_client.Relationship_CREATOR,
 								Key: &go_client.ResourceKey{
 									Type: go_client.ResourceType_PIPELINE,
-									Id:   common.RandomString(),
+									Id:   testutil.RandomString(),
 								},
 							},
 						},
@@ -106,11 +107,11 @@ var _ = Context("KFP API", func() {
 		When("GetRun returns run with JOB without Description as CREATOR", func() {
 			It("Returns populated ResourceReferences", func() {
 				runConfigurationName := common.NamespacedName{
-					Name: common.RandomString(),
+					Name: testutil.RandomString(),
 				}
-				runName := common.RandomNamespacedName()
+				runName := testutil.RandomNamespacedName()
 
-				jobId := common.RandomString()
+				jobId := testutil.RandomString()
 
 				runDetail := go_client.RunDetail{
 					Run: &go_client.Run{
@@ -155,11 +156,11 @@ var _ = Context("KFP API", func() {
 
 		When("GetRun returns run with JOB with Description as CREATOR", func() {
 			It("Returns populated ResourceReferences", func() {
-				runConfigurationName := common.RandomNamespacedName()
+				runConfigurationName := testutil.RandomNamespacedName()
 				runName := common.NamespacedName{
-					Name: common.RandomString(),
+					Name: testutil.RandomString(),
 				}
-				jobId := common.RandomString()
+				jobId := testutil.RandomString()
 
 				runDetail := go_client.RunDetail{
 					Run: &go_client.Run{
@@ -178,7 +179,7 @@ var _ = Context("KFP API", func() {
 				}
 
 				jobDetail := go_client.Job{
-					Description: "runConfigurationName: " + common.UnsafeValue(runConfigurationName.String()),
+					Description: "runConfigurationName: " + testutil.UnsafeValue(runConfigurationName.String()),
 				}
 
 				mockRunServiceClient.On(
