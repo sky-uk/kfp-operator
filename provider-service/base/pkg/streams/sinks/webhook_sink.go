@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 )
 

@@ -7,7 +7,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 )
 

@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/common/testutil"
 
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -16,12 +16,12 @@ var Now = metav1.Now()
 
 func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 	return resource.RunScheduleDefinition{
-		Name:                 common.RandomNamespacedName(),
-		Version:              common.RandomString(),
-		PipelineName:         common.RandomNamespacedName(),
-		PipelineVersion:      common.RandomString(),
-		RunConfigurationName: common.RandomNamespacedName(),
-		ExperimentName:       common.RandomNamespacedName(),
+		Name:                 testutil.RandomNamespacedName(),
+		Version:              testutil.RandomString(),
+		PipelineName:         testutil.RandomNamespacedName(),
+		PipelineVersion:      testutil.RandomString(),
+		RunConfigurationName: testutil.RandomNamespacedName(),
+		ExperimentName:       testutil.RandomNamespacedName(),
 		Schedule: pipelinesv1.Schedule{
 			CronExpression: "1 1 0 0 0",
 			StartTime:      &Now,
@@ -32,10 +32,10 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 
 func RandomPipelineDefinition() resource.PipelineDefinition {
 	return resource.PipelineDefinition{
-		Name:          common.RandomNamespacedName(),
-		Version:       common.RandomString(),
-		Image:         common.RandomString(),
-		TfxComponents: common.RandomString(),
+		Name:          testutil.RandomNamespacedName(),
+		Version:       testutil.RandomString(),
+		Image:         testutil.RandomString(),
+		TfxComponents: testutil.RandomString(),
 		Env:           make([]apis.NamedValue, 0),
 		BeamArgs:      make([]apis.NamedValue, 0),
 	}
@@ -50,19 +50,19 @@ func RandomPipelineDefinitionWrapper() resource.PipelineDefinitionWrapper {
 
 func RandomExperimentDefinition() resource.ExperimentDefinition {
 	return resource.ExperimentDefinition{
-		Name:        common.RandomNamespacedName(),
-		Version:     common.RandomString(),
-		Description: common.RandomString(),
+		Name:        testutil.RandomNamespacedName(),
+		Version:     testutil.RandomString(),
+		Description: testutil.RandomString(),
 	}
 }
 
 func RandomRunDefinition() resource.RunDefinition {
 	return resource.RunDefinition{
-		Name:                 common.RandomNamespacedName(),
-		Version:              common.RandomString(),
-		PipelineName:         common.RandomNamespacedName(),
-		PipelineVersion:      common.RandomString(),
-		RunConfigurationName: common.RandomNamespacedName(),
-		ExperimentName:       common.RandomNamespacedName(),
+		Name:                 testutil.RandomNamespacedName(),
+		Version:              testutil.RandomString(),
+		PipelineName:         testutil.RandomNamespacedName(),
+		PipelineVersion:      testutil.RandomString(),
+		RunConfigurationName: testutil.RandomNamespacedName(),
+		ExperimentName:       testutil.RandomNamespacedName(),
 	}
 }
