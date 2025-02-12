@@ -18,14 +18,15 @@ minikube-helm-install-operator: helm-package-operator ./local/values.yaml
 	$(HELM) install -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
 
 minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
-minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
+minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
 minikube-install-operator:
 	$(MAKE) docker-push docker-push-triggers
+	# TODO: Use integration-test-values.yaml
 	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
 
 minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
-minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
+minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
 minikube-install-provider:
 	@if [ -z ${NAME} ]; then \
@@ -54,8 +55,8 @@ minikube-provider-teardown:
 	fi
 
 minikube-start:
-	minikube start -p local-kfp-operator --driver=docker --registry-mirror="https://mirror.gcr.io"
-	minikube addons enable registry -p local-kfp-operator
+	minikube start -p kfp-operator --driver=docker --registry-mirror="https://mirror.gcr.io"
+	minikube addons enable registry -p kfp-operator
 
 minikube-up:
 	$(MAKE) minikube-start
@@ -63,5 +64,5 @@ minikube-up:
 	$(MAKE) minikube-install-operator
 
 minikube-down:
-	minikube delete -p local-kfp-operator
+	minikube delete -p kfp-operator
 	$(MAKE) minikube-provider-teardown
