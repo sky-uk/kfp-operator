@@ -11,7 +11,7 @@ import (
 	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 )
 

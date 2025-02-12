@@ -4,7 +4,7 @@ package mocks
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/common/testutil"
+	"github.com/sky-uk/kfp-operator/common"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 )
 
@@ -24,9 +24,9 @@ func (mka *MockKfpApi) Reset() {
 
 func (mka *MockKfpApi) ReturnResourceReferencesForRun() resource.References {
 	mka.resourceReferences = resource.References{
-		RunConfigurationName: testutil.RandomNamespacedName(),
-		RunName:              testutil.RandomNamespacedName(),
-		PipelineName:         testutil.RandomNamespacedName(),
+		RunConfigurationName: common.RandomNamespacedName(),
+		RunName:              common.RandomNamespacedName(),
+		PipelineName:         common.RandomNamespacedName(),
 	}
 	mka.err = nil
 

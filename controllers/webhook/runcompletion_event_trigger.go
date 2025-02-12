@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"google.golang.org/grpc/credentials/insecure"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"

@@ -1,9 +1,8 @@
 //go:build unit || decoupled || integration
 
-package testutil
+package common
 
 import (
-	"github.com/sky-uk/kfp-operator/common"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -23,13 +22,12 @@ func RandomExceptOne() int64 {
 	}
 }
 
-func RandomArtifact() common.Artifact {
-	return common.Artifact{Name: RandomString(), Location: RandomString()}
+func RandomArtifact() Artifact {
+	return Artifact{Name: RandomString(), Location: RandomString()}
 }
 
-
-func RandomNamespacedName() common.NamespacedName {
-	return common.NamespacedName{
+func RandomNamespacedName() NamespacedName {
+	return NamespacedName{
 		Name:      RandomString(),
 		Namespace: RandomString(),
 	}
