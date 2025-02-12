@@ -1,12 +1,48 @@
-fullnameOverride: kfp-operator-integration-tests
+namespace:
+  create: false
+fullnameOverride: kfp-operator
 containerRegistry: ""
+logging:
+  verbosity: info
 manager:
-  configuration:
-    workflowNamespace: argo
+  multiversion:
+    enabled: true
+  webhookCertificates:
+    provider: cert-manager
   argo:
     serviceAccount:
-      name: default
-      create: false
+      name: kfp-operator-argo
+      create: true
     compilerImage: kfp-operator-stub-provider
-    containerDefaults:
-      imagePullPolicy: Never
+  monitoring:
+    create: false
+  runcompletionWebhook:
+    port: 8082
+    endpoints:
+    - host: kfp-operator-run-completion-event-trigger.kfp-operator-system
+      path: ""
+      port: 50051
+
+runcompletionEventTrigger:
+  enabled: true
+  replicas: 1
+  nats:
+    subject: events
+    server:
+      port: 4222
+  server:
+    port: 50051
+
+statusFeedback:
+  enabled: true
+
+provider:
+  replicas: 1
+  resources:
+    limits:
+      cpu: 100m
+      memory: 300Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  servicePort: 8080

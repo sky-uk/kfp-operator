@@ -14,15 +14,19 @@ minikube-install-dependencies:
 	kubectl create namespace kfp-operator-system
 	kubectl create secret tls webhook-server-cert --cert=./local/kfp-operator-webhook.crt --key=./local/kfp-operator-webhook.key --namespace kfp-operator-system
 
-minikube-helm-install-operator: helm-package-operator ./local/values.yaml
-	$(HELM) install -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
+minikube-helm-install-operator: helm-package-operator
+	@if [ -z ${VALUES_PATH} ]; then \
+		echo "You must specify the path to the helm values file you want to use to install the operator helm chart by setting VALUES_PATH=<path/to/values.yaml>, e.g. VALUES_PATH=config/testing/integration-test-values.yaml"; \
+		exit 1; \
+	fi
+	$(HELM) install -f ${VALUES_PATH} kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
 
 minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
 minikube-install-operator:
 	$(MAKE) docker-push docker-push-triggers
-	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
+	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES} VALUES_PATH=${VALUES_PATH}
 
 minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
@@ -60,7 +64,8 @@ minikube-start:
 minikube-up:
 	$(MAKE) minikube-start
 	$(MAKE) minikube-install-dependencies
-	$(MAKE) minikube-install-operator
+	$(MAKE) minikube-install-operator VALUES_PATH=./config/testing/integration-test-values.yaml
 
 minikube-down:
+	(cat config/testing/pids | xargs kill) || true # Stops K8s API proxy
 	minikube delete -p local-kfp-operator
