@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common/types"
 )
 
 type PipelineDefinition struct {
-	Name          common.NamespacedName `json:"name" yaml:"name"`
-	Version       string                `json:"version" yaml:"version"`
-	Image         string                `json:"image" yaml:"image"`
-	TfxComponents string                `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []apis.NamedValue     `json:"env" yaml:"env"`
-	BeamArgs      []apis.NamedValue     `json:"beamArgs" yaml:"beamArgs"`
+	Name          types.NamespacedName `json:"name" yaml:"name"`
+	Version       string               `json:"version" yaml:"version"`
+	Image         string               `json:"image" yaml:"image"`
+	TfxComponents string               `json:"tfxComponents" yaml:"tfxComponents"`
+	Env           []apis.NamedValue    `json:"env" yaml:"env"`
+	BeamArgs      []apis.NamedValue    `json:"beamArgs" yaml:"beamArgs"`
 }
 
 // CompiledManifest represents the output of the python compile step, and
@@ -24,29 +24,29 @@ type PipelineDefinitionWrapper struct {
 }
 
 type ExperimentDefinition struct {
-	Name        common.NamespacedName `yaml:"name"`
-	Version     string                `yaml:"version"`
-	Description string                `yaml:"description"`
+	Name        types.NamespacedName `yaml:"name"`
+	Version     string               `yaml:"version"`
+	Description string               `yaml:"description"`
 }
 
 type RunDefinition struct {
-	Name                 common.NamespacedName      `yaml:"name"`
+	Name                 types.NamespacedName       `yaml:"name"`
 	Version              string                     `yaml:"version"`
-	PipelineName         common.NamespacedName      `yaml:"pipelineName"`
+	PipelineName         types.NamespacedName       `yaml:"pipelineName"`
 	PipelineVersion      string                     `yaml:"pipelineVersion"`
-	RunConfigurationName common.NamespacedName      `yaml:"runConfigurationName"`
-	ExperimentName       common.NamespacedName      `yaml:"experimentName"`
+	RunConfigurationName types.NamespacedName       `yaml:"runConfigurationName"`
+	ExperimentName       types.NamespacedName       `yaml:"experimentName"`
 	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
 	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type RunScheduleDefinition struct {
-	Name                 common.NamespacedName      `yaml:"name"`
+	Name                 types.NamespacedName       `yaml:"name"`
 	Version              string                     `yaml:"version"`
-	PipelineName         common.NamespacedName      `yaml:"pipelineName"`
+	PipelineName         types.NamespacedName       `yaml:"pipelineName"`
 	PipelineVersion      string                     `yaml:"pipelineVersion"`
-	RunConfigurationName common.NamespacedName      `yaml:"runConfigurationName"`
-	ExperimentName       common.NamespacedName      `yaml:"experimentName"`
+	RunConfigurationName types.NamespacedName       `yaml:"runConfigurationName"`
+	ExperimentName       types.NamespacedName       `yaml:"experimentName"`
 	Schedule             pipelines.Schedule         `yaml:"schedule"`
 	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
 	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
