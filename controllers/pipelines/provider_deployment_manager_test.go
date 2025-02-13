@@ -34,7 +34,7 @@ var _ = Context("Provider Deployment Manager", func() {
 
 	BeforeEach(func() {
 		client = fake.NewClientBuilder().
-			WithScheme(testutil.SchemeWithCRDs()).
+			WithScheme(testutil.SchemeWithCrds()).
 			WithScheme(k8Scheme.Scheme).
 			WithObjects(&appsv1.Deployment{}).
 			Build()
@@ -168,7 +168,7 @@ var _ = Context("Provider Deployment Manager", func() {
 			Expect(result.Namespace).To(Equal(deployment.Namespace))
 		})
 
-		It("should return an NotFound error if the deployment does not exist", func() {
+		It("should return a NotFound error if the deployment does not exist", func() {
 			result, err := deploymentManager.Get(context.Background(), provider)
 			Expect(err).To(Equal(apierrors.NewNotFound(schema.GroupResource{}, "")))
 			Expect(result).To(BeNil())
@@ -199,7 +199,7 @@ var _ = Context("Provider Deployment Manager", func() {
 					Value: "1",
 				},
 				{
-					Name:  "PROVIDERNAME",
+					Name:  ProviderNameEnvVar,
 					Value: provider.Name,
 				},
 			}))

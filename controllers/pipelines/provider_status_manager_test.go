@@ -26,7 +26,7 @@ var _ = Context("Provider Status Manager", func() {
 	BeforeEach(func() {
 		provider = pipelinesv1.RandomProvider()
 		client = fake.NewClientBuilder().
-			WithScheme(testutil.SchemeWithCRDs()).
+			WithScheme(testutil.SchemeWithCrds()).
 			WithStatusSubresource(&pipelinesv1.Provider{}).
 			Build()
 
@@ -44,7 +44,7 @@ var _ = Context("Provider Status Manager", func() {
 
 	var _ = Describe("UpdateProviderStatus", func() {
 
-		It("should return nil if the provider status is updated successfully", func() {
+		It("should not error if the provider status is updated successfully", func() {
 			provider.Status = pipelinesv1.Status{}
 			provider.Generation = 1
 
