@@ -4,6 +4,7 @@ import (
 	"context"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	k8sConfigCommon "github.com/sky-uk/kfp-operator/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -29,7 +30,7 @@ type StatusUpdater struct {
 
 func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdater, error) {
 	logger := log.FromContext(ctx)
-	k8sConfig, err := common.K8sClientConfig()
+	k8sConfig, err := k8sConfigCommon.K8sClientConfig()
 	if err != nil {
 		logger.Error(err, "Error reading k8s client config")
 		return StatusUpdater{}, err
