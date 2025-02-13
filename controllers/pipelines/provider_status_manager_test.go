@@ -64,6 +64,26 @@ var _ = Context("Provider Status Manager", func() {
 			Expect(provider.Status.ObservedGeneration).To(Equal(provider.Generation))
 		})
 
+		It("should not update observed generation if the provider status update is failed", func() {
+			provider.Status = pipelinesv1.Status{}
+			provider.Generation = 1
+
+			err := client.Create(ctx, provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			expectedMessage := "test"
+			expectedStatus := apis.Failed
+			err = statusManager.UpdateProviderStatus(ctx, provider, expectedStatus, expectedMessage)
+			Expect(err).ToNot(HaveOccurred())
+
+			err = client.Get(ctx, k8sClient.ObjectKey{Name: provider.Name, Namespace: provider.Namespace}, provider)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(provider.Status.SynchronizationState).To(Equal(expectedStatus))
+			Expect(provider.Status.Conditions[0].Message).To(Equal(expectedMessage))
+			Expect(provider.Status.ObservedGeneration).ToNot(Equal(provider.Generation))
+		})
+
 		It("should return error if the status is not updated", func() {
 			// No provider is created so no status to update
 			err := statusManager.UpdateProviderStatus(ctx, provider, apis.Succeeded, "test")
