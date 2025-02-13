@@ -36,7 +36,7 @@ var _ = Describe("PipelineService", func() {
 	})
 
 	Context("DeletePipeline", func() {
-		It("should return nil if pipeline is deleted", func() {
+		It("should not error if pipeline is deleted", func() {
 			mockPipelineServiceClient.On(
 				"DeletePipeline",
 				&go_client.DeletePipelineRequest{
@@ -49,7 +49,7 @@ var _ = Describe("PipelineService", func() {
 		})
 
 		When("PipelineServiceClient returns gRPC NOT_FOUND", func() {
-			It("should return nil", func() {
+			It("should not error", func() {
 				mockPipelineServiceClient.On(
 					"DeletePipeline",
 					&go_client.DeletePipelineRequest{

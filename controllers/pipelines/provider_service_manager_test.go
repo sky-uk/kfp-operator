@@ -33,7 +33,7 @@ var _ = Context("Provider Service Manager", func() {
 	BeforeEach(func() {
 		provider = pipelinesv1.RandomProvider()
 		client = fake.NewClientBuilder().
-			WithScheme(testutil.SchemeWithCRDs()).
+			WithScheme(testutil.SchemeWithCrds()).
 			WithScheme(k8Scheme.Scheme).
 			Build()
 
@@ -58,7 +58,7 @@ var _ = Context("Provider Service Manager", func() {
 
 	var _ = Describe("Create", func() {
 
-		It("should return nil if the service is created successfully", func() {
+		It("should not error if the service is created successfully", func() {
 			service := corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      provider.Name,
@@ -96,7 +96,7 @@ var _ = Context("Provider Service Manager", func() {
 
 	var _ = Describe("Delete", func() {
 
-		It("should return nil if the service is deleted successfully", func() {
+		It("should not error if the service is deleted successfully", func() {
 			service := corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      provider.Name,
@@ -158,7 +158,7 @@ var _ = Context("Provider Service Manager", func() {
 			Expect(result.Namespace).To(Equal(service.Namespace))
 		})
 
-		It("should return an NotFound error if the service does not exist", func() {
+		It("should return a NotFound error if the service does not exist", func() {
 			service, err := serviceManager.Get(ctx, provider)
 			Expect(service).To(BeNil())
 			Expect(err).To(Equal(apierrors.NewNotFound(schema.GroupResource{}, "")))

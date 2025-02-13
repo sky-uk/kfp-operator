@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/provider/predicates"
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
@@ -15,7 +14,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -58,12 +56,8 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	provider := &pipelinesv1.Provider{}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(provider).
-		Owns(&appsv1.Deployment{}, builder.WithPredicates(
-			predicates.DeploymentChangedPredicate{},
-		)).
-		Owns(&v1.Service{}, builder.WithPredicates(
-			predicates.ServiceChangedPredicate{},
-		)).
+		Owns(&appsv1.Deployment{}).
+		Owns(&v1.Service{}).
 		WithEventFilter(predicate.Or(
 			predicate.GenerationChangedPredicate{},
 			predicate.AnnotationChangedPredicate{},
@@ -109,8 +103,8 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Creating, "")
 
 			if err := r.DeploymentManager.Create(ctx, desiredDeployment, &provider); err != nil {
-				if err2 := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource deployment"); err2 != nil {
-					err = errors.Join(err, err2)
+				if statusError := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource deployment"); statusError != nil {
+					err = errors.Join(err, statusError)
 				}
 				return ctrl.Result{}, err
 			}
@@ -119,8 +113,8 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Updating, "")
 
 			if err := r.DeploymentManager.Update(ctx, existingDeployment, desiredDeployment, &provider); err != nil {
-				if err2 := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource deployment"); err2 != nil {
-					err = errors.Join(err, err2)
+				if statusError := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource deployment"); statusError != nil {
+					err = errors.Join(err, statusError)
 				}
 				return ctrl.Result{}, err
 			}
@@ -141,8 +135,8 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Creating, "")
 
 			if err := r.ServiceManager.Create(ctx, desiredSvc, &provider); err != nil {
-				if err2 := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource service"); err2 != nil {
-					err = errors.Join(err, err2)
+				if statusError := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource service"); statusError != nil {
+					err = errors.Join(err, statusError)
 				}
 				return ctrl.Result{}, err
 			}
@@ -153,8 +147,8 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 			// delete, to allow a new one to be created avoiding issues with immutability
 			if err := r.ServiceManager.Delete(ctx, existingSvc); err != nil {
-				if err2 := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource service"); err2 != nil {
-					err = errors.Join(err, err2)
+				if statusError := r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Failed, "Failed to reconcile subresource service"); statusError != nil {
+					err = errors.Join(err, statusError)
 				}
 				return ctrl.Result{}, err
 			}

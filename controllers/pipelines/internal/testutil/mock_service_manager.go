@@ -42,7 +42,6 @@ func (m *MockServiceManager) Equal(a, b *corev1.Service) bool {
 
 func (m *MockServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Service {
 	args := m.Called(provider)
-
 	if args.Get(0) != nil {
 		return args.Get(0).(*corev1.Service)
 	}

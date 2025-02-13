@@ -8,7 +8,6 @@ import (
 	. "github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/provider/predicates"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -38,6 +37,8 @@ type DeploymentManager struct {
 	config *config.KfpControllerConfigSpec
 }
 
+const ProviderNameEnvVar = "PROVIDERNAME"
+
 func (dm DeploymentManager) Create(ctx context.Context, new *appsv1.Deployment, owner *pipelinesv1.Provider) error {
 	logger := log.FromContext(ctx)
 
@@ -46,10 +47,6 @@ func (dm DeploymentManager) Create(ctx context.Context, new *appsv1.Deployment, 
 		return err
 	}
 
-	if new.Annotations == nil {
-		new.Annotations = make(map[string]string)
-	}
-	new.Annotations[predicates.ControllerManagedKey] = "true"
 	if err := dm.client.Create(ctx, new); err != nil {
 		logger.Error(err, "unable to create provider deployment")
 		return err
@@ -144,7 +141,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 	}
 
 	envVars := []corev1.EnvVar{{
-		Name:  "PROVIDERNAME",
+		Name:  ProviderNameEnvVar,
 		Value: provider.Name,
 	}}
 	for name, value := range provider.Spec.Parameters {
@@ -169,8 +166,9 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 func jsonToString(jsonValue *apiextensionsv1.JSON) string {
 	s := ""
 	if jsonValue != nil {
-		// Attempts to unmarshal input into a string to remove extra quotes and escape chars if the input is, in fact, a string
+		// Attempts to unmarshal json into a string, this removes escape chars etc
 		if err := json.Unmarshal(jsonValue.Raw, &s); err != nil {
+			// if we fail to unmarshal json we fall back to the string value
 			s = string(jsonValue.Raw)
 		}
 	}

@@ -6,7 +6,6 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/provider/predicates"
 	"golang.org/x/exp/maps"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -97,11 +96,6 @@ func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Servi
 			Selector: map[string]string{AppLabel: prefixedProviderName},
 		},
 	}
-
-	if svc.Annotations == nil {
-		svc.Annotations = make(map[string]string)
-	}
-	svc.Annotations[predicates.ControllerManagedKey] = "true"
 
 	return svc
 }

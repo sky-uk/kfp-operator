@@ -197,7 +197,7 @@ var _ = Describe("DefaultJobService", func() {
 	})
 
 	Context("DeleteJob", func() {
-		It("should return nil if job is deleted", func() {
+		It("should not error if job is deleted", func() {
 			expectedReq := &go_client.DeleteJobRequest{Id: jobId}
 			mockJobServiceClient.On("DeleteJob", expectedReq).Return(nil)
 			err := jobService.DeleteJob(jobId)
@@ -206,7 +206,7 @@ var _ = Describe("DefaultJobService", func() {
 		})
 
 		When("job service client DeleteJob returns gRPC NOT_FOUND", func() {
-			It("should return nil", func() {
+			It("should not error", func() {
 				expectedReq := &go_client.DeleteJobRequest{Id: jobId}
 				mockJobServiceClient.On("DeleteJob", expectedReq).Return(
 					status.Error(codes.NotFound, "not found"),
