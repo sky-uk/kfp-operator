@@ -1,0 +1,9 @@
+go 1.22.11
+
+use (
+	.
+	../..
+	../../argo/common
+	../../common
+	../base
+)
