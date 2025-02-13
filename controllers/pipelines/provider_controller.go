@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
@@ -55,14 +56,17 @@ func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerCo
 func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	provider := &pipelinesv1.Provider{}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(provider).
-		Owns(&appsv1.Deployment{}).
+		For(provider, builder.WithPredicates(
+			predicate.GenerationChangedPredicate{},
+		)).
+		Owns(&appsv1.Deployment{}, builder.WithPredicates(
+			predicate.GenerationChangedPredicate{},
+			predicate.ResourceVersionChangedPredicate{},
+		)).
 		Owns(&v1.Service{}).
 		WithEventFilter(predicate.Or(
-			predicate.GenerationChangedPredicate{},
 			predicate.AnnotationChangedPredicate{},
 			predicate.LabelChangedPredicate{},
-			predicate.ResourceVersionChangedPredicate{},
 		)).
 		Complete(r)
 }
