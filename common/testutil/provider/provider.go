@@ -9,7 +9,7 @@ const (
 	CreatePipelineFail      = "create-pipeline-fail"
 	UpdatePipelineSucceeded = "update-pipeline-succeeded"
 	UpdatePipelineFail      = "update-pipeline-fail"
-	DeletePipelineFail      = "create-pipeline-fail"
+	DeletePipelineFail      = "delete-pipeline-fail"
 
 	CreateRunSucceeded = "create-run-succeeded"
 	CreateRunFail      = "create-run-fail"
