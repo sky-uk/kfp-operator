@@ -22,9 +22,12 @@ require (
 	k8s.io/apimachinery v0.27.2
 )
 
-replace github.com/sky-uk/kfp-operator/provider-service/base => ../base
-
-replace github.com/sky-uk/kfp-operator => ../..
+replace (
+	github.com/sky-uk/kfp-operator => ../..
+	github.com/sky-uk/kfp-operator/common => ../../common
+	github.com/sky-uk/kfp-operator/provider-argo/common => ../../argo/common
+	github.com/sky-uk/kfp-operator/provider-service/base => ../base
+)
 
 require (
 	cloud.google.com/go v0.112.1 // indirect
@@ -83,6 +86,7 @@ require (
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
@@ -108,7 +112,7 @@ require (
 	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
+	golang.org/x/tools v0.22.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240528184218-531527333157 // indirect

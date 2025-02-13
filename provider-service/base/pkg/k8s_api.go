@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"k8s.io/client-go/dynamic"
 )
 
