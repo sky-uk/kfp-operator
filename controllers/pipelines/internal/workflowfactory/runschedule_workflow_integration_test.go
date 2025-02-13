@@ -17,7 +17,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 	})
 
 	var newRunSchedule = func() *pipelinesv1.RunSchedule {
-		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule(TestProvider))
+		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule(TestProvider.Name))
 	}
 
 	DescribeTable("RunSchedule Workflows", AssertWorkflow[*pipelinesv1.RunSchedule],
