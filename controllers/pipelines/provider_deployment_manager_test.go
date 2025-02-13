@@ -66,7 +66,7 @@ var _ = Context("Provider Deployment Manager", func() {
 
 	var _ = Describe("Create", func() {
 
-		Specify("Should return nil if the deployment is created successfully", func() {
+		Specify("should not error if the deployment is created successfully", func() {
 			deployment := appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "deployment",
@@ -105,7 +105,7 @@ var _ = Context("Provider Deployment Manager", func() {
 
 	var _ = Describe("Update", func() {
 
-		Specify("Should return nil if the deployment is updated successfully", func() {
+		Specify("should not error if the deployment is updated successfully", func() {
 			deployment := appsv1.Deployment{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "deployment",
