@@ -43,7 +43,7 @@ func (dm DeploymentManager) Create(ctx context.Context, new *appsv1.Deployment, 
 	logger := log.FromContext(ctx)
 
 	if err := ctrl.SetControllerReference(owner, new, dm.scheme); err != nil {
-		logger.Error(err, "unable to set controller reference on deployment")
+		logger.Error(err, "unable to set controller reference on deployment", "deployment", new.Name)
 		return err
 	}
 
@@ -61,12 +61,12 @@ func (dm DeploymentManager) Update(ctx context.Context, old *appsv1.Deployment, 
 	old.SetLabels(new.Labels)
 
 	if err := ctrl.SetControllerReference(owner, old, dm.scheme); err != nil {
-		logger.Error(err, "unable to set controller reference on deployment")
+		logger.Error(err, "unable to set controller reference on deployment", "deployment", new.Name)
 		return err
 	}
 
 	if err := dm.client.Update(ctx, old); err != nil {
-		logger.Error(err, "unable to update provider deployment", "deployment", new)
+		logger.Error(err, "unable to update provider deployment", "deployment", new.Name)
 		return err
 	}
 	return nil
