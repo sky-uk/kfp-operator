@@ -1,6 +1,6 @@
 //go:build unit
 
-package testutil
+package mocks
 
 import (
 	"context"

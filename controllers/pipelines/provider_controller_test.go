@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/mocks"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -29,10 +29,10 @@ var _ = Context("Provider Controller", func() {
 		service            = &v1.Service{}
 		providerReconciler ProviderReconciler
 		provider           *pipelinesv1.Provider
-		mockProviderLoader *testutil.MockProviderLoader
-		mockDeploymentMan  *testutil.MockDeploymentManager
-		mockServiceMan     *testutil.MockServiceManager
-		mockStatusMan      *testutil.MockStatusManager
+		mockProviderLoader *mocks.MockProviderLoader
+		mockDeploymentMan  *mocks.MockDeploymentManager
+		mockServiceMan     *mocks.MockServiceManager
+		mockStatusMan      *mocks.MockStatusManager
 	)
 
 	err := pipelinesv1.AddToScheme(scheme)
@@ -43,10 +43,10 @@ var _ = Context("Provider Controller", func() {
 		provider.Generation = 1
 		provider.Status.ObservedGeneration = provider.Generation
 
-		mockProviderLoader = &testutil.MockProviderLoader{}
-		mockDeploymentMan = &testutil.MockDeploymentManager{}
-		mockServiceMan = &testutil.MockServiceManager{}
-		mockStatusMan = &testutil.MockStatusManager{}
+		mockProviderLoader = &mocks.MockProviderLoader{}
+		mockDeploymentMan = &mocks.MockDeploymentManager{}
+		mockServiceMan = &mocks.MockServiceManager{}
+		mockStatusMan = &mocks.MockStatusManager{}
 
 		providerReconciler = ProviderReconciler{
 			ProviderLoader:    mockProviderLoader,
