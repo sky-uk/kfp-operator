@@ -34,16 +34,10 @@ func (m *MockServiceManager) Get(_ context.Context, provider *pipelinesv1.Provid
 
 func (m *MockServiceManager) Equal(a, b *corev1.Service) bool {
 	args := m.Called(a, b)
-	if args.Get(0) != nil {
-		return args.Get(0).(bool)
-	}
-	panic("mock not set")
+	return args.Bool(0)
 }
 
 func (m *MockServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Service {
 	args := m.Called(provider)
-	if args.Get(0) != nil {
-		return args.Get(0).(*corev1.Service)
-	}
-	panic("mock not set")
+	return args.Get(0).(*corev1.Service)
 }

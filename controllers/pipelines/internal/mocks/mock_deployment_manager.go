@@ -34,10 +34,7 @@ func (m *MockDeploymentManager) Get(_ context.Context, provider *pipelinesv1.Pro
 
 func (m *MockDeploymentManager) Equal(a, b *appsv1.Deployment) bool {
 	args := m.Called(a, b)
-	if args.Get(0) != nil {
-		return args.Get(0).(bool)
-	}
-	panic("mock not set")
+	return args.Bool(0)
 }
 
 func (m *MockDeploymentManager) Construct(provider *pipelinesv1.Provider) (*appsv1.Deployment, error) {
