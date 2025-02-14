@@ -103,6 +103,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">env&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#ae81ff">100&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">framework&lt;/span>: &lt;span style="color:#ae81ff">tfx&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
  &lt;thead>
@@ -112,6 +113,10 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Specify which provider to use in create/update workflows.&lt;/td>
+ &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
  &lt;td style="text-align: left">Container image containing TFX component definitions.&lt;/td>
@@ -127,6 +132,10 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.beamArgs&lt;/code>&lt;/td>
  &lt;td style="text-align: left">List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.framework&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Optional. Sets a specific compiler image for the pipeline. e.g. &lt;code>framework: tfx&lt;/code> then image used would be &lt;code>kfp-operator-**tfx**-compiler:latest&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
