@@ -167,7 +167,7 @@ var _ = Context("Provider Service Manager", func() {
 
 	var _ = Describe("Construct", func() {
 
-		It("should return a service if constructed correctly", func() {
+		It("should return a service with expected values from provider", func() {
 			result := serviceManager.Construct(provider)
 
 			providerSuffixedName := fmt.Sprintf("provider-%s", provider.Name)
