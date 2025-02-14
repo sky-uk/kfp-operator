@@ -63,7 +63,7 @@ func (p *Provider) GetKind() string {
 	return "provider"
 }
 
-func (p *Provider) StatusWithCondition(message string) Status {
+func (p *Provider) StatusWithCondition(message string) {
 	p.Status.Conditions = p.Status.Conditions.MergeIntoConditions(metav1.Condition{
 		LastTransitionTime: metav1.Now(),
 		Message:            message,
@@ -72,8 +72,6 @@ func (p *Provider) StatusWithCondition(message string) Status {
 		Status:             ConditionStatusForSynchronizationState(p.Status.SynchronizationState),
 		Reason:             string(p.Status.SynchronizationState),
 	})
-
-	return p.Status
 }
 
 func init() {
