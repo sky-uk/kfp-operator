@@ -5,7 +5,7 @@ metadata:
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   templates:
-  - name: compile
+  - name: compile-default
     inputs:
       parameters:
       - name: resource-image
@@ -316,6 +316,8 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: compile
+          when:
+            condition: '{{`{{workflow.parameters.resource-id}}`}}'
         arguments:
           parameters:
           - name: resource-image

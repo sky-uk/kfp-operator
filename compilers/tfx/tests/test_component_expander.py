@@ -6,7 +6,7 @@ from tfx.types import channel_utils
 from tfx.types import standard_artifacts
 from tfx.components import Pusher
 
-from kfp_compiler import compiler
+from tfx_compiler import compiler
 
 serving_model_dir = "serving_model"
 
