@@ -40,6 +40,22 @@ spec:
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
+  - name: select-resource-compile-framework
+    inputs:
+      artifacts:
+      - name: resource-definition
+        path: /resource-definition.yaml
+        raw:
+          data: |
+            {{`{{workflow.parameters.resource-definition}}`}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '"{{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-" + .framework + "-compiler:{{ .Chart.AppVersion }}" // "{{ include "kfp-operator.compilerImage" . }}"' /resource-definition.yaml
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
   - name: delete
     inputs:
       parameters:
