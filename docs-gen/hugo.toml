@@ -7,6 +7,11 @@ canonifyURLs = false
 
 [menu]
   [[menu.main]]
+    name = "Documentation"
+    weight = -101
+    url = "/docs/"
+    pre = "<i class='fa-solid fa-book'></i>"
+  [[menu.main]]
     name = "Discuss"
     weight = -100
     pre = "<i class='fas fa-comments'></i>"
@@ -35,34 +40,22 @@ canonifyURLs = false
   github_project_repo = "https://github.com/sky-uk/kfp-operator"
   subpath = "/kfp-operator"
   version_menu = "Version"
-
+  latest_stable_version = "v0.6.0"
 
 [params.ui]
 navbar_logo = false
 showLightDarkModeMenu = true
-ul_show = 5
-ul_min_show = 5
-ul_show_children = 5
-ul_min_show_children = 5
-ul_show_grandchildren = 5
-ul_min_show_grandchildren = 5
-
-sidebar_menu_compact = true
-sidebar_menu_foldable = true
-sidebar_menu_collapsible = true
-
 
 [[params.versions]]
 version = "master"
-url = "https://github.com/sky-uk/kfp-operator/kfp-operator/docs/master"
+url = "https://github.com/sky-uk/kfp-operator/docs/"
 
 [[params.versions]]
 version = "v0.6.0"
-url = "https://github.com/sky-uk/kfp-operator/kfp-operator/docs/v0.6.0"
+url = "https://github.com/sky-uk/kfp-operator/archive/v0.6.0"
 
 [security.exec]
   osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|HOME|ASDF_DIR)$']
 
 [markup.goldmark.renderer]
 unsafe = true
-
