@@ -40,7 +40,7 @@ spec:
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
-  - name: select-resource-compile-framework
+  - name: select-framework-compiler-image
     inputs:
       artifacts:
       - name: resource-definition

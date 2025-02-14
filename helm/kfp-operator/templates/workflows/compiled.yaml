@@ -5,11 +5,12 @@ metadata:
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   templates:
-  - name: compile-default
+  - name: compile
     inputs:
       parameters:
       - name: resource-image
       - name: provider-config
+      - name: compiler-image
       artifacts:
       - name: resource-definition
         raw:
@@ -49,7 +50,7 @@ spec:
     initContainers:
     - args:
       - /shared
-      image: {{ include "kfp-operator.compilerImage" . }}
+      image: "{{`{{inputs.parameters.compiler-image}}`}}"
       mirrorVolumeMounts: true
       name: compile
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -234,6 +235,10 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-resource-image
+    - - name: select-framework-compiler-image
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-framework-compiler-image
     - - name: compile
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
@@ -317,12 +322,14 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-resource-image
+    - - name: select-framework-compiler-image
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: select-framework-compiler-image
     - - name: compile
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: compile
-          when:
-            condition: '{{`{{workflow.parameters.resource-id}}`}}'
         arguments:
           parameters:
           - name: resource-image
