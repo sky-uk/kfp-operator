@@ -18,6 +18,7 @@ type PipelineSpec struct {
 	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
 	Env           []apis.NamedValue `json:"env,omitempty" yaml:"env"`
 	BeamArgs      []apis.NamedValue `json:"beamArgs,omitempty"`
+	Framework     string            `json:"framework,omitempty" yaml:"framework"`
 }
 
 func (ps Pipeline) ComputeHash() []byte {

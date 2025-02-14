@@ -20,16 +20,19 @@ spec:
   env:
   - name: TRAINING_RUNS
     value: 100
+  framework: tfx
 ```
 
 ## Fields
 
-| Name                 | Description                                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------------------------- |
-| `spec.image`         | Container image containing TFX component definitions.                                                   |
-| `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components.                               |
-| `spec.env`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables. |
-| `spec.beamArgs`      | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline.      |
+| Name                 | Description                                                                                                                                      |
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| `spec.provider`      | Specify which provider to use in create/update workflows.                                                                                        |
+| `spec.image`         | Container image containing TFX component definitions.                                                                                            |
+| `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components.                                                                        |
+| `spec.env`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                          |
+| `spec.beamArgs`      | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline.                                               |
+| `spec.framework`     | Optional. Sets a specific compiler image for the pipeline. e.g. `framework: tfx` then image used would be `kfp-operator-**tfx**-compiler:latest` |
 
 ## Versioning
 
