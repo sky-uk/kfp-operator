@@ -37,12 +37,12 @@ func (sm ServiceManager) Create(ctx context.Context, new *corev1.Service, provid
 	logger := log.FromContext(ctx)
 
 	if err := ctrl.SetControllerReference(provider, new, sm.scheme); err != nil {
-		logger.Error(err, "unable to set controller reference on service")
+		logger.Error(err, "unable to set controller reference on service", "service", new.Name)
 		return err
 	}
 
 	if err := sm.client.Create(ctx, new); err != nil {
-		logger.Error(err, "unable to create provider service")
+		logger.Error(err, "unable to create provider service", "service", new.Name)
 		return err
 	}
 	return nil
@@ -52,7 +52,7 @@ func (sm ServiceManager) Delete(ctx context.Context, old *corev1.Service) error 
 	logger := log.FromContext(ctx)
 
 	if err := sm.client.Delete(ctx, old); err != nil {
-		logger.Error(err, "unable to delete existing provider service")
+		logger.Error(err, "unable to delete existing provider service", "service", old.Name)
 		return err
 	}
 	return nil
