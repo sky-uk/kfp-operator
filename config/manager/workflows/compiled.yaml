@@ -10,6 +10,7 @@ spec:
       parameters:
       - name: resource-image
       - name: provider-config
+      - name: compiler-image
       artifacts:
       - name: resource-definition
         raw:
@@ -47,7 +48,7 @@ spec:
     initContainers:
     - args:
       - /shared
-      image: kfp-operator-argo-kfp-compiler:latest
+      image: "{{inputs.parameters.compiler-image}}"
       mirrorVolumeMounts: true
       name: compile
   - name: create
@@ -186,6 +187,10 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-resource-image
+    - - name: select-framework-compiler-image
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-framework-compiler-image
     - - name: compile
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -196,6 +201,8 @@ spec:
             value: '{{steps.select-resource-image.outputs.result}}'
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
+          - name: compiler-image
+            value: '{{steps.select-framework-compiler-image.outputs.result}}'
     - - name: provider
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -261,6 +268,10 @@ spec:
         templateRef:
           name: kfp-operator-common-steps
           template: select-resource-image
+    - - name: select-framework-compiler-image
+        templateRef:
+          name: kfp-operator-common-steps
+          template: select-framework-compiler-image
     - - name: compile
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -271,6 +282,8 @@ spec:
             value: '{{steps.select-resource-image.outputs.result}}'
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
+          - name: compiler-image
+            value: '{{steps.select-framework-compiler-image.outputs.result}}'
     - - name: provider
         templateRef:
           name: kfp-operator-compiled-workflow-steps

@@ -38,6 +38,22 @@ spec:
       source: yq e '.image' /resource-definition.yaml
     metadata: {}
     activeDeadlineSeconds: 300
+  - name: select-framework-compiler-image
+    inputs:
+      artifacts:
+      - name: resource-definition
+        path: /resource-definition.yaml
+        raw:
+          data: |
+            {{workflow.parameters.resource-definition}}
+    script:
+      command:
+      - ash
+      image: mikefarah/yq:4.27.5
+      source: yq e '"kfp-operator-" + .framework + "-compiler:latest" // "kfp-operator-argo-kfp-compiler:latest"' /resource-definition.yaml
+    metadata:
+      {}
+    activeDeadlineSeconds: 300
   - name: delete
     inputs:
       parameters:
