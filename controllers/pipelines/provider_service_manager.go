@@ -60,12 +60,12 @@ func (sm ServiceManager) Delete(ctx context.Context, old *corev1.Service) error 
 
 func (sm ServiceManager) Get(ctx context.Context, owner *pipelinesv1.Provider) (*corev1.Service, error) {
 	sl := &corev1.ServiceList{}
-	err := sm.client.NonCached.List(ctx, sl, &client.ListOptions{
+	if err := sm.client.NonCached.List(ctx, sl, &client.ListOptions{
 		Namespace: owner.Namespace,
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, err
 	}
+
 	for _, svc := range sl.Items {
 		if metav1.IsControlledBy(&svc, owner) {
 			return &svc, nil

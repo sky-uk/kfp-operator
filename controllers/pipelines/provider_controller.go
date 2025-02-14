@@ -83,7 +83,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	provider, err := r.ProviderLoader.LoadProvider(ctx, req.Namespace, req.Name)
 	if err != nil {
-		logger.Error(err, "unable to get provider")
+		logger.Error(err, "unable to get provider", "provider", req.NamespacedName)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -91,13 +91,13 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	existingDeployment, err := r.DeploymentManager.Get(ctx, &provider)
 	if err != nil && !apierrors.IsNotFound(err) {
-		logger.Error(err, "unable to get existing deployment")
+		logger.Error(err, "unable to get existing deployment", "provider", provider.GetNamespacedName())
 		return ctrl.Result{}, nil
 	}
 
 	desiredDeployment, err := r.DeploymentManager.Construct(&provider)
 	if err != nil {
-		logger.Error(err, "unable to construct provider deployment")
+		logger.Error(err, "unable to construct provider deployment", "provider", provider.GetNamespacedName())
 		return ctrl.Result{}, nil
 	}
 
@@ -127,7 +127,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	existingSvc, err := r.ServiceManager.Get(ctx, &provider)
 	if err != nil && !apierrors.IsNotFound(err) {
-		logger.Error(err, "unable to get existing service")
+		logger.Error(err, "unable to get existing service", "provider", provider.GetNamespacedName())
 		return ctrl.Result{}, nil
 	}
 
