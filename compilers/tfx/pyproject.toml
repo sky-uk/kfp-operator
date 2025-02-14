@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "kfp_compiler"
+name = "tfx_compiler"
 version = "0.0.0" # set by poetry-dynamic-versioning
 description = ""
 authors = []
@@ -26,4 +26,4 @@ requires = ["poetry-core>=1.1.9", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-kfp-compiler = 'kfp_compiler.__main__:main'
+tfx-compiler = 'tfx_compiler.__main__:main'

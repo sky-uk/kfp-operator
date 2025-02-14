@@ -1,4 +1,4 @@
-from kfp_compiler import compiler
+from tfx_compiler import compiler
 import os
 import sys
 import pytest
