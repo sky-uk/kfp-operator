@@ -4,313 +4,245 @@ package pipelines
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/controllers"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/mocks"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var _ = Context("Provider Controller", func() {
 
-	servicePort := 9999
+	var (
+		ctx                = context.Background()
+		scheme             = runtime.NewScheme()
+		deployment         = &appsv1.Deployment{}
+		service            = &v1.Service{}
+		providerReconciler ProviderReconciler
+		provider           *pipelinesv1.Provider
+		mockProviderLoader *mocks.MockProviderLoader
+		mockDeploymentMan  *mocks.MockDeploymentManager
+		mockServiceMan     *mocks.MockServiceManager
+		mockStatusMan      *mocks.MockStatusManager
+	)
 
-	controllerConfig := config.KfpControllerConfigSpec{
-		DefaultProviderValues: config.DefaultProviderValues{
-			Replicas:             2,
-			ServiceContainerName: "container-name",
-			ServicePort:          servicePort,
-			PodTemplateSpec: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{},
-				Spec: v1.PodSpec{
-					Containers: []v1.Container{
-						{
-							Name: "container-name",
-						},
-					},
-				},
-			},
-		},
-	}
+	err := pipelinesv1.AddToScheme(scheme)
+	Expect(err).ToNot(HaveOccurred())
 
-	provider := pipelinesv1.Provider{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "my-provider",
-			Namespace: "my-ns",
-		},
-		Spec: pipelinesv1.ProviderSpec{
-			ServiceImage: "image",
-		},
-	}
-	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
+	BeforeEach(func() {
+		provider = pipelinesv1.RandomProvider()
+		provider.Generation = 1
+		provider.Status.ObservedGeneration = provider.Generation
 
-	var _ = Describe("constructDeployment", func() {
-		Specify("Should construct a Deployment with correct values given config and a Provider resource", func() {
-			replicas := int32(2)
-			expectedDeployment := appsv1.Deployment{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "Deployment",
-					APIVersion: "apps/v1",
+		mockProviderLoader = &mocks.MockProviderLoader{}
+		mockDeploymentMan = &mocks.MockDeploymentManager{}
+		mockServiceMan = &mocks.MockServiceManager{}
+		mockStatusMan = &mocks.MockStatusManager{}
+
+		providerReconciler = ProviderReconciler{
+			ProviderLoader:    mockProviderLoader,
+			DeploymentManager: mockDeploymentMan,
+			ServiceManager:    mockServiceMan,
+			StatusManager:     mockStatusMan,
+		}
+	})
+
+	var _ = Describe("Reconcile", func() {
+
+		Specify("Should Create a Deployment and Service if they do not currently exist", func() {
+			mockProviderLoader.On("LoadProvider", mock.Anything, mock.Anything).Return(*provider, nil)
+
+			mockDeploymentMan.
+				On("Get", provider).Return(nil, errors.NewNotFound(schema.GroupResource{Group: "apps", Resource: "deployments"}, "deployment")).
+				On("Construct", provider).Return(deployment, nil).
+				On("Create", deployment, provider).Return(nil)
+
+			mockServiceMan.
+				On("Get", provider).Return(nil, errors.NewNotFound(schema.GroupResource{Group: "", Resource: "services"}, "service")).
+				On("Construct", provider).Return(service).
+				On("Create", service, provider).Return(nil)
+
+			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+
+			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: provider.Namespace,
+					Name:      provider.Name,
 				},
-				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: "provider-my-provider-",
-					Namespace:    provider.Namespace,
-					Labels: map[string]string{
-						"app": "provider-my-provider",
-					},
-				},
-				Spec: appsv1.DeploymentSpec{
-					Selector: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"app": "provider-my-provider",
-						},
-					},
-					Replicas: &replicas,
-					Template: v1.PodTemplateSpec{
-						ObjectMeta: metav1.ObjectMeta{
-							Labels: map[string]string{
-								"app": "provider-my-provider",
-							},
-						},
-						Spec: v1.PodSpec{
-							Containers: []v1.Container{
-								{
-									Name:  "container-name",
-									Image: "image",
-									Env: []v1.EnvVar{
-										{
-											Name:  "PROVIDERNAME",
-											Value: "my-provider",
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			}
-			err := setDeploymentHashAnnotation(&expectedDeployment)
+			})
+
 			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(ctrl.Result{}))
 
-			actualDeployment, err := constructDeployment(&provider, controllerConfig, prefixedProviderName)
-			Expect(err).ToNot(HaveOccurred())
+			mockDeploymentMan.AssertCalled(GinkgoT(), "Create", deployment, provider)
+			mockServiceMan.AssertCalled(GinkgoT(), "Create", service, provider)
 
-			Expect(actualDeployment.Spec.Selector).To(Equal(expectedDeployment.Spec.Selector))
-			Expect(actualDeployment.Spec.Replicas).To(Equal(expectedDeployment.Spec.Replicas))
-			Expect(actualDeployment.Spec.Template.ObjectMeta).To(Equal(expectedDeployment.Spec.Template.ObjectMeta))
-			Expect(actualDeployment.Spec.Template.Spec.Containers).To(Equal(expectedDeployment.Spec.Template.Spec.Containers))
-			Expect(actualDeployment.ObjectMeta).To(Equal(expectedDeployment.ObjectMeta))
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Creating, "")
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+
 		})
 
-		Specify("Should error if the specified service container name doesn't match any containers on the deployment", func() {
-			configCopy := controllerConfig
-			configCopy.DefaultProviderValues.ServiceContainerName = "wrong-container-name"
+		Specify("Should Update a Deployment and Delete Service if they exist and provider resource is out of sync", func() {
+			//Out of sync provider
+			provider.Generation = provider.Status.ObservedGeneration + 1
+			mockProviderLoader.On("LoadProvider", mock.Anything, mock.Anything).Return(*provider, nil)
 
-			_, err := constructDeployment(&provider, configCopy, prefixedProviderName)
+			mockDeploymentMan.
+				On("Get", provider).Return(deployment, nil).
+				On("Construct", provider).Return(deployment, nil).
+				On("Equal", deployment, deployment).Return(true).
+				On("Update", deployment, deployment, provider).Return(nil)
+
+			mockServiceMan.
+				On("Get", provider).Return(service, nil).
+				On("Construct", provider).Return(service).
+				On("Equal", service, service).Return(true).
+				On("Delete", service).Return(nil)
+
+			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+
+			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: provider.Namespace,
+					Name:      provider.Name,
+				},
+			})
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(ctrl.Result{}))
+
+			mockDeploymentMan.AssertCalled(GinkgoT(), "Update", deployment, deployment, provider)
+			mockServiceMan.AssertCalled(GinkgoT(), "Delete", service)
+
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+		})
+
+		Specify("Should update a deployment if it is out of sync", func() {
+			mockProviderLoader.On("LoadProvider", mock.Anything, mock.Anything).Return(*provider, nil)
+
+			mockDeploymentMan.
+				On("Get", provider).Return(deployment, nil).
+				On("Construct", provider).Return(deployment, nil).
+				On("Equal", deployment, deployment).Return(false).
+				On("Update", deployment, deployment, provider).Return(nil)
+
+			mockServiceMan.
+				On("Get", provider).Return(service, nil).
+				On("Construct", provider).Return(service).
+				On("Equal", service, service).Return(true)
+
+			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+
+			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: provider.Namespace,
+					Name:      provider.Name,
+				},
+			})
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(ctrl.Result{}))
+
+			mockDeploymentMan.AssertCalled(GinkgoT(), "Update", deployment, deployment, provider)
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+		})
+
+		Specify("Should delete a service if it is out of sync", func() {
+			mockProviderLoader.On("LoadProvider", mock.Anything, mock.Anything).Return(*provider, nil)
+
+			mockDeploymentMan.
+				On("Get", provider).Return(deployment, nil).
+				On("Construct", provider).Return(deployment, nil).
+				On("Equal", deployment, deployment).Return(true)
+
+			mockServiceMan.
+				On("Get", provider).Return(service, nil).
+				On("Construct", provider).Return(service).
+				On("Equal", service, service).Return(false).
+				On("Delete", service).Return(nil)
+
+			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+
+			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: provider.Namespace,
+					Name:      provider.Name,
+				},
+			})
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(ctrl.Result{}))
+
+			mockServiceMan.AssertCalled(GinkgoT(), "Delete", service)
+
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+		})
+
+		Specify("Should Update a deployment if it is out of sync", func() {
+			mockProviderLoader.On("LoadProvider", mock.Anything, mock.Anything).Return(*provider, nil)
+
+			mockDeploymentMan.
+				On("Get", provider).Return(deployment, nil).
+				On("Construct", provider).Return(deployment, nil).
+				On("Equal", deployment, deployment).Return(false).
+				On("Update", deployment, deployment, provider).Return(nil)
+
+			mockServiceMan.
+				On("Get", provider).Return(service, nil).
+				On("Construct", provider).Return(service).
+				On("Equal", service, service).Return(true)
+
+			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+
+			result, err := providerReconciler.Reconcile(ctx, ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: provider.Namespace,
+					Name:      provider.Name,
+				},
+			})
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(ctrl.Result{}))
+
+			mockDeploymentMan.AssertCalled(GinkgoT(), "Update", deployment, deployment, provider)
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Succeeded, "")
+		})
+
+		Specify("Should set state as failed when error occurs", func() {
+			mockProviderLoader.On("LoadProvider", mock.Anything, mock.Anything).Return(*provider, nil)
+
+			mockDeploymentMan.
+				On("Get", provider).Return(deployment, nil).
+				On("Construct", provider).Return(deployment, nil).
+				On("Equal", deployment, deployment).Return(false).
+				On("Update", deployment, deployment, provider).Return(errors.NewBadRequest("error"))
+
+			mockStatusMan.On("UpdateProviderStatus", provider, mock.Anything, mock.Anything).Return(nil)
+
+			_, err := providerReconciler.Reconcile(ctx, ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: provider.Namespace,
+					Name:      provider.Name,
+				},
+			})
 
 			Expect(err).To(HaveOccurred())
-		})
-	})
 
-	var _ = Describe("syncDeployment", func() {
-		Specify("Should update the existing Deployment to match the desired Deployment, but leave the Status unchanged", func() {
-			existingDeployment := appsv1.Deployment{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "Deployment",
-					APIVersion: "apps/v1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"replace-me": "this-label-has-no-place-here",
-					},
-				},
-				Spec: appsv1.DeploymentSpec{
-					Template: v1.PodTemplateSpec{
-						Spec: v1.PodSpec{
-							Containers: []v1.Container{
-								{
-									Name:  "container",
-									Image: "unwanted-image",
-								},
-							},
-						},
-					},
-				},
-				Status: appsv1.DeploymentStatus{
-					Conditions: []appsv1.DeploymentCondition{
-						{
-							Type:   appsv1.DeploymentProgressing,
-							Status: v1.ConditionTrue,
-						},
-						{
-							Type:   appsv1.DeploymentAvailable,
-							Status: v1.ConditionTrue,
-						},
-					},
-					CollisionCount: new(int32),
-				},
-			}
-
-			desiredDeployment := appsv1.Deployment{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "Deployment",
-					APIVersion: "apps/v1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"proper-label": "this-is-the-right-label",
-					},
-				},
-				Spec: appsv1.DeploymentSpec{
-					Template: v1.PodTemplateSpec{
-						Spec: v1.PodSpec{
-							Containers: []v1.Container{
-								{
-									Name:  "container",
-									Image: "correct-image",
-								},
-							},
-						},
-					},
-				},
-				Status: appsv1.DeploymentStatus{},
-			}
-
-			err := setDeploymentHashAnnotation(&desiredDeployment)
-			Expect(err).ToNot(HaveOccurred())
-
-			syncedDeployment := syncDeployment(&existingDeployment, &desiredDeployment)
-
-			Expect(syncedDeployment.Spec).To(Equal(desiredDeployment.Spec))
-			Expect(syncedDeployment.Labels).To(Equal(desiredDeployment.Labels))
-			Expect(syncedDeployment.Annotations[ResourceHashAnnotation]).To(Equal(desiredDeployment.Annotations[ResourceHashAnnotation]))
-			Expect(syncedDeployment.Status).To(Equal(existingDeployment.Status))
-		})
-	})
-
-	var _ = Describe("constructService", func() {
-		Specify("Should construct a Service with correct values given config and a Provider resource", func() {
-			expectedService := v1.Service{
-				TypeMeta: metav1.TypeMeta{},
-				ObjectMeta: metav1.ObjectMeta{
-					GenerateName: "provider-my-provider-",
-					Namespace:    provider.Namespace,
-				},
-				Spec: v1.ServiceSpec{
-					Selector: map[string]string{
-						"app": "provider-my-provider",
-					},
-					Ports: []v1.ServicePort{
-						{
-							Name:       "http",
-							Protocol:   v1.ProtocolTCP,
-							Port:       int32(servicePort),
-							TargetPort: intstr.FromInt(servicePort),
-						},
-					},
-					Type: v1.ServiceTypeClusterIP,
-				},
-
-				Status: v1.ServiceStatus{},
-			}
-			err := setSvcHashAnnotation(&expectedService)
-			Expect(err).ToNot(HaveOccurred())
-
-			actualService, err := constructService(controllerConfig, &provider, prefixedProviderName)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(actualService).To(Equal(&expectedService))
-		})
-	})
-
-	var _ = Describe("updateProviderStatus", func() {
-		Specify("Should update the Provider status with the given conditions", func() {
-			ctx := context.Background()
-			scheme := runtime.NewScheme()
-			err := pipelinesv1.AddToScheme(scheme)
-			Expect(err).ToNot(HaveOccurred())
-			client := fake.NewClientBuilder().
-				WithScheme(scheme).
-				WithStatusSubresource(&pipelinesv1.Provider{}).
-				Build()
-
-			pr := ProviderReconciler{
-				ResourceReconciler: ResourceReconciler[*pipelinesv1.Provider]{
-					EC: K8sExecutionContext{
-						Client: controllers.OptInClient{
-							Writer:       client,
-							StatusClient: client,
-							Cached:       client,
-							NonCached:    client,
-						},
-						Scheme: scheme,
-					},
-					Config: config.KfpControllerConfigSpec{},
-				},
-				Scheme: scheme,
-			}
-
-			initialProvider := pipelinesv1.RandomProvider()
-			expectedStartGeneration := int64(1)
-			expectedEndGeneration := int64(2)
-
-			initialProvider.Status.ObservedGeneration = expectedStartGeneration
-			initialProvider.Generation = expectedEndGeneration
-
-			err = client.Create(ctx, initialProvider)
-			Expect(err).ToNot(HaveOccurred())
-
-			err = client.Get(ctx, initialProvider.GetNamespacedName(), initialProvider)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(initialProvider.Status.ObservedGeneration).To(Equal(expectedStartGeneration))
-
-			err = pr.updateProviderStatus(ctx, initialProvider)
-			Expect(err).ToNot(HaveOccurred())
-
-			underTest := &pipelinesv1.Provider{}
-			err = client.Get(ctx, initialProvider.GetNamespacedName(), underTest)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(underTest.Status.ObservedGeneration).To(Equal(expectedEndGeneration))
-
-		})
-	})
-
-	var _ = Describe("jsonToString", func() {
-		Specify("Should return a plain string given a JSON string (no extra quotes or escape chars!)", func() {
-			rawJson, err := json.Marshal("test")
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonStr := apiextensionsv1.JSON{
-				Raw: rawJson,
-			}
-
-			result := jsonToString(&jsonStr)
-
-			Expect(result).To(Equal("test"))
-		})
-
-		Specify("Should return a raw JSON string given a JSON object", func() {
-			rawJson, err := json.Marshal(`{"key1": "value1", "key2": 42}`)
-			Expect(err).ToNot(HaveOccurred())
-
-			jsonStr := apiextensionsv1.JSON{
-				Raw: rawJson,
-			}
-
-			result := jsonToString(&jsonStr)
-
-			Expect(result).To(Equal("{\"key1\": \"value1\", \"key2\": 42}"))
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Updating, "")
+			mockStatusMan.AssertCalled(GinkgoT(), "UpdateProviderStatus", provider, apis.Failed, "Failed to reconcile subresource deployment")
 		})
 	})
 })
