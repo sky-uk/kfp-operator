@@ -3,8 +3,7 @@ package resource
 import (
 	"context"
 	"encoding/json"
-
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 )
 
 type Experiment struct {

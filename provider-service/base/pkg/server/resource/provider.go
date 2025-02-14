@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 )
 
 type PipelineDefinition struct {

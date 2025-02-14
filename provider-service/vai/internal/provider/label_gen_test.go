@@ -5,7 +5,7 @@ package provider
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider/testutil"
 )
