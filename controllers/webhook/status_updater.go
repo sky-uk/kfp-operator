@@ -3,8 +3,8 @@ package webhook
 import (
 	"context"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
-	k8sConfigCommon "github.com/sky-uk/kfp-operator/common"
+	argocommon "github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -12,11 +12,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func completionStateForRunCompletionStatus(rcs common.RunCompletionStatus) *pipelinesv1.CompletionState {
+func completionStateForRunCompletionStatus(rcs argocommon.RunCompletionStatus) *pipelinesv1.CompletionState {
 	switch rcs {
-	case common.RunCompletionStatuses.Succeeded:
+	case argocommon.RunCompletionStatuses.Succeeded:
 		return &pipelinesv1.CompletionStates.Succeeded
-	case common.RunCompletionStatuses.Failed:
+	case argocommon.RunCompletionStatuses.Failed:
 		return &pipelinesv1.CompletionStates.Failed
 	default:
 		return nil
@@ -30,7 +30,7 @@ type StatusUpdater struct {
 
 func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdater, error) {
 	logger := log.FromContext(ctx)
-	k8sConfig, err := k8sConfigCommon.K8sClientConfig()
+	k8sConfig, err := common.K8sClientConfig()
 	if err != nil {
 		logger.Error(err, "Error reading k8s client config")
 		return StatusUpdater{}, err
@@ -48,7 +48,7 @@ func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdate
 }
 
 func (su StatusUpdater) Handle(
-	event common.RunCompletionEvent,
+	event argocommon.RunCompletionEvent,
 ) error {
 	if event.RunName != nil {
 		if err := su.completeRun(event); err != nil {
@@ -63,7 +63,7 @@ func (su StatusUpdater) Handle(
 	return nil
 }
 
-func (su StatusUpdater) completeRun(event common.RunCompletionEvent) error {
+func (su StatusUpdater) completeRun(event argocommon.RunCompletionEvent) error {
 	logger := log.FromContext(su.ctx)
 
 	if event.RunName.Namespace == "" {
@@ -122,11 +122,11 @@ func (su StatusUpdater) completeRun(event common.RunCompletionEvent) error {
 }
 
 func (su StatusUpdater) completeRunConfiguration(
-	event common.RunCompletionEvent,
+	event argocommon.RunCompletionEvent,
 ) error {
 	logger := log.FromContext(su.ctx)
 
-	if event.Status != common.RunCompletionStatuses.Succeeded ||
+	if event.Status != argocommon.RunCompletionStatuses.Succeeded ||
 		event.RunConfigurationName.Namespace == "" {
 		logger.Info(
 			"RunCompletionEvent's RunConfigurationName namespace was empty. Skipping.",
