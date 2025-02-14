@@ -243,6 +243,8 @@ spec:
                   - value
                   type: object
                 type: array
+              framework:
+                type: string
               image:
                 type: string
               provider:

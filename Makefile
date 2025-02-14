@@ -198,8 +198,11 @@ docker-build-argo: ## Build argo docker images
 	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/providers docker-build
 
-docker-push-argo: ## Publish argo docker images
+docker-push-argo:
 	$(MAKE) -C argo/kfp-compiler docker-push
+
+docker-push-argo:
+	$(MAKE) -C argo/kfp-compiler docker-push-all ## Publish argo docker images
 	$(MAKE) -C argo/providers docker-push
 
 docker-build-triggers: ## Build trigger docker images
