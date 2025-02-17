@@ -1,7 +1,6 @@
 ---
 title: "Run Completion Events"
 weight: 3
-type: docs
 ---
 
 ![Model Serving]({{< param "subpath" >}}/images/run-completion.svg)

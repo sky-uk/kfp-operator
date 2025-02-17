@@ -1,7 +1,6 @@
 ---
 title: "Resources"
 weight: 2
-type: docs
 ---
 
 The Kubeflow Pipelines operator manages the lifecycle of pipelines and related resources via Kubernetes Resources.
