@@ -26,7 +26,7 @@
   </url><url>
     <loc>http://localhost:1313/kfp-operator/docs/examples/</loc>
   </url><url>
-    <loc>http://localhost:1313/kfp-operator/archive/v0.6.0/getting-started/introduction/</loc>
+    <loc>http://localhost:1313/kfp-operator/archive/v0.6.0/getting-started/installation/</loc>
   </url><url>
     <loc>http://localhost:1313/kfp-operator/docs/getting-started/introduction/</loc>
   </url><url>
@@ -41,8 +41,6 @@
     <loc>http://localhost:1313/kfp-operator/archive/v0.6.0/reference/resources/runconfiguration/</loc>
   </url><url>
     <loc>http://localhost:1313/kfp-operator/docs/reference/resources/runconfiguration/</loc>
-  </url><url>
-    <loc>http://localhost:1313/kfp-operator/archive/v0.6.0/getting-started/installation/</loc>
   </url><url>
     <loc>http://localhost:1313/kfp-operator/docs/getting-started/installation/</loc>
   </url><url>
@@ -69,8 +67,6 @@
     <loc>http://localhost:1313/kfp-operator/archive/v0.6.0/reference/debugging/</loc>
   </url><url>
     <loc>http://localhost:1313/kfp-operator/docs/reference/debugging/</loc>
-  </url><url>
-    <loc>http://localhost:1313/kfp-operator/archive/v0.6.0/reference/resources/provider/</loc>
   </url><url>
     <loc>http://localhost:1313/kfp-operator/docs/reference/resources/provider/</loc>
   </url><url>
