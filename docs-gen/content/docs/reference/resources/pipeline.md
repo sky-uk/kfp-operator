@@ -32,7 +32,7 @@ spec:
 | `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components.                                                                        |
 | `spec.env`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                          |
 | `spec.beamArgs`      | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline.                                               |
-| `spec.framework`     | Optional. Sets a specific compiler image for the pipeline. e.g. `framework: tfx` then image used would be `kfp-operator-**tfx**-compiler:latest` |
+| `spec.framework`     | Optional. Sets a specific compiler image for the pipeline. For example, using `framework: tfx` would mean the pipeline would be compiled with the `kfp-operator-**tfx**-compiler:latest` image |
 
 ## Versioning
 
