@@ -13,6 +13,7 @@ require (
 	github.com/onsi/gomega v1.27.7
 	github.com/sky-uk/kfp-operator v0.6.0
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65
+	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.24.0
@@ -21,7 +22,10 @@ require (
 	sigs.k8s.io/controller-runtime v0.15.0
 )
 
-replace github.com/sky-uk/kfp-operator => ../..
+replace (
+	github.com/sky-uk/kfp-operator => ../..
+	github.com/sky-uk/kfp-operator/common => ../../common
+)
 
 require (
 	cloud.google.com/go v0.112.1 // indirect
@@ -92,16 +96,16 @@ require (
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
-	golang.org/x/crypto v0.25.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.20.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/term v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
+	golang.org/x/tools v0.22.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
 	google.golang.org/api v0.171.0 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
