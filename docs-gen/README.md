@@ -26,17 +26,5 @@ This will populate the [/docs](/docs) directory, which will be served on [GitHub
 To document different versions of the KFP Operator, we store an archive of the `content/docs/` folder for each release version, under `content/archive/<version>/`.
 
 To create a new archive version:
-1. copy the contents of `content/docs/` to `content/archive/<new_version>/`, replacing `<new_version>` with the version you want to document.
-2. copy the contents of `static/images/` to `static/images/archive/<new_version>/`, replacing `<new_version>` with the version you want to document.
-3. copy the contents of `includes/` to `includes/archive/<new_version>/`, replacing `<new_version>` with the version you want to document.
-4. Add this new version to `hugo.toml`:
-    ```toml
-    [[params.versions]]
-    version = "<new_version>"
-    url = "/kfp-operator/archive/<new_version>"
-    ```
-5. Update the references to static images and code examples using the following command:
-   ```
-   sed 
-   ```
-6. Rebuild the site with `make build`.
+1. run `make archive-version VERSION=<new_version>` with the new version i.e. `v0.6.0`
+8. Rebuild the site with `make build`.

@@ -5,13 +5,13 @@ weight: 1
 
 The Kubeflow Pipelines operator can be configured with the following parameters:
 
-| Parameter name      | Description                                                                                                                                                                                                                        | Example                                                |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| `defaultExperiment` | Default Experiment name to be used for creating pipeline runs                                                                                                                                                                      | `Default`                                              |
-| `defaultProvider`   | Default provider name to be used (see [Using Multiple Providers](../providers))                                                                                                                                                    | `vertex-ai-europe`                                     |
-| `multiversion`      | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                                               | `true`                                                 |
-| `workflowNamespace` | Namespace where operator Argo workflows should be running - defaults to the operator's namespace                                                                                                                                   | `kfp-operator-workflows`                               |
-| `runCompletionTTL`  | Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)                      | `10m`                                                  |
+| Parameter name      | Description                                                                                                                                                                                                   | Example                  |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `defaultExperiment` | Default Experiment name to be used for creating pipeline runs                                                                                                                                                 | `Default`                |
+| `defaultProvider`   | Default provider name to be used (see [Using Multiple Providers](../providers))                                                                                                                               | `vertex-ai-europe`       |
+| `multiversion`      | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                          | `true`                   |
+| `workflowNamespace` | Namespace where operator Argo workflows should be running - defaults to the operator's namespace                                                                                                              | `kfp-operator-workflows` |
+| `runCompletionTTL`  | Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) | `10m`                    |
 
 An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml).
 
@@ -22,7 +22,7 @@ The provider configurations are specific to the implementation. The operator sup
 ### Common
 
 | Parameter name               | Description                                                                                                                                                                                                                        | Example                                                |
-|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
 | `image`<sup>*</sup>          | Container image of the provider                                                                                                                                                                                                    | `kfp-operator-kfp-provider:0.0.2`                      |
 | `executionMode`<sup>*</sup>  | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode)                                                                                               | `v1` (currently KFP) or `v2` (Vertex AI)               |
 | `serviceAccount`<sup>*</sup> | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                     | `kfp-operator-vertex-ai`                               |
@@ -34,7 +34,7 @@ The provider configurations are specific to the implementation. The operator sup
 ### Kubeflow Pipelines
 
 | Parameter name             | Description                                      | Example                                         |
-|----------------------------|--------------------------------------------------|-------------------------------------------------|
+| -------------------------- | ------------------------------------------------ | ----------------------------------------------- |
 | `kfpNamespace`             | The KFP namespace                                | `kubeflow`                                      |
 | `restKfpApiUrl`            | The KFP REST URL available to the operator       | `http://ml-pipeline.kubeflow:8888`              |
 | `grpcKfpApiAddress`        | The KFP gRPC address for the eventsource server  | `ml-pipeline.kubeflow-pipelines:8887`           |
@@ -44,10 +44,10 @@ KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/compone
 
 ### Vertex AI Pipelines
 
-![Vertex AI Provider](/images/vai-provider.png)
+![Vertex AI Provider](/images/archive/v0.6.0/vai-provider.png)
 
 | Parameter name                          | Description                                                                                                          | Example                                                           |
-|-----------------------------------------|----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `pipelineBucket`                        | GCS bucket where to store the compiled pipeline                                                                      | `kfp-operator-pipelines`                                          |
 | `vaiProject`                            | Vertex AI GCP project name                                                                                           | `kfp-operator-vertex-ai`                                          |
 | `vaiLocation`                           | Vertex AI GCP project location                                                                                       | `europe-west2`                                                    |

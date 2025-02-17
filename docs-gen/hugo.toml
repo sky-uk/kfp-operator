@@ -32,6 +32,12 @@ canonifyURLs = false
         path = "github.com/google/docsy/dependencies"
         disable = false
 
+[security.exec]
+  osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|HOME|ASDF_DIR)$']
+
+[markup.goldmark.renderer]
+unsafe = true
+
 [params]
   description = "Kubernetes operator to manage ML pipelines on Kubeflow"
   github_repo = "https://github.com/sky-uk/kfp-operator"
@@ -53,9 +59,3 @@ url = "/kfp-operator/docs/"
 [[params.versions]]
 version = "v0.6.0"
 url = "/kfp-operator/archive/v0.6.0/"
-
-[security.exec]
-  osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|HOME|ASDF_DIR)$']
-
-[markup.goldmark.renderer]
-unsafe = true
