@@ -21,6 +21,7 @@ func (pdc PipelineDefinitionCreator) pipelineDefinition(
 		},
 		Version:       pipeline.ComputeVersion(),
 		Image:         pipeline.Spec.Image,
+		Framework:     pipeline.Spec.Framework,
 		TfxComponents: pipeline.Spec.TfxComponents,
 		Env:           pipeline.Spec.Env,
 		BeamArgs:      pipeline.Spec.BeamArgs,

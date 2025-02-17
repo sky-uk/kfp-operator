@@ -14,6 +14,7 @@ type PipelineDefinition struct {
 	TfxComponents string                `yaml:"tfxComponents"`
 	Env           []apis.NamedValue     `yaml:"env"`
 	BeamArgs      []apis.NamedValue     `yaml:"beamArgs"`
+	Framework     string                `yaml:"framework"`
 }
 
 type ExperimentDefinition struct {
