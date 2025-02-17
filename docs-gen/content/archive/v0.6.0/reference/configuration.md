@@ -44,7 +44,7 @@ KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/compone
 
 ### Vertex AI Pipelines
 
-![Vertex AI Provider](/images/archive/v0.6.0/vai-provider.png)
+![Vertex AI Provider]({{< param "subpath" >}}/archive/v0.6.0/images/vai-provider.svg)
 
 | Parameter name                          | Description                                                                                                          | Example                                                           |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
