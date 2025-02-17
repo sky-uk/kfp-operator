@@ -54,11 +54,11 @@ showLightDarkModeMenu = true
 
 [[params.versions]]
 version = "master"
-url = "https://github.com/sky-uk/kfp-operator/docs/"
+url = "/kfp-operator/docs/"
 
 [[params.versions]]
 version = "v0.6.0"
-url = "https://github.com/sky-uk/kfp-operator/archive/v0.6.0"
+url = "/kfp-operator/archive/v0.6.0/"
 
 [[params.versions]]
 version = "master"
