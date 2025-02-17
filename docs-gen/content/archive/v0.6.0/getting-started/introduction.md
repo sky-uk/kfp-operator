@@ -1,7 +1,6 @@
 ---
 title: "Introduction"
 weight: 2
-type: docs
 ---
 
 ## Compatibility

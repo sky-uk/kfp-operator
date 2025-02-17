@@ -1,7 +1,6 @@
 ---
 title: "Experiment"
 weight: 4
-type: docs
 ---
 
 The Experiment resource represents the lifecycle of Experiments,

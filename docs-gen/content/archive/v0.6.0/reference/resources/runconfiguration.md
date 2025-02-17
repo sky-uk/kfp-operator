@@ -1,7 +1,6 @@
 ---
 title: "RunConfiguration"
 weight: 2
-type: docs
 ---
 
 The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).
