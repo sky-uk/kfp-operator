@@ -17,9 +17,7 @@ This guide assumes you are familiar with [Helm](https://helm.sh/).
 
 Create basic `values.yaml` with the following content:
 
-```yaml
 {{% readfile file="/includes/archive/v0.6.0/quickstart/resources/values.yaml" code="true" lang="yaml" %}}
-```
 
 Install the latest version of the operator
 
