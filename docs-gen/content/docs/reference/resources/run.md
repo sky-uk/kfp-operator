@@ -1,7 +1,6 @@
 ---
 title: "Run"
 weight: 3
-type: docs
 ---
 
 The Run resource represents the lifecycle of a one-off run.

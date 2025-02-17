@@ -1,7 +1,6 @@
 ---
 title: "Configuration"
 weight: 1
-type: docs
 ---
 
 The Kubeflow Pipelines operator can be configured with the following parameters:

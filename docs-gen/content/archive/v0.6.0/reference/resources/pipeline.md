@@ -1,7 +1,6 @@
 ---
 title: "Pipeline"
 weight: 1
-type: docs
 ---
 
 The Pipeline resource represents the lifecycle of ML pipelines.

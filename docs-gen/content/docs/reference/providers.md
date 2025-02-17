@@ -1,7 +1,6 @@
 ---
 title: "Using Multiple Providers"
 weight: 4
-type: docs
 ---
 
 The KFP operator supports multiple provider backends.

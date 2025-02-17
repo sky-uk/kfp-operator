@@ -1,7 +1,6 @@
 ---
 title: "Provider"
 weight: 5
-type: docs
 ---
 
 The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.

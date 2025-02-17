@@ -1,7 +1,6 @@
 ---
 title: "Pipeline Training"
 weight: 1
-type: docs
 ---
 
 This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.

@@ -1,7 +1,6 @@
 ---
 title: "Pipeline Dependencies"
 weight: 2
-type: docs
 ---
 
 Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:

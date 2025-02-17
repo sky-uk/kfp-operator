@@ -1,7 +1,6 @@
 ---
 title: "Examples"
 weight: 2
-type: docs
 ---
 
 All code samples can be found on [GitHub]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes).
