@@ -58,12 +58,4 @@ url = "/kfp-operator/docs/"
 
 [[params.versions]]
 version = "v0.6.0"
-url = "/kfp-operator/archive/v0.6.0/"
-
-[[params.versions]]
-version = "master"
-url = "/kfp-operator/docs/"
-
-[[params.versions]]
-version = "v0.6.0"
 url = "/kfp-operator/versions/v0.6.0"

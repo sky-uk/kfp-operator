@@ -3,7 +3,7 @@ title: "Run Completion Events"
 weight: 3
 ---
 
-![Model Serving](/images/run-completion.png)
+![Model Serving](/images/archive/v0.6.0/run-completion.png)
 
 The KFP-Operator Events system provides a [NATS Event bus](https://nats.io/) in the operator namespace to consume events from. 
 To use it, users can create an Argo-Events [NATS Eventsource](https://argoproj.github.io/argo-events/eventsources/setup/nats/) as follows:

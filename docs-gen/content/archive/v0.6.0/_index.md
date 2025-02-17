@@ -1,3 +1,3 @@
 ---
-title: "Documentation (0.6.0)"
+title: "Documentation (v0.6.0)"
 ---
