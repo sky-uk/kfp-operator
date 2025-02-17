@@ -35,6 +35,7 @@ var _ = Describe("PipelineDefinition", func() {
 				TfxComponents: "pipelineTfxComponents",
 				Env:           expectedEnv,
 				BeamArgs:      expectedBeamArgs,
+				Framework:     "pipelineFramework",
 			},
 		}
 
@@ -46,6 +47,7 @@ var _ = Describe("PipelineDefinition", func() {
 		}))
 		Expect(compilerConfig.Image).To(Equal("pipelineImage"))
 		Expect(compilerConfig.TfxComponents).To(Equal("pipelineTfxComponents"))
+		Expect(compilerConfig.Framework).To(Equal("pipelineFramework"))
 		Expect(compilerConfig.Env).To(Equal(expectedEnv))
 		Expect(compilerConfig.BeamArgs).To(Equal(expectedBeamArgs))
 	})
@@ -58,6 +60,7 @@ var _ = Describe("PipelineDefinition", func() {
 			},
 			Image:         "pipelineImage",
 			TfxComponents: "pipelineTfxComponents",
+			Framework:     "pipelineFramework",
 			Env: []apis.NamedValue{
 				{Name: "ea", Value: "eb"},
 			},
@@ -74,6 +77,7 @@ var _ = Describe("PipelineDefinition", func() {
 
 		Expect(m["name"]).To(Equal("pipelineNamespace/pipelineName"))
 		Expect(m["image"]).To(Equal("pipelineImage"))
+		Expect(m["framework"]).To(Equal("pipelineFramework"))
 		Expect(m["tfxComponents"]).To(Equal("pipelineTfxComponents"))
 		env := m["env"].([]interface{})
 		Expect(env[0]).To(Equal(map[interface{}]interface{}{
