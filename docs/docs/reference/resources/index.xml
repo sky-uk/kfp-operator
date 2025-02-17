@@ -154,17 +154,22 @@ Providers configuration can be set using this resource and permissions for acces
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
- &lt;td style="text-align: left">Container image of the provider&lt;/td>
+ &lt;td style="text-align: left">&lt;code>spec.serviceImage&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Container image of &lt;a href="../../providers/#provider-service">the provider service&lt;/a>&lt;/td>
+ &lt;td style="text-align: left">&lt;code>kfp-operator-kfp-provider-service:0.0.2&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Container image of &lt;a href="../../providers/#provider-cli">the provider CLI&lt;/a>&lt;/td>
  &lt;td style="text-align: left">&lt;code>kfp-operator-kfp-provider:0.0.2&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.executionMode&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
+ &lt;td style="text-align: left">&lt;code>spec.executionMode&lt;/code>&lt;/td>
  &lt;td style="text-align: left">KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
  &lt;td style="text-align: left">&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.serviceAccount&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
+ &lt;td style="text-align: left">&lt;code>spec.serviceAccount&lt;/code>&lt;/td>
  &lt;td style="text-align: left">Service Account name to be used for all provider-specific operations (see respective provider)&lt;/td>
  &lt;td style="text-align: left">&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
  &lt;/tr>
@@ -178,6 +183,114 @@ Providers configuration can be set using this resource and permissions for acces
  &lt;td style="text-align: left">The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
  &lt;td style="text-align: left">&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
  &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.parameters&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Parameters specific to each provider, i.e. &lt;a href="#kubeflow-specific-parameters">KFP&lt;/a> and &lt;a href="#vertex-ai-specific-parameters">VAI&lt;/a>&lt;/td>
+ &lt;td style="text-align: left">&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
+ &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>&lt;sup>*&lt;/sup> field automatically populated by Helm based on provider type&lt;/p></description></item></channel></rss>
+&lt;h3 id="kubeflow">Kubeflow:&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Provider&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">namespace&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceImage&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp-provider-service:&amp;lt;version&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp-provider:&amp;lt;version&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">defaultBeamArgs&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">project&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#ae81ff">&amp;lt;project&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">executionMode&lt;/span>: &lt;span style="color:#ae81ff">v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipelineRootStorage&lt;/span>: &lt;span style="color:#ae81ff">gs://&amp;lt;storage_location&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">parameters&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">grpcKfpApiAddress&lt;/span>: &lt;span style="color:#ae81ff">ml-pipeline.kubeflow:8887&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">grpcMetadataStoreAddress&lt;/span>: &lt;span style="color:#ae81ff">metadata-grpc-service.kubeflow:8080&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kfpNamespace&lt;/span>: &lt;span style="color:#ae81ff">kubeflow&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">restKfpApiUrl&lt;/span>: &lt;span style="color:#ae81ff">http://ml-pipeline.kubeflow:8888&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="kubeflow-specific-parameters">Kubeflow Specific Parameters&lt;/h4>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th style="text-align: left">Name&lt;/th>
+ &lt;th style="text-align: left">Description&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.grpcKfpApiAddress&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The exposed grpc endpoint used to interact with Kubeflow pipelines&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.grpcMetadataStoreAddress&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The exposed grpc endpoint used for metadata store with Kubeflow pipelines&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.kfpNamespace&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The namespace where Kubeflow is deployed&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.restKfpApiUrl&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The exposed restful endpoint used to interact with Kubeflow pipelines&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table>
+&lt;h3 id="vertex-ai">Vertex AI:&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Provider&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">vai&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">namespace&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceImage&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-vai-provider-service:&amp;lt;version&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-vai-provider:&amp;lt;version&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">defaultBeamArgs&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">project&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#ae81ff">&amp;lt;project&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">executionMode&lt;/span>: &lt;span style="color:#ae81ff">v2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipelineRootStorage&lt;/span>: &lt;span style="color:#ae81ff">gs://&amp;lt;storage_location&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">serviceAccount&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-vai&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">parameters&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">eventsourcePipelineEventsSubscription&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-vai-run-events-eventsource&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">maxConcurrentRunCount&lt;/span>: &lt;span style="color:#ae81ff">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipelineBucket&lt;/span>: &lt;span style="color:#ae81ff">pipeline-storage-bucket&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">vaiJobServiceAccount&lt;/span>: &lt;span style="color:#ae81ff">kfp-operator-vai@&amp;lt;project&amp;gt;.iam.gserviceaccount.com&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">vaiLocation&lt;/span>: &lt;span style="color:#ae81ff">europe-west2&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">vaiProject&lt;/span>: &lt;span style="color:#ae81ff">&amp;lt;project&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="vertex-ai-specific-parameters">Vertex AI Specific Parameters&lt;/h4>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th style="text-align: left">Name&lt;/th>
+ &lt;th style="text-align: left">Description&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.eventsourcePipelineEventsSubscription&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The eventsource subscription used to capture run-completion events&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.maxConcurrentRunCount&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The number of pipelines that may run concurrently&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.pipelineBucket&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The output storage bucket for a trained pipeline model&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.vaiJobServiceAccount&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The service account should be used by VAI when submitting a pipeline&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.vaiLocation&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The region VAI should run a pipeline within&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>parameters.vaiProject&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The project VAI should run a pipeline within&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table></description></item></channel></rss>

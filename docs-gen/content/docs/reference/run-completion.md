@@ -1,7 +1,8 @@
 ---
 title: "Run Completion Events"
-weight: 3
+weight: 4
 ---
+TODO: talk about how RCE work with new provider service etc, link to providers
 
 ![Model Serving]({{< param "subpath" >}}/master/images/run-completion.svg)
 
