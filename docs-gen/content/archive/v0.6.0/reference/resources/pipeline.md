@@ -9,12 +9,11 @@ The operator compiles the pipeline into a deployable artifact while providing co
 It then submits the pipeline to Kubeflow and manages versions accordingly.
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha6
+apiVersion: pipelines.kubeflow.org/v1alpha5
 kind: Pipeline
 metadata:
   name: penguin-pipeline
 spec:
-  provider: kfp
   image: kfp-quickstart:v1
   tfxComponents: base_pipeline.create_components
   env:
@@ -25,7 +24,7 @@ spec:
 ## Fields
 
 | Name                 | Description                                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------------------------- |
+|----------------------|---------------------------------------------------------------------------------------------------------|
 | `spec.image`         | Container image containing TFX component definitions.                                                   |
 | `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components.                               |
 | `spec.env`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables. |

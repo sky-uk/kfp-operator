@@ -18,24 +18,24 @@
 <link rel="icon" type="image/png" href="/kfp-operator/favicons/android-192x192.png" sizes="192x192">
 
 <title>Using Multiple Providers | KFP-Operator</title>
-<meta name="description" content="The KFP operator supports multiple provider backends.
+<meta name="description" content="The KFP operator supports multiple provider backends. In most cases, the configured DefaultProvider will be sufficient. For migration scenarios or advanced use-cases, users can overwrite the default using the pipelines.kubeflow.org/provider annotation on any resource specifying the name of the provider.
 Changing the provider of a resource that was previously managed by another provider will result in the resource erroring. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.">
 <meta property="og:url" content="http://localhost:1313/kfp-operator/archive/v0.6.0/reference/providers/">
   <meta property="og:site_name" content="KFP-Operator">
   <meta property="og:title" content="Using Multiple Providers">
-  <meta property="og:description" content="The KFP operator supports multiple provider backends.
+  <meta property="og:description" content="The KFP operator supports multiple provider backends. In most cases, the configured DefaultProvider will be sufficient. For migration scenarios or advanced use-cases, users can overwrite the default using the pipelines.kubeflow.org/provider annotation on any resource specifying the name of the provider.
 Changing the provider of a resource that was previously managed by another provider will result in the resource erroring. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.">
   <meta property="og:locale" content="en_gb">
   <meta property="og:type" content="article">
     <meta property="article:section" content="archive">
 
   <meta itemprop="name" content="Using Multiple Providers">
-  <meta itemprop="description" content="The KFP operator supports multiple provider backends.
+  <meta itemprop="description" content="The KFP operator supports multiple provider backends. In most cases, the configured DefaultProvider will be sufficient. For migration scenarios or advanced use-cases, users can overwrite the default using the pipelines.kubeflow.org/provider annotation on any resource specifying the name of the provider.
 Changing the provider of a resource that was previously managed by another provider will result in the resource erroring. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.">
-  <meta itemprop="wordCount" content="58">
+  <meta itemprop="wordCount" content="91">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Using Multiple Providers">
-  <meta name="twitter:description" content="The KFP operator supports multiple provider backends.
+  <meta name="twitter:description" content="The KFP operator supports multiple provider backends. In most cases, the configured DefaultProvider will be sufficient. For migration scenarios or advanced use-cases, users can overwrite the default using the pipelines.kubeflow.org/provider annotation on any resource specifying the name of the provider.
 Changing the provider of a resource that was previously managed by another provider will result in the resource erroring. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.">
 <link href="/kfp-operator/scss/main.css" rel="stylesheet">
 <script
@@ -150,8 +150,6 @@ Changing the provider of a resource that was previously managed by another provi
   <ul class="ul-3 foldable">
     <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedoverview-li">
   <a href="/kfp-operator/archive/v0.6.0/getting-started/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedoverview"><span class="">Overview</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedintroduction-li">
-  <a href="/kfp-operator/archive/v0.6.0/getting-started/introduction/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedintroduction"><span class="">Introduction</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedinstallation-li">
   <a href="/kfp-operator/archive/v0.6.0/getting-started/installation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedinstallation"><span class="">Installation</span></a>
 </li>
@@ -181,8 +179,6 @@ Changing the provider of a resource that was previously managed by another provi
   <a href="/kfp-operator/archive/v0.6.0/reference/resources/run/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesrun"><span class="">Run</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referenceresourcesexperiment-li">
   <a href="/kfp-operator/archive/v0.6.0/reference/resources/experiment/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesexperiment"><span class="">Experiment</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referenceresourcesprovider-li">
-  <a href="/kfp-operator/archive/v0.6.0/reference/resources/provider/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesprovider"><span class="">Provider</span></a>
 </li>
   </ul>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referencerun-completion-li">
@@ -240,7 +236,8 @@ Changing the provider of a resource that was previously managed by another provi
 	<header class="article-meta">
 		
 </header>
-	<p>The KFP operator supports multiple provider backends.</p>
+	<p>The KFP operator supports multiple provider backends. In most cases, the configured <code>DefaultProvider</code> will be sufficient.
+For migration scenarios or advanced use-cases, users can overwrite the default using the <code>pipelines.kubeflow.org/provider</code> annotation on any resource specifying the name of the provider.</p>
 <p>Changing the provider of a resource that was previously managed by another provider will result in the resource erroring.
 Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.</p>
 
