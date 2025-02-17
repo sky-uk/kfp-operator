@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventBus
+metadata:
+  name: default
+spec:
+  nats:
+    native: {}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: run-completion
+spec:
+  nats:
+    run-completion:
+      jsonBody: true
+      subject: events
+      url: nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: penguin-pipeline-model-update
+spec:
+  template:
+    serviceAccountName: events-sa
+  dependencies:
+    - name: run-completion
+      eventSourceName: run-completion
+      eventName: run-completion
+      filters:
+        data:
+          - path: body.data.status
+            type: string
+            comparator: "="
+            value:
+              - "succeeded"
+          - path: body.data.pipelineName
+            type: string
+            comparator: "="
+            value:
+              - "penguin-pipeline"
+  triggers:
+    - template:
+        name: update
+        k8s:
+          operation: update
+          source:
+            resource:
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                name: serving-config
+              data:
+                servingModel: ""
+          parameters:
+            - src:
+                dependencyName: run-completion
+                dataKey: body.data.artifacts.0.location
+              dest: data.servingModel

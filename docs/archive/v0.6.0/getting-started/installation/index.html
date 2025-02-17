@@ -20,15 +20,13 @@
 <title>Installation | KFP-Operator</title>
 <meta name="description" content="We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.
 This guide assumes you are familiar with Helm.
-Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4&#43; installed cluster-wide (see configuration). KFP-Operator To get a working installation you will need to install both the KFP-Operator and at least one provider (see below)
-Build and Install Create basic values.yaml with the following content:">
+Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4&#43; installed cluster-wide (see configuration). The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the respective configuration section before proceeding. Build and Install Create basic values.yaml with the following content:">
 <meta property="og:url" content="http://localhost:1313/kfp-operator/archive/v0.6.0/getting-started/installation/">
   <meta property="og:site_name" content="KFP-Operator">
   <meta property="og:title" content="Installation">
   <meta property="og:description" content="We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.
 This guide assumes you are familiar with Helm.
-Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4&#43; installed cluster-wide (see configuration). KFP-Operator To get a working installation you will need to install both the KFP-Operator and at least one provider (see below)
-Build and Install Create basic values.yaml with the following content:">
+Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4&#43; installed cluster-wide (see configuration). The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the respective configuration section before proceeding. Build and Install Create basic values.yaml with the following content:">
   <meta property="og:locale" content="en_gb">
   <meta property="og:type" content="article">
     <meta property="article:section" content="archive">
@@ -36,15 +34,13 @@ Build and Install Create basic values.yaml with the following content:">
   <meta itemprop="name" content="Installation">
   <meta itemprop="description" content="We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.
 This guide assumes you are familiar with Helm.
-Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4&#43; installed cluster-wide (see configuration). KFP-Operator To get a working installation you will need to install both the KFP-Operator and at least one provider (see below)
-Build and Install Create basic values.yaml with the following content:">
-  <meta itemprop="wordCount" content="920">
+Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4&#43; installed cluster-wide (see configuration). The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the respective configuration section before proceeding. Build and Install Create basic values.yaml with the following content:">
+  <meta itemprop="wordCount" content="639">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Installation">
   <meta name="twitter:description" content="We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.
 This guide assumes you are familiar with Helm.
-Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4&#43; installed cluster-wide (see configuration). KFP-Operator To get a working installation you will need to install both the KFP-Operator and at least one provider (see below)
-Build and Install Create basic values.yaml with the following content:">
+Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4&#43; installed cluster-wide (see configuration). The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the respective configuration section before proceeding. Build and Install Create basic values.yaml with the following content:">
 <link href="/kfp-operator/scss/main.css" rel="stylesheet">
 <script
   src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -158,8 +154,6 @@ Build and Install Create basic values.yaml with the following content:">
   <ul class="ul-3 foldable">
     <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedoverview-li">
   <a href="/kfp-operator/archive/v0.6.0/getting-started/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedoverview"><span class="">Overview</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedintroduction-li">
-  <a href="/kfp-operator/archive/v0.6.0/getting-started/introduction/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedintroduction"><span class="">Introduction</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-kfp-operatorarchivev060getting-startedinstallation-li">
   <a href="/kfp-operator/archive/v0.6.0/getting-started/installation/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedinstallation"><span class="td-sidebar-nav-active-item">Installation</span></a>
 </li>
@@ -189,8 +183,6 @@ Build and Install Create basic values.yaml with the following content:">
   <a href="/kfp-operator/archive/v0.6.0/reference/resources/run/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesrun"><span class="">Run</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referenceresourcesexperiment-li">
   <a href="/kfp-operator/archive/v0.6.0/reference/resources/experiment/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesexperiment"><span class="">Experiment</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referenceresourcesprovider-li">
-  <a href="/kfp-operator/archive/v0.6.0/reference/resources/provider/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesprovider"><span class="">Provider</span></a>
 </li>
   </ul>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referencerun-completion-li">
@@ -225,21 +217,10 @@ Build and Install Create basic values.yaml with the following content:">
         <nav id="TableOfContents">
   <ul>
     <li><a href="#prerequisites">Prerequisites</a></li>
-    <li><a href="#kfp-operator">KFP-Operator</a>
+    <li><a href="#build-and-install">Build and Install</a></li>
+    <li><a href="#configuration-values">Configuration Values</a>
       <ul>
-        <li><a href="#build-and-install">Build and Install</a></li>
-        <li><a href="#configuration-values">Configuration Values</a></li>
-      </ul>
-    </li>
-    <li><a href="#providers">Providers</a>
-      <ul>
-        <li><a href="#build-and-install-1">Build and Install</a></li>
-        <li><a href="#configuration">Configuration</a></li>
-      </ul>
-    </li>
-    <li><a href="#provider-rbac">Role-based access control (RBAC) for providers</a>
-      <ul>
-        <li></li>
+        <li><a href="#providers">Providers</a></li>
       </ul>
     </li>
   </ul>
@@ -278,22 +259,41 @@ Build and Install Create basic values.yaml with the following content:">
 <ul>
 <li><a href="https://argoproj.github.io/argo-workflows/installation/">Argo 3.1.6-3.3</a> installed cluster-wide or into the namespace where the operator&rsquo;s workflows run (see <a href="../../reference/configuration">configuration</a>).</li>
 <li><a href="https://argoproj.github.io/argo-events/installation/">Argo-Events 1.7.4+</a> installed cluster-wide (see <a href="../../reference/configuration">configuration</a>).</li>
+<li>The KFP-Operator supports configurable provider backends. Currently, Kubeflow Pipelines and Vertex AI are supported. Please refer to the <a href="../../reference/configuration/#provider-configuration">respective configuration section</a> before proceeding.</li>
 </ul>
-<h2 id="kfp-operator">KFP-Operator</h2>
-<p>To get a working installation you will need to install both the KFP-Operator and at least one provider (<a href="#providers" title="Providers">see below</a>)</p>
-<h3 id="build-and-install">Build and Install</h3>
+<h2 id="build-and-install">Build and Install</h2>
 <p>Create basic <code>values.yaml</code> with the following content:</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">fullnameOverride</span>: <span style="color:#ae81ff">kfp-operator</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">manager</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">argo</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">serviceAccount</span>: <span style="color:#ae81ff">pipeline-runner</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">configuration</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">defaultExperiment</span>: <span style="color:#ae81ff">Default</span>
-</span></span></code></pre></div>
-<p>Install the latest version of the operator</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;fullnameOverride&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;kfp-operator&lt;/span&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;manager&lt;/span&gt;:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;argo&lt;/span&gt;:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;serviceAccount&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;pipeline-runner&lt;/span&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;configuration&lt;/span&gt;:</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;defaultExperiment&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Default&lt;/span&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</span>
+</span></span></code></pre></div><p>Install the latest version of the operator</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>helm install oci://ghcr.io/kfp-operator/kfp-operator -f values.yaml
-</span></span></code></pre></div><p>You will need to configure service accounts and roles required by your chosen <code>Provider</code>, <a href="#provider-rbac" title="Provider RBAC Reference">see here for reference</a>.</p>
-<h3 id="configuration-values">Configuration Values</h3>
+</span></span></code></pre></div><h2 id="configuration-values">Configuration Values</h2>
 <p>Valid configuration options to override the <a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/values.yaml
 ">Default <code>values.yaml</code></a> are:</p>
 <table>
@@ -409,51 +409,47 @@ Build and Install Create basic values.yaml with the following content:">
           <td style="text-align: left">CA bundle of the certificate authority that has signed the webhook&rsquo;s certificate, required if the <code>custom</code> provider is chosen</td>
       </tr>
       <tr>
-          <td style="text-align: left"><code>manager.runcompletionWebhook.endpoints</code></td>
-          <td style="text-align: left">Array of endpoints for the run completion event handlers to be called when a run completion event is passed</td>
+          <td style="text-align: left"><code>manager.provider.type</code></td>
+          <td style="text-align: left">Provider type (<code>kfp</code> for Kubeflow Pipelines or <code>vai</code> for Vertex AI Pipelines)</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>manager.provider.configuration</code></td>
+          <td style="text-align: left">Configuration block for the specific provider (see <a href="../../reference/configuration#provider-configuration">Provider Configuration</a>), automatically mounted as a file</td>
       </tr>
       <tr>
           <td style="text-align: left"><code>logging.verbosity</code></td>
           <td style="text-align: left">Logging verbosity for all components - see the <a href="https://github.com/sky-uk/kfp-operator/blob/master/CONTRIBUTING.md#logging">logging documentation</a> for valid values</td>
       </tr>
       <tr>
-          <td style="text-align: left"><code>statusFeedback.enabled</code></td>
-          <td style="text-align: left">Whether run completion eventing and status update feedback loop should be installed - defaults to <code>false</code></td>
+          <td style="text-align: left"><code>eventsourceServer.metadata</code></td>
+          <td style="text-align: left"><a href="https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/object-meta/#ObjectMeta">Object Metadata</a> for the eventsource server&rsquo;s pods</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>eventsourceServer.rbac.create</code></td>
+          <td style="text-align: left">Create roles and rolebindings for the eventsource server</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>eventsourceServer.serviceAccount.name</code></td>
+          <td style="text-align: left">Eventsource server&rsquo;s service account</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>eventsourceServer.serviceAccount.create</code></td>
+          <td style="text-align: left">Create the eventsource server&rsquo;s service account or expect it to be created externally</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>eventsourceServer.resources</code></td>
+          <td style="text-align: left">Eventsource server resources as per <a href="https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources">k8s documentation</a></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>providers</code></td>
+          <td style="text-align: left">Dictionary of providers (see below)</td>
       </tr>
   </tbody>
 </table>
 <p>Examples for these values can be found in the <a href="https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/test/values.yaml
 ">test configuration</a></p>
-<h2 id="providers">Providers</h2>
-<p>Supported providers are:</p>
-<ul>
-<li>Kubeflow Pipelines</li>
-<li>Vertex AI</li>
-</ul>
-<p>Install one or more by following these instructions. Please refer to the <a href="../../reference/configuration/#provider-configuration">respective configuration section</a> before proceeding.</p>
-<h3 id="build-and-install-1">Build and Install</h3>
-<p>Create basic <code>kfp.yaml</code> value file with the following content:</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">provider</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-provider</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">type</span>: <span style="color:#ae81ff">kfp</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">executionMode</span>: <span style="color:#ae81ff">v1</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">serviceAccount</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">create</span>: <span style="color:#66d9ef">false</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">configuration</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">kfpNamespace</span>: <span style="color:#ae81ff">kubeflow</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">restKfpApiUrl</span>: <span style="color:#ae81ff">http://ml-pipeline.kubeflow:8888</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">grpcMetadataStoreAddress</span>: <span style="color:#ae81ff">metadata-grpc-service.kubeflow:8080</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">grpcKfpApiAddress</span>: <span style="color:#ae81ff">ml-pipeline.kubeflow:8887</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">defaultBeamArgs</span>:
-</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">project</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">value</span>: <span style="color:#ae81ff">${DATAFLOW_PROJECT}</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pipelineRootStorage</span>: <span style="color:#ae81ff">${PIPELINE_STORAGE}</span>
-</span></span></code></pre></div>
-<p>Install the latest version of the provider</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>helm install oci://ghcr.io/kfp-operator/provider -f kfp.yaml
-</span></span></code></pre></div><h3 id="configuration">Configuration</h3>
-<p>The <code>provider</code> block contains provider configurations, in order to create relevant <a href="../reference/resources/provider.md">Provider Resources</a>.</p>
+<h3 id="providers">Providers</h3>
+<p>The <code>providers</code> block contains a dictionary of provider names to provider configurations:</p>
 <table>
   <thead>
       <tr>
@@ -462,10 +458,6 @@ Build and Install Create basic values.yaml with the following content:">
       </tr>
   </thead>
   <tbody>
-      <tr>
-          <td style="text-align: left"><code>name</code></td>
-          <td style="text-align: left">Name given to this provider</td>
-      </tr>
       <tr>
           <td style="text-align: left"><code>type</code></td>
           <td style="text-align: left">Provider type (<code>kfp</code> or <code>vai</code>)</td>
@@ -489,111 +481,24 @@ Build and Install Create basic values.yaml with the following content:">
   </tbody>
 </table>
 <p>Example:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">provider</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-provider</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">type</span>: <span style="color:#ae81ff">kfp</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">executionMode</span>: <span style="color:#ae81ff">v1</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">serviceAccount</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">create</span>: <span style="color:#66d9ef">false</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">providers</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">kfp</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">type</span>: <span style="color:#ae81ff">kfp</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">serviceAccount</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">create</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">configuration</span>:
 </span></span><span style="display:flex;"><span>      <span style="color:#ae81ff">...</span>
-</span></span></code></pre></div><h2 id="provider-rbac">Role-based access control (RBAC) for providers</h2>
-<p>When using a provider, you should create the necessary <code>ServiceAccount</code>, <code>RoleBinding</code> and <code>ClusterRoleBinding</code> resources required for the providers being used.</p>
-<p>In order for Event Source Servers and the Controller to read the Providers you must configure their service accounts
-to have read permissions of Provider resources. e.g:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRoleBinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-providers-viewer-rolebinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">roleRef</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apiGroup</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRole</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-providers-viewer-role</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">subjects</span>:
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp</span> <span style="color:#75715e">#Used by Event Source Server</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kfp-operator-system</span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-controller-manager</span> <span style="color:#75715e">#Used by KFP Controller</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kfp-operator-system</span>
-</span></span></code></pre></div><p>An example configuration for Providers is also provided below for reference:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>---
-</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-service-account</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kfp-namespace</span>
-</span></span><span style="display:flex;"><span>---
-</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRoleBinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-runconfiguration-viewer-rolebinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">roleRef</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apiGroup</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRole</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-runconfiguration-viewer-role</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">subjects</span>:
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-service-account</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kfp-namespace</span>
-</span></span><span style="display:flex;"><span>---
-</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRoleBinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-run-viewer-rolebinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">roleRef</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apiGroup</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRole</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-run-viewer-role</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">subjects</span>:
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-service-account</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kfp-namespace</span>
-</span></span><span style="display:flex;"><span>---
-</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">RoleBinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-provider-workflow-executor</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kfp-namespace</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">roleRef</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apiGroup</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Role</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-workflow-executor</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">subjects</span>:
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-service-account</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>: <span style="color:#ae81ff">kfp-namespace</span>
-</span></span></code></pre></div><h5 id="kubeflow-completion-eventing-required-rbacs">KubeFlow completion eventing required RBACs</h5>
-<p>If using the <code>KubeFlowProvider</code> you will also need a <code>ClusterRole</code> for permission to interact with argo workflows for the
-<a href="http://localhost:1313/kfp-operator/archive/v0.6.0/reference/run-completion/" title="Run Completion Events">eventing system</a>.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRole</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-eventsource-server-role</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">rules</span>:
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">apiGroups</span>:
-</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">argoproj.io</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">resources</span>:
-</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">workflows</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">verbs</span>:
-</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">get</span>
-</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">list</span>
-</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">patch</span>
-</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">update</span>
-</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">watch</span>
-</span></span><span style="display:flex;"><span>---
-</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io/v1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRoleBinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-eventsource-server-rolebinding</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">roleRef</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apiGroup</span>: <span style="color:#ae81ff">rbac.authorization.k8s.io</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ClusterRole</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp-eventsource-server-role</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">subjects</span>:
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ServiceAccount</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>:  <span style="color:#ae81ff">kfp-operator-kfp-service-account</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">namespace</span>:  <span style="color:#ae81ff">kfp-operator-namespace</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vai</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">type</span>: <span style="color:#ae81ff">vai</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">serviceAccount</span>: 
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#ae81ff">kfp-operator-kfp</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">create</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">metadata</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">annotations</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">iam.gke.io/gcp-service-account</span>: <span style="color:#ae81ff">kfp-operator-vai@my-project.iam.gserviceaccount.com</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">configuration</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#ae81ff">...</span>
 </span></span></code></pre></div>
 	
 </div>

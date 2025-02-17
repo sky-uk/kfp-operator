@@ -19,24 +19,24 @@
 
 <title>Configuration | KFP-Operator</title>
 <meta name="description" content="The Kubeflow Pipelines operator can be configured with the following parameters:
-Parameter name Description Example defaultExperiment Default Experiment name to be used for creating pipeline runs Default defaultProvider Default provider name to be used (see Using Multiple Providers). Note: This is deprecated as of v1alpha6 and will be removed on release of v1alpha7 vertex-ai-europe multiversion If enabled, it will support previous versions of the CRDs, only the latest otherwise true workflowNamespace Namespace where operator Argo workflows should be running - defaults to the operator’s namespace kfp-operator-workflows runCompletionTTL Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) 10m runCompletionFeed Configuration of the service for the run completion feed back to KFP Operator See here An example can be found here.">
+Parameter name Description Example defaultExperiment Default Experiment name to be used for creating pipeline runs Default defaultProvider Default provider name to be used (see Using Multiple Providers) vertex-ai-europe multiversion If enabled, it will support previous versions of the CRDs, only the latest otherwise true workflowNamespace Namespace where operator Argo workflows should be running - defaults to the operator’s namespace kfp-operator-workflows runCompletionTTL Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) 10m An example can be found here.">
 <meta property="og:url" content="http://localhost:1313/kfp-operator/archive/v0.6.0/reference/configuration/">
   <meta property="og:site_name" content="KFP-Operator">
   <meta property="og:title" content="Configuration">
   <meta property="og:description" content="The Kubeflow Pipelines operator can be configured with the following parameters:
-Parameter name Description Example defaultExperiment Default Experiment name to be used for creating pipeline runs Default defaultProvider Default provider name to be used (see Using Multiple Providers). Note: This is deprecated as of v1alpha6 and will be removed on release of v1alpha7 vertex-ai-europe multiversion If enabled, it will support previous versions of the CRDs, only the latest otherwise true workflowNamespace Namespace where operator Argo workflows should be running - defaults to the operator’s namespace kfp-operator-workflows runCompletionTTL Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) 10m runCompletionFeed Configuration of the service for the run completion feed back to KFP Operator See here An example can be found here.">
+Parameter name Description Example defaultExperiment Default Experiment name to be used for creating pipeline runs Default defaultProvider Default provider name to be used (see Using Multiple Providers) vertex-ai-europe multiversion If enabled, it will support previous versions of the CRDs, only the latest otherwise true workflowNamespace Namespace where operator Argo workflows should be running - defaults to the operator’s namespace kfp-operator-workflows runCompletionTTL Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) 10m An example can be found here.">
   <meta property="og:locale" content="en_gb">
   <meta property="og:type" content="article">
     <meta property="article:section" content="archive">
 
   <meta itemprop="name" content="Configuration">
   <meta itemprop="description" content="The Kubeflow Pipelines operator can be configured with the following parameters:
-Parameter name Description Example defaultExperiment Default Experiment name to be used for creating pipeline runs Default defaultProvider Default provider name to be used (see Using Multiple Providers). Note: This is deprecated as of v1alpha6 and will be removed on release of v1alpha7 vertex-ai-europe multiversion If enabled, it will support previous versions of the CRDs, only the latest otherwise true workflowNamespace Namespace where operator Argo workflows should be running - defaults to the operator’s namespace kfp-operator-workflows runCompletionTTL Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) 10m runCompletionFeed Configuration of the service for the run completion feed back to KFP Operator See here An example can be found here.">
-  <meta itemprop="wordCount" content="275">
+Parameter name Description Example defaultExperiment Default Experiment name to be used for creating pipeline runs Default defaultProvider Default provider name to be used (see Using Multiple Providers) vertex-ai-europe multiversion If enabled, it will support previous versions of the CRDs, only the latest otherwise true workflowNamespace Namespace where operator Argo workflows should be running - defaults to the operator’s namespace kfp-operator-workflows runCompletionTTL Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) 10m An example can be found here.">
+  <meta itemprop="wordCount" content="394">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Configuration">
   <meta name="twitter:description" content="The Kubeflow Pipelines operator can be configured with the following parameters:
-Parameter name Description Example defaultExperiment Default Experiment name to be used for creating pipeline runs Default defaultProvider Default provider name to be used (see Using Multiple Providers). Note: This is deprecated as of v1alpha6 and will be removed on release of v1alpha7 vertex-ai-europe multiversion If enabled, it will support previous versions of the CRDs, only the latest otherwise true workflowNamespace Namespace where operator Argo workflows should be running - defaults to the operator’s namespace kfp-operator-workflows runCompletionTTL Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) 10m runCompletionFeed Configuration of the service for the run completion feed back to KFP Operator See here An example can be found here.">
+Parameter name Description Example defaultExperiment Default Experiment name to be used for creating pipeline runs Default defaultProvider Default provider name to be used (see Using Multiple Providers) vertex-ai-europe multiversion If enabled, it will support previous versions of the CRDs, only the latest otherwise true workflowNamespace Namespace where operator Argo workflows should be running - defaults to the operator’s namespace kfp-operator-workflows runCompletionTTL Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) 10m An example can be found here.">
 <link href="/kfp-operator/scss/main.css" rel="stylesheet">
 <script
   src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -150,8 +150,6 @@ Parameter name Description Example defaultExperiment Default Experiment name to 
   <ul class="ul-3 foldable">
     <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedoverview-li">
   <a href="/kfp-operator/archive/v0.6.0/getting-started/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedoverview"><span class="">Overview</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedintroduction-li">
-  <a href="/kfp-operator/archive/v0.6.0/getting-started/introduction/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedintroduction"><span class="">Introduction</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedinstallation-li">
   <a href="/kfp-operator/archive/v0.6.0/getting-started/installation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedinstallation"><span class="">Installation</span></a>
 </li>
@@ -181,8 +179,6 @@ Parameter name Description Example defaultExperiment Default Experiment name to 
   <a href="/kfp-operator/archive/v0.6.0/reference/resources/run/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesrun"><span class="">Run</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referenceresourcesexperiment-li">
   <a href="/kfp-operator/archive/v0.6.0/reference/resources/experiment/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesexperiment"><span class="">Experiment</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referenceresourcesprovider-li">
-  <a href="/kfp-operator/archive/v0.6.0/reference/resources/provider/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesprovider"><span class="">Provider</span></a>
 </li>
   </ul>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referencerun-completion-li">
@@ -216,9 +212,9 @@ Parameter name Description Example defaultExperiment Default Experiment name to 
             <div class="td-toc">
         <nav id="TableOfContents">
   <ul>
-    <li><a href="#run-completion-feed-configuration">Run Completion Feed Configuration</a></li>
     <li><a href="#provider-configurations">Provider Configurations</a>
       <ul>
+        <li><a href="#common">Common</a></li>
         <li><a href="#kubeflow-pipelines">Kubeflow Pipelines</a></li>
         <li><a href="#vertex-ai-pipelines">Vertex AI Pipelines</a></li>
       </ul>
@@ -270,7 +266,7 @@ Parameter name Description Example defaultExperiment Default Experiment name to 
       </tr>
       <tr>
           <td style="text-align: left"><code>defaultProvider</code></td>
-          <td style="text-align: left">Default provider name to be used (see <a href="../providers">Using Multiple Providers</a>). <strong>Note:</strong> This is deprecated as of v1alpha6 and will be removed on release of v1alpha7</td>
+          <td style="text-align: left">Default provider name to be used (see <a href="../providers">Using Multiple Providers</a>)</td>
           <td style="text-align: left"><code>vertex-ai-europe</code></td>
       </tr>
       <tr>
@@ -288,15 +284,12 @@ Parameter name Description Example defaultExperiment Default Experiment name to 
           <td style="text-align: left">Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)</td>
           <td style="text-align: left"><code>10m</code></td>
       </tr>
-      <tr>
-          <td style="text-align: left"><code>runCompletionFeed</code></td>
-          <td style="text-align: left">Configuration of the service for the run completion feed back to KFP Operator</td>
-          <td style="text-align: left">See <a href="#run-completion-feed-configuration">here</a></td>
-      </tr>
   </tbody>
 </table>
 <p>An example can be found <a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here</a>.</p>
-<h2 id="run-completion-feed-configuration">Run Completion Feed Configuration</h2>
+<h2 id="provider-configurations">Provider Configurations</h2>
+<p>The provider configurations are specific to the implementation. The operator supports the following out of the box.</p>
+<h3 id="common">Common</h3>
 <table>
   <thead>
       <tr>
@@ -307,25 +300,109 @@ Parameter name Description Example defaultExperiment Default Experiment name to 
   </thead>
   <tbody>
       <tr>
-          <td style="text-align: left"><code>runCompletionFeed.port</code></td>
-          <td style="text-align: left">The port that the feed endpoint will listen on</td>
-          <td style="text-align: left"><code>8082</code></td>
+          <td style="text-align: left"><code>image</code><sup>*</sup></td>
+          <td style="text-align: left">Container image of the provider</td>
+          <td style="text-align: left"><code>kfp-operator-kfp-provider:0.0.2</code></td>
       </tr>
       <tr>
-          <td style="text-align: left"><code>runCompletionFeed.endpoints</code></td>
-          <td style="text-align: left">Array of run completion event handler endpoints that should be called per feed message</td>
-          <td style="text-align: left"><code>- host: run-completion-event-handler&lt;br/&gt;&amp;nbsp;&amp;nbsp;path: /&lt;br/&gt;&amp;nbsp;&amp;nbsp;port: 12000</code></td>
+          <td style="text-align: left"><code>executionMode</code><sup>*</sup></td>
+          <td style="text-align: left">KFP compiler <a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode</a></td>
+          <td style="text-align: left"><code>v1</code> (currently KFP) or <code>v2</code> (Vertex AI)</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>serviceAccount</code><sup>*</sup></td>
+          <td style="text-align: left">Service Account name to be used for all provider-specific operations (see respective provider)</td>
+          <td style="text-align: left"><code>kfp-operator-vertex-ai</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>defaultBeamArgs</code></td>
+          <td style="text-align: left">Default Beam arguments to which the pipeline-defined ones will be added</td>
+          <td style="text-align: left"><pre>- name: project<br/>  value: my-gcp-project</pre></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>pipelineRootStorage</code></td>
+          <td style="text-align: left">The storage location used by <a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (<code>pipeline-root</code>)</a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline</td>
+          <td style="text-align: left"><code>gcs://kubeflow-pipelines-bucket</code></td>
       </tr>
   </tbody>
 </table>
-<h2 id="provider-configurations">Provider Configurations</h2>
-<p>The provider configurations are specific to the implementation, these configuration are applied via <a href="../resources/provider">Provider Custom Resource</a>.</p>
+<p><sup>*</sup> field automatically populated by Helm based on provider type</p>
 <h3 id="kubeflow-pipelines">Kubeflow Pipelines</h3>
-<p>KFP must be installed in <a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode</a>.
-Its configuration can be controlled using the <a href="../resources/provider/#kubeflow">KFP specific parameters within a Provider Resource</a>.</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Parameter name</th>
+          <th style="text-align: left">Description</th>
+          <th style="text-align: left">Example</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><code>kfpNamespace</code></td>
+          <td style="text-align: left">The KFP namespace</td>
+          <td style="text-align: left"><code>kubeflow</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>restKfpApiUrl</code></td>
+          <td style="text-align: left">The KFP REST URL available to the operator</td>
+          <td style="text-align: left"><code>http://ml-pipeline.kubeflow:8888</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>grpcKfpApiAddress</code></td>
+          <td style="text-align: left">The KFP gRPC address for the eventsource server</td>
+          <td style="text-align: left"><code>ml-pipeline.kubeflow-pipelines:8887</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>grpcMetadataStoreAddress</code></td>
+          <td style="text-align: left">The MLMD gRPC address for the eventsource server</td>
+          <td style="text-align: left"><code>metadata-grpc-service.kubeflow-pipelines:8080</code></td>
+      </tr>
+  </tbody>
+</table>
+<p>KFP must be installed in <a href="https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/">standalone mode</a>. Default endpoints are used below.</p>
 <h3 id="vertex-ai-pipelines">Vertex AI Pipelines</h3>
-<p>VAI configuration can be controlled using <a href="../resources/provider/#vertex-ai">VAI specific parameters within a Provider Resource</a>
-<img src="/kfp-operator/images/vai-provider.svg" alt="Vertex AI Provider"></p>
+<p><img src="/images/vai-provider.png" alt="Vertex AI Provider"></p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Parameter name</th>
+          <th style="text-align: left">Description</th>
+          <th style="text-align: left">Example</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><code>pipelineBucket</code></td>
+          <td style="text-align: left">GCS bucket where to store the compiled pipeline</td>
+          <td style="text-align: left"><code>kfp-operator-pipelines</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>vaiProject</code></td>
+          <td style="text-align: left">Vertex AI GCP project name</td>
+          <td style="text-align: left"><code>kfp-operator-vertex-ai</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>vaiLocation</code></td>
+          <td style="text-align: left">Vertex AI GCP project location</td>
+          <td style="text-align: left"><code>europe-west2</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>vaiJobServiceAccount</code></td>
+          <td style="text-align: left">Vertex AI GCP service account to run pipeline jobs</td>
+          <td style="text-align: left"><code>kfp-operator-vai@kfp-operator-vertex-ai.iam.gserviceaccount.com</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>eventsourcePipelineEventsSubscription</code></td>
+          <td style="text-align: left">Subscription for the eventsource to use which subscribes to the Vertex AI pipeline events log sink topic (see below)</td>
+          <td style="text-align: left"><code>kfp-operator-vai-run-events-eventsource</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>maxConcurrentRunCount</code></td>
+          <td style="text-align: left">Maximum number of runs that can be started concurrently per schedule, defaults to 10</td>
+          <td style="text-align: left"><code>3</code></td>
+      </tr>
+  </tbody>
+</table>
 <h4 id="gcp-project-setup">GCP Project Setup</h4>
 <p>The following GCP APIs need to be enabled in the configured <code>vaiProject</code>:</p>
 <ul>

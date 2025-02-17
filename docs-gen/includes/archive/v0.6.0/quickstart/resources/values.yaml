@@ -1,0 +1,6 @@
+fullnameOverride: kfp-operator
+manager:
+  argo:
+    serviceAccount: pipeline-runner
+  configuration:
+    defaultExperiment: Default

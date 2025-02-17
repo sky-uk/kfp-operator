@@ -19,24 +19,24 @@
 
 <title>Experiment | KFP-Operator</title>
 <meta name="description" content="The Experiment resource represents the lifecycle of Experiments, and can be configured as follows:
-apiVersion: pipelines.kubeflow.org/v1alpha6 kind: Experiment metadata: name: penguin-experiment spec: provider: kfp description: &#39;An experiment for the penguin pipeline&#39; Fields Name Description spec.description The description of the experiment.">
+apiVersion: pipelines.kubeflow.org/v1alpha5 kind: Experiment metadata: name: penguin-experiment spec: description: &#39;An experiment for the penguin pipeline&#39; Fields Name Description spec.description The description of the experiment.">
 <meta property="og:url" content="http://localhost:1313/kfp-operator/archive/v0.6.0/reference/resources/experiment/">
   <meta property="og:site_name" content="KFP-Operator">
   <meta property="og:title" content="Experiment">
   <meta property="og:description" content="The Experiment resource represents the lifecycle of Experiments, and can be configured as follows:
-apiVersion: pipelines.kubeflow.org/v1alpha6 kind: Experiment metadata: name: penguin-experiment spec: provider: kfp description: &#39;An experiment for the penguin pipeline&#39; Fields Name Description spec.description The description of the experiment. ">
+apiVersion: pipelines.kubeflow.org/v1alpha5 kind: Experiment metadata: name: penguin-experiment spec: description: &#39;An experiment for the penguin pipeline&#39; Fields Name Description spec.description The description of the experiment. ">
   <meta property="og:locale" content="en_gb">
   <meta property="og:type" content="article">
     <meta property="article:section" content="archive">
 
   <meta itemprop="name" content="Experiment">
   <meta itemprop="description" content="The Experiment resource represents the lifecycle of Experiments, and can be configured as follows:
-apiVersion: pipelines.kubeflow.org/v1alpha6 kind: Experiment metadata: name: penguin-experiment spec: provider: kfp description: &#39;An experiment for the penguin pipeline&#39; Fields Name Description spec.description The description of the experiment. ">
-  <meta itemprop="wordCount" content="40">
+apiVersion: pipelines.kubeflow.org/v1alpha5 kind: Experiment metadata: name: penguin-experiment spec: description: &#39;An experiment for the penguin pipeline&#39; Fields Name Description spec.description The description of the experiment. ">
+  <meta itemprop="wordCount" content="38">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Experiment">
   <meta name="twitter:description" content="The Experiment resource represents the lifecycle of Experiments, and can be configured as follows:
-apiVersion: pipelines.kubeflow.org/v1alpha6 kind: Experiment metadata: name: penguin-experiment spec: provider: kfp description: &#39;An experiment for the penguin pipeline&#39; Fields Name Description spec.description The description of the experiment. ">
+apiVersion: pipelines.kubeflow.org/v1alpha5 kind: Experiment metadata: name: penguin-experiment spec: description: &#39;An experiment for the penguin pipeline&#39; Fields Name Description spec.description The description of the experiment. ">
 <link href="/kfp-operator/scss/main.css" rel="stylesheet">
 <script
   src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -150,8 +150,6 @@ apiVersion: pipelines.kubeflow.org/v1alpha6 kind: Experiment metadata: name: pen
   <ul class="ul-3 foldable">
     <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedoverview-li">
   <a href="/kfp-operator/archive/v0.6.0/getting-started/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedoverview"><span class="">Overview</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedintroduction-li">
-  <a href="/kfp-operator/archive/v0.6.0/getting-started/introduction/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedintroduction"><span class="">Introduction</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060getting-startedinstallation-li">
   <a href="/kfp-operator/archive/v0.6.0/getting-started/installation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060getting-startedinstallation"><span class="">Installation</span></a>
 </li>
@@ -181,8 +179,6 @@ apiVersion: pipelines.kubeflow.org/v1alpha6 kind: Experiment metadata: name: pen
   <a href="/kfp-operator/archive/v0.6.0/reference/resources/run/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesrun"><span class="">Run</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-kfp-operatorarchivev060referenceresourcesexperiment-li">
   <a href="/kfp-operator/archive/v0.6.0/reference/resources/experiment/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesexperiment"><span class="td-sidebar-nav-active-item">Experiment</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referenceresourcesprovider-li">
-  <a href="/kfp-operator/archive/v0.6.0/reference/resources/provider/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorarchivev060referenceresourcesprovider"><span class="">Provider</span></a>
 </li>
   </ul>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorarchivev060referencerun-completion-li">
@@ -251,12 +247,11 @@ apiVersion: pipelines.kubeflow.org/v1alpha6 kind: Experiment metadata: name: pen
 </header>
 	<p>The Experiment resource represents the lifecycle of Experiments,
 and can be configured as follows:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha5</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Experiment</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">penguin-experiment</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">kfp</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">description</span>: <span style="color:#e6db74">&#39;An experiment for the penguin pipeline&#39;</span>
 </span></span></code></pre></div><h2 id="fields">Fields</h2>
 <table>
