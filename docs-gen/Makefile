@@ -20,12 +20,12 @@ archive-version: ## Archive a version of the documentation. Requires VERSION to 
 		echo "You must specify the version of the docs you want to archive by setting VERSION=<new_version>, e.g. VERSION=v0.6.0"; \
 		exit 1; \
 	fi
-	cp -r content/docs/ content/archive/${VERSION}/
-	cp -r static/master/ static/archive/${VERSION}/
-	cp -r includes/master/ includes/archive/${VERSION}/
+	cp -r content/docs/ content/versions/${VERSION}/
+	cp -r static/master/ static/versions/${VERSION}/
+	cp -r includes/master/ includes/versions/${VERSION}/
 
-	echo '\n[[params.versions]]\nversion = "${VERSION}"\nurl = "/kfp-operator/archive/${VERSION}"' >> hugo.toml
+	echo '\n[[params.versions]]\nversion = "${VERSION}"\nurl = "/kfp-operator/versions/${VERSION}"' >> hugo.toml
 
-	find content/archive/${VERSION}/ -type f -exec sed -i '' 's|/master/|/archive/${VERSION}/|g' {} +
+	find content/versions/${VERSION}/ -type f -exec sed -i '' 's|/master/|/versions/${VERSION}/|g' {} +
 
-	sed -i '' 's|"Documentation"|"Documentation (${VERSION})"|g' content/archive/${VERSION}/_index.md
+	sed -i '' 's|"Documentation (master)"|"Documentation (${VERSION})"|g' content/versions/${VERSION}/_index.md

@@ -1,5 +1,5 @@
 ---
-title: "Archive"
+title: "Versions"
 
 cascade:
   - type: "docs"
