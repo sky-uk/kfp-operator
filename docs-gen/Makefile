@@ -2,7 +2,7 @@ build: clean install-npm-dependencies
 	hugo --minify
 
 quickstart:
-	$(MAKE) -C includes/quickstart docker-build
+	$(MAKE) -C includes/master/quickstart docker-build
 
 clean:
 	find ../docs -mindepth 1 ! -name '.nojekyll' -delete
