@@ -1,7 +1,0 @@
-apiVersion: pipelines.kubeflow.org/v1alpha6
-kind: Pipeline
-metadata:
-  name: penguin-pipeline
-spec:
-  image: kfp-quickstart:v1
-  tfxComponents: pipeline.create_components
