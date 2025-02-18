@@ -31,7 +31,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-generate-grpc:
+generate-grpc: ## Generate grpc services from proto files
 	protoc --go_out=. --go_opt=paths=source_relative \
 	--go-grpc_out=.  --go-grpc_opt=paths=source_relative \
 	triggers/run-completion-event-trigger/proto/run_completion_event_trigger.proto
@@ -42,14 +42,14 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
-git-status-check:
+git-status-check: ## Check if there are uncommitted or untracked files
 	@if [ -n "$$(git status -s)" ]; then echo "Uncommitted or untracked files: "; git status -s ; exit 1; fi
 
 decoupled-test: manifests generate ## Run decoupled acceptance tests
 	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
 
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
-integration-test-up:
+integration-test-up: ## Spin up a minikube cluster for integration tests
 	minikube start -p kfp-operator-tests
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
@@ -66,7 +66,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
  		kubectl apply -f -
 	go test ./... -tags=integration --timeout 20m
 
-integration-test-down:
+integration-test-down: ## Tear down the minikube cluster
 	(cat config/testing/pids | xargs kill) || true
 	minikube stop -p kfp-operator-tests
 
@@ -74,22 +74,22 @@ unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
 	$(MAKE) -C provider-service unit-test
 
-test: fmt vet unit-test decoupled-test
+test: fmt vet unit-test decoupled-test ## Run all tests
 
-test-argo:
+test-argo: ## Run all tests for argo
 	$(MAKE) -C argo/common test
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test
 
-test-triggers:
+test-triggers: ## Run all tests for triggers
 	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
 
-test-provider-service:
+test-provider-service: ## Run all tests for provider-service
 	$(MAKE) -C provider-service test
 
-test-all: test helm-test-operator test-argo test-triggers test-provider-service
+test-all: test helm-test-operator test-argo test-triggers test-provider-service ## Run all tests
 
-integration-test-all: integration-test
+integration-test-all: integration-test ## Run all integration tests
 	$(MAKE) -C argo/kfp-compiler integration-test
 
 ##@ Build
@@ -141,7 +141,7 @@ kustomize: ## Download kustomize locally if necessary.
 	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
 ##@ Package
-helm-package-operator: helm-cmd helm-test-operator
+helm-package-operator: helm-cmd helm-test-operator ## Package and test operator helm-chart
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
 helm-package: helm-package-operator # Package operator helm-chart
@@ -178,7 +178,7 @@ endef
 endif
 
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
-helm-test-operator: manifests helm-cmd kustomize yq dyff ## test operator helm chart against kustomize
+helm-test-operator: manifests helm-cmd kustomize yq dyff ## Test operator helm chart against kustomize
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
