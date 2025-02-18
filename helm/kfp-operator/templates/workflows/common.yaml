@@ -52,6 +52,7 @@ spec:
       command:
       - ash
       image: mikefarah/yq:4.45.1
+      # Select the framework from the resource definition and use it to select the compiler image. If it is not set or is empty string, default to the one set in 'kfp-operator.compilerImage'.
       source: yq e -r '.framework | select(. != "" and . != null) as $framework | (("{{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-" + $framework + "-compiler:{{ .Chart.AppVersion }}") // "{{ include "kfp-operator.compilerImage" . }}")' /resource-definition.yaml
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
