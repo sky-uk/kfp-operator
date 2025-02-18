@@ -135,12 +135,12 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.framework&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Optional. Sets a specific compiler image for the pipeline. e.g. &lt;code>framework: tfx&lt;/code> then image used would be &lt;code>kfp-operator-**tfx**-compiler:latest&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Optional. Sets a specific compiler image for the pipeline. For example, using &lt;code>framework: tfx&lt;/code> would mean the pipeline would be compiled with the &lt;code>kfp-operator-**tfx**-compiler:latest&lt;/code> image. If framework is not set then the default configured at install time is used, e.g. &lt;code>kfp-operator-argo-kfp-compiler:latest&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
 &lt;h2 id="versioning">Versioning&lt;/h2>
-&lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>Pipeline</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</guid><description>&lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
+&lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image and its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>Pipeline</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</guid><description>&lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
 Pipelines can be created, updated and deleted via this resource.
 The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
 It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p>
