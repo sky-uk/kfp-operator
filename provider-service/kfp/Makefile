@@ -1,13 +1,14 @@
 include ../../common.mk
 include ../../docker-targets.mk
+include ../../help.mk
 include ./get-proto.mk
 
 IMG := kfp-operator-kfp-provider-service
+DOCKER_BUILD_EXTRA_PARAMS=--build-context base-source=".."
 
 all: build
 
 ##@ Build
-
 generate: protoc-gen-go ## Generate service definitions from protobuf
 	$(call get-proto,github.com/google/ml-metadata,v1.5.0)
 	protoc --go_out=. --go-grpc_out=internal/client/ml_metadata \
@@ -19,21 +20,16 @@ generate: protoc-gen-go ## Generate service definitions from protobuf
 		ml_metadata/proto/metadata_store_service.proto \
 		ml_metadata/proto/metadata_store.proto
 
+build: generate
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/kfp-provider-service cmd/main.go
+
 ##@ Development
 
 decoupled-test: ## Run decoupled acceptance tests
 	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
 
-unit-test:
+unit-test: ## Run unit tests
 	go test ./... -tags=unit
 
-test: unit-test decoupled-test
+test: unit-test decoupled-test ## Run all tests
 
-##@ Build
-
-build: generate
-	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -o bin/kfp-provider-service cmd/main.go
-
-##@ Containers
-
-DOCKER_BUILD_EXTRA_PARAMS=--build-context base-source=".."

@@ -2,6 +2,8 @@ include common.mk
 include version.mk
 include newline.mk
 include minikube.mk
+include help.mk
+
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
@@ -20,9 +22,6 @@ all: build
 # https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
 # More info on the awk command:
 # http://linuxcommand.org/lc3_adv_awk.php
-
-help: ## Display this help.
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Development
 
@@ -145,15 +144,15 @@ kustomize: ## Download kustomize locally if necessary.
 helm-package-operator: helm-cmd helm-test-operator
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-package: helm-package-operator
+helm-package: helm-package-operator # Package operator helm-chart
 
-helm-install-operator: helm-package-operator values.yaml
+helm-install-operator: helm-package-operator values.yaml # Install operator
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
-helm-uninstall-operator:
+helm-uninstall-operator: ## Uninstall operator
 	$(HELM) uninstall kfp-operator
 
-helm-upgrade-operator: helm-package-operator values.yaml
+helm-upgrade-operator: helm-package-operator values.yaml ## Upgrade operator with helm chart
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
@@ -164,7 +163,7 @@ ifdef NETRC_FILE
 helm-publish:: $(NETRC_FILE)
 endif
 
-helm-publish:: helm-package
+helm-publish:: helm-package ## Publish Helm chart to repositories
 	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES),$(call helm-upload,$(url)))
 
 define helm-upload
@@ -179,7 +178,7 @@ endef
 endif
 
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
-helm-test-operator: manifests helm-cmd kustomize yq dyff
+helm-test-operator: manifests helm-cmd kustomize yq dyff ## test operator helm chart against kustomize
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
@@ -195,42 +194,44 @@ helm-test-operator: manifests helm-cmd kustomize yq dyff
 
 include docker-targets.mk
 
-docker-build-argo:
+docker-build-argo: ## Build argo docker images
 	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/providers docker-build
 
-docker-push-argo:
+docker-push-argo: ## Publish argo docker images
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/providers docker-push
 
-docker-build-triggers:
+docker-build-triggers: ## Build trigger docker images
 	$(MAKE) -C triggers/run-completion-event-trigger docker-build
 
-docker-push-triggers:
+docker-push-triggers: ## Publish trigger docker images
 	$(MAKE) -C triggers/run-completion-event-trigger docker-push
 
-docker-build-providers:
+docker-build-providers: ## Build provider docker images
 	$(MAKE) -C provider-service docker-build
 
-docker-push-providers:
+docker-push-providers: ## Publish provider docker images
 	$(MAKE) -C provider-service docker-push
 
 ##@ Docs
 
-website:
+website: ## Build website
 	$(MAKE) -C docs-gen
 
-docker-push-quickstart:
+docker-push-quickstart: ##  Build and push quickstart docker image
 	$(MAKE) -C docs-gen/includes/master/quickstart docker-push
 
 ##@ Package
 
-package-all: docker-build docker-build-argo docker-build-triggers docker-build-providers helm-package website
+package-all: ## Build all packages
+	docker-build docker-build-argo docker-build-triggers docker-build-providers helm-package website
 
-publish-all: docker-push docker-push-argo docker-push-triggers docker-push-providers helm-publish
+publish-all: ## Publish all packages
+	docker-push docker-push-argo docker-push-triggers docker-push-providers helm-publish
 
 ##@ CI
 
-prBuild: test-all package-all git-status-check
+prBuild: test-all package-all git-status-check ## Run all tests and build all packages
 
-cdBuild: prBuild publish-all docker-push-quickstart
+cdBuild: prBuild publish-all docker-push-quickstart ## Run all tests, build all packages and publish them

@@ -1,28 +1,30 @@
+include ../../help.mk
+
 IMG := kfp-operator-argo-kfp-compiler
 
 all: build
 
 ##@ Development
 
-test: build
+test: build ## Build and run all tests
 	poetry run pytest
 
 PENGUIN_STAGING := $(shell mktemp -d)
 
-penguin-staging:
+penguin-staging: ## Prepare the penguin image
 	cp ../../docs-gen/includes/master/quickstart/penguin_pipeline/*.py $(PENGUIN_STAGING)
 	cp integration/Dockerfile $(PENGUIN_STAGING)
 
-penguin-38: penguin-staging
+penguin-38: penguin-staging ## Build the penguin image for Python 3.8
 	docker build --build-arg PYTHON_VERSION=3.8.17 --build-arg TFX_VERSION=1.9.1 -t penguin:3.8 $(PENGUIN_STAGING)
 
-penguin-39: penguin-staging
+penguin-39: penguin-staging ## Build the penguin image for Python 3.9
 	docker build --build-arg PYTHON_VERSION=3.9.13 --build-arg TFX_VERSION=1.9.1 -t penguin:3.9 $(PENGUIN_STAGING)
 
-penguin-310: penguin-staging
+penguin-310: penguin-staging ## Build the penguin image for Python 3.10
 	docker build --build-arg PYTHON_VERSION=3.10.12 --build-arg TFX_VERSION=1.14.0 -t penguin:3.10 $(PENGUIN_STAGING)
 
-integration-test: docker-build penguin-38 penguin-39 penguin-310
+integration-test: docker-build penguin-38 penguin-39 penguin-310 ## Run the integration test
 	$(eval TMP := $(shell mktemp -d))
 	echo '{"rootLocation": "pipeline_root", "servingLocation": "serving", "name": "test", "image": "test-pipeline", "tfxComponents": "pipeline.create_components"}' > $(TMP)/pipeline_config.json
 	docker run -v $(TMP):/shared kfp-operator-argo-kfp-compiler /shared
@@ -33,7 +35,7 @@ integration-test: docker-build penguin-38 penguin-39 penguin-310
 
 ##@ Build
 
-build:
+build: ## Build
 	pip install poetry-dynamic-versioning --quiet
 	poetry install
 	poetry build
