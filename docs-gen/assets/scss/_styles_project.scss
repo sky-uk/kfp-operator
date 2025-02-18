@@ -1,2 +1,6 @@
 @import 'td/code-dark';
-@import 'swagger';
+
+// To enable dark mode for Swagger UI
+[data-bs-theme="dark"] {
+    @import 'swagger';
+}
