@@ -7,6 +7,9 @@ The Provider resource represents the provider specific configuration required to
 e.g Kubeflow Pipelines or the Vertex AI Platform.
 Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
 
+> Note: changing the provider of a resource that was previously managed by another provider will result in the resource erroring.
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.
+
 ### Common Fields
 
 | Name                       | Description                                                                                                                                                                                                                        | Example                                                |
