@@ -23,7 +23,7 @@ make
 This will populate the [/docs](/docs) directory, which will be served on [GitHub Pages](https://sky-uk.github.io/kfp-operator).
 
 ## Versioning
-To document different versions of the KFP Operator, we store an archive of the `content/docs/` folder for each release version, under `content/archive/<version>/`.
+To document different versions of the KFP Operator, we store a copy of the `content/docs/` folder for each release version, under `content/versions/<version>/`.
 
-To create a new archive version:
+To create a new version:
 Run `make archive-version VERSION=<new_version> && make build` where `new_version` is the version, e.g. `v0.6.0`
