@@ -13,7 +13,7 @@ The operator currently supports
 
 Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don't have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.
 
-For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the [penguin pipeline]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/quickstart/penguin_pipeline/pipeline.py) for an example.
+For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the [penguin pipeline]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/master/quickstart/penguin_pipeline/pipeline.py) for an example.
 
 ### Lifecycle phases and Parameter types
 
@@ -32,7 +32,7 @@ TFX Pipelines go through certain lifecycle phases that are unique to this techno
 TFX allows the parameterization of Pipelines in most lifecycle stages:
 
 | Parameter type         | Description                                                                                                                                                                                                                                              | Example                 |
-|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | Named Constants        | Code constants                                                                                                                                                                                                                                           | ANN layer size          |
 | Compile-time parameter | Parameters that are unlikely to change between pipeline runs supplied as environment variabels to the pipeline function                                                                                                                                  | Bigquery dataset        |
 | Runtime parameter      | Parameters exposed as TFX [RuntimeParameter](https://www.tensorflow.org/tfx/api_docs/python/tfx/v1/dsl/experimental/RuntimeParameter?hl=en) which can be overridden at runtime allow simplified experimentation without having to recompile the pipeline | Number of training runs |
@@ -50,4 +50,3 @@ Currently, we support the following eventsources:
 ## Architecture Overview
 
 To do.
-

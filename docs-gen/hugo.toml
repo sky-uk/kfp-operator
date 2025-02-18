@@ -7,6 +7,11 @@ canonifyURLs = false
 
 [menu]
   [[menu.main]]
+    name = "Documentation"
+    weight = -101
+    url = "/docs/"
+    pre = "<i class='fa-solid fa-book'></i>"
+  [[menu.main]]
     name = "Discuss"
     weight = -100
     pre = "<i class='fas fa-comments'></i>"
@@ -27,6 +32,12 @@ canonifyURLs = false
         path = "github.com/google/docsy/dependencies"
         disable = false
 
+[security.exec]
+  osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|HOME|ASDF_DIR)$']
+
+[markup.goldmark.renderer]
+unsafe = true
+
 [params]
   description = "Kubernetes operator to manage ML pipelines on Kubeflow"
   github_repo = "https://github.com/sky-uk/kfp-operator"
@@ -34,14 +45,17 @@ canonifyURLs = false
   github_branch = "master"
   github_project_repo = "https://github.com/sky-uk/kfp-operator"
   subpath = "/kfp-operator"
+  version_menu = "Version"
+  latest_stable_version = "v0.6.0"
 
 [params.ui]
 navbar_logo = false
 showLightDarkModeMenu = true
 
-[security.exec]
-  osEnv = ['(?i)^((HTTPS?|NO)_PROXY|PATH(EXT)?|APPDATA|TE?MP|TERM|HOME|ASDF_DIR)$']
+[[params.versions]]
+version = "master"
+url = "/kfp-operator/docs/"
 
-[markup.goldmark.renderer]
-unsafe = true
-
+[[params.versions]]
+version = "v0.6.0"
+url = "/kfp-operator/versions/v0.6.0"

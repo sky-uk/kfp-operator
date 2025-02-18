@@ -9,7 +9,7 @@ linkTitle: "KFP-Operator"
   <p class="lead mt-5"></p>
   <a
     class="btn btn-lg btn-primary mr-3 mb-4"
-    href="docs/getting-started/overview"
+    href="docs"
   >
     Get Started <i class="fas fa-arrow-alt-circle-right ml-2"></i>
   </a>

@@ -5,7 +5,7 @@ weight: 1
 
 This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
 
-The examples for this tutorial can be found on [GitHub]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/quickstart).
+The examples for this tutorial can be found on [GitHub]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/master/quickstart).
 
 ## 1. Build the Pipeline
 
@@ -14,16 +14,16 @@ We use the same pipeline as the [TFX example](https://www.tensorflow.org/tfx/tut
 Create `pipeline.py`.
 Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:
 
-{{% readfile file="/includes/quickstart/penguin_pipeline/pipeline.py" code="true" lang="python"%}}
+{{% readfile file="/includes/master/quickstart/penguin_pipeline/pipeline.py" code="true" lang="python"%}}
 
 Create `trainer.py`.
 The training code remains unchanged:
 
-{{% readfile file="/includes/quickstart/penguin_pipeline/trainer.py" code="true" lang="python"%}}
+{{% readfile file="/includes/master/quickstart/penguin_pipeline/trainer.py" code="true" lang="python"%}}
 
 Create `Dockerfile`.
 
-{{% readfile file="/includes/quickstart/Dockerfile" code="true" lang="dockerfile"%}}
+{{% readfile file="/includes/master/quickstart/Dockerfile" code="true" lang="dockerfile"%}}
 
 Next, build the pipeline as a Docker container and push it:
 
@@ -37,7 +37,7 @@ docker push kfp-quickstart:v1
 
 Now that we have a pipeline image, we can create a `pipeline.yaml` resource to manage the lifecycle of this pipeline on Kubeflow:
 
-{{% readfile file="/includes/quickstart/resources/pipeline.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart/resources/pipeline.yaml" code="true" lang="yaml"%}}
 
 ```bash
 kubectl apply -f resources/pipeline.yaml
@@ -60,7 +60,7 @@ Note: this step is optional. You can continue with the next step if you want to 
 
 Create `experiment.yaml`:
 
-{{% readfile file="/includes/quickstart/resources/experiment.yaml" code="true" lang="yaml" %}}
+{{% readfile file="/includes/master/quickstart/resources/experiment.yaml" code="true" lang="yaml" %}}
 
 ```bash
 kubectl apply -f resources/experiment.yaml
@@ -74,7 +74,7 @@ Note: remove `experimentName` if you want to use the `Default` experiment instea
 
 Create `runconfiguration.yaml`:
 
-{{% readfile file="/includes/quickstart/resources/runconfiguration.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart/resources/runconfiguration.yaml" code="true" lang="yaml"%}}
 
 ```bash
 kubectl apply -f resources/runconfiguration.yaml
@@ -89,7 +89,7 @@ In this example we are updating a serving component with the location of the new
 
 Create `apply-model-location.yaml`. This creates an `EventSource` and a `Sensor` as well as an `EventBus`:
 
-{{% readfile file="/includes/quickstart/resources/apply-model-location.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart/resources/apply-model-location.yaml" code="true" lang="yaml"%}}
 
 ```bash
 kubectl apply -f resources/apply-model-location.yaml

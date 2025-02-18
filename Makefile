@@ -2,6 +2,8 @@ include common.mk
 include version.mk
 include newline.mk
 include minikube.mk
+include help.mk
+
 
 # Image URL to use all building/pushing image targets
 IMG ?= kfp-operator-controller
@@ -21,9 +23,6 @@ all: build
 # More info on the awk command:
 # http://linuxcommand.org/lc3_adv_awk.php
 
-help: ## Display this help.
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
 ##@ Development
 
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
@@ -32,7 +31,7 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-generate-grpc:
+generate-grpc: ## Generate grpc services from proto files
 	protoc --go_out=. --go_opt=paths=source_relative \
 	--go-grpc_out=.  --go-grpc_opt=paths=source_relative \
 	triggers/run-completion-event-trigger/proto/run_completion_event_trigger.proto
@@ -43,14 +42,14 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
-git-status-check:
+git-status-check: ## Check if there are uncommitted or untracked files
 	@if [ -n "$$(git status -s)" ]; then echo "Uncommitted or untracked files: "; git status -s ; exit 1; fi
 
 decoupled-test: manifests generate ## Run decoupled acceptance tests
 	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
 
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
-integration-test-up:
+integration-test-up: ## Spin up a minikube cluster for integration tests
 	minikube start -p kfp-operator-tests
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
@@ -67,7 +66,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
  		kubectl apply -f -
 	go test ./... -tags=integration --timeout 20m
 
-integration-test-down:
+integration-test-down: ## Tear down the minikube cluster
 	(cat config/testing/pids | xargs kill) || true
 	minikube stop -p kfp-operator-tests
 
@@ -75,22 +74,22 @@ unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
 	$(MAKE) -C provider-service unit-test
 
-test: fmt vet unit-test decoupled-test
+test: fmt vet unit-test decoupled-test ## Run all tests
 
-test-argo:
+test-argo: ## Run all tests for argo
 	$(MAKE) -C argo/common test
 	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test
 
-test-triggers:
+test-triggers: ## Run all tests for triggers
 	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
 
-test-provider-service:
+test-provider-service: ## Run all tests for provider-service
 	$(MAKE) -C provider-service test
 
-test-all: test helm-test-operator test-argo test-triggers test-provider-service
+test-all: test helm-test-operator test-argo test-triggers test-provider-service ## Run all tests
 
-integration-test-all: integration-test
+integration-test-all: integration-test ## Run all integration tests
 	$(MAKE) -C argo/kfp-compiler integration-test
 
 ##@ Build
@@ -142,18 +141,18 @@ kustomize: ## Download kustomize locally if necessary.
 	$(call go-install,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v4@v4.5.2)
 
 ##@ Package
-helm-package-operator: helm-cmd helm-test-operator
+helm-package-operator: helm-cmd helm-test-operator ## Package and test operator helm-chart
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-package: helm-package-operator
+helm-package: helm-package-operator ## Package operator helm-chart
 
-helm-install-operator: helm-package-operator values.yaml
+helm-install-operator: helm-package-operator values.yaml ## Install operator
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
-helm-uninstall-operator:
+helm-uninstall-operator: ## Uninstall operator
 	$(HELM) uninstall kfp-operator
 
-helm-upgrade-operator: helm-package-operator values.yaml
+helm-upgrade-operator: helm-package-operator values.yaml ## Upgrade operator with helm chart
 	$(HELM) upgrade -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 ifeq ($(HELM_REPOSITORIES)$(OSS_HELM_REPOSITORIES),)
@@ -164,7 +163,7 @@ ifdef NETRC_FILE
 helm-publish:: $(NETRC_FILE)
 endif
 
-helm-publish:: helm-package
+helm-publish:: helm-package ## Publish Helm chart to repositories
 	$(foreach url,$(HELM_REPOSITORIES) $(OSS_HELM_REPOSITORIES),$(call helm-upload,$(url)))
 
 define helm-upload
@@ -179,7 +178,7 @@ endef
 endif
 
 INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
-helm-test-operator: manifests helm-cmd kustomize yq dyff
+helm-test-operator: manifests helm-cmd kustomize yq dyff ## Test operator helm chart against kustomize
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
@@ -195,42 +194,42 @@ helm-test-operator: manifests helm-cmd kustomize yq dyff
 
 include docker-targets.mk
 
-docker-build-argo:
+docker-build-argo: ## Build argo docker images
 	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/providers docker-build
 
-docker-push-argo:
+docker-push-argo: ## Publish argo docker images
 	$(MAKE) -C argo/kfp-compiler docker-push
 	$(MAKE) -C argo/providers docker-push
 
-docker-build-triggers:
+docker-build-triggers: ## Build trigger docker images
 	$(MAKE) -C triggers/run-completion-event-trigger docker-build
 
-docker-push-triggers:
+docker-push-triggers: ## Publish trigger docker images
 	$(MAKE) -C triggers/run-completion-event-trigger docker-push
 
-docker-build-providers:
+docker-build-providers: ## Build provider docker images
 	$(MAKE) -C provider-service docker-build
 
-docker-push-providers:
+docker-push-providers: ## Publish provider docker images
 	$(MAKE) -C provider-service docker-push
 
 ##@ Docs
 
-website:
-	$(MAKE) -C docs-gen
+website: ## Build website
+	$(MAKE) -C docs-gen build
 
-docker-push-quickstart:
-	$(MAKE) -C docs-gen/includes/quickstart docker-push
+docker-push-quickstart: ##  Build and push quickstart docker image
+	$(MAKE) -C docs-gen/includes/master/quickstart docker-push
 
 ##@ Package
 
-package-all: docker-build docker-build-argo docker-build-triggers docker-build-providers helm-package website
+package-all: docker-build docker-build-argo docker-build-triggers docker-build-providers helm-package website ## Build all packages
 
-publish-all: docker-push docker-push-argo docker-push-triggers docker-push-providers helm-publish
+publish-all: docker-push docker-push-argo docker-push-triggers docker-push-providers helm-publish ## Publish all packages
 
 ##@ CI
 
-prBuild: test-all package-all git-status-check
+prBuild: test-all package-all git-status-check ## Run all tests and build all packages
 
-cdBuild: prBuild publish-all docker-push-quickstart
+cdBuild: prBuild publish-all docker-push-quickstart ## Run all tests, build all packages and publish them

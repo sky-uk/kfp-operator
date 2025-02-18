@@ -20,7 +20,7 @@ To get a working installation you will need to install both the KFP-Operator and
 
 Create basic `values.yaml` with the following content:
 
-{{% readfile file="/includes/quickstart/resources/values.yaml" code="true" lang="yaml" %}}
+{{% readfile file="/includes/master/quickstart/resources/values.yaml" code="true" lang="yaml" %}}
 
 Install the latest version of the operator
 
@@ -62,7 +62,7 @@ Valid configuration options to override the [Default `values.yaml`]({{< ghblob "
 | `manager.webhookCertificates.provider`                    | K8s conversion webhook TLS certificate provider - choose `cert-manager` for Helm to deploy certificates if cert-manager is available or `custom` otherwise (see below)                                              |
 | `manager.webhookCertificates.secretName`                  | Name of a K8s secret deployed into the operator namespace to secure the webhook endpoint with, required if the `custom` provider is chosen                                                                          |
 | `manager.webhookCertificates.caBundle`                    | CA bundle of the certificate authority that has signed the webhook's certificate, required if the `custom` provider is chosen                                                                                       |
-| `manager.runcompletionWebhook.endpoints`                  | Array of endpoints for the run completion event handlers to be called when a run completion event is passed                                                                                                                              |
+| `manager.runcompletionWebhook.endpoints`                  | Array of endpoints for the run completion event handlers to be called when a run completion event is passed                                                                                                         |
 | `logging.verbosity`                                       | Logging verbosity for all components - see the [logging documentation]({{< param "github_project_repo" >}}/blob/master/CONTRIBUTING.md#logging) for valid values                                                    |
 | `statusFeedback.enabled`                                  | Whether run completion eventing and status update feedback loop should be installed - defaults to `false`                                                                                                           |
 
@@ -80,7 +80,7 @@ Install one or more by following these instructions. Please refer to the [respec
 
 Create basic `kfp.yaml` value file with the following content:
 
-{{% readfile file="/includes/quickstart/resources/kfp.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart/resources/kfp.yaml" code="true" lang="yaml"%}}
 
 Install the latest version of the provider
 
@@ -190,7 +190,7 @@ subjects:
 
 ##### KubeFlow completion eventing required RBACs
 If using the `KubeFlowProvider` you will also need a `ClusterRole` for permission to interact with argo workflows for the
-[eventing system]({{< ref "/docs/reference/run-completion" >}} "Run Completion Events").
+[eventing system]({{< ref "../reference/run-completion" >}} "Run Completion Events").
 
 
 ```yaml

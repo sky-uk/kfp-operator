@@ -1,13 +1,14 @@
 include ../../common.mk
+include ../../help.mk
 
 all: build
 
 ##@ Development
 
-unit-test:
+unit-test: ## Run unit test suites
 	go test ./... -tags=unit
 
-test: unit-test
+test: unit-test ## Run all tests
 
 ##@ Build
 

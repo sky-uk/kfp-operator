@@ -6,9 +6,9 @@ weight: 1
 The Kubeflow Pipelines operator can be configured with the following parameters:
 
 | Parameter name      | Description                                                                                                                                                                                                   | Example                                        |
-| ------------------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---------------------------------------------- |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
 | `defaultExperiment` | Default Experiment name to be used for creating pipeline runs                                                                                                                                                 | `Default`                                      |
-| `defaultProvider`   | Default provider name to be used (see [Using Multiple Providers](../providers)). **Note:** This is deprecated as of v1alpha6 and will be removed on release of v1alpha7                                           | `vertex-ai-europe`                             |
+| `defaultProvider`   | Default provider name to be used (see [Using Multiple Providers](../providers)). **Note:** This is deprecated as of v1alpha6 and will be removed on release of v1alpha7                                       | `vertex-ai-europe`                             |
 | `multiversion`      | If enabled, it will support previous versions of the CRDs, only the latest otherwise                                                                                                                          | `true`                                         |
 | `workflowNamespace` | Namespace where operator Argo workflows should be running - defaults to the operator's namespace                                                                                                              | `kfp-operator-workflows`                       |
 | `runCompletionTTL`  | Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) | `10m`                                          |
@@ -17,9 +17,9 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml).
 
 ## Run Completion Feed Configuration
-| Parameter name                | Description                                                        | Example                                                                        |
-| ----------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ |
-| `runCompletionFeed.port`      | The port that the feed endpoint will listen on                     | `8082`                                                                         |
+| Parameter name                | Description                                                                            | Example                                                                                    |
+| ----------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `runCompletionFeed.port`      | The port that the feed endpoint will listen on                                         | `8082`                                                                                     |
 | `runCompletionFeed.endpoints` | Array of run completion event handler endpoints that should be called per feed message | `- host: run-completion-event-handler<br/>&nbsp;&nbsp;path: /<br/>&nbsp;&nbsp;port: 12000` |
 
 ## Provider Configurations
@@ -34,7 +34,7 @@ Its configuration can be controlled using the [KFP specific parameters within a 
 ### Vertex AI Pipelines
 
 VAI configuration can be controlled using [VAI specific parameters within a Provider Resource](../resources/provider/#vertex-ai)
-![Vertex AI Provider]({{< param "subpath" >}}/images/vai-provider.svg)
+![Vertex AI Provider]({{< param "subpath" >}}/master/images/vai-provider.svg)
 
 #### GCP Project Setup
 

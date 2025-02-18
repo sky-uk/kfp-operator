@@ -17,7 +17,7 @@ def provider_config_file_path(execution_mode):
 
 @pytest.fixture(scope="session", autouse=True)
 def setup():
-    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "..", "docs-gen", "includes", "quickstart", "penguin_pipeline"))
+    sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "..", "docs-gen", "includes", "master", "quickstart", "penguin_pipeline"))
 
 
 def test_cli_v1():
