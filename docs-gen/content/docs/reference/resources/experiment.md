@@ -18,6 +18,7 @@ spec:
 
 ## Fields
 
-| Name               | Description                        |
-| ------------------ | ---------------------------------- |
-| `spec.description` | The description of the experiment. |
+| Name               | Description                                                   |
+| ------------------ | ------------------------------------------------------------- |
+| `spec.provider`    | The name of the associated [Provider resource](../provider/). |
+| `spec.description` | The description of the experiment.                            |
