@@ -47,6 +47,6 @@ DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION}
 
 include ../../docker-targets.mk
 
-docker-push-all:
+docker-push-all: ## Push all compiler docker images
 	$(MAKE) docker-push IMG=kfp-operator-argo-kfp-compiler
 	$(MAKE) docker-push IMG=kfp-operator-tfx-compiler
