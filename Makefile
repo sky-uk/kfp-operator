@@ -144,9 +144,9 @@ kustomize: ## Download kustomize locally if necessary.
 helm-package-operator: helm-cmd helm-test-operator ## Package and test operator helm-chart
 	$(HELM) package helm/kfp-operator --version $(VERSION) --app-version $(VERSION) -d dist
 
-helm-package: helm-package-operator # Package operator helm-chart
+helm-package: helm-package-operator ## Package operator helm-chart
 
-helm-install-operator: helm-package-operator values.yaml # Install operator
+helm-install-operator: helm-package-operator values.yaml ## Install operator
 	$(HELM) install -f values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz
 
 helm-uninstall-operator: ## Uninstall operator
