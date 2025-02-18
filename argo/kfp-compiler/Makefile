@@ -10,7 +10,7 @@ test: build
 PENGUIN_STAGING := $(shell mktemp -d)
 
 penguin-staging:
-	cp ../../docs-gen/includes/quickstart/penguin_pipeline/*.py $(PENGUIN_STAGING)
+	cp ../../docs-gen/includes/master/quickstart/penguin_pipeline/*.py $(PENGUIN_STAGING)
 	cp integration/Dockerfile $(PENGUIN_STAGING)
 
 penguin-38: penguin-staging

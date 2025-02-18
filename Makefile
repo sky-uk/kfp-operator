@@ -221,7 +221,7 @@ website:
 	$(MAKE) -C docs-gen
 
 docker-push-quickstart:
-	$(MAKE) -C docs-gen/includes/quickstart docker-push
+	$(MAKE) -C docs-gen/includes/master/quickstart docker-push
 
 ##@ Package
 
