@@ -1,4 +1,11 @@
+// Taken from https://github.com/Amoenus/SwaggerDark/blob/master/SwaggerDark.css 
+// until https://github.com/swagger-api/swagger-ui/issues/5327 is fixed
 @media only screen and (prefers-color-scheme: dark) {
+
+    .td-content pre {
+        background-color: transparent;
+        border: none;
+    }
 
     .swagger-ui,
     .swagger-ui section h3 {
