@@ -217,18 +217,16 @@ docker-push-providers: ## Publish provider docker images
 ##@ Docs
 
 website: ## Build website
-	$(MAKE) -C docs-gen
+	$(MAKE) -C docs-gen build
 
 docker-push-quickstart: ##  Build and push quickstart docker image
 	$(MAKE) -C docs-gen/includes/master/quickstart docker-push
 
 ##@ Package
 
-package-all: ## Build all packages
-	docker-build docker-build-argo docker-build-triggers docker-build-providers helm-package website
+package-all: docker-build docker-build-argo docker-build-triggers docker-build-providers helm-package website ## Build all packages
 
-publish-all: ## Publish all packages
-	docker-push docker-push-argo docker-push-triggers docker-push-providers helm-publish
+publish-all: docker-push docker-push-argo docker-push-triggers docker-push-providers helm-publish ## Publish all packages
 
 ##@ CI
 
