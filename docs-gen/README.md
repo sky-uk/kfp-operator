@@ -26,5 +26,4 @@ This will populate the [/docs](/docs) directory, which will be served on [GitHub
 To document different versions of the KFP Operator, we store an archive of the `content/docs/` folder for each release version, under `content/archive/<version>/`.
 
 To create a new archive version:
-1. run `make archive-version VERSION=<new_version>` with the new version i.e. `v0.6.0`
-8. Rebuild the site with `make build`.
+Run `make archive-version VERSION=<new_version> && make build` where `new_version` is the version, e.g. `v0.6.0`
