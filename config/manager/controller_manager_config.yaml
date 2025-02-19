@@ -14,6 +14,8 @@ spec:
   multiversion: true
   workflowNamespace: kfp-operator-system
   workflowTemplatePrefix: kfp-operator-
+  frameworks:
+    default: kfp-operator-argo-kfp-compiler:latest
   runCompletionFeed:
     port: 8082
     endpoints: []

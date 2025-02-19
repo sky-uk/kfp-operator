@@ -52,6 +52,8 @@ manager:
   runcompletionWebhook:
     servicePort: 8082
     endpoints: []
+  pipeline:
+    frameworks: {}
 
 runcompletionEventTrigger:
   enabled: false

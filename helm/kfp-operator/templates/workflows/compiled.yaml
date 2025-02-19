@@ -10,7 +10,6 @@ spec:
       parameters:
       - name: resource-image
       - name: provider-config
-      - name: compiler-image
       artifacts:
       - name: resource-definition
         raw:
@@ -50,7 +49,7 @@ spec:
     initContainers:
     - args:
       - /shared
-      image: "{{`{{inputs.parameters.compiler-image}}`}}"
+      image: {{ include "kfp-operator.compilerImage" . }}
       mirrorVolumeMounts: true
       name: compile
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -194,10 +193,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-resource-image
-    - - name: select-framework-compiler-image
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-framework-compiler-image
     - - name: compile
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
@@ -208,8 +203,6 @@ spec:
             value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
           - name: provider-config
             value: '{{`{{workflow.parameters.provider-config}}`}}'
-          - name: compiler-image
-            value: '{{`{{steps.select-framework-compiler-image.outputs.result}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
@@ -275,10 +268,6 @@ spec:
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: select-resource-image
-    - - name: select-framework-compiler-image
-        templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-common-steps
-          template: select-framework-compiler-image
     - - name: compile
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
@@ -289,8 +278,6 @@ spec:
             value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
           - name: provider-config
             value: '{{`{{workflow.parameters.provider-config}}`}}'
-          - name: compiler-image
-            value: '{{`{{steps.select-framework-compiler-image.outputs.result}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps

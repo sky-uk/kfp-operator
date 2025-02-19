@@ -38,22 +38,6 @@ spec:
       source: yq e -r '.image' /resource-definition.yaml
     metadata: {}
     activeDeadlineSeconds: 300
-  - name: select-framework-compiler-image
-    inputs:
-      artifacts:
-      - name: resource-definition
-        path: /resource-definition.yaml
-        raw:
-          data: |
-            {{workflow.parameters.resource-definition}}
-    script:
-      command:
-      - ash
-      image: mikefarah/yq:4.45.1
-      # Select the framework from the resource definition and use it to select the compiler image. If it is not set or is empty string, default to the Argo/KFP compiler.
-      source: yq e -r '.framework | select(. != "" and . != null) as $framework | (("kfp-operator-" + $framework + "-compiler:latest") // "kfp-operator-argo-kfp-compiler:latest")' /resource-definition.yaml
-    metadata: {}
-    activeDeadlineSeconds: 300
   - name: delete
     inputs:
       parameters:
