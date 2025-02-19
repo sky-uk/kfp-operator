@@ -10,6 +10,7 @@ spec:
       parameters:
       - name: resource-image
       - name: provider-config
+      - name: pipeline-framework-image
       artifacts:
       - name: resource-definition
         raw:
@@ -49,7 +50,7 @@ spec:
     initContainers:
     - args:
       - /shared
-      image: {{ include "kfp-operator.compilerImage" . }}
+      image: {{`{{workflow.parameters.pipeline-framework-image}}`}}
       mirrorVolumeMounts: true
       name: compile
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
@@ -159,6 +160,7 @@ spec:
     - name: provider-name
     - name: resource-kind
     - name: resource-definition
+    - name: pipeline-framework-image
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
@@ -203,6 +205,8 @@ spec:
             value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
           - name: provider-config
             value: '{{`{{workflow.parameters.provider-config}}`}}'
+          - name: pipeline-framework-image
+            value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
@@ -234,6 +238,7 @@ spec:
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
+    - name: pipeline-framework-image
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
@@ -278,6 +283,8 @@ spec:
             value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
           - name: provider-config
             value: '{{`{{workflow.parameters.provider-config}}`}}'
+          - name: pipeline-framework-image
+            value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
