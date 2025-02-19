@@ -14,7 +14,7 @@ minikube-install-dependencies:
 	kubectl create namespace kfp-operator-system
 	kubectl create secret tls webhook-server-cert --cert=./local/kfp-operator-webhook.crt --key=./local/kfp-operator-webhook.key --namespace kfp-operator-system
 
-minikube-helm-install-operator: helm-package-operator
+minikube-helm-install-operator: manifests generate helm-package-operator
 	@if [ -z ${VALUES_PATH} ]; then \
 		echo "You must specify the path to the helm values file you want to use to install the operator helm chart by setting VALUES_PATH=<path/to/values.yaml>, e.g. VALUES_PATH=config/testing/integration-test-values.yaml"; \
 		exit 1; \
@@ -26,6 +26,7 @@ minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp
 minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
 minikube-install-operator:
 	$(MAKE) docker-push docker-push-triggers
+	$(MAKE) -C argo/providers/stub docker-push
 	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES} VALUES_PATH=${VALUES_PATH}
 
 minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
@@ -60,6 +61,7 @@ minikube-provider-teardown:
 minikube-start:
 	minikube start -p local-kfp-operator --driver=docker --registry-mirror="https://mirror.gcr.io"
 	minikube addons enable registry -p local-kfp-operator
+	kubectl proxy --port=8080 & echo $$! > config/testing/pids # Starts K8s API proxy
 
 minikube-up:
 	$(MAKE) minikube-start

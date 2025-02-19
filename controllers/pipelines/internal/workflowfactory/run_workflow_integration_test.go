@@ -17,7 +17,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 	workflowFactory := RunWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultExperiment:      "Default",
 		DefaultProvider:        "not-used",
-		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
+		WorkflowTemplatePrefix: "kfp-operator-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
 	})
 

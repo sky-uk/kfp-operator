@@ -58,7 +58,7 @@ var _ = BeforeSuite(func() {
 var _ = BeforeEach(func() {
 	K8sClient.Delete(Ctx, &pipelinesv1.Provider{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kfp-operator-integration-tests-providers",
+			Name:      "kfp-operator-providers",
 			Namespace: TestNamespace,
 		}})
 })
@@ -86,7 +86,7 @@ func StubProvider[R pipelinesv1.Resource](
 
 	provider := pipelinesv1.Provider{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kfp-operator-integration-tests-providers",
+			Name:      "kfp-operator-providers",
 			Namespace: TestNamespace,
 		},
 		Spec: pipelinesv1.ProviderSpec{
