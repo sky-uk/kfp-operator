@@ -18,7 +18,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 		DefaultExperiment:      "Default",
 		DefaultProvider:        "not-used",
 		WorkflowTemplatePrefix: "kfp-operator-", // Needs to match integration-test-values.yaml
-		WorkflowNamespace:      "argo",
+		WorkflowNamespace:      "kfp-operator-system",
 	})
 
 	var newRun = func() *pipelinesv1.Run {

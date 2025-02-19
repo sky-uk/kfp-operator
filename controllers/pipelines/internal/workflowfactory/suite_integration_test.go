@@ -30,7 +30,7 @@ import (
 
 const (
 	TestTimeout   = 120
-	TestNamespace = "argo"
+	TestNamespace = "kfp-operator-system"
 	TestProvider  = "stub"
 )
 
