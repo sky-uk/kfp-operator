@@ -9,7 +9,7 @@ canonifyURLs = false
   [[menu.main]]
     name = "Documentation"
     weight = -101
-    url = "/docs/"
+    url = "/versions/v0.6.0"
     pre = "<i class='fa-solid fa-book'></i>"
   [[menu.main]]
     name = "Discuss"
