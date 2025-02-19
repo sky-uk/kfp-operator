@@ -34,3 +34,6 @@ archive-version: ## Archive a version of the documentation. Requires VERSION to 
 
 	# Update the index page to reflect its version
 	sed -i '' 's|"Documentation (master)"|"Documentation (${VERSION})"|g' content/versions/${VERSION}/_index.md
+
+	# Update the quickstart Makefile to include with correct path
+	sed -i '' 's|../../../../|../../../../../|g' includes/versions/${VERSION}/quickstart/Makefile
