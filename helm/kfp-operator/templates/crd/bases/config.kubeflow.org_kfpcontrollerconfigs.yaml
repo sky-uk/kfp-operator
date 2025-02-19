@@ -7699,6 +7699,10 @@ spec:
                   servicePort:
                     type: integer
                 type: object
+              frameworks:
+                additionalProperties:
+                  type: string
+                type: object
               multiversion:
                 type: boolean
               runCompletionFeed:
