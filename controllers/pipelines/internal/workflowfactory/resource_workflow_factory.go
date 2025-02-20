@@ -53,6 +53,7 @@ type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] str
 	Config                config.KfpControllerConfigSpec
 	TemplateNameGenerator TemplateNameGenerator
 	DefinitionCreator     func(R) (ResourceDefinition, error)
+	WorkflowParamsCreator func(R) ([]argo.Parameter, error)
 }
 
 func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
@@ -93,28 +94,35 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
+	params := []argo.Parameter{
+		{
+			Name:  workflowconstants.ResourceKindParameterName,
+			Value: argo.AnyStringPtr(resource.GetKind()),
+		},
+		{
+			Name:  workflowconstants.ResourceDefinitionParameterName,
+			Value: argo.AnyStringPtr(resourceDefinition),
+		},
+		{
+			Name:  workflowconstants.ProviderNameParameterName,
+			Value: argo.AnyStringPtr(provider.Name),
+		},
+		{
+			Name:  workflowconstants.ProviderConfigParameterName,
+			Value: argo.AnyStringPtr(string(providerConf)),
+		},
+	}
+	extraParams, err := workflows.WorkflowParamsCreator(resource)
+	if err != nil {
+		return nil, err
+	}
+	params = append(params, extraParams...)
+
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
-				Parameters: []argo.Parameter{
-					{
-						Name:  workflowconstants.ResourceKindParameterName,
-						Value: argo.AnyStringPtr(resource.GetKind()),
-					},
-					{
-						Name:  workflowconstants.ResourceDefinitionParameterName,
-						Value: argo.AnyStringPtr(resourceDefinition),
-					},
-					{
-						Name:  workflowconstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(provider.Name),
-					},
-					{
-						Name:  workflowconstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(string(providerConf)),
-					},
-				},
+				Parameters: params,
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
 				Name: workflows.TemplateNameGenerator.CreateTemplate(),

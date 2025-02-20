@@ -1,17 +1,21 @@
 package workflowfactory
 
 import (
+	"fmt"
+
+	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 )
 
-type PipelineDefinitionCreator struct {
+type PipelineParamsCreator struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (pdc PipelineDefinitionCreator) pipelineDefinition(
+func (ppc PipelineParamsCreator) pipelineDefinition(
 	pipeline *pipelinesv1.Pipeline,
 ) (providers.PipelineDefinition, error) {
 	return providers.PipelineDefinition{
@@ -28,13 +32,34 @@ func (pdc PipelineDefinitionCreator) pipelineDefinition(
 	}, nil
 }
 
+func (ppc PipelineParamsCreator) additionalParams(pipeline *pipelinesv1.Pipeline) ([]argo.Parameter, error) {
+	requestedFramework := pipeline.Spec.Framework
+	if pipeline.Spec.Framework == "" {
+		requestedFramework = "default"
+	}
+	frameworkImage, found := ppc.Config.Frameworks[requestedFramework]
+	if !found {
+		return nil, &workflowconstants.WorkflowError{SubError: fmt.Sprintf("%s framework not found", requestedFramework)}
+	}
+
+	params := []argo.Parameter{}
+	frameworkParam := argo.Parameter{
+		Name:  workflowconstants.PipelineFrameworkImageParameterName,
+		Value: argo.AnyStringPtr(frameworkImage),
+	}
+	params = append(params, frameworkParam)
+	return params, nil
+}
+
 func PipelineWorkflowFactory(
 	config config.KfpControllerConfigSpec,
 ) *ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition] {
+	creator := PipelineParamsCreator{
+		Config: config,
+	}
 	return &ResourceWorkflowFactory[*pipelinesv1.Pipeline, providers.PipelineDefinition]{
-		DefinitionCreator: PipelineDefinitionCreator{
-			Config: config,
-		}.pipelineDefinition,
+		DefinitionCreator:     creator.pipelineDefinition,
+		WorkflowParamsCreator: creator.additionalParams,
 		Config:                config,
 		TemplateNameGenerator: CompiledTemplateNameGenerator(config),
 	}
