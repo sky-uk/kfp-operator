@@ -50,7 +50,7 @@ spec:
     initContainers:
     - args:
       - /shared
-      image: {{`{{workflow.parameters.pipeline-framework-image}}`}}
+      image: "{{`{{workflow.parameters.pipeline-framework-image}}`}}"
       mirrorVolumeMounts: true
       name: compile
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}

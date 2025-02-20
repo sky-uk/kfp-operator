@@ -10,3 +10,5 @@ manager:
     compilerImage: kfp-operator-stub-provider
     containerDefaults:
       imagePullPolicy: Never
+  pipeline:
+    frameworks: {}
