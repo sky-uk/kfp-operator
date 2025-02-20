@@ -82,5 +82,6 @@ func RunScheduleWorkflowFactory(
 		}.runScheduleDefinition,
 		Config:                config,
 		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
+		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelinesv1.RunSchedule],
 	}
 }

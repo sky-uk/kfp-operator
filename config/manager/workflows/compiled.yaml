@@ -10,6 +10,7 @@ spec:
       parameters:
       - name: resource-image
       - name: provider-config
+      - name: pipeline-framework-image
       artifacts:
       - name: resource-definition
         raw:
@@ -47,7 +48,7 @@ spec:
     initContainers:
     - args:
       - /shared
-      image: kfp-operator-argo-kfp-compiler:latest
+      image: "{{workflow.parameters.pipeline-framework-image}}"
       mirrorVolumeMounts: true
       name: compile
   - name: combine-files
@@ -183,6 +184,7 @@ spec:
     - name: provider-name
     - name: resource-kind
     - name: resource-definition
+    - name: pipeline-framework-image
   entrypoint: main
   serviceAccountName: kfp-operator-argo
   templates:
@@ -227,8 +229,8 @@ spec:
             value: '{{steps.select-resource-image.outputs.result}}'
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
-          - name: compiler-image
-            value: '{{steps.select-framework-compiler-image.outputs.result}}'
+          - name: pipeline-framework-image
+            value: '{{workflow.parameters.pipeline-framework-image}}'
     - - name: combine-files
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -268,6 +270,7 @@ spec:
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
+    - name: pipeline-framework-image
   entrypoint: main
   serviceAccountName: kfp-operator-argo
   templates:
@@ -312,8 +315,8 @@ spec:
             value: '{{steps.select-resource-image.outputs.result}}'
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
-          - name: compiler-image
-            value: '{{steps.select-framework-compiler-image.outputs.result}}'
+          - name: pipeline-framework-image
+            value: '{{workflow.parameters.pipeline-framework-image}}'
     - - name: combine-files
         templateRef:
           name: kfp-operator-compiled-workflow-steps
