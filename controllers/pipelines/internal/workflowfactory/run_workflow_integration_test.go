@@ -47,8 +47,11 @@ var _ = Context("Resource Workflows", Serial, func() {
 				Resource: newRun(),
 			}
 
-			workflow, err := workflowFactory.ConstructUpdateWorkflow(*TestProviderConfig, testCtx.Resource)
+			// The images must match the minikube registry setup (the minikube registry runs on port 5000 by default and we push all images to a "kfp-operator" image repository)
+			TestProviderConfig.Spec.Image = "localhost:5000/kfp-operator/kfp-operator-stub-provider"
+			TestProviderConfig.Spec.ServiceImage = "localhost:5000/kfp-operator/kfp-operator-stub-provider"
 
+			workflow, err := workflowFactory.ConstructUpdateWorkflow(*TestProviderConfig, testCtx.Resource)
 			Expect(err).NotTo(HaveOccurred())
 
 			StubProvider(base.Output{}, testCtx.Resource)

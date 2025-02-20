@@ -90,8 +90,9 @@ func StubProvider[R pipelinesv1.Resource](
 			Namespace: TestNamespace,
 		},
 		Spec: pipelinesv1.ProviderSpec{
-			ServiceImage:   "kfp-operator-stub-provider",
-			Image:          "kfp-operator-stub-provider",
+			// The images must match the minikube registry setup (the minikube registry runs on port 5000 by default and we push all images to a "kfp-operator" image repository)
+			ServiceImage:   "localhost:5000/kfp-operator/kfp-operator-stub-provider",
+			Image:          "localhost:5000/kfp-operator/kfp-operator-stub-provider",
 			ExecutionMode:  "none",
 			ServiceAccount: "default",
 			Parameters: map[string]*apiextensionsv1.JSON{
