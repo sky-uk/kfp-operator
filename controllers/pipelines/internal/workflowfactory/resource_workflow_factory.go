@@ -112,11 +112,12 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 			Value: argo.AnyStringPtr(string(providerConf)),
 		},
 	}
-	extraParams, err := workflows.WorkflowParamsCreator(resource)
+
+	additionalParams, err := workflows.WorkflowParamsCreator(resource)
 	if err != nil {
 		return nil, err
 	}
-	params = append(params, extraParams...)
+	params = append(params, additionalParams...)
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
@@ -144,33 +145,40 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	if err != nil {
 		return nil, err
 	}
+	params := []argo.Parameter{
+		{
+			Name:  workflowconstants.ResourceKindParameterName,
+			Value: argo.AnyStringPtr(resource.GetKind()),
+		},
+		{
+			Name:  workflowconstants.ResourceDefinitionParameterName,
+			Value: argo.AnyStringPtr(resourceDefinition),
+		},
+		{
+			Name:  workflowconstants.ResourceIdParameterName,
+			Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
+		},
+		{
+			Name:  workflowconstants.ProviderNameParameterName,
+			Value: argo.AnyStringPtr(provider.Name),
+		},
+		{
+			Name:  workflowconstants.ProviderConfigParameterName,
+			Value: argo.AnyStringPtr(string(providerConf)),
+		},
+	}
+
+	additionalParams, err := workflows.WorkflowParamsCreator(resource)
+	if err != nil {
+		return nil, err
+	}
+	params = append(params, additionalParams...)
 
 	return &argo.Workflow{
 		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
-				Parameters: []argo.Parameter{
-					{
-						Name:  workflowconstants.ResourceKindParameterName,
-						Value: argo.AnyStringPtr(resource.GetKind()),
-					},
-					{
-						Name:  workflowconstants.ResourceDefinitionParameterName,
-						Value: argo.AnyStringPtr(resourceDefinition),
-					},
-					{
-						Name:  workflowconstants.ResourceIdParameterName,
-						Value: argo.AnyStringPtr(resource.GetStatus().Provider.Id),
-					},
-					{
-						Name:  workflowconstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(provider.Name),
-					},
-					{
-						Name:  workflowconstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(string(providerConf)),
-					},
-				},
+				Parameters: params,
 			},
 			WorkflowTemplateRef: &argo.WorkflowTemplateRef{
 				Name: workflows.TemplateNameGenerator.UpdateTemplate(),

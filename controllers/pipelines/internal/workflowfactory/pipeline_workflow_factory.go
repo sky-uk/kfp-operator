@@ -42,13 +42,12 @@ func (ppc PipelineParamsCreator) additionalParams(pipeline *pipelinesv1.Pipeline
 		return nil, &workflowconstants.WorkflowError{SubError: fmt.Sprintf("%s framework not found", requestedFramework)}
 	}
 
-	params := []argo.Parameter{}
-	frameworkParam := argo.Parameter{
-		Name:  workflowconstants.PipelineFrameworkImageParameterName,
-		Value: argo.AnyStringPtr(frameworkImage),
-	}
-	params = append(params, frameworkParam)
-	return params, nil
+	return []argo.Parameter{
+		{
+			Name:  workflowconstants.PipelineFrameworkImageParameterName,
+			Value: argo.AnyStringPtr(frameworkImage),
+		},
+	}, nil
 }
 
 func PipelineWorkflowFactory(

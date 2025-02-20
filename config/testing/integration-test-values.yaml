@@ -7,7 +7,6 @@ manager:
     serviceAccount:
       name: default
       create: false
-    compilerImage: kfp-operator-stub-provider
     containerDefaults:
       imagePullPolicy: Never
   pipeline:
