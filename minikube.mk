@@ -1,7 +1,9 @@
+ARGO_WORKFLOWS_CHART_VERSION=0.17.0
+ARGO_EVENTS_CHART_VERSION=2.4.1
 minikube-install-dependencies:
 	$(HELM) repo add argo https://argoproj.github.io/argo-helm
-	$(HELM) install argo-workflows argo/argo-workflows -n argo --create-namespace
-	$(HELM) install argo-events argo/argo-events -n argo-events --create-namespace
+	$(HELM) install argo-workflows argo/argo-workflows --version=${ARGO_WORKFLOWS_CHART_VERSION} -n argo --create-namespace
+	$(HELM) install argo-events argo/argo-events --version=${ARGO_EVENTS_CHART_VERSION} -n argo-events --create-namespace
 	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.crds.yaml
 	openssl req -new -newkey rsa:2048 -days 365 -keyout ./local/kfp-operator-webhook.key -out ./local/kfp-operator-webhook.csr \
 	  -subj "/C=US/ST=California/L=San Francisco/O=My Organization/OU=My Unit/CN=kfp-operator-webhook-service.kfp-operator-system.svc" \
