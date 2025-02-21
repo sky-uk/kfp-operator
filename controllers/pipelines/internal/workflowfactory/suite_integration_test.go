@@ -30,7 +30,7 @@ import (
 
 const (
 	TestTimeout   = 120
-	TestNamespace = "argo"
+	TestNamespace = "kfp-operator-system"
 	TestProvider  = "stub"
 )
 
@@ -58,7 +58,7 @@ var _ = BeforeSuite(func() {
 var _ = BeforeEach(func() {
 	K8sClient.Delete(Ctx, &pipelinesv1.Provider{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kfp-operator-integration-tests-providers",
+			Name:      "kfp-operator-providers",
 			Namespace: TestNamespace,
 		}})
 })
@@ -86,14 +86,24 @@ func StubProvider[R pipelinesv1.Resource](
 
 	provider := pipelinesv1.Provider{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kfp-operator-integration-tests-providers",
+			Name:      "kfp-operator-providers",
 			Namespace: TestNamespace,
 		},
 		Spec: pipelinesv1.ProviderSpec{
-			ServiceImage:   "kfp-operator-stub-provider",
-			Image:          "kfp-operator-stub-provider",
-			ExecutionMode:  "none",
-			ServiceAccount: "default",
+			// The images must match the minikube registry setup (the minikube registry runs on port 5000 by default and we push all images to a "kfp-operator" image repository)
+			ServiceImage:  "localhost:5000/kfp-operator/kfp-operator-stub-provider",
+			Image:         "localhost:5000/kfp-operator/kfp-operator-stub-provider",
+			ExecutionMode: "none",
+
+			// ---
+			// TLDR: This SA can be set to default once the provider step makes an API call instead of running the provider CLI.
+			// ---
+			// The ServiceAccount field is currently used to give the CLI provider-specific permissions. However, in these integration tests,
+			// we stub the provider, so no permissions are required. The only reason we don't use default as the SA is because the pod that
+			// runs the provider step needs to be able to patch itself to set the output. In the workflow template, we patch the pod to
+			// override its service account and set it to the provider-specific SA. If that's default, then it won't have the patching permissions anymore.
+			ServiceAccount: "kfp-operator-argo",
+
 			Parameters: map[string]*apiextensionsv1.JSON{
 				"expectedInput":  {Raw: expectedInputJson},
 				"expectedOutput": {Raw: expectedOutputJson},

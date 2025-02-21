@@ -1,7 +1,9 @@
+ARGO_WORKFLOWS_CHART_VERSION=0.17.0
+ARGO_EVENTS_CHART_VERSION=2.4.1
 minikube-install-dependencies:
 	$(HELM) repo add argo https://argoproj.github.io/argo-helm
-	$(HELM) install argo-workflows argo/argo-workflows -n argo --create-namespace
-	$(HELM) install argo-events argo/argo-events -n argo-events --create-namespace
+	$(HELM) install argo-workflows argo/argo-workflows --version=${ARGO_WORKFLOWS_CHART_VERSION} -n argo --create-namespace
+	$(HELM) install argo-events argo/argo-events --version=${ARGO_EVENTS_CHART_VERSION} -n argo-events --create-namespace
 	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.9.1/cert-manager.crds.yaml
 	openssl req -new -newkey rsa:2048 -days 365 -keyout ./local/kfp-operator-webhook.key -out ./local/kfp-operator-webhook.csr \
 	  -subj "/C=US/ST=California/L=San Francisco/O=My Organization/OU=My Unit/CN=kfp-operator-webhook-service.kfp-operator-system.svc" \
@@ -14,20 +16,29 @@ minikube-install-dependencies:
 	kubectl create namespace kfp-operator-system
 	kubectl create secret tls webhook-server-cert --cert=./local/kfp-operator-webhook.crt --key=./local/kfp-operator-webhook.key --namespace kfp-operator-system
 
-minikube-helm-install-operator: helm-package-operator ./local/values.yaml
-	$(HELM) install -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
+minikube-helm-install-operator: manifests generate helm-package-operator
+	@if [ -z ${VALUES_PATH} ]; then \
+		echo "You must specify the path to the helm values file you want to use to install the operator helm chart by setting VALUES_PATH=<path/to/values.yaml>, e.g. VALUES_PATH=config/testing/integration-test-values.yaml"; \
+		exit 1; \
+	fi
+	$(HELM) install -f ${VALUES_PATH} kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
 
 minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
 minikube-install-operator:
 	$(MAKE) docker-push docker-push-triggers
-	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
+	$(MAKE) -C argo/providers/stub docker-push
+	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES} VALUES_PATH=${VALUES_PATH}
 
 minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
 minikube-install-provider:
+	@if [ -z ${NAME} ]; then \
+		echo "You must specify the name of the provider you want to install by setting NAME=<provider>, e.g. NAME=vai"; \
+		exit 1; \
+	fi
 	$(MAKE) -C argo/providers docker-push
 	$(MAKE) -C argo/providers/stub docker-push
 	$(MAKE) -C provider-service docker-push
@@ -52,17 +63,13 @@ minikube-provider-teardown:
 minikube-start:
 	minikube start -p local-kfp-operator --driver=docker --registry-mirror="https://mirror.gcr.io"
 	minikube addons enable registry -p local-kfp-operator
+	kubectl proxy --port=8080 & echo $$! > config/testing/pids # Starts K8s API proxy
 
 minikube-up:
-	@if [ -z ${NAME} ]; then \
-		echo "You must specify the name of the provider you want to install by setting NAME=<provider>, e.g. NAME=vai"; \
-		exit 1; \
-	fi
 	$(MAKE) minikube-start
 	$(MAKE) minikube-install-dependencies
-	$(MAKE) minikube-install-operator
-	$(MAKE) minikube-install-provider
+	$(MAKE) minikube-install-operator VALUES_PATH=./config/testing/integration-test-values.yaml
 
 minikube-down:
+	(cat config/testing/pids | xargs kill) || true # Stops K8s API proxy
 	minikube delete -p local-kfp-operator
-	$(MAKE) minikube-provider-teardown
