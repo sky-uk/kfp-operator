@@ -40,40 +40,34 @@ spec:
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
+  - name: url-encode
+    inputs:
+      parameters:
+      - name: unencoded
+    outputs:
+      parameters:
+      - name: url-encoded
+        valueFrom:
+          path: "/tmp/url-encoded.txt"
+    container:
+      args:
+      - |
+        echo "{{`{{inputs.parameters.unencoded}}`}}" | jq -sRr @uri > /tmp/url-encoded.txt
+      command: [sh, -c]
+      image: stedolan/jq:latest
   - name: delete
     inputs:
       parameters:
-      - name: provider-image
-      - name: provider-sa
-      - name: provider-config
-      artifacts:
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
-    metadata:
-      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+      - name: url-encoded-resource-id
+    metadata: {}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
-      image: "{{`{{inputs.parameters.provider-image}}`}}"
-      command:
-      - /provider
+      image: curlimages/curl:8.12.1
+      command: [sh, -c]
       args:
-      - --provider
-      - /provider-config.json
-      - '{{`{{workflow.parameters.resource-kind}}`}}'
-      - delete
-      - --{{`{{workflow.parameters.resource-kind}}`}}-id
-      - '{{`{{workflow.parameters.resource-id}}`}}'
-      - --out
-      - /tmp/provider-output.yaml
+      - |
+        curl -v -X DELETE \
+            "example.com/resource/{{`{{workflow.parameters.resource-kind}}`}}/{{`{{inputs.parameters.url-encoded-resource-id}}`}}"
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -120,15 +114,19 @@ spec:
             value: serviceAccount
           - name: provider-config
             value: '{{`{{workflow.parameters.provider-config}}`}}'
+    - - name: url-encode-resource-id
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: url-encode
+        arguments:
+          parameters:
+            - name: unencoded
+              value: '{{`{{workflow.parameters.resource-id}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: delete
         arguments:
           parameters:
-          - name: provider-image
-            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-          - name: provider-sa
-            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
-          - name: provider-config
-            value: '{{`{{workflow.parameters.provider-config}}`}}'
+          - name: url-encoded-resource-id
+            value: '{{`{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}`}}'
