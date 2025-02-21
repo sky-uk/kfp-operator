@@ -18,7 +18,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 
 	var newPipeline = func() *pipelinesv1.Pipeline {
 		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline(TestProvider))
-		pipeline.Spec.Image = "kfp-operator-stub-provider"
+		pipeline.Spec.Image = "localhost:5000/kfp-operator/kfp-operator-stub-provider" // Needs to match the tag we use to push the image to the minikube registry
 
 		return pipeline
 	}
