@@ -56,6 +56,10 @@ type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] str
 	WorkflowParamsCreator func(R) ([]argo.Parameter, error)
 }
 
+func WorkflowParamsCreatorNoop[R any](_ R) ([]argo.Parameter, error) {
+	return []argo.Parameter{}, nil
+}
+
 func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
 	owner pipelinesv1.Resource,
 ) *metav1.ObjectMeta {

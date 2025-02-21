@@ -21,11 +21,11 @@ const (
 	PipelineFrameworkImageParameterName = "pipeline-framework-image"
 )
 
-type WorkflowError struct {
+type WorkflowParameterError struct {
 	SubError string
 }
 
-func (we *WorkflowError) Error() string {
+func (we *WorkflowParameterError) Error() string {
 	return fmt.Sprintf("error in workflow: [%s]", we.SubError)
 }
 
