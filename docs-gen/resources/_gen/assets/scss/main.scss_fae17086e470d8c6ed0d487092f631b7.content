@@ -21337,6 +21337,14 @@ div.drawioframe {
   [data-bs-theme="dark"] .chroma {
     background-color: var(--td-pre-bg); }
 
+details {
+  cursor: pointer;
+  margin-bottom: 1em; }
+
+summary {
+  font-weight: bold;
+  color: #007acc; }
+
 @media only screen and (prefers-color-scheme: dark) {
   [data-bs-theme="dark"] .td-content pre {
     background-color: transparent;
