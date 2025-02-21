@@ -18,29 +18,29 @@
 <link rel="icon" type="image/png" href="/kfp-operator/favicons/android-192x192.png" sizes="192x192">
 
 <title>Vertex AI | KFP-Operator</title>
-<meta name="description" content="Overview The KFP Operator’s Vertex AI (VAI) Provider Service is a specialized component designed to interface directly with Google Cloud’s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling seamless management and execution of machine learning workflows. It facilitates operations such as pipeline submission, status monitoring, and schedules management.
-Deployment and Usage To deploy the VAI Provider Service:
-Configuration: Set up the service with the necessary configurations, including API endpoints and authentication credentials for the Vertex AI instance.">
+<meta name="description" content="Overview The KFP Operator’s Vertex AI (VAI) Provider Service is included within this project to interface directly with Google Cloud’s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling seamless management and execution of machine learning workflows.
+Note: VAI does not support the experiment resource
+Deployment and Usage Set up the service with the necessary configurations, including API endpoints and authentication credentials for the Vertex AI instance. See the getting started guide.">
 <meta property="og:url" content="http://localhost:1313/kfp-operator/docs/reference/providers/vai/">
   <meta property="og:site_name" content="KFP-Operator">
   <meta property="og:title" content="Vertex AI">
-  <meta property="og:description" content="Overview The KFP Operator’s Vertex AI (VAI) Provider Service is a specialized component designed to interface directly with Google Cloud’s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling seamless management and execution of machine learning workflows. It facilitates operations such as pipeline submission, status monitoring, and schedules management.
-Deployment and Usage To deploy the VAI Provider Service:
-Configuration: Set up the service with the necessary configurations, including API endpoints and authentication credentials for the Vertex AI instance.">
+  <meta property="og:description" content="Overview The KFP Operator’s Vertex AI (VAI) Provider Service is included within this project to interface directly with Google Cloud’s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling seamless management and execution of machine learning workflows.
+Note: VAI does not support the experiment resource
+Deployment and Usage Set up the service with the necessary configurations, including API endpoints and authentication credentials for the Vertex AI instance. See the getting started guide.">
   <meta property="og:locale" content="en_gb">
   <meta property="og:type" content="article">
     <meta property="article:section" content="docs">
 
   <meta itemprop="name" content="Vertex AI">
-  <meta itemprop="description" content="Overview The KFP Operator’s Vertex AI (VAI) Provider Service is a specialized component designed to interface directly with Google Cloud’s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling seamless management and execution of machine learning workflows. It facilitates operations such as pipeline submission, status monitoring, and schedules management.
-Deployment and Usage To deploy the VAI Provider Service:
-Configuration: Set up the service with the necessary configurations, including API endpoints and authentication credentials for the Vertex AI instance.">
+  <meta itemprop="description" content="Overview The KFP Operator’s Vertex AI (VAI) Provider Service is included within this project to interface directly with Google Cloud’s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling seamless management and execution of machine learning workflows.
+Note: VAI does not support the experiment resource
+Deployment and Usage Set up the service with the necessary configurations, including API endpoints and authentication credentials for the Vertex AI instance. See the getting started guide.">
   <meta itemprop="wordCount" content="208">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Vertex AI">
-  <meta name="twitter:description" content="Overview The KFP Operator’s Vertex AI (VAI) Provider Service is a specialized component designed to interface directly with Google Cloud’s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling seamless management and execution of machine learning workflows. It facilitates operations such as pipeline submission, status monitoring, and schedules management.
-Deployment and Usage To deploy the VAI Provider Service:
-Configuration: Set up the service with the necessary configurations, including API endpoints and authentication credentials for the Vertex AI instance.">
+  <meta name="twitter:description" content="Overview The KFP Operator’s Vertex AI (VAI) Provider Service is included within this project to interface directly with Google Cloud’s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling seamless management and execution of machine learning workflows.
+Note: VAI does not support the experiment resource
+Deployment and Usage Set up the service with the necessary configurations, including API endpoints and authentication credentials for the Vertex AI instance. See the getting started guide.">
 <link href="/kfp-operator/scss/main.css" rel="stylesheet">
 <script
   src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -225,11 +225,7 @@ Configuration: Set up the service with the necessary configurations, including A
         <nav id="TableOfContents">
   <ul>
     <li><a href="#overview">Overview</a></li>
-    <li><a href="#deployment-and-usage">Deployment and Usage</a>
-      <ul>
-        <li><a href="#configuration"><strong>Configuration</strong>:</a></li>
-      </ul>
-    </li>
+    <li><a href="#deployment-and-usage">Deployment and Usage</a></li>
     <li><a href="#implementation-details">Implementation Details</a></li>
   </ul>
 </nav>
@@ -262,35 +258,27 @@ Configuration: Set up the service with the necessary configurations, including A
 		
 </header>
 	<h2 id="overview">Overview</h2>
-<p>The KFP Operator&rsquo;s <strong>Vertex AI (VAI) Provider Service</strong> is a specialized component designed to interface directly with
+<p>The KFP Operator&rsquo;s <strong>Vertex AI (VAI) Provider Service</strong> is included within this project to interface directly with
 Google Cloud&rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
-seamless management and execution of machine learning workflows. It facilitates operations such as pipeline submission,
-status monitoring, and schedules management.</p>
+seamless management and execution of machine learning workflows.</p>
 <p><img src="/kfp-operator/master/images/vai.svg" alt="VAI Provider"></p>
+<blockquote>
+<p>Note: VAI does not support the <code>experiment</code> resource</p>
+</blockquote>
 <h2 id="deployment-and-usage">Deployment and Usage</h2>
-<p>To deploy the VAI Provider Service:</p>
-<h3 id="configuration"><strong>Configuration</strong>:</h3>
 <p>Set up the service with the necessary configurations, including API endpoints and authentication
-credentials for the Vertex AI instance.</p>
+credentials for the Vertex AI instance. <a href="../../../getting-started/installation/#providers">See the getting started guide.</a></p>
+<p>The configuration can be managed via the <a href="../../resources/provider/#vertex-ai">provider custom resource</a> installed by the operator.</p>
+<p>In order for eventing to be configured for VAI, some work is required to export logs from Vertex AI to pubsub for the
+provider service to consume. <a href="../../configuration/#gcp-project-setup">Instructions on how to do this can be found here.</a></p>
 <p>For detailed implementation code and further technical insights, refer to the
 <a href="https://github.com/sky-uk/kfp-operator/tree/master/provider-service/vai">VAI Provider Service directory</a> in the
-official repository.</p>
+repository.</p>
 <h2 id="implementation-details">Implementation Details</h2>
-<p>The implementation of the VAI Provider Service is structured to align with the architecture of the KFP Operator,
-ensuring modularity and ease of integration. Key aspects include:</p>
 <ul>
-<li>
-<p><strong>API Client Integration</strong>: Utilizes a client to interact with the Vertex AI API, handling authentication, request
-formatting, and response parsing.</p>
-</li>
-<li>
-<p><strong>Event Handling</strong>: Implements mechanisms to process events related to pipeline runs, such as completion notifications
-and error handling, ensuring that the KFP Operator can respond appropriately to changes in run statuses.</p>
-</li>
-<li>
-<p><strong>Configuration Management</strong>: Supports configurable parameters to adapt to different deployment environments and user
-requirements, such as API endpoints, authentication tokens, and resource quotas.</p>
-</li>
+<li><strong>API</strong>: Implements the <a href="../overview/#api">openapi spec for provider services</a>.</li>
+<li><strong>Event Handling</strong>: The events are sourced from Pubsub where log output from Vertex AI is formatted in such a way to be consumed by the provider service as
+a <code>run completion event</code>. This is then processed and sent to the operators webhook to update the status of the run.</li>
 </ul>
 
 	

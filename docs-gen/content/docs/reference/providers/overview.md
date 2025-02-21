@@ -5,11 +5,10 @@ weight: 1
 ---
 
 The KFP Operator supports multiple pipeline orchestration providers, currently including:
-- **[Vertex AI Integration](../providers/vai)**
-- **[Kubeflow Pipelines Integration](../providers/kfp)**
+- **[Vertex AI Integration](../vai)**
+- **[Kubeflow Pipelines Integration](../kfp)**
 
 You can also integrate the KFP Operator with custom providers by implementing a [custom Provider Service](#using-custom-providers).
-
 
 ## Service
 
@@ -18,14 +17,15 @@ A provider service bridges the KFP Operator and the pipeline orchestration provi
 - **State Reporting**: Reports the state of resources on the provider to the KFP Operator.
 - **Resource Creation**: Creates provider-specific resources, such as runs in Vertex AI.
 
-The KFP Operator will deploy the Provider service as Kubernetes deployment with an accompanying Kubernetes Service based off
-the configuration provided in the provider custom resource. 
+The KFP Operator will deploy the Provider service as Kubernetes deployment with an accompanying Kubernetes Service based
+off the [configuration provided.](#configuration)
 
 ![provider-controller]({{< param "subpath" >}}/master/images/provider-controller.svg)
 
 ### Eventing
 
-The provider service is the first point of contact for [Run Completion Events](../../run-completion) received from the external pipeline orchestration provider. In its current implementation, the KFP Operator supports:
+The provider service is the first point of contact for [Run Completion Events](../../run-completion) received from the 
+external pipeline orchestration provider. In its current implementation, the KFP Operator supports:
 
 - **Vertex AI**: Run completion events are consumed from Pub/Sub.
 - **Kubeflow Pipelines**: Run completion events are consumed from workflows via Argo Events.
@@ -34,9 +34,10 @@ For each provider, the events are processed to ensure accurate status reporting 
 
 ### API
 
-The management of resources for each provider can be handled through an HTTP API. Custom providers can be integrated by implementing a service that adheres to the OpenAPI specification.
+The management of resources for each provider can be handled through an HTTP API. Custom providers can be integrated by 
+implementing a service that adheres to the OpenAPI specification.
 
-{{< spoiler "Viewing the OpenAPI Specification" >}}
+{{< spoiler "View the OpenAPI Specification" >}}
 {{< swaggerui src="master/openapi.yaml" >}}
 {{< /spoiler >}}
 
@@ -69,12 +70,4 @@ To use a custom provider:
 1. **Implement a Provider Service**: Ensure the service adheres to the OpenAPI specification and handles eventing and state reporting appropriately.
 2. **Configure Run Completion Events**: Integrate your provider with an eventing mechanism compatible with the KFP Operator.
 3. **Deploy and Test**: Deploy the custom provider and verify proper communication with the KFP Operator.
-
-## Additional Resources
-
-- [Run Completion Events](../run-completion)
-- [Vertex AI Integration](../providers/vai)
-- [Kubeflow Pipelines Integration](../providers/kfp)
-
-With proper configuration, the KFP Operator can streamline the orchestration and monitoring of pipeline resources across multiple providers or custom implementations.
 
