@@ -12,6 +12,8 @@
   </url><url>
     <loc>http://localhost:1313/kfp-operator/docs/getting-started/overview/</loc>
   </url><url>
+    <loc>http://localhost:1313/kfp-operator/docs/reference/providers/overview/</loc>
+  </url><url>
     <loc>http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/overview/</loc>
   </url><url>
     <loc>http://localhost:1313/kfp-operator/docs/reference/resources/pipeline/</loc>
