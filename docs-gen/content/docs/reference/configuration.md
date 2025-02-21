@@ -30,7 +30,7 @@ The provider configurations are specific to the implementation, these configurat
 
 ### Kubeflow Pipelines
 
-KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/). 
+KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/legacy-v1/installation/standalone-deployment/). 
 Its configuration can be controlled using the [KFP specific parameters within a Provider Resource](../resources/provider/#kubeflow).
 
 ### Vertex AI Pipelines
