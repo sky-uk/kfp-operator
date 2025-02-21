@@ -9,13 +9,28 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"gopkg.in/yaml.v2"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type WorkflowFactory[R pipelinesv1.Resource] interface {
-	ConstructCreationWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error)
-	ConstructUpdateWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error)
-	ConstructDeletionWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error)
+	ConstructCreationWorkflow(
+		provider pipelinesv1.Provider,
+		providerSvc corev1.Service,
+		resource R,
+	) (*argo.Workflow, error)
+
+	ConstructUpdateWorkflow(
+		provider pipelinesv1.Provider,
+		providerSvc corev1.Service,
+		resource R,
+	) (*argo.Workflow, error)
+
+	ConstructDeletionWorkflow(
+		provider pipelinesv1.Provider,
+		providerSvc corev1.Service,
+		resource R,
+	) (*argo.Workflow, error)
 }
 
 type TemplateNameGenerator interface {
@@ -86,6 +101,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
 	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
@@ -115,6 +131,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 			Name:  workflowconstants.ProviderConfigParameterName,
 			Value: argo.AnyStringPtr(string(providerConf)),
 		},
+		{
+			Name:  workflowconstants.ProviderServiceNameParameterName,
+			Value: argo.AnyStringPtr(providerSvc.Name),
+		},
 	}
 
 	additionalParams, err := workflows.WorkflowParamsCreator(resource)
@@ -138,6 +158,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(
 	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
@@ -170,6 +191,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 			Name:  workflowconstants.ProviderConfigParameterName,
 			Value: argo.AnyStringPtr(string(providerConf)),
 		},
+		{
+			Name:  workflowconstants.ProviderServiceNameParameterName,
+			Value: argo.AnyStringPtr(providerSvc.Name),
+		},
 	}
 
 	additionalParams, err := workflows.WorkflowParamsCreator(resource)
@@ -193,6 +218,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(
 	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
 	providerConf, err := json.Marshal(provider.Spec)
@@ -220,6 +246,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 					{
 						Name:  workflowconstants.ProviderConfigParameterName,
 						Value: argo.AnyStringPtr(string(providerConf)),
+					},
+					{
+						Name:  workflowconstants.ProviderServiceNameParameterName,
+						Value: argo.AnyStringPtr(providerSvc.Name),
 					},
 				},
 			},

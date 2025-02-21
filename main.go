@@ -113,27 +113,50 @@ func main() {
 		WorkflowRepository: workflowRepository,
 	}
 
-	if err := pipelinescontrollers.NewPipelineReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err := pipelinescontrollers.NewPipelineReconciler(
+		ec,
+		workflowRepository,
+		ctrlConfig.Spec,
+		mgr.GetScheme(),
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewRunReconciler(
+		ec,
+		workflowRepository,
+		ctrlConfig.Spec,
+		mgr.GetScheme(),
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Run")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunScheduleReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewRunScheduleReconciler(
+		ec,
+		workflowRepository,
+		ctrlConfig.Spec,
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunSchedule")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewExperimentReconciler(ec, workflowRepository, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewExperimentReconciler(
+		ec,
+		workflowRepository,
+		ctrlConfig.Spec,
+		mgr.GetScheme(),
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunConfigurationReconciler(ec, scheme, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
+	if err = pipelinescontrollers.NewRunConfigurationReconciler(
+		ec,
+		scheme,
+		ctrlConfig.Spec,
+	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
 		os.Exit(1)
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -25,12 +26,14 @@ type RunReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.Run]
 	DependingOnRunConfigurationReconciler[*pipelinesv1.Run]
 	ResourceReconciler[*pipelinesv1.Run]
+	ServiceManager ServiceResourceManager
 }
 
 func NewRunReconciler(
 	ec K8sExecutionContext,
 	workflowRepository WorkflowRepository,
 	config config.KfpControllerConfigSpec,
+	scheme *runtime.Scheme,
 ) *RunReconciler {
 	return &RunReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Run]{
@@ -47,6 +50,11 @@ func NewRunReconciler(
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.Run]{
 			EC:     ec,
 			Config: config,
+		},
+		ServiceManager: ServiceManager{
+			client: &ec.Client,
+			scheme: scheme,
+			config: &config,
 		},
 	}
 }
@@ -93,7 +101,12 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, nil
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, run)
+	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, run)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, run); err != nil {

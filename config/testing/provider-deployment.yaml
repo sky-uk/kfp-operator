@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: provider-test
+  labels:
+    app: provider-test
+  namespace: argo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: provider-test
+  template:
+    metadata:
+      labels:
+        app: provider-test
+    spec:
+      containers:
+      - name: provider-service
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: OPERATORWEBHOOK
+          value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
+        - name: SERVER_PORT
+          value: "8080"
+        - name: PROVIDERNAME
+          value: test
+        image: kfp-operator-stub-provider-service
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 300Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+      securityContext:
+        runAsNonRoot: true

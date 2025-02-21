@@ -15,12 +15,14 @@ import (
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type StateTransitionTestCase struct {
 	workflowFactory *TestWorkflowFactory
 	Experiment      *pipelinesv1.TestResource
+	Service         *corev1.Service
 	SystemStatus    StubbedWorkflows
 	Commands        []Command
 }
@@ -32,6 +34,7 @@ type TestWorkflowFactory struct {
 
 func (f *TestWorkflowFactory) ConstructCreationWorkflow(
 	provider pipelinesv1.Provider,
+	_ corev1.Service,
 	_ *pipelinesv1.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
@@ -43,6 +46,7 @@ func (f *TestWorkflowFactory) ConstructCreationWorkflow(
 
 func (f *TestWorkflowFactory) ConstructUpdateWorkflow(
 	provider pipelinesv1.Provider,
+	_ corev1.Service,
 	_ *pipelinesv1.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
@@ -54,6 +58,7 @@ func (f *TestWorkflowFactory) ConstructUpdateWorkflow(
 
 func (f *TestWorkflowFactory) ConstructDeletionWorkflow(
 	provider pipelinesv1.Provider,
+	_ corev1.Service,
 	_ *pipelinesv1.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
@@ -141,17 +146,29 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(
 }
 
 func (st StateTransitionTestCase) IssuesCreationWorkflow() StateTransitionTestCase {
-	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
+	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(
+		*pipelinesv1.RandomProvider(),
+		*st.Service,
+		st.Experiment,
+	)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st StateTransitionTestCase) IssuesUpdateWorkflow() StateTransitionTestCase {
-	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
+	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(
+		*pipelinesv1.RandomProvider(),
+		*st.Service,
+		st.Experiment,
+	)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st StateTransitionTestCase) IssuesDeletionWorkflow() StateTransitionTestCase {
-	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
+	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(
+		*pipelinesv1.RandomProvider(),
+		*st.Service,
+		st.Experiment,
+	)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
@@ -237,6 +254,7 @@ var _ = Describe("State handler", func() {
 		return StateTransitionTestCase{
 			workflowFactory: &TestWorkflowFactory{}, // TODO: mock workflowFactory
 			Experiment:      resource,
+			Service:         &corev1.Service{},
 			Commands:        []Command{},
 		}
 	}
@@ -246,7 +264,7 @@ var _ = Describe("State handler", func() {
 			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    st.workflowFactory,
 		}
-		commands := stateHandler.stateTransition(context.Background(), *provider, st.Experiment)
+		commands := stateHandler.stateTransition(context.Background(), *provider, *st.Service, st.Experiment)
 		Expect(commands).To(Equal(st.Commands))
 		if st.workflowFactory.CalledWithProvider != nil {
 			Expect(st.workflowFactory.CalledWithProvider).To(BeComparableTo(provider))

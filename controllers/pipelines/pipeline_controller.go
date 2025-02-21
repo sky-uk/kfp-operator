@@ -8,6 +8,7 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -22,12 +23,14 @@ var (
 type PipelineReconciler struct {
 	StateHandler[*pipelinesv1.Pipeline]
 	ResourceReconciler[*pipelinesv1.Pipeline]
+	ServiceManager ServiceResourceManager
 }
 
 func NewPipelineReconciler(
 	ec K8sExecutionContext,
 	workflowRepository WorkflowRepository,
 	config config.KfpControllerConfigSpec,
+	scheme *runtime.Scheme,
 ) *PipelineReconciler {
 	return &PipelineReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Pipeline]{
@@ -37,6 +40,11 @@ func NewPipelineReconciler(
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.Pipeline]{
 			EC:     ec,
 			Config: config,
+		},
+		ServiceManager: ServiceManager{
+			client: &ec.Client,
+			scheme: scheme,
+			config: &config,
 		},
 	}
 }
@@ -65,7 +73,12 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, pipeline)
+	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, pipeline)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, pipeline); err != nil {

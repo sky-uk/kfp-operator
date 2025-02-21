@@ -17,6 +17,7 @@ import (
 type RunScheduleReconciler struct {
 	StateHandler[*pipelinesv1.RunSchedule]
 	ResourceReconciler[*pipelinesv1.RunSchedule]
+	ServiceManager ServiceResourceManager
 }
 
 func NewRunScheduleReconciler(
@@ -60,7 +61,12 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, runSchedule)
+	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, runSchedule)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, runSchedule); err != nil {

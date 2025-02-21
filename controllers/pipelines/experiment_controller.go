@@ -7,6 +7,7 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -18,12 +19,14 @@ import (
 type ExperimentReconciler struct {
 	StateHandler[*pipelinesv1.Experiment]
 	ResourceReconciler[*pipelinesv1.Experiment]
+	ServiceManager ServiceResourceManager
 }
 
 func NewExperimentReconciler(
 	ec K8sExecutionContext,
 	workflowRepository WorkflowRepository,
 	config config.KfpControllerConfigSpec,
+	scheme *runtime.Scheme,
 ) *ExperimentReconciler {
 	return &ExperimentReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Experiment]{
@@ -33,6 +36,11 @@ func NewExperimentReconciler(
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.Experiment]{
 			EC:     ec,
 			Config: config,
+		},
+		ServiceManager: ServiceManager{
+			client: &ec.Client,
+			scheme: scheme,
+			config: &config,
 		},
 	}
 }
@@ -60,7 +68,12 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, experiment)
+	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, experiment)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, experiment); err != nil {
