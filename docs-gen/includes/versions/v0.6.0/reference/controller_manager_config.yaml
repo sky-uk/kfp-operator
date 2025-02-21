@@ -1,0 +1,20 @@
+apiVersion: config.kubeflow.org/v1alpha5
+kind: KfpControllerConfig
+controller:
+  health:
+    healthProbeBindAddress: :8081
+  metrics:
+    bindAddress: :8080
+  webhook:
+    port: 9443
+  leaderElection:
+    leaderElect: true
+    resourceName: kfp-operator-lock
+spec:
+  defaultBeamArgs:
+    - name: project
+      value: ${DATAFLOW_PROJECT}
+  multiversion: true
+  pipelineStorage: ${PIPELINE_STORAGE}
+  workflowNamespace: kfp-operator-system
+  workflowTemplatePrefix: kfp-operator-

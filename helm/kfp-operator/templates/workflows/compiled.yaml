@@ -54,16 +54,6 @@ spec:
       mirrorVolumeMounts: true
       name: compile
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
-  - name: compile-framework
-    inputs:
-      parameters:
-      - name: resource-image
-      - name: provider-config
-      artifacts:
-      - name: resource-definition
-        raw:
-          data: |
-            {{`{{workflow.parameters.resource-definition}}`}}
   - name: combine-files
     inputs:
       artifacts:
@@ -250,7 +240,7 @@ spec:
             value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
     - - name: combine-files
         templateRef:
-          name: kfp-operator-compiled-workflow-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: combine-files
         arguments:
           artifacts:
@@ -336,7 +326,7 @@ spec:
             value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
     - - name: combine-files
         templateRef:
-          name: kfp-operator-compiled-workflow-steps
+          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: combine-files
         arguments:
           artifacts:

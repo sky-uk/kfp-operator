@@ -38,9 +38,14 @@
  &lt;td style="text-align: left">Configuration of the service for the run completion feed back to KFP Operator&lt;/td>
  &lt;td style="text-align: left">See &lt;a href="#run-completion-feed-configuration">here&lt;/a>&lt;/td>
  &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>frameworks&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Map of pipeline framework to docker image. Pipeline framework to match value in &lt;a href="../resources/pipeline">Pipeline resource&lt;/a>&lt;/td>
+ &lt;td style="text-align: left">&lt;code>default: kfp-operator-argo-kfp-compiler:latest&lt;/code>&lt;/td>
+ &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p></description></item><item><title>Configuration</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/configuration/</guid><description>&lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
+&lt;p>An example configuration:&lt;/p></description></item><item><title>Configuration</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/configuration/</guid><description>&lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
 &lt;table>
  &lt;thead>
  &lt;tr>
@@ -82,7 +87,7 @@
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/versions/v0.6.0/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>&lt;p>The Kubeflow Pipelines Operator (KFP Operator) provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
+&lt;p>An example configuration:&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>&lt;p>The Kubeflow Pipelines Operator (KFP Operator) provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
 A provider is a runtime environment for managing and executing ML pipelines and related resources.&lt;/p>
 &lt;h3 id="why-kfp-operator">Why KFP Operator&lt;/h3>
 &lt;p>We started this project to promote the best engineering practices in the Machine Learning process, while reducing the operational overhead associated with deploying, running and maintaining training pipelines. We wanted to move away from a manual, opaque, copy-and-paste style deployment and closer to a declarative, traceable, and self-serve approach.&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/overview/</guid><description>&lt;p>The Kubeflow Pipelines Operator (KFP Operator) provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
@@ -135,7 +140,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.framework&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Optional. Sets a specific compiler image for the pipeline. For example, using &lt;code>framework: tfx&lt;/code> would mean the pipeline would be compiled with the &lt;code>kfp-operator-**tfx**-compiler:latest&lt;/code> image. If framework is not set then the default configured at install time is used, e.g. &lt;code>kfp-operator-argo-kfp-compiler:latest&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Optional. Sets a specific pipeline framework to use. If set the pipeline framework image to use is looked up &lt;a href="../../configuration">here&lt;/a> else the &lt;code>default&lt;/code> entry is used.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>

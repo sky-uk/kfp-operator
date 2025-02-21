@@ -45,7 +45,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.framework&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Optional. Sets a specific compiler image for the pipeline. For example, using &lt;code>framework: tfx&lt;/code> would mean the pipeline would be compiled with the &lt;code>kfp-operator-**tfx**-compiler:latest&lt;/code> image. If framework is not set then the default configured at install time is used, e.g. &lt;code>kfp-operator-argo-kfp-compiler:latest&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Optional. Sets a specific pipeline framework to use. If set the pipeline framework image to use is looked up &lt;a href="../../configuration">here&lt;/a> else the &lt;code>default&lt;/code> entry is used.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
