@@ -125,7 +125,7 @@ dyff: ## Download dyff locally if necessary.
 
 YQ = $(PROJECT_DIR)/bin/yq
 yq: ## Download yq locally if necessary.
-	$(call go-install,$(YQ),github.com/mikefarah/yq/v4@v4.13.2)
+	$(call go-install,$(YQ),github.com/mikefarah/yq/v4@v4.45.1)
 
 HELM := $(PROJECT_DIR)/bin/helm
 # Can't be named helm because it's already a directory
@@ -177,7 +177,7 @@ $(NEWLINE)
 endef
 endif
 
-INDEXED_YAML := $(YQ) e '{([.metadata.name, .kind] | join("-")): .}'
+INDEXED_YAML := $(YQ) e --no-doc '{([.metadata.name, .kind] | join("-")): .}'
 helm-test-operator: manifests helm-cmd kustomize yq dyff ## Test operator helm chart against kustomize
 	$(eval TMP := $(shell mktemp -d))
 
@@ -199,7 +199,7 @@ docker-build-argo: ## Build argo docker images
 	$(MAKE) -C argo/providers docker-build
 
 docker-push-argo: ## Publish argo docker images
-	$(MAKE) -C argo/kfp-compiler docker-push
+	$(MAKE) -C argo/kfp-compiler docker-push-all
 	$(MAKE) -C argo/providers docker-push
 
 docker-build-triggers: ## Build trigger docker images

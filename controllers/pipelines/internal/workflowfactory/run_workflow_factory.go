@@ -77,5 +77,6 @@ func RunWorkflowFactory(
 		}.runDefinition,
 		Config:                config,
 		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
+		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelinesv1.Run],
 	}
 }

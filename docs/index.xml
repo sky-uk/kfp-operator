@@ -103,6 +103,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">env&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#ae81ff">100&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">framework&lt;/span>: &lt;span style="color:#ae81ff">tfx&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
  &lt;thead>
@@ -112,6 +113,10 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Specify which provider to use in create/update workflows.&lt;/td>
+ &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
  &lt;td style="text-align: left">Container image containing TFX component definitions.&lt;/td>
@@ -128,10 +133,14 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;td style="text-align: left">&lt;code>spec.beamArgs&lt;/code>&lt;/td>
  &lt;td style="text-align: left">List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline.&lt;/td>
  &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.framework&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Optional. Sets a specific compiler image for the pipeline. For example, using &lt;code>framework: tfx&lt;/code> would mean the pipeline would be compiled with the &lt;code>kfp-operator-**tfx**-compiler:latest&lt;/code> image. If framework is not set then the default configured at install time is used, e.g. &lt;code>kfp-operator-argo-kfp-compiler:latest&lt;/code>&lt;/td>
+ &lt;/tr>
  &lt;/tbody>
 &lt;/table>
 &lt;h2 id="versioning">Versioning&lt;/h2>
-&lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>Pipeline</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</guid><description>&lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
+&lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image and its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>Pipeline</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</guid><description>&lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
 Pipelines can be created, updated and deleted via this resource.
 The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
 It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p>
