@@ -26,7 +26,7 @@ type WorkflowParameterError struct {
 }
 
 func (we *WorkflowParameterError) Error() string {
-	return fmt.Sprintf("error in workflow: [%s]", we.SubError)
+	return fmt.Sprintf("error in workflow: %s", we.SubError)
 }
 
 func CommonWorkflowLabels(owner pipelinesv1.Resource) map[string]string {

@@ -39,7 +39,7 @@ func (ppc PipelineParamsCreator) additionalParams(pipeline *pipelinesv1.Pipeline
 	}
 	frameworkImage, found := ppc.Config.Frameworks[requestedFramework]
 	if !found {
-		return nil, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("%s framework not found", requestedFramework)}
+		return nil, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not found", requestedFramework)}
 	}
 
 	return []argo.Parameter{

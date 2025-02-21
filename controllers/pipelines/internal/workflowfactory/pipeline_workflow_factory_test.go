@@ -83,12 +83,6 @@ var _ = Describe("PipelineParamsCreator", func() {
 
 	Context("additionalParams", func() {
 
-		// config := config.KfpControllerConfigSpec{
-		// 	Frameworks: map[string]string{
-		// 		"tfx":     "registry/tfx",
-		// 		"kfp_sdk": "registry/kfp_sdk",
-		// 	},
-		// }
 		When("the Pipeline resource specifies a framework", func() {
 			It("returns additional pipeline framework image parameter for the framework requested", func() {
 				expectedImage := "registry/pipelineFramework"
@@ -117,7 +111,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 				creator := PipelineParamsCreator{Config: config}
 				_, err := creator.additionalParams(pipeline)
 
-				Expect(err.Error()).To(Equal("error in workflow: [pipelineFramework framework not found]"))
+				Expect(err.Error()).To(Equal("error in workflow: [pipelineFramework] framework not found"))
 			})
 		})
 
@@ -149,7 +143,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 				pipeline.Spec.Framework = ""
 				_, err := creator.additionalParams(pipeline)
 
-				Expect(err.Error()).To(Equal("error in workflow: [default framework not found]"))
+				Expect(err.Error()).To(Equal("error in workflow: [default] framework not found"))
 			})
 		})
 	})
