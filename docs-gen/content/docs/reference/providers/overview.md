@@ -1,5 +1,6 @@
 ---
 title: "Overview"
+type: swagger
 weight: 1
 ---
 
@@ -52,7 +53,6 @@ Configuration of a provider service is managed through 2 separate configuration 
 
   The operator configuration is designed to provide the configuration for the underlying provider service deployment, ie, the ports to expose, the cpu / memory allocation.
   For more information see the [operator configuration](../../configuration).
-
 
 
 ## CLI
