@@ -7698,12 +7698,12 @@ spec:
                   servicePort:
                     type: integer
                 type: object
-              frameworks:
+              multiversion:
+                type: boolean
+              pipelineFrameworkImages:
                 additionalProperties:
                   type: string
                 type: object
-              multiversion:
-                type: boolean
               runCompletionFeed:
                 properties:
                   endpoints:

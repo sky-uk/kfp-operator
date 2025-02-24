@@ -27,7 +27,7 @@ type KfpControllerConfigSpec struct {
 	DefaultExperiment       string                `json:"defaultExperiment,omitempty"`
 	RunCompletionTTL        *metav1.Duration      `json:"runCompletionTTL,omitempty"`
 	RunCompletionFeed       ServiceConfiguration  `json:"runCompletionFeed,omitempty"`
-	PipelineFrameworkImages map[string]string     `json:"frameworks,omitempty"`
+	PipelineFrameworkImages map[string]string     `json:"pipelineFrameworkImages,omitempty"`
 }
 
 type DefaultProviderValues struct {

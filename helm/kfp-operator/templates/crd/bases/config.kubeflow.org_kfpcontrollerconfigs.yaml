@@ -7699,7 +7699,7 @@ spec:
                   servicePort:
                     type: integer
                 type: object
-              frameworks:
+              pipelineFrameworkImages:
                 additionalProperties:
                   type: string
                 type: object
