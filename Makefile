@@ -68,7 +68,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 
 integration-test-down: ## Tear down the minikube cluster
 	(cat config/testing/pids | xargs kill) || true
-	minikube stop -p kfp-operator-tests
+	minikube delete -p kfp-operator-tests
 
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
