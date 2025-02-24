@@ -97,7 +97,7 @@ var _ = BeforeSuite(func() {
 		WorkflowNamespace: "default",
 		DefaultProvider:   apis.RandomLowercaseString(),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
-		Frameworks: map[string]string{
+		PipelineFrameworkImages: map[string]string{
 			"default": "default-compiler",
 		},
 	}

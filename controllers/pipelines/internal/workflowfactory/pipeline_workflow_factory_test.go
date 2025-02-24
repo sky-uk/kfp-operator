@@ -85,7 +85,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 			It("returns additional pipeline framework image parameter for the framework requested", func() {
 				expectedImage := "registry/pipelineFramework"
 				config := config.KfpControllerConfigSpec{
-					Frameworks: map[string]string{
+					PipelineFrameworkImages: map[string]string{
 						"pipelineFramework": expectedImage,
 					},
 				}
@@ -102,7 +102,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 
 			It("returns an error if the requested framework is not found", func() {
 				config := config.KfpControllerConfigSpec{
-					Frameworks: map[string]string{
+					PipelineFrameworkImages: map[string]string{
 						"somethingElse": "something/else",
 					},
 				}
@@ -117,7 +117,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 			It("returns additional pipeline framework image parameter for the default framework", func() {
 				expectedImage := "registry/default"
 				config := config.KfpControllerConfigSpec{
-					Frameworks: map[string]string{
+					PipelineFrameworkImages: map[string]string{
 						"default": expectedImage,
 					},
 				}
@@ -135,7 +135,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 
 			It("returns an error if no default framework is set", func() {
 				config := config.KfpControllerConfigSpec{
-					Frameworks: map[string]string{},
+					PipelineFrameworkImages: map[string]string{},
 				}
 				creator := PipelineParamsCreator{Config: config}
 				pipeline.Spec.Framework = ""

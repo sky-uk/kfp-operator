@@ -84,8 +84,8 @@ func (in *KfpControllerConfigSpec) DeepCopyInto(out *KfpControllerConfigSpec) {
 		**out = **in
 	}
 	in.RunCompletionFeed.DeepCopyInto(&out.RunCompletionFeed)
-	if in.Frameworks != nil {
-		in, out := &in.Frameworks, &out.Frameworks
+	if in.PipelineFrameworkImages != nil {
+		in, out := &in.PipelineFrameworkImages, &out.PipelineFrameworkImages
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val

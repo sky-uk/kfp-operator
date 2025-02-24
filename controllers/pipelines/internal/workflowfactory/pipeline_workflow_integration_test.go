@@ -14,7 +14,7 @@ var _ = Context("Resource Workflows", Serial, func() {
 		DefaultProvider:        "not-used",
 		WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 		WorkflowNamespace:      "argo",
-		Frameworks: map[string]string{
+		PipelineFrameworkImages: map[string]string{
 			"default": "kfp-operator-stub-provider",
 		},
 	})
