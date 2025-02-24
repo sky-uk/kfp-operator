@@ -50,7 +50,7 @@ decoupled-test: manifests generate ## Run decoupled acceptance tests
 
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
 integration-test-up: ## Spin up a minikube cluster for integration tests
-	minikube start -p kfp-operator-tests
+	minikube start -p kfp-operator-tests --registry-mirror="https://mirror.gcr.io"
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
