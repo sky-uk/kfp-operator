@@ -149,9 +149,9 @@ func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Pro
 
 func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
-	newExperimentVersion := resource.ComputeVersion()
+	newResourceVersion := resource.ComputeVersion()
 
-	if resource.GetStatus().Version == newExperimentVersion {
+	if resource.GetStatus().Version == newResourceVersion {
 		logger.V(2).Info("resource version has not changed")
 		return []Command{}
 	}
@@ -167,11 +167,13 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipe
 		if err != nil {
 			failureMessage := workflowconstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
-
+			if wpErr, ok := err.(*workflowconstants.WorkflowParameterError); ok {
+				failureMessage = wpErr.Error()
+			}
 			return []Command{
 				*From(resource.GetStatus()).
 					WithSynchronizationState(apis.Failed).
-					WithVersion(newExperimentVersion).
+					WithVersion(newResourceVersion).
 					WithMessage(failureMessage),
 			}
 		}
@@ -184,11 +186,13 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipe
 		if err != nil {
 			failureMessage := workflowconstants.ConstructionFailedError
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
-
+			if wpErr, ok := err.(*workflowconstants.WorkflowParameterError); ok {
+				failureMessage = wpErr.Error()
+			}
 			return []Command{
 				*From(resource.GetStatus()).
 					WithSynchronizationState(apis.Failed).
-					WithVersion(newExperimentVersion).
+					WithVersion(newResourceVersion).
 					WithMessage(failureMessage),
 			}
 		}
@@ -199,7 +203,7 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipe
 	return []Command{
 		*From(resource.GetStatus()).
 			WithSynchronizationState(targetState).
-			WithVersion(newExperimentVersion),
+			WithVersion(newResourceVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }

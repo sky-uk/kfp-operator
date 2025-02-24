@@ -19,8 +19,8 @@ spec:
     script:
       command:
       - ash
-      image: mikefarah/yq:4.27.5
-      source: yq e '.{{`{{inputs.parameters.field}}`}}' '/provider-config.json'
+      image: mikefarah/yq:4.45.1
+      source: yq e -r '.{{`{{inputs.parameters.field}}`}}' '/provider-config.json'
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
@@ -35,8 +35,8 @@ spec:
     script:
       command:
       - ash
-      image: mikefarah/yq:4.27.5
-      source: yq e '.image' /resource-definition.yaml
+      image: mikefarah/yq:4.45.1
+      source: yq e -r '.image' /resource-definition.yaml
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}

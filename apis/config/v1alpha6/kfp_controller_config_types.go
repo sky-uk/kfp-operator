@@ -19,14 +19,15 @@ type KfpControllerConfig struct {
 }
 
 type KfpControllerConfigSpec struct {
-	DefaultProvider        string                `json:"defaultProvider,omitempty"`
-	DefaultProviderValues  DefaultProviderValues `json:"defaultProviderValues,omitempty"`
-	WorkflowTemplatePrefix string                `json:"workflowTemplatePrefix,omitempty"`
-	WorkflowNamespace      string                `json:"workflowNamespace,omitempty"`
-	Multiversion           bool                  `json:"multiversion,omitempty"`
-	DefaultExperiment      string                `json:"defaultExperiment,omitempty"`
-	RunCompletionTTL       *metav1.Duration      `json:"runCompletionTTL,omitempty"`
-	RunCompletionFeed      ServiceConfiguration  `json:"runCompletionFeed,omitempty"`
+	DefaultProvider         string                `json:"defaultProvider,omitempty"`
+	DefaultProviderValues   DefaultProviderValues `json:"defaultProviderValues,omitempty"`
+	WorkflowTemplatePrefix  string                `json:"workflowTemplatePrefix,omitempty"`
+	WorkflowNamespace       string                `json:"workflowNamespace,omitempty"`
+	Multiversion            bool                  `json:"multiversion,omitempty"`
+	DefaultExperiment       string                `json:"defaultExperiment,omitempty"`
+	RunCompletionTTL        *metav1.Duration      `json:"runCompletionTTL,omitempty"`
+	RunCompletionFeed       ServiceConfiguration  `json:"runCompletionFeed,omitempty"`
+	PipelineFrameworkImages map[string]string     `json:"pipelineFrameworkImages,omitempty"`
 }
 
 type DefaultProviderValues struct {

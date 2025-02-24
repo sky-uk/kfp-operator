@@ -14,7 +14,8 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | `runCompletionTTL`  | Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs) | `10m`                                          |
 | `runCompletionFeed` | Configuration of the service for the run completion feed back to KFP Operator                                                                                                                                 | See [here](#run-completion-feed-configuration) |
 
-An example can be found [here](https://github.com/sky-uk/kfp-operator/blob/versions/v0.6.0/config/manager/controller_manager_config.yaml).
+An example configuration:
+{{% readfile file="/includes/versions/v0.6.0/reference/controller_manager_config.yaml" code="true" lang="yaml"%}}
 
 ## Run Completion Feed Configuration
 | Parameter name                | Description                                                                            | Example                                                                                    |

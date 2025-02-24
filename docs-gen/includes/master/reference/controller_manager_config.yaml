@@ -1,0 +1,55 @@
+apiVersion: config.kubeflow.org/v1alpha6
+kind: KfpControllerConfig
+controller:
+  health:
+    healthProbeBindAddress: :8081
+  metrics:
+    bindAddress: :8080
+  webhook:
+    port: 9443
+  leaderElection:
+    leaderElect: true
+    resourceName: kfp-operator-lock
+spec:
+  multiversion: true
+  workflowNamespace: kfp-operator-system
+  workflowTemplatePrefix: kfp-operator-
+  frameworks:
+    default: kfp-operator-argo-kfp-compiler:latest
+  runCompletionFeed:
+    port: 8082
+    endpoints: []
+  defaultProviderValues:
+    replicas: 1
+    serviceContainerName: provider-service
+    servicePort: 8080
+    podTemplateSpec:
+      spec:
+        volumes: []
+        securityContext:
+          runAsNonRoot: true
+        containers:
+          - name: provider-service
+            ports:
+              - containerPort: 8080
+                name: http
+                protocol: TCP
+            volumeMounts: []
+            securityContext:
+              allowPrivilegeEscalation: false
+            resources:
+              limits:
+                cpu: 500m
+                memory: 256Mi
+              requests:
+                cpu: 250m
+                memory: 128Mi
+            env:
+              - name: POD_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+              - name: OPERATORWEBHOOK
+                value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
+              - name: SERVER_PORT
+                value: '8080'
