@@ -1,46 +1,167 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Resources on KFP-Operator</title>
-    <link>http://localhost:1313/kfp-operator/docs/reference/resources/</link>
-    <description>Recent content in Resources on KFP-Operator</description>
-    <generator>Hugo</generator>
-    <language>en-gb</language>
-    <atom:link href="http://localhost:1313/kfp-operator/docs/reference/resources/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Pipeline</title>
-      <link>http://localhost:1313/kfp-operator/docs/reference/resources/pipeline/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/kfp-operator/docs/reference/resources/pipeline/</guid>
-      <description>&lt;p&gt;The Pipeline resource represents the lifecycle of ML pipelines.&#xA;Pipelines can be created, updated and deleted via this resource.&#xA;The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.&#xA;It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;pipelines.kubeflow.org/v1alpha6&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Pipeline&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-pipeline&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;provider&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;kfp&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;image&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;kfp-quickstart:v1&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;tfxComponents&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;base_pipeline.create_components&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;env&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TRAINING_RUNS&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;value&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;100&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;fields&#34;&gt;Fields&lt;/h2&gt;&#xA;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th style=&#34;text-align: left&#34;&gt;Name&lt;/th&gt;&#xA;          &lt;th style=&#34;text-align: left&#34;&gt;Description&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.provider&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;The name of the associated &lt;a href=&#34;../provider/&#34;&gt;Provider resource&lt;/a&gt;.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.image&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;Container image containing TFX component definitions.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.tfxComponents&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;Fully qualified name of the Python function creating pipeline components.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.env&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;List of named objects. These will be provided to the &lt;code&gt;tfxComponents&lt;/code&gt; function as environment variables.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.beamArgs&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;List of named objects. These will be provided as &lt;code&gt;beam_pipeline_args&lt;/code&gt; when compiling the pipeline.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;&#xA;&lt;h2 id=&#34;versioning&#34;&gt;Versioning&lt;/h2&gt;&#xA;&lt;p&gt;Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this, for example: &lt;code&gt;v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code&gt;&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>RunConfiguration</title>
-      <link>http://localhost:1313/kfp-operator/docs/reference/resources/runconfiguration/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/kfp-operator/docs/reference/resources/runconfiguration/</guid>
-      <description>&lt;p&gt;The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).&#xA;Pipeline training runs can be configured using this resource as follows:&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;pipelines.kubeflow.org/v1alpha6&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;RunConfiguration&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-pipeline-recurring-run&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;run&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;provider&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;kfp&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;pipeline&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-pipeline:v1-abcdef&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;experimentName&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-experiment&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;runtimeParameters&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TRAINING_RUNS&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;value&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;100&amp;#39;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;artifacts&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;serving-model&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;path&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;triggers&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;schedules&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#f92672&#34;&gt;cronExpression&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;0 * * * *&amp;#39;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;startTime&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;2024-01-01T00:00:00Z&amp;#34;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;endTime&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;2024-12-31T23:59:59Z&amp;#34;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;onChange&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#ae81ff&#34;&gt;pipeline&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;runConfigurations&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    - &lt;span style=&#34;color:#ae81ff&#34;&gt;dependency-rc&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A Run Configuration can have one of more triggers that determine when the next training run will be started.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Run</title>
-      <link>http://localhost:1313/kfp-operator/docs/reference/resources/run/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/kfp-operator/docs/reference/resources/run/</guid>
-      <description>&lt;p&gt;The Run resource represents the lifecycle of a one-off run.&#xA;One-off pipeline training runs can be configured using this resource as follows:&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;pipelines.kubeflow.org/v1alpha6&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Run&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;generateName&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-pipeline-run-&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;provider&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;kfp&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;pipeline&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-pipeline:v1-abcdef&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;experimentName&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-experiment&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;runtimeParameters&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;TRAINING_RUNS&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;value&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;100&amp;#39;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;EXAMPLES&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;valueFrom&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;runConfigurationRef&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-pipeline-example-generator-runconfiguration&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#f92672&#34;&gt;outputArtifact&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;examples&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;artifacts&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  - &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;serving-model&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;path&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Note the usage of &lt;code&gt;metadata.generateName&lt;/code&gt; which tells Kubernetes to generate a new name based on the given prefix for every new resource.&lt;/p&gt;&#xA;&lt;h2 id=&#34;fields&#34;&gt;Fields&lt;/h2&gt;&#xA;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th style=&#34;text-align: left&#34;&gt;Name&lt;/th&gt;&#xA;          &lt;th style=&#34;text-align: left&#34;&gt;Description&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.provider&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;The name of the associated &lt;a href=&#34;../provider/&#34;&gt;Provider resource&lt;/a&gt;.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.pipeline&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;The &lt;a href=&#34;../pipeline/#identifier&#34;&gt;identifier&lt;/a&gt; of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.experimentName&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;The name of the corresponding experiment resource (optional - the &lt;code&gt;Default&lt;/code&gt; Experiment as defined in the &lt;a href=&#34;README.md#configuration&#34;&gt;Installation and Configuration section of the documentation&lt;/a&gt; will be used if no &lt;code&gt;experimentName&lt;/code&gt; is provided).&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.runtimeParameters[]&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;Runtime parameters for the pipeline training run. See below for more information.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.run.artifacts[]&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;&#xA;&lt;h3 id=&#34;runtime-parameter-definition&#34;&gt;Runtime Parameter Definition&lt;/h3&gt;&#xA;&lt;p&gt;A pipeline run can be parameterised using RunTimeParameters.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Experiment</title>
-      <link>http://localhost:1313/kfp-operator/docs/reference/resources/experiment/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/kfp-operator/docs/reference/resources/experiment/</guid>
-      <description>&lt;p&gt;The Experiment resource represents the lifecycle of Experiments,&#xA;and can be configured as follows:&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;apiVersion&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;pipelines.kubeflow.org/v1alpha6&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;kind&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;Experiment&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;metadata&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;name&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;penguin-experiment&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;spec&lt;/span&gt;:&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;provider&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;kfp&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#f92672&#34;&gt;description&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;An experiment for the penguin pipeline&amp;#39;&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;fields&#34;&gt;Fields&lt;/h2&gt;&#xA;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th style=&#34;text-align: left&#34;&gt;Name&lt;/th&gt;&#xA;          &lt;th style=&#34;text-align: left&#34;&gt;Description&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.provider&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;The name of the associated &lt;a href=&#34;../provider/&#34;&gt;Provider resource&lt;/a&gt;.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;&lt;code&gt;spec.description&lt;/code&gt;&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: left&#34;&gt;The description of the experiment.&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;</description>
-    </item>
-    <item>
-      <title>Provider</title>
-      <link>http://localhost:1313/kfp-operator/docs/reference/resources/provider/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/kfp-operator/docs/reference/resources/provider/</guid>
-      <description>&lt;p&gt;The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.&#xA;e.g Kubeflow Pipelines or the Vertex AI Platform.&#xA;Providers configuration can be set using this resource and permissions for access can be configured via service accounts.&lt;/p&gt;&#xA;&lt;blockquote&gt;&#xA;&lt;p&gt;Note: changing the provider of a resource that was previously managed by another provider will result in a resource error.&#xA;Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p&gt;</description>
-    </item>
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Resources on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><description>Recent content in Resources on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/reference/resources/index.xml" rel="self" type="application/rss+xml"/><item><title>Pipeline</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</guid><description>&lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
+Pipelines can be created, updated and deleted via this resource.
+The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment
+variables.
+It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-quickstart:v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">tfxComponents&lt;/span>: &lt;span style="color:#ae81ff">base_pipeline.create_components&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">env&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#ae81ff">100&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th style="text-align: left">Name&lt;/th>
+ &lt;th style="text-align: left">Description&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Container image containing TFX component definitions.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.tfxComponents&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Fully qualified name of the Python function creating pipeline components.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.env&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.beamArgs&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.framework&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Optional. Sets a specific pipeline framework to use. If set the pipeline framework image to use is looked up &lt;a href="../../configuration">here&lt;/a> else the &lt;code>default&lt;/code> entry is used.&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table>
+&lt;h2 id="versioning">Versioning&lt;/h2>
+&lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image
+as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version
+to reflect this, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>&lt;p>The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).
+Pipeline training runs can be configured using this resource as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-recurring-run&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">serving-model&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">triggers&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">schedules&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">cronExpression&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;0 * * * *&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">startTime&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;2024-01-01T00:00:00Z&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">endTime&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;2024-12-31T23:59:59Z&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">onChange&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">pipeline&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurations&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#ae81ff">dependency-rc&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>A Run Configuration can have one of more triggers that determine when the next training run will be started.&lt;/p></description></item><item><title>Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>&lt;p>The Run resource represents the lifecycle of a one-off run.
+One-off pipeline training runs can be configured using this resource as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Run&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">generateName&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-run-&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runtimeParameters&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">EXAMPLES&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">valueFrom&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">runConfigurationRef&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-example-generator-runconfiguration&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">outputArtifact&lt;/span>: &lt;span style="color:#ae81ff">examples&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">serving-model&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Note the usage of &lt;code>metadata.generateName&lt;/code> which tells Kubernetes to generate a new name based on the given prefix for every new resource.&lt;/p>
+&lt;h2 id="fields">Fields&lt;/h2>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th style="text-align: left">Name&lt;/th>
+ &lt;th style="text-align: left">Description&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.pipeline&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.experimentName&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.runtimeParameters[]&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Runtime parameters for the pipeline training run. See below for more information.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table>
+&lt;h3 id="runtime-parameter-definition">Runtime Parameter Definition&lt;/h3>
+&lt;p>A pipeline run can be parameterised using RunTimeParameters.&lt;/p></description></item><item><title>Experiment</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</guid><description>&lt;p>The Experiment resource represents the lifecycle of Experiments,
+and can be configured as follows:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">description&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;An experiment for the penguin pipeline&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th style="text-align: left">Name&lt;/th>
+ &lt;th style="text-align: left">Description&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.description&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The description of the experiment.&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table></description></item><item><title>Provider</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</guid><description>&lt;p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.
+e.g Kubeflow Pipelines or the Vertex AI Platform.
+Providers configuration can be set using this resource and permissions for access can be configured via service accounts.&lt;/p>
+&lt;blockquote>
+&lt;p>Note: changing the provider of a resource that was previously managed by another provider will result in a resource error.
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item></channel></rss>

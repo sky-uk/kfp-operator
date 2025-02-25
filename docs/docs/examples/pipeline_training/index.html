@@ -1,616 +1,319 @@
-<!doctype html>
-<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
-  <head><script src="/kfp-operator/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=kfp-operator/livereload" data-no-instant defer></script>
-    <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
-
-
-<link rel="shortcut icon" href="/kfp-operator/favicons/favicon.ico" >
-<link rel="apple-touch-icon" href="/kfp-operator/favicons/apple-touch-icon-180x180.png" sizes="180x180">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/favicon-16x16.png" sizes="16x16">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/favicon-32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-36x36.png" sizes="36x36">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-48x48.png" sizes="48x48">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-72x72.png" sizes="72x72">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-96x96.png" sizes="96x96">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-144x144.png" sizes="144x144">
-<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-192x192.png" sizes="192x192">
-
-<title>Pipeline Training | KFP-Operator</title>
-<meta name="description" content="This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=en class=no-js><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><link rel="shortcut icon" href=/kfp-operator/favicons/favicon.ico><link rel=apple-touch-icon href=/kfp-operator/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/kfp-operator/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/kfp-operator/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/kfp-operator/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/kfp-operator/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/kfp-operator/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/kfp-operator/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/kfp-operator/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/kfp-operator/favicons/android-192x192.png sizes=192x192><title>Pipeline Training | KFP-Operator</title>
+<meta name=description content="This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
 The examples for this tutorial can be found on GitHub.
 1. Build the Pipeline We use the same pipeline as the TFX example with a few modifications.
-Create pipeline.py. Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:">
-<meta property="og:url" content="http://localhost:1313/kfp-operator/docs/examples/pipeline_training/">
-  <meta property="og:site_name" content="KFP-Operator">
-  <meta property="og:title" content="Pipeline Training">
-  <meta property="og:description" content="This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
+Create pipeline.py. Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:"><meta property="og:url" content="https://sky-uk.github.io/kfp-operator/docs/examples/pipeline_training/"><meta property="og:site_name" content="KFP-Operator"><meta property="og:title" content="Pipeline Training"><meta property="og:description" content="This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
 The examples for this tutorial can be found on GitHub.
 1. Build the Pipeline We use the same pipeline as the TFX example with a few modifications.
-Create pipeline.py. Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:">
-  <meta property="og:locale" content="en_gb">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="docs">
-
-  <meta itemprop="name" content="Pipeline Training">
-  <meta itemprop="description" content="This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
+Create pipeline.py. Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:"><meta property="og:locale" content="en_gb"><meta property="og:type" content="article"><meta property="article:section" content="docs"><meta itemprop=name content="Pipeline Training"><meta itemprop=description content="This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
 The examples for this tutorial can be found on GitHub.
 1. Build the Pipeline We use the same pipeline as the TFX example with a few modifications.
-Create pipeline.py. Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:">
-  <meta itemprop="wordCount" content="1173">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Pipeline Training">
-  <meta name="twitter:description" content="This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
+Create pipeline.py. Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:"><meta itemprop=wordCount content="1173"><meta name=twitter:card content="summary"><meta name=twitter:title content="Pipeline Training"><meta name=twitter:description content="This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.
 The examples for this tutorial can be found on GitHub.
 1. Build the Pipeline We use the same pipeline as the TFX example with a few modifications.
-Create pipeline.py. Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:">
-<link href="/kfp-operator/scss/main.css" rel="stylesheet">
-<script
-  src="https://code.jquery.com/jquery-3.7.1.min.js"
-  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-  crossorigin="anonymous"></script>
-
-  </head>
-  <body class="td-page">
-    <header>
-      <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
-<div class="container-fluid flex-column flex-md-row">
-  <a class="navbar-brand" href="/kfp-operator/"><span class="navbar-brand__logo navbar-logo"></span><span class="navbar-brand__name">KFP-Operator</span></a>
-  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" href="/kfp-operator/versions/v0.6.0"><i class='fa-solid fa-book'></i><span>Documentation</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="https://github.com/sky-uk/kfp-operator/discussions" target="_blank" rel="noopener"><i class='fas fa-comments'></i><span>Discuss</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="https://github.com/sky-uk/kfp-operator" target="_blank" rel="noopener"><i class='fab fa-github pr-2'></i><span>GitHub</span></a>
-      </li>
-      <li class="nav-item dropdown d-none d-lg-block">
-        <div class="dropdown">
-  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Version</a>
-  <ul class="dropdown-menu">
-    <li><a class="dropdown-item" href="/kfp-operator/docs/">master</a></li>
-    <li><a class="dropdown-item" href="/kfp-operator/versions/v0.6.0">v0.6.0</a></li>
-    </ul>
-</div></li>
-      <li class="td-light-dark-menu nav-item dropdown">
-        <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
-  <symbol id="check2" viewBox="0 0 16 16">
-    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-  </symbol>
-  <symbol id="circle-half" viewBox="0 0 16 16">
-    <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
-  </symbol>
-  <symbol id="moon-stars-fill" viewBox="0 0 16 16">
-    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
-    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
-  </symbol>
-  <symbol id="sun-fill" viewBox="0 0 16 16">
-    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
-  </symbol>
-</svg>
-
-<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center"
-        id="bd-theme"
-        type="button"
-        aria-expanded="false"
-        data-bs-toggle="dropdown"
-        data-bs-display="static"
-        aria-label="Toggle theme (auto)">
-  <svg class="bi my-1 theme-icon-active"><use href="#circle-half"></use></svg>
-</button>
-<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme-text">
-  <li>
-    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
-      <svg class="bi me-2 opacity-50"><use href="#sun-fill"></use></svg>
-      Light
-      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
-    </button>
-  </li>
-  <li>
-    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
-      <svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"></use></svg>
-      Dark
-      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
-    </button>
-  </li>
-  <li>
-    <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
-      <svg class="bi me-2 opacity-50"><use href="#circle-half"></use></svg>
-      Auto
-      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
-    </button>
-  </li>
-</ul>
-
-      </li>
-      </ul>
-  </div>
-  <div class="d-none d-lg-block">
-    
-  </div>
-</div>
-</nav>
-    </header>
-    <div class="container-fluid td-outer">
-      <div class="td-main">
-        <div class="row flex-xl-nowrap">
-          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
-            <div id="td-sidebar-menu" class="td-sidebar__inner">
-  <form class="td-sidebar__search d-flex align-items-center">
-    
-    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
-    </button>
-  </form>
-  <nav class="td-sidebar-nav collapse" id="td-section-nav">
-    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
-      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-kfp-operatordocs-li">
-  <a href="/kfp-operator/docs/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-kfp-operatordocs"><span class="">Documentation (master)</span></a>
-  <ul class="ul-1">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsgetting-started-li">
-  <a href="/kfp-operator/docs/getting-started/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsgetting-started"><span class="">Getting Started</span></a>
-  <ul class="ul-2 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsgetting-startedoverview-li">
-  <a href="/kfp-operator/docs/getting-started/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsgetting-startedoverview"><span class="">Overview</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsgetting-startedintroduction-li">
-  <a href="/kfp-operator/docs/getting-started/introduction/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsgetting-startedintroduction"><span class="">Introduction</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsgetting-startedinstallation-li">
-  <a href="/kfp-operator/docs/getting-started/installation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsgetting-startedinstallation"><span class="">Installation</span></a>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-kfp-operatordocsexamples-li">
-  <a href="/kfp-operator/docs/examples/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsexamples"><span class="">Examples</span></a>
-  <ul class="ul-2 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-kfp-operatordocsexamplespipeline_training-li">
-  <a href="/kfp-operator/docs/examples/pipeline_training/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsexamplespipeline_training"><span class="td-sidebar-nav-active-item">Pipeline Training</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsexamplespipeline_dependencies-li">
-  <a href="/kfp-operator/docs/examples/pipeline_dependencies/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsexamplespipeline_dependencies"><span class="">Pipeline Dependencies</span></a>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsreference-li">
-  <a href="/kfp-operator/docs/reference/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsreference"><span class="">Reference</span></a>
-  <ul class="ul-2 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceconfiguration-li">
-  <a href="/kfp-operator/docs/reference/configuration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceconfiguration"><span class="">Configuration</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsreferenceresources-li">
-  <a href="/kfp-operator/docs/reference/resources/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsreferenceresources"><span class="">Resources</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcespipeline-li">
-  <a href="/kfp-operator/docs/reference/resources/pipeline/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcespipeline"><span class="">Pipeline</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesrunconfiguration-li">
-  <a href="/kfp-operator/docs/reference/resources/runconfiguration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesrunconfiguration"><span class="">RunConfiguration</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesrun-li">
-  <a href="/kfp-operator/docs/reference/resources/run/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesrun"><span class="">Run</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesexperiment-li">
-  <a href="/kfp-operator/docs/reference/resources/experiment/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesexperiment"><span class="">Experiment</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceresourcesprovider-li">
-  <a href="/kfp-operator/docs/reference/resources/provider/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceresourcesprovider"><span class="">Provider</span></a>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatordocsreferenceproviders-li">
-  <a href="/kfp-operator/docs/reference/providers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatordocsreferenceproviders"><span class="">Providers</span></a>
-  <ul class="ul-3 foldable">
-    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceprovidersoverview-li">
-  <a href="/kfp-operator/docs/reference/providers/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceprovidersoverview"><span class="">Overview</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceproviderskfp-li">
-  <a href="/kfp-operator/docs/reference/providers/kfp/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceproviderskfp"><span class="">Kubeflow Pipelines</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferenceprovidersvai-li">
-  <a href="/kfp-operator/docs/reference/providers/vai/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferenceprovidersvai"><span class="">Vertex AI</span></a>
-</li>
-  </ul>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferencerun-completion-li">
-  <a href="/kfp-operator/docs/reference/run-completion/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferencerun-completion"><span class="">Run Completion Events</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatordocsreferencedebugging-li">
-  <a href="/kfp-operator/docs/reference/debugging/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatordocsreferencedebugging"><span class="">Debugging</span></a>
-</li>
-  </ul>
-</li>
-  </ul>
-</li>
-    </ul>
-  </nav>
-</div>
-
-          </aside>
-          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
-            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
-<a href="https://github.com/sky-uk/kfp-operator/tree/master/docs-gen/content/docs/examples/pipeline_training.md" class="td-page-meta--view td-page-meta__view" target="_blank" rel="noopener"><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
-  <a href="https://github.com/sky-uk/kfp-operator/edit/master/docs-gen/content/docs/examples/pipeline_training.md" class="td-page-meta--edit td-page-meta__edit" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
-  <a href="https://github.com/sky-uk/kfp-operator/new/master/docs-gen/content/docs/examples?filename=change-me.md&amp;value=---%0Atitle%3A&#43;%22Long&#43;Page&#43;Title%22%0AlinkTitle%3A&#43;%22Short&#43;Nav&#43;Title%22%0Aweight%3A&#43;100%0Adescription%3A&#43;%3E-%0A&#43;&#43;&#43;&#43;&#43;Page&#43;description&#43;for&#43;heading&#43;and&#43;indexes.%0A---%0A%0A%23%23&#43;Heading%0A%0AEdit&#43;this&#43;template&#43;to&#43;create&#43;your&#43;new&#43;page.%0A%0A%2A&#43;Give&#43;it&#43;a&#43;good&#43;name%2C&#43;ending&#43;in&#43;%60.md%60&#43;-&#43;e.g.&#43;%60getting-started.md%60%0A%2A&#43;Edit&#43;the&#43;%22front&#43;matter%22&#43;section&#43;at&#43;the&#43;top&#43;of&#43;the&#43;page&#43;%28weight&#43;controls&#43;how&#43;its&#43;ordered&#43;amongst&#43;other&#43;pages&#43;in&#43;the&#43;same&#43;directory%3B&#43;lowest&#43;number&#43;first%29.%0A%2A&#43;Add&#43;a&#43;good&#43;commit&#43;message&#43;at&#43;the&#43;bottom&#43;of&#43;the&#43;page&#43;%28%3C80&#43;characters%3B&#43;use&#43;the&#43;extended&#43;description&#43;field&#43;for&#43;more&#43;detail%29.%0A%2A&#43;Create&#43;a&#43;new&#43;branch&#43;so&#43;you&#43;can&#43;preview&#43;your&#43;new&#43;file&#43;and&#43;request&#43;a&#43;review&#43;via&#43;Pull&#43;Request.%0A" class="td-page-meta--child td-page-meta__child" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
-  <a href="https://github.com/sky-uk/kfp-operator/issues/new?title=Pipeline%20Training" class="td-page-meta--issue td-page-meta__issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
-  <a href="https://github.com/sky-uk/kfp-operator/issues/new" class="td-page-meta--project td-page-meta__project-issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create project issue</a>
-  
-</div>
-
-            <div class="td-toc">
-        <nav id="TableOfContents">
-  <ul>
-    <li><a href="#1-build-the-pipeline">1. Build the Pipeline</a></li>
-    <li><a href="#2-create-a-pipeline-resource">2. Create a Pipeline Resource</a></li>
-    <li><a href="#3-create-an-experiment-resource">3. Create an Experiment resource</a></li>
-    <li><a href="#4-create-a-pipeline-runconfiguration-resource">4. Create a pipeline RunConfiguration resource</a></li>
-    <li><a href="#5-optional-deploy-newly-trained-models">5. (Optional) Deploy newly trained models</a></li>
-  </ul>
-</nav>
-      </div>
-    
-            
-
-          </aside>
-          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
-            
-  
-
-            <nav aria-label="breadcrumb" class="td-breadcrumbs">
-  <ol class="breadcrumb">
-  <li class="breadcrumb-item">
-    <a href="/kfp-operator/docs/">Documentation (master)</a></li>
-  <li class="breadcrumb-item">
-    <a href="/kfp-operator/docs/examples/">Examples</a></li>
-  <li class="breadcrumb-item active" aria-current="page">
-    Pipeline Training</li>
-  </ol>
-</nav>
-            
-<div class="td-content">
-	<h1>Pipeline Training</h1>
-	
-	<header class="article-meta">
-		
-</header>
-	<p>This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.</p>
-<p>The examples for this tutorial can be found on <a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/master/quickstart">GitHub</a>.</p>
-<h2 id="1-build-the-pipeline">1. Build the Pipeline</h2>
-<p>We use the same pipeline as the <a href="https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple">TFX example</a> with a few modifications.</p>
-<p>Create <code>pipeline.py</code>.
-Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> os
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> typing <span style="color:#f92672">import</span> List
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tfx.components <span style="color:#f92672">import</span> CsvExampleGen, Trainer
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tfx.proto <span style="color:#f92672">import</span> trainer_pb2
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tfx.dsl.components.base.base_node <span style="color:#f92672">import</span> BaseNode
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">### Environmental parameters can be left out when using the operator.</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">### Also, the return type is now a list of components instead of a pipeline.</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#def create_pipeline(pipeline_name: str, pipeline_root: str, data_root: str,</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#                    module_file: str, serving_model_dir: str,</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#                    metadata_path: str) -&gt; tfx.dsl.Pipeline:</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">create_components</span>() <span style="color:#f92672">-&gt;</span> List[BaseNode]:
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;Creates a penguin pipeline with TFX.&#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Brings data into the pipeline.</span>
-</span></span><span style="display:flex;"><span>    example_gen <span style="color:#f92672">=</span> CsvExampleGen(input_base<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;/data&#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Uses user-provided Python function that trains a model.</span>
-</span></span><span style="display:flex;"><span>    trainer <span style="color:#f92672">=</span> Trainer(
-</span></span><span style="display:flex;"><span>        run_fn<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;trainer.run_fn&#39;</span>,
-</span></span><span style="display:flex;"><span>        examples<span style="color:#f92672">=</span>example_gen<span style="color:#f92672">.</span>outputs[<span style="color:#e6db74">&#39;examples&#39;</span>],
-</span></span><span style="display:flex;"><span>        train_args<span style="color:#f92672">=</span>trainer_pb2<span style="color:#f92672">.</span>TrainArgs(num_steps<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span>),
-</span></span><span style="display:flex;"><span>        eval_args<span style="color:#f92672">=</span>trainer_pb2<span style="color:#f92672">.</span>EvalArgs(num_steps<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>))
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">### This needs to be omitted when using the operator.</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## Pushes the model to a filesystem destination.</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#pusher = tfx.components.Pusher(</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#  model=trainer.outputs[&#39;model&#39;],</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#  push_destination=tfx.proto.PushDestination(</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#      filesystem=tfx.proto.PushDestination.Filesystem(</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#          base_directory=serving_model_dir)))</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Following three components will be included in the pipeline.</span>
-</span></span><span style="display:flex;"><span>    components <span style="color:#f92672">=</span> [
-</span></span><span style="display:flex;"><span>        example_gen,
-</span></span><span style="display:flex;"><span>        trainer,
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">#pusher</span>
-</span></span><span style="display:flex;"><span>    ]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">### When using the operator, it creates the pipeline for us, </span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">### so we return the components directly instead.</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#return tfx.dsl.Pipeline(</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#  pipeline_name=pipeline_name,</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#  pipeline_root=pipeline_root,</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#  metadata_connection_config=tfx.orchestration.metadata</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#  .sqlite_metadata_connection_config(metadata_path),</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#  components=components)</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> components
-</span></span></code></pre></div>
-<p>Create <code>trainer.py</code>.
-The training code remains unchanged:</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> typing <span style="color:#f92672">import</span> List
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> absl <span style="color:#f92672">import</span> logging
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> tensorflow <span style="color:#66d9ef">as</span> tf
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tensorflow <span style="color:#f92672">import</span> keras
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tensorflow_transform.tf_metadata <span style="color:#f92672">import</span> schema_utils
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tfx <span style="color:#f92672">import</span> v1 <span style="color:#66d9ef">as</span> tfx
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tfx_bsl.public <span style="color:#f92672">import</span> tfxio
-</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tensorflow_metadata.proto.v0 <span style="color:#f92672">import</span> schema_pb2
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>_FEATURE_KEYS <span style="color:#f92672">=</span> [
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;culmen_length_mm&#39;</span>, <span style="color:#e6db74">&#39;culmen_depth_mm&#39;</span>, <span style="color:#e6db74">&#39;flipper_length_mm&#39;</span>, <span style="color:#e6db74">&#39;body_mass_g&#39;</span>
-</span></span><span style="display:flex;"><span>]
-</span></span><span style="display:flex;"><span>_LABEL_KEY <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;species&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>_TRAIN_BATCH_SIZE <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>
-</span></span><span style="display:flex;"><span>_EVAL_BATCH_SIZE <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Since we&#39;re not generating or creating a schema, we will instead create</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># a feature spec.  Since there are a fairly small number of features this is</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># manageable for this dataset.</span>
-</span></span><span style="display:flex;"><span>_FEATURE_SPEC <span style="color:#f92672">=</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">**</span>{
-</span></span><span style="display:flex;"><span>        feature: tf<span style="color:#f92672">.</span>io<span style="color:#f92672">.</span>FixedLenFeature(shape<span style="color:#f92672">=</span>[<span style="color:#ae81ff">1</span>], dtype<span style="color:#f92672">=</span>tf<span style="color:#f92672">.</span>float32)
-</span></span><span style="display:flex;"><span>           <span style="color:#66d9ef">for</span> feature <span style="color:#f92672">in</span> _FEATURE_KEYS
-</span></span><span style="display:flex;"><span>       },
-</span></span><span style="display:flex;"><span>    _LABEL_KEY: tf<span style="color:#f92672">.</span>io<span style="color:#f92672">.</span>FixedLenFeature(shape<span style="color:#f92672">=</span>[<span style="color:#ae81ff">1</span>], dtype<span style="color:#f92672">=</span>tf<span style="color:#f92672">.</span>int64)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_input_fn</span>(file_pattern: List[str],
-</span></span><span style="display:flex;"><span>              data_accessor: tfx<span style="color:#f92672">.</span>components<span style="color:#f92672">.</span>DataAccessor,
-</span></span><span style="display:flex;"><span>              schema: schema_pb2<span style="color:#f92672">.</span>Schema,
-</span></span><span style="display:flex;"><span>              batch_size: int <span style="color:#f92672">=</span> <span style="color:#ae81ff">200</span>) <span style="color:#f92672">-&gt;</span> tf<span style="color:#f92672">.</span>data<span style="color:#f92672">.</span>Dataset:
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;&#34;&#34;Generates features and label for training.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  Args:
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    file_pattern: List of paths or patterns of input tfrecord files.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    data_accessor: DataAccessor for converting input to RecordBatch.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    schema: schema of the input data.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    batch_size: representing the number of consecutive elements of returned
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      dataset to combine in a single batch
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  Returns:
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    A dataset that contains (features, indices) tuple where features is a
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      dictionary of Tensors, and indices is a single Tensor of label indices.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> data_accessor<span style="color:#f92672">.</span>tf_dataset_factory(
-</span></span><span style="display:flex;"><span>      file_pattern,
-</span></span><span style="display:flex;"><span>      tfxio<span style="color:#f92672">.</span>TensorFlowDatasetOptions(
-</span></span><span style="display:flex;"><span>          batch_size<span style="color:#f92672">=</span>batch_size, label_key<span style="color:#f92672">=</span>_LABEL_KEY),
-</span></span><span style="display:flex;"><span>      schema<span style="color:#f92672">=</span>schema)<span style="color:#f92672">.</span>repeat()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_build_keras_model</span>() <span style="color:#f92672">-&gt;</span> tf<span style="color:#f92672">.</span>keras<span style="color:#f92672">.</span>Model:
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;&#34;&#34;Creates a DNN Keras model for classifying penguin data.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  Returns:
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    A Keras Model.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># The model below is built with Functional API, please refer to</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># https://www.tensorflow.org/guide/keras/overview for all API options.</span>
-</span></span><span style="display:flex;"><span>  inputs <span style="color:#f92672">=</span> [keras<span style="color:#f92672">.</span>layers<span style="color:#f92672">.</span>Input(shape<span style="color:#f92672">=</span>(<span style="color:#ae81ff">1</span>,), name<span style="color:#f92672">=</span>f) <span style="color:#66d9ef">for</span> f <span style="color:#f92672">in</span> _FEATURE_KEYS]
-</span></span><span style="display:flex;"><span>  d <span style="color:#f92672">=</span> keras<span style="color:#f92672">.</span>layers<span style="color:#f92672">.</span>concatenate(inputs)
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>):
-</span></span><span style="display:flex;"><span>    d <span style="color:#f92672">=</span> keras<span style="color:#f92672">.</span>layers<span style="color:#f92672">.</span>Dense(<span style="color:#ae81ff">8</span>, activation<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;relu&#39;</span>)(d)
-</span></span><span style="display:flex;"><span>  outputs <span style="color:#f92672">=</span> keras<span style="color:#f92672">.</span>layers<span style="color:#f92672">.</span>Dense(<span style="color:#ae81ff">3</span>)(d)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  model <span style="color:#f92672">=</span> keras<span style="color:#f92672">.</span>Model(inputs<span style="color:#f92672">=</span>inputs, outputs<span style="color:#f92672">=</span>outputs)
-</span></span><span style="display:flex;"><span>  model<span style="color:#f92672">.</span>compile(
-</span></span><span style="display:flex;"><span>      optimizer<span style="color:#f92672">=</span>keras<span style="color:#f92672">.</span>optimizers<span style="color:#f92672">.</span>Adam(<span style="color:#ae81ff">1e-2</span>),
-</span></span><span style="display:flex;"><span>      loss<span style="color:#f92672">=</span>tf<span style="color:#f92672">.</span>keras<span style="color:#f92672">.</span>losses<span style="color:#f92672">.</span>SparseCategoricalCrossentropy(from_logits<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>),
-</span></span><span style="display:flex;"><span>      metrics<span style="color:#f92672">=</span>[keras<span style="color:#f92672">.</span>metrics<span style="color:#f92672">.</span>SparseCategoricalAccuracy()])
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  model<span style="color:#f92672">.</span>summary(print_fn<span style="color:#f92672">=</span>logging<span style="color:#f92672">.</span>info)
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> model
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># TFX Trainer will call this function.</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">run_fn</span>(fn_args: tfx<span style="color:#f92672">.</span>components<span style="color:#f92672">.</span>FnArgs):
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;&#34;&#34;Train the model based on given args.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  Args:
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    fn_args: Holds args used to train the model as name/value pairs.
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># This schema is usually either an output of SchemaGen or a manually-curated</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># version provided by pipeline author. A schema can also derived from TFT</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># graph if a Transform component is used. In the case when either is missing,</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># `schema_from_feature_spec` could be used to generate schema from very simple</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># feature_spec, but the schema returned would be very primitive.</span>
-</span></span><span style="display:flex;"><span>  schema <span style="color:#f92672">=</span> schema_utils<span style="color:#f92672">.</span>schema_from_feature_spec(_FEATURE_SPEC)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  train_dataset <span style="color:#f92672">=</span> _input_fn(
-</span></span><span style="display:flex;"><span>      fn_args<span style="color:#f92672">.</span>train_files,
-</span></span><span style="display:flex;"><span>      fn_args<span style="color:#f92672">.</span>data_accessor,
-</span></span><span style="display:flex;"><span>      schema,
-</span></span><span style="display:flex;"><span>      batch_size<span style="color:#f92672">=</span>_TRAIN_BATCH_SIZE)
-</span></span><span style="display:flex;"><span>  eval_dataset <span style="color:#f92672">=</span> _input_fn(
-</span></span><span style="display:flex;"><span>      fn_args<span style="color:#f92672">.</span>eval_files,
-</span></span><span style="display:flex;"><span>      fn_args<span style="color:#f92672">.</span>data_accessor,
-</span></span><span style="display:flex;"><span>      schema,
-</span></span><span style="display:flex;"><span>      batch_size<span style="color:#f92672">=</span>_EVAL_BATCH_SIZE)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  model <span style="color:#f92672">=</span> _build_keras_model()
-</span></span><span style="display:flex;"><span>  model<span style="color:#f92672">.</span>fit(
-</span></span><span style="display:flex;"><span>      train_dataset,
-</span></span><span style="display:flex;"><span>      steps_per_epoch<span style="color:#f92672">=</span>fn_args<span style="color:#f92672">.</span>train_steps,
-</span></span><span style="display:flex;"><span>      validation_data<span style="color:#f92672">=</span>eval_dataset,
-</span></span><span style="display:flex;"><span>      validation_steps<span style="color:#f92672">=</span>fn_args<span style="color:#f92672">.</span>eval_steps)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># The result of the training should be saved in `fn_args.serving_model_dir`</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># directory.</span>
-</span></span><span style="display:flex;"><span>  model<span style="color:#f92672">.</span>save(fn_args<span style="color:#f92672">.</span>serving_model_dir, save_format<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;tf&#39;</span>)
-</span></span></code></pre></div>
-<p>Create <code>Dockerfile</code>.</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-dockerfile" data-lang="dockerfile"><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> python:3.10.12 as builder</span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> mkdir /data<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> wget https://raw.githubusercontent.com/tensorflow/tfx/master/tfx/examples/penguin/data/labelled/penguins_processed.csv -P /data<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> pip install poetry<span style="color:#f92672">==</span>1.7.1<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> pyproject.toml .<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> poetry.lock .<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> poetry config virtualenvs.create true<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> poetry config virtualenvs.in-project true<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> poetry install --no-root<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> python:3.10.12-slim as runtime</span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENV</span> VIRTUAL_ENV<span style="color:#f92672">=</span>/.venv <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    PATH<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/.venv/bin:</span>$PATH<span style="color:#e6db74">&#34;</span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /pipeline</span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder <span style="color:#e6db74">${</span>VIRTUAL_ENV<span style="color:#e6db74">}</span> <span style="color:#e6db74">${</span>VIRTUAL_ENV<span style="color:#e6db74">}</span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> --from<span style="color:#f92672">=</span>builder /data /data<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> penguin_pipeline/*.py ./<span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
-</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">ENV</span> PYTHONPATH<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/pipeline:</span><span style="color:#e6db74">${</span>PYTHONPATH<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#960050;background-color:#1e0010">
-</span></span></span></code></pre></div>
-<p>Next, build the pipeline as a Docker container and push it:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker build . -t kfp-quickstart:v1
-</span></span><span style="display:flex;"><span>...
-</span></span><span style="display:flex;"><span>docker push kfp-quickstart:v1
-</span></span></code></pre></div><h2 id="2-create-a-pipeline-resource">2. Create a Pipeline Resource</h2>
-<p>Now that we have a pipeline image, we can create a <code>pipeline.yaml</code> resource to manage the lifecycle of this pipeline on Kubeflow:</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Pipeline</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">penguin-pipeline</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">provider</span>: <span style="color:#ae81ff">kfp</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">image</span>: <span style="color:#ae81ff">kfp-quickstart:v1</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">tfxComponents</span>: <span style="color:#ae81ff">pipeline.create_components</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">framework</span>: <span style="color:#ae81ff">tfx</span>
-</span></span></code></pre></div>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl apply -f resources/pipeline.yaml
-</span></span></code></pre></div><p>The pipeline now gets uploaded to Kubeflow in several steps. After a few seconds to minutes, the following command should result in a success:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl get pipeline
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>NAME               SYNCHRONIZATIONSTATE   PROVIDERID
-</span></span><span style="display:flex;"><span>penguin-pipeline   Succeeded              53905abe-0337-48de-875d-67b9285f3cf7
-</span></span></code></pre></div><p>Now visit your Kubeflow Pipelines UI. You should be able to see the newly created pipeline named <code>penguin-pipeline</code>. Note that you will see two versions: &lsquo;penguin-pipeline&rsquo; and &lsquo;v1&rsquo;. This is due to an <a href="https://github.com/kubeflow/pipelines/issues/5881">open issue on Kubeflow</a> where you can&rsquo;t specify a version when creating a pipeline.</p>
-<h2 id="3-create-an-experiment-resource">3. Create an Experiment resource</h2>
-<p>Note: this step is optional. You can continue with the next step if you want to use the <code>Default</code> experiment instead.</p>
-<p>Create <code>experiment.yaml</code>:</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Experiment</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">penguin-experiment</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">description</span>: <span style="color:#ae81ff">An experiment for the penguin pipeline</span>
-</span></span></code></pre></div>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl apply -f resources/experiment.yaml
-</span></span></code></pre></div><h2 id="4-create-a-pipeline-runconfiguration-resource">4. Create a pipeline RunConfiguration resource</h2>
-<p>We can now define a recurring run declaratively using the <code>RunConfiguration</code> resource.</p>
-<p>Note: remove <code>experimentName</code> if you want to use the <code>Default</code> experiment instead of <code>penguin-experiment</code></p>
-<p>Create <code>runconfiguration.yaml</code>:</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">RunConfiguration</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">penguin-pipeline-recurring-run</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">run</span>:
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">pipeline</span>: <span style="color:#ae81ff">penguin-pipeline</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">experimentName</span>: <span style="color:#ae81ff">penguin-experiment</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">triggers</span>:
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">schedules</span>:
-</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">cronExpression</span>: <span style="color:#ae81ff">0</span> * * * *
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">startTime</span>: <span style="color:#e6db74">2024-01-01T00:00:00Z</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">endTime</span>: <span style="color:#e6db74">2024-12-31T23:59:59Z</span>
-</span></span></code></pre></div>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl apply -f resources/runconfiguration.yaml
-</span></span></code></pre></div><p>This will trigger run of <code>penguin-pipeline</code> once every hour. Note that the cron schedule uses a 6-place space separated syntax as defined <a href="https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format">here</a>.</p>
-<h2 id="5-optional-deploy-newly-trained-models">5. (Optional) Deploy newly trained models</h2>
-<p>If the operator has been installed with <a href="https://argoproj.github.io/argo-events/">Argo-Events</a> support, we can now specify eventsources and sensors to update arbitrary Kubernetes config when a pipeline has been trained successfully.
-In this example we are updating a serving component with the location of the newly trained model.</p>
-<p>Create <code>apply-model-location.yaml</code>. This creates an <code>EventSource</code> and a <code>Sensor</code> as well as an <code>EventBus</code>:</p>
-  <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">argoproj.io/v1alpha1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">EventBus</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">default</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">nats</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">native</span>: {}
-</span></span><span style="display:flex;"><span>---
-</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">argoproj.io/v1alpha1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">EventSource</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">run-completion</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">nats</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">run-completion</span>:
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">jsonBody</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">subject</span>: <span style="color:#ae81ff">events</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">url</span>: <span style="color:#ae81ff">nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222</span>
-</span></span><span style="display:flex;"><span>---
-</span></span><span style="display:flex;"><span><span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">argoproj.io/v1alpha1</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">kind</span>: <span style="color:#ae81ff">Sensor</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">name</span>: <span style="color:#ae81ff">penguin-pipeline-model-update</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">spec</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">template</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">serviceAccountName</span>: <span style="color:#ae81ff">events-sa</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">dependencies</span>:
-</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">run-completion</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">eventSourceName</span>: <span style="color:#ae81ff">run-completion</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">eventName</span>: <span style="color:#ae81ff">run-completion</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">filters</span>:
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">data</span>:
-</span></span><span style="display:flex;"><span>          - <span style="color:#f92672">path</span>: <span style="color:#ae81ff">body.data.status</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">type</span>: <span style="color:#ae81ff">string</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">comparator</span>: <span style="color:#e6db74">&#34;=&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">value</span>:
-</span></span><span style="display:flex;"><span>              - <span style="color:#e6db74">&#34;succeeded&#34;</span>
-</span></span><span style="display:flex;"><span>          - <span style="color:#f92672">path</span>: <span style="color:#ae81ff">body.data.pipelineName</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">type</span>: <span style="color:#ae81ff">string</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">comparator</span>: <span style="color:#e6db74">&#34;=&#34;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">value</span>:
-</span></span><span style="display:flex;"><span>              - <span style="color:#e6db74">&#34;penguin-pipeline&#34;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">triggers</span>:
-</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">template</span>:
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">update</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">k8s</span>:
-</span></span><span style="display:flex;"><span>          <span style="color:#f92672">operation</span>: <span style="color:#ae81ff">update</span>
-</span></span><span style="display:flex;"><span>          <span style="color:#f92672">source</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">resource</span>:
-</span></span><span style="display:flex;"><span>              <span style="color:#f92672">apiVersion</span>: <span style="color:#ae81ff">v1</span>
-</span></span><span style="display:flex;"><span>              <span style="color:#f92672">kind</span>: <span style="color:#ae81ff">ConfigMap</span>
-</span></span><span style="display:flex;"><span>              <span style="color:#f92672">metadata</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#f92672">name</span>: <span style="color:#ae81ff">serving-config</span>
-</span></span><span style="display:flex;"><span>              <span style="color:#f92672">data</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#f92672">servingModel</span>: <span style="color:#e6db74">&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>          <span style="color:#f92672">parameters</span>:
-</span></span><span style="display:flex;"><span>            - <span style="color:#f92672">src</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#f92672">dependencyName</span>: <span style="color:#ae81ff">run-completion</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#f92672">dataKey</span>: <span style="color:#ae81ff">body.data.artifacts.0.location</span>
-</span></span><span style="display:flex;"><span>              <span style="color:#f92672">dest</span>: <span style="color:#ae81ff">data.servingModel</span>
-</span></span></code></pre></div>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>kubectl apply -f resources/apply-model-location.yaml
-</span></span></code></pre></div>
-	
-</div>
-
-
-          </main>
-        </div>
-      </div>
-      <footer class="td-footer row d-print-none">
-  <div class="container-fluid">
-    <div class="row mx-md-2">
-      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
-        
-      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
-        
-      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
-        
-      </div>
-    </div>
-  </div>
-</footer>
-
-    </div>
-    <script src="/kfp-operator/js/main.js"></script>
-<script defer src="/kfp-operator/js/click-to-copy.js" crossorigin="anonymous"></script>
-<script src='/kfp-operator/js/tabpane-persist.js'></script>
-
-  </body>
-</html>
+Create pipeline.py. Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:"><link rel=preload href=/kfp-operator/scss/main.min.432ad61a805067cd912149d7afcaff88278795d6353105cf002d1f00f9acc8c1.css as=style integrity="sha256-QyrWGoBQZ82RIUnXr8r/iCeHldY1MQXPAC0fAPmsyME=" crossorigin=anonymous><link href=/kfp-operator/scss/main.min.432ad61a805067cd912149d7afcaff88278795d6353105cf002d1f00f9acc8c1.css rel=stylesheet integrity="sha256-QyrWGoBQZ82RIUnXr8r/iCeHldY1MQXPAC0fAPmsyME=" crossorigin=anonymous><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script></head><body class=td-page><header><nav class="td-navbar js-navbar-scroll" data-bs-theme=dark><div class="container-fluid flex-column flex-md-row"><a class=navbar-brand href=/kfp-operator/><span class="navbar-brand__logo navbar-logo"></span><span class=navbar-brand__name>KFP-Operator</span></a><div class="td-navbar-nav-scroll ms-md-auto" id=main_navbar><ul class=navbar-nav><li class=nav-item><a class=nav-link href=/kfp-operator/versions/v0.6.0><i class='fa-solid fa-book'></i><span>Documentation</span></a></li><li class=nav-item><a class=nav-link href=https://github.com/sky-uk/kfp-operator/discussions target=_blank rel=noopener><i class='fas fa-comments'></i><span>Discuss</span></a></li><li class=nav-item><a class=nav-link href=https://github.com/sky-uk/kfp-operator target=_blank rel=noopener><i class='fab fa-github pr-2'></i><span>GitHub</span></a></li><li class="nav-item dropdown d-none d-lg-block"><div class=dropdown><a class="nav-link dropdown-toggle" href=# role=button data-bs-toggle=dropdown aria-haspopup=true aria-expanded=false>Version</a><ul class=dropdown-menu><li><a class=dropdown-item href=/kfp-operator/docs/>master</a></li><li><a class=dropdown-item href=/kfp-operator/versions/v0.6.0>v0.6.0</a></li></ul></div></li><li class="td-light-dark-menu nav-item dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown data-bs-display=static aria-label="Toggle theme (auto)"><svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class="dropdown-menu dropdown-menu-end" aria-labelledby=bd-theme-text><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></li></ul></div><div class="d-none d-lg-block"></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse" id=td-section-nav><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kfp-operatordocs-li><a href=/kfp-operator/docs/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-kfp-operatordocs><span>Documentation (master)</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsgetting-started-li><a href=/kfp-operator/docs/getting-started/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsgetting-started><span>Getting Started</span></a><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsgetting-startedoverview-li><a href=/kfp-operator/docs/getting-started/overview/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsgetting-startedoverview><span>Overview</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsgetting-startedintroduction-li><a href=/kfp-operator/docs/getting-started/introduction/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsgetting-startedintroduction><span>Introduction</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsgetting-startedinstallation-li><a href=/kfp-operator/docs/getting-started/installation/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsgetting-startedinstallation><span>Installation</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kfp-operatordocsexamples-li><a href=/kfp-operator/docs/examples/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsexamples><span>Examples</span></a><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-kfp-operatordocsexamplespipeline_training-li><a href=/kfp-operator/docs/examples/pipeline_training/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsexamplespipeline_training><span class=td-sidebar-nav-active-item>Pipeline Training</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsexamplespipeline_dependencies-li><a href=/kfp-operator/docs/examples/pipeline_dependencies/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsexamplespipeline_dependencies><span>Pipeline Dependencies</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsreference-li><a href=/kfp-operator/docs/reference/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsreference><span>Reference</span></a><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceconfiguration-li><a href=/kfp-operator/docs/reference/configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceconfiguration><span>Configuration</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsreferenceresources-li><a href=/kfp-operator/docs/reference/resources/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsreferenceresources><span>Resources</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcespipeline-li><a href=/kfp-operator/docs/reference/resources/pipeline/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcespipeline><span>Pipeline</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesrunconfiguration-li><a href=/kfp-operator/docs/reference/resources/runconfiguration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesrunconfiguration><span>RunConfiguration</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesrun-li><a href=/kfp-operator/docs/reference/resources/run/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesrun><span>Run</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesexperiment-li><a href=/kfp-operator/docs/reference/resources/experiment/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesexperiment><span>Experiment</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceresourcesprovider-li><a href=/kfp-operator/docs/reference/resources/provider/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceresourcesprovider><span>Provider</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatordocsreferenceproviders-li><a href=/kfp-operator/docs/reference/providers/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatordocsreferenceproviders><span>Providers</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceprovidersoverview-li><a href=/kfp-operator/docs/reference/providers/overview/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceprovidersoverview><span>Overview</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceproviderskfp-li><a href=/kfp-operator/docs/reference/providers/kfp/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceproviderskfp><span>Kubeflow Pipelines</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferenceprovidersvai-li><a href=/kfp-operator/docs/reference/providers/vai/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferenceprovidersvai><span>Vertex AI</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferencerun-completion-li><a href=/kfp-operator/docs/reference/run-completion/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferencerun-completion><span>Run Completion Events</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatordocsreferencedebugging-li><a href=/kfp-operator/docs/reference/debugging/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatordocsreferencedebugging><span>Debugging</span></a></li></ul></li></ul></li></ul></nav></div></aside><aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none"><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=https://github.com/sky-uk/kfp-operator/tree/master/docs-gen/content/docs/examples/pipeline_training.md class="td-page-meta--view td-page-meta__view" target=_blank rel=noopener><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
+<a href=https://github.com/sky-uk/kfp-operator/edit/master/docs-gen/content/docs/examples/pipeline_training.md class="td-page-meta--edit td-page-meta__edit" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
+<a href="https://github.com/sky-uk/kfp-operator/new/master/docs-gen/content/docs/examples?filename=change-me.md&amp;value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A" class="td-page-meta--child td-page-meta__child" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
+<a href="https://github.com/sky-uk/kfp-operator/issues/new?title=Pipeline%20Training" class="td-page-meta--issue td-page-meta__issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
+<a href=https://github.com/sky-uk/kfp-operator/issues/new class="td-page-meta--project td-page-meta__project-issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> Create project issue</a></div><div class=td-toc><nav id=TableOfContents><ul><li><a href=#1-build-the-pipeline>1. Build the Pipeline</a></li><li><a href=#2-create-a-pipeline-resource>2. Create a Pipeline Resource</a></li><li><a href=#3-create-an-experiment-resource>3. Create an Experiment resource</a></li><li><a href=#4-create-a-pipeline-runconfiguration-resource>4. Create a pipeline RunConfiguration resource</a></li><li><a href=#5-optional-deploy-newly-trained-models>5. (Optional) Deploy newly trained models</a></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/kfp-operator/docs/>Documentation (master)</a></li><li class=breadcrumb-item><a href=/kfp-operator/docs/examples/>Examples</a></li><li class="breadcrumb-item active" aria-current=page>Pipeline Training</li></ol></nav><div class=td-content><h1>Pipeline Training</h1><header class=article-meta></header><p>This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.</p><p>The examples for this tutorial can be found on <a href=https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/master/quickstart>GitHub</a>.</p><h2 id=1-build-the-pipeline>1. Build the Pipeline</h2><p>We use the same pipeline as the <a href=https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple>TFX example</a> with a few modifications.</p><p>Create <code>pipeline.py</code>.
+Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#f92672>import</span> os
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> typing <span style=color:#f92672>import</span> List
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> tfx.components <span style=color:#f92672>import</span> CsvExampleGen, Trainer
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> tfx.proto <span style=color:#f92672>import</span> trainer_pb2
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> tfx.dsl.components.base.base_node <span style=color:#f92672>import</span> BaseNode
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>### Environmental parameters can be left out when using the operator.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>### Also, the return type is now a list of components instead of a pipeline.</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#def create_pipeline(pipeline_name: str, pipeline_root: str, data_root: str,</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#                    module_file: str, serving_model_dir: str,</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#                    metadata_path: str) -&gt; tfx.dsl.Pipeline:</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>create_components</span>() <span style=color:#f92672>-&gt;</span> List[BaseNode]:
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;&#34;&#34;Creates a penguin pipeline with TFX.&#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Brings data into the pipeline.</span>
+</span></span><span style=display:flex><span>    example_gen <span style=color:#f92672>=</span> CsvExampleGen(input_base<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;/data&#39;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Uses user-provided Python function that trains a model.</span>
+</span></span><span style=display:flex><span>    trainer <span style=color:#f92672>=</span> Trainer(
+</span></span><span style=display:flex><span>        run_fn<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;trainer.run_fn&#39;</span>,
+</span></span><span style=display:flex><span>        examples<span style=color:#f92672>=</span>example_gen<span style=color:#f92672>.</span>outputs[<span style=color:#e6db74>&#39;examples&#39;</span>],
+</span></span><span style=display:flex><span>        train_args<span style=color:#f92672>=</span>trainer_pb2<span style=color:#f92672>.</span>TrainArgs(num_steps<span style=color:#f92672>=</span><span style=color:#ae81ff>100</span>),
+</span></span><span style=display:flex><span>        eval_args<span style=color:#f92672>=</span>trainer_pb2<span style=color:#f92672>.</span>EvalArgs(num_steps<span style=color:#f92672>=</span><span style=color:#ae81ff>5</span>))
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>### This needs to be omitted when using the operator.</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>## Pushes the model to a filesystem destination.</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#pusher = tfx.components.Pusher(</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#  model=trainer.outputs[&#39;model&#39;],</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#  push_destination=tfx.proto.PushDestination(</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#      filesystem=tfx.proto.PushDestination.Filesystem(</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#          base_directory=serving_model_dir)))</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e># Following three components will be included in the pipeline.</span>
+</span></span><span style=display:flex><span>    components <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>        example_gen,
+</span></span><span style=display:flex><span>        trainer,
+</span></span><span style=display:flex><span>        <span style=color:#75715e>#pusher</span>
+</span></span><span style=display:flex><span>    ]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>### When using the operator, it creates the pipeline for us, </span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>### so we return the components directly instead.</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#return tfx.dsl.Pipeline(</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#  pipeline_name=pipeline_name,</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#  pipeline_root=pipeline_root,</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#  metadata_connection_config=tfx.orchestration.metadata</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#  .sqlite_metadata_connection_config(metadata_path),</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#  components=components)</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> components
+</span></span></code></pre></div><p>Create <code>trainer.py</code>.
+The training code remains unchanged:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#f92672>from</span> typing <span style=color:#f92672>import</span> List
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> absl <span style=color:#f92672>import</span> logging
+</span></span><span style=display:flex><span><span style=color:#f92672>import</span> tensorflow <span style=color:#66d9ef>as</span> tf
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> tensorflow <span style=color:#f92672>import</span> keras
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> tensorflow_transform.tf_metadata <span style=color:#f92672>import</span> schema_utils
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> tfx <span style=color:#f92672>import</span> v1 <span style=color:#66d9ef>as</span> tfx
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> tfx_bsl.public <span style=color:#f92672>import</span> tfxio
+</span></span><span style=display:flex><span><span style=color:#f92672>from</span> tensorflow_metadata.proto.v0 <span style=color:#f92672>import</span> schema_pb2
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>_FEATURE_KEYS <span style=color:#f92672>=</span> [
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;culmen_length_mm&#39;</span>, <span style=color:#e6db74>&#39;culmen_depth_mm&#39;</span>, <span style=color:#e6db74>&#39;flipper_length_mm&#39;</span>, <span style=color:#e6db74>&#39;body_mass_g&#39;</span>
+</span></span><span style=display:flex><span>]
+</span></span><span style=display:flex><span>_LABEL_KEY <span style=color:#f92672>=</span> <span style=color:#e6db74>&#39;species&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>_TRAIN_BATCH_SIZE <span style=color:#f92672>=</span> <span style=color:#ae81ff>20</span>
+</span></span><span style=display:flex><span>_EVAL_BATCH_SIZE <span style=color:#f92672>=</span> <span style=color:#ae81ff>10</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Since we&#39;re not generating or creating a schema, we will instead create</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># a feature spec.  Since there are a fairly small number of features this is</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># manageable for this dataset.</span>
+</span></span><span style=display:flex><span>_FEATURE_SPEC <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    <span style=color:#f92672>**</span>{
+</span></span><span style=display:flex><span>        feature: tf<span style=color:#f92672>.</span>io<span style=color:#f92672>.</span>FixedLenFeature(shape<span style=color:#f92672>=</span>[<span style=color:#ae81ff>1</span>], dtype<span style=color:#f92672>=</span>tf<span style=color:#f92672>.</span>float32)
+</span></span><span style=display:flex><span>           <span style=color:#66d9ef>for</span> feature <span style=color:#f92672>in</span> _FEATURE_KEYS
+</span></span><span style=display:flex><span>       },
+</span></span><span style=display:flex><span>    _LABEL_KEY: tf<span style=color:#f92672>.</span>io<span style=color:#f92672>.</span>FixedLenFeature(shape<span style=color:#f92672>=</span>[<span style=color:#ae81ff>1</span>], dtype<span style=color:#f92672>=</span>tf<span style=color:#f92672>.</span>int64)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>_input_fn</span>(file_pattern: List[str],
+</span></span><span style=display:flex><span>              data_accessor: tfx<span style=color:#f92672>.</span>components<span style=color:#f92672>.</span>DataAccessor,
+</span></span><span style=display:flex><span>              schema: schema_pb2<span style=color:#f92672>.</span>Schema,
+</span></span><span style=display:flex><span>              batch_size: int <span style=color:#f92672>=</span> <span style=color:#ae81ff>200</span>) <span style=color:#f92672>-&gt;</span> tf<span style=color:#f92672>.</span>data<span style=color:#f92672>.</span>Dataset:
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;&#34;&#34;Generates features and label for training.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  Args:
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    file_pattern: List of paths or patterns of input tfrecord files.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    data_accessor: DataAccessor for converting input to RecordBatch.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    schema: schema of the input data.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    batch_size: representing the number of consecutive elements of returned
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      dataset to combine in a single batch
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  Returns:
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    A dataset that contains (features, indices) tuple where features is a
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>      dictionary of Tensors, and indices is a single Tensor of label indices.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> data_accessor<span style=color:#f92672>.</span>tf_dataset_factory(
+</span></span><span style=display:flex><span>      file_pattern,
+</span></span><span style=display:flex><span>      tfxio<span style=color:#f92672>.</span>TensorFlowDatasetOptions(
+</span></span><span style=display:flex><span>          batch_size<span style=color:#f92672>=</span>batch_size, label_key<span style=color:#f92672>=</span>_LABEL_KEY),
+</span></span><span style=display:flex><span>      schema<span style=color:#f92672>=</span>schema)<span style=color:#f92672>.</span>repeat()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>_build_keras_model</span>() <span style=color:#f92672>-&gt;</span> tf<span style=color:#f92672>.</span>keras<span style=color:#f92672>.</span>Model:
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;&#34;&#34;Creates a DNN Keras model for classifying penguin data.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  Returns:
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    A Keras Model.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># The model below is built with Functional API, please refer to</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># https://www.tensorflow.org/guide/keras/overview for all API options.</span>
+</span></span><span style=display:flex><span>  inputs <span style=color:#f92672>=</span> [keras<span style=color:#f92672>.</span>layers<span style=color:#f92672>.</span>Input(shape<span style=color:#f92672>=</span>(<span style=color:#ae81ff>1</span>,), name<span style=color:#f92672>=</span>f) <span style=color:#66d9ef>for</span> f <span style=color:#f92672>in</span> _FEATURE_KEYS]
+</span></span><span style=display:flex><span>  d <span style=color:#f92672>=</span> keras<span style=color:#f92672>.</span>layers<span style=color:#f92672>.</span>concatenate(inputs)
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>for</span> _ <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>):
+</span></span><span style=display:flex><span>    d <span style=color:#f92672>=</span> keras<span style=color:#f92672>.</span>layers<span style=color:#f92672>.</span>Dense(<span style=color:#ae81ff>8</span>, activation<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;relu&#39;</span>)(d)
+</span></span><span style=display:flex><span>  outputs <span style=color:#f92672>=</span> keras<span style=color:#f92672>.</span>layers<span style=color:#f92672>.</span>Dense(<span style=color:#ae81ff>3</span>)(d)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  model <span style=color:#f92672>=</span> keras<span style=color:#f92672>.</span>Model(inputs<span style=color:#f92672>=</span>inputs, outputs<span style=color:#f92672>=</span>outputs)
+</span></span><span style=display:flex><span>  model<span style=color:#f92672>.</span>compile(
+</span></span><span style=display:flex><span>      optimizer<span style=color:#f92672>=</span>keras<span style=color:#f92672>.</span>optimizers<span style=color:#f92672>.</span>Adam(<span style=color:#ae81ff>1e-2</span>),
+</span></span><span style=display:flex><span>      loss<span style=color:#f92672>=</span>tf<span style=color:#f92672>.</span>keras<span style=color:#f92672>.</span>losses<span style=color:#f92672>.</span>SparseCategoricalCrossentropy(from_logits<span style=color:#f92672>=</span><span style=color:#66d9ef>True</span>),
+</span></span><span style=display:flex><span>      metrics<span style=color:#f92672>=</span>[keras<span style=color:#f92672>.</span>metrics<span style=color:#f92672>.</span>SparseCategoricalAccuracy()])
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  model<span style=color:#f92672>.</span>summary(print_fn<span style=color:#f92672>=</span>logging<span style=color:#f92672>.</span>info)
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> model
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># TFX Trainer will call this function.</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>run_fn</span>(fn_args: tfx<span style=color:#f92672>.</span>components<span style=color:#f92672>.</span>FnArgs):
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;&#34;&#34;Train the model based on given args.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  Args:
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    fn_args: Holds args used to train the model as name/value pairs.
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &#34;&#34;&#34;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># This schema is usually either an output of SchemaGen or a manually-curated</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># version provided by pipeline author. A schema can also derived from TFT</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># graph if a Transform component is used. In the case when either is missing,</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># `schema_from_feature_spec` could be used to generate schema from very simple</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># feature_spec, but the schema returned would be very primitive.</span>
+</span></span><span style=display:flex><span>  schema <span style=color:#f92672>=</span> schema_utils<span style=color:#f92672>.</span>schema_from_feature_spec(_FEATURE_SPEC)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  train_dataset <span style=color:#f92672>=</span> _input_fn(
+</span></span><span style=display:flex><span>      fn_args<span style=color:#f92672>.</span>train_files,
+</span></span><span style=display:flex><span>      fn_args<span style=color:#f92672>.</span>data_accessor,
+</span></span><span style=display:flex><span>      schema,
+</span></span><span style=display:flex><span>      batch_size<span style=color:#f92672>=</span>_TRAIN_BATCH_SIZE)
+</span></span><span style=display:flex><span>  eval_dataset <span style=color:#f92672>=</span> _input_fn(
+</span></span><span style=display:flex><span>      fn_args<span style=color:#f92672>.</span>eval_files,
+</span></span><span style=display:flex><span>      fn_args<span style=color:#f92672>.</span>data_accessor,
+</span></span><span style=display:flex><span>      schema,
+</span></span><span style=display:flex><span>      batch_size<span style=color:#f92672>=</span>_EVAL_BATCH_SIZE)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  model <span style=color:#f92672>=</span> _build_keras_model()
+</span></span><span style=display:flex><span>  model<span style=color:#f92672>.</span>fit(
+</span></span><span style=display:flex><span>      train_dataset,
+</span></span><span style=display:flex><span>      steps_per_epoch<span style=color:#f92672>=</span>fn_args<span style=color:#f92672>.</span>train_steps,
+</span></span><span style=display:flex><span>      validation_data<span style=color:#f92672>=</span>eval_dataset,
+</span></span><span style=display:flex><span>      validation_steps<span style=color:#f92672>=</span>fn_args<span style=color:#f92672>.</span>eval_steps)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># The result of the training should be saved in `fn_args.serving_model_dir`</span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e># directory.</span>
+</span></span><span style=display:flex><span>  model<span style=color:#f92672>.</span>save(fn_args<span style=color:#f92672>.</span>serving_model_dir, save_format<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;tf&#39;</span>)
+</span></span></code></pre></div><p>Create <code>Dockerfile</code>.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-dockerfile data-lang=dockerfile><span style=display:flex><span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> python:3.10.12 as builder</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> mkdir /data<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> wget https://raw.githubusercontent.com/tensorflow/tfx/master/tfx/examples/penguin/data/labelled/penguins_processed.csv -P /data<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> pip install poetry<span style=color:#f92672>==</span>1.7.1<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> pyproject.toml .<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> poetry.lock .<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> poetry config virtualenvs.create true<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> poetry config virtualenvs.in-project true<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>RUN</span> poetry install --no-root<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>FROM</span><span style=color:#e6db74> python:3.10.12-slim as runtime</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> VIRTUAL_ENV<span style=color:#f92672>=</span>/.venv <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span><span style=color:#ae81ff></span>    PATH<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;/.venv/bin:</span>$PATH<span style=color:#e6db74>&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>WORKDIR</span><span style=color:#e6db74> /pipeline</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> --from<span style=color:#f92672>=</span>builder <span style=color:#e6db74>${</span>VIRTUAL_ENV<span style=color:#e6db74>}</span> <span style=color:#e6db74>${</span>VIRTUAL_ENV<span style=color:#e6db74>}</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> --from<span style=color:#f92672>=</span>builder /data /data<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>COPY</span> penguin_pipeline/*.py ./<span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>
+</span></span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010></span><span style=color:#66d9ef>ENV</span> PYTHONPATH<span style=color:#f92672>=</span><span style=color:#e6db74>&#34;/pipeline:</span><span style=color:#e6db74>${</span>PYTHONPATH<span style=color:#e6db74>}</span><span style=color:#e6db74>&#34;</span><span style=color:#960050;background-color:#1e0010>
+</span></span></span></code></pre></div><p>Next, build the pipeline as a Docker container and push it:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>docker build . -t kfp-quickstart:v1
+</span></span><span style=display:flex><span>...
+</span></span><span style=display:flex><span>docker push kfp-quickstart:v1
+</span></span></code></pre></div><h2 id=2-create-a-pipeline-resource>2. Create a Pipeline Resource</h2><p>Now that we have a pipeline image, we can create a <code>pipeline.yaml</code> resource to manage the lifecycle of this pipeline on Kubeflow:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1alpha6</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Pipeline</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>provider</span>: <span style=color:#ae81ff>kfp</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>image</span>: <span style=color:#ae81ff>kfp-quickstart:v1</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>tfxComponents</span>: <span style=color:#ae81ff>pipeline.create_components</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>framework</span>: <span style=color:#ae81ff>tfx</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f resources/pipeline.yaml
+</span></span></code></pre></div><p>The pipeline now gets uploaded to Kubeflow in several steps. After a few seconds to minutes, the following command should result in a success:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl get pipeline
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>NAME               SYNCHRONIZATIONSTATE   PROVIDERID
+</span></span><span style=display:flex><span>penguin-pipeline   Succeeded              53905abe-0337-48de-875d-67b9285f3cf7
+</span></span></code></pre></div><p>Now visit your Kubeflow Pipelines UI. You should be able to see the newly created pipeline named <code>penguin-pipeline</code>. Note that you will see two versions: &lsquo;penguin-pipeline&rsquo; and &lsquo;v1&rsquo;. This is due to an <a href=https://github.com/kubeflow/pipelines/issues/5881>open issue on Kubeflow</a> where you can&rsquo;t specify a version when creating a pipeline.</p><h2 id=3-create-an-experiment-resource>3. Create an Experiment resource</h2><p>Note: this step is optional. You can continue with the next step if you want to use the <code>Default</code> experiment instead.</p><p>Create <code>experiment.yaml</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1alpha6</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Experiment</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-experiment</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>description</span>: <span style=color:#ae81ff>An experiment for the penguin pipeline</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f resources/experiment.yaml
+</span></span></code></pre></div><h2 id=4-create-a-pipeline-runconfiguration-resource>4. Create a pipeline RunConfiguration resource</h2><p>We can now define a recurring run declaratively using the <code>RunConfiguration</code> resource.</p><p>Note: remove <code>experimentName</code> if you want to use the <code>Default</code> experiment instead of <code>penguin-experiment</code></p><p>Create <code>runconfiguration.yaml</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1alpha6</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>RunConfiguration</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-recurring-run</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>run</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>pipeline</span>: <span style=color:#ae81ff>penguin-pipeline</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>experimentName</span>: <span style=color:#ae81ff>penguin-experiment</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>triggers</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>schedules</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#f92672>cronExpression</span>: <span style=color:#ae81ff>0</span> * * * *
+</span></span><span style=display:flex><span>        <span style=color:#f92672>startTime</span>: <span style=color:#e6db74>2024-01-01T00:00:00Z</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>endTime</span>: <span style=color:#e6db74>2024-12-31T23:59:59Z</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f resources/runconfiguration.yaml
+</span></span></code></pre></div><p>This will trigger run of <code>penguin-pipeline</code> once every hour. Note that the cron schedule uses a 6-place space separated syntax as defined <a href=https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format>here</a>.</p><h2 id=5-optional-deploy-newly-trained-models>5. (Optional) Deploy newly trained models</h2><p>If the operator has been installed with <a href=https://argoproj.github.io/argo-events/>Argo-Events</a> support, we can now specify eventsources and sensors to update arbitrary Kubernetes config when a pipeline has been trained successfully.
+In this example we are updating a serving component with the location of the newly trained model.</p><p>Create <code>apply-model-location.yaml</code>. This creates an <code>EventSource</code> and a <code>Sensor</code> as well as an <code>EventBus</code>:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>argoproj.io/v1alpha1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>EventBus</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>nats</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>native</span>: {}
+</span></span><span style=display:flex><span>---
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>argoproj.io/v1alpha1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>EventSource</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>run-completion</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>nats</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>run-completion</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>jsonBody</span>: <span style=color:#66d9ef>true</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>subject</span>: <span style=color:#ae81ff>events</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>url</span>: <span style=color:#ae81ff>nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222</span>
+</span></span><span style=display:flex><span>---
+</span></span><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>argoproj.io/v1alpha1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Sensor</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>penguin-pipeline-model-update</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>template</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>serviceAccountName</span>: <span style=color:#ae81ff>events-sa</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>dependencies</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>run-completion</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>eventSourceName</span>: <span style=color:#ae81ff>run-completion</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>eventName</span>: <span style=color:#ae81ff>run-completion</span>
+</span></span><span style=display:flex><span>      <span style=color:#f92672>filters</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>data</span>:
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>path</span>: <span style=color:#ae81ff>body.data.status</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>type</span>: <span style=color:#ae81ff>string</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>comparator</span>: <span style=color:#e6db74>&#34;=&#34;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>value</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#e6db74>&#34;succeeded&#34;</span>
+</span></span><span style=display:flex><span>          - <span style=color:#f92672>path</span>: <span style=color:#ae81ff>body.data.pipelineName</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>type</span>: <span style=color:#ae81ff>string</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>comparator</span>: <span style=color:#e6db74>&#34;=&#34;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>value</span>:
+</span></span><span style=display:flex><span>              - <span style=color:#e6db74>&#34;penguin-pipeline&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>triggers</span>:
+</span></span><span style=display:flex><span>    - <span style=color:#f92672>template</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>name</span>: <span style=color:#ae81ff>update</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>k8s</span>:
+</span></span><span style=display:flex><span>          <span style=color:#f92672>operation</span>: <span style=color:#ae81ff>update</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>source</span>:
+</span></span><span style=display:flex><span>            <span style=color:#f92672>resource</span>:
+</span></span><span style=display:flex><span>              <span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ConfigMap</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>name</span>: <span style=color:#ae81ff>serving-config</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>data</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>servingModel</span>: <span style=color:#e6db74>&#34;&#34;</span>
+</span></span><span style=display:flex><span>          <span style=color:#f92672>parameters</span>:
+</span></span><span style=display:flex><span>            - <span style=color:#f92672>src</span>:
+</span></span><span style=display:flex><span>                <span style=color:#f92672>dependencyName</span>: <span style=color:#ae81ff>run-completion</span>
+</span></span><span style=display:flex><span>                <span style=color:#f92672>dataKey</span>: <span style=color:#ae81ff>body.data.artifacts.0.location</span>
+</span></span><span style=display:flex><span>              <span style=color:#f92672>dest</span>: <span style=color:#ae81ff>data.servingModel</span>
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>kubectl apply -f resources/apply-model-location.yaml
+</span></span></code></pre></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"></div></div></div></footer></div><script src=/kfp-operator/js/main.min.62e96d9ad97b3843cee93df5033671cd47c7dd4302260e7ec95baa69263afaa9.js integrity="sha256-Yultmtl7OEPO6T31AzZxzUfH3UMCJg5+yVuqaSY6+qk=" crossorigin=anonymous></script><script defer src=/kfp-operator/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js integrity="sha256-c0eKfUgHaYrtfjVesj+YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin=anonymous></script><script src=/kfp-operator/js/tabpane-persist.js></script></body></html>
