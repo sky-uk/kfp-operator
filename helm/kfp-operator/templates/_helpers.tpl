@@ -45,7 +45,7 @@ Remove trailing '/' characters from .Values.containerRegistry.
 {{ if .Values.manager.argo.compilerImage -}}
 {{ include "kfp-operator.trimmedContainerRegistry" . }}{{ .Values.manager.argo.compilerImage }}:{{ .Chart.AppVersion }}
 {{- else -}}
-{{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-argo-kfp-compiler:{{ .Chart.AppVersion }}
+{{ include "kfp-operator.trimmedContainerRegistry" . }}kfp-operator-tfx-compiler:{{ .Chart.AppVersion }}
 {{- end -}}
 {{- end -}}
 

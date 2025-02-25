@@ -15,7 +15,7 @@ spec:
   workflowNamespace: kfp-operator-system
   workflowTemplatePrefix: kfp-operator-
   pipelineFrameworkImages:
-    default: kfp-operator-argo-kfp-compiler:latest
+    default: kfp-operator-tfx-compiler:latest
   runCompletionFeed:
     port: 8082
     endpoints: []
