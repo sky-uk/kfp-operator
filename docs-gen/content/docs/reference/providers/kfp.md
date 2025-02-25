@@ -12,10 +12,12 @@ submission, status monitoring, schedules and experiment management.
 
 ## Deployment and Usage
 
+
 Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Kubeflow. [See the getting started guide.](../../../getting-started/installation/#providers)
 
-The configuration can be managed via the [provider custom resource](../../resources/provider/#kubeflow) installed by the operator.
+KFP must be installed in [standalone mode](https://www.kubeflow.org/docs/components/pipelines/legacy-v1/installation/standalone-deployment/).
+Its configuration can be controlled using the [KFP specific parameters within a Provider Resource](../../resources/provider/#kubeflow).
 
 For detailed implementation code and further technical insights, refer to the
 [KFP Provider Service directory](https://github.com/sky-uk/kfp-operator/tree/master/provider-service/kfp) in the
