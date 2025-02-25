@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Resources on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/</link><description>Recent content in Resources on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/reference/resources/index.xml" rel="self" type="application/rss+xml"/><item><title>Pipeline</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/pipeline/</guid><description>&lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
 Pipelines can be created, updated and deleted via this resource.
-The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
+The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment
+variables.
 It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
@@ -13,7 +14,6 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">env&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#ae81ff">100&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">framework&lt;/span>: &lt;span style="color:#ae81ff">tfx&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
  &lt;thead>
@@ -25,7 +25,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;tbody>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Specify which provider to use in create/update workflows.&lt;/td>
+ &lt;td style="text-align: left">The name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
@@ -50,7 +50,9 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;/tbody>
 &lt;/table>
 &lt;h2 id="versioning">Versioning&lt;/h2>
-&lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image and its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version to reflect this, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>&lt;p>The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).
+&lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image
+as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version
+to reflect this, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>&lt;p>The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).
 Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
@@ -108,6 +110,10 @@ One-off pipeline training runs can be configured using this resource as follows:
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.pipeline&lt;/code>&lt;/td>
  &lt;td style="text-align: left">The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.&lt;/td>
  &lt;/tr>
@@ -145,6 +151,10 @@ and can be configured as follows:&lt;/p>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
+ &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
+ &lt;/tr>
+ &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.description&lt;/code>&lt;/td>
  &lt;td style="text-align: left">The description of the experiment.&lt;/td>
  &lt;/tr>
@@ -152,41 +162,6 @@ and can be configured as follows:&lt;/p>
 &lt;/table></description></item><item><title>Provider</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</guid><description>&lt;p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.
 e.g Kubeflow Pipelines or the Vertex AI Platform.
 Providers configuration can be set using this resource and permissions for access can be configured via service accounts.&lt;/p>
-&lt;h3 id="common-fields">Common Fields&lt;/h3>
-&lt;table>
- &lt;thead>
- &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
- &lt;/tr>
- &lt;/thead>
- &lt;tbody>
- &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
- &lt;td style="text-align: left">Container image of the provider&lt;/td>
- &lt;td style="text-align: left">&lt;code>kfp-operator-kfp-provider:0.0.2&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.executionMode&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
- &lt;td style="text-align: left">KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.serviceAccount&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
- &lt;td style="text-align: left">Service Account name to be used for all provider-specific operations (see respective provider)&lt;/td>
- &lt;td style="text-align: left">&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.defaultBeamArgs&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default Beam arguments to which the pipeline-defined ones will be added&lt;/td>
- &lt;td style="text-align: left">&lt;pre>- name: project&lt;br/> value: my-gcp-project&lt;/pre>&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.pipelineRootStorage&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
- &lt;td style="text-align: left">&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
- &lt;/tr>
- &lt;/tbody>
-&lt;/table>
-&lt;p>&lt;sup>*&lt;/sup> field automatically populated by Helm based on provider type&lt;/p></description></item></channel></rss>
+&lt;blockquote>
+&lt;p>Note: changing the provider of a resource that was previously managed by another provider will result in a resource error.
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item></channel></rss>

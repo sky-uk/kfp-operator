@@ -1,26 +1,15 @@
 ---
 title: "Run Completion Events"
-weight: 3
+weight: 4
 ---
+
+Run completion events are created by a [`Provider`](../reference/providers/overview) to signal the completion of a pipeline run, and is used to trigger downstream processes. 
+Within the operator this can be updating the status fields of resources such as their `synchronizationState` or `providerId`. Within the ML Ops ecosystem,
+this can also be used to reload a serving instance of a model with the newly trained version.
 
 ![Model Serving]({{< param "subpath" >}}/master/images/run-completion.svg)
 
-The KFP-Operator Events system provides a [NATS Event bus](https://nats.io/) in the operator namespace to consume events from. 
-To use it, users can create an Argo-Events [NATS Eventsource](https://argoproj.github.io/argo-events/eventsources/setup/nats/) as follows:
-
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: EventSource
-metadata:
-  name: run-completion
-spec:
-  nats:
-    run-completion:
-      jsonBody: true
-      subject: events
-      url: nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222
-```
-
+## Event Specification
 The specification of the events follows [CloudEvents](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md):
 
 ```json
@@ -49,6 +38,24 @@ The specification of the events follows [CloudEvents](https://github.com/cloudev
   }
 }
 ```
+
+## Using Events
+The KFP-Operator Events system provides a [NATS Event bus](https://nats.io/) in the operator namespace to consume events from.
+To use it, users can create an Argo-Events [NATS Eventsource](https://argoproj.github.io/argo-events/eventsources/setup/nats/) as follows:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: run-completion
+spec:
+  nats:
+    run-completion:
+      jsonBody: true
+      subject: events
+      url: nats://eventbus-kfp-operator-events-stan-svc.kfp-operator.svc:4222
+```
+
 
 > **_NOTE:_** currently, the event includes both `servingModelArtifacts` and `artifacts`:
 > 
