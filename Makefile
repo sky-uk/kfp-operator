@@ -50,7 +50,7 @@ decoupled-test: manifests generate ## Run decoupled acceptance tests
 
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
 integration-test-up: ## Spin up a minikube cluster for integration tests
-	minikube start -p kfp-operator-tests
+	minikube start -p kfp-operator-tests --registry-mirror="https://mirror.gcr.io"
 	# Install Argo
 	kubectl create namespace argo --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/${ARGO_VERSION}/quick-start-postgres.yaml
@@ -61,6 +61,10 @@ integration-test-up: ## Spin up a minikube cluster for integration tests
 integration-test: manifests generate helm-cmd yq ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
 	$(MAKE) -C argo/providers/stub docker-build && \
+	$(MAKE) -C provider-service/stub docker-build && \
+	kubectl apply -n argo -f config/testing/provider-deployment.yaml
+	kubectl wait -n argo deployment/provider-test --for condition=available --timeout=5m
+	kubectl apply -n argo -f config/testing/provider-service.yaml
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
  		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
  		kubectl apply -f -
@@ -68,7 +72,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 
 integration-test-down: ## Tear down the minikube cluster
 	(cat config/testing/pids | xargs kill) || true
-	minikube stop -p kfp-operator-tests
+	minikube delete -p kfp-operator-tests
 
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
