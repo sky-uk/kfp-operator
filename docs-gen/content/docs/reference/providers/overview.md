@@ -14,13 +14,15 @@ You can also integrate the KFP Operator with custom providers by implementing a 
 
 A provider service bridges the KFP Operator and the pipeline orchestration provider. It performs key tasks such as:
 
-- **State Reporting**: Reports the state of resources on the provider to the KFP Operator.
-- **Resource Creation**: Creates provider-specific resources, such as runs in Vertex AI.
+- **Eventing**: Reports the state of resources on the provider to the KFP Operator.
+- **Resource Management**: Manages provider-specific resources, such as runs in Vertex AI.
 
 The KFP Operator will deploy the Provider service as Kubernetes deployment with an accompanying Kubernetes Service based
 off the [configuration provided.](#configuration)
 
 ![provider-controller]({{< param "subpath" >}}/master/images/provider-controller.svg)
+
+Interaction with this service is via argo-workflows, whereby http requests are sent to the service to perform actions on the provider.
 
 ### Eventing
 
@@ -45,6 +47,7 @@ The specification outlines the structure, endpoints, and methods required for fu
 
 ### Configuration
 Configuration of a provider service is managed through 2 separate configuration components: 
+
 - #### Provider custom resource 
 
   The provider custom resource is designed to provide the configuration for how the provider should behave, ie, what provider it should use, the cli required including the compilation
@@ -54,14 +57,6 @@ Configuration of a provider service is managed through 2 separate configuration 
 
   The operator configuration is designed to provide the configuration for the underlying provider service deployment, ie, the ports to expose, the cpu / memory allocation.
   For more information see the [operator configuration](../../configuration).
-
-
-## CLI
-
-The provider CLI image facilitates interaction with the provider service via its API, primarily from Argo workflows. The CLI is responsible for:
-
-- **Model Compilation**: Compiles models into manifests and submits them to the provider service.
-- **Resource Management**: Handles the creation, deletion, and updating of resources by sending requests to the provider service endpoints.
 
 ## Using Custom Providers
 

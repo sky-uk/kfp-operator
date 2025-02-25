@@ -4,8 +4,8 @@ title: "Kubeflow Pipelines"
 
 ## Overview
 
-The KFP Operator's **Kubeflow Pipelines (KFP) Provider Service** is included within this project to interface directly with
-Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Vertex AI, facilitating operations such as pipeline
+The **Kubeflow Pipelines Provider Service** is included within this project to interface directly with
+Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
 submission, status monitoring, schedules and experiment management.
 
 ![KFP Provider]({{< param "subpath" >}}/master/images/kfp.svg)
@@ -26,4 +26,4 @@ official repository.
 - **API** : Implements the [openapi spec for provider services](../overview/#api).
 
 - **Event Handling**: The KFP provider creates run-completion events when reading the status of workflows triggered by
-kubeflow. These events are then processed and sent to the operators webhook to update the status of the run.
+Kubeflow. These events are then processed and sent to the operators webhook to update the status of the run.
