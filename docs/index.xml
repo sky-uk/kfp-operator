@@ -38,9 +38,14 @@
  &lt;td style="text-align: left">Configuration of the service for the run completion feed back to KFP Operator&lt;/td>
  &lt;td style="text-align: left">See &lt;a href="#run-completion-feed-configuration">here&lt;/a>&lt;/td>
  &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>frameworks&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Map of pipeline framework to docker image. Pipeline framework to match value in &lt;a href="../resources/pipeline">Pipeline resource&lt;/a>&lt;/td>
+ &lt;td style="text-align: left">&lt;code>default: kfp-operator-argo-kfp-compiler:latest&lt;/code>&lt;/td>
+ &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p></description></item><item><title>Configuration</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/configuration/</guid><description>&lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
+&lt;p>An example configuration:&lt;/p></description></item><item><title>Configuration</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/configuration/</guid><description>&lt;p>The Kubeflow Pipelines operator can be configured with the following parameters:&lt;/p>
 &lt;table>
  &lt;thead>
  &lt;tr>
@@ -82,7 +87,7 @@
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>An example can be found &lt;a href="https://github.com/sky-uk/kfp-operator/blob/versions/v0.6.0/config/manager/controller_manager_config.yaml">here&lt;/a>.&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>&lt;p>The Kubeflow Pipelines Operator (KFP Operator) offers a declarative API designed to streamline the management and
+&lt;p>An example configuration:&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>&lt;p>The Kubeflow Pipelines Operator (KFP Operator) offers a declarative API designed to streamline the management and
 execution of ML pipelines using Resource Definitions across various providers.
 A &amp;ldquo;provider&amp;rdquo; refers to a runtime environment that handles the orchestration and execution of these pipelines and
 associated resources.&lt;/p>
