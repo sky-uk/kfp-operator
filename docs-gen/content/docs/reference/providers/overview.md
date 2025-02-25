@@ -68,6 +68,6 @@ The provider CLI image facilitates interaction with the provider service via its
 To use a custom provider:
 
 1. **Implement a Provider Service**: Ensure the service adheres to the OpenAPI specification and handles eventing and state reporting appropriately.
-2. **Configure Run Completion Events**: Integrate your provider with an eventing mechanism compatible with the KFP Operator.
+2. **Configure Run Completion Events**: Integrate your provider with an eventing mechanism compatible with the KFP Operator. See the [Run Completion Events](../../run-completion) documentation for more information.
 3. **Deploy and Test**: Deploy the custom provider and verify proper communication with the KFP Operator.
 
