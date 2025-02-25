@@ -28,7 +28,7 @@ penguin-310: penguin-staging ## Build the penguin image for Python 3.10
 integration-test: docker-build penguin-38 penguin-39 penguin-310 ## Run the integration test
 	$(eval TMP := $(shell mktemp -d))
 	echo '{"rootLocation": "pipeline_root", "servingLocation": "serving", "name": "test", "image": "test-pipeline", "tfxComponents": "pipeline.create_components"}' > $(TMP)/pipeline_config.json
-	docker run -v $(TMP):/shared kfp-operator-argo-kfp-compiler /shared
+	docker run -v $(TMP):/shared kfp-operator-tfx-compiler /shared
 
 	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.8 --output_file /tmp/pipeline.yaml --pipeline_config /shared/pipeline_config.json --execution_mode v2
 	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /tmp/pipeline.yaml --pipeline_config /shared/pipeline_config.json --execution_mode v2

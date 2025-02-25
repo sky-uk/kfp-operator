@@ -41,7 +41,7 @@
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>frameworks&lt;/code>&lt;/td>
  &lt;td style="text-align: left">Map of pipeline framework to docker image. Pipeline framework to match value in &lt;a href="../resources/pipeline">Pipeline resource&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;code>default: kfp-operator-argo-kfp-compiler:latest&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">&lt;code>default: kfp-operator-tfx-compiler:latest&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>defaultProviderValues&lt;/code>&lt;/td>
