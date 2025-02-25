@@ -4,7 +4,7 @@ title: "Vertex AI"
 
 ## Overview
 
-The KFP Operator's **Vertex AI (VAI) Provider Service** is included within this project to interface directly with 
+The **Vertex AI (VAI) Provider Service** is included within this project to interface directly with 
 Google Cloud's Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling 
 seamless management and execution of machine learning workflows.
 

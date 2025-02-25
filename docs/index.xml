@@ -656,7 +656,7 @@ submission, status monitoring, schedules and experiment management.&lt;/p>
 credentials for the Kubeflow. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p>
 &lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/legacy-v1/installation/standalone-deployment/">standalone mode&lt;/a>.
 Its configuration can be controlled using the &lt;a href="../../resources/provider/#kubeflow">KFP specific parameters within a Provider Resource&lt;/a>.&lt;/p></description></item><item><title>Vertex AI</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/vai/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/vai/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
-&lt;p>The KFP Operator&amp;rsquo;s &lt;strong>Vertex AI (VAI) Provider Service&lt;/strong> is included within this project to interface directly with
+&lt;p>The &lt;strong>Vertex AI (VAI) Provider Service&lt;/strong> is included within this project to interface directly with
 Google Cloud&amp;rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
 seamless management and execution of machine learning workflows.&lt;/p>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/vai.svg" alt="VAI Provider">&lt;/p>
