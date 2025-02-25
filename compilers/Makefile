@@ -1,8 +1,6 @@
 include ../docker-targets.mk
 include ../help.mk
 
-IMG := kfp-operator-tfx-compiler
-
 all: build
 
 ##@ Development
