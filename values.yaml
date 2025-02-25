@@ -1,0 +1,57 @@
+namespace:
+  create: false
+fullnameOverride: kfp-operator
+containerRegistry: europe-docker.pkg.dev/ml-kfp-operator-sandbox-100/mlops
+logging:
+  verbosity: info
+manager:
+  multiversion:
+    enabled: true
+  webhookCertificates:
+    provider: cert-manager
+  argo:
+    serviceAccount:
+      name: kfp-operator-argo
+      create: true
+  configuration:
+    defaultProvider: kfp
+    defaultExperiment: Default
+    runCompletionTTL: 30s
+  monitoring:
+    create: false
+providers:
+  kfp:
+    type: kfp
+    serviceAccount:
+      name: kfp-operator-kfp
+      create: true
+    configuration:
+      kfpNamespace: kubeflow
+      restKfpApiUrl: http://ml-pipeline.kubeflow:8888
+      grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080
+      grpcKfpApiAddress: ml-pipeline.kubeflow:8887
+      defaultBeamArgs:
+        - name: project
+          value: ml-kfp-operator-sandbox-100
+      pipelineRootStorage: gs://ml-kfp-operator-sandbox-100-pipelinestorage
+  vai:
+    type: vai
+    serviceAccount:
+      name: kfp-operator-vai
+      create: true
+      metadata:
+        annotations:
+          iam.gke.io/gcp-service-account: kfp-operator-vai@ml-kfp-operator-sandbox-100.iam.gserviceaccount.com
+    configuration:
+      vaiProject: ml-kfp-operator-sandbox-100
+      vaiLocation: europe-west2
+      vaiJobServiceAccount: kfp-operator-vai@ml-kfp-operator-sandbox-100.iam.gserviceaccount.com
+      pipelineBucket: ml-kfp-operator-sandbox-100-pipelinestorage
+      eventsourcePipelineEventsSubscription: kfp-operator-vai-run-events-eventsource
+      defaultBeamArgs:
+        - name: project
+          value: ml-kfp-operator-sandbox-100
+      pipelineRootStorage: gs://ml-kfp-operator-sandbox-100-pipelinestorage
+      maxConcurrentRunCount: 3
+eventsourceServer:
+  create: true

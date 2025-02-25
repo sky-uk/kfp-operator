@@ -7,6 +7,7 @@ all: build
 
 test: ## Test
 	$(MAKE) -C tfx test
+
 ##@ Build
 
 build: ## Build
@@ -14,8 +15,8 @@ build: ## Build
 
 ##@ Containers
 
-WHEEL_VERSION=$(shell poetry version | cut -d ' ' -f 2)
-DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION}
+docker-build-all: ## Push all compiler docker images
+	$(MAKE) -C tfx docker-build
 
 docker-push-all: ## Push all compiler docker images
-	$(MAKE) docker-push IMG=kfp-operator-tfx-compiler
+	$(MAKE) -C tfx docker-push

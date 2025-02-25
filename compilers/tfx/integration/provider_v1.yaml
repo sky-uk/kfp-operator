@@ -1,0 +1,2 @@
+executionMode: v1
+pipelineRootStorage: gs://some_bucket

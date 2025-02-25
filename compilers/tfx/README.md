@@ -1,6 +1,6 @@
 # KFP Components Compiler
 
-This module compiles a TFX component defintion into a Kubeflow Pipelines file.
+This module compiles a TFX component definition into a Kubeflow Pipelines file.
 
 ## Setup
 
@@ -11,7 +11,7 @@ The version differs from those of the resulting containers (which are based on `
 
 This module is meant to be used inside Argo workflows as part of the Kubeflow Pipelines Operator.
 
-It requires a valid configuration file similar to [pipeline_conf.yaml](tfx/acceptance/pipeline_conf.yaml).
+It requires a valid configuration file similar to [pipeline_conf.yaml](acceptance/pipeline_conf.yaml).
 `tfxComponents` specified in this config file must be present on the Python path.
 
 

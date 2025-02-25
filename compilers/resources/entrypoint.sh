@@ -1,10 +1,10 @@
 #!/bin/ash
 
-if [ "$#" -ne 2 ] || ! [ -d "$2" ]; then
+if [ "$#" -ne 1 ] || ! [ -d "$1" ]; then
   echo "Usage: $(basename $0) <destination directory>" >&2
   exit 1
 fi
 
-cp -r /$1-compiler/* $2
+cp -r /compiler/* $1
 
 echo "Done injecting compiler"

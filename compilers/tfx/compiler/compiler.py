@@ -10,6 +10,46 @@ from tfx.components import Pusher, Trainer
 from tfx.proto import pusher_pb2
 
 
+@click.command()
+@click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
+@click.option('--provider_config', help='Provider configuration in yaml format', required=True)
+@click.option('--output_file', help='Output file path', required=True)
+def compile(pipeline_config: str, provider_config: str, output_file: str):
+    """Compiles TFX components into a Kubeflow Pipelines pipeline definition"""
+    with open(pipeline_config, "r") as pipeline_stream, open(provider_config, "r") as provider_stream:
+        pipeline_config_contents = yaml.safe_load(pipeline_stream)
+        provider_config_contents = yaml.safe_load(provider_stream)
+
+        click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ',
+                    fg='green')
+
+        pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents,
+                                                                                        provider_config_contents)
+
+        beam_args = provider_config_contents.get('defaultBeamArgs', [])
+        beam_args.extend(pipeline_config_contents.get('beamArgs', []))
+        beam_cli_args = name_values_to_cli_args(beam_args)
+        beam_cli_args.append(f"--temp_location={temp_location}")
+
+        components = load_fn(pipeline_config_contents['tfxComponents'], pipeline_config_contents.get('env', []))()
+        expanded_components = expand_components_with_pusher(components, serving_model_directory)
+
+        compile_fn = compile_v1 if provider_config_contents['executionMode'] == 'v1' else compile_v2
+
+        compile_fn(pipeline_config_contents, output_file).run(
+            pipeline.Pipeline(
+                pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
+                pipeline_root=pipeline_root,
+                components=expanded_components,
+                enable_cache=False,
+                metadata_connection_config=None,
+                beam_pipeline_args=beam_cli_args
+            )
+        )
+
+        click.secho(f'{output_file} written', fg='green')
+
+
 def expand_components_with_pusher(tfx_components: list, serving_model_directory: str):
     if not any(isinstance(component, Pusher) for component in tfx_components):
 
@@ -70,46 +110,6 @@ def load_fn(tfx_components: str, env: list):
 
 def sanitise_namespaced_pipeline_name(namespaced_name: str) -> str:
     return namespaced_name.replace("/", "-")
-
-
-@click.command()
-@click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
-@click.option('--provider_config', help='Provider configuration in yaml format', required=True)
-@click.option('--output_file', help='Output file path', required=True)
-def compile(pipeline_config: str, provider_config: str, output_file: str):
-    """Compiles TFX components into a Kubeflow Pipelines pipeline definition"""
-    with open(pipeline_config, "r") as pipeline_stream, open(provider_config, "r") as provider_stream:
-        pipeline_config_contents = yaml.safe_load(pipeline_stream)
-        provider_config_contents = yaml.safe_load(provider_stream)
-
-        click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ',
-                    fg='green')
-
-        pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents,
-                                                                                          provider_config_contents)
-
-        beam_args = provider_config_contents.get('defaultBeamArgs', [])
-        beam_args.extend(pipeline_config_contents.get('beamArgs', []))
-        beam_cli_args = name_values_to_cli_args(beam_args)
-        beam_cli_args.append(f"--temp_location={temp_location}")
-
-        components = load_fn(pipeline_config_contents['tfxComponents'], pipeline_config_contents.get('env', []))()
-        expanded_components = expand_components_with_pusher(components, serving_model_directory)
-
-        compile_fn = compile_v1 if provider_config_contents['executionMode'] == 'v1' else compile_v2
-
-        compile_fn(pipeline_config_contents, output_file).run(
-            pipeline.Pipeline(
-                pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
-                pipeline_root=pipeline_root,
-                components=expanded_components,
-                enable_cache=False,
-                metadata_connection_config=None,
-                beam_pipeline_args=beam_cli_args
-            )
-        )
-
-        click.secho(f'{output_file} written', fg='green')
 
 
 def compile_v1(config: dict, output_filename: str):

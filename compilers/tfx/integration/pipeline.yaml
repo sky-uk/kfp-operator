@@ -1,0 +1,5 @@
+rootLocation: pipeline_root
+servingLocation: serving
+name: test
+image: test-pipeline
+tfxComponents: pipeline.create_components

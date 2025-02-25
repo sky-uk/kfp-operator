@@ -78,8 +78,10 @@ test: fmt vet unit-test decoupled-test ## Run all tests
 
 test-argo: ## Run all tests for argo
 	$(MAKE) -C argo/common test
-	$(MAKE) -C argo/kfp-compiler test
 	$(MAKE) -C argo/providers test
+
+test-compilers: ## Run all tests for compilers
+	$(MAKE) -C compilers test
 
 test-triggers: ## Run all tests for triggers
 	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
@@ -90,7 +92,7 @@ test-provider-service: ## Run all tests for provider-service
 test-all: test helm-test-operator test-argo test-triggers test-provider-service ## Run all tests
 
 integration-test-all: integration-test ## Run all integration tests
-	$(MAKE) -C argo/kfp-compiler integration-test
+	$(MAKE) -C compilers/tfx integration-test
 
 ##@ Build
 
@@ -195,12 +197,16 @@ helm-test-operator: manifests helm-cmd kustomize yq dyff ## Test operator helm c
 include docker-targets.mk
 
 docker-build-argo: ## Build argo docker images
-	$(MAKE) -C argo/kfp-compiler docker-build
 	$(MAKE) -C argo/providers docker-build
 
 docker-push-argo: ## Publish argo docker images
-	$(MAKE) -C argo/kfp-compiler docker-push-all
 	$(MAKE) -C argo/providers docker-push
+
+docker-build-compilers: ## Build all pipeline framework compiler images
+	$(MAKE) -C compilers docker-build-all
+
+docker-push-compilers: ## Publish all pipeline framework compiler images
+	$(MAKE) -C compilers docker-push-all
 
 docker-build-triggers: ## Build trigger docker images
 	$(MAKE) -C triggers/run-completion-event-trigger docker-build
@@ -224,9 +230,9 @@ docker-push-quickstart: ##  Build and push quickstart docker image
 
 ##@ Package
 
-package-all: docker-build docker-build-argo docker-build-triggers docker-build-providers helm-package website ## Build all packages
+package-all: docker-build docker-build-argo docker-build-compilers docker-build-triggers docker-build-providers helm-package website ## Build all packages
 
-publish-all: docker-push docker-push-argo docker-push-triggers docker-push-providers helm-publish ## Publish all packages
+publish-all: docker-push docker-push-argo docker-push-compilers docker-push-triggers docker-push-providers helm-publish ## Publish all packages
 
 ##@ CI
 

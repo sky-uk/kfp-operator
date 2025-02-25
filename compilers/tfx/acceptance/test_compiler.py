@@ -1,4 +1,4 @@
-from tfx_compiler import compiler
+from compiler import compiler
 from click.testing import CliRunner
 import yaml
 import json
@@ -9,7 +9,6 @@ import pytest
 
 runner = CliRunner()
 config_file_path = 'acceptance/pipeline_conf.yaml'
-
 
 def provider_config_file_path(execution_mode):
     return f'acceptance/provider_conf_{execution_mode}.yaml'
