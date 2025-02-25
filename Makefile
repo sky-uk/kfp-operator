@@ -61,6 +61,10 @@ integration-test-up: ## Spin up a minikube cluster for integration tests
 integration-test: manifests generate helm-cmd yq ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
 	$(MAKE) -C argo/providers/stub docker-build && \
+	$(MAKE) -C provider-service/stub docker-build && \
+	kubectl apply -n argo -f config/testing/provider-deployment.yaml
+	kubectl wait -n argo deployment/provider-test --for condition=available --timeout=5m
+	kubectl apply -n argo -f config/testing/provider-service.yaml
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
  		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
  		kubectl apply -f -
