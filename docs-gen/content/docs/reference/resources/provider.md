@@ -7,17 +7,20 @@ The Provider resource represents the provider specific configuration required to
 e.g Kubeflow Pipelines or the Vertex AI Platform.
 Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
 
+> Note: changing the provider of a resource that was previously managed by another provider will result in a resource error.
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.
+
 ### Common Fields
 
-| Name                              | Description                                                                                                                                                                                                                        | Example                                                |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `spec.image`<sup>*</sup>          | Container image of the provider                                                                                                                                                                                                    | `kfp-operator-kfp-provider:0.0.2`                      |
-| `spec.executionMode`<sup>*</sup>  | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode)                                                                                               | `v1` (currently KFP) or `v2` (Vertex AI)               |
-| `spec.serviceAccount`<sup>*</sup> | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                     | `kfp-operator-vertex-ai`                               |
-| `spec.defaultBeamArgs`            | Default Beam arguments to which the pipeline-defined ones will be added                                                                                                                                                            | <pre>- name: project<br/>  value: my-gcp-project</pre> |
-| `spec.pipelineRootStorage`        | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline | `gcs://kubeflow-pipelines-bucket`                      |
-
-<sup>*</sup> field automatically populated by Helm based on provider type
+| Name                       | Description                                                                                                                                                                                                                        | Example                                                |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `spec.serviceImage`        | Container image of [the provider service](../../providers/#provider-service)                                                                                                                                                       | `kfp-operator-kfp-provider-service:0.0.2`              |
+| `spec.image`               | Container image of [the provider CLI](../../providers/#provider-cli)                                                                                                                                                               | `kfp-operator-kfp-provider:0.0.2`                      |
+| `spec.executionMode`       | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode)                                                                                               | `v1` (currently KFP) or `v2` (Vertex AI)               |
+| `spec.serviceAccount`      | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                     | `kfp-operator-vertex-ai`                               |
+| `spec.defaultBeamArgs`     | Default Beam arguments to which the pipeline-defined ones will be added                                                                                                                                                            | <pre>- name: project<br/>  value: my-gcp-project</pre> |
+| `spec.pipelineRootStorage` | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline | `gcs://kubeflow-pipelines-bucket`                      |
+| `spec.parameters`          | Parameters specific to each provider, i.e. [KFP](#kubeflow-specific-parameters) and [VAI](#vertex-ai-specific-parameters)                                                                                                          | `gcs://kubeflow-pipelines-bucket`                      |
 
 ### Kubeflow:
 
@@ -28,6 +31,7 @@ metadata:
   name: kfp
   namespace: kfp-operator
 spec:
+  serviceImage: kfp-operator-kfp-provider-service:<version>
   image: kfp-operator-kfp-provider:<version>
   defaultBeamArgs:
   - name: project
@@ -60,6 +64,7 @@ metadata:
   name: vai
   namespace: kfp-operator
 spec:
+  serviceImage: kfp-operator-vai-provider-service:<version>
   image: kfp-operator-vai-provider:<version>
   defaultBeamArgs:
   - name: project

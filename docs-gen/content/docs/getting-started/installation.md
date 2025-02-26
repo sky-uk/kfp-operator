@@ -73,11 +73,9 @@ Examples for these values can be found in the [test configuration]({{< ghblob "/
 
 ## Providers
 
-Supported providers are:
-- Kubeflow Pipelines
-- Vertex AI
-
-Install one or more by following these instructions. Please refer to the [respective configuration section](../../reference/configuration/#provider-configuration) before proceeding.
+Please refer to your chosen provider instructions before proceeding. Supported providers are:
+- [Kubeflow](../../reference/providers/kfp/#deployment-and-usage)
+- [Vertex AI](../../reference/providers/vai/#deployment-and-usage)
 
 ### Build and Install
 
@@ -93,7 +91,7 @@ helm install oci://ghcr.io/kfp-operator/provider -f kfp.yaml
 
 ### Configuration
 
-The `provider` block contains provider configurations, in order to create relevant [Provider Resources](../reference/resources/provider.md).
+The `provider` block contains provider configurations, in order to create relevant [Provider Resources](../../reference/resources/provider).
 
 | Parameter name            | Description                                                                                                                                                 |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
