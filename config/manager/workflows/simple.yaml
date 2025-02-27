@@ -9,12 +9,9 @@ spec:
     inputs:
       artifacts:
       - name: resource-definition
-        path: /resource-definition.yaml
-        raw:
-          data: |
-            {{workflow.parameters.resource-definition}}
+        path: /resource-definition.json
       parameters:
-        - name: provider-service-url
+      - name: provider-service-url
     metadata: {}
     activeDeadlineSeconds: 300
     container:
@@ -29,10 +26,7 @@ spec:
     inputs:
       artifacts:
       - name: resource-definition
-        path: /resource-definition.yaml
-        raw:
-          data: |
-            {{workflow.parameters.resource-definition}}
+        path: /resource-definition.json
       parameters:
       - name: url-encoded-resource-id
       - name: provider-service-url
@@ -87,11 +81,22 @@ spec:
             value: serviceAccount
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
+    - - name: convert-resource-definition-yaml-to-json
+        templateRef:
+          name: kfp-operator-common-steps
+          template: yaml-to-json
+        arguments:
+          parameters:
+          - name: yaml
+            value: '{{workflow.parameters.resource-definition}}'
     - - name: provider
         templateRef:
           name: kfp-operator-simple-workflow-steps
           template: create
         arguments:
+          artifacts:
+          - from: '{{steps.convert-resource-definition-yaml-to-json.outputs.artifacts.json}}'
+            name: resource-definition
           parameters:
           - name: provider-service-url
             value: '{{workflow.parameters.provider-service-url}}'
@@ -137,6 +142,14 @@ spec:
             value: serviceAccount
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
+    - - name: convert-resource-definition-yaml-to-json
+        templateRef:
+          name: kfp-operator-common-steps
+          template: yaml-to-json
+        arguments:
+          parameters:
+          - name: yaml
+            value: '{{workflow.parameters.resource-definition}}'
     - - name: url-encode-resource-id
         templateRef:
           name: kfp-operator-common-steps
@@ -150,6 +163,9 @@ spec:
           name: kfp-operator-simple-workflow-steps
           template: update
         arguments:
+          artifacts:
+          - from: '{{steps.convert-resource-definition-yaml-to-json.outputs.artifacts.json}}'
+            name: resource-definition
           parameters:
           - name: url-encoded-resource-id
             value: '{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}'

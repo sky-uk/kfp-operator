@@ -40,6 +40,24 @@ spec:
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
+  - name: yaml-to-json
+    inputs:
+      parameters:
+      - name: yaml
+    outputs:
+      artifacts:
+      - name: json
+        path: /tmp/json.json
+    container:
+      image: mikefarah/yq:4.45.1
+      command: [sh, -c]
+      args:
+      - |
+        echo "input yaml:"
+        cat "{{`{{inputs.parameters.yaml}}`}}"
+
+        echo "output json:"
+        echo "{{`{{inputs.parameters.yaml}}`}}" | yq eval -o=json - | tee /tmp/json.json
   - name: url-encode
     inputs:
       parameters:
@@ -50,11 +68,11 @@ spec:
         valueFrom:
           path: "/tmp/url-encoded.txt"
     container:
+      image: stedolan/jq:latest
+      command: [sh, -c]
       args:
       - |
         echo "{{`{{inputs.parameters.unencoded}}`}}" | jq -sRr @uri > /tmp/url-encoded.txt
-      command: [sh, -c]
-      image: stedolan/jq:latest
   - name: delete
     inputs:
       parameters:
@@ -117,8 +135,8 @@ spec:
           template: url-encode
         arguments:
           parameters:
-            - name: unencoded
-              value: '{{`{{workflow.parameters.resource-id}}`}}'
+          - name: unencoded
+            value: '{{`{{workflow.parameters.resource-id}}`}}'
     - - name: provider
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-common-steps

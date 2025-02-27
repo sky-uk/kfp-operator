@@ -57,10 +57,7 @@ spec:
         - name: resource
           path: /resource.json
         - name: resource-definition
-          path: /resource-definition.yaml
-          raw:
-            data: |
-              {{workflow.parameters.resource-definition}}
+          path: /resource-definition.json
     outputs:
       artifacts:
         - name: combined
@@ -70,15 +67,11 @@ spec:
       command: [sh,-c]
       args:
         - |
-          echo "resource-definition.yaml:"
-          cat /resource-definition.yaml
-
-          echo "Converting resource-definition.yaml to json"
-          RESOURCE_DEFINITION_JSON=$(yq eval -o=json /resource-definition.yaml)
-          RESOURCE_JSON=$(cat /resource.json)
+          RESOURCE_DEFINITION=$(cat {{inputs.artifacts.resource-definition.path}})
+          RESOURCE=$(cat {{inputs.artifacts.resource.path}})
 
           echo "Combining resource definition and resource"
-          COMBINED=$(echo "{\"pipelineDefinition\": $RESOURCE_DEFINITION_JSON, \"compiledPipeline\": $RESOURCE_JSON}")
+          COMBINED=$(echo "{\"pipelineDefinition\": $RESOURCE_DEFINITION, \"compiledPipeline\": $RESOURCE}")
 
           echo "Combined resource file:"
           echo $COMBINED | tee /tmp/combined.json
@@ -175,6 +168,14 @@ spec:
             value: '{{workflow.parameters.provider-config}}'
           - name: pipeline-framework-image
             value: '{{workflow.parameters.pipeline-framework-image}}'
+    - - name: convert-resource-definition-yaml-to-json
+        templateRef:
+          name: kfp-operator-common-steps
+          template: yaml-to-json
+        arguments:
+          parameters:
+          - name: yaml
+            value: '{{workflow.parameters.resource-definition}}'
     - - name: combine-files
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -183,6 +184,8 @@ spec:
           artifacts:
             - from: '{{steps.compile.outputs.artifacts.resource}}'
               name: resource
+            - from: '{{steps.convert-resource-definition-yaml-to-json.outputs.artifacts.json}}'
+              name: resource-definition
     - - name: provider
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -253,6 +256,14 @@ spec:
             value: '{{workflow.parameters.provider-config}}'
           - name: pipeline-framework-image
             value: '{{workflow.parameters.pipeline-framework-image}}'
+    - - name: convert-resource-definition-yaml-to-json
+        templateRef:
+          name: kfp-operator-common-steps
+          template: yaml-to-json
+        arguments:
+          parameters:
+          - name: yaml
+            value: '{{workflow.parameters.resource-definition}}'
     - - name: combine-files
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -261,6 +272,8 @@ spec:
           artifacts:
           - from: '{{steps.compile.outputs.artifacts.resource}}'
             name: resource
+          - from: '{{steps.convert-resource-definition-yaml-to-json.outputs.artifacts.json}}'
+            name: resource-definition
     - - name: url-encode-resource-id
         templateRef:
           name: kfp-operator-common-steps
