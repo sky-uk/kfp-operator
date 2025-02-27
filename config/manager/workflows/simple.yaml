@@ -7,82 +7,45 @@ spec:
   templates:
   - name: create
     inputs:
-      parameters:
-      - name: provider-image
-      - name: provider-sa
-      - name: provider-config
       artifacts:
       - name: resource-definition
         path: /resource-definition.yaml
         raw:
           data: |
             {{workflow.parameters.resource-definition}}
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{workflow.parameters.provider-config}}
-    outputs:
       parameters:
-      - name: provider-output
-        valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
+        - name: provider-service-url
     metadata: {}
     activeDeadlineSeconds: 300
     container:
-      image: "{{inputs.parameters.provider-image}}"
-      command:
-      - /provider
+      image: curlimages/curl:8.12.1
+      command: [sh, -c]
       args:
-      - --provider
-      - /provider-config.json
-      - '{{workflow.parameters.resource-kind}}'
-      - create
-      - --{{workflow.parameters.resource-kind}}-definition
-      - /resource-definition.yaml
-      - --out
-      - /tmp/provider-output.yaml
+      - |
+        curl -v -X POST -H "Content-Type: application/json" \
+            --data-binary @{{inputs.artifacts.resource-definition.path}} \
+            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
   - name: update
     inputs:
-      parameters:
-      - name: provider-image
-      - name: provider-sa
-      - name: provider-config
       artifacts:
       - name: resource-definition
         path: /resource-definition.yaml
         raw:
           data: |
             {{workflow.parameters.resource-definition}}
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{workflow.parameters.provider-config}}
-    outputs:
       parameters:
-      - name: provider-output
-        valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
+      - name: url-encoded-resource-id
+      - name: provider-service-url
     metadata: {}
     activeDeadlineSeconds: 300
     container:
-      image: "{{inputs.parameters.provider-image}}"
-      command:
-      - /provider
+      image: curlimages/curl:8.12.1
+      command: [sh, -c]
       args:
-      - --provider
-      - /provider-config.json
-      - '{{workflow.parameters.resource-kind}}'
-      - update
-      - --{{workflow.parameters.resource-kind}}-definition
-      - /resource-definition.yaml
-      - --{{workflow.parameters.resource-kind}}-id
-      - '{{workflow.parameters.resource-id}}'
-      - --out
-      - /tmp/provider-output.yaml
+      - |
+        curl -v -X PUT -H "Content-Type: application/json" \
+            --data-binary @{{inputs.artifacts.resource-definition.path}} \
+            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -96,17 +59,13 @@ spec:
     parameters:
     - name: provider-config
     - name: provider-name
+    - name: provider-service-url
     - name: resource-kind
     - name: resource-definition
   entrypoint: main
   serviceAccountName: kfp-operator-argo
   templates:
   - name: main
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -134,12 +93,8 @@ spec:
           template: create
         arguments:
           parameters:
-          - name: provider-image
-            value: '{{steps.select-provider-image.outputs.result}}'
-          - name: provider-sa
-            value: '{{steps.select-provider-sa.outputs.result}}'
-          - name: provider-config
-            value: '{{workflow.parameters.provider-config}}'
+          - name: provider-service-url
+            value: '{{workflow.parameters.provider-service-url}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -153,6 +108,7 @@ spec:
     parameters:
     - name: provider-config
     - name: provider-name
+    - name: provider-service-url
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
@@ -160,11 +116,6 @@ spec:
   serviceAccountName: kfp-operator-argo
   templates:
   - name: main
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -186,15 +137,21 @@ spec:
             value: serviceAccount
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
+    - - name: url-encode-resource-id
+        templateRef:
+          name: kfp-operator-common-steps
+          template: url-encode
+        arguments:
+          parameters:
+          - name: unencoded
+            value: '{{workflow.parameters.resource-id}}'
     - - name: provider
         templateRef:
           name: kfp-operator-simple-workflow-steps
           template: update
         arguments:
           parameters:
-          - name: provider-image
-            value: '{{steps.select-provider-image.outputs.result}}'
-          - name: provider-sa
-            value: '{{steps.select-provider-sa.outputs.result}}'
-          - name: provider-config
-            value: '{{workflow.parameters.provider-config}}'
+          - name: url-encoded-resource-id
+            value: '{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}'
+          - name: provider-service-url
+            value: '{{workflow.parameters.provider-service-url}}'

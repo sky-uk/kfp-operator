@@ -7,7 +7,6 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -26,7 +25,6 @@ func NewExperimentReconciler(
 	ec K8sExecutionContext,
 	workflowRepository WorkflowRepository,
 	config config.KfpControllerConfigSpec,
-	scheme *runtime.Scheme,
 ) *ExperimentReconciler {
 	return &ExperimentReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Experiment]{
@@ -39,7 +37,7 @@ func NewExperimentReconciler(
 		},
 		ServiceManager: ServiceManager{
 			client: &ec.Client,
-			scheme: scheme,
+			scheme: ec.Scheme,
 			config: &config,
 		},
 	}

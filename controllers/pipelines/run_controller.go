@@ -9,7 +9,6 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -33,7 +32,6 @@ func NewRunReconciler(
 	ec K8sExecutionContext,
 	workflowRepository WorkflowRepository,
 	config config.KfpControllerConfigSpec,
-	scheme *runtime.Scheme,
 ) *RunReconciler {
 	return &RunReconciler{
 		StateHandler: StateHandler[*pipelinesv1.Run]{
@@ -53,7 +51,7 @@ func NewRunReconciler(
 		},
 		ServiceManager: ServiceManager{
 			client: &ec.Client,
-			scheme: scheme,
+			scheme: ec.Scheme,
 			config: &config,
 		},
 	}

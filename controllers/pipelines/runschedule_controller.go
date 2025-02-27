@@ -34,6 +34,11 @@ func NewRunScheduleReconciler(
 			EC:     ec,
 			Config: config,
 		},
+		ServiceManager: ServiceManager{
+			client: &ec.Client,
+			scheme: ec.Scheme,
+			config: &config,
+		},
 	}
 }
 

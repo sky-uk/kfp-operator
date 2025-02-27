@@ -59,6 +59,7 @@ spec:
     inputs:
       parameters:
       - name: url-encoded-resource-id
+      - name: provider-service-url
     metadata: {}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
@@ -67,7 +68,7 @@ spec:
       args:
       - |
         curl -v -X DELETE \
-            "example.com/resource/{{`{{workflow.parameters.resource-kind}}`}}/{{`{{inputs.parameters.url-encoded-resource-id}}`}}"
+            "{{`{{inputs.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}/{{`{{inputs.parameters.url-encoded-resource-id}}`}}"
     {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -82,17 +83,13 @@ spec:
     parameters:
     - name: provider-config
     - name: provider-name
+    - name: provider-service-url
     - name: resource-kind
     - name: resource-id
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
   - name: main
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -130,3 +127,5 @@ spec:
           parameters:
           - name: url-encoded-resource-id
             value: '{{`{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}`}}'
+          - name: provider-service-url
+            value: '{{`{{workflow.parameters.provider-service-url}}`}}'

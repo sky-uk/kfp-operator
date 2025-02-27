@@ -64,6 +64,10 @@ func (stng SuffixedTemplateNameGenerator) DeleteTemplate() string {
 	return fmt.Sprintf("%sdelete", stng.config.WorkflowTemplatePrefix)
 }
 
+func createProviderServiceUrl(svc corev1.Service, port int) string {
+	return fmt.Sprintf("%s.%s:%d", svc.Name, svc.Namespace, port)
+}
+
 type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] struct {
 	Config                config.KfpControllerConfigSpec
 	TemplateNameGenerator TemplateNameGenerator
@@ -132,8 +136,13 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 			Value: argo.AnyStringPtr(string(providerConf)),
 		},
 		{
-			Name:  workflowconstants.ProviderServiceNameParameterName,
-			Value: argo.AnyStringPtr(providerSvc.Name),
+			Name: workflowconstants.ProviderServiceUrl,
+			Value: argo.AnyStringPtr(
+				createProviderServiceUrl(
+					providerSvc,
+					workflows.Config.DefaultProviderValues.ServicePort,
+				),
+			),
 		},
 	}
 
@@ -192,8 +201,13 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 			Value: argo.AnyStringPtr(string(providerConf)),
 		},
 		{
-			Name:  workflowconstants.ProviderServiceNameParameterName,
-			Value: argo.AnyStringPtr(providerSvc.Name),
+			Name: workflowconstants.ProviderServiceUrl,
+			Value: argo.AnyStringPtr(
+				createProviderServiceUrl(
+					providerSvc,
+					workflows.Config.DefaultProviderValues.ServicePort,
+				),
+			),
 		},
 	}
 
@@ -248,8 +262,13 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 					{
-						Name:  workflowconstants.ProviderServiceNameParameterName,
-						Value: argo.AnyStringPtr(providerSvc.Name),
+						Name: workflowconstants.ProviderServiceUrl,
+						Value: argo.AnyStringPtr(
+							createProviderServiceUrl(
+								providerSvc,
+								workflows.Config.DefaultProviderValues.ServicePort,
+							),
+						),
 					},
 				},
 			},

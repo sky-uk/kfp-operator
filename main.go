@@ -117,7 +117,6 @@ func main() {
 		ec,
 		workflowRepository,
 		ctrlConfig.Spec,
-		mgr.GetScheme(),
 	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
@@ -127,7 +126,6 @@ func main() {
 		ec,
 		workflowRepository,
 		ctrlConfig.Spec,
-		mgr.GetScheme(),
 	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Run")
 		os.Exit(1)
@@ -146,7 +144,6 @@ func main() {
 		ec,
 		workflowRepository,
 		ctrlConfig.Spec,
-		mgr.GetScheme(),
 	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
 		os.Exit(1)
@@ -154,7 +151,6 @@ func main() {
 
 	if err = pipelinescontrollers.NewRunConfigurationReconciler(
 		ec,
-		scheme,
 		ctrlConfig.Spec,
 	).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")

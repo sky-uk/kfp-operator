@@ -87,6 +87,8 @@ spec:
       artifacts:
       - name: combined
         path: /combined.json
+      parameters:
+      - name: provider-service-url
     activeDeadlineSeconds: 300
     metadata: {}
     container:
@@ -96,7 +98,7 @@ spec:
       - |
         curl -v -X POST -H "Content-Type: application/json" \
             --data-binary @{{inputs.artifacts.combined.path}} \
-            "example.com/resource/{{workflow.parameters.resource-kind}}"
+            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
   - name: update
     inputs:
       artifacts:
@@ -104,6 +106,7 @@ spec:
         path: /combined.json
       parameters:
       - name: url-encoded-resource-id
+      - name: provider-service-url
     activeDeadlineSeconds: 300
     metadata: {}
     container:
@@ -113,7 +116,7 @@ spec:
       - |
         curl -v -X PUT -H "Content-Type: application/json" \
             --data-binary @{{inputs.artifacts.combined.path}} \
-            "example.com/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -127,6 +130,7 @@ spec:
     parameters:
     - name: provider-config
     - name: provider-name
+    - name: provider-service-url
     - name: resource-kind
     - name: resource-definition
     - name: pipeline-framework-image
@@ -134,11 +138,6 @@ spec:
   serviceAccountName: kfp-operator-argo
   templates:
   - name: main
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -192,6 +191,9 @@ spec:
           artifacts:
           - from: '{{steps.combine-files.outputs.artifacts.combined}}'
             name: combined
+          parameters:
+          - name: provider-service-url
+            value: '{{workflow.parameters.provider-service-url}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -205,6 +207,7 @@ spec:
     parameters:
     - name: provider-config
     - name: provider-name
+    - name: provider-service-url
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
@@ -213,11 +216,6 @@ spec:
   serviceAccountName: kfp-operator-argo
   templates:
   - name: main
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -269,8 +267,8 @@ spec:
           template: url-encode
         arguments:
           parameters:
-            - name: unencoded
-              value: '{{workflow.parameters.resource-id}}'
+          - name: unencoded
+            value: '{{workflow.parameters.resource-id}}'
     - - name: provider
         templateRef:
           name: kfp-operator-compiled-workflow-steps
@@ -282,3 +280,5 @@ spec:
           parameters:
           - name: url-encoded-resource-id
             value: '{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}'
+          - name: provider-service-url
+            value: '{{workflow.parameters.provider-service-url}}'
