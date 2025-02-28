@@ -25,4 +25,4 @@ requires = ["poetry-core>=1.1.9", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-tfx-compiler = 'compiler.__main__:main'
+compiler = 'compiler.__main__:main'
