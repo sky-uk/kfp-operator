@@ -10,6 +10,7 @@ import pytest
 runner = CliRunner()
 config_file_path = 'acceptance/pipeline_conf.yaml'
 
+
 def provider_config_file_path(execution_mode):
     return f'acceptance/provider_conf_{execution_mode}.yaml'
 

@@ -8,6 +8,9 @@ all: build
 test: ## Test
 	$(MAKE) -C tfx test
 
+integration-test-all: ## Integration test
+	$(MAKE) -C compilers/tfx integration-test
+
 ##@ Build
 
 build: ## Build

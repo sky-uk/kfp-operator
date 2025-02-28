@@ -92,7 +92,7 @@ test-provider-service: ## Run all tests for provider-service
 test-all: test helm-test-operator test-argo test-triggers test-provider-service ## Run all tests
 
 integration-test-all: integration-test ## Run all integration tests
-	$(MAKE) -C compilers/tfx integration-test
+	$(MAKE) -C compilers integration-test-all
 
 ##@ Build
 
