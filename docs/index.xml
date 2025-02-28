@@ -217,13 +217,13 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.framework&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Optional. Sets a specific pipeline framework to use. If set the pipeline framework image to use is looked up &lt;a href="../../configuration">here&lt;/a> else the &lt;code>default&lt;/code> entry is used.&lt;/td>
+ &lt;td style="text-align: left">Optional. Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use. If set the pipeline framework image to use is looked up &lt;a href="../../configuration">here&lt;/a> else the &lt;code>default&lt;/code> entry is used.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
 &lt;h2 id="versioning">Versioning&lt;/h2>
 &lt;p>Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image
-as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version
+and its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version
 to reflect this, for example: &lt;code>v1-cf23df2207d99a74fbe169e3eba035e633b65d94&lt;/code>&lt;/p></description></item><item><title>Pipeline</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/pipeline/</guid><description>&lt;p>The Pipeline resource represents the lifecycle of ML pipelines.
 Pipelines can be created, updated and deleted via this resource.
 The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment variables.
@@ -568,27 +568,23 @@ and can be configured as follows:&lt;/p>
  &lt;td style="text-align: left">The description of the experiment.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
-&lt;/table></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
-Within the operator this can be updating the status fields of resources such as their &lt;code>synchronizationState&lt;/code> or &lt;code>providerId&lt;/code>. Within the ML Ops ecosystem,
-this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/run-completion.svg" alt="Model Serving">&lt;/p>
-&lt;h2 id="event-specification">Event Specification&lt;/h2>
-&lt;p>The specification of the events follows &lt;a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md">CloudEvents&lt;/a>:&lt;/p></description></item><item><title>Using Multiple Providers</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/providers/</guid><description>&lt;p>The KFP operator supports multiple provider backends.&lt;/p>
+&lt;/table></description></item><item><title>Pipeline Frameworks</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/frameworks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/frameworks/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
+&lt;p>The KFP Operator supports multiple pipeline frameworks, including:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://www.tensorflow.org/tfx">TFX&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2 id="compiler-workflow">Compiler Workflow&lt;/h2>
+&lt;p>The &lt;code>kfp-operator-create-compiled&lt;/code> workflow &lt;code>compile&lt;/code> step accepts the following parameters:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>resource-image&lt;/strong>: the image containing the model code (looked up from the pipeline resource in preview workflow step)&lt;/li>
+&lt;li>&lt;strong>provider-config&lt;/strong>: the provider configuration (&lt;a href="../providers/overview">see provider overview&lt;/a>)&lt;/li>
+&lt;li>&lt;strong>pipeline-framework-image&lt;/strong>: the image for the pipeline framework compiler&lt;/li>
+&lt;/ul>
+&lt;p>The image specified in &lt;code>pipeline-framework-image&lt;/code> is executed as a initContainer and runs the entrypoint script. The entrypoint
+script should copy the required compiler code into the shared directory &lt;code>/shared&lt;/code> (which is mirrored into the main container) and then exit. This &lt;code>/shared&lt;/code> location is passed as
+the first and only parameter to the entrypoint script.&lt;/p></description></item><item><title>Using Multiple Providers</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/providers/</guid><description>&lt;p>The KFP operator supports multiple provider backends.&lt;/p>
 &lt;p>Changing the provider of a resource that was previously managed by another provider will result in the resource erroring.
-Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
-&lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
-&lt;p>Example:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>$ kubectl describe pipeline pipeline-sample
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>...
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Events:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Type Reason Age From Message
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ---- ------ ---- ---- -------
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 5m54s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Warning SyncFailed 101s kfp-operator Failed &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>: pipeline update failed
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="compiling-locally">Compiling locally&lt;/h2>
-&lt;p>The KFP-Operator&amp;rsquo;s compiler can be used locally for debugging purposes. This can be especially useful for troubleshooting environment variable and beam argument resolution.&lt;/p></description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
 &lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
 &lt;p>Example:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>$ kubectl describe pipeline pipeline-sample
@@ -646,7 +642,25 @@ Providers configuration can be set using this resource and permissions for acces
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>&lt;sup>*&lt;/sup> field automatically populated by Helm based on provider type&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
+&lt;p>&lt;sup>*&lt;/sup> field automatically populated by Helm based on provider type&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
+Within the operator this can be updating the status fields of resources such as their &lt;code>synchronizationState&lt;/code> or &lt;code>providerId&lt;/code>. Within the ML Ops ecosystem,
+this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/run-completion.svg" alt="Model Serving">&lt;/p>
+&lt;h2 id="event-specification">Event Specification&lt;/h2>
+&lt;p>The specification of the events follows &lt;a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md">CloudEvents&lt;/a>:&lt;/p></description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
+&lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
+&lt;p>Example:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>$ kubectl describe pipeline pipeline-sample
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>...
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Events:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Type Reason Age From Message
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ---- ------ ---- ---- -------
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 5m54s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Warning SyncFailed 101s kfp-operator Failed &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;v5-841641&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>: pipeline update failed
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Syncing 9m47s kfp-operator Updating &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="compiling-locally">Compiling locally&lt;/h2>
+&lt;p>The KFP-Operator&amp;rsquo;s compiler can be used locally for debugging purposes. This can be especially useful for troubleshooting environment variable and beam argument resolution.&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
 &lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with
 Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
 submission, status monitoring, schedules and experiment management.&lt;/p>
