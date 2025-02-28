@@ -73,6 +73,56 @@ spec:
       args:
       - |
         echo "{{`{{inputs.parameters.unencoded}}`}}" | jq -sRr @uri > /tmp/url-encoded.txt
+  - name: create
+    inputs:
+      artifacts:
+      - name: body
+        path: /body.json
+      parameters:
+      - name: provider-service-url
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    container:
+      image: curlimages/curl:8.12.1
+      command: [sh, -c]
+      args:
+      - |
+        curl -v -o /tmp/response.txt -X POST -H "Content-Type: application/json" \
+            --data-binary @{{`{{inputs.artifacts.body.path}}`}} \
+            "{{`{{workflow.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}" && \
+            echo "id: $(cat /tmp/response.txt)" > /tmp/provider-output.yaml
+  - name: update
+    inputs:
+      artifacts:
+      - name: body
+        path: /body.json
+      parameters:
+      - name: url-encoded-resource-id
+      - name: provider-service-url
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.yaml
+    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
+    container:
+      image: curlimages/curl:8.12.1
+      command: [sh, -c]
+      args:
+      - |
+        curl -v -o /tmp/response.txt -X PUT -H "Content-Type: application/json" \
+            --data-binary @{{`{{inputs.artifacts.body.path}}`}} \
+            "{{`{{workflow.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}/{{`{{inputs.parameters.url-encoded-resource-id}}`}}" && \
+            echo "id: $(cat /tmp/response.txt)" > /tmp/provider-output.yaml
+    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
   - name: delete
     inputs:
       parameters:

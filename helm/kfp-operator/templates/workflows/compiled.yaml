@@ -78,44 +78,6 @@ spec:
 
           echo "Combined resource file:"
           echo $COMBINED | tee /tmp/combined.json
-  - name: create
-    inputs:
-      artifacts:
-      - name: combined
-        path: /combined.json
-      parameters:
-      - name: provider-service-url
-    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
-    metadata:
-      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
-    container:
-      image: curlimages/curl:8.12.1
-      command: [sh, -c]
-      args:
-      - |
-        curl -v -X POST -H "Content-Type: application/json" \
-            --data-binary @{{`{{inputs.artifacts.combined.path}}`}} \
-            "{{`{{workflow.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}"
-  - name: update
-    inputs:
-      artifacts:
-      - name: combined
-        path: /combined.json
-      parameters:
-      - name: url-encoded-resource-id
-      - name: provider-service-url
-    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
-    metadata:
-      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
-    container:
-      image: curlimages/curl:8.12.1
-      command: [sh, -c]
-      args:
-      - |
-        curl -v -X PUT -H "Content-Type: application/json" \
-            --data-binary @{{`{{inputs.artifacts.combined.path}}`}} \
-            "{{`{{workflow.parameters.provider-service-url}}`}}/resource/{{`{{workflow.parameters.resource-kind}}`}}/{{`{{inputs.parameters.url-encoded-resource-id}}`}}"
-    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -137,6 +99,11 @@ spec:
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
   - name: main
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -194,12 +161,12 @@ spec:
             name: resource-definition
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: create
         arguments:
           artifacts:
           - from: '{{`{{steps.combine-files.outputs.artifacts.combined}}`}}'
-            name: combined
+            name: body
           parameters:
           - name: provider-service-url
             value: '{{`{{workflow.parameters.provider-service-url}}`}}'
@@ -225,6 +192,11 @@ spec:
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
   - name: main
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          parameter: '{{`{{steps.provider.outputs.parameters.provider-output}}`}}'
     steps:
     - - name: select-provider-image
         templateRef:
@@ -290,12 +262,12 @@ spec:
               value: '{{`{{workflow.parameters.resource-id}}`}}'
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: update
         arguments:
           artifacts:
           - from: '{{`{{steps.combine-files.outputs.artifacts.combined}}`}}'
-            name: combined
+            name: body
           parameters:
           - name: url-encoded-resource-id
             value: '{{`{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}`}}'
