@@ -1,5 +1,5 @@
 # Pipeline Framework Compilers
-
+This directory contains the compiler code for each supported pipeline framework. To add support for a new pipeline framework, follow the instructions below:
 The following should be added to all Dockerfiles:
 ```Dockerfile
 COPY --from=base-common resources/compile.sh compiler/compile.sh
