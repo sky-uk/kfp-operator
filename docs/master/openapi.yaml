@@ -35,10 +35,31 @@ paths:
                     type: string
         '400':
           description: Bad request, malformed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
         '422':
           description: Request well formed, but the content is incorrect for the given endpoint.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
         '500':
           description: Internal error or downstream error from provider.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
   /resource/{type}/{id}:
     put:
       tags:
@@ -71,12 +92,40 @@ paths:
                     type: string
         '400':
           description: Bad request, invalid input.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
         '404':
           description: Resource not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
         '422':
           description: Request well formed, but the content is incorrect for the given endpoint.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
         '500':
           description: Internal error or downstream error from provider.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
     delete:
       tags:
       - Resource Operations
@@ -87,12 +136,33 @@ paths:
       - $ref: '#/components/parameters/id'
       - $ref: '#/components/parameters/type'
       responses:
-        '204':
+        '200':
           description: Resource deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
         '404':
           description: Resource not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
         '500':
           description: Internal error or downstream error from provider.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providerError:
+                    type: string
   /livez:
     get:
       tags:

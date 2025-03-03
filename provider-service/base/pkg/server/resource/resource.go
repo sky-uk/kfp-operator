@@ -8,5 +8,6 @@ type HttpHandledResource interface {
 }
 
 type ResponseBody struct {
-	Id string `json:"id"`
+	Id            string `json:"id,omitempty"`
+	ProviderError string `json:"providerError,omitempty"`
 }

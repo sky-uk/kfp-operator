@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -29,7 +30,7 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+			writeErrorResponse(w, errors.New("failed to read request body"), http.StatusInternalServerError)
 			return
 		}
 		defer r.Body.Close()
@@ -38,24 +39,15 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		if err != nil {
 			var userErr *resource.UserError
 			if errors.As(err, &userErr) {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				writeErrorResponse(w, err, http.StatusBadRequest)
 				return
 			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				writeErrorResponse(w, err, http.StatusInternalServerError)
 				return
 			}
 		}
 
-		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(resp.Id))
-		if err != nil {
-			http.Error(
-				w,
-				"Failed to write response body id",
-				http.StatusInternalServerError,
-			)
-			return
-		}
+		writeResponse(w, resp, http.StatusCreated)
 	}
 }
 
@@ -64,12 +56,12 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			writeErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+			writeErrorResponse(w, errors.New("failed to read request body"), http.StatusInternalServerError)
 			return
 		}
 		defer r.Body.Close()
@@ -78,23 +70,15 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		if err != nil {
 			var userErr *resource.UserError
 			if errors.As(err, &userErr) {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				writeErrorResponse(w, err, http.StatusBadRequest)
 				return
 			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				writeErrorResponse(w, err, http.StatusInternalServerError)
 				return
 			}
 		}
 
-		_, err = w.Write([]byte(resp.Id))
-		if err != nil {
-			http.Error(
-				w,
-				"Failed to write response body id",
-				http.StatusInternalServerError,
-			)
-			return
-		}
+		writeResponse(w, resp, http.StatusOK)
 	}
 }
 
@@ -103,14 +87,17 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			writeErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
-		if err := a.Delete(decodedId); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		err = a.Delete(decodedId)
+		if err != nil {
+			writeErrorResponse(w, err, http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusNoContent)
+
+		writeResponse(w, resource.ResponseBody{Id: decodedId}, http.StatusOK)
 	}
 }
 
@@ -157,4 +144,25 @@ func Start(ctx context.Context, cfg config.Server, provider resource.Provider) e
 	}()
 
 	return nil
+}
+
+func writeErrorResponse(w http.ResponseWriter, providerError error, statusCode int) {
+	responseBody := resource.ResponseBody{
+		ProviderError: providerError.Error(),
+	}
+	writeResponse(w, responseBody, statusCode)
+}
+
+func writeResponse(w http.ResponseWriter, responseBody resource.ResponseBody, statusCode int) {
+	marshalledResponse, err := json.Marshal(responseBody)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(statusCode)
+	if _, err = w.Write(marshalledResponse); err != nil {
+		http.Error(w, "failed to write request body", http.StatusInternalServerError)
+		return
+	}
 }

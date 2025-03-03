@@ -140,7 +140,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(Equal(response))
+					Expect(string(body)).To(Equal(`{"id":"` + response + `"}`))
 				})
 			})
 
@@ -160,7 +160,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(ContainSubstring("Failed to read request body"))
+					Expect(string(body)).To(Equal(`{"providerError":"failed to read request body"}`))
 				})
 			})
 
@@ -187,7 +187,7 @@ var _ = Describe("Http Server Endpoints", func() {
 						body, err := io.ReadAll(resp.Body)
 
 						Expect(err).ToNot(HaveOccurred())
-						Expect(string(body)).To(ContainSubstring(response))
+						Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
 					})
 				})
 				It("returns 500 with error response body", func() {
@@ -211,7 +211,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(ContainSubstring(response))
+					Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
 				})
 			})
 		})
@@ -240,7 +240,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(ContainSubstring(response))
+					Expect(string(body)).To(Equal(`{"id":"` + response + `"}`))
 				})
 			})
 
@@ -264,7 +264,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(body).To(ContainSubstring(`invalid URL escape "%"`))
+					Expect(string(body)).To(Equal(`{"providerError":"invalid URL escape \"%\""}`))
 				})
 			})
 
@@ -285,7 +285,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(ContainSubstring("Failed to read request body"))
+					Expect(string(body)).To(Equal(`{"providerError":"failed to read request body"}`))
 				})
 			})
 
@@ -312,7 +312,7 @@ var _ = Describe("Http Server Endpoints", func() {
 						body, err := io.ReadAll(resp.Body)
 
 						Expect(err).ToNot(HaveOccurred())
-						Expect(string(body)).To(ContainSubstring(response))
+						Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
 					})
 				})
 				It("returns 500 with error response body", func() {
@@ -336,14 +336,14 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(ContainSubstring(response))
+					Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
 				})
 			})
 		})
 
 		Context("/{id} DELETE request deleteHandler", func() {
 			When("succeeds", func() {
-				It("returns 204", func() {
+				It("returns 200", func() {
 					id := "mock-id/bla"
 					encodedId := url.PathEscape(id)
 					handledResource.On("Delete", id).Return(nil)
@@ -357,12 +357,12 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(rr, req)
 					resp := rr.Result()
 
-					Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(body).To(BeEmpty())
+					Expect(string(body)).To(Equal(`{"id":"` + id + `"}`))
 				})
 			})
 
@@ -386,7 +386,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(body).To(ContainSubstring(`invalid URL escape "%"`))
+					Expect(string(body)).To(Equal(`{"providerError":"invalid URL escape \"%\""}`))
 				})
 			})
 
@@ -409,7 +409,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(ContainSubstring(response))
+					Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
 				})
 			})
 		})
