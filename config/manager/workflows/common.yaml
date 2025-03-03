@@ -82,7 +82,7 @@ spec:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /tmp/provider-output.yaml
+          path: /tmp/provider-output.json
     activeDeadlineSeconds: 300
     metadata: {}
     container:
@@ -90,10 +90,9 @@ spec:
       command: [sh, -c]
       args:
       - |
-        curl -v -o /tmp/response.txt -X POST -H "Content-Type: application/json" \
+        curl -v -o /tmp/provider-output.json -X POST -H "Content-Type: application/json" \
             --data-binary @{{inputs.artifacts.body.path}} \
-            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}" && \
-            echo "id: $(cat /tmp/response.txt)" > /tmp/provider-output.yaml
+            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
   - name: update
     inputs:
       artifacts:
@@ -106,7 +105,7 @@ spec:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /tmp/provider-output.yaml
+          path: /tmp/provider-output.json
     activeDeadlineSeconds: 300
     metadata: {}
     container:
@@ -114,15 +113,19 @@ spec:
       command: [sh, -c]
       args:
       - |
-        curl -v -o /tmp/response.txt -X PUT -H "Content-Type: application/json" \
+        curl -v -o /tmp/provider-output.json -X PUT -H "Content-Type: application/json" \
             --data-binary @{{inputs.artifacts.body.path}} \
-            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}" && \
-            echo "id: $(cat /tmp/response.txt)" > /tmp/provider-output.yaml
+            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
   - name: delete
     inputs:
       parameters:
       - name: url-encoded-resource-id
       - name: provider-service-url
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.json
     metadata: {}
     activeDeadlineSeconds: 300
     container:
@@ -130,7 +133,7 @@ spec:
       command: [sh, -c]
       args:
       - |
-        curl -v -X DELETE \
+        curl -v -o /tmp/provider-output.json -X DELETE \
             "{{inputs.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -152,6 +155,11 @@ spec:
   serviceAccountName: kfp-operator-argo
   templates:
   - name: main
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
     - - name: select-provider-image
         templateRef:
