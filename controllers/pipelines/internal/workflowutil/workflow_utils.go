@@ -30,6 +30,7 @@ func GetWorkflowParameter(workflow *argo.Workflow, name string) string {
 	return ""
 }
 
+// TODO: remove after unused
 func GetWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, error) {
 	output := providers.Output{}
 
@@ -41,6 +42,29 @@ func GetWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, e
 	yamlOutput := []byte(mapParams(entrypointNode.Outputs.Parameters)[key])
 
 	err := yaml.Unmarshal(yamlOutput, &output)
+
+	return output, err
+}
+
+// TODO: rename to GetWorkflowOutput after the yaml version of this func is
+// removed.
+func GetWorkflowOutputJson(
+	workflow *argo.Workflow,
+	key string,
+) (providers.Output, error) {
+	output := providers.Output{}
+
+	entrypointNode, exists := workflow.Status.Nodes[workflow.Name]
+	if !exists || entrypointNode.Outputs == nil {
+		return output, fmt.Errorf("workflow does not have %s node", workflow.Name)
+	}
+
+	value, ok := mapParams(entrypointNode.Outputs.Parameters)[key]
+	if !ok {
+		return output, fmt.Errorf("workflow %s outputs does not have the key %s", workflow.Name, key)
+	}
+
+	err := json.Unmarshal([]byte(value), &output)
 
 	return output, err
 }
