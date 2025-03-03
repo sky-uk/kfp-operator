@@ -10,11 +10,11 @@ USER 65534:65534
 ENTRYPOINT ["/entrypoint.sh"]
 ```
 
-The compile argo workflow will always execute /compile.sh passing in the following arguments, `--pipeline_config`, `--provider_config`, and `--output_file`.
+The compile argo workflow will always execute `/compile.sh` passing in the following arguments:
 
-* `--pipeline_config` is a path to a yaml file that contains the pipeline resource definition.
-* `--provider_config` is a path to a yaml file that contains the provider configuration.
-* `--output_file` is a path to a file that the compiled pipeline definition should be written to.
+* `--pipeline_config` is the path to the yaml file that contains the pipeline resource definition.
+* `--provider_config` is the path to the yaml file that contains the provider configuration.
+* `--output_file` is the path to output the compiled pipeline definition to.
 
 The Python module is required to be named `compiler`. The entry point to the Python compiler module should accept (or ignore these) parameters.
 
