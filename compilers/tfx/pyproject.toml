@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "kfp_compiler"
+name = "compiler"
 version = "0.0.0" # set by poetry-dynamic-versioning
 description = ""
 authors = []
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
+python = ">=3.9,<3.11"
 click = ">=7,<8"
 PyYAML = ">=5.4.1"
 kfp = "1.8.22"
@@ -14,7 +14,6 @@ kfp = "1.8.22"
 pytest = "7.4.0"
 tfx = "1.14"
 shapely = "<2"
-
 
 [tool.poetry-dynamic-versioning]
 enable = true
@@ -26,4 +25,4 @@ requires = ["poetry-core>=1.1.9", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-kfp-compiler = 'kfp_compiler.__main__:main'
+compiler = 'compiler.__main__:main'

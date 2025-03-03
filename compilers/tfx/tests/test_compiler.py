@@ -1,4 +1,4 @@
-from kfp_compiler import compiler
+from compiler import compiler
 
 
 def test_name_values_to_cli_args():

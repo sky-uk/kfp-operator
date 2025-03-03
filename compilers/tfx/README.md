@@ -1,6 +1,6 @@
 # KFP Components Compiler
 
-This module compiles a TFX component defintion into a Kubeflow Pipelines file.
+This module compiles a TFX component definition into a Kubeflow Pipelines file.
 
 ## Setup
 

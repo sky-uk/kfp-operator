@@ -5,6 +5,6 @@ if [ "$#" -ne 1 ] || ! [ -d "$1" ]; then
   exit 1
 fi
 
-cp -r /kfp-compiler/* $1
+cp -r /compiler/* $1
 
 echo "Done injecting compiler"

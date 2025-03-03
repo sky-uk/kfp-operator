@@ -25,19 +25,19 @@ spec:
 
 ## Fields
 
-| Name                 | Description                                                                                                                                                                |
-|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spec.provider`      | The name of the associated [Provider resource](../provider/).                                                                                                              |
-| `spec.image`         | Container image containing TFX component definitions.                                                                                                                      |
-| `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components.                                                                                                  |
-| `spec.env`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                                                    |
-| `spec.beamArgs`      | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline.                                                                         |
-| `spec.framework`     | Optional. Sets a specific pipeline framework to use. If set the pipeline framework image to use is looked up [here](../../configuration) else the `default` entry is used. |
+| Name                 | Description                                                                                                                                                                                    |
+|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `spec.provider`      | The name of the associated [Provider resource](../provider/).                                                                                                                                  |
+| `spec.image`         | Container image containing TFX component definitions.                                                                                                                                          |
+| `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components.                                                                                                                      |
+| `spec.env`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                                                                        |
+| `spec.beamArgs`      | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline.                                                                                             |
+| `spec.framework`     | Optional. Sets a specific [pipeline framework](../../frameworks) to use. If set the pipeline framework image to use is looked up [here](../../configuration) else the `default` entry is used. |
 
 ## Versioning
 
 Pipeline parameters can be updated at compile time. Pipeline versions therefore have to reflect both the pipelines image
-as well as its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version
+and its configuration. The operator calculates a hash over the pipeline spec and appends it to the image version
 to reflect this, for example: `v1-cf23df2207d99a74fbe169e3eba035e633b65d94`
 
 ## Identifier

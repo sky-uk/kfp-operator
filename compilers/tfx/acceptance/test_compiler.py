@@ -1,4 +1,4 @@
-from kfp_compiler import compiler
+from compiler import compiler
 from click.testing import CliRunner
 import yaml
 import json

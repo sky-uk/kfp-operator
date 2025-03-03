@@ -1,6 +1,6 @@
 ---
 title: "Debugging"
-weight: 5
+weight: 6
 ---
 
 ## Kubernetes Events
@@ -31,7 +31,7 @@ The compiler is injected into a shared directory first before it can be called f
 Note that the setup is usually only needed once unless you want to use a different version of the compiler.
 
 ```shell
-export KFP_COMPILER_IMAGE=ghcr.io/kfp-operator/kfp-operator-argo-kfp-compiler:<KFP-Operator version>
+export KFP_COMPILER_IMAGE=ghcr.io/kfp-operator/kfp-operator-tfx-compiler:<KFP-Operator version>
 docker pull $KFP_COMPILER_IMAGE
 
 # Create a temporary directory for the following steps, alternatively choose a different location
