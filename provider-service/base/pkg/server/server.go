@@ -30,7 +30,7 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			writeErrorResponse(w, errors.New("failed to read request body"), http.StatusInternalServerError)
+			writeErrorResponse(w, "", errors.New("failed to read request body"), http.StatusInternalServerError)
 			return
 		}
 		defer r.Body.Close()
@@ -39,10 +39,10 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		if err != nil {
 			var userErr *resource.UserError
 			if errors.As(err, &userErr) {
-				writeErrorResponse(w, err, http.StatusBadRequest)
+				writeErrorResponse(w, "", err, http.StatusBadRequest)
 				return
 			} else {
-				writeErrorResponse(w, err, http.StatusInternalServerError)
+				writeErrorResponse(w, "", err, http.StatusInternalServerError)
 				return
 			}
 		}
@@ -56,12 +56,12 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
 		if err != nil {
-			writeErrorResponse(w, err, http.StatusBadRequest)
+			writeErrorResponse(w, decodedId, err, http.StatusBadRequest)
 			return
 		}
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			writeErrorResponse(w, errors.New("failed to read request body"), http.StatusInternalServerError)
+			writeErrorResponse(w, decodedId, errors.New("failed to read request body"), http.StatusInternalServerError)
 			return
 		}
 		defer r.Body.Close()
@@ -70,10 +70,10 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		if err != nil {
 			var userErr *resource.UserError
 			if errors.As(err, &userErr) {
-				writeErrorResponse(w, err, http.StatusBadRequest)
+				writeErrorResponse(w, decodedId, err, http.StatusBadRequest)
 				return
 			} else {
-				writeErrorResponse(w, err, http.StatusInternalServerError)
+				writeErrorResponse(w, decodedId, err, http.StatusInternalServerError)
 				return
 			}
 		}
@@ -87,13 +87,13 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
 		if err != nil {
-			writeErrorResponse(w, err, http.StatusBadRequest)
+			writeErrorResponse(w, decodedId, err, http.StatusBadRequest)
 			return
 		}
 
 		err = a.Delete(decodedId)
 		if err != nil {
-			writeErrorResponse(w, err, http.StatusInternalServerError)
+			writeErrorResponse(w, decodedId, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -146,8 +146,9 @@ func Start(ctx context.Context, cfg config.Server, provider resource.Provider) e
 	return nil
 }
 
-func writeErrorResponse(w http.ResponseWriter, providerError error, statusCode int) {
+func writeErrorResponse(w http.ResponseWriter, id string, providerError error, statusCode int) {
 	responseBody := resource.ResponseBody{
+		Id:            id,
 		ProviderError: providerError.Error(),
 	}
 	writeResponse(w, responseBody, statusCode)
@@ -161,8 +162,7 @@ func writeResponse(w http.ResponseWriter, responseBody resource.ResponseBody, st
 	}
 
 	w.WriteHeader(statusCode)
-	if _, err = w.Write(marshalledResponse); err != nil {
-		http.Error(w, "failed to write request body", http.StatusInternalServerError)
-		return
-	}
+	w.Write(marshalledResponse)
+	return
+
 }

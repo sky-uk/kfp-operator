@@ -285,7 +285,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(Equal(`{"providerError":"failed to read request body"}`))
+					Expect(string(body)).To(Equal(`{"id":"mock-id","providerError":"failed to read request body"}`))
 				})
 			})
 
@@ -312,7 +312,7 @@ var _ = Describe("Http Server Endpoints", func() {
 						body, err := io.ReadAll(resp.Body)
 
 						Expect(err).ToNot(HaveOccurred())
-						Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
+						Expect(string(body)).To(Equal(`{"id":"mock-id","providerError":"` + response + `"}`))
 					})
 				})
 				It("returns 500 with error response body", func() {
@@ -336,7 +336,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
+					Expect(string(body)).To(Equal(`{"id":"mock-id","providerError":"` + response + `"}`))
 				})
 			})
 		})
@@ -409,7 +409,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
+					Expect(string(body)).To(Equal(`{"id":"mock-id","providerError":"` + response + `"}`))
 				})
 			})
 		})
