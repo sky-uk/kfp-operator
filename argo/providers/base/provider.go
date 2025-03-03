@@ -47,8 +47,8 @@ type RunDefinition struct {
 }
 
 type Output struct {
-	Id            string `json:"id" yaml:"id"`
-	ProviderError string `json:"providerError " yaml:"providerError"`
+	Id            string `json:"id,omitempty" yaml:"id"`
+	ProviderError string `json:"providerError,omitempty" yaml:"providerError"`
 }
 
 type Provider[Config any] interface {
