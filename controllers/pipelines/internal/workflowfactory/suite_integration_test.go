@@ -21,6 +21,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	"github.com/sky-uk/kfp-operator/external"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -53,14 +54,6 @@ var _ = BeforeSuite(func() {
 	K8sClient, err = client.New(&restCfg, client.Options{Scheme: scheme.Scheme})
 	Expect(err).NotTo(HaveOccurred())
 	Ctx = context.Background()
-})
-
-var _ = BeforeEach(func() {
-	K8sClient.Delete(Ctx, &pipelinesv1.Provider{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kfp-operator-integration-tests-providers",
-			Namespace: TestNamespace,
-		}})
 })
 
 func StubProvider[R pipelinesv1.Resource](
@@ -104,6 +97,20 @@ func StubProvider[R pipelinesv1.Resource](
 	return provider, stubbedOutput
 }
 
+var provider = pipelinesv1.Provider{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      "kfp-operator-integration-tests-providers",
+		Namespace: TestNamespace,
+	},
+	Spec: pipelinesv1.ProviderSpec{
+		ServiceImage:   "kfp-operator-stub-provider",
+		Image:          "kfp-operator-stub-provider",
+		ExecutionMode:  "none",
+		ServiceAccount: "default",
+	},
+	Status: pipelinesv1.Status{},
+}
+
 func StubWithIdAndError[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, base.Output) {
 	return StubProvider(base.Output{
 		Id:            apis.RandomString(),
@@ -124,16 +131,26 @@ func StubWithExistingIdAndError[R pipelinesv1.Resource](resource R) (pipelinesv1
 
 func AssertWorkflow[R pipelinesv1.Resource](
 	newResource func() R,
-	setUp func(resource R) (pipelinesv1.Provider, base.Output),
-	constructWorkflow func(pipelinesv1.Provider, R) (*argo.Workflow, error),
+	expectedOutput base.Output,
+	constructWorkflow func(pipelinesv1.Provider, corev1.Service, R) (*argo.Workflow, error),
 ) {
 
 	testCtx := WorkflowTestHelper[R]{
 		Resource: newResource(),
 	}
 
-	provider, expectedOutput := setUp(testCtx.Resource)
-	workflow, err := constructWorkflow(provider, testCtx.Resource)
+	providerSvc := corev1.Service{}
+	err := K8sClient.Get(
+		Ctx,
+		types.NamespacedName{
+			Namespace: TestNamespace,
+			Name:      "provider-test",
+		},
+		&providerSvc,
+	)
+	Expect(err).ToNot(HaveOccurred())
+
+	workflow, err := constructWorkflow(provider, providerSvc, testCtx.Resource)
 
 	Expect(err).NotTo(HaveOccurred())
 	Expect(K8sClient.Create(Ctx, workflow)).To(Succeed())
@@ -146,7 +163,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 			},
 			func(g Gomega, workflow *argo.Workflow) {
 				g.Expect(workflow.Status.Phase).To(Equal(argo.WorkflowSucceeded))
-				output, err := workflowutil.GetWorkflowOutputJson(
+				output, err := workflowutil.GetWorkflowOutput(
 					workflow,
 					workflowconstants.ProviderOutputParameterName,
 				)

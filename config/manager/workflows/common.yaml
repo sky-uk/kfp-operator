@@ -52,7 +52,7 @@ spec:
       args:
       - |
         echo "input yaml:"
-        cat "{{inputs.parameters.yaml}}"
+        echo "{{inputs.parameters.yaml}}"
 
         echo "output json:"
         echo "{{inputs.parameters.yaml}}" | yq eval -o=json - | tee /tmp/json.json
