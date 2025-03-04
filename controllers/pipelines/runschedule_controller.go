@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1beta1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	ctrl "sigs.k8s.io/controller-runtime"

@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"

@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"

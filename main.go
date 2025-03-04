@@ -33,10 +33,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1beta1"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	pipelinesv1alpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
 	"github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
 

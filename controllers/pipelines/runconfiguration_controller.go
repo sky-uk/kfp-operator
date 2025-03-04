@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1beta1"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"

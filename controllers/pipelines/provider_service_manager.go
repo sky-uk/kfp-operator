@@ -3,8 +3,8 @@ package pipelines
 import (
 	"context"
 	"fmt"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1beta1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"golang.org/x/exp/maps"
 	corev1 "k8s.io/api/core/v1"

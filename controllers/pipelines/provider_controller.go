@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1beta1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
