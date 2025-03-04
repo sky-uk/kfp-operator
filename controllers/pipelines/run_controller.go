@@ -25,6 +25,7 @@ type RunReconciler struct {
 	DependingOnPipelineReconciler[*pipelinesv1.Run]
 	DependingOnRunConfigurationReconciler[*pipelinesv1.Run]
 	ResourceReconciler[*pipelinesv1.Run]
+	ServiceManager ServiceResourceManager
 }
 
 func NewRunReconciler(
@@ -47,6 +48,11 @@ func NewRunReconciler(
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.Run]{
 			EC:     ec,
 			Config: config,
+		},
+		ServiceManager: ServiceManager{
+			client: &ec.Client,
+			scheme: ec.Scheme,
+			config: &config,
 		},
 	}
 }
@@ -93,7 +99,12 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, nil
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, run)
+	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, run)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, run); err != nil {

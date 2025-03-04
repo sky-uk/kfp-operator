@@ -14,6 +14,7 @@ const (
 	ConstructionFailedError             = "error constructing workflow"
 	ProviderConfigParameterName         = "provider-config"
 	ProviderNameParameterName           = "provider-name"
+	ProviderServiceUrl                  = "provider-service-url"
 	ProviderOutputParameterName         = "provider-output"
 	ResourceKindParameterName           = "resource-kind"
 	ResourceDefinitionParameterName     = "resource-definition"

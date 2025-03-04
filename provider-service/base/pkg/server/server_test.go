@@ -357,12 +357,12 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(rr, req)
 					resp := rr.Result()
 
-					Expect(resp.StatusCode).To(Equal(http.StatusOK))
+					Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
 
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(Equal(`{"id":"` + id + `"}`))
+					Expect(string(body)).To(Equal("{}"))
 				})
 			})
 
