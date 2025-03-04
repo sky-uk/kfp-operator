@@ -3,7 +3,7 @@ package resource
 import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 

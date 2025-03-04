@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -20,7 +20,7 @@ import (
 func schemeWithCRDs() *runtime.Scheme {
 	scheme := runtime.NewScheme()
 
-	groupVersion := schema.GroupVersion{Group: "pipelines.kubeflow.org", Version: "v1alpha6"}
+	groupVersion := schema.GroupVersion{Group: "pipelines.kubeflow.org", Version: "v1beta1"}
 	scheme.AddKnownTypes(groupVersion, &pipelinesv1.RunConfiguration{}, &pipelinesv1.Run{})
 
 	metav1.AddToGroupVersion(scheme, groupVersion)

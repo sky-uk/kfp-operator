@@ -8,8 +8,8 @@ import (
 	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	"github.com/sky-uk/kfp-operator/apis/config/v1beta1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	appsv1 "k8s.io/api/apps/v1"
@@ -49,8 +49,8 @@ var _ = Context("Provider Deployment Manager", func() {
 		deploymentManager = DeploymentManager{
 			client: optInClient,
 			scheme: client.Scheme(),
-			config: &v1alpha6.KfpControllerConfigSpec{
-				DefaultProviderValues: v1alpha6.DefaultProviderValues{
+			config: &v1beta1.KfpControllerConfigSpec{
+				DefaultProviderValues: v1beta1.DefaultProviderValues{
 					ServiceContainerName: "ServiceContainerName",
 					PodTemplateSpec: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
