@@ -1,4 +1,4 @@
-apiVersion: pipelines.kubeflow.org/v1alpha6
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Experiment
 metadata:
   name: penguin-experiment
