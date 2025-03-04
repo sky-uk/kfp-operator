@@ -136,8 +136,12 @@ paths:
       - $ref: '#/components/parameters/id'
       - $ref: '#/components/parameters/type'
       responses:
-        '204':
+        '200':
           description: Resource deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
         '404':
           description: Resource not found.
           content:

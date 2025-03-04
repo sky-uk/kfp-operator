@@ -97,7 +97,7 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 			return
 		}
 
-		writeResponse(w, resource.ResponseBody{}, http.StatusNoContent)
+		writeResponse(w, resource.ResponseBody{}, http.StatusOK)
 	}
 }
 

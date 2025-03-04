@@ -343,7 +343,7 @@ var _ = Describe("Http Server Endpoints", func() {
 
 		Context("/{id} DELETE request deleteHandler", func() {
 			When("succeeds", func() {
-				It("returns 200", func() {
+				It("returns 200 with empty body", func() {
 					id := "mock-id/bla"
 					encodedId := url.PathEscape(id)
 					handledResource.On("Delete", id).Return(nil)
@@ -357,7 +357,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					server.Config.Handler.ServeHTTP(rr, req)
 					resp := rr.Result()
 
-					Expect(resp.StatusCode).To(Equal(http.StatusNoContent))
+					Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 					body, err := io.ReadAll(resp.Body)
 
