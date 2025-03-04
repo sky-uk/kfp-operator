@@ -97,7 +97,7 @@ func SetProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.W
 		[]argo.Parameter{
 			{
 				Name:  workflowconstants.ProviderOutputParameterName,
-				Value: argo.AnyStringPtr("id: " + output.Id + "\nproviderError: " + output.ProviderError),
+				Value: argo.AnyStringPtr(`{"id":"` + output.Id + `","providerError":"` + output.ProviderError + `"}`),
 			},
 		},
 	)
