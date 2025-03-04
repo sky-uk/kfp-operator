@@ -30,7 +30,11 @@ require (
 	sigs.k8s.io/controller-runtime v0.15.0
 )
 
-replace github.com/sky-uk/kfp-operator/common => ./common
+replace (
+	github.com/sky-uk/kfp-operator/argo/common => ./argo/common
+	github.com/sky-uk/kfp-operator/argo/providers => ./argo/providers
+	github.com/sky-uk/kfp-operator/common => ./common
+)
 
 require (
 	github.com/Shopify/sarama v1.38.0 // indirect

@@ -102,11 +102,11 @@ var _ = BeforeSuite(func() {
 		},
 	}
 
-	Expect(NewPipelineReconciler(ec, &workflowRepository, TestConfig, k8sManager.GetScheme()).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewRunReconciler(ec, &workflowRepository, TestConfig, k8sManager.GetScheme()).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewRunConfigurationReconciler(ec, k8sManager.GetScheme(), TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewPipelineReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewRunReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewRunConfigurationReconciler(ec, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewRunScheduleReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewExperimentReconciler(ec, &workflowRepository, TestConfig, k8sManager.GetScheme()).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewExperimentReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
