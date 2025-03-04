@@ -4,7 +4,7 @@ package mocks
 
 import (
 	"context"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/stretchr/testify/mock"
 	corev1 "k8s.io/api/core/v1"
 )

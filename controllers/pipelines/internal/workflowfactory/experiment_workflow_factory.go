@@ -1,8 +1,8 @@
 package workflowfactory
 
 import (
-	config "github.com/sky-uk/kfp-operator/apis/config/v1beta1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )

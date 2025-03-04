@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	hub "github.com/sky-uk/kfp-operator/apis/pipelines/v1beta1"
+	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
 var _ = Context("Pipeline Conversion", PropertyBased, func() {
