@@ -2,6 +2,8 @@ package resource
 
 import (
 	"encoding/json"
+	"fmt"
+
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -88,4 +90,13 @@ type UserError struct {
 
 func (e *UserError) Error() string {
 	return e.E.Error()
+}
+
+type UnimplementedError struct {
+	Method string
+	ResourceType string
+}
+
+func (e *UnimplementedError) Error() string {
+	return fmt.Sprintf("Method %s unimplemented for resource %s", e.Method, e.ResourceType)
 }

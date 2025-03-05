@@ -18,6 +18,7 @@ import (
 type ExperimentReconciler struct {
 	StateHandler[*pipelinesv1.Experiment]
 	ResourceReconciler[*pipelinesv1.Experiment]
+	ServiceManager ServiceResourceManager
 }
 
 func NewExperimentReconciler(
@@ -33,6 +34,11 @@ func NewExperimentReconciler(
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.Experiment]{
 			EC:     ec,
 			Config: config,
+		},
+		ServiceManager: ServiceManager{
+			client: &ec.Client,
+			scheme: ec.Scheme,
+			config: &config,
 		},
 	}
 }
@@ -60,7 +66,12 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		return ctrl.Result{}, err
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, experiment)
+	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, experiment)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, experiment); err != nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -25,7 +26,12 @@ var StateHandlerConstants = struct {
 	ProviderChangedError: "the provider has changed",
 }
 
-func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelinesv1.Provider, resource R) (commands []Command) {
+func (st *StateHandler[R]) stateTransition(
+	ctx context.Context,
+	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
+	resource R,
+) (commands []Command) {
 	resourceProvider := resource.GetStatus().Provider.Name
 	if resourceProvider != "" && resourceProvider != provider.Name {
 		commands = []Command{*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
@@ -36,9 +42,9 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelin
 			commands = st.onCreating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)))
 		case apis.Succeeded, apis.Failed:
 			if !resource.GetDeletionTimestamp().IsZero() {
-				commands = st.onDelete(ctx, provider, resource)
+				commands = st.onDelete(ctx, provider, providerSvc, resource)
 			} else {
-				commands = st.onSucceededOrFailed(ctx, provider, resource)
+				commands = st.onSucceededOrFailed(ctx, provider, providerSvc, resource)
 			}
 		case apis.Updating:
 			commands = st.onUpdating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)))
@@ -46,7 +52,7 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelin
 			commands = st.onDeleting(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)))
 		case apis.Deleted:
 		default:
-			commands = st.onUnknown(ctx, provider, resource)
+			commands = st.onUnknown(ctx, provider, providerSvc, resource)
 		}
 	}
 
@@ -59,22 +65,32 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelin
 	return
 }
 
-func (st *StateHandler[R]) StateTransition(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
+func (st *StateHandler[R]) StateTransition(
+	ctx context.Context,
+	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
+	resource R,
+) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
-	stateTransitionCommands := st.stateTransition(ctx, provider, resource)
+	stateTransitionCommands := st.stateTransition(ctx, provider, providerSvc, resource)
 	return alwaysSetObservedGeneration(ctx, stateTransitionCommands, resource)
 }
 
-func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
+func (st *StateHandler[R]) onUnknown(
+	ctx context.Context,
+	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
+	resource R,
+) []Command {
 	logger := log.FromContext(ctx)
 
 	newVersion := resource.ComputeVersion()
 
 	if resource.GetStatus().Provider.Id != "" {
 		logger.Info("empty state but ProviderId already exists, updating resource")
-		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(provider, resource)
+		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(provider, providerSvc, resource)
 
 		if err != nil {
 			failureMessage := workflowconstants.ConstructionFailedError
@@ -96,7 +112,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.P
 	}
 
 	logger.Info("empty state, creating resource")
-	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(provider, resource)
+	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(provider, providerSvc, resource)
 
 	if err != nil {
 		failureMessage := workflowconstants.ConstructionFailedError
@@ -120,7 +136,12 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.P
 	}
 }
 
-func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
+func (st StateHandler[R]) onDelete(
+	ctx context.Context,
+	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
+	resource R,
+) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
@@ -130,7 +151,7 @@ func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Pro
 		}
 	}
 
-	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(provider, resource)
+	workflow, err := st.WorkflowFactory.ConstructDeletionWorkflow(provider, providerSvc, resource)
 
 	if err != nil {
 		failureMessage := workflowconstants.ConstructionFailedError
@@ -147,7 +168,12 @@ func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Pro
 	}
 }
 
-func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
+func (st StateHandler[R]) onSucceededOrFailed(
+	ctx context.Context,
+	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
+	resource R,
+) []Command {
 	logger := log.FromContext(ctx)
 	newResourceVersion := resource.ComputeVersion()
 
@@ -162,7 +188,11 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipe
 
 	if resource.GetStatus().Provider.Id == "" {
 		logger.Info("no providerId exists, creating")
-		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(provider, resource)
+		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(
+			provider,
+			providerSvc,
+			resource,
+		)
 
 		if err != nil {
 			failureMessage := workflowconstants.ConstructionFailedError
@@ -181,7 +211,7 @@ func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipe
 		targetState = apis.Creating
 	} else {
 		logger.Info("providerId exists, updating")
-		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(provider, resource)
+		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(provider, providerSvc, resource)
 
 		if err != nil {
 			failureMessage := workflowconstants.ConstructionFailedError

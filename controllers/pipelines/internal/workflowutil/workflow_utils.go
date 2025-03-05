@@ -8,7 +8,6 @@ import (
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
-	"gopkg.in/yaml.v2"
 )
 
 var mapParams = func(params []argo.Parameter) map[string]string {
@@ -30,7 +29,10 @@ func GetWorkflowParameter(workflow *argo.Workflow, name string) string {
 	return ""
 }
 
-func GetWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, error) {
+func GetWorkflowOutput(
+	workflow *argo.Workflow,
+	key string,
+) (providers.Output, error) {
 	output := providers.Output{}
 
 	entrypointNode, exists := workflow.Status.Nodes[workflow.Name]
@@ -38,9 +40,12 @@ func GetWorkflowOutput(workflow *argo.Workflow, key string) (providers.Output, e
 		return output, fmt.Errorf("workflow does not have %s node", workflow.Name)
 	}
 
-	yamlOutput := []byte(mapParams(entrypointNode.Outputs.Parameters)[key])
+	value, ok := mapParams(entrypointNode.Outputs.Parameters)[key]
+	if !ok {
+		return output, fmt.Errorf("workflow %s outputs does not have the key %s", workflow.Name, key)
+	}
 
-	err := yaml.Unmarshal(yamlOutput, &output)
+	err := json.Unmarshal([]byte(value), &output)
 
 	return output, err
 }
@@ -92,7 +97,7 @@ func SetProviderOutput(workflow *argo.Workflow, output providers.Output) *argo.W
 		[]argo.Parameter{
 			{
 				Name:  workflowconstants.ProviderOutputParameterName,
-				Value: argo.AnyStringPtr("id: " + output.Id + "\nproviderError: " + output.ProviderError),
+				Value: argo.AnyStringPtr(`{"id":"` + output.Id + `","providerError":"` + output.ProviderError + `"}`),
 			},
 		},
 	)

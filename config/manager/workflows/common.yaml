@@ -38,39 +38,124 @@ spec:
       source: yq e -r '.image' /resource-definition.yaml
     metadata: {}
     activeDeadlineSeconds: 300
-  - name: delete
+  - name: yaml-to-json
     inputs:
       parameters:
-      - name: provider-image
-      - name: provider-sa
-      - name: provider-config
+      - name: yaml
+    outputs:
       artifacts:
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{workflow.parameters.provider-config}}
+      - name: json
+        path: /tmp/json.json
+    container:
+      image: mikefarah/yq:4.45.1
+      command: [sh, -c]
+      args:
+      - |
+        echo "input yaml:"
+        echo "{{inputs.parameters.yaml}}"
+
+        echo "output json:"
+        echo "{{inputs.parameters.yaml}}" | yq eval -o=json - | tee /tmp/json.json
+  - name: url-encode
+    inputs:
+      parameters:
+      - name: unencoded
+    outputs:
+      parameters:
+      - name: url-encoded
+        valueFrom:
+          path: "/tmp/url-encoded.txt"
+    container:
+      image: stedolan/jq:latest
+      command: [sh, -c]
+      args:
+      - |
+        echo -n "{{inputs.parameters.unencoded}}" | jq -sRr @uri > /tmp/url-encoded.txt
+  - name: create
+    inputs:
+      artifacts:
+      - name: body
+        path: /body.json
+      parameters:
+      - name: provider-service-url
     outputs:
       parameters:
       - name: provider-output
         valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{inputs.parameters.provider-sa}}"}'
+          path: /tmp/provider-output.json
+    activeDeadlineSeconds: 300
+    metadata: {}
+    container:
+      image: curlimages/curl:8.12.1
+      command: [sh, -c]
+      args:
+      - |
+        HTTP_RESPONSE=$(
+          curl -v -s -o /tmp/provider-output.json -w "%{response_code}" -X POST -H "Content-Type: application/json" \
+              --data-binary @{{inputs.artifacts.body.path}} \
+              "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
+        )
+
+        case $HTTP_RESPONSE in
+          501)  exit 1 ;;
+          *) exit 0 ;;
+        esac
+  - name: update
+    inputs:
+      artifacts:
+      - name: body
+        path: /body.json
+      parameters:
+      - name: url-encoded-resource-id
+      - name: provider-service-url
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.json
+    activeDeadlineSeconds: 300
+    metadata: {}
+    container:
+      image: curlimages/curl:8.12.1
+      command: [sh, -c]
+      args:
+      - |
+        HTTP_RESPONSE=$(
+          curl -v -o /tmp/provider-output.json -w "%{response_code}" -X PUT -H "Content-Type: application/json" \
+              --data-binary @{{inputs.artifacts.body.path}} \
+              "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+        )
+
+        case $HTTP_RESPONSE in
+          501)  exit 1 ;;
+          *) exit 0 ;;
+        esac
+  - name: delete
+    inputs:
+      parameters:
+      - name: url-encoded-resource-id
+      - name: provider-service-url
+    outputs:
+      parameters:
+      - name: provider-output
+        valueFrom:
+          path: /tmp/provider-output.json
     metadata: {}
     activeDeadlineSeconds: 300
     container:
-      image: "{{inputs.parameters.provider-image}}"
-      command:
-      - /provider
+      image: curlimages/curl:8.12.1
+      command: [sh, -c]
       args:
-      - --provider
-      - /provider-config.json
-      - '{{workflow.parameters.resource-kind}}'
-      - delete
-      - --{{workflow.parameters.resource-kind}}-id
-      - '{{workflow.parameters.resource-id}}'
-      - --out
-      - /tmp/provider-output.yaml
+      - |
+        HTTP_RESPONSE=$(
+          curl -v -o /tmp/provider-output.json -w "%{response_code}" -X DELETE \
+              "{{inputs.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+        )
+
+        case $HTTP_RESPONSE in
+          501)  exit 1 ;;
+          *) exit 0 ;;
+        esac
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -84,6 +169,7 @@ spec:
     parameters:
     - name: provider-config
     - name: provider-name
+    - name: provider-service-url
     - name: resource-kind
     - name: resource-id
   entrypoint: main
@@ -116,15 +202,21 @@ spec:
             value: serviceAccount
           - name: provider-config
             value: '{{workflow.parameters.provider-config}}'
+    - - name: url-encode-resource-id
+        templateRef:
+          name: kfp-operator-common-steps
+          template: url-encode
+        arguments:
+          parameters:
+          - name: unencoded
+            value: '{{workflow.parameters.resource-id}}'
     - - name: provider
         templateRef:
           name: kfp-operator-common-steps
           template: delete
         arguments:
           parameters:
-          - name: provider-image
-            value: '{{steps.select-provider-image.outputs.result}}'
-          - name: provider-sa
-            value: '{{steps.select-provider-sa.outputs.result}}'
-          - name: provider-config
-            value: '{{workflow.parameters.provider-config}}'
+          - name: url-encoded-resource-id
+            value: '{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}'
+          - name: provider-service-url
+            value: '{{workflow.parameters.provider-service-url}}'

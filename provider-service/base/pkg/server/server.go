@@ -36,18 +36,24 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		defer r.Body.Close()
 
 		resp, err := hr.Create(body)
-		if err != nil {
-			var userErr *resource.UserError
-			if errors.As(err, &userErr) {
-				writeErrorResponse(w, "", err, http.StatusBadRequest)
-				return
-			} else {
-				writeErrorResponse(w, "", err, http.StatusInternalServerError)
-				return
-			}
-		}
 
-		writeResponse(w, resp, http.StatusCreated)
+		switch {
+		case err == nil:
+			writeResponse(w, resp, http.StatusCreated)
+			return
+
+		case errors.As(err, new(*resource.UserError)):
+			writeErrorResponse(w, "", err, http.StatusBadRequest)
+			return
+
+		case errors.As(err, new(*resource.UnimplementedError)):
+			writeErrorResponse(w, "", err, http.StatusNotImplemented)
+			return
+
+		default:
+			writeErrorResponse(w, "", err, http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -67,18 +73,24 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		defer r.Body.Close()
 
 		resp, err := hr.Update(decodedId, body)
-		if err != nil {
-			var userErr *resource.UserError
-			if errors.As(err, &userErr) {
-				writeErrorResponse(w, decodedId, err, http.StatusBadRequest)
-				return
-			} else {
-				writeErrorResponse(w, decodedId, err, http.StatusInternalServerError)
-				return
-			}
-		}
 
-		writeResponse(w, resp, http.StatusOK)
+		switch {
+		case err == nil:
+			writeResponse(w, resp, http.StatusOK)
+			return
+
+		case errors.As(err, new(*resource.UserError)):
+			writeErrorResponse(w, decodedId, err, http.StatusBadRequest)
+			return
+
+		case errors.As(err, new(*resource.UnimplementedError)):
+			writeErrorResponse(w, decodedId, err, http.StatusNotImplemented)
+			return
+
+		default:
+			writeErrorResponse(w, decodedId, err, http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -92,12 +104,24 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 		}
 
 		err = a.Delete(decodedId)
-		if err != nil {
+
+		switch {
+		case err == nil:
+			writeResponse(w, resource.ResponseBody{}, http.StatusOK)
+			return
+
+		case errors.As(err, new(*resource.UserError)):
+			writeErrorResponse(w, decodedId, err, http.StatusBadRequest)
+			return
+
+		case errors.As(err, new(*resource.UnimplementedError)):
+			writeErrorResponse(w, decodedId, err, http.StatusNotImplemented)
+			return
+
+		default:
 			writeErrorResponse(w, decodedId, err, http.StatusInternalServerError)
 			return
 		}
-
-		writeResponse(w, resource.ResponseBody{Id: decodedId}, http.StatusOK)
 	}
 }
 

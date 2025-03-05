@@ -190,6 +190,34 @@ var _ = Describe("Http Server Endpoints", func() {
 						Expect(string(body)).To(Equal(`{"providerError":"` + response + `"}`))
 					})
 				})
+				When("the error is UnimplementedError", func() {
+					It("returns 501 with error response body", func() {
+						response := resource.UnimplementedError{
+							Method: "Create",
+							ResourceType: resourceType,
+						}
+						handledResource.On("Create", payload).Return(
+							nil,
+							&response,
+						)
+
+						req := httptest.NewRequest(
+							http.MethodPost,
+							"/resource/"+resourceType,
+							bytes.NewReader(payload),
+						)
+						rr := httptest.NewRecorder()
+						server.Config.Handler.ServeHTTP(rr, req)
+						resp := rr.Result()
+
+						Expect(resp.StatusCode).To(Equal(http.StatusNotImplemented))
+
+						body, err := io.ReadAll(resp.Body)
+
+						Expect(err).ToNot(HaveOccurred())
+						Expect(string(body)).To(Equal(`{"providerError":"` + response.Error() + `"}`))
+					})
+				})
 				It("returns 500 with error response body", func() {
 					response := "failed to create"
 					handledResource.On("Create", payload).Return(
@@ -315,6 +343,34 @@ var _ = Describe("Http Server Endpoints", func() {
 						Expect(string(body)).To(Equal(`{"id":"mock-id","providerError":"` + response + `"}`))
 					})
 				})
+				When("the error is UnimplementedError", func() {
+					It("returns 501 with error response body", func() {
+						id := "mock-id"
+						response := resource.UnimplementedError{
+							Method: "Update",
+							ResourceType: resourceType,
+						}
+						handledResource.On("Update", id, payload).Return(
+							nil,
+							&response,
+						)
+						req := httptest.NewRequest(
+							http.MethodPut,
+							"/resource/"+resourceType+"/"+id,
+							bytes.NewReader(payload),
+						)
+						rr := httptest.NewRecorder()
+						server.Config.Handler.ServeHTTP(rr, req)
+						resp := rr.Result()
+
+						Expect(resp.StatusCode).To(Equal(http.StatusNotImplemented))
+
+						body, err := io.ReadAll(resp.Body)
+
+						Expect(err).ToNot(HaveOccurred())
+						Expect(string(body)).To(Equal(`{"id":"mock-id","providerError":"` + response.Error() + `"}`))
+					})
+				})
 				It("returns 500 with error response body", func() {
 					id := "mock-id"
 					response := "failed to update"
@@ -343,7 +399,7 @@ var _ = Describe("Http Server Endpoints", func() {
 
 		Context("/{id} DELETE request deleteHandler", func() {
 			When("succeeds", func() {
-				It("returns 200", func() {
+				It("returns 200 with empty body", func() {
 					id := "mock-id/bla"
 					encodedId := url.PathEscape(id)
 					handledResource.On("Delete", id).Return(nil)
@@ -362,7 +418,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					body, err := io.ReadAll(resp.Body)
 
 					Expect(err).ToNot(HaveOccurred())
-					Expect(string(body)).To(Equal(`{"id":"` + id + `"}`))
+					Expect(string(body)).To(Equal("{}"))
 				})
 			})
 
@@ -391,6 +447,31 @@ var _ = Describe("Http Server Endpoints", func() {
 			})
 
 			When("handledResource Delete fails", func() {
+				When("the error is UnimplementedError", func() {
+					It("returns 501 with error response body", func() {
+						id := "mock-id"
+						response := resource.UnimplementedError{
+							Method: "Delete",
+							ResourceType: resourceType,
+						}
+						handledResource.On("Delete", id).Return(&response)
+						req := httptest.NewRequest(
+							http.MethodDelete,
+							"/resource/"+resourceType+"/"+id,
+							nil,
+						)
+						rr := httptest.NewRecorder()
+						server.Config.Handler.ServeHTTP(rr, req)
+						resp := rr.Result()
+
+						Expect(resp.StatusCode).To(Equal(http.StatusNotImplemented))
+
+						body, err := io.ReadAll(resp.Body)
+
+						Expect(err).ToNot(HaveOccurred())
+						Expect(string(body)).To(Equal(`{"id":"mock-id","providerError":"` + response.Error() + `"}`))
+					})
+				})
 				It("returns 500 with error response body", func() {
 					id := "mock-id"
 					response := "failed to delete"

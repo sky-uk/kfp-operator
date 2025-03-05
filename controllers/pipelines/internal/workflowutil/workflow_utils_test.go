@@ -16,31 +16,29 @@ func TestWorkflowUtilsUnitSuite(t *testing.T) {
 }
 
 var _ = Describe("Utils", func() {
-	When("getWorkflowOutput is called with a workflow that has an output with the given key", func() {
-		It("returns the output value", func() {
-			workflow := argo.Workflow{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "a-workflow",
-				},
-				Status: argo.WorkflowStatus{
-					Nodes: map[string]argo.NodeStatus{
-						"a-workflow": {
-							Outputs: &argo.Outputs{
-								Parameters: []argo.Parameter{
-									{
-										Name:  "aKey",
-										Value: argo.AnyStringPtr("id: aValue"),
-									},
+	When("GetWorkflowOutput is called with a workflow that has an output with the given key", func() {
+		workflow := argo.Workflow{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "a-workflow",
+			},
+			Status: argo.WorkflowStatus{
+				Nodes: map[string]argo.NodeStatus{
+					"a-workflow": {
+						Outputs: &argo.Outputs{
+							Parameters: []argo.Parameter{
+								{
+									Name:  "aKey",
+									Value: argo.AnyStringPtr(`{"id": "aValue"}`),
 								},
 							},
 						},
 					},
 				},
-			}
-			result, error := GetWorkflowOutput(&workflow, "aKey")
-			Expect(error).NotTo(HaveOccurred())
-			Expect(result.Id).To(Equal("aValue"))
-		})
+			},
+		}
+		result, error := GetWorkflowOutput(&workflow, "aKey")
+		Expect(error).NotTo(HaveOccurred())
+		Expect(result.Id).To(Equal("aValue"))
 	})
 
 	When("latestWorkflowByPhase is called with one workflow each", func() {
