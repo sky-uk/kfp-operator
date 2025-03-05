@@ -71,10 +71,10 @@ spec:
           RESOURCE=$(cat {{inputs.artifacts.resource.path}})
 
           echo "Combining resource definition and resource"
-          COMBINED=$(echo "{\"pipelineDefinition\": $RESOURCE_DEFINITION, \"compiledPipeline\": $RESOURCE}")
+          COMBINED=$(printf '{"pipelineDefinition": %s, "compiledPipeline": %s}' "$RESOURCE_DEFINITION" "$RESOURCE")
 
           echo "Combined resource file:"
-          echo $COMBINED | tee /tmp/combined.json
+          printf "%s\n" "$COMBINED" | tee /tmp/combined.json
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
