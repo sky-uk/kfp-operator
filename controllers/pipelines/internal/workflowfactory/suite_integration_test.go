@@ -130,13 +130,13 @@ func StubWithExistingIdAndError[R pipelinesv1.Resource](resource R) (pipelinesv1
 }
 
 func AssertWorkflow[R pipelinesv1.Resource](
-	newResource func() R,
+	resource R,
 	expectedOutput base.Output,
 	constructWorkflow func(pipelinesv1.Provider, corev1.Service, R) (*argo.Workflow, error),
 ) {
 
 	testCtx := WorkflowTestHelper[R]{
-		Resource: newResource(),
+		Resource: resource,
 	}
 
 	providerSvc := corev1.Service{}
@@ -168,8 +168,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 					workflowconstants.ProviderOutputParameterName,
 				)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output.ProviderError).To(Equal(expectedOutput.ProviderError))
-				g.Expect(output.Id).To(Equal(expectedOutput.Id))
+				g.Expect(output).To(Equal(expectedOutput))
 			},
 		), TestTimeout,
 	).Should(Succeed())

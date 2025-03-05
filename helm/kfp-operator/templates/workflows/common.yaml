@@ -72,7 +72,7 @@ spec:
       command: [sh, -c]
       args:
       - |
-        echo "{{`{{inputs.parameters.unencoded}}`}}" | jq -sRr @uri > /tmp/url-encoded.txt
+        echo -n "{{`{{inputs.parameters.unencoded}}`}}" | jq -sRr @uri > /tmp/url-encoded.txt
   - name: create
     inputs:
       artifacts:
