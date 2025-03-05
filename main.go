@@ -37,6 +37,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	pipelinesv1alpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelinesv1alpha6 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
 
@@ -53,8 +54,9 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(pipelinesv1.AddToScheme(scheme))
 	utilruntime.Must(pipelinesv1alpha5.AddToScheme(scheme))
+	utilruntime.Must(pipelinesv1alpha6.AddToScheme(scheme))
+	utilruntime.Must(pipelinesv1.AddToScheme(scheme))
 	utilruntime.Must(config.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 
