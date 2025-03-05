@@ -37,8 +37,8 @@ func (r *Run) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (*Run) Update(_ string, _ []byte) (ResponseBody, error) {
-	return ResponseBody{}, nil
+func (r *Run) Update(_ string, _ []byte) (ResponseBody, error) {
+	return ResponseBody{}, &UnimplementedError{Method: "Update", ResourceType: r.Type()}
 }
 
 func (r *Run) Delete(id string) error {

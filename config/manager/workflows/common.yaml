@@ -90,9 +90,16 @@ spec:
       command: [sh, -c]
       args:
       - |
-        curl -v -o /tmp/provider-output.json -X POST -H "Content-Type: application/json" \
-            --data-binary @{{inputs.artifacts.body.path}} \
-            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
+        HTTP_RESPONSE=$(
+          curl -v -s -o /tmp/provider-output.json -w "%{response_code}" -X POST -H "Content-Type: application/json" \
+              --data-binary @{{inputs.artifacts.body.path}} \
+              "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
+        )
+
+        case $HTTP_RESPONSE in
+          501)  exit 1 ;;
+          *) exit 0 ;;
+        esac
   - name: update
     inputs:
       artifacts:
@@ -113,9 +120,16 @@ spec:
       command: [sh, -c]
       args:
       - |
-        curl -v -o /tmp/provider-output.json -X PUT -H "Content-Type: application/json" \
-            --data-binary @{{inputs.artifacts.body.path}} \
-            "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+        HTTP_RESPONSE=$(
+          curl -v -o /tmp/provider-output.json -w "%{response_code}" -X PUT -H "Content-Type: application/json" \
+              --data-binary @{{inputs.artifacts.body.path}} \
+              "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+        )
+
+        case $HTTP_RESPONSE in
+          501)  exit 1 ;;
+          *) exit 0 ;;
+        esac
   - name: delete
     inputs:
       parameters:
@@ -133,8 +147,15 @@ spec:
       command: [sh, -c]
       args:
       - |
-        curl -v -o /tmp/provider-output.json -X DELETE \
-            "{{inputs.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+        HTTP_RESPONSE=$(
+          curl -v -o /tmp/provider-output.json -w "%{response_code}" -X DELETE \
+              "{{inputs.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}/{{inputs.parameters.url-encoded-resource-id}}"
+        )
+
+        case $HTTP_RESPONSE in
+          501)  exit 1 ;;
+          *) exit 0 ;;
+        esac
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate

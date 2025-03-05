@@ -15,7 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-var _ = Context("Resource Workflows", Serial, func() {
+var _ = Context("Run Resource Workflows", Serial, func() {
 	workflowFactory := RunWorkflowFactory(config.KfpControllerConfigSpec{
 		DefaultProvider: "not-used",
 		DefaultProviderValues: config.DefaultProviderValues{

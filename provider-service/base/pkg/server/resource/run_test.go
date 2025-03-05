@@ -68,6 +68,17 @@ var _ = Describe("Run", Ordered, func() {
 		})
 	})
 
+	Context("Update", func() {
+		It("returns an Unimplemented error", func() {
+			id := "some-id"
+			response, err := r.Update(id, []byte("foo"))
+
+			var expectedErr *UnimplementedError
+			Expect(errors.As(err, &expectedErr)).To(BeTrue())
+			Expect(response).To(Equal(ResponseBody{}))
+		})
+	})
+
 	Context("Delete", func() {
 		When("valid id is passed and provider operations succeed", func() {
 			It("return no error", func() {
