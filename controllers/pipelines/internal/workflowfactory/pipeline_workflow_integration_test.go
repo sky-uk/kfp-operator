@@ -46,7 +46,7 @@ var _ = Context("Pipeline Resource Workflows", Serial, func() {
 		return pipeline
 	}
 
-	DescribeTable("Pipeline Workflows", AssertWorkflow[*pipelinesv1.Pipeline],
+	DescribeTable("Workflows", AssertWorkflow[*pipelinesv1.Pipeline],
 		Entry(
 			"Creation",
 			newPipeline(),
