@@ -1,4 +1,4 @@
-package v1alpha6
+package v1beta1
 
 import (
 	ctrl "sigs.k8s.io/controller-runtime"

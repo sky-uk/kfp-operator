@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-bexpr"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -26,7 +26,7 @@ const (
 
 type MetadataStore interface {
 	GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error)
-	GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) ([]common.Artifact, error)
+	GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelineshub.OutputArtifact) ([]common.Artifact, error)
 }
 
 type GrpcMetadataStore struct {
@@ -85,7 +85,7 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 	return results, nil
 }
 
-func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelinesv1.OutputArtifact) (artifacts []common.Artifact, err error) {
+func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelineshub.OutputArtifact) (artifacts []common.Artifact, err error) {
 	pipelineRunTypeName := PipelineRunTypeName
 	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
 	if err != nil {

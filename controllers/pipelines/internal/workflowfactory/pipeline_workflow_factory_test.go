@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"gopkg.in/yaml.v2"
@@ -24,12 +24,12 @@ var _ = Describe("PipelineParamsCreator", func() {
 		{Name: "c", Value: "d"},
 	}
 
-	pipeline := &pipelinesv1.Pipeline{
+	pipeline := &pipelineshub.Pipeline{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "pipelineName",
 			Namespace: "pipelineNamespace",
 		},
-		Spec: pipelinesv1.PipelineSpec{
+		Spec: pipelineshub.PipelineSpec{
 			Image:         "pipelineImage",
 			TfxComponents: "pipelineTfxComponents",
 			Env:           expectedEnv,
