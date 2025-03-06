@@ -142,8 +142,8 @@ Steps to create a new version of the pipeline CRDs:
 
 1) Copy and paste the current `hub` into its version named directory, e.g. `v1alpha1`.
 1) Change groupversion_info.go to reflect the new version, e.g. `v1alpha2`.
-1) Change all the package names in the hub directory to be the new required version, e.g. `v1alpha2` (but leave the directory called `hub). Client code import hub, so no changes needed there on creating new version.
+1) Change all the package names in the hub directory to be the new required version, e.g. `v1alpha2` (but leave the directory called `hub`, all Client code imports hub directory and names it, so that no changes needed on creating new version).
 1) Change all the conversion functions in the now old version (e.g. `v1alpha1`) to convert to and from the new hub version (e.g. `v1alpha2`).
-1) Make the required schema changes in hub. This will involve changing the conversion code in all older versions.
-1) Register the old schema (e.g. `v1alpha1`) in the controller runtime (see [here](https://github.com/sky-uk/kfp-operator/blob/b298c958c64fa82bcdb3efd203f5239fe092ddf1/main.go#L56)).
+1) Make the required schema changes in `hub`. This will involve changing the conversion code in all older versions.
+1) Register the old schema (e.g. `v1alpha1`) in the controller runtime (see [here](main.go#L56)).
 1) Copy changes into helm version of the CRD to match that generated in `config/crd/bases`.
