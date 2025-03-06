@@ -77,7 +77,7 @@ spec:
           COMBINED=$(printf '{"pipelineDefinition": %s, "compiledPipeline": %s}' "$RESOURCE_DEFINITION" "$RESOURCE")
 
           echo "Combined resource file:"
-          printf "%s\n" "$COMBINED" | tee /tmp/combined.json
+          printf "%s" "$COMBINED" | tee /tmp/combined.json
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
