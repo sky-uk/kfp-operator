@@ -4,8 +4,8 @@ import (
 	"context"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -19,10 +19,10 @@ type ProviderLoader interface {
 	LoadProvider(
 		ctx context.Context,
 		namespace string,
-		desiredProvider string) (pipelinesv1.Provider, error)
+		desiredProvider string) (pipelineshub.Provider, error)
 }
 
-type ResourceReconciler[R pipelinesv1.Resource] struct {
+type ResourceReconciler[R pipelineshub.Resource] struct {
 	EC     K8sExecutionContext
 	Config config.KfpControllerConfigSpec
 }
@@ -31,12 +31,12 @@ func (br ResourceReconciler[R]) LoadProvider(
 	ctx context.Context,
 	namespace string,
 	desiredProvider string,
-) (pipelinesv1.Provider, error) {
+) (pipelineshub.Provider, error) {
 	providerNamespacedName := types.NamespacedName{
 		Namespace: namespace,
 		Name:      desiredProvider,
 	}
-	var provider = pipelinesv1.Provider{}
+	var provider = pipelineshub.Provider{}
 
 	err := br.EC.Client.NonCached.Get(ctx, providerNamespacedName, &provider)
 
@@ -44,7 +44,7 @@ func (br ResourceReconciler[R]) LoadProvider(
 }
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(
-	resource pipelinesv1.Resource,
+	resource pipelineshub.Resource,
 ) handler.MapFunc {
 	return func(ctx context.Context, workflow client.Object) []reconcile.Request {
 		kind, hasKind := workflow.GetLabels()[workflowconstants.OwnerKindLabelKey]

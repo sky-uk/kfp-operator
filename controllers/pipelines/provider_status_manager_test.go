@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	k8sClient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -18,16 +18,16 @@ var _ = Context("Provider Status Manager", func() {
 
 	var (
 		ctx           = context.Background()
-		provider      *pipelinesv1.Provider
+		provider      *pipelineshub.Provider
 		client        k8sClient.Client
 		statusManager StatusManager
 	)
 
 	BeforeEach(func() {
-		provider = pipelinesv1.RandomProvider()
+		provider = pipelineshub.RandomProvider()
 		client = fake.NewClientBuilder().
 			WithScheme(testutil.SchemeWithCrds()).
-			WithStatusSubresource(&pipelinesv1.Provider{}).
+			WithStatusSubresource(&pipelineshub.Provider{}).
 			Build()
 
 		optInClient := &controllers.OptInClient{
@@ -45,7 +45,7 @@ var _ = Context("Provider Status Manager", func() {
 	var _ = Describe("UpdateProviderStatus", func() {
 
 		It("should not error if the provider status is updated successfully", func() {
-			provider.Status = pipelinesv1.Status{}
+			provider.Status = pipelineshub.Status{}
 			provider.Generation = 1
 
 			err := client.Create(ctx, provider)
@@ -65,7 +65,7 @@ var _ = Context("Provider Status Manager", func() {
 		})
 
 		It("should not update observed generation if the provider status update is failed", func() {
-			provider.Status = pipelinesv1.Status{}
+			provider.Status = pipelineshub.Status{}
 			provider.Generation = 1
 
 			err := client.Create(ctx, provider)

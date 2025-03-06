@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
 const (
@@ -30,7 +30,7 @@ func (we *WorkflowParameterError) Error() string {
 	return fmt.Sprintf("error in workflow: %s", we.SubError)
 }
 
-func CommonWorkflowLabels(owner pipelinesv1.Resource) map[string]string {
+func CommonWorkflowLabels(owner pipelineshub.Resource) map[string]string {
 	return map[string]string{
 		OwnerKindLabelKey:      owner.GetKind(),
 		OwnerNameLabelKey:      owner.GetName(),
