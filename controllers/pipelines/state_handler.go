@@ -7,14 +7,14 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-type StateHandler[R pipelinesv1.Resource] struct {
+type StateHandler[R pipelineshub.Resource] struct {
 	WorkflowFactory    workflowfactory.WorkflowFactory[R]
 	WorkflowRepository WorkflowRepository
 }
@@ -25,7 +25,7 @@ var StateHandlerConstants = struct {
 	ProviderChangedError: "the provider has changed",
 }
 
-func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelinesv1.Provider, resource R) (commands []Command) {
+func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelineshub.Provider, resource R) (commands []Command) {
 	resourceProvider := resource.GetStatus().Provider.Name
 	if resourceProvider != "" && resourceProvider != provider.Name {
 		commands = []Command{*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
@@ -59,7 +59,7 @@ func (st *StateHandler[R]) stateTransition(ctx context.Context, provider pipelin
 	return
 }
 
-func (st *StateHandler[R]) StateTransition(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
+func (st *StateHandler[R]) StateTransition(ctx context.Context, provider pipelineshub.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
@@ -67,7 +67,7 @@ func (st *StateHandler[R]) StateTransition(ctx context.Context, provider pipelin
 	return alwaysSetObservedGeneration(ctx, stateTransitionCommands, resource)
 }
 
-func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
+func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelineshub.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 
 	newVersion := resource.ComputeVersion()
@@ -111,7 +111,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.P
 
 	return []Command{
 		SetStatus{
-			Status: pipelinesv1.Status{
+			Status: pipelineshub.Status{
 				Version:              newVersion,
 				SynchronizationState: apis.Creating,
 			},
@@ -120,7 +120,7 @@ func (st *StateHandler[R]) onUnknown(ctx context.Context, provider pipelinesv1.P
 	}
 }
 
-func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
+func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelineshub.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
@@ -147,7 +147,7 @@ func (st StateHandler[R]) onDelete(ctx context.Context, provider pipelinesv1.Pro
 	}
 }
 
-func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipelinesv1.Provider, resource R) []Command {
+func (st StateHandler[R]) onSucceededOrFailed(ctx context.Context, provider pipelineshub.Provider, resource R) []Command {
 	logger := log.FromContext(ctx)
 	newResourceVersion := resource.ComputeVersion()
 
@@ -238,7 +238,7 @@ var deletedForNonEmptyId = IdVerifier{
 	},
 }
 
-func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status pipelinesv1.Status, workflows []argo.Workflow, states IdVerifier) []Command {
+func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status pipelineshub.Status, workflows []argo.Workflow, states IdVerifier) []Command {
 	logger := log.FromContext(ctx)
 
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
@@ -252,7 +252,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
 		}
 
-		providerAndId := pipelinesv1.ProviderAndId{Name: provider, Id: result.Id}
+		providerAndId := pipelineshub.ProviderAndId{Name: provider, Id: result.Id}
 
 		if result.ProviderError != "" {
 			logger.Error(err, fmt.Sprintf("%s, failing resource", result.ProviderError))

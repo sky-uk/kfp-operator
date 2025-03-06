@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
@@ -18,8 +18,8 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := apis.RandomString()
-			rcHelper := Create(pipelinesv1.RandomRunSchedule(Provider.Name))
-			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
+			rcHelper := Create(pipelineshub.RandomRunSchedule(Provider.Name))
+			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(runSchedule.Status.ObservedGeneration).To(Equal(runSchedule.GetGeneration()))
@@ -30,17 +30,17 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 				workflowutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(runSchedule.Status.Provider.Name).To(Equal(runSchedule.Spec.Provider))
 			})).Should(Succeed())
 
-			Expect(rcHelper.Update(func(runSchedule *pipelinesv1.RunSchedule) {
-				runSchedule.Spec = pipelinesv1.RandomRunScheduleSpec(Provider.Name)
+			Expect(rcHelper.Update(func(runSchedule *pipelineshub.RunSchedule) {
+				runSchedule.Spec = pipelineshub.RandomRunScheduleSpec(Provider.Name)
 			})).To(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Updating))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 			})).Should(Succeed())
@@ -50,7 +50,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 				workflowutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(runSchedule.Status.Provider.Name).To(Equal(runSchedule.Spec.Provider))
@@ -58,7 +58,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 
 			Expect(rcHelper.Delete()).To(Succeed())
 
-			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelinesv1.RunSchedule) {
+			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Deleting))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Deleting))
 			})).Should(Succeed())

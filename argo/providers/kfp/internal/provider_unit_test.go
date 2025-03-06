@@ -8,7 +8,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,7 +24,7 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 		PipelineVersion:      common.RandomString(),
 		RunConfigurationName: common.RandomNamespacedName(),
 		ExperimentName:       common.RandomNamespacedName(),
-		Schedule: pipelinesv1.Schedule{
+		Schedule: pipelineshub.Schedule{
 			CronExpression: "0 1 1 0 0 0",
 			StartTime:      &now,
 			EndTime:        &now,

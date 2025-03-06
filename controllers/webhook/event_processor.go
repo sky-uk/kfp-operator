@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/hashicorp/go-bexpr"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -14,7 +14,7 @@ type EventProcessor interface {
 	ToRunCompletionEvent(ctx context.Context, runData common.RunCompletionEventData) (*common.RunCompletionEvent, error)
 }
 
-type FilterFunc func([]common.PipelineComponent, []pipelinesv1.OutputArtifact) []common.Artifact
+type FilterFunc func([]common.PipelineComponent, []pipelineshub.OutputArtifact) []common.Artifact
 
 type ResourceArtifactsEventProcessor struct {
 	client client.Reader
@@ -37,7 +37,7 @@ func (ep ResourceArtifactsEventProcessor) ToRunCompletionEvent(ctx context.Conte
 	return &runCompletionEvent, nil
 }
 
-func filterByResourceArtifacts(pipelineComponents []common.PipelineComponent, outputArtifacts []pipelinesv1.OutputArtifact) []common.Artifact {
+func filterByResourceArtifacts(pipelineComponents []common.PipelineComponent, outputArtifacts []pipelineshub.OutputArtifact) []common.Artifact {
 	artifacts := make([]common.Artifact, 0)
 	for _, outputArtifact := range outputArtifacts {
 		var evaluator *bexpr.Evaluator
@@ -82,10 +82,10 @@ func filterByResourceArtifacts(pipelineComponents []common.PipelineComponent, ou
 	return artifacts
 }
 
-func extractResourceArtifacts(ctx context.Context, reader client.Reader, runConfigurationName *common.NamespacedName, runName *common.NamespacedName) ([]pipelinesv1.OutputArtifact, error) {
+func extractResourceArtifacts(ctx context.Context, reader client.Reader, runConfigurationName *common.NamespacedName, runName *common.NamespacedName) ([]pipelineshub.OutputArtifact, error) {
 	logger := common.LoggerFromContext(ctx)
 	if runConfigurationName != nil {
-		runConfigurationResource := &pipelinesv1.RunConfiguration{}
+		runConfigurationResource := &pipelineshub.RunConfiguration{}
 		if err := reader.Get(ctx, client.ObjectKey{
 			Namespace: runConfigurationName.Namespace,
 			Name:      runConfigurationName.Name,
@@ -95,7 +95,7 @@ func extractResourceArtifacts(ctx context.Context, reader client.Reader, runConf
 		}
 		return runConfigurationResource.Spec.Run.Artifacts, nil
 	} else if runName != nil {
-		runResource := &pipelinesv1.Run{}
+		runResource := &pipelineshub.Run{}
 		if err := reader.Get(ctx, client.ObjectKey{
 			Namespace: runName.Namespace,
 			Name:      runName.Name,

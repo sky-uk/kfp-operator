@@ -18,7 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -26,8 +26,8 @@ import (
 
 // RunConfigurationReconciler reconciles a RunConfiguration object
 type RunConfigurationReconciler struct {
-	DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]
-	DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]
+	DependingOnPipelineReconciler[*pipelineshub.RunConfiguration]
+	DependingOnRunConfigurationReconciler[*pipelineshub.RunConfiguration]
 	EC     K8sExecutionContext
 	Scheme *runtime.Scheme
 	Config config.KfpControllerConfigSpec
@@ -39,10 +39,10 @@ func NewRunConfigurationReconciler(
 	config config.KfpControllerConfigSpec,
 ) *RunConfigurationReconciler {
 	return &RunConfigurationReconciler{
-		DependingOnPipelineReconciler[*pipelinesv1.RunConfiguration]{
+		DependingOnPipelineReconciler[*pipelineshub.RunConfiguration]{
 			EC: ec,
 		},
-		DependingOnRunConfigurationReconciler[*pipelinesv1.RunConfiguration]{
+		DependingOnRunConfigurationReconciler[*pipelineshub.RunConfiguration]{
 			EC: ec,
 		},
 		ec,
@@ -64,7 +64,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started")
 
-	var runConfiguration = &pipelinesv1.RunConfiguration{}
+	var runConfiguration = &pipelineshub.RunConfiguration{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, runConfiguration); err != nil {
 		logger.Error(err, "unable to fetch run configuration")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -103,7 +103,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	var newStatus pipelinesv1.RunConfigurationStatus
+	var newStatus pipelineshub.RunConfigurationStatus
 	state := apis.Succeeded
 	message := ""
 
@@ -141,7 +141,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 	ctx context.Context,
-	runConfiguration *pipelinesv1.RunConfiguration,
+	runConfiguration *pipelineshub.RunConfiguration,
 ) error {
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
@@ -153,7 +153,7 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		return err
 	}
 
-	runExists := pipelines.Exists(runs, func(run pipelinesv1.Run) bool {
+	runExists := pipelines.Exists(runs, func(run pipelineshub.Run) bool {
 		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
 	})
 
@@ -165,22 +165,22 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 }
 
 func (r *RunConfigurationReconciler) updateRcTriggers(
-	runConfiguration pipelinesv1.RunConfiguration,
-) pipelinesv1.RunConfigurationStatus {
+	runConfiguration pipelineshub.RunConfiguration,
+) pipelineshub.RunConfigurationStatus {
 	newStatus := runConfiguration.Status
 
-	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelinesv1.OnChangeTypes.Pipeline) {
+	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.Pipeline) {
 		newStatus.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
 	}
 
-	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelinesv1.OnChangeTypes.RunSpec) {
+	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.RunSpec) {
 		newStatus.Triggers.RunSpec.Version = runConfiguration.Spec.Run.ComputeVersion()
 	}
 
 	newStatus.Triggers.RunConfigurations = pipelines.ToMap(
 		runConfiguration.Spec.Triggers.RunConfigurations,
-		func(rcName string) (string, pipelinesv1.TriggeredRunReference) {
-			triggeredRun := pipelinesv1.TriggeredRunReference{
+		func(rcName string) (string, pipelineshub.TriggeredRunReference) {
+			triggeredRun := pipelineshub.TriggeredRunReference{
 				ProviderId: runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId,
 			}
 			return rcName, triggeredRun
@@ -192,7 +192,7 @@ func (r *RunConfigurationReconciler) updateRcTriggers(
 
 func (r *RunConfigurationReconciler) syncWithRuns(
 	ctx context.Context,
-	runConfiguration *pipelinesv1.RunConfiguration,
+	runConfiguration *pipelineshub.RunConfiguration,
 ) (bool, error) {
 	oldStatus := runConfiguration.Status
 	runConfiguration.Status = r.updateRcTriggers(*runConfiguration)
@@ -212,7 +212,7 @@ func (r *RunConfigurationReconciler) syncWithRuns(
 func (r *RunConfigurationReconciler) syncStatus(
 	ctx context.Context,
 	provider string,
-	runConfiguration *pipelinesv1.RunConfiguration,
+	runConfiguration *pipelineshub.RunConfiguration,
 	resolvedParameters []apis.NamedValue,
 ) (state apis.SynchronizationState, message string, err error) {
 	desiredSchedules, err := r.constructRunSchedulesForTriggers(runConfiguration, resolvedParameters)
@@ -228,7 +228,7 @@ func (r *RunConfigurationReconciler) syncStatus(
 	missingSchedules := pipelines.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
 	excessSchedules := pipelines.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
 	excessSchedulesNotMarkedForDeletion := pipelines.Filter(
-		excessSchedules, func(schedule pipelinesv1.RunSchedule) bool {
+		excessSchedules, func(schedule pipelineshub.RunSchedule) bool {
 			return schedule.DeletionTimestamp == nil
 		},
 	)
@@ -260,7 +260,7 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForPipeline(
 	ctx context.Context,
 	pipeline client.Object,
 ) []reconcile.Request {
-	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
+	referencingRunConfigurations := &pipelineshub.RunConfigurationList{}
 	listOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(pipelineRefField, pipeline.GetName()),
 		Namespace:     pipeline.GetNamespace(),
@@ -287,7 +287,7 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(
 	ctx context.Context,
 	runConfiguration client.Object,
 ) []reconcile.Request {
-	referencingRunConfigurations := &pipelinesv1.RunConfigurationList{}
+	referencingRunConfigurations := &pipelineshub.RunConfigurationList{}
 	rcRefListOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
 		Namespace:     runConfiguration.GetNamespace(),
@@ -310,7 +310,7 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(
 }
 
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	runConfiguration := &pipelinesv1.RunConfiguration{}
+	runConfiguration := &pipelineshub.RunConfiguration{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(runConfiguration)
 
@@ -333,15 +333,15 @@ func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	return controllerBuilder.Owns(&pipelinesv1.RunSchedule{}).Complete(r)
+	return controllerBuilder.Owns(&pipelineshub.RunSchedule{}).Complete(r)
 }
 
 func findOwnedRunSchedules(
 	ctx context.Context,
 	cli client.Reader,
-	runConfiguration *pipelinesv1.RunConfiguration,
-) ([]pipelinesv1.RunSchedule, error) {
-	ownedRunSchedulesList := &pipelinesv1.RunScheduleList{}
+	runConfiguration *pipelineshub.RunConfiguration,
+) ([]pipelineshub.RunSchedule, error) {
+	ownedRunSchedulesList := &pipelineshub.RunScheduleList{}
 	if err := cli.List(
 		ctx,
 		ownedRunSchedulesList,
@@ -350,7 +350,7 @@ func findOwnedRunSchedules(
 		return nil, err
 	}
 
-	var ownedSchedules []pipelinesv1.RunSchedule
+	var ownedSchedules []pipelineshub.RunSchedule
 	for _, schedule := range ownedRunSchedulesList.Items {
 		if metav1.IsControlledBy(&schedule, runConfiguration) {
 			ownedSchedules = append(ownedSchedules, schedule)
@@ -363,14 +363,14 @@ func findOwnedRunSchedules(
 func findOwnedRuns(
 	ctx context.Context,
 	cli client.Reader,
-	runConfiguration *pipelinesv1.RunConfiguration,
-) ([]pipelinesv1.Run, error) {
-	ownedRunsList := &pipelinesv1.RunList{}
+	runConfiguration *pipelineshub.RunConfiguration,
+) ([]pipelineshub.Run, error) {
+	ownedRunsList := &pipelineshub.RunList{}
 	if err := cli.List(ctx, ownedRunsList, client.InNamespace(runConfiguration.Namespace)); err != nil {
 		return nil, err
 	}
 
-	var ownedRuns []pipelinesv1.Run
+	var ownedRuns []pipelineshub.Run
 	for _, run := range ownedRunsList.Items {
 		if metav1.IsControlledBy(&run, runConfiguration) {
 			ownedRuns = append(ownedRuns, run)
@@ -381,12 +381,12 @@ func findOwnedRuns(
 }
 
 func (r *RunConfigurationReconciler) constructRunForRunConfiguration(
-	runConfiguration *pipelinesv1.RunConfiguration,
-) (*pipelinesv1.Run, error) {
+	runConfiguration *pipelineshub.RunConfiguration,
+) (*pipelineshub.Run, error) {
 	spec := runConfiguration.Spec.Run
 	spec.Pipeline.Version = runConfiguration.Status.ObservedPipelineVersion
 
-	run := pipelinesv1.Run{
+	run := pipelineshub.Run{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: runConfiguration.Name + "-",
 			Namespace:    runConfiguration.Namespace,
@@ -405,20 +405,20 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(
 }
 
 func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(
-	runConfiguration *pipelinesv1.RunConfiguration,
+	runConfiguration *pipelineshub.RunConfiguration,
 	resolvedParameters []apis.NamedValue,
-) ([]pipelinesv1.RunSchedule, error) {
-	var schedules []pipelinesv1.RunSchedule
+) ([]pipelineshub.RunSchedule, error) {
+	var schedules []pipelineshub.RunSchedule
 
 	for _, schedule := range runConfiguration.Spec.Triggers.Schedules {
-		runSchedule := pipelinesv1.RunSchedule{
+		runSchedule := pipelineshub.RunSchedule{
 			ObjectMeta: metav1.ObjectMeta{
 				GenerateName: runConfiguration.Name + "-",
 				Namespace:    runConfiguration.Namespace,
 			},
-			Spec: pipelinesv1.RunScheduleSpec{
+			Spec: pipelineshub.RunScheduleSpec{
 				Provider: runConfiguration.Spec.Run.Provider,
-				Pipeline: pipelinesv1.PipelineIdentifier{
+				Pipeline: pipelineshub.PipelineIdentifier{
 					Name:    runConfiguration.Spec.Run.Pipeline.Name,
 					Version: runConfiguration.Status.ObservedPipelineVersion,
 				},
@@ -441,7 +441,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(
 	return schedules, nil
 }
 
-func aggregateState(dependencies []pipelinesv1.RunSchedule) (aggState apis.SynchronizationState, message string) {
+func aggregateState(dependencies []pipelineshub.RunSchedule) (aggState apis.SynchronizationState, message string) {
 	aggState = apis.Succeeded
 
 	for _, dependency := range dependencies {
@@ -458,6 +458,6 @@ func aggregateState(dependencies []pipelinesv1.RunSchedule) (aggState apis.Synch
 	return aggState, message
 }
 
-func compareRunSchedules(a, b pipelinesv1.RunSchedule) bool {
+func compareRunSchedules(a, b pipelineshub.RunSchedule) bool {
 	return string(a.ComputeHash()) == string(b.ComputeHash())
 }

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -15,8 +15,8 @@ import (
 
 // RunScheduleReconciler reconciles a RunSchedule object
 type RunScheduleReconciler struct {
-	StateHandler[*pipelinesv1.RunSchedule]
-	ResourceReconciler[*pipelinesv1.RunSchedule]
+	StateHandler[*pipelineshub.RunSchedule]
+	ResourceReconciler[*pipelineshub.RunSchedule]
 }
 
 func NewRunScheduleReconciler(
@@ -25,11 +25,11 @@ func NewRunScheduleReconciler(
 	config config.KfpControllerConfigSpec,
 ) *RunScheduleReconciler {
 	return &RunScheduleReconciler{
-		StateHandler: StateHandler[*pipelinesv1.RunSchedule]{
+		StateHandler: StateHandler[*pipelineshub.RunSchedule]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    workflowfactory.RunScheduleWorkflowFactory(config),
 		},
-		ResourceReconciler: ResourceReconciler[*pipelinesv1.RunSchedule]{
+		ResourceReconciler: ResourceReconciler[*pipelineshub.RunSchedule]{
 			EC:     ec,
 			Config: config,
 		},
@@ -46,7 +46,7 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started")
 
-	var runSchedule = &pipelinesv1.RunSchedule{}
+	var runSchedule = &pipelineshub.RunSchedule{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, runSchedule); err != nil {
 		logger.Error(err, "unable to fetch run schedule")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -76,7 +76,7 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 }
 
 func (r *RunScheduleReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	runSchedule := &pipelinesv1.RunSchedule{}
+	runSchedule := &pipelineshub.RunSchedule{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(runSchedule)
 

@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/argo/providers/stub"
@@ -39,7 +39,7 @@ var (
 		Host:    "http://localhost:8080",
 		APIPath: "/api",
 	}
-	TestProviderConfig = pipelinesv1.RandomProvider()
+	TestProviderConfig = pipelineshub.RandomProvider()
 )
 
 func TestPipelineControllersIntegrationSuite(t *testing.T) {
@@ -56,17 +56,17 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = BeforeEach(func() {
-	K8sClient.Delete(Ctx, &pipelinesv1.Provider{
+	K8sClient.Delete(Ctx, &pipelineshub.Provider{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kfp-operator-integration-tests-providers",
 			Namespace: TestNamespace,
 		}})
 })
 
-func StubProvider[R pipelinesv1.Resource](
+func StubProvider[R pipelineshub.Resource](
 	stubbedOutput base.Output,
 	resource R,
-) (pipelinesv1.Provider, base.Output) {
+) (pipelineshub.Provider, base.Output) {
 	expectedInput := stub.ExpectedInput{
 		Id: resource.GetStatus().Provider.Id,
 		ResourceDefinition: stub.ResourceDefinition{
@@ -84,12 +84,12 @@ func StubProvider[R pipelinesv1.Resource](
 	expectedOutputJson, err := json.Marshal(stubbedOutput)
 	Expect(err).NotTo(HaveOccurred())
 
-	provider := pipelinesv1.Provider{
+	provider := pipelineshub.Provider{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "kfp-operator-integration-tests-providers",
 			Namespace: TestNamespace,
 		},
-		Spec: pipelinesv1.ProviderSpec{
+		Spec: pipelineshub.ProviderSpec{
 			ServiceImage:   "kfp-operator-stub-provider",
 			Image:          "kfp-operator-stub-provider",
 			ExecutionMode:  "none",
@@ -99,33 +99,33 @@ func StubProvider[R pipelinesv1.Resource](
 				"expectedOutput": {Raw: expectedOutputJson},
 			},
 		},
-		Status: pipelinesv1.Status{},
+		Status: pipelineshub.Status{},
 	}
 	return provider, stubbedOutput
 }
 
-func StubWithIdAndError[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, base.Output) {
+func StubWithIdAndError[R pipelineshub.Resource](resource R) (pipelineshub.Provider, base.Output) {
 	return StubProvider(base.Output{
 		Id:            apis.RandomString(),
 		ProviderError: apis.RandomString(),
 	}, resource)
 }
 
-func StubWithEmpty[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, base.Output) {
+func StubWithEmpty[R pipelineshub.Resource](resource R) (pipelineshub.Provider, base.Output) {
 	return StubProvider(base.Output{}, resource)
 }
 
-func StubWithExistingIdAndError[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, base.Output) {
+func StubWithExistingIdAndError[R pipelineshub.Resource](resource R) (pipelineshub.Provider, base.Output) {
 	return StubProvider(base.Output{
 		Id:            resource.GetStatus().Provider.Id,
 		ProviderError: apis.RandomString(),
 	}, resource)
 }
 
-func AssertWorkflow[R pipelinesv1.Resource](
+func AssertWorkflow[R pipelineshub.Resource](
 	newResource func() R,
-	setUp func(resource R) (pipelinesv1.Provider, base.Output),
-	constructWorkflow func(pipelinesv1.Provider, R) (*argo.Workflow, error)) {
+	setUp func(resource R) (pipelineshub.Provider, base.Output),
+	constructWorkflow func(pipelineshub.Provider, R) (*argo.Workflow, error)) {
 
 	testCtx := WorkflowTestHelper[R]{
 		Resource: newResource(),
@@ -157,7 +157,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	).Should(Succeed())
 }
 
-func withIntegrationTestFields[T pipelinesv1.Resource](resource T) T {
+func withIntegrationTestFields[T pipelineshub.Resource](resource T) T {
 	resource.SetNamespace(TestNamespace)
 	resourceStatus := resource.GetStatus()
 	resourceStatus.Provider.Name = TestProvider

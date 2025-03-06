@@ -6,22 +6,22 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
 var _ = Describe("DependingOnPipelineReconciler", func() {
 	version := apis.RandomString()
 
-	pipelineInState := func(state apis.SynchronizationState) *pipelinesv1.Pipeline {
-		return &pipelinesv1.Pipeline{
-			Status: pipelinesv1.Status{
+	pipelineInState := func(state apis.SynchronizationState) *pipelineshub.Pipeline {
+		return &pipelineshub.Pipeline{
+			Status: pipelineshub.Status{
 				SynchronizationState: state,
 				Version:              version,
 			},
 		}
 	}
 
-	DescribeTable("dependentPipelineVersionIfSucceeded", func(pipeline *pipelinesv1.Pipeline, expectedVersion string, expectedSetVersion bool) {
+	DescribeTable("dependentPipelineVersionIfSucceeded", func(pipeline *pipelineshub.Pipeline, expectedVersion string, expectedSetVersion bool) {
 		version, setVersion := dependentPipelineVersionIfSucceeded(pipeline)
 		Expect(version).To(Equal(version))
 		Expect(setVersion).To(Equal(expectedSetVersion))

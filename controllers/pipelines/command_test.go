@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -93,12 +93,12 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		commands := []Command{
 			AcquireResource{},
 			SetStatus{
-				Status: pipelinesv1.Status{SynchronizationState: apis.Succeeded},
+				Status: pipelineshub.Status{SynchronizationState: apis.Succeeded},
 			},
 			ReleaseResource{},
 		}
-		resource := &pipelinesv1.Pipeline{
-			Status: pipelinesv1.Status{
+		resource := &pipelineshub.Pipeline{
+			Status: pipelineshub.Status{
 				ObservedGeneration: -1,
 			},
 		}
@@ -110,7 +110,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			[]Command{
 				AcquireResource{},
 				SetStatus{
-					Status: pipelinesv1.Status{
+					Status: pipelineshub.Status{
 						SynchronizationState: apis.Succeeded,
 						ObservedGeneration:   resource.Generation,
 					},
@@ -124,8 +124,8 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			AcquireResource{},
 			ReleaseResource{},
 		}
-		resource := &pipelinesv1.Pipeline{
-			Status: pipelinesv1.RandomStatus(),
+		resource := &pipelineshub.Pipeline{
+			Status: pipelineshub.RandomStatus(),
 		}
 		resource.SetGeneration(rand.Int63())
 		resource.Status.ObservedGeneration = -1
@@ -151,8 +151,8 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			ReleaseResource{},
 		}
 		generation := rand.Int63()
-		resource := &pipelinesv1.Pipeline{
-			Status: pipelinesv1.Status{
+		resource := &pipelineshub.Pipeline{
+			Status: pipelineshub.Status{
 				ObservedGeneration: generation,
 			},
 		}
@@ -172,7 +172,7 @@ var _ = Describe("statusWithCondition", func() {
 
 		Expect(conditions[0].Message).To(Equal(setStatus.Message))
 		Expect(conditions[0].Reason).To(Equal(string(setStatus.Status.SynchronizationState)))
-		Expect(conditions[0].Type).To(Equal(pipelinesv1.ConditionTypes.SynchronizationSucceeded))
+		Expect(conditions[0].Type).To(Equal(pipelineshub.ConditionTypes.SynchronizationSucceeded))
 		Expect(conditions[0].ObservedGeneration).To(Equal(setStatus.Status.ObservedGeneration))
 	},
 		Entry("Creating", apis.Creating, metav1.ConditionUnknown),

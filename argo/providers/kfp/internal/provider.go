@@ -13,7 +13,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/pipeline_upload_client/pipeline_upload_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_client/run_service"
 	"github.com/kubeflow/pipelines/backend/api/go_http_client/run_model"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"gopkg.in/yaml.v2"
@@ -32,10 +32,10 @@ type Parameters struct {
 }
 
 type ResourceReferences struct {
-	PipelineName         common.NamespacedName        `yaml:"pipelineName"`
-	RunConfigurationName common.NamespacedName        `yaml:"runConfigurationName"`
-	RunName              common.NamespacedName        `yaml:"runName"`
-	Artifacts            []pipelinesv1.OutputArtifact `yaml:"artifacts,omitempty"`
+	PipelineName         common.NamespacedName         `yaml:"pipelineName"`
+	RunConfigurationName common.NamespacedName         `yaml:"runConfigurationName"`
+	RunName              common.NamespacedName         `yaml:"runName"`
+	Artifacts            []pipelineshub.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 const KfpResourceNotFoundCode = 5

@@ -7,15 +7,15 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 )
 
 var _ = Describe("CommonWorkflowMeta", func() {
 	It("creates metadata", func() {
-		owner := pipelinesv1.RandomResource()
+		owner := pipelineshub.RandomResource()
 		namespace := RandomString()
-		w := ResourceWorkflowFactory[*pipelinesv1.TestResource, interface{}]{
+		w := ResourceWorkflowFactory[*pipelineshub.TestResource, interface{}]{
 			Config: config.KfpControllerConfigSpec{
 				WorkflowNamespace: namespace,
 			},

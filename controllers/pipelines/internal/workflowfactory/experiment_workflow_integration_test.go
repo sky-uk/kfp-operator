@@ -5,7 +5,7 @@ package workflowfactory
 import (
 	. "github.com/onsi/ginkgo/v2"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
 var _ = Context("Resource Workflows", Serial, func() {
@@ -16,30 +16,30 @@ var _ = Context("Resource Workflows", Serial, func() {
 		WorkflowNamespace:      "argo",
 	})
 
-	var newExperiment = func() *pipelinesv1.Experiment {
-		resource := pipelinesv1.RandomExperiment(TestProvider)
+	var newExperiment = func() *pipelineshub.Experiment {
+		resource := pipelineshub.RandomExperiment(TestProvider)
 		resourceStatus := resource.GetStatus()
 		resourceStatus.Provider.Name = TestProvider
 		resource.SetStatus(resourceStatus)
 		return resource
 	}
 
-	DescribeTable("Experiment Workflows", AssertWorkflow[*pipelinesv1.Experiment],
+	DescribeTable("Experiment Workflows", AssertWorkflow[*pipelineshub.Experiment],
 		Entry("Creation",
 			newExperiment,
-			StubWithIdAndError[*pipelinesv1.Experiment],
+			StubWithIdAndError[*pipelineshub.Experiment],
 			workflowFactory.ConstructCreationWorkflow,
 		), Entry("Update",
 			newExperiment,
-			StubWithIdAndError[*pipelinesv1.Experiment],
+			StubWithIdAndError[*pipelineshub.Experiment],
 			workflowFactory.ConstructUpdateWorkflow,
 		), Entry("Deletion succeeds",
 			newExperiment,
-			StubWithEmpty[*pipelinesv1.Experiment],
+			StubWithEmpty[*pipelineshub.Experiment],
 			workflowFactory.ConstructDeletionWorkflow,
 		), Entry("Deletion fails",
 			newExperiment,
-			StubWithExistingIdAndError[*pipelinesv1.Experiment],
+			StubWithExistingIdAndError[*pipelineshub.Experiment],
 			workflowFactory.ConstructDeletionWorkflow,
 		),
 	)

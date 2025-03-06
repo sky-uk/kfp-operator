@@ -12,7 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -21,10 +21,10 @@ import (
 // RunReconciler reconciles a Run object
 type RunReconciler struct {
 	EC K8sExecutionContext
-	StateHandler[*pipelinesv1.Run]
-	DependingOnPipelineReconciler[*pipelinesv1.Run]
-	DependingOnRunConfigurationReconciler[*pipelinesv1.Run]
-	ResourceReconciler[*pipelinesv1.Run]
+	StateHandler[*pipelineshub.Run]
+	DependingOnPipelineReconciler[*pipelineshub.Run]
+	DependingOnRunConfigurationReconciler[*pipelineshub.Run]
+	ResourceReconciler[*pipelineshub.Run]
 }
 
 func NewRunReconciler(
@@ -33,18 +33,18 @@ func NewRunReconciler(
 	config config.KfpControllerConfigSpec,
 ) *RunReconciler {
 	return &RunReconciler{
-		StateHandler: StateHandler[*pipelinesv1.Run]{
+		StateHandler: StateHandler[*pipelineshub.Run]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    workflowfactory.RunWorkflowFactory(config),
 		},
 		EC: ec,
-		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelinesv1.Run]{
+		DependingOnPipelineReconciler: DependingOnPipelineReconciler[*pipelineshub.Run]{
 			EC: ec,
 		},
-		DependingOnRunConfigurationReconciler: DependingOnRunConfigurationReconciler[*pipelinesv1.Run]{
+		DependingOnRunConfigurationReconciler: DependingOnRunConfigurationReconciler[*pipelineshub.Run]{
 			EC: ec,
 		},
-		ResourceReconciler: ResourceReconciler[*pipelinesv1.Run]{
+		ResourceReconciler: ResourceReconciler[*pipelineshub.Run]{
 			EC:     ec,
 			Config: config,
 		},
@@ -62,7 +62,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started")
 
-	var run = &pipelinesv1.Run{}
+	var run = &pipelineshub.Run{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, run); err != nil {
 		logger.Error(err, "unable to fetch run")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -108,7 +108,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	return result, nil
 }
 
-func (r *RunReconciler) handleCompletion(ctx context.Context, run *pipelinesv1.Run) (ctrl.Result, error) {
+func (r *RunReconciler) handleCompletion(ctx context.Context, run *pipelineshub.Run) (ctrl.Result, error) {
 	if err := r.markCompletedIfCompleted(ctx, run); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -127,7 +127,7 @@ func (r *RunReconciler) handleCompletion(ctx context.Context, run *pipelinesv1.R
 	return ctrl.Result{RequeueAfter: time.Until(ttlExpiry)}, nil
 }
 
-func (r *RunReconciler) markCompletedIfCompleted(ctx context.Context, run *pipelinesv1.Run) error {
+func (r *RunReconciler) markCompletedIfCompleted(ctx context.Context, run *pipelineshub.Run) error {
 	if run.Status.CompletionState != "" && run.Status.MarkedCompletedAt == nil {
 		now := metav1.Now()
 		run.Status.MarkedCompletedAt = &now
@@ -141,7 +141,7 @@ func (r *RunReconciler) reconciliationRequestsForPipeline(
 	ctx context.Context,
 	pipeline client.Object,
 ) []reconcile.Request {
-	referencingRuns := &pipelinesv1.RunList{}
+	referencingRuns := &pipelineshub.RunList{}
 	listOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(pipelineRefField, pipeline.GetName()),
 		Namespace:     pipeline.GetNamespace(),
@@ -168,7 +168,7 @@ func (r *RunReconciler) reconciliationRequestsForRunconfigurations(
 	ctx context.Context,
 	runConfiguration client.Object,
 ) []reconcile.Request {
-	referencingRuns := &pipelinesv1.RunList{}
+	referencingRuns := &pipelineshub.RunList{}
 	listOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
 		Namespace:     runConfiguration.GetNamespace(),
@@ -192,7 +192,7 @@ func (r *RunReconciler) reconciliationRequestsForRunconfigurations(
 }
 
 func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	run := &pipelinesv1.Run{}
+	run := &pipelineshub.Run{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(run)
 

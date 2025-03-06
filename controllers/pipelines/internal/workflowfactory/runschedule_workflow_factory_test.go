@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
@@ -14,13 +14,13 @@ import (
 
 var _ = Context("runConfigurationNameForRunSchedule", func() {
 	Specify("returns the name of the owner if set", func() {
-		runSchedule := pipelinesv1.RunSchedule{}
+		runSchedule := pipelineshub.RunSchedule{}
 		runSchedule.Namespace = apis.RandomString()
-		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
+		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
 
 		runSchedule.OwnerReferences = []metav1.OwnerReference{{
 			Controller: pointer.Bool(true),
-			APIVersion: pipelinesv1.GroupVersion.String(),
+			APIVersion: pipelineshub.GroupVersion.String(),
 			Kind:       "RunConfiguration",
 			Name:       runConfiguration.Name,
 		}}
@@ -33,11 +33,11 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 	})
 
 	Specify("returns the empty string if owner not set", func() {
-		Expect(runConfigurationNameForRunSchedule(&pipelinesv1.RunSchedule{}).Empty()).To(BeTrue())
+		Expect(runConfigurationNameForRunSchedule(&pipelineshub.RunSchedule{}).Empty()).To(BeTrue())
 	})
 
 	Specify("returns the empty string if the controller is not a RunConfiguration", func() {
-		runSchedule := pipelinesv1.RunSchedule{}
+		runSchedule := pipelineshub.RunSchedule{}
 
 		runSchedule.OwnerReferences = append(
 			runSchedule.OwnerReferences, metav1.OwnerReference{

@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -20,7 +20,7 @@ func createWorkflowRepository() WorkflowRepositoryImpl {
 	optInClient := controllers.NewOptInClient(k8sManager)
 
 	scheme := runtime.NewScheme()
-	pipelinesv1.AddToScheme(scheme)
+	pipelineshub.AddToScheme(scheme)
 
 	return WorkflowRepositoryImpl{
 		Client: optInClient,
@@ -28,8 +28,8 @@ func createWorkflowRepository() WorkflowRepositoryImpl {
 	}
 }
 
-func randomResource() pipelinesv1.Resource {
-	resource := &pipelinesv1.Pipeline{}
+func randomResource() pipelineshub.Resource {
+	resource := &pipelineshub.Pipeline{}
 	resource.SetName(apis.RandomString())
 	resource.SetUID(types.UID(apis.RandomString()))
 

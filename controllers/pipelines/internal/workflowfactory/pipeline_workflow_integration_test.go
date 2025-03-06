@@ -5,7 +5,7 @@ package workflowfactory
 import (
 	. "github.com/onsi/ginkgo/v2"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
 var _ = Context("Resource Workflows", Serial, func() {
@@ -19,29 +19,29 @@ var _ = Context("Resource Workflows", Serial, func() {
 		},
 	})
 
-	var newPipeline = func() *pipelinesv1.Pipeline {
-		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline(TestProvider))
+	var newPipeline = func() *pipelineshub.Pipeline {
+		pipeline := withIntegrationTestFields(pipelineshub.RandomPipeline(TestProvider))
 		pipeline.Spec.Image = "kfp-operator-stub-provider"
 
 		return pipeline
 	}
 
-	DescribeTable("Pipeline Workflows", AssertWorkflow[*pipelinesv1.Pipeline],
+	DescribeTable("Pipeline Workflows", AssertWorkflow[*pipelineshub.Pipeline],
 		Entry("Creation",
 			newPipeline,
-			StubWithIdAndError[*pipelinesv1.Pipeline],
+			StubWithIdAndError[*pipelineshub.Pipeline],
 			workflowFactory.ConstructCreationWorkflow,
 		), Entry("Update",
 			newPipeline,
-			StubWithIdAndError[*pipelinesv1.Pipeline],
+			StubWithIdAndError[*pipelineshub.Pipeline],
 			workflowFactory.ConstructUpdateWorkflow,
 		), Entry("Deletion succeeds",
 			newPipeline,
-			StubWithEmpty[*pipelinesv1.Pipeline],
+			StubWithEmpty[*pipelineshub.Pipeline],
 			workflowFactory.ConstructDeletionWorkflow,
 		), Entry("Deletion fails",
 			newPipeline,
-			StubWithExistingIdAndError[*pipelinesv1.Pipeline],
+			StubWithExistingIdAndError[*pipelineshub.Pipeline],
 			workflowFactory.ConstructDeletionWorkflow,
 		),
 	)

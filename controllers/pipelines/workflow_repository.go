@@ -5,7 +5,7 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"k8s.io/apimachinery/pkg/labels"
@@ -18,11 +18,11 @@ import (
 var WorkflowRepositoryConstants = struct {
 	WorkflowProcessedLabel string
 }{
-	WorkflowProcessedLabel: pipelinesv1.GroupVersion.Group + "/processed",
+	WorkflowProcessedLabel: pipelineshub.GroupVersion.Group + "/processed",
 }
 
 type WorkflowRepository interface {
-	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelinesv1.Resource) error
+	CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelineshub.Resource) error
 	GetByLabels(ctx context.Context, matchingLabels map[string]string) []argo.Workflow
 	MarkWorkflowAsProcessed(ctx context.Context, workflow *argo.Workflow) error
 }
@@ -33,7 +33,7 @@ type WorkflowRepositoryImpl struct {
 	Scheme *runtime.Scheme
 }
 
-func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelinesv1.Resource) error {
+func (w WorkflowRepositoryImpl) CreateWorkflowForResource(ctx context.Context, workflow *argo.Workflow, resource pipelineshub.Resource) error {
 	return w.Client.Create(ctx, workflow)
 }
 

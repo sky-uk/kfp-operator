@@ -5,7 +5,7 @@ package workflowfactory
 import (
 	. "github.com/onsi/ginkgo/v2"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
 var _ = Context("Resource Workflows", Serial, func() {
@@ -16,26 +16,26 @@ var _ = Context("Resource Workflows", Serial, func() {
 		WorkflowNamespace:      "argo",
 	})
 
-	var newRunSchedule = func() *pipelinesv1.RunSchedule {
-		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule(TestProvider))
+	var newRunSchedule = func() *pipelineshub.RunSchedule {
+		return withIntegrationTestFields(pipelineshub.RandomRunSchedule(TestProvider))
 	}
 
-	DescribeTable("RunSchedule Workflows", AssertWorkflow[*pipelinesv1.RunSchedule],
+	DescribeTable("RunSchedule Workflows", AssertWorkflow[*pipelineshub.RunSchedule],
 		Entry("Creation",
 			newRunSchedule,
-			StubWithIdAndError[*pipelinesv1.RunSchedule],
+			StubWithIdAndError[*pipelineshub.RunSchedule],
 			workflowFactory.ConstructCreationWorkflow,
 		), Entry("Update",
 			newRunSchedule,
-			StubWithIdAndError[*pipelinesv1.RunSchedule],
+			StubWithIdAndError[*pipelineshub.RunSchedule],
 			workflowFactory.ConstructUpdateWorkflow,
 		), Entry("Deletion succeeds",
 			newRunSchedule,
-			StubWithEmpty[*pipelinesv1.RunSchedule],
+			StubWithEmpty[*pipelineshub.RunSchedule],
 			workflowFactory.ConstructDeletionWorkflow,
 		), Entry("Deletion fails",
 			newRunSchedule,
-			StubWithExistingIdAndError[*pipelinesv1.RunSchedule],
+			StubWithExistingIdAndError[*pipelineshub.RunSchedule],
 			workflowFactory.ConstructDeletionWorkflow,
 		),
 	)

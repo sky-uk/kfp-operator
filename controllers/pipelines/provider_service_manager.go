@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"golang.org/x/exp/maps"
 	corev1 "k8s.io/api/core/v1"
@@ -20,11 +20,11 @@ import (
 )
 
 type ServiceResourceManager interface {
-	Create(ctx context.Context, new *corev1.Service, provider *pipelinesv1.Provider) error
+	Create(ctx context.Context, new *corev1.Service, provider *pipelineshub.Provider) error
 	Delete(ctx context.Context, old *corev1.Service) error
-	Get(ctx context.Context, owner *pipelinesv1.Provider) (*corev1.Service, error)
+	Get(ctx context.Context, owner *pipelineshub.Provider) (*corev1.Service, error)
 	Equal(a, b *corev1.Service) bool
-	Construct(provider *pipelinesv1.Provider) *corev1.Service
+	Construct(provider *pipelineshub.Provider) *corev1.Service
 }
 
 type ServiceManager struct {
@@ -33,7 +33,7 @@ type ServiceManager struct {
 	config *config.KfpControllerConfigSpec
 }
 
-func (sm ServiceManager) Create(ctx context.Context, new *corev1.Service, provider *pipelinesv1.Provider) error {
+func (sm ServiceManager) Create(ctx context.Context, new *corev1.Service, provider *pipelineshub.Provider) error {
 	logger := log.FromContext(ctx)
 
 	if err := ctrl.SetControllerReference(provider, new, sm.scheme); err != nil {
@@ -58,7 +58,7 @@ func (sm ServiceManager) Delete(ctx context.Context, old *corev1.Service) error 
 	return nil
 }
 
-func (sm ServiceManager) Get(ctx context.Context, owner *pipelinesv1.Provider) (*corev1.Service, error) {
+func (sm ServiceManager) Get(ctx context.Context, owner *pipelineshub.Provider) (*corev1.Service, error) {
 	sl := &corev1.ServiceList{}
 	if err := sm.client.NonCached.List(ctx, sl, &client.ListOptions{
 		Namespace: owner.Namespace,
@@ -75,7 +75,7 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelinesv1.Provider) (
 
 }
 
-func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Service {
+func (sm ServiceManager) Construct(provider *pipelineshub.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 
 	ports := []corev1.ServicePort{{

@@ -6,16 +6,16 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type WorkflowFactory[R pipelinesv1.Resource] interface {
-	ConstructCreationWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error)
-	ConstructUpdateWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error)
-	ConstructDeletionWorkflow(provider pipelinesv1.Provider, resource R) (*argo.Workflow, error)
+type WorkflowFactory[R pipelineshub.Resource] interface {
+	ConstructCreationWorkflow(provider pipelineshub.Provider, resource R) (*argo.Workflow, error)
+	ConstructUpdateWorkflow(provider pipelineshub.Provider, resource R) (*argo.Workflow, error)
+	ConstructDeletionWorkflow(provider pipelineshub.Provider, resource R) (*argo.Workflow, error)
 }
 
 type TemplateNameGenerator interface {
@@ -49,7 +49,7 @@ func (stng SuffixedTemplateNameGenerator) DeleteTemplate() string {
 	return fmt.Sprintf("%sdelete", stng.config.WorkflowTemplatePrefix)
 }
 
-type ResourceWorkflowFactory[R pipelinesv1.Resource, ResourceDefinition any] struct {
+type ResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any] struct {
 	Config                config.KfpControllerConfigSpec
 	TemplateNameGenerator TemplateNameGenerator
 	DefinitionCreator     func(R) (ResourceDefinition, error)
@@ -61,7 +61,7 @@ func WorkflowParamsCreatorNoop[R any](_ R) ([]argo.Parameter, error) {
 }
 
 func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
-	owner pipelinesv1.Resource,
+	owner pipelineshub.Resource,
 ) *metav1.ObjectMeta {
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", owner.GetKind(), owner.GetName()),
@@ -85,7 +85,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
-	provider pipelinesv1.Provider,
+	provider pipelineshub.Provider,
 	resource R,
 ) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
@@ -137,7 +137,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdateWorkflow(
-	provider pipelinesv1.Provider,
+	provider pipelineshub.Provider,
 	resource R,
 ) (*argo.Workflow, error) {
 	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
@@ -192,7 +192,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeletionWorkflow(
-	provider pipelinesv1.Provider,
+	provider pipelineshub.Provider,
 	resource R,
 ) (*argo.Workflow, error) {
 	providerConf, err := json.Marshal(provider.Spec)

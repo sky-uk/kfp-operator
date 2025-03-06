@@ -2,7 +2,7 @@ package workflowfactory
 
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
@@ -12,7 +12,7 @@ type ExperimentDefinitionCreator struct {
 }
 
 func (edc ExperimentDefinitionCreator) experimentDefinition(
-	experiment *pipelinesv1.Experiment,
+	experiment *pipelineshub.Experiment,
 ) (providers.ExperimentDefinition, error) {
 	return providers.ExperimentDefinition{
 		Name: common.NamespacedName{
@@ -26,13 +26,13 @@ func (edc ExperimentDefinitionCreator) experimentDefinition(
 
 func ExperimentWorkflowFactory(
 	config config.KfpControllerConfigSpec,
-) *ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition] {
-	return &ResourceWorkflowFactory[*pipelinesv1.Experiment, providers.ExperimentDefinition]{
+) *ResourceWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition] {
+	return &ResourceWorkflowFactory[*pipelineshub.Experiment, providers.ExperimentDefinition]{
 		DefinitionCreator: ExperimentDefinitionCreator{
 			Config: config,
 		}.experimentDefinition,
 		Config:                config,
 		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
-		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelinesv1.Experiment],
+		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.Experiment],
 	}
 }

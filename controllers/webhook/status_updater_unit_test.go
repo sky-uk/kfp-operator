@@ -7,7 +7,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -20,27 +20,27 @@ var _ = Context("Handle", func() {
 	var ctx = logr.NewContext(context.Background(), logger)
 
 	scheme := runtime.NewScheme()
-	err := pipelinesv1.AddToScheme(scheme)
+	err := pipelineshub.AddToScheme(scheme)
 	Expect(err).ToNot(HaveOccurred())
 
 	var client client.Client
 	var updater StatusUpdater
 
 	Context("event RunName is present", func() {
-		var run pipelinesv1.Run
+		var run pipelineshub.Run
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
 
 		BeforeEach(func() {
 			rce.Status = common.RunCompletionStatuses.Succeeded
 
-			run = pipelinesv1.Run{}
-			run.Status = pipelinesv1.RunStatus{}
+			run = pipelineshub.Run{}
+			run.Status = pipelineshub.RunStatus{}
 			run.Name = rce.RunName.Name
 			run.Namespace = rce.RunName.Namespace
 
 			client = fake.NewClientBuilder().
 				WithScheme(scheme).
-				WithStatusSubresource(&pipelinesv1.Run{}).
+				WithStatusSubresource(&pipelineshub.Run{}).
 				Build()
 			updater = StatusUpdater{ctx, client}
 		})
@@ -56,7 +56,7 @@ var _ = Context("Handle", func() {
 				err = client.Get(ctx, run.GetNamespacedName(), &run)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(run.Status.CompletionState).
-					To(Equal(pipelinesv1.CompletionStates.Succeeded))
+					To(Equal(pipelineshub.CompletionStates.Succeeded))
 			})
 		})
 
@@ -95,20 +95,20 @@ var _ = Context("Handle", func() {
 	})
 
 	Context("event RunConfigurationName is present", func() {
-		var rc pipelinesv1.RunConfiguration
+		var rc pipelineshub.RunConfiguration
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
 
 		BeforeEach(func() {
 			client = fake.NewClientBuilder().
 				WithScheme(scheme).
-				WithStatusSubresource(&pipelinesv1.RunConfiguration{}).
+				WithStatusSubresource(&pipelineshub.RunConfiguration{}).
 				Build()
 			updater = StatusUpdater{ctx, client}
 
 			rce.Status = common.RunCompletionStatuses.Succeeded
 
-			rc = pipelinesv1.RunConfiguration{}
-			rc.Status = pipelinesv1.RunConfigurationStatus{}
+			rc = pipelineshub.RunConfiguration{}
+			rc.Status = pipelineshub.RunConfigurationStatus{}
 			rc.Name = rce.RunConfigurationName.Name
 			rc.Namespace = rce.RunConfigurationName.Namespace
 		})

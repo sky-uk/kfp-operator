@@ -10,25 +10,25 @@ import (
 	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/types"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	It("creates RunSchedule owned resources that are in the triggers", func() {
-		runConfiguration := createStableRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
-			runConfiguration.Spec.Triggers = pipelinesv1.RandomScheduleTrigger()
+		runConfiguration := createStableRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
+			runConfiguration.Spec.Triggers = pipelineshub.RandomScheduleTrigger()
 			return runConfiguration
 		}, apis.Updating)
 
-		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
+		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {
 			//other fields tested in unit test
 			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[0]))
 			g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 		})).Should(Succeed())
 
-		Expect(updateOwnedSchedules(runConfiguration, func(ownedSchedule *pipelinesv1.RunSchedule) {
+		Expect(updateOwnedSchedules(runConfiguration, func(ownedSchedule *pipelineshub.RunSchedule) {
 			ownedSchedule.Status.SynchronizationState = apis.Succeeded
 		})).To(Succeed())
 
@@ -46,7 +46,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		runConfiguration.Spec.Triggers.Schedules = nil
 		Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
-		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 			g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 			g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
@@ -57,11 +57,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	It("succeeds without creating resources if dependencies are not met", func() {
 
-		runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
-			runConfiguration.Spec.Triggers = pipelinesv1.RandomScheduleTrigger()
-			runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{pipelinesv1.OnChangeTypes.RunSpec}
-			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
-				pipelinesv1.RandomRunConfigurationRefRuntimeParameter(),
+		runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
+			runConfiguration.Spec.Triggers = pipelineshub.RandomScheduleTrigger()
+			runConfiguration.Spec.Triggers.OnChange = []pipelineshub.OnChangeType{pipelineshub.OnChangeTypes.RunSpec}
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
+				pipelineshub.RandomRunConfigurationRefRuntimeParameter(),
 			}
 			return runConfiguration
 		})
@@ -85,12 +85,12 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		It("sets the ObservedPipelineVersion to the fixed version", func() {
 			pipelineVersion := apis.RandomString()
 
-			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
-				runConfiguration.Spec.Run.Pipeline = pipelinesv1.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
+			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
+				runConfiguration.Spec.Run.Pipeline = pipelineshub.PipelineIdentifier{Name: apis.RandomString(), Version: pipelineVersion}
 				return runConfiguration
 			})
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
@@ -98,32 +98,32 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("Updating the referenced pipeline with no version specified on the RC", func() {
 		It("triggers an update of the run configuration", func() {
-			pipeline := pipelinesv1.RandomPipeline(Provider.Name)
+			pipeline := pipelineshub.RandomPipeline(Provider.Name)
 			pipelineHelper := CreateSucceeded(pipeline)
 
-			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
+			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
 				runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 				return runConfiguration
 			})
 
-			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
-				pipeline.Spec = pipelinesv1.RandomPipelineSpec(Provider.Name)
+			pipelineHelper.UpdateStable(func(pipeline *pipelineshub.Pipeline) {
+				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.Name)
 			})
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
 			})).Should(Succeed())
 		})
 
 		It("change trigger creates a run when the pipeline is updated", func() {
-			pipeline := pipelinesv1.RandomPipeline(Provider.Name)
+			pipeline := pipelineshub.RandomPipeline(Provider.Name)
 			pipelineHelper := CreateSucceeded(pipeline)
 			firstPipelineVersion := pipeline.ComputeVersion()
 
-			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
+			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
-				runConfiguration.Spec.Triggers = pipelinesv1.RandomOnChangeTrigger()
+				runConfiguration.Spec.Triggers = pipelineshub.RandomOnChangeTrigger()
 				return runConfiguration
 			})
 
@@ -133,8 +133,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				g.Expect(ownedRuns).To(ConsistOf(HavePipelineVersion(firstPipelineVersion)))
 			}).Should(Succeed())
 
-			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
-				pipeline.Spec = pipelinesv1.RandomPipelineSpec(Provider.Name)
+			pipelineHelper.UpdateStable(func(pipeline *pipelineshub.Pipeline) {
+				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.Name)
 			})
 
 			Eventually(func(g Gomega) {
@@ -145,15 +145,15 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		})
 
 		It("change trigger creates a run when the pipeline is created", func() {
-			pipeline := pipelinesv1.RandomPipeline(Provider.Name)
+			pipeline := pipelineshub.RandomPipeline(Provider.Name)
 
-			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
+			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
-				runConfiguration.Spec.Triggers = pipelinesv1.RandomOnChangeTrigger()
+				runConfiguration.Spec.Triggers = pipelineshub.RandomOnChangeTrigger()
 				return runConfiguration
 			})
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 			}))
 			ownedRuns, err := findOwnedRuns(Ctx, K8sClient, runConfiguration)
@@ -172,19 +172,19 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("Updating the referenced pipeline with a fixed version specified on the RC", func() {
 		It("does not trigger an update of the run configuration", func() {
-			pipeline := pipelinesv1.RandomPipeline(Provider.Name)
+			pipeline := pipelineshub.RandomPipeline(Provider.Name)
 			fixedIdentifier := pipeline.VersionedIdentifier()
 
 			pipelineHelper := CreateSucceeded(pipeline)
 
-			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
+			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = fixedIdentifier
 				runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
 				return runConfiguration
 			})
 
-			pipelineHelper.UpdateStable(func(pipeline *pipelinesv1.Pipeline) {
-				pipeline.Spec = pipelinesv1.RandomPipelineSpec(Provider.Name)
+			pipelineHelper.UpdateStable(func(pipeline *pipelineshub.Pipeline) {
+				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.Name)
 			})
 
 			// To verify the absence of additional RC updates, force another update of the resource.
@@ -195,7 +195,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Run.ExperimentName = newExperiment
 			Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Spec.Run.ExperimentName).To(Equal(newExperiment))
 				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
 			})).Should(Succeed())
@@ -206,11 +206,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		It("unsets the dependency", func() {
 			runConfigurationName := apis.RandomString()
 
-			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
-				runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
+				runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 					{
-						ValueFrom: &pipelinesv1.ValueFrom{
-							RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+						ValueFrom: &pipelineshub.ValueFrom{
+							RunConfigurationRef: pipelineshub.RunConfigurationRef{
 								Name:           runConfigurationName,
 								OutputArtifact: apis.RandomString(),
 							},
@@ -220,7 +220,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				return runConfiguration
 			})
 
-			runConfiguration.Status.Dependencies.RunConfigurations = map[string]pipelinesv1.RunReference{
+			runConfiguration.Status.Dependencies.RunConfigurations = map[string]pipelineshub.RunReference{
 				runConfigurationName: {
 					ProviderId: apis.RandomString(),
 					Artifacts:  []common.Artifact{common.RandomArtifact()},
@@ -229,7 +229,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(K8sClient.Status().Update(Ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(fetchedRc.Generation))
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].ProviderId).To(BeEmpty())
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].Artifacts).To(BeEmpty())
@@ -239,15 +239,15 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("A referenced RunConfiguration has succeeded but misses the outputArtifact", func() {
 		It("unsets the dependency", func() {
-			referencedRc := createRcWithLatestRun(pipelinesv1.RunReference{
+			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 			})
 
-			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
-			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.Name)
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 				{
-					ValueFrom: &pipelinesv1.ValueFrom{
-						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+					ValueFrom: &pipelineshub.ValueFrom{
+						RunConfigurationRef: pipelineshub.RunConfigurationRef{
 							Name:           referencedRc.Name,
 							OutputArtifact: apis.RandomString(),
 						},
@@ -258,7 +258,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
 			oldState := runConfiguration.Status.SynchronizationState
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(BeEmpty())
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].Artifacts).To(BeEmpty())
@@ -271,12 +271,12 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration := createSucceededRc()
 
 			excessDependency := apis.RandomString()
-			runConfiguration.SetDependencyRuns(map[string]pipelinesv1.RunReference{excessDependency: {}})
+			runConfiguration.SetDependencyRuns(map[string]pipelineshub.RunReference{excessDependency: {}})
 
 			Expect(K8sClient.Status().Update(Ctx, runConfiguration)).To(Succeed())
 
 			oldState := runConfiguration.Status.SynchronizationState
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations).NotTo(HaveKey(excessDependency))
 			})).Should(Succeed())
@@ -285,16 +285,16 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("Completing the referenced run configuration", func() {
 		It("Sets the run configuration's dependency field", func() {
-			referencedRc := createRcWithLatestRun(pipelinesv1.RunReference{
+			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 				Artifacts:  []common.Artifact{common.RandomArtifact()},
 			})
 
-			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
-			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.Name)
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 				{
-					ValueFrom: &pipelinesv1.ValueFrom{
-						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+					ValueFrom: &pipelineshub.ValueFrom{
+						RunConfigurationRef: pipelineshub.RunConfigurationRef{
 							Name:           referencedRc.Name,
 							OutputArtifact: referencedRc.Status.LatestRuns.Succeeded.Artifacts[0].Name,
 						},
@@ -305,18 +305,18 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
 			Expect(K8sClient.Get(Ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
 			})).Should(Succeed())
 		})
 
 		It("RC trigger creates a run when the referenced RC has finished", func() {
-			referencedRc := createRcWithLatestRun(pipelinesv1.RunReference{
+			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 			})
 
-			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
-			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
+			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.Name)
+			runConfiguration.Spec.Triggers = pipelineshub.Triggers{
 				RunConfigurations: []string{
 					referencedRc.Name,
 				},
@@ -324,11 +324,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(runConfiguration.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(Equal(referencedRc.Status.LatestRuns.Succeeded.ProviderId))
 			})).Should(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.Triggers.RunConfigurations[referencedRc.Name].ProviderId).To(Equal(referencedRc.Status.LatestRuns.Succeeded.ProviderId))
 			})).Should(Succeed())
 
@@ -342,12 +342,12 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("Removing a dependency trigger", func() {
 		It("Removes a previously set triggers field", func() {
-			referencedRc := createRcWithLatestRun(pipelinesv1.RunReference{
+			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 			})
 
-			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelinesv1.RunConfiguration) *pipelinesv1.RunConfiguration {
-				runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
+			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
+				runConfiguration.Spec.Triggers = pipelineshub.Triggers{
 					RunConfigurations: []string{
 						referencedRc.Name,
 					},
@@ -358,7 +358,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Triggers.RunConfigurations = nil
 			Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).NotTo(HaveKey(referencedRc.Name))
 			})).Should(Succeed())
 		})
@@ -366,20 +366,20 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("RunSpec changes", func() {
 		It("onChange trigger creates a run when run template has changed", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
-			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
-				OnChange: []pipelinesv1.OnChangeType{
-					pipelinesv1.OnChangeTypes.RunSpec,
+			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.Name)
+			runConfiguration.Spec.Triggers = pipelineshub.Triggers{
+				OnChange: []pipelineshub.OnChangeType{
+					pipelineshub.OnChangeTypes.RunSpec,
 				},
 			}
 
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
 
-			runConfiguration.Spec.Run = pipelinesv1.RandomRunSpec(Provider.Name)
+			runConfiguration.Spec.Run = pipelineshub.RandomRunSpec(Provider.Name)
 
 			Eventually(func(g Gomega) {
 				ownedRuns, err := findOwnedRuns(Ctx, K8sClient, runConfiguration)
@@ -391,29 +391,29 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("setting the provider", func() {
 		It("stores the provider in the status", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
+			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.Name)
 			runConfiguration.Spec.Run.Provider = Provider.Name
-			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{}
+			runConfiguration.Spec.Triggers = pipelineshub.Triggers{}
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.Provider).To(Equal(runConfiguration.Spec.Run.Provider))
 			})).Should(Succeed())
 		})
 
 		It("passes the provider to owned resources", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
+			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.Name)
 			runConfiguration.Spec.Run.Provider = Provider.Name
-			runConfiguration.Spec.Triggers = pipelinesv1.Triggers{
-				Schedules: []pipelinesv1.Schedule{pipelinesv1.RandomSchedule()},
-				OnChange:  []pipelinesv1.OnChangeType{pipelinesv1.OnChangeTypes.Pipeline},
+			runConfiguration.Spec.Triggers = pipelineshub.Triggers{
+				Schedules: []pipelineshub.Schedule{pipelineshub.RandomSchedule()},
+				OnChange:  []pipelineshub.OnChangeType{pipelineshub.OnChangeTypes.Pipeline},
 			}
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
+			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {
 				g.Expect(ownedSchedule.Spec.Provider).To(Equal(runConfiguration.Spec.Run.Provider))
 			})).Should(Succeed())
-			Eventually(matchRuns(runConfiguration, func(g Gomega, ownedRun *pipelinesv1.Run) {
+			Eventually(matchRuns(runConfiguration, func(g Gomega, ownedRun *pipelineshub.Run) {
 				g.Expect(ownedRun.Spec.Provider).To(Equal(runConfiguration.Spec.Run.Provider))
 			})).Should(Succeed())
 		})
@@ -425,11 +425,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfiguration.Spec.Run.Provider = apis.RandomLowercaseString()
 			Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
-			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelinesv1.RunConfiguration) {
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Failed))
 			})).Should(Succeed())
 
-			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelinesv1.RunSchedule) {
+			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {
 				g.Expect(ownedSchedule.Spec.Provider).To(Equal(Provider.Name))
 			})).Should(Succeed())
 		})
@@ -437,12 +437,12 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("Creating an invalid run configuration", func() {
 		It("errors", func() {
-			runConfiguration := pipelinesv1.RandomRunConfiguration(Provider.Name)
-			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.Name)
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 				{
 					Value: apis.RandomString(),
-					ValueFrom: &pipelinesv1.ValueFrom{
-						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+					ValueFrom: &pipelineshub.ValueFrom{
+						RunConfigurationRef: pipelineshub.RunConfigurationRef{
 							Name:           apis.RandomString(),
 							OutputArtifact: apis.RandomString(),
 						},
@@ -457,11 +457,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating an invalid run configuration", func() {
 		It("errors", func() {
 			runConfiguration := createSucceededRc()
-			runConfiguration.Spec.Run.RuntimeParameters = []pipelinesv1.RuntimeParameter{
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 				{
 					Value: apis.RandomString(),
-					ValueFrom: &pipelinesv1.ValueFrom{
-						RunConfigurationRef: pipelinesv1.RunConfigurationRef{
+					ValueFrom: &pipelineshub.ValueFrom{
+						RunConfigurationRef: pipelineshub.RunConfigurationRef{
 							Name:           apis.RandomString(),
 							OutputArtifact: apis.RandomString(),
 						},
@@ -474,7 +474,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	})
 })
 
-func matchRuns(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gomega, *pipelinesv1.Run)) func(Gomega) {
+func matchRuns(runConfiguration *pipelineshub.RunConfiguration, matcher func(Gomega, *pipelineshub.Run)) func(Gomega) {
 	return func(g Gomega) {
 		ownedRuns, err := findOwnedRuns(Ctx, K8sClient, runConfiguration)
 		g.Expect(err).NotTo(HaveOccurred())
@@ -485,7 +485,7 @@ func matchRuns(runConfiguration *pipelinesv1.RunConfiguration, matcher func(Gome
 	}
 }
 
-func hasNoRuns(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
+func hasNoRuns(runConfiguration *pipelineshub.RunConfiguration) func(Gomega) {
 	return func(g Gomega) {
 		ownedRuns, err := findOwnedRuns(Ctx, K8sClient, runConfiguration)
 		g.Expect(err).NotTo(HaveOccurred())
@@ -493,7 +493,7 @@ func hasNoRuns(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
 	}
 }
 
-func hasNoSchedules(runConfiguration *pipelinesv1.RunConfiguration) func(Gomega) {
+func hasNoSchedules(runConfiguration *pipelineshub.RunConfiguration) func(Gomega) {
 	return func(g Gomega) {
 		ownedSchedules, err := findOwnedRunSchedules(Ctx, K8sClient, runConfiguration)
 		g.Expect(err).NotTo(HaveOccurred())
@@ -512,7 +512,7 @@ type HavePipelineVersionMatcher struct {
 }
 
 func (matcher *HavePipelineVersionMatcher) Match(actual interface{}) (success bool, err error) {
-	run, isRun := actual.(pipelinesv1.Run)
+	run, isRun := actual.(pipelineshub.Run)
 	if !isRun {
 		return false, fmt.Errorf("HavePipelineVersionMatcher matcher expects a Run.  Got:\n%s", format.Object(actual, 1))
 	}

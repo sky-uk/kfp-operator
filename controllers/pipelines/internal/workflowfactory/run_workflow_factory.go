@@ -5,7 +5,7 @@ import (
 
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 )
@@ -20,7 +20,7 @@ type RunDefinitionCreator struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.RunDefinition, error) {
+func (rdc RunDefinitionCreator) runDefinition(run *pipelineshub.Run) (providers.RunDefinition, error) {
 	var experimentName common.NamespacedName
 	if run.Spec.ExperimentName == "" {
 		experimentName = common.NamespacedName{
@@ -70,13 +70,13 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelinesv1.Run) (providers.R
 
 func RunWorkflowFactory(
 	config config.KfpControllerConfigSpec,
-) *ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition] {
-	return &ResourceWorkflowFactory[*pipelinesv1.Run, providers.RunDefinition]{
+) *ResourceWorkflowFactory[*pipelineshub.Run, providers.RunDefinition] {
+	return &ResourceWorkflowFactory[*pipelineshub.Run, providers.RunDefinition]{
 		DefinitionCreator: RunDefinitionCreator{
 			Config: config,
 		}.runDefinition,
 		Config:                config,
 		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
-		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelinesv1.Run],
+		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.Run],
 	}
 }

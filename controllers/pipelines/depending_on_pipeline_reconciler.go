@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -21,7 +21,7 @@ const (
 
 type DependingOnPipelineResource interface {
 	client.Object
-	GetPipeline() pipelinesv1.PipelineIdentifier
+	GetPipeline() pipelineshub.PipelineIdentifier
 	GetObservedPipelineVersion() string
 	SetObservedPipelineVersion(string)
 }
@@ -30,7 +30,7 @@ type DependingOnPipelineReconciler[R DependingOnPipelineResource] struct {
 	EC K8sExecutionContext
 }
 
-func (dr DependingOnPipelineReconciler[R]) handleObservedPipelineVersion(ctx context.Context, pipelineIdentifier pipelinesv1.PipelineIdentifier, resource R) (bool, error) {
+func (dr DependingOnPipelineReconciler[R]) handleObservedPipelineVersion(ctx context.Context, pipelineIdentifier pipelineshub.PipelineIdentifier, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
 	setVersion := true
@@ -62,9 +62,9 @@ func (dr DependingOnPipelineReconciler[R]) handleObservedPipelineVersion(ctx con
 	return false, nil
 }
 
-func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context, key client.ObjectKey) (*pipelinesv1.Pipeline, error) {
+func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context, key client.ObjectKey) (*pipelineshub.Pipeline, error) {
 	logger := log.FromContext(ctx)
-	pipeline := &pipelinesv1.Pipeline{}
+	pipeline := &pipelineshub.Pipeline{}
 
 	if err := dr.EC.Client.NonCached.Get(ctx, key, pipeline); err != nil {
 		if errors.IsNotFound(err) {
@@ -88,13 +88,13 @@ func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, co
 	}
 
 	return controllerBuilder.Watches(
-		&pipelinesv1.Pipeline{},
+		&pipelineshub.Pipeline{},
 		handler.EnqueueRequestsFromMapFunc(reconciliationRequestsForPipeline),
 		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 	), nil
 }
 
-func dependentPipelineVersionIfSucceeded(pipeline *pipelinesv1.Pipeline) (string, bool) {
+func dependentPipelineVersionIfSucceeded(pipeline *pipelineshub.Pipeline) (string, bool) {
 	if pipeline == nil {
 		return "", true
 	}

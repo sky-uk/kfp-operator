@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"k8s.io/apimachinery/pkg/types"
@@ -21,29 +21,29 @@ var _ = Context("Resource Workflows", Serial, func() {
 		WorkflowNamespace:      "argo",
 	})
 
-	var newRun = func() *pipelinesv1.Run {
-		return withIntegrationTestFields(pipelinesv1.RandomRun(TestProvider))
+	var newRun = func() *pipelineshub.Run {
+		return withIntegrationTestFields(pipelineshub.RandomRun(TestProvider))
 	}
 
-	DescribeTable("Run Workflows", AssertWorkflow[*pipelinesv1.Run],
+	DescribeTable("Run Workflows", AssertWorkflow[*pipelineshub.Run],
 		Entry("Creation",
 			newRun,
-			StubWithIdAndError[*pipelinesv1.Run],
+			StubWithIdAndError[*pipelineshub.Run],
 			workflowFactory.ConstructCreationWorkflow,
 		), Entry("Deletion succeeds",
 			newRun,
-			StubWithEmpty[*pipelinesv1.Run],
+			StubWithEmpty[*pipelineshub.Run],
 			workflowFactory.ConstructDeletionWorkflow,
 		), Entry("Deletion fails",
 			newRun,
-			StubWithExistingIdAndError[*pipelinesv1.Run],
+			StubWithExistingIdAndError[*pipelineshub.Run],
 			workflowFactory.ConstructDeletionWorkflow,
 		),
 	)
 
 	Describe("Update fails", func() {
 		It("fails the workflow", func() {
-			testCtx := WorkflowTestHelper[*pipelinesv1.Run]{
+			testCtx := WorkflowTestHelper[*pipelineshub.Run]{
 				Resource: newRun(),
 			}
 

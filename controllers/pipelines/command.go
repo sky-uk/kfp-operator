@@ -6,7 +6,7 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,10 +42,10 @@ type K8sExecutionContext struct {
 }
 
 type Command interface {
-	execute(context.Context, K8sExecutionContext, pipelinesv1.Resource) error
+	execute(context.Context, K8sExecutionContext, pipelineshub.Resource) error
 }
 
-func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelinesv1.Resource) []Command {
+func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelineshub.Resource) []Command {
 	currentGeneration := resource.GetGeneration()
 	if currentGeneration == resource.GetStatus().ObservedGeneration {
 		return commands
@@ -82,10 +82,10 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 type SetStatus struct {
 	Message string
-	Status  pipelinesv1.Status
+	Status  pipelineshub.Status
 }
 
-func From(status pipelinesv1.Status) *SetStatus {
+func From(status pipelineshub.Status) *SetStatus {
 	return &SetStatus{
 		Status: status,
 	}
@@ -107,7 +107,7 @@ func (sps *SetStatus) WithVersion(version string) *SetStatus {
 	return sps
 }
 
-func (sps *SetStatus) WithProvider(providerId pipelinesv1.ProviderAndId) *SetStatus {
+func (sps *SetStatus) WithProvider(providerId pipelineshub.ProviderAndId) *SetStatus {
 	sps.Status.Provider = providerId
 
 	return sps
@@ -148,13 +148,13 @@ func eventReason(sps SetStatus) string {
 	}
 }
 
-func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
+func (sps SetStatus) statusWithCondition() pipelineshub.Status {
 	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(metav1.Condition{
 		LastTransitionTime: metav1.Now(),
 		Message:            sps.Message,
 		ObservedGeneration: sps.Status.ObservedGeneration,
-		Type:               pipelinesv1.ConditionTypes.SynchronizationSucceeded,
-		Status:             pipelinesv1.ConditionStatusForSynchronizationState(sps.Status.SynchronizationState),
+		Type:               pipelineshub.ConditionTypes.SynchronizationSucceeded,
+		Status:             pipelineshub.ConditionStatusForSynchronizationState(sps.Status.SynchronizationState),
 		Reason:             string(sps.Status.SynchronizationState),
 	})
 
@@ -164,7 +164,7 @@ func (sps SetStatus) statusWithCondition() pipelinesv1.Status {
 func (sps SetStatus) execute(
 	ctx context.Context,
 	ec K8sExecutionContext,
-	resource pipelinesv1.Resource,
+	resource pipelineshub.Resource,
 ) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info(
@@ -198,7 +198,7 @@ type CreateWorkflow struct {
 func (cw CreateWorkflow) execute(
 	ctx context.Context,
 	ec K8sExecutionContext,
-	resource pipelinesv1.Resource,
+	resource pipelineshub.Resource,
 ) error {
 	logger := log.FromContext(ctx)
 	logger.V(1).Info(
@@ -222,7 +222,7 @@ type MarkWorkflowsAsProcessed struct {
 	Workflows []argo.Workflow
 }
 
-func (dw MarkWorkflowsAsProcessed) execute(ctx context.Context, ec K8sExecutionContext, _ pipelinesv1.Resource) error {
+func (dw MarkWorkflowsAsProcessed) execute(ctx context.Context, ec K8sExecutionContext, _ pipelineshub.Resource) error {
 	for i := range dw.Workflows {
 		workflow := &dw.Workflows[i]
 		if err := ec.WorkflowRepository.MarkWorkflowAsProcessed(ctx, workflow); err != nil {
@@ -236,7 +236,7 @@ func (dw MarkWorkflowsAsProcessed) execute(ctx context.Context, ec K8sExecutionC
 type AcquireResource struct {
 }
 
-func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
+func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelineshub.Resource) error {
 	logger := log.FromContext(ctx)
 
 	if !controllerutil.ContainsFinalizer(resource, finalizerName) {
@@ -252,7 +252,7 @@ func (ap AcquireResource) execute(ctx context.Context, ec K8sExecutionContext, r
 type ReleaseResource struct {
 }
 
-func (rp ReleaseResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelinesv1.Resource) error {
+func (rp ReleaseResource) execute(ctx context.Context, ec K8sExecutionContext, resource pipelineshub.Resource) error {
 	logger := log.FromContext(ctx)
 
 	if controllerutil.ContainsFinalizer(resource, finalizerName) {
