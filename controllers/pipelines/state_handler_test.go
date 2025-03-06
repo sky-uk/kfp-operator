@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
@@ -21,21 +21,21 @@ import (
 
 type StateTransitionTestCase struct {
 	workflowFactory *TestWorkflowFactory
-	Experiment      *pipelinesv1.TestResource
+	Experiment      *pipelineshub.TestResource
 	SystemStatus    StubbedWorkflows
 	Commands        []Command
 }
 
 type TestWorkflowFactory struct {
-	CalledWithProvider    *pipelinesv1.Provider
+	CalledWithProvider    *pipelineshub.Provider
 	CalledWithProviderSvc *corev1.Service
 	shouldFail            bool
 }
 
 func (f *TestWorkflowFactory) ConstructCreationWorkflow(
-	provider pipelinesv1.Provider,
+	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
-	_ *pipelinesv1.TestResource,
+	_ *pipelineshub.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	f.CalledWithProviderSvc = &providerSvc
@@ -46,9 +46,9 @@ func (f *TestWorkflowFactory) ConstructCreationWorkflow(
 }
 
 func (f *TestWorkflowFactory) ConstructUpdateWorkflow(
-	provider pipelinesv1.Provider,
+	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
-	_ *pipelinesv1.TestResource,
+	_ *pipelineshub.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	f.CalledWithProviderSvc = &providerSvc
@@ -59,9 +59,9 @@ func (f *TestWorkflowFactory) ConstructUpdateWorkflow(
 }
 
 func (f *TestWorkflowFactory) ConstructDeletionWorkflow(
-	provider pipelinesv1.Provider,
+	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
-	_ *pipelinesv1.TestResource,
+	_ *pipelineshub.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
 	f.CalledWithProviderSvc = &providerSvc
@@ -86,8 +86,8 @@ func (st StateTransitionTestCase) WithCreateWorkFlow(phase argo.WorkflowPhase) S
 }
 
 func (st StateTransitionTestCase) WithSucceededCreateWorkFlow(
-	provider pipelinesv1.Provider,
-	providerId pipelinesv1.ProviderAndId,
+	provider pipelineshub.Provider,
+	providerId pipelineshub.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
 	workflow, err := workflowutil.SetWorkflowProvider(
@@ -109,8 +109,8 @@ func (st StateTransitionTestCase) WithFailedUpdateWorkflow() StateTransitionTest
 }
 
 func (st StateTransitionTestCase) WithSucceededUpdateWorkflow(
-	provider pipelinesv1.Provider,
-	providerId pipelinesv1.ProviderAndId,
+	provider pipelineshub.Provider,
+	providerId pipelineshub.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
 	workflow, err := workflowutil.SetWorkflowProvider(
@@ -132,8 +132,8 @@ func (st StateTransitionTestCase) WithDeletionWorkflow(phase argo.WorkflowPhase)
 }
 
 func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(
-	provider pipelinesv1.Provider,
-	providerId pipelinesv1.ProviderAndId,
+	provider pipelineshub.Provider,
+	providerId pipelineshub.ProviderAndId,
 	providerError string,
 ) StateTransitionTestCase {
 	workflow, err := workflowutil.SetWorkflowProvider(
@@ -150,7 +150,7 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(
 
 func (st StateTransitionTestCase) IssuesCreationWorkflow() StateTransitionTestCase {
 	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(
-		*pipelinesv1.RandomProvider(),
+		*pipelineshub.RandomProvider(),
 		*RandomProviderService(),
 		st.Experiment,
 	)
@@ -159,7 +159,7 @@ func (st StateTransitionTestCase) IssuesCreationWorkflow() StateTransitionTestCa
 
 func (st StateTransitionTestCase) IssuesUpdateWorkflow() StateTransitionTestCase {
 	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(
-		*pipelinesv1.RandomProvider(),
+		*pipelineshub.RandomProvider(),
 		*RandomProviderService(),
 		st.Experiment,
 	)
@@ -168,7 +168,7 @@ func (st StateTransitionTestCase) IssuesUpdateWorkflow() StateTransitionTestCase
 
 func (st StateTransitionTestCase) IssuesDeletionWorkflow() StateTransitionTestCase {
 	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(
-		*pipelinesv1.RandomProvider(),
+		*pipelineshub.RandomProvider(),
 		*RandomProviderService(),
 		st.Experiment,
 	)
@@ -219,22 +219,22 @@ func RandomProviderService() *corev1.Service {
 }
 
 var _ = Describe("State handler", func() {
-	provider := pipelinesv1.RandomProvider()
+	provider := pipelineshub.RandomProvider()
 	providerSvc := RandomProviderService()
-	providerId := pipelinesv1.ProviderAndId{
+	providerId := pipelineshub.ProviderAndId{
 		Name: provider.Name,
 		Id:   apis.RandomString(),
 	}
-	anotherIdSameProvider := pipelinesv1.ProviderAndId{
+	anotherIdSameProvider := pipelineshub.ProviderAndId{
 		Name: provider.Name,
 		Id:   apis.RandomString(),
 	}
-	anotherProviderId := pipelinesv1.ProviderAndId{
+	anotherProviderId := pipelineshub.ProviderAndId{
 		Name: apis.RandomString(),
 		Id:   apis.RandomString(),
 	}
-	emptyProviderId := pipelinesv1.ProviderAndId{}
-	emptyProvider := pipelinesv1.RandomProvider()
+	emptyProviderId := pipelineshub.ProviderAndId{}
+	emptyProvider := pipelineshub.RandomProvider()
 	emptyProvider.Name = ""
 
 	providerError := "a provider error has occurred"
@@ -252,12 +252,12 @@ var _ = Describe("State handler", func() {
 
 	var From = func(
 		status apis.SynchronizationState,
-		id pipelinesv1.ProviderAndId,
+		id pipelineshub.ProviderAndId,
 		versionInState string,
 		computedVersion string,
 	) StateTransitionTestCase {
-		resource := pipelinesv1.RandomResource()
-		resource.SetStatus(pipelinesv1.Status{
+		resource := pipelineshub.RandomResource()
+		resource.SetStatus(pipelineshub.Status{
 			SynchronizationState: status,
 			Version:              versionInState,
 			Provider:             id,
@@ -272,7 +272,7 @@ var _ = Describe("State handler", func() {
 	}
 
 	DescribeTable("State transitions", func(st StateTransitionTestCase) {
-		var stateHandler = StateHandler[*pipelinesv1.TestResource]{
+		var stateHandler = StateHandler[*pipelineshub.TestResource]{
 			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    st.workflowFactory,
 		}

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	corev1 "k8s.io/api/core/v1"
@@ -25,13 +25,13 @@ var _ = Context("Provider Service Manager", func() {
 
 	var (
 		ctx            = context.Background()
-		provider       *pipelinesv1.Provider
+		provider       *pipelineshub.Provider
 		client         k8sClient.Client
 		serviceManager ServiceManager
 	)
 
 	BeforeEach(func() {
-		provider = pipelinesv1.RandomProvider()
+		provider = pipelineshub.RandomProvider()
 		client = fake.NewClientBuilder().
 			WithScheme(testutil.SchemeWithCrds()).
 			WithScheme(k8Scheme.Scheme).
@@ -47,8 +47,8 @@ var _ = Context("Provider Service Manager", func() {
 		serviceManager = ServiceManager{
 			client: optInClient,
 			scheme: client.Scheme(),
-			config: &v1alpha6.KfpControllerConfigSpec{
-				DefaultProviderValues: v1alpha6.DefaultProviderValues{
+			config: &configv1.KfpControllerConfigSpec{
+				DefaultProviderValues: configv1.DefaultProviderValues{
 					ServiceContainerName: "ServiceContainerName",
 					ServicePort:          9999,
 				},
@@ -143,7 +143,7 @@ var _ = Context("Provider Service Manager", func() {
 					Name:      provider.Name,
 					Namespace: provider.Namespace,
 					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(provider, pipelinesv1.GroupVersion.WithKind("Provider")),
+						*metav1.NewControllerRef(provider, pipelineshub.GroupVersion.WithKind("Provider")),
 					},
 				},
 			}

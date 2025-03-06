@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -15,13 +15,13 @@ import (
 
 var (
 	workflowOwnerKey = ".metadata.controller"
-	apiGVStr         = pipelinesv1.GroupVersion.String()
+	apiGVStr         = pipelineshub.GroupVersion.String()
 	finalizerName    = "finalizer.pipelines.kubeflow.org"
 )
 
 type PipelineReconciler struct {
-	StateHandler[*pipelinesv1.Pipeline]
-	ResourceReconciler[*pipelinesv1.Pipeline]
+	StateHandler[*pipelineshub.Pipeline]
+	ResourceReconciler[*pipelineshub.Pipeline]
 	ServiceManager ServiceResourceManager
 }
 
@@ -31,11 +31,11 @@ func NewPipelineReconciler(
 	config config.KfpControllerConfigSpec,
 ) *PipelineReconciler {
 	return &PipelineReconciler{
-		StateHandler: StateHandler[*pipelinesv1.Pipeline]{
+		StateHandler: StateHandler[*pipelineshub.Pipeline]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    workflowfactory.PipelineWorkflowFactory(config),
 		},
-		ResourceReconciler: ResourceReconciler[*pipelinesv1.Pipeline]{
+		ResourceReconciler: ResourceReconciler[*pipelineshub.Pipeline]{
 			EC:     ec,
 			Config: config,
 		},
@@ -58,7 +58,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started")
 
-	var pipeline = &pipelinesv1.Pipeline{}
+	var pipeline = &pipelineshub.Pipeline{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, pipeline); err != nil {
 		logger.Error(err, "unable to fetch pipeline")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -92,7 +92,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 }
 
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	pipeline := &pipelinesv1.Pipeline{}
+	pipeline := &pipelineshub.Pipeline{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(pipeline)
 

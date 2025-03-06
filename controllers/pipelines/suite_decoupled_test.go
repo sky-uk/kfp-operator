@@ -11,8 +11,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/external"
@@ -54,7 +54,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	err = pipelinesv1.AddToScheme(scheme.Scheme)
+	err = pipelineshub.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	Expect(external.InitSchemes(scheme.Scheme)).To(Succeed())
@@ -111,10 +111,10 @@ var _ = BeforeSuite(func() {
 	Expect(NewRunConfigurationReconciler(ec, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewRunScheduleReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewExperimentReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
-	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
-	Expect((&pipelinesv1.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
+	Expect((&pipelineshub.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
+	Expect((&pipelineshub.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
-	Provider = pipelinesv1.RandomProvider()
+	Provider = pipelineshub.RandomProvider()
 	Provider.Name = apis.RandomLowercaseString()
 	Provider.Namespace = TestConfig.WorkflowNamespace
 	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
@@ -127,7 +127,7 @@ var _ = BeforeSuite(func() {
 		[]metav1.OwnerReference{
 			*metav1.NewControllerRef(
 				Provider,
-				pipelinesv1.GroupVersion.WithKind(Provider.GetKind()),
+				pipelineshub.GroupVersion.WithKind(Provider.GetKind()),
 			),
 		},
 	)
@@ -139,25 +139,25 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = BeforeEach(func() {
-	allRuns := &pipelinesv1.RunList{}
+	allRuns := &pipelineshub.RunList{}
 	Expect(K8sClient.List(Ctx, allRuns)).To(Succeed())
 	for _, r := range allRuns.Items {
 		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
 
-	allRunSchedules := &pipelinesv1.RunScheduleList{}
+	allRunSchedules := &pipelineshub.RunScheduleList{}
 	Expect(K8sClient.List(Ctx, allRunSchedules)).To(Succeed())
 	for _, r := range allRunSchedules.Items {
 		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
 
-	allRcs := &pipelinesv1.RunConfigurationList{}
+	allRcs := &pipelineshub.RunConfigurationList{}
 	Expect(K8sClient.List(Ctx, allRcs)).To(Succeed())
 	for _, r := range allRcs.Items {
 		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
 	}
 
-	allPipelines := &pipelinesv1.PipelineList{}
+	allPipelines := &pipelineshub.PipelineList{}
 	Expect(K8sClient.List(Ctx, allPipelines)).To(Succeed())
 	for _, r := range allPipelines.Items {
 		Expect(client.IgnoreNotFound(K8sClient.Delete(Ctx, &r))).To(Succeed())
