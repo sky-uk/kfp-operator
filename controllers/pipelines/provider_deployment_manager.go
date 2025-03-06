@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	. "github.com/sky-uk/kfp-operator/apis/pipelines"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -24,11 +24,11 @@ import (
 )
 
 type DeploymentResourceManager interface {
-	Create(ctx context.Context, new *appsv1.Deployment, owner *pipelinesv1.Provider) error
-	Update(ctx context.Context, old, new *appsv1.Deployment, owner *pipelinesv1.Provider) error
-	Get(ctx context.Context, owner *pipelinesv1.Provider) (*appsv1.Deployment, error)
+	Create(ctx context.Context, new *appsv1.Deployment, owner *pipelineshub.Provider) error
+	Update(ctx context.Context, old, new *appsv1.Deployment, owner *pipelineshub.Provider) error
+	Get(ctx context.Context, owner *pipelineshub.Provider) (*appsv1.Deployment, error)
 	Equal(a, b *appsv1.Deployment) bool
-	Construct(provider *pipelinesv1.Provider) (*appsv1.Deployment, error)
+	Construct(provider *pipelineshub.Provider) (*appsv1.Deployment, error)
 }
 
 type DeploymentManager struct {
@@ -39,7 +39,7 @@ type DeploymentManager struct {
 
 const ProviderNameEnvVar = "PROVIDERNAME"
 
-func (dm DeploymentManager) Create(ctx context.Context, new *appsv1.Deployment, owner *pipelinesv1.Provider) error {
+func (dm DeploymentManager) Create(ctx context.Context, new *appsv1.Deployment, owner *pipelineshub.Provider) error {
 	logger := log.FromContext(ctx)
 
 	if err := ctrl.SetControllerReference(owner, new, dm.scheme); err != nil {
@@ -54,7 +54,7 @@ func (dm DeploymentManager) Create(ctx context.Context, new *appsv1.Deployment, 
 	return nil
 }
 
-func (dm DeploymentManager) Update(ctx context.Context, old *appsv1.Deployment, new *appsv1.Deployment, owner *pipelinesv1.Provider) error {
+func (dm DeploymentManager) Update(ctx context.Context, old *appsv1.Deployment, new *appsv1.Deployment, owner *pipelineshub.Provider) error {
 	logger := log.FromContext(ctx)
 
 	old.Spec = new.Spec
@@ -72,7 +72,7 @@ func (dm DeploymentManager) Update(ctx context.Context, old *appsv1.Deployment, 
 	return nil
 }
 
-func (dm DeploymentManager) Get(ctx context.Context, owner *pipelinesv1.Provider) (*appsv1.Deployment, error) {
+func (dm DeploymentManager) Get(ctx context.Context, owner *pipelineshub.Provider) (*appsv1.Deployment, error) {
 	dl := &appsv1.DeploymentList{}
 	if err := dm.client.NonCached.List(ctx, dl, &client.ListOptions{
 		Namespace: owner.Namespace,
@@ -95,7 +95,7 @@ func (dm DeploymentManager) Equal(a, b *appsv1.Deployment) bool {
 		equality.Semantic.DeepEqual(a.Spec, b.Spec)
 }
 
-func (dm DeploymentManager) Construct(provider *pipelinesv1.Provider) (*appsv1.Deployment, error) {
+func (dm DeploymentManager) Construct(provider *pipelineshub.Provider) (*appsv1.Deployment, error) {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 
 	matchLabels := map[string]string{AppLabel: prefixedProviderName}
@@ -133,7 +133,7 @@ func (dm DeploymentManager) Construct(provider *pipelinesv1.Provider) (*appsv1.D
 	return deployment, nil
 }
 
-func populateServiceContainer(serviceContainerName string, podTemplate corev1.PodTemplateSpec, provider *pipelinesv1.Provider) (*corev1.PodTemplateSpec, error) {
+func populateServiceContainer(serviceContainerName string, podTemplate corev1.PodTemplateSpec, provider *pipelineshub.Provider) (*corev1.PodTemplateSpec, error) {
 	if !Exists(podTemplate.Spec.Containers, func(c corev1.Container) bool {
 		return c.Name == serviceContainerName
 	}) {

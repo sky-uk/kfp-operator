@@ -2,7 +2,7 @@ package webhook
 
 import (
 	"context"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	argocommon "github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/common"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -12,12 +12,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func completionStateForRunCompletionStatus(rcs argocommon.RunCompletionStatus) *pipelinesv1.CompletionState {
+func completionStateForRunCompletionStatus(rcs argocommon.RunCompletionStatus) *pipelineshub.CompletionState {
 	switch rcs {
 	case argocommon.RunCompletionStatuses.Succeeded:
-		return &pipelinesv1.CompletionStates.Succeeded
+		return &pipelineshub.CompletionStates.Succeeded
 	case argocommon.RunCompletionStatuses.Failed:
-		return &pipelinesv1.CompletionStates.Failed
+		return &pipelineshub.CompletionStates.Failed
 	default:
 		return nil
 	}
@@ -75,7 +75,7 @@ func (su StatusUpdater) completeRun(event argocommon.RunCompletionEvent) error {
 		return nil
 	}
 
-	run := pipelinesv1.Run{}
+	run := pipelineshub.Run{}
 
 	if err := su.K8sClient.Get(
 		su.ctx,
@@ -136,7 +136,7 @@ func (su StatusUpdater) completeRunConfiguration(
 		return nil
 	}
 
-	rc := pipelinesv1.RunConfiguration{}
+	rc := pipelineshub.RunConfiguration{}
 
 	if err := su.K8sClient.Get(
 		su.ctx,

@@ -3,20 +3,20 @@ package pipelines
 import (
 	"context"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type ProviderStatusManager interface {
-	UpdateProviderStatus(ctx context.Context, provider *pipelinesv1.Provider, state apis.SynchronizationState, message string) error
+	UpdateProviderStatus(ctx context.Context, provider *pipelineshub.Provider, state apis.SynchronizationState, message string) error
 }
 
 type StatusManager struct {
 	client *controllers.OptInClient
 }
 
-func (sm StatusManager) UpdateProviderStatus(ctx context.Context, provider *pipelinesv1.Provider, state apis.SynchronizationState, message string) error {
+func (sm StatusManager) UpdateProviderStatus(ctx context.Context, provider *pipelineshub.Provider, state apis.SynchronizationState, message string) error {
 	logger := log.FromContext(ctx)
 
 	if state == apis.Succeeded {
