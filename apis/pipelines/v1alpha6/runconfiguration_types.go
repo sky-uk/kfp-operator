@@ -90,7 +90,6 @@ func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.Synchroniz
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 // +kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
-// +kubebuilder:storageversion
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

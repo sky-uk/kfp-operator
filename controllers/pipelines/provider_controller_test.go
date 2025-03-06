@@ -9,7 +9,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/mocks"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -28,18 +28,18 @@ var _ = Context("Provider Controller", func() {
 		deployment         = &appsv1.Deployment{}
 		service            = &v1.Service{}
 		providerReconciler ProviderReconciler
-		provider           *pipelinesv1.Provider
+		provider           *pipelineshub.Provider
 		mockProviderLoader *mocks.MockProviderLoader
 		mockDeploymentMan  *mocks.MockDeploymentManager
 		mockServiceMan     *mocks.MockServiceManager
 		mockStatusMan      *mocks.MockStatusManager
 	)
 
-	err := pipelinesv1.AddToScheme(scheme)
+	err := pipelineshub.AddToScheme(scheme)
 	Expect(err).ToNot(HaveOccurred())
 
 	BeforeEach(func() {
-		provider = pipelinesv1.RandomProvider()
+		provider = pipelineshub.RandomProvider()
 		provider.Generation = 1
 		provider.Status.ObservedGeneration = provider.Generation
 

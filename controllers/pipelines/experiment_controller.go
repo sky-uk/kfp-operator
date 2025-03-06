@@ -4,20 +4,20 @@ import (
 	"context"
 	"time"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
 // ExperimentReconciler reconciles a Experiment object
 type ExperimentReconciler struct {
-	StateHandler[*pipelinesv1.Experiment]
-	ResourceReconciler[*pipelinesv1.Experiment]
+	StateHandler[*pipelineshub.Experiment]
+	ResourceReconciler[*pipelineshub.Experiment]
 	ServiceManager ServiceResourceManager
 }
 
@@ -27,11 +27,11 @@ func NewExperimentReconciler(
 	config config.KfpControllerConfigSpec,
 ) *ExperimentReconciler {
 	return &ExperimentReconciler{
-		StateHandler: StateHandler[*pipelinesv1.Experiment]{
+		StateHandler: StateHandler[*pipelineshub.Experiment]{
 			WorkflowRepository: workflowRepository,
 			WorkflowFactory:    workflowfactory.ExperimentWorkflowFactory(config),
 		},
-		ResourceReconciler: ResourceReconciler[*pipelinesv1.Experiment]{
+		ResourceReconciler: ResourceReconciler[*pipelineshub.Experiment]{
 			EC:     ec,
 			Config: config,
 		},
@@ -53,7 +53,7 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started")
 
-	var experiment = &pipelinesv1.Experiment{}
+	var experiment = &pipelineshub.Experiment{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, experiment); err != nil {
 		logger.Error(err, "unable to fetch experiment")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -87,7 +87,7 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 }
 
 func (r *ExperimentReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	experiment := &pipelinesv1.Experiment{}
+	experiment := &pipelineshub.Experiment{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(experiment)
 

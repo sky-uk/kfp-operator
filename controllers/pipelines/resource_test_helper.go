@@ -5,18 +5,18 @@ package pipelines
 import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type ResourceTestHelper[R pipelinesv1.Resource] struct {
+type ResourceTestHelper[R pipelineshub.Resource] struct {
 	WorkflowTestHelper[R]
 	Resource R
 }
 
-func Create[R pipelinesv1.Resource](resource R) ResourceTestHelper[R] {
+func Create[R pipelineshub.Resource](resource R) ResourceTestHelper[R] {
 	K8sClient.Create(Ctx, resource)
 
 	return ResourceTestHelper[R]{
@@ -94,10 +94,10 @@ func (testCtx ResourceTestHelper[R]) UpdateStable(updateFunc func(resource R)) {
 func (testCtx ResourceTestHelper[R]) UpdateToSucceeded() {
 	Expect(K8sClient.Get(Ctx, testCtx.Resource.GetNamespacedName(), testCtx.Resource)).To(Succeed())
 
-	testCtx.Resource.SetStatus(pipelinesv1.Status{
+	testCtx.Resource.SetStatus(pipelineshub.Status{
 		SynchronizationState: apis.Succeeded,
 		Version:              testCtx.Resource.ComputeVersion(),
-		Provider: pipelinesv1.ProviderAndId{
+		Provider: pipelineshub.ProviderAndId{
 			Name: Provider.Name,
 			Id:   apis.RandomString(),
 		},
@@ -110,14 +110,14 @@ func (testCtx ResourceTestHelper[R]) UpdateToSucceeded() {
 	})).Should(Succeed())
 }
 
-func CreateSucceeded[R pipelinesv1.Resource](resource R) ResourceTestHelper[R] {
+func CreateSucceeded[R pipelineshub.Resource](resource R) ResourceTestHelper[R] {
 	testCtx := CreateStable(resource)
 	testCtx.UpdateToSucceeded()
 
 	return testCtx
 }
 
-func CreateStable[R pipelinesv1.Resource](resource R) ResourceTestHelper[R] {
+func CreateStable[R pipelineshub.Resource](resource R) ResourceTestHelper[R] {
 	testCtx := Create(resource)
 	Eventually(testCtx.ToMatch(func(g Gomega, resource R) {
 		g.Expect(resource.GetStatus().SynchronizationState).To(Equal(apis.Creating))
