@@ -142,6 +142,9 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  id:
+                    type: string
         '404':
           description: Resource not found.
           content:
@@ -149,8 +152,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
-                    type: string
                   providerError:
                     type: string
         '500':
@@ -160,8 +161,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  id:
-                    type: string
                   providerError:
                     type: string
   /livez:
