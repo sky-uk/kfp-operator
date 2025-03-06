@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
@@ -19,9 +19,9 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
 			anotherProviderId := "67890"
-			experimentHelper := Create(pipelinesv1.RandomExperiment(Provider.Name))
+			experimentHelper := Create(pipelineshub.RandomExperiment(Provider.Name))
 
-			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(experiment.Status.ObservedGeneration).To(Equal(experiment.GetGeneration()))
@@ -32,17 +32,17 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 				workflowutil.SetProviderOutput(workflow, providers.Output{Id: providerId})
 			})).Should(Succeed())
 
-			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(experiment.Status.Provider.Name).To(Equal(experiment.Spec.Provider))
 			})).Should(Succeed())
 
-			Expect(experimentHelper.Update(func(pipeline *pipelinesv1.Experiment) {
-				pipeline.Spec = pipelinesv1.RandomExperimentSpec(Provider.Name)
+			Expect(experimentHelper.Update(func(pipeline *pipelineshub.Experiment) {
+				pipeline.Spec = pipelineshub.RandomExperimentSpec(Provider.Name)
 			})).To(Succeed())
 
-			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Updating))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 			})).Should(Succeed())
@@ -52,7 +52,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 				workflowutil.SetProviderOutput(workflow, providers.Output{Id: anotherProviderId})
 			})).Should(Succeed())
 
-			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(experiment.Status.Provider.Name).To(Equal(experiment.Spec.Provider))
@@ -60,7 +60,7 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 
 			Expect(experimentHelper.Delete()).To(Succeed())
 
-			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelinesv1.Experiment) {
+			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Deleting))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Deleting))
 			})).Should(Succeed())

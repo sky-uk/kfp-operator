@@ -33,10 +33,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	pipelinesv1alpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshubalpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
+	pipelineshubalpha6 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
 
@@ -53,8 +54,9 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(pipelinesv1.AddToScheme(scheme))
-	utilruntime.Must(pipelinesv1alpha5.AddToScheme(scheme))
+	utilruntime.Must(pipelineshubalpha5.AddToScheme(scheme))
+	utilruntime.Must(pipelineshubalpha6.AddToScheme(scheme))
+	utilruntime.Must(pipelineshub.AddToScheme(scheme))
 	utilruntime.Must(config.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 
@@ -89,7 +91,7 @@ func main() {
 	}
 
 	// TODO: This is temporary whilst have conversion from v1alpha5 to v1alpha6, this is to be removed once v1alpha5 is removed.
-	pipelinesv1alpha5.DefaultProvider = ctrlConfig.Spec.DefaultProvider
+	pipelineshubalpha5.DefaultProvider = ctrlConfig.Spec.DefaultProvider
 
 	var mgr ctrl.Manager
 
@@ -163,26 +165,26 @@ func main() {
 	}
 
 	if ctrlConfig.Spec.Multiversion {
-		if err = (&pipelinesv1.Pipeline{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&pipelineshub.Pipeline{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
 			os.Exit(1)
 		}
-		if err = (&pipelinesv1.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&pipelineshub.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
 			os.Exit(1)
 		}
-		if err = (&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&pipelineshub.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
 			os.Exit(1)
 		}
-		if err = (&pipelinesv1.RunSchedule{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&pipelineshub.RunSchedule{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "RunSchedule")
 			os.Exit(1)
 		}
 	}
 
 	// Resources that have a validation webhook in addition to conversion
-	if err = (&pipelinesv1.Run{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = (&pipelineshub.Run{}).SetupWebhookWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Run")
 		os.Exit(1)
 	}

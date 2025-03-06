@@ -10,7 +10,7 @@ variables.
 It then submits the pipeline to Kubeflow and manages versions accordingly.
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha6
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Pipeline
 metadata:
   name: penguin-pipeline

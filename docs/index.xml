@@ -15,7 +15,7 @@
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>defaultProvider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers/overview">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed on release of v1alpha7&lt;/td>
+ &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
  &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
@@ -45,7 +45,7 @@
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>defaultProviderValues&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../../reference/providers/overview">providers&lt;/a>&lt;/td>
+ &lt;td style="text-align: left">&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
  &lt;td style="text-align: left">&lt;/td>
  &lt;/tr>
  &lt;/tbody>
@@ -121,7 +121,7 @@
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>defaultProvider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed on release of v1alpha7&lt;/td>
+ &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
  &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
@@ -146,13 +146,10 @@
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>An example configuration:&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>&lt;p>The Kubeflow Pipelines Operator (KFP Operator) offers a declarative API designed to streamline the management,
-execution, and events of ML pipelines across various providers using resource definitions.
+&lt;p>An example configuration:&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/overview/</guid><description>&lt;p>The Kubeflow Pipelines Operator (KFP Operator) offers a declarative API designed to streamline the management and
+execution of ML pipelines across various providers using resource definitions.
 A &amp;ldquo;provider&amp;rdquo; refers to a runtime environment that handles the orchestration and execution of these pipelines and
 associated resources.&lt;/p>
-&lt;p>The diagram below gives a high level overview of what the KFP Operator offers.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/high-level-overview.svg" alt="high-level-overview">&lt;/p>
-&lt;p>For a more detailed architecture, see this &lt;a href="../introduction/#architecture-overview">overview&lt;/a>.&lt;/p>
 &lt;h3 id="why-kfp-operator">Why KFP Operator&lt;/h3>
 &lt;p>This project was initiated with the goal of &lt;strong>promoting best practices in Machine Learning engineering&lt;/strong> while minimizing
 the operational complexities involved in deploying, executing, and maintaining training pipelines. This project seeks to
@@ -178,7 +175,7 @@ Pipelines can be created, updated and deleted via this resource.
 The operator compiles the pipeline into a deployable artifact while providing compile time parameters as environment
 variables.
 It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1beta1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Pipeline&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline&lt;/span>
@@ -308,7 +305,7 @@ Note that the pipeline definition itself is simpler because all infrastructure r
 &lt;/ul>
 &lt;p>In this example, we break up the penguin example pipeline into two pipelines:&lt;/p></description></item><item><title>RunConfiguration</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/runconfiguration/</guid><description>&lt;p>The RunConfiguration resource represents the lifecycle of recurring runs (aka Jobs in KFP).
 Pipeline training runs can be configured using this resource as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1beta1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">RunConfiguration&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-recurring-run&lt;/span>
@@ -380,7 +377,7 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;h3 id="build-and-install">Build and Install&lt;/h3>
 &lt;p>Create basic &lt;code>values.yaml&lt;/code> with the following content:&lt;/p></description></item><item><title>Run</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/run/</guid><description>&lt;p>The Run resource represents the lifecycle of a one-off run.
 One-off pipeline training runs can be configured using this resource as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1beta1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Run&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">generateName&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-run-&lt;/span>
@@ -523,7 +520,7 @@ To use it, users can create an Argo-Events &lt;a href="https://argoproj.github.i
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;blockquote>
 &lt;p>&lt;strong>&lt;em>NOTE:&lt;/em>&lt;/strong> currently, the event includes both &lt;code>servingModelArtifacts&lt;/code> and &lt;code>artifacts&lt;/code>:&lt;/p></description></item><item><title>Experiment</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/experiment/</guid><description>&lt;p>The Experiment resource represents the lifecycle of Experiments,
 and can be configured as follows:&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1alpha6&lt;/span>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">pipelines.kubeflow.org/v1beta1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">Experiment&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
@@ -645,7 +642,7 @@ Providers configuration can be set using this resource and permissions for acces
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>&lt;sup>*&lt;/sup> field automatically populated by Helm based on provider type&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
+&lt;p>&lt;sup>*&lt;/sup> field automatically populated by Helm based on provider type&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
 Within the operator this can be updating the status fields of resources such as their &lt;code>synchronizationState&lt;/code> or &lt;code>providerId&lt;/code>. Within the ML Ops ecosystem,
 this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/run-completion.svg" alt="Model Serving">&lt;/p>

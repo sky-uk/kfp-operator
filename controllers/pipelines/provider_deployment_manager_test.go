@@ -8,8 +8,8 @@ import (
 	"fmt"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	configv1 "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	appsv1 "k8s.io/api/apps/v1"
@@ -27,7 +27,7 @@ var _ = Context("Provider Deployment Manager", func() {
 
 	var (
 		ctx               = context.Background()
-		provider          = pipelinesv1.RandomProvider()
+		provider          = pipelineshub.RandomProvider()
 		client            k8sClient.Client
 		deploymentManager DeploymentManager
 	)
@@ -49,8 +49,8 @@ var _ = Context("Provider Deployment Manager", func() {
 		deploymentManager = DeploymentManager{
 			client: optInClient,
 			scheme: client.Scheme(),
-			config: &v1alpha6.KfpControllerConfigSpec{
-				DefaultProviderValues: v1alpha6.DefaultProviderValues{
+			config: &configv1.KfpControllerConfigSpec{
+				DefaultProviderValues: configv1.DefaultProviderValues{
 					ServiceContainerName: "ServiceContainerName",
 					PodTemplateSpec: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
@@ -153,7 +153,7 @@ var _ = Context("Provider Deployment Manager", func() {
 					Name:      "deployment",
 					Namespace: "default",
 					OwnerReferences: []metav1.OwnerReference{
-						*metav1.NewControllerRef(provider, pipelinesv1.GroupVersion.WithKind("Provider")),
+						*metav1.NewControllerRef(provider, pipelineshub.GroupVersion.WithKind("Provider")),
 					},
 				},
 			}
