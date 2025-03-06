@@ -1,0 +1,1 @@
+../kfp-operator-sandbox/kfp-operator/vai-provider-setup-minikube.sh
