@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -15,14 +15,14 @@ import (
 
 var _ = Context("aggregateState", func() {
 	DescribeTable("calculates based on sub states", func(subStates []apis.SynchronizationState, expectedState apis.SynchronizationState, expectedMessage string) {
-		runSchedules := make([]pipelinesv1.RunSchedule, len(subStates))
+		runSchedules := make([]pipelineshub.RunSchedule, len(subStates))
 		for i, state := range subStates {
-			runSchedules[i] = pipelinesv1.RunSchedule{
-				Status: pipelinesv1.Status{
+			runSchedules[i] = pipelineshub.RunSchedule{
+				Status: pipelineshub.Status{
 					SynchronizationState: state,
 					Conditions: []metav1.Condition{
 						{
-							Type:    pipelinesv1.ConditionTypes.SynchronizationSucceeded,
+							Type:    pipelineshub.ConditionTypes.SynchronizationSucceeded,
 							Message: string(state),
 						},
 					},
@@ -45,14 +45,14 @@ var _ = Context("aggregateState", func() {
 })
 
 var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
-	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
+	Expect(pipelineshub.AddToScheme(scheme.Scheme)).To(Succeed())
 	rcr := RunConfigurationReconciler{
 		Scheme: scheme.Scheme,
 	}
 
 	It("propagates the runconfiguration's name", func() {
-		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
-		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(pipelinesv1.RandomSchedule)}
+		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
+		runConfiguration.Spec.Triggers = pipelineshub.Triggers{Schedules: apis.RandomList(pipelineshub.RandomSchedule)}
 
 		run, err := rcr.constructRunForRunConfiguration(runConfiguration)
 		Expect(err).NotTo(HaveOccurred())
@@ -62,15 +62,15 @@ var _ = Context("constructRunForRunConfiguration", PropertyBased, func() {
 })
 
 var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
-	Expect(pipelinesv1.AddToScheme(scheme.Scheme)).To(Succeed())
+	Expect(pipelineshub.AddToScheme(scheme.Scheme)).To(Succeed())
 	rcr := RunConfigurationReconciler{
 		Scheme: scheme.Scheme,
 	}
 
 	It("sets all spec fields", func() {
-		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
-		runConfiguration.Spec.Triggers = pipelinesv1.Triggers{Schedules: apis.RandomList(pipelinesv1.RandomSchedule)}
-		resolvedParameters := pipelines.Map(runConfiguration.Spec.Run.RuntimeParameters, func(rp pipelinesv1.RuntimeParameter) apis.NamedValue {
+		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
+		runConfiguration.Spec.Triggers = pipelineshub.Triggers{Schedules: apis.RandomList(pipelineshub.RandomSchedule)}
+		resolvedParameters := pipelines.Map(runConfiguration.Spec.Run.RuntimeParameters, func(rp pipelineshub.RuntimeParameter) apis.NamedValue {
 			return apis.NamedValue{Name: rp.Name, Value: rp.Value}
 		})
 
@@ -92,9 +92,9 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 
 var _ = Context("updateRcTriggers", PropertyBased, func() {
 	It("sets the pipeline trigger status", func() {
-		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
-		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{
-			pipelinesv1.OnChangeTypes.Pipeline,
+		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
+		runConfiguration.Spec.Triggers.OnChange = []pipelineshub.OnChangeType{
+			pipelineshub.OnChangeTypes.Pipeline,
 		}
 		runConfiguration.Status.ObservedPipelineVersion = apis.RandomString()
 		rcr := RunConfigurationReconciler{}
@@ -102,20 +102,20 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 	})
 
 	It("sets the runSpec trigger status", func() {
-		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
-		runConfiguration.Spec.Triggers.OnChange = []pipelinesv1.OnChangeType{
-			pipelinesv1.OnChangeTypes.RunSpec,
+		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
+		runConfiguration.Spec.Triggers.OnChange = []pipelineshub.OnChangeType{
+			pipelineshub.OnChangeTypes.RunSpec,
 		}
 		rcr := RunConfigurationReconciler{}
 		Expect(rcr.updateRcTriggers(*runConfiguration).Triggers.RunSpec.Version).To(Equal(runConfiguration.Spec.Run.ComputeVersion()))
 	})
 
 	It("sets the runConfigurations trigger status", func() {
-		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
+		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
 		runConfiguration.Spec.Triggers.RunConfigurations = apis.RandomList(apis.RandomString)
-		runConfiguration.Status.Dependencies.RunConfigurations = make(map[string]pipelinesv1.RunReference)
+		runConfiguration.Status.Dependencies.RunConfigurations = make(map[string]pipelineshub.RunReference)
 		for _, rc := range runConfiguration.Spec.Triggers.RunConfigurations {
-			runConfiguration.Status.Dependencies.RunConfigurations[rc] = pipelinesv1.RunReference{
+			runConfiguration.Status.Dependencies.RunConfigurations[rc] = pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 			}
 		}
@@ -128,7 +128,7 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 	})
 
 	It("retains other fields", func() {
-		runConfiguration := pipelinesv1.RandomRunConfiguration(apis.RandomLowercaseString())
+		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
 		rcr := RunConfigurationReconciler{}
 		updatedStatus := rcr.updateRcTriggers(*runConfiguration)
 		updatedStatus.Triggers = runConfiguration.Status.Triggers

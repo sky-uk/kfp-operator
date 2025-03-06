@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,9 +24,9 @@ const (
 type DependingOnRunConfigurationResource interface {
 	client.Object
 	GetReferencedRCs() []string
-	GetReferencedRCArtifacts() []pipelinesv1.RunConfigurationRef
-	GetDependencyRuns() map[string]pipelinesv1.RunReference
-	SetDependencyRuns(map[string]pipelinesv1.RunReference)
+	GetReferencedRCArtifacts() []pipelineshub.RunConfigurationRef
+	GetDependencyRuns() map[string]pipelineshub.RunReference
+	SetDependencyRuns(map[string]pipelineshub.RunReference)
 }
 
 type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource] struct {
@@ -36,7 +36,7 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
-	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelinesv1.RunConfigurationRef) (string, string) {
+	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelineshub.RunConfigurationRef) (string, string) {
 		return r.Name, r.OutputArtifact
 	})
 	for _, rc := range resource.GetReferencedRCs() {
@@ -45,7 +45,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 		}
 	}
 
-	dependencies := make(map[string]pipelinesv1.RunReference)
+	dependencies := make(map[string]pipelineshub.RunReference)
 
 	for dependencyName, artifactReferences := range artifactReferencesByDependency {
 		runConfiguration, err := dr.getIgnoreNotFound(ctx, types.NamespacedName{
@@ -57,7 +57,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 		}
 
 		if runConfiguration == nil {
-			dependencies[dependencyName] = pipelinesv1.RunReference{}
+			dependencies[dependencyName] = pipelineshub.RunReference{}
 			continue
 		}
 
@@ -72,7 +72,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 			}
 		}
 
-		dependencies[dependencyName] = pipelinesv1.RunReference{
+		dependencies[dependencyName] = pipelineshub.RunReference{
 			ProviderId: runConfiguration.Status.LatestRuns.Succeeded.ProviderId,
 			Artifacts:  dependencyArtifacts,
 		}
@@ -92,9 +92,9 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 	return false, nil
 }
 
-func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context.Context, key client.ObjectKey) (*pipelinesv1.RunConfiguration, error) {
+func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context.Context, key client.ObjectKey) (*pipelineshub.RunConfiguration, error) {
 	logger := log.FromContext(ctx)
-	runConfiguration := &pipelinesv1.RunConfiguration{}
+	runConfiguration := &pipelineshub.RunConfiguration{}
 
 	if err := dr.EC.Client.NonCached.Get(ctx, key, runConfiguration); err != nil {
 		if errors.IsNotFound(err) {
@@ -117,7 +117,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Man
 	}
 
 	return controllerBuilder.Watches(
-		&pipelinesv1.RunConfiguration{},
+		&pipelineshub.RunConfiguration{},
 		handler.EnqueueRequestsFromMapFunc(reconciliationRequestsForPipeline),
 		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 	), nil
