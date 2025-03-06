@@ -242,8 +242,6 @@ spec:
                   - value
                   type: object
                 type: array
-              framework:
-                type: string
               image:
                 type: string
               provider:
@@ -405,17 +403,25 @@ spec:
                   type: object
                 type: array
               framework:
-                type: string
+                properties:
+                  parameters:
+                    additionalProperties:
+                      x-kubernetes-preserve-unknown-fields: true
+                    type: object
+                  type:
+                    type: string
+                required:
+                  - parameters
+                  - type
+                type: object
               image:
                 type: string
               provider:
                 type: string
-              tfxComponents:
-                type: string
             required:
+            - framework
             - image
             - provider
-            - tfxComponents
             type: object
           status:
             properties:

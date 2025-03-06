@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"encoding/json"
 	"fmt"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"strings"
 
 	. "github.com/docker/distribution/reference"
@@ -13,19 +14,30 @@ import (
 )
 
 type PipelineSpec struct {
-	Provider      string            `json:"provider" yaml:"provider"`
-	Image         string            `json:"image" yaml:"image"`
-	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []apis.NamedValue `json:"env,omitempty" yaml:"env"`
-	BeamArgs      []apis.NamedValue `json:"beamArgs,omitempty"`
-	Framework     string            `json:"framework,omitempty" yaml:"framework"`
+	Provider  string            `json:"provider" yaml:"provider"`
+	Image     string            `json:"image" yaml:"image"`
+	Env       []apis.NamedValue `json:"env,omitempty" yaml:"env"`
+	BeamArgs  []apis.NamedValue `json:"beamArgs,omitempty"`
+	Framework PipelineFramework `json:"framework" yaml:"framework"`
+}
+
+type PipelineFramework struct {
+	Type       string                           `json:"type" yaml:"type"`
+	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
 }
 
 func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(ps.Spec.Framework)
+	oh.WriteStringField(ps.Spec.Framework.Type)
+
+	output := make(map[string]string)
+	for key, value := range ps.Spec.Framework.Parameters {
+		raw, _ := json.Marshal(value.Raw)
+		output[key] = string(raw)
+	}
+	oh.WriteMapField(output)
+	//oh.WriteMapJSONField(ps.Spec.Framework.Parameters)
 	oh.WriteStringField(ps.Spec.Image)
-	oh.WriteStringField(ps.Spec.TfxComponents)
 	pipelines.WriteKVListField(oh, ps.Spec.Env)
 	pipelines.WriteKVListField(oh, ps.Spec.BeamArgs)
 	return oh.Sum()
@@ -128,6 +140,45 @@ func (pipeline *Pipeline) UnversionedIdentifier() PipelineIdentifier {
 func (pipeline *Pipeline) VersionedIdentifier() PipelineIdentifier {
 	return PipelineIdentifier{Name: pipeline.Name, Version: pipeline.ComputeVersion()}
 }
+
+//type JSONWrapper struct {
+//	// Preserve unknown fields for arbitrary JSON data
+//	// +kubebuilder:pruning:PreserveUnknownFields
+//	Raw apiextensionsv1.JSON `json:"-"`
+//}
+//
+//// MarshalJSON ensures correct JSON serialization
+//func (j JSONWrapper) MarshalJSON() ([]byte, error) {
+//	return json.Marshal(j.Raw)
+//}
+//
+//// UnmarshalJSON ensures correct JSON deserialization
+//func (j *JSONWrapper) UnmarshalJSON(data []byte) error {
+//	return json.Unmarshal(data, &j.Raw)
+//}
+//
+//// MarshalYAML ensures correct YAML serialization
+//func (j JSONWrapper) MarshalYAML() (interface{}, error) {
+//	var jsonData interface{}
+//	if err := json.Unmarshal(j.Raw.Raw, &jsonData); err != nil {
+//		return nil, err
+//	}
+//	return jsonData, nil
+//}
+//
+//// UnmarshalYAML ensures correct YAML deserialization
+//func (j *JSONWrapper) UnmarshalYAML(unmarshal func(interface{}) error) error {
+//	var jsonData interface{}
+//	if err := unmarshal(&jsonData); err != nil {
+//		return err
+//	}
+//	rawBytes, err := json.Marshal(jsonData)
+//	if err != nil {
+//		return err
+//	}
+//	j.Raw = apiextensionsv1.JSON{Raw: rawBytes}
+//	return nil
+//}
 
 func init() {
 	SchemeBuilder.Register(&Pipeline{}, &PipelineList{})
