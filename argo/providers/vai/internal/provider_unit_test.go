@@ -8,7 +8,7 @@ import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"google.golang.org/grpc/codes"
@@ -36,7 +36,7 @@ func randomRunScheduleDefinition() RunScheduleDefinition {
 		PipelineVersion:      common.RandomString(),
 		RunConfigurationName: common.RandomNamespacedName(),
 		ExperimentName:       common.RandomNamespacedName(),
-		Schedule: pipelinesv1.Schedule{
+		Schedule: pipelineshub.Schedule{
 			CronExpression: "1 1 0 0 0",
 			StartTime:      &now,
 			EndTime:        &now,

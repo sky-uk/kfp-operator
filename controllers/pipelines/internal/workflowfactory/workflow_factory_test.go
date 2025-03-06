@@ -6,16 +6,16 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 )
 
 var _ = Describe("CommonWorkflowMeta", func() {
 	It("creates metadata", func() {
-		owner := pipelinesv1.RandomResource()
+		owner := pipelineshub.RandomResource()
 		namespace := RandomString()
-		w := ResourceWorkflowFactory[*pipelinesv1.TestResource, interface{}]{
+		w := ResourceWorkflowFactory[*pipelineshub.TestResource, interface{}]{
 			Config: config.KfpControllerConfigSpec{
 				WorkflowNamespace: namespace,
 			},
