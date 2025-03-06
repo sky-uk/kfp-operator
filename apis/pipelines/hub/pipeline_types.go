@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"encoding/json"
 	"fmt"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"strings"
 
 	. "github.com/docker/distribution/reference"
@@ -13,17 +14,25 @@ import (
 )
 
 type PipelineSpec struct {
-	Provider      string            `json:"provider" yaml:"provider"`
-	Image         string            `json:"image" yaml:"image"`
-	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []apis.NamedValue `json:"env,omitempty" yaml:"env"`
-	BeamArgs      []apis.NamedValue `json:"beamArgs,omitempty"`
-	Framework     string            `json:"framework,omitempty" yaml:"framework"`
+	Provider      string             `json:"provider" yaml:"provider"`
+	Image         string             `json:"image" yaml:"image"`
+	TfxComponents string             `json:"tfxComponents" yaml:"tfxComponents"`
+	Env           []apis.NamedValue  `json:"env,omitempty" yaml:"env"`
+	BeamArgs      []apis.NamedValue  `json:"beamArgs,omitempty"`
+	Framework     *PipelineFramework `json:"framework,omitempty" yaml:"framework"`
+}
+
+type PipelineFramework struct {
+	Type       string                           `json:"type" yaml:"type"`
+	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
 }
 
 func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(ps.Spec.Framework)
+	if ps.Spec.Framework != nil {
+		oh.WriteStringField(ps.Spec.Framework.Type)
+		oh.WriteMapJSONField(ps.Spec.Framework.Parameters)
+	}
 	oh.WriteStringField(ps.Spec.Image)
 	oh.WriteStringField(ps.Spec.TfxComponents)
 	pipelines.WriteKVListField(oh, ps.Spec.Env)

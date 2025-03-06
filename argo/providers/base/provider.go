@@ -3,18 +3,18 @@ package base
 import (
 	"context"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type PipelineDefinition struct {
-	Name          common.NamespacedName `yaml:"name"`
-	Version       string                `yaml:"version"`
-	Image         string                `yaml:"image"`
-	TfxComponents string                `yaml:"tfxComponents"`
-	Env           []apis.NamedValue     `yaml:"env"`
-	BeamArgs      []apis.NamedValue     `yaml:"beamArgs"`
-	Framework     string                `yaml:"framework"`
+	Name          common.NamespacedName           `yaml:"name"`
+	Version       string                          `yaml:"version"`
+	Image         string                          `yaml:"image"`
+	TfxComponents string                          `yaml:"tfxComponents"`
+	Env           []apis.NamedValue               `yaml:"env"`
+	BeamArgs      []apis.NamedValue               `yaml:"beamArgs"`
+	Framework     *pipelineshub.PipelineFramework `yaml:"framework"`
 }
 
 type ExperimentDefinition struct {
@@ -24,26 +24,26 @@ type ExperimentDefinition struct {
 }
 
 type RunScheduleDefinition struct {
-	Name                 common.NamespacedName      `yaml:"name"`
-	Version              string                     `yaml:"version"`
-	PipelineName         common.NamespacedName      `yaml:"pipelineName"`
-	PipelineVersion      string                     `yaml:"pipelineVersion"`
-	RunConfigurationName common.NamespacedName      `yaml:"runConfigurationName"`
-	ExperimentName       common.NamespacedName      `yaml:"experimentName"`
-	Schedule             pipelines.Schedule         `yaml:"schedule"`
-	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
-	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
+	Name                 common.NamespacedName         `yaml:"name"`
+	Version              string                        `yaml:"version"`
+	PipelineName         common.NamespacedName         `yaml:"pipelineName"`
+	PipelineVersion      string                        `yaml:"pipelineVersion"`
+	RunConfigurationName common.NamespacedName         `yaml:"runConfigurationName"`
+	ExperimentName       common.NamespacedName         `yaml:"experimentName"`
+	Schedule             pipelineshub.Schedule         `yaml:"schedule"`
+	RuntimeParameters    map[string]string             `yaml:"runtimeParameters"`
+	Artifacts            []pipelineshub.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type RunDefinition struct {
-	Name                 common.NamespacedName      `yaml:"name"`
-	Version              string                     `yaml:"version"`
-	PipelineName         common.NamespacedName      `yaml:"pipelineName"`
-	PipelineVersion      string                     `yaml:"pipelineVersion"`
-	RunConfigurationName common.NamespacedName      `yaml:"runConfigurationName"`
-	ExperimentName       common.NamespacedName      `yaml:"experimentName"`
-	RuntimeParameters    map[string]string          `yaml:"runtimeParameters"`
-	Artifacts            []pipelines.OutputArtifact `yaml:"artifacts,omitempty"`
+	Name                 common.NamespacedName         `yaml:"name"`
+	Version              string                        `yaml:"version"`
+	PipelineName         common.NamespacedName         `yaml:"pipelineName"`
+	PipelineVersion      string                        `yaml:"pipelineVersion"`
+	RunConfigurationName common.NamespacedName         `yaml:"runConfigurationName"`
+	ExperimentName       common.NamespacedName         `yaml:"experimentName"`
+	RuntimeParameters    map[string]string             `yaml:"runtimeParameters"`
+	Artifacts            []pipelineshub.OutputArtifact `yaml:"artifacts,omitempty"`
 }
 
 type Output struct {

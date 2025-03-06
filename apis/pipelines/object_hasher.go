@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"hash"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sort"
 )
@@ -23,6 +24,15 @@ func NewObjectHasher() ObjectHasher {
 func (oh ObjectHasher) WriteStringField(value string) {
 	oh.h.Write([]byte(value))
 	oh.WriteFieldSeparator()
+}
+
+func (oh ObjectHasher) WriteMapJSONField(value map[string]*apiextensionsv1.JSON) {
+	output := make(map[string]string)
+
+	for key, value := range value {
+		output[key] = string(value.Raw)
+	}
+	oh.WriteMapField(output)
 }
 
 func (oh ObjectHasher) WriteMapField(value map[string]string) {

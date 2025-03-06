@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 var _ = Context("Pipeline", func() {
@@ -35,7 +36,12 @@ var _ = Context("Pipeline", func() {
 			pipeline := Pipeline{}
 			hash1 := pipeline.ComputeHash()
 
-			pipeline.Spec.Framework = "notempty"
+			pipeline.Spec.Framework = &PipelineFramework{
+				Type: "some-framework",
+				Parameters: map[string]*apiextensionsv1.JSON{
+					"key": {Raw: []byte("value")},
+				},
+			}
 			hash2 := pipeline.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
