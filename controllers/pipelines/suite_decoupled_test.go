@@ -120,7 +120,7 @@ var _ = BeforeSuite(func() {
 	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
 
 	providerSvc := corev1.Service{}
-	providerSvc.SetName(apis.RandomLowercaseString())
+	providerSvc.SetName("provider-svc")
 	providerSvc.SetNamespace(Provider.Namespace)
 	providerSvc.Spec.Ports = []corev1.ServicePort{{Port: 8080}}
 	providerSvc.SetOwnerReferences(
