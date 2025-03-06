@@ -4,8 +4,8 @@ package workflowfactory
 
 import (
 	. "github.com/onsi/ginkgo/v2"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	testutil "github.com/sky-uk/kfp-operator/common/testutil/provider"
 )
@@ -26,18 +26,18 @@ var _ = Context("Pipeline Resource Workflows", Serial, func() {
 		},
 	)
 
-	var newPipeline = func() *pipelinesv1.Pipeline {
-		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline(TestProvider))
+	var newPipeline = func() *pipelineshub.Pipeline {
+		pipeline := withIntegrationTestFields(pipelineshub.RandomPipeline(TestProvider))
 		pipeline.Spec.Image = "kfp-operator-stub-compiler"
 
 		return pipeline
 	}
 
-	newPipelineWithProviderId := func(providerId string) *pipelinesv1.Pipeline {
+	newPipelineWithProviderId := func(providerId string) *pipelineshub.Pipeline {
 		pipeline := newPipeline()
 		pipeline.SetStatus(
-			pipelinesv1.Status{
-				Provider: pipelinesv1.ProviderAndId{
+			pipelineshub.Status{
+				Provider: pipelineshub.ProviderAndId{
 					Id: providerId,
 				},
 			},
@@ -46,7 +46,7 @@ var _ = Context("Pipeline Resource Workflows", Serial, func() {
 		return pipeline
 	}
 
-	DescribeTable("Workflows", AssertWorkflow[*pipelinesv1.Pipeline],
+	DescribeTable("Workflows", AssertWorkflow[*pipelineshub.Pipeline],
 		Entry(
 			"Creation",
 			newPipeline(),

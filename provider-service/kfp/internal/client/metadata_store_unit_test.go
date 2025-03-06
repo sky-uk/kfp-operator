@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/ml_metadata"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
@@ -57,10 +57,10 @@ var _ = Context("gRPC Metadata Store", func() {
 		artifactName := common.RandomString()
 		componentName := common.RandomString()
 		outputName := common.RandomString()
-		artifactDefs := []pipelinesv1.OutputArtifact{{
+		artifactDefs := []pipelineshub.OutputArtifact{{
 			Name: artifactName,
-			Path: pipelinesv1.ArtifactPath{
-				Locator: pipelinesv1.ArtifactLocator{
+			Path: pipelineshub.ArtifactPath{
+				Locator: pipelineshub.ArtifactLocator{
 					Component: componentName,
 					Artifact:  outputName,
 					Index:     1,
@@ -82,7 +82,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					},
 				).Return(nil, fmt.Errorf("an error"))
 
-				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelinesv1.OutputArtifact{})
+				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelineshub.OutputArtifact{})
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -104,7 +104,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					nil,
 				)
 
-				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelinesv1.OutputArtifact{})
+				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelineshub.OutputArtifact{})
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -118,7 +118,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
 				).Return(nil, fmt.Errorf("an error"))
 
-				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelinesv1.OutputArtifact{})
+				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelineshub.OutputArtifact{})
 				Expect(err).To(HaveOccurred())
 			})
 		})
