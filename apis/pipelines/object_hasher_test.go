@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/apis"
 	v1 "k8s.io/api/apps/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -199,6 +200,45 @@ var _ = Context("ObjectHasher", func() {
 
 				Expect(oh1.Sum()).To(Equal(oh2.Sum()))
 			}
+		})
+	})
+
+	var _ = Describe("WriteMapJSONField", func() {
+
+		Specify("Map interface field hash should be consistent", func() {
+			iterations := 10
+
+			sameMap := map[string]*apiextensionsv1.JSON{
+				"a": {Raw: []byte(`"1"`)},
+				"b": {Raw: []byte(`999`)},
+			}
+
+			for i := 0; i < iterations; i++ {
+				oh1 := NewObjectHasher()
+				oh1.WriteMapJSONField(sameMap)
+
+				oh2 := NewObjectHasher()
+				oh2.WriteMapJSONField(sameMap)
+
+				Expect(oh1.Sum()).To(Equal(oh2.Sum()))
+			}
+		})
+
+		Specify("Map interface fields should be considered separate", func() {
+			oh1 := NewObjectHasher()
+
+			oh1.WriteMapJSONField(map[string]*apiextensionsv1.JSON{
+				"a": {Raw: []byte(`"bc"`)},
+				"d": {Raw: []byte(`"e"`)},
+			})
+
+			oh2 := NewObjectHasher()
+			oh2.WriteMapJSONField(map[string]*apiextensionsv1.JSON{
+				"a":  {Raw: []byte(`"b"`)},
+				"cd": {Raw: []byte(`"e"`)},
+			})
+
+			Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
 		})
 	})
 

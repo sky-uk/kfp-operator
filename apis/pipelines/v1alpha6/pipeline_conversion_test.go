@@ -1,6 +1,6 @@
 //go:build unit
 
-package v1alpha5
+package v1alpha6
 
 import (
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -12,20 +12,9 @@ import (
 
 var _ = Context("Pipeline Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object using default provider", func() {
-			src := RandomPipeline()
-			DefaultProvider = "default-provider"
-			intermediate := &hub.Pipeline{}
-			dst := &Pipeline{}
-
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
-		})
 
 		Specify("converts to and from the same object", func() {
-			src := RandomPipeline()
-			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
+			src := RandomPipeline(apis.RandomLowercaseString())
 			intermediate := &hub.Pipeline{}
 			dst := &Pipeline{}
 
@@ -72,7 +61,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 		})
 
 		Specify("ConvertTo fails when there are no annotations and tfx components isn't set", func() {
-			src := RandomPipeline()
+			src := RandomPipeline(apis.RandomLowercaseString())
 			src.Spec.TfxComponents = ""
 			dst := &hub.Pipeline{}
 
