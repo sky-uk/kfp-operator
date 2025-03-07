@@ -3,7 +3,6 @@ include ../../docker-targets.mk
 include ../../help.mk
 
 IMG := kfp-operator-vai-provider-service
-DOCKER_BUILD_EXTRA_PARAMS=--build-context base-source=".."
 
 ##@ Development
 
