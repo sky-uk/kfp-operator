@@ -16,11 +16,9 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		owner := pipelinesv1.RandomResource()
 		namespace := RandomString()
 		w := ResourceWorkflowFactory[*pipelinesv1.TestResource, interface{}]{
-			Config: config.KfpControllerConfigSpec{
-				WorkflowNamespace: namespace,
-			},
+			Config: config.KfpControllerConfigSpec{},
 		}
-		meta := w.CommonWorkflowMeta(owner)
+		meta := w.CommonWorkflowMeta(owner, namespace)
 
 		Expect(meta.Namespace).To(Equal(namespace))
 		Expect(meta.GetGenerateName()).To(Equal(owner.GetKind() + "-" + owner.GetName() + "-"))
@@ -28,5 +26,18 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		Expect(meta.Labels[workflowconstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
 		Expect(meta.Labels[workflowconstants.OwnerNameLabelKey]).To(Equal(owner.GetName()))
 		Expect(meta.Labels[workflowconstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
+	})
+
+	It("uses config.WorkflowNamespace if set", func() {
+		owner := pipelinesv1.RandomResource()
+		configuredNamespace := "configuredNamespace"
+		w := ResourceWorkflowFactory[*pipelinesv1.TestResource, interface{}]{
+			Config: config.KfpControllerConfigSpec{
+				WorkflowNamespace: configuredNamespace,
+			},
+		}
+		meta := w.CommonWorkflowMeta(owner, "otherNamespace")
+
+		Expect(meta.Namespace).To(Equal(configuredNamespace))
 	})
 })

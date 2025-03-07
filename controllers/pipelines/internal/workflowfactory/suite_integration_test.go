@@ -32,7 +32,6 @@ import (
 const (
 	TestTimeout   = 120
 	TestNamespace = "argo"
-	TestProvider  = "stub"
 )
 
 var (
@@ -41,6 +40,10 @@ var (
 		APIPath: "/api",
 	}
 	TestProviderConfig = pipelinesv1.RandomProvider()
+	TestProvider       = common.NamespacedName{
+		Name:      "stub",
+		Namespace: "default",
+	}
 )
 
 func TestPipelineControllersIntegrationSuite(t *testing.T) {

@@ -81,10 +81,17 @@ func WorkflowParamsCreatorNoop[R any](_ R) ([]argo.Parameter, error) {
 
 func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMeta(
 	owner pipelinesv1.Resource,
+	workflowNamespace string,
 ) *metav1.ObjectMeta {
+	var namespace string
+	if workflows.Config.WorkflowNamespace != "" {
+		namespace = workflows.Config.WorkflowNamespace
+	} else {
+		namespace = workflowNamespace
+	}
 	return &metav1.ObjectMeta{
 		GenerateName: fmt.Sprintf("%s-%s-", owner.GetKind(), owner.GetName()),
-		Namespace:    workflows.Config.WorkflowNamespace,
+		Namespace:    namespace,
 		Labels:       workflowconstants.CommonWorkflowLabels(owner),
 	}
 }
@@ -118,6 +125,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
+	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		return nil, err
+	}
+
 	params := []argo.Parameter{
 		{
 			Name:  workflowconstants.ResourceKindParameterName,
@@ -129,7 +141,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		},
 		{
 			Name:  workflowconstants.ProviderNameParameterName,
-			Value: argo.AnyStringPtr(provider.Name),
+			Value: argo.AnyStringPtr(namespacedProvider),
 		},
 		{
 			Name:  workflowconstants.ProviderConfigParameterName,
@@ -153,7 +165,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	params = append(params, additionalParams...)
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider.Namespace),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: params,
@@ -179,6 +191,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	if err != nil {
 		return nil, err
 	}
+
+	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		return nil, err
+	}
 	params := []argo.Parameter{
 		{
 			Name:  workflowconstants.ResourceKindParameterName,
@@ -194,7 +211,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		},
 		{
 			Name:  workflowconstants.ProviderNameParameterName,
-			Value: argo.AnyStringPtr(provider.Name),
+			Value: argo.AnyStringPtr(namespacedProvider),
 		},
 		{
 			Name:  workflowconstants.ProviderConfigParameterName,
@@ -218,7 +235,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	params = append(params, additionalParams...)
 
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider.Namespace),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: params,
@@ -240,8 +257,14 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 		return nil, err
 	}
 
+	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		fmt.Println("ResourceWorkflowFactory: err: ", err)
+		return nil, err
+	}
+
 	return &argo.Workflow{
-		ObjectMeta: *workflows.CommonWorkflowMeta(resource),
+		ObjectMeta: *workflows.CommonWorkflowMeta(resource, provider.Namespace),
 		Spec: argo.WorkflowSpec{
 			Arguments: argo.Arguments{
 				Parameters: []argo.Parameter{
@@ -255,7 +278,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 					},
 					{
 						Name:  workflowconstants.ProviderNameParameterName,
-						Value: argo.AnyStringPtr(provider.Name),
+						Value: argo.AnyStringPtr(namespacedProvider),
 					},
 					{
 						Name:  workflowconstants.ProviderConfigParameterName,
