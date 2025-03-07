@@ -18,7 +18,7 @@ type PipelineSpec struct {
 	Image     string             `json:"image" yaml:"image"`
 	Env       []apis.NamedValue  `json:"env,omitempty" yaml:"env"`
 	BeamArgs  []apis.NamedValue  `json:"beamArgs,omitempty"`
-	Framework *PipelineFramework `json:"framework,omitempty" yaml:"framework"`
+	Framework *PipelineFramework `json:"framework" yaml:"framework"`
 }
 
 type PipelineFramework struct {
