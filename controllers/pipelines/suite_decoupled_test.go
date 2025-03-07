@@ -16,6 +16,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/external"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -93,6 +94,9 @@ var _ = BeforeSuite(func() {
 	Ctx = context.Background()
 
 	TestConfig = config.KfpControllerConfigSpec{
+		DefaultProviderValues: config.DefaultProviderValues{
+			ServicePort: 8080,
+		},
 		DefaultExperiment: "Default",
 		WorkflowNamespace: "default",
 		DefaultProvider:   apis.RandomLowercaseString(),
@@ -104,7 +108,7 @@ var _ = BeforeSuite(func() {
 
 	Expect(NewPipelineReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewRunReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
-	Expect(NewRunConfigurationReconciler(ec, k8sManager.GetScheme(), TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(NewRunConfigurationReconciler(ec, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewRunScheduleReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewExperimentReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelinesv1.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
@@ -114,6 +118,20 @@ var _ = BeforeSuite(func() {
 	Provider.Name = apis.RandomLowercaseString()
 	Provider.Namespace = TestConfig.WorkflowNamespace
 	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
+
+	providerSvc := corev1.Service{}
+	providerSvc.SetName("provider-svc")
+	providerSvc.SetNamespace(Provider.Namespace)
+	providerSvc.Spec.Ports = []corev1.ServicePort{{Port: 8080}}
+	providerSvc.SetOwnerReferences(
+		[]metav1.OwnerReference{
+			*metav1.NewControllerRef(
+				Provider,
+				pipelinesv1.GroupVersion.WithKind(Provider.GetKind()),
+			),
+		},
+	)
+	Expect(K8sClient.Create(Ctx, &providerSvc)).To(Succeed())
 
 	go func() {
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())

@@ -22,6 +22,7 @@ var (
 type PipelineReconciler struct {
 	StateHandler[*pipelinesv1.Pipeline]
 	ResourceReconciler[*pipelinesv1.Pipeline]
+	ServiceManager ServiceResourceManager
 }
 
 func NewPipelineReconciler(
@@ -37,6 +38,11 @@ func NewPipelineReconciler(
 		ResourceReconciler: ResourceReconciler[*pipelinesv1.Pipeline]{
 			EC:     ec,
 			Config: config,
+		},
+		ServiceManager: ServiceManager{
+			client: &ec.Client,
+			scheme: ec.Scheme,
+			config: &config,
 		},
 	}
 }
@@ -65,7 +71,12 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	commands := r.StateHandler.StateTransition(ctx, provider, pipeline)
+	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, pipeline)
 
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, pipeline); err != nil {

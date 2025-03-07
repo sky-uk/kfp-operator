@@ -35,7 +35,6 @@ type RunConfigurationReconciler struct {
 
 func NewRunConfigurationReconciler(
 	ec K8sExecutionContext,
-	scheme *runtime.Scheme,
 	config config.KfpControllerConfigSpec,
 ) *RunConfigurationReconciler {
 	return &RunConfigurationReconciler{
@@ -46,7 +45,7 @@ func NewRunConfigurationReconciler(
 			EC: ec,
 		},
 		ec,
-		scheme,
+		ec.Scheme,
 		config,
 	}
 }

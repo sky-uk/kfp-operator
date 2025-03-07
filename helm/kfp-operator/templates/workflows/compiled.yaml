@@ -60,10 +60,7 @@ spec:
         - name: resource
           path: /resource.json
         - name: resource-definition
-          path: /resource-definition.yaml
-          raw:
-            data: |
-              {{`{{workflow.parameters.resource-definition}}`}}
+          path: /resource-definition.json
     outputs:
       artifacts:
         - name: combined
@@ -73,109 +70,14 @@ spec:
       command: [sh,-c]
       args:
         - |
-          echo "resource-definition.yaml:"
-          cat /resource-definition.yaml
-
-          echo "Converting resource-definition.yaml to json"
-          RESOURCE_DEFINITION_JSON=$(yq eval -o=json /resource-definition.yaml)
-          RESOURCE_JSON=$(cat /resource.json)
+          RESOURCE_DEFINITION=$(cat {{`{{inputs.artifacts.resource-definition.path}}`}})
+          RESOURCE=$(cat {{`{{inputs.artifacts.resource.path}}`}})
 
           echo "Combining resource definition and resource"
-          COMBINED=$(echo "{\"pipelineDefinition\": $RESOURCE_DEFINITION_JSON, \"compiledPipeline\": $RESOURCE_JSON}")
+          COMBINED=$(printf '{"pipelineDefinition": %s, "compiledPipeline": %s}' "$RESOURCE_DEFINITION" "$RESOURCE")
 
           echo "Combined resource file:"
-          echo $COMBINED | tee /tmp/combined.json
-  - name: create
-    inputs:
-      parameters:
-      - name: provider-image
-      - name: provider-sa
-      - name: provider-config
-      artifacts:
-      - name: resource
-        path: /resource.yaml
-      - name: resource-definition
-        path: /resource-definition.yaml
-        raw:
-          data: |
-            {{`{{workflow.parameters.resource-definition}}`}}
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
-    metadata:
-      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
-    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
-    container:
-      image: "{{`{{inputs.parameters.provider-image}}`}}"
-      command:
-      - /provider
-      args:
-      - --provider
-      - /provider-config.json
-      - '{{`{{workflow.parameters.resource-kind}}`}}'
-      - create
-      - --{{`{{workflow.parameters.resource-kind}}`}}-definition
-      - /resource-definition.yaml
-      - --{{`{{workflow.parameters.resource-kind}}`}}-file
-      - /resource.yaml
-      - --out
-      - /tmp/provider-output.yaml
-    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
-  - name: update
-    inputs:
-      artifacts:
-      - name: resource
-        path: /resource.yaml
-      - name: resource-definition
-        path: /resource-definition.yaml
-        raw:
-          data: |
-            {{`{{workflow.parameters.resource-definition}}`}}
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
-      parameters:
-      - name: resource-id
-      - name: provider-image
-      - name: provider-sa
-      - name: provider-config
-    outputs:
-      parameters:
-      - name: provider-output
-        valueFrom:
-          path: /tmp/provider-output.yaml
-    podSpecPatch: '{"serviceAccountName": "{{`{{inputs.parameters.provider-sa}}`}}"}'
-    metadata:
-      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
-    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
-    container:
-      image: "{{`{{inputs.parameters.provider-image}}`}}"
-      command:
-      - /provider
-      args:
-      - --provider
-      - /provider-config.json
-      - '{{`{{workflow.parameters.resource-kind}}`}}'
-      - update
-      - --{{`{{workflow.parameters.resource-kind}}`}}-definition
-      - /resource-definition.yaml
-      - --{{`{{workflow.parameters.resource-kind}}`}}-id
-      - '{{`{{inputs.parameters.resource-id}}`}}'
-      - --{{`{{workflow.parameters.resource-kind}}`}}-file
-      - /resource.yaml
-      - --out
-      - /tmp/provider-output.yaml
-    {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
+          printf "%s" "$COMBINED" | tee /tmp/combined.json
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -189,6 +91,7 @@ spec:
     parameters:
     - name: provider-config
     - name: provider-name
+    - name: provider-service-url
     - name: resource-kind
     - name: resource-definition
     - name: pipeline-framework-image
@@ -238,29 +141,35 @@ spec:
             value: '{{`{{workflow.parameters.provider-config}}`}}'
           - name: pipeline-framework-image
             value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
+    - - name: convert-resource-definition-yaml-to-json
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: yaml-to-json
+        arguments:
+          parameters:
+          - name: yaml
+            value: '{{`{{workflow.parameters.resource-definition}}`}}'
     - - name: combine-files
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: combine-files
         arguments:
           artifacts:
-            - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
-              name: resource
+          - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
+            name: resource
+          - from: '{{`{{steps.convert-resource-definition-yaml-to-json.outputs.artifacts.json}}`}}'
+            name: resource-definition
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: create
         arguments:
           artifacts:
-          - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
-            name: resource
+          - from: '{{`{{steps.combine-files.outputs.artifacts.combined}}`}}'
+            name: body
           parameters:
-          - name: provider-image
-            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-          - name: provider-sa
-            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
-          - name: provider-config
-            value: '{{`{{workflow.parameters.provider-config}}`}}'
+          - name: provider-service-url
+            value: '{{`{{workflow.parameters.provider-service-url}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -274,6 +183,7 @@ spec:
     parameters:
     - name: provider-config
     - name: provider-name
+    - name: provider-service-url
     - name: resource-kind
     - name: resource-id
     - name: resource-definition
@@ -324,28 +234,42 @@ spec:
             value: '{{`{{workflow.parameters.provider-config}}`}}'
           - name: pipeline-framework-image
             value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
+    - - name: convert-resource-definition-yaml-to-json
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: yaml-to-json
+        arguments:
+          parameters:
+          - name: yaml
+            value: '{{`{{workflow.parameters.resource-definition}}`}}'
     - - name: combine-files
         templateRef:
           name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
           template: combine-files
         arguments:
           artifacts:
-            - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
-              name: resource
+          - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
+            name: resource
+          - from: '{{`{{steps.convert-resource-definition-yaml-to-json.outputs.artifacts.json}}`}}'
+            name: resource-definition
+    - - name: url-encode-resource-id
+        templateRef:
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
+          template: url-encode
+        arguments:
+          parameters:
+            - name: unencoded
+              value: '{{`{{workflow.parameters.resource-id}}`}}'
     - - name: provider
         templateRef:
-          name: {{ include "kfp-operator.fullname" . }}-compiled-workflow-steps
+          name: {{ include "kfp-operator.fullname" . }}-common-steps
           template: update
         arguments:
           artifacts:
-          - from: '{{`{{steps.compile.outputs.artifacts.resource}}`}}'
-            name: resource
+          - from: '{{`{{steps.combine-files.outputs.artifacts.combined}}`}}'
+            name: body
           parameters:
-          - name: resource-id
-            value: '{{`{{workflow.parameters.resource-id}}`}}'
-          - name: provider-image
-            value: '{{`{{steps.select-provider-image.outputs.result}}`}}'
-          - name: provider-sa
-            value: '{{`{{steps.select-provider-sa.outputs.result}}`}}'
-          - name: provider-config
-            value: '{{`{{workflow.parameters.provider-config}}`}}'
+          - name: url-encoded-resource-id
+            value: '{{`{{steps.url-encode-resource-id.outputs.parameters.url-encoded}}`}}'
+          - name: provider-service-url
+            value: '{{`{{workflow.parameters.provider-service-url}}`}}'

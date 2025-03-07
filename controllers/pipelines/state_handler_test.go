@@ -15,6 +15,7 @@ import (
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,15 +27,18 @@ type StateTransitionTestCase struct {
 }
 
 type TestWorkflowFactory struct {
-	CalledWithProvider *pipelinesv1.Provider
-	shouldFail         bool
+	CalledWithProvider    *pipelinesv1.Provider
+	CalledWithProviderSvc *corev1.Service
+	shouldFail            bool
 }
 
 func (f *TestWorkflowFactory) ConstructCreationWorkflow(
 	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
 	_ *pipelinesv1.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
+	f.CalledWithProviderSvc = &providerSvc
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
 	}
@@ -43,9 +47,11 @@ func (f *TestWorkflowFactory) ConstructCreationWorkflow(
 
 func (f *TestWorkflowFactory) ConstructUpdateWorkflow(
 	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
 	_ *pipelinesv1.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
+	f.CalledWithProviderSvc = &providerSvc
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
 	}
@@ -54,9 +60,11 @@ func (f *TestWorkflowFactory) ConstructUpdateWorkflow(
 
 func (f *TestWorkflowFactory) ConstructDeletionWorkflow(
 	provider pipelinesv1.Provider,
+	providerSvc corev1.Service,
 	_ *pipelinesv1.TestResource,
 ) (*argo.Workflow, error) {
 	f.CalledWithProvider = &provider
+	f.CalledWithProviderSvc = &providerSvc
 	if f.shouldFail {
 		return nil, fmt.Errorf("an error occurred")
 	}
@@ -141,17 +149,29 @@ func (st StateTransitionTestCase) WithSucceededDeletionWorkflow(
 }
 
 func (st StateTransitionTestCase) IssuesCreationWorkflow() StateTransitionTestCase {
-	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
+	creationWorkflow, _ := st.workflowFactory.ConstructCreationWorkflow(
+		*pipelinesv1.RandomProvider(),
+		*RandomProviderService(),
+		st.Experiment,
+	)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *creationWorkflow})
 }
 
 func (st StateTransitionTestCase) IssuesUpdateWorkflow() StateTransitionTestCase {
-	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
+	updateWorkflow, _ := st.workflowFactory.ConstructUpdateWorkflow(
+		*pipelinesv1.RandomProvider(),
+		*RandomProviderService(),
+		st.Experiment,
+	)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *updateWorkflow})
 }
 
 func (st StateTransitionTestCase) IssuesDeletionWorkflow() StateTransitionTestCase {
-	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(*pipelinesv1.RandomProvider(), st.Experiment)
+	deletionWorkflow, _ := st.workflowFactory.ConstructDeletionWorkflow(
+		*pipelinesv1.RandomProvider(),
+		*RandomProviderService(),
+		st.Experiment,
+	)
 	return st.IssuesCommand(CreateWorkflow{Workflow: *deletionWorkflow})
 }
 
@@ -189,8 +209,18 @@ func anyNonDeletedState() apis.SynchronizationState {
 	}
 }
 
+func RandomProviderService() *corev1.Service {
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      apis.RandomLowercaseString(),
+			Namespace: apis.RandomLowercaseString(),
+		},
+	}
+}
+
 var _ = Describe("State handler", func() {
 	provider := pipelinesv1.RandomProvider()
+	providerSvc := RandomProviderService()
 	providerId := pipelinesv1.ProviderAndId{
 		Name: provider.Name,
 		Id:   apis.RandomString(),
@@ -246,10 +276,18 @@ var _ = Describe("State handler", func() {
 			WorkflowRepository: st.SystemStatus,
 			WorkflowFactory:    st.workflowFactory,
 		}
-		commands := stateHandler.stateTransition(context.Background(), *provider, st.Experiment)
+		commands := stateHandler.stateTransition(
+			context.Background(),
+			*provider,
+			*providerSvc,
+			st.Experiment,
+		)
 		Expect(commands).To(Equal(st.Commands))
 		if st.workflowFactory.CalledWithProvider != nil {
 			Expect(st.workflowFactory.CalledWithProvider).To(BeComparableTo(provider))
+		}
+		if st.workflowFactory.CalledWithProviderSvc != nil {
+			Expect(st.workflowFactory.CalledWithProviderSvc).To(BeComparableTo(providerSvc))
 		}
 	},
 		Check("Empty",
