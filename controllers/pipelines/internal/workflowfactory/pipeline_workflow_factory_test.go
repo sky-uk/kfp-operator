@@ -39,7 +39,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 		{Name: "c", Value: "d"},
 	}
 
-	expectedFramework := &pipelineshub.PipelineFramework{
+	expectedFramework := pipelineshub.PipelineFramework{
 		Type: "pipelineFramework",
 		Parameters: map[string]*apiextensionsv1.JSON{
 			"a": {Raw: []byte(`"b"`)},
@@ -143,36 +143,5 @@ var _ = Describe("PipelineParamsCreator", func() {
 			})
 		})
 
-		When("the Pipeline resource does not specify a framework", func() {
-			It("returns additional pipeline framework image parameter for the default framework", func() {
-				expectedImage := "registry/default"
-				config := config.KfpControllerConfigSpec{
-					PipelineFrameworkImages: map[string]string{
-						"default": expectedImage,
-					},
-				}
-				creator := PipelineParamsCreator{Config: config}
-				pipeline.Spec.Framework = nil
-				params, err := creator.additionalParams(pipeline)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(params).To(Equal([]argo.Parameter{
-					{
-						Name:  workflowconstants.PipelineFrameworkImageParameterName,
-						Value: argo.AnyStringPtr(expectedImage),
-					},
-				}))
-			})
-
-			It("returns an error if no default framework is set", func() {
-				config := config.KfpControllerConfigSpec{
-					PipelineFrameworkImages: map[string]string{},
-				}
-				creator := PipelineParamsCreator{Config: config}
-				pipeline.Spec.Framework = nil
-				_, err := creator.additionalParams(pipeline)
-
-				Expect(err.Error()).To(Equal("error in workflow: [default] framework not found"))
-			})
-		})
 	})
 })

@@ -35,10 +35,7 @@ func (ppc PipelineParamsCreator) pipelineDefinition(
 }
 
 func (ppc PipelineParamsCreator) additionalParams(pipeline *pipelineshub.Pipeline) ([]argo.Parameter, error) {
-	requestedFramework := defaultFramework
-	if pipeline.Spec.Framework != nil {
-		requestedFramework = strings.ToLower(pipeline.Spec.Framework.Type)
-	}
+	requestedFramework := strings.ToLower(pipeline.Spec.Framework.Type)
 	frameworkImage, found := ppc.Config.PipelineFrameworkImages[requestedFramework]
 	if !found {
 		return nil, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not found", requestedFramework)}

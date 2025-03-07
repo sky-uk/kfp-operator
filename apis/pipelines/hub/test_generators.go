@@ -35,7 +35,7 @@ func RandomPipelineSpec(provider string) PipelineSpec {
 		Image:    fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		Env:      RandomNamedValues(),
 		BeamArgs: RandomNamedValues(),
-		Framework: &PipelineFramework{
+		Framework: PipelineFramework{
 			Type:       RandomString(),
 			Parameters: randomParameters,
 		},

@@ -14,11 +14,11 @@ import (
 )
 
 type PipelineSpec struct {
-	Provider  string             `json:"provider" yaml:"provider"`
-	Image     string             `json:"image" yaml:"image"`
-	Env       []apis.NamedValue  `json:"env,omitempty" yaml:"env"`
-	BeamArgs  []apis.NamedValue  `json:"beamArgs,omitempty"`
-	Framework *PipelineFramework `json:"framework" yaml:"framework"`
+	Provider  string            `json:"provider" yaml:"provider"`
+	Image     string            `json:"image" yaml:"image"`
+	Env       []apis.NamedValue `json:"env,omitempty" yaml:"env"`
+	BeamArgs  []apis.NamedValue `json:"beamArgs,omitempty"`
+	Framework PipelineFramework `json:"framework" yaml:"framework"`
 }
 
 type PipelineFramework struct {
@@ -28,10 +28,8 @@ type PipelineFramework struct {
 
 func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	if ps.Spec.Framework != nil {
-		oh.WriteStringField(ps.Spec.Framework.Type)
-		oh.WriteMapJSONField(ps.Spec.Framework.Parameters)
-	}
+	oh.WriteStringField(ps.Spec.Framework.Type)
+	oh.WriteMapJSONField(ps.Spec.Framework.Parameters)
 	oh.WriteStringField(ps.Spec.Image)
 	pipelines.WriteKVListField(oh, ps.Spec.Env)
 	pipelines.WriteKVListField(oh, ps.Spec.BeamArgs)

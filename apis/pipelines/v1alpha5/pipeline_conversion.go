@@ -27,7 +27,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	removeProviderAnnotation(dst)
 
 	if !remainder.Empty() {
-		dst.Spec.Framework = &remainder.Framework
+		dst.Spec.Framework = remainder.Framework
 	} else if src.Spec.TfxComponents != "" {
 		dst.Spec.Framework = hub.ToTFXPipelineFramework(src.Spec.TfxComponents)
 	} else {
@@ -48,7 +48,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 
-	tfxComponents, remainder, err := hub.FromPipelineFramework(*src.Spec.Framework)
+	tfxComponents, remainder, err := hub.FromPipelineFramework(src.Spec.Framework)
 	if err != nil {
 		return err
 	} else if tfxComponents != "" {

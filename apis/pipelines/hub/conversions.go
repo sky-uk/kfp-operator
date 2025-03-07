@@ -6,9 +6,9 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
-func ToTFXPipelineFramework(tfxComponents string) *PipelineFramework {
+func ToTFXPipelineFramework(tfxComponents string) PipelineFramework {
 	marshal, _ := json.Marshal(tfxComponents)
-	return &PipelineFramework{
+	return PipelineFramework{
 		Type:       "tfx",
 		Parameters: map[string]*apiextensionsv1.JSON{"components": {Raw: marshal}},
 	}

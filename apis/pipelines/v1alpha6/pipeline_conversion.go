@@ -24,7 +24,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 
 	tfxComponents := src.Spec.TfxComponents
 	if !remainder.Empty() {
-		dst.Spec.Framework = &remainder.Framework
+		dst.Spec.Framework = remainder.Framework
 	} else if tfxComponents != "" {
 		dst.Spec.Framework = hub.ToTFXPipelineFramework(tfxComponents)
 	} else {
@@ -44,7 +44,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	tfxComponents, remainder, err := hub.FromPipelineFramework(*src.Spec.Framework)
+	tfxComponents, remainder, err := hub.FromPipelineFramework(src.Spec.Framework)
 	if err != nil {
 		return err
 	} else if tfxComponents != "" {

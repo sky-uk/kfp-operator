@@ -26,7 +26,7 @@ var _ = Context("Pipeline", func() {
 			pipeline := Pipeline{}
 			hash1 := pipeline.ComputeHash()
 
-			pipeline.Spec.Framework = &PipelineFramework{
+			pipeline.Spec.Framework = PipelineFramework{
 				Type: "some-framework",
 				Parameters: map[string]*apiextensionsv1.JSON{
 					"key": {Raw: []byte("value")},
