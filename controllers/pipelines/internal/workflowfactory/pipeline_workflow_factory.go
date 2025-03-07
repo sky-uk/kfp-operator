@@ -26,12 +26,11 @@ func (ppc PipelineParamsCreator) pipelineDefinition(
 			Namespace: pipeline.ObjectMeta.Namespace,
 			Name:      pipeline.ObjectMeta.Name,
 		},
-		Version:       pipeline.ComputeVersion(),
-		Image:         pipeline.Spec.Image,
-		Framework:     pipeline.Spec.Framework,
-		TfxComponents: pipeline.Spec.TfxComponents,
-		Env:           pipeline.Spec.Env,
-		BeamArgs:      pipeline.Spec.BeamArgs,
+		Version:   pipeline.ComputeVersion(),
+		Image:     pipeline.Spec.Image,
+		Framework: pipeline.Spec.Framework,
+		Env:       pipeline.Spec.Env,
+		BeamArgs:  pipeline.Spec.BeamArgs,
 	}, nil
 }
 

@@ -14,12 +14,11 @@ import (
 )
 
 type PipelineSpec struct {
-	Provider      string             `json:"provider" yaml:"provider"`
-	Image         string             `json:"image" yaml:"image"`
-	TfxComponents string             `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []apis.NamedValue  `json:"env,omitempty" yaml:"env"`
-	BeamArgs      []apis.NamedValue  `json:"beamArgs,omitempty"`
-	Framework     *PipelineFramework `json:"framework,omitempty" yaml:"framework"`
+	Provider  string             `json:"provider" yaml:"provider"`
+	Image     string             `json:"image" yaml:"image"`
+	Env       []apis.NamedValue  `json:"env,omitempty" yaml:"env"`
+	BeamArgs  []apis.NamedValue  `json:"beamArgs,omitempty"`
+	Framework *PipelineFramework `json:"framework,omitempty" yaml:"framework"`
 }
 
 type PipelineFramework struct {
@@ -34,7 +33,6 @@ func (ps Pipeline) ComputeHash() []byte {
 		oh.WriteMapJSONField(ps.Spec.Framework.Parameters)
 	}
 	oh.WriteStringField(ps.Spec.Image)
-	oh.WriteStringField(ps.Spec.TfxComponents)
 	pipelines.WriteKVListField(oh, ps.Spec.Env)
 	pipelines.WriteKVListField(oh, ps.Spec.BeamArgs)
 	return oh.Sum()

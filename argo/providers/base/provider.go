@@ -8,13 +8,12 @@ import (
 )
 
 type PipelineDefinition struct {
-	Name          common.NamespacedName           `yaml:"name"`
-	Version       string                          `yaml:"version"`
-	Image         string                          `yaml:"image"`
-	TfxComponents string                          `yaml:"tfxComponents"`
-	Env           []apis.NamedValue               `yaml:"env"`
-	BeamArgs      []apis.NamedValue               `yaml:"beamArgs"`
-	Framework     *pipelineshub.PipelineFramework `yaml:"framework"`
+	Name      common.NamespacedName           `yaml:"name"`
+	Version   string                          `yaml:"version"`
+	Image     string                          `yaml:"image"`
+	Env       []apis.NamedValue               `yaml:"env"`
+	BeamArgs  []apis.NamedValue               `yaml:"beamArgs"`
+	Framework *pipelineshub.PipelineFramework `yaml:"framework"`
 }
 
 type ExperimentDefinition struct {

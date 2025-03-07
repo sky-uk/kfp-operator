@@ -28,11 +28,13 @@ func RandomPipeline(provider string) *Pipeline {
 
 func RandomPipelineSpec(provider string) PipelineSpec {
 	return PipelineSpec{
-		Provider:      provider,
-		Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
-		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
-		Env:           RandomNamedValues(),
-		BeamArgs:      RandomNamedValues(),
+		Provider: provider,
+		Image:    fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
+		Env:      RandomNamedValues(),
+		BeamArgs: RandomNamedValues(),
+		Framework: &PipelineFramework{
+			Type: RandomString(),
+		},
 	}
 }
 

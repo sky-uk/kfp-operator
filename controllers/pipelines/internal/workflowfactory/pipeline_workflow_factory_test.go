@@ -53,11 +53,10 @@ var _ = Describe("PipelineParamsCreator", func() {
 			Namespace: "pipelineNamespace",
 		},
 		Spec: pipelineshub.PipelineSpec{
-			Image:         "pipelineImage",
-			TfxComponents: "pipelineTfxComponents",
-			Env:           expectedEnv,
-			BeamArgs:      expectedBeamArgs,
-			Framework:     expectedFramework,
+			Image:     "pipelineImage",
+			Env:       expectedEnv,
+			BeamArgs:  expectedBeamArgs,
+			Framework: expectedFramework,
 		},
 	}
 	Context("pipelineDefinition", func() {
@@ -71,7 +70,6 @@ var _ = Describe("PipelineParamsCreator", func() {
 					Namespace: "pipelineNamespace",
 				}))
 				Expect(compilerConfig.Image).To(Equal("pipelineImage"))
-				Expect(compilerConfig.TfxComponents).To(Equal("pipelineTfxComponents"))
 				Expect(compilerConfig.Framework).To(Equal(expectedFramework))
 				Expect(compilerConfig.Env).To(Equal(expectedEnv))
 				Expect(compilerConfig.BeamArgs).To(Equal(expectedBeamArgs))
@@ -97,7 +95,6 @@ var _ = Describe("PipelineParamsCreator", func() {
 				Expect(convertInterfaceArrayToString(aValue)).To(Equal("\"b\""))
 				Expect(convertInterfaceArrayToString(bValue)).To(Equal("\"d\""))
 
-				Expect(m["tfxComponents"]).To(Equal("pipelineTfxComponents"))
 				env := m["env"].([]interface{})
 				Expect(env[0]).To(Equal(map[interface{}]interface{}{
 					"name":  "a",
