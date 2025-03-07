@@ -47,5 +47,36 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
+
+		Specify("converts to and from the same object when the framework is tfx", func() {
+			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src.Spec.Framework.Type = "tfx"
+			intermediate := &Pipeline{}
+			dst := &hub.Pipeline{}
+
+			Expect(intermediate.ConvertFrom(src)).To(Succeed())
+			Expect(intermediate.ConvertTo(dst)).To(Succeed())
+
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+		})
+	})
+
+	var _ = Describe("Conversion failure", func() {
+		Specify("ConvertFrom fails when the framework is tfx and there is no components parameter", func() {
+			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src.Spec.Framework.Type = "tfx"
+			src.Spec.Framework.Parameters = nil
+			intermediate := &Pipeline{}
+
+			Expect(intermediate.ConvertFrom(src)).To(Not(Succeed()))
+		})
+
+		Specify("ConvertTo fails when there are no annotations and tfx components isn't set", func() {
+			src := RandomPipeline()
+			src.Spec.TfxComponents = ""
+			dst := &hub.Pipeline{}
+
+			Expect(src.ConvertTo(dst)).To(Not(Succeed()))
+		})
 	})
 })

@@ -32,3 +32,15 @@ func (rccr RunConfigurationConversionRemainder) Empty() bool {
 func (rccr RunConfigurationConversionRemainder) ConversionAnnotation() string {
 	return GroupVersion.Version + "." + GroupVersion.Group + "/conversions.remainder"
 }
+
+type PipelineConversionRemainder struct {
+	Framework PipelineFramework
+}
+
+func (pcr PipelineConversionRemainder) Empty() bool {
+	return pcr.Framework.Type == ""
+}
+
+func (pcr PipelineConversionRemainder) ConversionAnnotation() string {
+	return GroupVersion.Version + "." + GroupVersion.Group + "/conversions.remainder"
+}

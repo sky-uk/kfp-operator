@@ -27,13 +27,17 @@ func RandomPipeline(provider string) *Pipeline {
 }
 
 func RandomPipelineSpec(provider string) PipelineSpec {
+	randomParameters := make(map[string]*apiextensionsv1.JSON)
+	randomParameters["components"] = &apiextensionsv1.JSON{Raw: []byte(fmt.Sprintf(`"%s"`, RandomString()))}
+
 	return PipelineSpec{
 		Provider: provider,
 		Image:    fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		Env:      RandomNamedValues(),
 		BeamArgs: RandomNamedValues(),
 		Framework: &PipelineFramework{
-			Type: RandomString(),
+			Type:       RandomString(),
+			Parameters: randomParameters,
 		},
 	}
 }
