@@ -55,8 +55,8 @@ func RandomProviderSpec() ProviderSpec {
 	}
 
 	return ProviderSpec{
-		Image:               "kfp-operator-stub-provider",
 		ServiceImage:        "service-image",
+		Image:               "compiler-image",
 		ExecutionMode:       "none",
 		ServiceAccount:      "default",
 		DefaultBeamArgs:     RandomNamedValues(),

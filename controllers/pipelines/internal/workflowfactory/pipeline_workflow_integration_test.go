@@ -21,14 +21,14 @@ var _ = Context("Pipeline Resource Workflows", Serial, func() {
 			WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 			WorkflowNamespace:      "argo",
 			PipelineFrameworkImages: map[string]string{
-				"default": "kfp-operator-stub-provider",
+				"default": "kfp-operator-stub-compiler",
 			},
 		},
 	)
 
 	var newPipeline = func() *pipelinesv1.Pipeline {
 		pipeline := withIntegrationTestFields(pipelinesv1.RandomPipeline(TestProvider))
-		pipeline.Spec.Image = "kfp-operator-stub-provider"
+		pipeline.Spec.Image = "kfp-operator-stub-compiler"
 
 		return pipeline
 	}

@@ -60,7 +60,7 @@ integration-test-up: ## Spin up a minikube cluster for integration tests
 
 integration-test: manifests generate helm-cmd yq ## Run integration tests
 	eval $$(minikube -p kfp-operator-tests docker-env) && \
-	$(MAKE) -C argo/providers/stub docker-build && \
+	$(MAKE) -C compilers/stub docker-build && \
 	$(MAKE) -C provider-service/stub docker-build && \
 	kubectl apply -n argo -f config/testing/provider-deployment.yaml
 	kubectl wait -n argo deployment/provider-test --for condition=available --timeout=5m
