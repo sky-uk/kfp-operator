@@ -23,7 +23,6 @@ dist/
 
 # Hugo/Website
 node_modules/
-package-lock.json
 .hugo_build.lock
 
 # OS
