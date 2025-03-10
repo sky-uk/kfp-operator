@@ -16,20 +16,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func extractParameterRaw(framework map[interface{}]interface{}, parameterKey string) []interface{} {
-	parameters := framework["parameters"].(map[interface{}]interface{})
-
-	return parameters[parameterKey].(map[interface{}]interface{})["raw"].([]interface{})
-}
-
-func convertInterfaceArrayToString(values []interface{}) string {
-	var result []byte
-	for _, v := range values {
-		result = append(result, byte(v.(int))) // Convert int to byte
-	}
-	return string(result)
-}
-
 var _ = Describe("PipelineParamsCreator", func() {
 	expectedEnv := []apis.NamedValue{
 		{Name: "a", Value: "b"},
@@ -41,9 +27,9 @@ var _ = Describe("PipelineParamsCreator", func() {
 
 	expectedFramework := pipelineshub.PipelineFramework{
 		Type: "pipelineFramework",
-		Parameters: map[string]*apiextensionsv1.JSON{
-			"a": {Raw: []byte(`"b"`)},
-			"c": {Raw: []byte(`"d"`)},
+		Parameters: map[string]*pipelineshub.JSONWrapper{
+			"a": {Raw: apiextensionsv1.JSON{[]byte(`"b"`)}},
+			"c": {Raw: apiextensionsv1.JSON{[]byte(`"d"`)}},
 		},
 	}
 
@@ -89,11 +75,9 @@ var _ = Describe("PipelineParamsCreator", func() {
 				framework := m["framework"].(map[interface{}]interface{})
 				Expect(framework["type"]).To(Equal(expectedFramework.Type))
 
-				aValue := extractParameterRaw(framework, "a")
-				bValue := extractParameterRaw(framework, "c")
-
-				Expect(convertInterfaceArrayToString(aValue)).To(Equal("\"b\""))
-				Expect(convertInterfaceArrayToString(bValue)).To(Equal("\"d\""))
+				parameters := framework["parameters"].(map[interface{}]interface{})
+				Expect(parameters["a"]).To(Equal("b"))
+				Expect(parameters["c"]).To(Equal("d"))
 
 				env := m["env"].([]interface{})
 				Expect(env[0]).To(Equal(map[interface{}]interface{}{

@@ -10,7 +10,7 @@ func ToTFXPipelineFramework(tfxComponents string) PipelineFramework {
 	marshal, _ := json.Marshal(tfxComponents)
 	return PipelineFramework{
 		Type:       "tfx",
-		Parameters: map[string]*apiextensionsv1.JSON{"components": {Raw: marshal}},
+		Parameters: map[string]*JSONWrapper{"components": {Raw: apiextensionsv1.JSON{Raw: marshal}}},
 	}
 }
 
@@ -23,7 +23,7 @@ func FromPipelineFramework(pf PipelineFramework) (string, *PipelineConversionRem
 		components, componentsExists := pf.Parameters["components"]
 		if componentsExists {
 			var res string
-			if err := json.Unmarshal(components.Raw, &res); err != nil {
+			if err := json.Unmarshal(components.Raw.Raw, &res); err != nil {
 				return "", nil, err
 			}
 			return res, nil, nil

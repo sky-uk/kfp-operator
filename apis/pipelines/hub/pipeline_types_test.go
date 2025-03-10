@@ -28,10 +28,13 @@ var _ = Context("Pipeline", func() {
 
 			pipeline.Spec.Framework = PipelineFramework{
 				Type: "some-framework",
-				Parameters: map[string]*apiextensionsv1.JSON{
-					"key": {Raw: []byte("value")},
+				Parameters: map[string]*JSONWrapper{
+					"key": {Raw: apiextensionsv1.JSON{[]byte(`"value"`)}},
 				},
 			}
+
+			Expect(pipeline.Spec.Framework.Type).To(Equal("some-framework"))
+
 			hash2 := pipeline.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))

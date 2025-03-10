@@ -27,8 +27,8 @@ func RandomPipeline(provider string) *Pipeline {
 }
 
 func RandomPipelineSpec(provider string) PipelineSpec {
-	randomParameters := make(map[string]*apiextensionsv1.JSON)
-	randomParameters["components"] = &apiextensionsv1.JSON{Raw: []byte(fmt.Sprintf(`"%s"`, RandomString()))}
+	randomParameters := make(map[string]*JSONWrapper)
+	randomParameters["components"] = &JSONWrapper{Raw: apiextensionsv1.JSON{Raw: []byte((fmt.Sprintf(`"%s"`, RandomString())))}}
 
 	return PipelineSpec{
 		Provider: provider,

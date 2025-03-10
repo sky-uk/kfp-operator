@@ -406,7 +406,9 @@ spec:
                 properties:
                   parameters:
                     additionalProperties:
-                      x-kubernetes-preserve-unknown-fields: true
+                      type: object
+                    description: Parameters is a map of arbitrary key-value pairs
+                      that may contain unknown fields
                     type: object
                   type:
                     type: string

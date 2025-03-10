@@ -23,7 +23,7 @@ var _ = Context("Conversions", func() {
 			res := ToTFXPipelineFramework(tfxComponents)
 			marshal, _ := json.Marshal(tfxComponents)
 			Expect(res.Type).To(Equal("tfx"))
-			Expect(res.Parameters["components"]).To(Equal(&apiextensionsv1.JSON{Raw: marshal}))
+			Expect(res.Parameters["components"]).To(Equal(&JSONWrapper{Raw: apiextensionsv1.JSON{Raw: marshal}}))
 		})
 	})
 
@@ -31,7 +31,7 @@ var _ = Context("Conversions", func() {
 		Specify("returns tfxComponents for tfx framework", func() {
 			pf := PipelineFramework{
 				Type:       "tfx",
-				Parameters: map[string]*apiextensionsv1.JSON{"components": {Raw: []byte(`"somestring"`)}},
+				Parameters: map[string]*JSONWrapper{"components": {Raw: apiextensionsv1.JSON{[]byte(`"somestring"`)}}},
 			}
 			res, annotations, err := FromPipelineFramework(pf)
 			Expect(err).NotTo(HaveOccurred())
@@ -42,7 +42,7 @@ var _ = Context("Conversions", func() {
 		Specify("returns error on invalid raw components value", func() {
 			pf := PipelineFramework{
 				Type:       "tfx",
-				Parameters: map[string]*apiextensionsv1.JSON{"components": {Raw: []byte("this is not valid json")}},
+				Parameters: map[string]*JSONWrapper{"components": {Raw: apiextensionsv1.JSON{[]byte("this is not valid json")}}},
 			}
 			res, annotations, err := FromPipelineFramework(pf)
 			Expect(err).To(HaveOccurred())
@@ -53,7 +53,7 @@ var _ = Context("Conversions", func() {
 		Specify("returns error for missing components in tfx framework parameters", func() {
 			pf := PipelineFramework{
 				Type:       "tfx",
-				Parameters: map[string]*apiextensionsv1.JSON{},
+				Parameters: map[string]*JSONWrapper{},
 			}
 			res, annotations, err := FromPipelineFramework(pf)
 			Expect(err).To(HaveOccurred())

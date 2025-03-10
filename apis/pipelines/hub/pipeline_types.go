@@ -22,14 +22,23 @@ type PipelineSpec struct {
 }
 
 type PipelineFramework struct {
-	Type       string                           `json:"type" yaml:"type"`
-	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
+	Type string `json:"type" yaml:"type"`
+	// Parameters is a map of arbitrary key-value pairs that may contain unknown fields
+	// +kubebuilder:validation:Type=object
+	Parameters map[string]*JSONWrapper `json:"parameters" yaml:"parameters"`
 }
 
 func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(ps.Spec.Framework.Type)
-	oh.WriteMapJSONField(ps.Spec.Framework.Parameters)
+
+	output := make(map[string]string)
+	for key, value := range ps.Spec.Framework.Parameters {
+		raw, _ := json.Marshal(value.Raw)
+		output[key] = string(raw)
+	}
+	oh.WriteMapField(output)
+	//oh.WriteMapJSONField(ps.Spec.Framework.Parameters)
 	oh.WriteStringField(ps.Spec.Image)
 	pipelines.WriteKVListField(oh, ps.Spec.Env)
 	pipelines.WriteKVListField(oh, ps.Spec.BeamArgs)
@@ -132,6 +141,46 @@ func (pipeline *Pipeline) UnversionedIdentifier() PipelineIdentifier {
 
 func (pipeline *Pipeline) VersionedIdentifier() PipelineIdentifier {
 	return PipelineIdentifier{Name: pipeline.Name, Version: pipeline.ComputeVersion()}
+}
+
+type JSONWrapper struct {
+	// Preserve unknown fields for arbitrary JSON data
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +kubebuilder:validation:Type=object
+	Raw apiextensionsv1.JSON `json:"-"`
+}
+
+// MarshalJSON ensures correct JSON serialization
+func (j JSONWrapper) MarshalJSON() ([]byte, error) {
+	return json.Marshal(j.Raw)
+}
+
+// UnmarshalJSON ensures correct JSON deserialization
+func (j *JSONWrapper) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &j.Raw)
+}
+
+// MarshalYAML ensures correct YAML serialization
+func (j JSONWrapper) MarshalYAML() (interface{}, error) {
+	var jsonData interface{}
+	if err := json.Unmarshal(j.Raw.Raw, &jsonData); err != nil {
+		return nil, err
+	}
+	return jsonData, nil
+}
+
+// UnmarshalYAML ensures correct YAML deserialization
+func (j *JSONWrapper) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var jsonData interface{}
+	if err := unmarshal(&jsonData); err != nil {
+		return err
+	}
+	rawBytes, err := json.Marshal(jsonData)
+	if err != nil {
+		return err
+	}
+	j.Raw = apiextensionsv1.JSON{Raw: rawBytes}
+	return nil
 }
 
 func init() {
