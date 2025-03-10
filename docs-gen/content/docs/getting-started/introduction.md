@@ -49,4 +49,4 @@ Currently, we support the following eventsources:
 
 ## Architecture Overview
 
-To do.
+![Architecture]({{< param "subpath" >}}/master/images/architecture.svg)
