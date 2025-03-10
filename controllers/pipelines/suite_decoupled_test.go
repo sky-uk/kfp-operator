@@ -127,7 +127,7 @@ var _ = BeforeSuite(func() {
 		[]metav1.OwnerReference{
 			*metav1.NewControllerRef(
 				Provider,
-				pipelinesv1.GroupVersion.WithKind(Provider.GetKind()),
+				pipelineshub.GroupVersion.WithKind(Provider.GetKind()),
 			),
 		},
 	)
