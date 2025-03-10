@@ -82,7 +82,6 @@ test: fmt vet unit-test decoupled-test ## Run all tests
 
 test-argo: ## Run all tests for argo
 	$(MAKE) -C argo/common test
-	$(MAKE) -C argo/providers test
 
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test
@@ -200,12 +199,6 @@ helm-test-operator: manifests helm-cmd kustomize yq dyff ## Test operator helm c
 
 include docker-targets.mk
 
-docker-build-argo: ## Build argo docker images
-	$(MAKE) -C argo/providers docker-build
-
-docker-push-argo: ## Publish argo docker images
-	$(MAKE) -C argo/providers docker-push
-
 docker-build-compilers: ## Build all pipeline framework compiler images
 	$(MAKE) -C compilers docker-build-all
 
@@ -234,9 +227,9 @@ docker-push-quickstart: ##  Build and push quickstart docker image
 
 ##@ Package
 
-package-all: docker-build docker-build-argo docker-build-compilers docker-build-triggers docker-build-providers helm-package website ## Build all packages
+package-all: docker-build docker-build-compilers docker-build-triggers docker-build-providers helm-package website ## Build all packages
 
-publish-all: docker-push docker-push-argo docker-push-compilers docker-push-triggers docker-push-providers helm-publish ## Publish all packages
+publish-all: docker-push docker-push-compilers docker-push-triggers docker-push-providers helm-publish ## Publish all packages
 
 ##@ CI
 
