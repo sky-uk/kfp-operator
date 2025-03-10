@@ -4,7 +4,6 @@ include ../../help.mk
 include ./get-proto.mk
 
 IMG := kfp-operator-kfp-provider-service
-DOCKER_BUILD_EXTRA_PARAMS=--build-context base-source=".."
 
 all: build
 
