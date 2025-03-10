@@ -4,19 +4,13 @@ package workflowfactory
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
-
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
-	"github.com/sky-uk/kfp-operator/argo/providers/stub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
@@ -56,77 +50,18 @@ var _ = BeforeSuite(func() {
 	Ctx = context.Background()
 })
 
-func StubProvider[R pipelinesv1.Resource](
-	stubbedOutput base.Output,
-	resource R,
-) (pipelinesv1.Provider, base.Output) {
-	expectedInput := stub.ExpectedInput{
-		Id: resource.GetStatus().Provider.Id,
-		ResourceDefinition: stub.ResourceDefinition{
-			Name: common.NamespacedName{
-				Name:      resource.GetName(),
-				Namespace: resource.GetNamespace(),
-			},
-			Version: resource.ComputeVersion(),
-		},
-	}
-
-	expectedInputJson, err := json.Marshal(expectedInput)
-	Expect(err).NotTo(HaveOccurred())
-
-	expectedOutputJson, err := json.Marshal(stubbedOutput)
-	Expect(err).NotTo(HaveOccurred())
-
-	provider := pipelinesv1.Provider{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "kfp-operator-integration-tests-providers",
-			Namespace: TestNamespace,
-		},
-		Spec: pipelinesv1.ProviderSpec{
-			ServiceImage:   "kfp-operator-stub-provider",
-			Image:          "kfp-operator-stub-provider",
-			ExecutionMode:  "none",
-			ServiceAccount: "default",
-			Parameters: map[string]*apiextensionsv1.JSON{
-				"expectedInput":  {Raw: expectedInputJson},
-				"expectedOutput": {Raw: expectedOutputJson},
-			},
-		},
-		Status: pipelinesv1.Status{},
-	}
-	return provider, stubbedOutput
-}
-
 var provider = pipelinesv1.Provider{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      "kfp-operator-integration-tests-providers",
 		Namespace: TestNamespace,
 	},
 	Spec: pipelinesv1.ProviderSpec{
-		ServiceImage:   "kfp-operator-stub-provider",
-		Image:          "kfp-operator-stub-provider",
+		ServiceImage:   "kfp-operator-stub-provider-service",
+		Image:          "kfp-operator-unused-old-stub-provider-cli",
 		ExecutionMode:  "none",
 		ServiceAccount: "default",
 	},
 	Status: pipelinesv1.Status{},
-}
-
-func StubWithIdAndError[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, base.Output) {
-	return StubProvider(base.Output{
-		Id:            apis.RandomString(),
-		ProviderError: apis.RandomString(),
-	}, resource)
-}
-
-func StubWithEmpty[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, base.Output) {
-	return StubProvider(base.Output{}, resource)
-}
-
-func StubWithExistingIdAndError[R pipelinesv1.Resource](resource R) (pipelinesv1.Provider, base.Output) {
-	return StubProvider(base.Output{
-		Id:            resource.GetStatus().Provider.Id,
-		ProviderError: apis.RandomString(),
-	}, resource)
 }
 
 func AssertWorkflow[R pipelinesv1.Resource](
