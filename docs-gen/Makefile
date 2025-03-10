@@ -13,7 +13,7 @@ serve: ## Serve the site locally
 	hugo server -b http://localhost:1313/kfp-operator/
 
 install-npm-dependencies: ## Install npm dependencies
-	npm install
+	npm ci
 
 archive-version: ## Archive a version of the documentation. Requires VERSION to be set, e.g. make archive-version VERSION=v0.6.0
 	# Check if version param is set
