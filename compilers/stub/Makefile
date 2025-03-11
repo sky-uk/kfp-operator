@@ -4,4 +4,4 @@ include ../../help.mk
 IMG := kfp-operator-stub-compiler
 
 ##@ Build
-build:
+build: # empty target required for using targets in docker-targets.mk
