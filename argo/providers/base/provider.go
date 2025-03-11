@@ -11,8 +11,8 @@ type PipelineDefinition struct {
 	Version       string                `json:"version" yaml:"version"`
 	Image         string                `json:"image" yaml:"image"`
 	TfxComponents string                `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []apis.NamedValue     `json:"env" yaml:"env"`
-	BeamArgs      []apis.NamedValue     `json:"beamArgs" yaml:"beamArgs"`
+	Env           []apis.NamedValue     `json:"env,omitempty" yaml:"env,omitempty"`
+	BeamArgs      []apis.NamedValue     `json:"beamArgs,omitempty" yaml:"beamArgs,omitempty"`
 	Framework     string                `json:"framework" yaml:"framework"`
 }
 
@@ -30,7 +30,7 @@ type RunScheduleDefinition struct {
 	RunConfigurationName common.NamespacedName      `json:"runConfigurationName" yaml:"runConfigurationName"`
 	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
 	Schedule             pipelines.Schedule         `json:"schedule" yaml:"schedule"`
-	RuntimeParameters    map[string]string          `json:"runtimeParameters" yaml:"runtimeParameters"`
+	RuntimeParameters    map[string]string          `json:"runtimeParameters,omitempty" yaml:"runtimeParameters,omitempty"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
 }
 
@@ -41,7 +41,7 @@ type RunDefinition struct {
 	PipelineVersion      string                     `json:"pipelineVersion" yaml:"pipelineVersion"`
 	RunConfigurationName common.NamespacedName      `json:"runConfigurationName" yaml:"runConfigurationName"`
 	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
-	RuntimeParameters    map[string]string          `json:"runtimeParameters" yaml:"runtimeParameters"`
+	RuntimeParameters    map[string]string          `json:"runtimeParameters,omitempty" yaml:"runtimeParameters,omitempty"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
 }
 
