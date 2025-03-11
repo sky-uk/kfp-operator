@@ -5,7 +5,7 @@ package workflowfactory
 import (
 	. "github.com/onsi/ginkgo/v2"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub		"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	testutil "github.com/sky-uk/kfp-operator/common/testutil/provider"
 )
