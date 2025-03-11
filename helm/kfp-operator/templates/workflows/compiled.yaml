@@ -152,7 +152,7 @@ spec:
           - name: resource-definition
             raw:
               data: |
-                '{{`{{workflow.parameters.resource-definition}}`}}'
+                {{`{{workflow.parameters.resource-definition}}`}}
             path: /resource-definition.json
     - - name: provider
         templateRef:
@@ -240,7 +240,7 @@ spec:
           - name: resource-definition
             raw:
               data: |
-                '{{`{{workflow.parameters.resource-definition}}`}}'
+                {{`{{workflow.parameters.resource-definition}}`}}
             path: /resource-definition.json
     - - name: url-encode-resource-id
         templateRef:

@@ -52,7 +52,7 @@ spec:
           - name: body
             raw:
               data: |
-                '{{`{{workflow.parameters.resource-definition}}`}}'
+                {{`{{workflow.parameters.resource-definition}}`}}
             path: /body.json
           parameters:
           - name: provider-service-url
@@ -121,7 +121,7 @@ spec:
           - name: body
             raw:
               data: |
-                '{{`{{workflow.parameters.resource-definition}}`}}'
+                {{`{{workflow.parameters.resource-definition}}`}}
             path: /body.json
           parameters:
           - name: url-encoded-resource-id
