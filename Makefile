@@ -84,7 +84,7 @@ test-argo: ## Run all tests for argo
 	$(MAKE) -C argo/common test
 
 test-compilers: ## Run all tests for compilers
-	$(MAKE) -C compilers test
+	$(MAKE) -C compilers test-all
 
 test-triggers: ## Run all tests for triggers
 	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
