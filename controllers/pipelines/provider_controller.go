@@ -64,10 +64,6 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			predicate.ResourceVersionChangedPredicate{},
 		)).
 		Owns(&v1.Service{}).
-		WithEventFilter(predicate.Or(
-			predicate.AnnotationChangedPredicate{},
-			predicate.LabelChangedPredicate{},
-		)).
 		Complete(r)
 }
 
