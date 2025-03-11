@@ -111,7 +111,7 @@ var provider = pipelineshub.Provider{
 	Status: pipelineshub.Status{},
 }
 
-func StubWithIdAndError[R pipelineshub.Resource](resource R) (pipelinesv1.Provider, base.Output) {
+func StubWithIdAndError[R pipelineshub.Resource](resource R) (pipelineshub.Provider, base.Output) {
 	return StubProvider(base.Output{
 		Id:            apis.RandomString(),
 		ProviderError: apis.RandomString(),

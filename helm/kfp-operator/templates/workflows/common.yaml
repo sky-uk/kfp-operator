@@ -28,7 +28,7 @@ spec:
     inputs:
       artifacts:
       - name: resource-definition
-        path: /resource-definition.yaml
+        path: /resource-definition.json
         raw:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
@@ -36,28 +36,10 @@ spec:
       command:
       - ash
       image: mikefarah/yq:4.45.1
-      source: yq e -r '.image' /resource-definition.yaml
+      source: yq e -r '.image' /resource-definition.json
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
-  - name: yaml-to-json
-    inputs:
-      parameters:
-      - name: yaml
-    outputs:
-      artifacts:
-      - name: json
-        path: /tmp/json.json
-    container:
-      image: mikefarah/yq:4.45.1
-      command: [sh, -c]
-      args:
-      - |
-        echo "input yaml:"
-        echo "{{`{{inputs.parameters.yaml}}`}}"
-
-        echo "output json:"
-        echo "{{`{{inputs.parameters.yaml}}`}}" | yq eval -o=json - | tee /tmp/json.json
   - name: url-encode
     inputs:
       parameters:

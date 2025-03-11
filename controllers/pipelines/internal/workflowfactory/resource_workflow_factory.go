@@ -8,7 +8,6 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
-	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -89,13 +88,13 @@ func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMe
 	}
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionYaml(resource R) (string, error) {
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(resource R) (string, error) {
 	resourceDefinition, err := workflows.DefinitionCreator(resource)
 	if err != nil {
 		return "", err
 	}
 
-	marshalled, err := yaml.Marshal(&resourceDefinition)
+	marshalled, err := json.Marshal(&resourceDefinition)
 	if err != nil {
 		return "", err
 	}
@@ -108,7 +107,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
+	resourceDefinition, err := workflows.resourceDefinitionJson(resource)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +169,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionYaml(resource)
+	resourceDefinition, err := workflows.resourceDefinitionJson(resource)
 	if err != nil {
 		return nil, err
 	}
