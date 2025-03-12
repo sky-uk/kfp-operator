@@ -2,7 +2,6 @@ package v1beta1
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/sky-uk/kfp-operator/apis"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
@@ -33,7 +32,7 @@ func ComponentsFromFramework(framework *PipelineFramework) (string, error) {
 		}
 		return res, nil
 	} else {
-		return "", errors.New("missing components in tfx framework parameters")
+		return "", nil
 	}
 }
 
@@ -50,6 +49,6 @@ func BeamArgsFromFramework(framework *PipelineFramework) ([]apis.NamedValue, err
 
 		return res, nil
 	} else {
-		return nil, errors.New("missing beamArgs in tfx framework parameters")
+		return []apis.NamedValue{}, nil
 	}
 }

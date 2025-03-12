@@ -34,7 +34,7 @@ func (rccr RunConfigurationConversionRemainder) ConversionAnnotation() string {
 }
 
 type PipelineConversionRemainder struct {
-	Framework PipelineFramework
+	Framework PipelineFramework `json:"framework"`
 }
 
 func (pcr PipelineConversionRemainder) Empty() bool {

@@ -83,12 +83,12 @@ var _ = Context("Conversions", func() {
 			Expect(components).To(Equal(result))
 		})
 
-		Specify("returns error if components do not exist", func() {
+		Specify("returns empty string if components do not exist", func() {
 			framework := NewPipelineFramework("tfx")
 
 			components, err := ComponentsFromFramework(&framework)
 
-			Expect(err).To(HaveOccurred())
+			Expect(err).To(Not(HaveOccurred()))
 			Expect(components).To(Equal(""))
 		})
 	})
@@ -121,12 +121,12 @@ var _ = Context("Conversions", func() {
 			Expect(beamArgsFromFramework).To(Equal(beamArgs))
 		})
 
-		Specify("returns error if beamArgs do not exist", func() {
+		Specify("returns empty list if beamArgs do not exist", func() {
 			framework := NewPipelineFramework("tfx")
 
 			beamArgs, err := BeamArgsFromFramework(&framework)
 
-			Expect(err).To(HaveOccurred())
+			Expect(err).To(Not(HaveOccurred()))
 			Expect(beamArgs).To(BeEmpty())
 		})
 	})
