@@ -3,6 +3,7 @@
 package v1beta1
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"time"
@@ -30,11 +31,18 @@ func RandomPipelineSpec(provider string) PipelineSpec {
 	randomParameters := make(map[string]*apiextensionsv1.JSON)
 	randomParameters["components"] = &apiextensionsv1.JSON{Raw: []byte((fmt.Sprintf(`"%s"`, RandomString())))}
 
+	beamArgs := map[string]string{
+		"key1": "value1",
+		"key2": "1234",
+	}
+
+	beamArgsMarshalled, _ := json.Marshal(beamArgs)
+	randomParameters["beamArgs"] = &apiextensionsv1.JSON{Raw: beamArgsMarshalled}
+
 	return PipelineSpec{
 		Provider: provider,
 		Image:    fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		Env:      RandomNamedValues(),
-		BeamArgs: RandomNamedValues(),
 		Framework: PipelineFramework{
 			Type:       RandomString(),
 			Parameters: randomParameters,

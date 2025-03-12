@@ -26,7 +26,13 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	if !remainder.Empty() {
 		dst.Spec.Framework = remainder.Framework
 	} else if tfxComponents != "" {
-		dst.Spec.Framework = hub.ToTFXPipelineFramework(tfxComponents)
+		framework := hub.NewPipelineFramework("tfx")
+		hub.AddComponentsToFrameworkParams(src.Spec.TfxComponents, &framework)
+		if err := hub.AddBeamArgsToFrameworkParams(src.Spec.BeamArgs, &framework); err != nil {
+			return err
+		}
+		dst.Spec.Framework = framework
+
 	} else {
 		return errors.New("missing tfx components in framework parameters")
 	}
@@ -44,15 +50,23 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	tfxComponents, remainder, err := hub.FromPipelineFramework(src.Spec.Framework)
+	if src.Spec.Framework.Type != "tfx" {
+		return pipelines.SetConversionAnnotations(dst, hub.PipelineConversionRemainder{
+			Framework: src.Spec.Framework,
+		})
+	}
+
+	components, err := hub.ComponentsFromFramework(&src.Spec.Framework)
 	if err != nil {
 		return err
-	} else if tfxComponents != "" {
-		dst.Spec.TfxComponents = tfxComponents
-		return nil
-	} else if remainder != nil {
-		return pipelines.SetConversionAnnotations(dst, *remainder)
-	} else {
-		return errors.New("failed to process framework")
 	}
+	dst.Spec.TfxComponents = components
+
+	beamArgs, err := hub.BeamArgsFromFramework(&src.Spec.Framework)
+	if err != nil {
+		return err
+	}
+	dst.Spec.BeamArgs = beamArgs
+
+	return nil
 }

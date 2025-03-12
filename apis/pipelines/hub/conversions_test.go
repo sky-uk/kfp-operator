@@ -11,74 +11,131 @@ import (
 )
 
 var _ = Context("Conversions", func() {
-	var _ = Describe("ToTFXPipelineFramework", func() {
-		Specify("returns tfx framework for empty string", func() {
-			res := ToTFXPipelineFramework("")
-			Expect(res.Type).To(Equal("tfx"))
-			Expect(res.Parameters).To(HaveKey("components"))
+	var _ = Describe("AddComponentsToFrameworkParams", func() {
+		Specify("adds tfx framework for empty string", func() {
+			framework := NewPipelineFramework("tfx")
+
+			AddComponentsToFrameworkParams("", &framework)
+
+			Expect(framework.Parameters).To(HaveKey("components"))
 		})
 
-		Specify("returns tfx framework for some string", func() {
+		Specify("adds tfx framework for some string", func() {
 			tfxComponents := apis.RandomString()
-			res := ToTFXPipelineFramework(tfxComponents)
+			framework := NewPipelineFramework("tfx")
+
+			AddComponentsToFrameworkParams(tfxComponents, &framework)
+
 			marshal, _ := json.Marshal(tfxComponents)
-			Expect(res.Type).To(Equal("tfx"))
-			Expect(res.Parameters["components"]).To(Equal(&apiextensionsv1.JSON{Raw: marshal}))
+			Expect(framework.Parameters["components"]).To(Equal(&apiextensionsv1.JSON{Raw: marshal}))
 		})
 	})
 
-	var _ = Describe("FromPipelineFramework", func() {
-		Specify("returns tfxComponents for tfx framework", func() {
-			pf := PipelineFramework{
-				Type:       "tfx",
-				Parameters: map[string]*apiextensionsv1.JSON{"components": {Raw: []byte(`"somestring"`)}},
-			}
-			res, annotations, err := FromPipelineFramework(pf)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(annotations).To(BeNil())
-			Expect(res).To(Equal("somestring"))
+	var _ = Describe("AddBeamArgsToFrameworkParams", func() {
+		Specify("adds beamArgs to framework params for empty list", func() {
+			framework := NewPipelineFramework("tfx")
+
+			err := AddBeamArgsToFrameworkParams([]apis.NamedValue{}, &framework)
+
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(framework.Parameters).To(HaveKey("beamArgs"))
 		})
 
-		Specify("returns error on invalid raw components value", func() {
-			pf := PipelineFramework{
-				Type:       "tfx",
-				Parameters: map[string]*apiextensionsv1.JSON{"components": {Raw: []byte("this is not valid json")}},
+		Specify("adds beamArgs to framework params for populated list", func() {
+			beamArgs := []apis.NamedValue{
+				{Name: "name1", Value: "value1"},
+				{Name: "name2", Value: "value2"},
 			}
-			res, annotations, err := FromPipelineFramework(pf)
+
+			framework := NewPipelineFramework("tfx")
+
+			err := AddBeamArgsToFrameworkParams(beamArgs, &framework)
+			Expect(err).To(Not(HaveOccurred()))
+
+			expectedBeamArgFormat := map[string]string{
+				"name1": "value1",
+				"name2": "value2",
+			}
+			marshal, _ := json.Marshal(expectedBeamArgFormat)
+			Expect(framework.Parameters["beamArgs"]).To(Equal(&apiextensionsv1.JSON{Raw: marshal}))
+		})
+	})
+
+	var _ = Describe("ComponentsFromFramework", func() {
+		Specify("returns empty string for empty framework", func() {
+			framework := NewPipelineFramework("tfx")
+			framework.Parameters = nil
+
+			components, err := ComponentsFromFramework(&framework)
+
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(components).To(Equal(""))
+		})
+
+		Specify("returns components for populated framework", func() {
+			components := apis.RandomString()
+
+			jsonString, err := json.Marshal(components)
+			Expect(err).To(Not(HaveOccurred()))
+
+			framework := NewPipelineFramework("tfx")
+			framework.Parameters["components"] = &apiextensionsv1.JSON{Raw: jsonString}
+
+			result, err := ComponentsFromFramework(&framework)
+
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(components).To(Equal(result))
+		})
+
+		Specify("returns error if components do not exist", func() {
+			framework := NewPipelineFramework("tfx")
+
+			components, err := ComponentsFromFramework(&framework)
+
 			Expect(err).To(HaveOccurred())
-			Expect(annotations).To(BeNil())
-			Expect(res).To(BeEmpty())
+			Expect(components).To(Equal(""))
+		})
+	})
+
+	var _ = Describe("BeamArgsFromFramework", func() {
+		Specify("returns empty list for empty framework parameters", func() {
+			framework := NewPipelineFramework("tfx")
+			framework.Parameters = nil
+
+			beamArgs, err := BeamArgsFromFramework(&framework)
+
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(beamArgs).To(BeEmpty())
 		})
 
-		Specify("returns error for missing components in tfx framework parameters", func() {
-			pf := PipelineFramework{
-				Type:       "tfx",
-				Parameters: map[string]*apiextensionsv1.JSON{},
+		Specify("returns beamArgs for populated framework", func() {
+			beamArgs := []apis.NamedValue{
+				{Name: "name1", Value: "value1"},
+				{Name: "name2", Value: "value2"},
 			}
-			res, annotations, err := FromPipelineFramework(pf)
+
+			framework := NewPipelineFramework("tfx")
+
+			expectedBeamArgFormat := map[string]string{
+				"name1": "value1",
+				"name2": "value2",
+			}
+			marshal, _ := json.Marshal(expectedBeamArgFormat)
+			framework.Parameters["beamArgs"] = &apiextensionsv1.JSON{Raw: marshal}
+
+			beamArgsFromFramework, err := BeamArgsFromFramework(&framework)
+
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(beamArgsFromFramework).To(Equal(beamArgs))
+		})
+
+		Specify("returns error if beamArgs do not exist", func() {
+			framework := NewPipelineFramework("tfx")
+
+			beamArgs, err := BeamArgsFromFramework(&framework)
+
 			Expect(err).To(HaveOccurred())
-			Expect(annotations).To(BeNil())
-			Expect(res).To(BeEmpty())
-		})
-
-		Specify("returns error for missing tfx framework parameters", func() {
-			pf := PipelineFramework{
-				Type: "tfx",
-			}
-			res, annotations, err := FromPipelineFramework(pf)
-			Expect(err).To(HaveOccurred())
-			Expect(annotations).To(BeNil())
-			Expect(res).To(BeEmpty())
-		})
-
-		Specify("returns annotation for non-tfx framework", func() {
-			pf := PipelineFramework{
-				Type: "non-tfx",
-			}
-			res, annotations, err := FromPipelineFramework(pf)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(annotations).NotTo(BeNil())
-			Expect(res).To(BeEmpty())
+			Expect(beamArgs).To(BeEmpty())
 		})
 	})
 })

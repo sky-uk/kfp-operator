@@ -359,18 +359,6 @@ spec:
             type: object
           spec:
             properties:
-              beamArgs:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                  required:
-                  - name
-                  - value
-                  type: object
-                type: array
               env:
                 items:
                   properties:
@@ -384,6 +372,7 @@ spec:
                   type: object
                 type: array
               framework:
+                description: BeamArgs  []apis.NamedValue `json:"beamArgs,omitempty"`
                 properties:
                   parameters:
                     additionalProperties:

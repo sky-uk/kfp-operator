@@ -59,24 +59,6 @@ var _ = Context("Pipeline", func() {
 			Expect(hash2).NotTo(Equal(hash3))
 		})
 
-		Specify("All BeamArgs keys should change the hash", func() {
-			pipeline := Pipeline{}
-			hash1 := pipeline.ComputeHash()
-
-			pipeline.Spec.BeamArgs = []apis.NamedValue{
-				{Name: "a", Value: ""},
-			}
-			hash2 := pipeline.ComputeHash()
-
-			pipeline.Spec.BeamArgs = []apis.NamedValue{
-				{Name: "b", Value: "NotEmpty"},
-			}
-			hash3 := pipeline.ComputeHash()
-
-			Expect(hash1).NotTo(Equal(hash2))
-			Expect(hash2).NotTo(Equal(hash3))
-		})
-
 		Specify("The original object should not change", PropertyBased, func() {
 			rcs := RandomPipeline(apis.RandomLowercaseString())
 			expected := rcs.DeepCopy()

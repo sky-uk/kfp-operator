@@ -8,7 +8,12 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"strings"
 )
+
+func namedValueSort(a, b apis.NamedValue) bool {
+	return strings.Compare(a.Name, b.Name) < 0
+}
 
 var _ = Context("Pipeline Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
@@ -32,22 +37,11 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
 	})
 
 	var _ = Describe("Roundtrip backward", func() {
-		Specify("converts to and from the same object", func() {
-			src := hub.RandomPipeline(apis.RandomLowercaseString())
-			intermediate := &Pipeline{}
-			dst := &hub.Pipeline{}
-
-			Expect(intermediate.ConvertFrom(src)).To(Succeed())
-			Expect(intermediate.ConvertTo(dst)).To(Succeed())
-
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
-		})
-
 		Specify("converts to and from the same object when the framework is tfx", func() {
 			src := hub.RandomPipeline(apis.RandomLowercaseString())
 			src.Spec.Framework.Type = "tfx"
@@ -57,20 +51,23 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
+		})
+
+		Specify("converts to and from the same object when the framework is not tfx", func() {
+			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src.Spec.Framework.Type = "some-other-framework"
+			intermediate := &Pipeline{}
+			dst := &hub.Pipeline{}
+
+			Expect(intermediate.ConvertFrom(src)).To(Succeed())
+			Expect(intermediate.ConvertTo(dst)).To(Succeed())
+
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
 	})
 
 	var _ = Describe("Conversion failure", func() {
-		Specify("ConvertFrom fails when the framework is tfx and there is no components parameter", func() {
-			src := hub.RandomPipeline(apis.RandomLowercaseString())
-			src.Spec.Framework.Type = "tfx"
-			src.Spec.Framework.Parameters = nil
-			intermediate := &Pipeline{}
-
-			Expect(intermediate.ConvertFrom(src)).To(Not(Succeed()))
-		})
-
 		Specify("ConvertTo fails when there are no annotations and tfx components isn't set", func() {
 			src := RandomPipeline()
 			src.Spec.TfxComponents = ""

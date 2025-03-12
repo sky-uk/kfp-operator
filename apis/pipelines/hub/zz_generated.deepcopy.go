@@ -320,11 +320,6 @@ func (in *PipelineSpec) DeepCopyInto(out *PipelineSpec) {
 		*out = make([]apis.NamedValue, len(*in))
 		copy(*out, *in)
 	}
-	if in.BeamArgs != nil {
-		in, out := &in.BeamArgs, &out.BeamArgs
-		*out = make([]apis.NamedValue, len(*in))
-		copy(*out, *in)
-	}
 	in.Framework.DeepCopyInto(&out.Framework)
 }
 

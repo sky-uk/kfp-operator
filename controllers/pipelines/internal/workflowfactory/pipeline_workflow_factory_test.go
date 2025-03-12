@@ -4,7 +4,6 @@ package workflowfactory
 
 import (
 	"encoding/json"
-	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -20,10 +19,6 @@ import (
 var _ = Describe("PipelineParamsCreator", func() {
 	expectedEnv := []apis.NamedValue{
 		{Name: "a", Value: "b"},
-	}
-
-	expectedBeamArgs := []apis.NamedValue{
-		{Name: "c", Value: "d"},
 	}
 
 	expectedFramework := pipelineshub.PipelineFramework{
@@ -42,7 +37,6 @@ var _ = Describe("PipelineParamsCreator", func() {
 		Spec: pipelineshub.PipelineSpec{
 			Image:     "pipelineImage",
 			Env:       expectedEnv,
-			BeamArgs:  expectedBeamArgs,
 			Framework: expectedFramework,
 		},
 	}
@@ -59,7 +53,6 @@ var _ = Describe("PipelineParamsCreator", func() {
 				Expect(compilerConfig.Image).To(Equal("pipelineImage"))
 				Expect(compilerConfig.Framework).To(Equal(expectedFramework))
 				Expect(compilerConfig.Env).To(Equal(expectedEnv))
-				Expect(compilerConfig.BeamArgs).To(Equal(expectedBeamArgs))
 			})
 
 			It("creates valid JSON", func() {
@@ -72,32 +65,23 @@ var _ = Describe("PipelineParamsCreator", func() {
 				err = json.Unmarshal(configYaml, &result)
 				Expect(err).NotTo(HaveOccurred())
 				resultMap, ok := result.(map[string]interface{})
-				for key, value := range resultMap {
-					fmt.Printf("Key: %s, Value: %d\n", key, value)
-				}
 				Expect(ok).To(BeTrue())
 
-				Expect(resultMap["Name"]).To(Equal("pipelineNamespace/pipelineName"))
-				Expect(resultMap["Image"]).To(Equal("pipelineImage"))
+				Expect(resultMap["name"]).To(Equal("pipelineNamespace/pipelineName"))
+				Expect(resultMap["image"]).To(Equal("pipelineImage"))
 
-				framework := resultMap["Framework"].(map[string]interface{})
+				framework := resultMap["framework"].(map[string]interface{})
 				Expect(framework["type"]).To(Equal(expectedFramework.Type))
 
 				parameters := framework["parameters"].(map[string]interface{})
 				Expect(parameters["a"]).To(Equal("b"))
 				Expect(parameters["c"]).To(Equal("d"))
 
-				env := resultMap["Env"].([]interface{})
+				env := resultMap["env"].([]interface{})
 				Expect(env[0]).To(Equal(map[string]interface{}{
 					"name":  "a",
 					"value": "b",
 				}))
-				beamArgs := resultMap["BeamArgs"].([]interface{})
-				Expect(beamArgs[0]).To(Equal(map[string]interface{}{
-					"name":  "c",
-					"value": "d",
-				}))
-
 			})
 		})
 	})
