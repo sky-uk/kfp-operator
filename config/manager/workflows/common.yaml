@@ -164,26 +164,6 @@ spec:
         valueFrom:
           parameter: '{{steps.provider.outputs.parameters.provider-output}}'
     steps:
-    - - name: select-provider-image
-        templateRef:
-          name: kfp-operator-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: field
-            value: image
-          - name: provider-config
-            value: '{{workflow.parameters.provider-config}}'
-    - - name: select-provider-sa
-        templateRef:
-          name: kfp-operator-common-steps
-          template: select-provider-parameter
-        arguments:
-          parameters:
-          - name: field
-            value: serviceAccount
-          - name: provider-config
-            value: '{{workflow.parameters.provider-config}}'
     - - name: url-encode-resource-id
         templateRef:
           name: kfp-operator-common-steps
