@@ -13,12 +13,7 @@ func AddComponentsToFrameworkParams(tfxComponents string, framework *PipelineFra
 }
 
 func AddBeamArgsToFrameworkParams(beamArgs []apis.NamedValue, framework *PipelineFramework) error {
-	beamArgsMap := make(map[string]string, len(beamArgs))
-	for _, arg := range beamArgs {
-		beamArgsMap[arg.Name] = arg.Value
-	}
-
-	marshal, err := json.Marshal(beamArgsMap)
+	marshal, err := json.Marshal(beamArgs)
 	if err != nil {
 		return err
 	}
@@ -48,20 +43,12 @@ func BeamArgsFromFramework(framework *PipelineFramework) ([]apis.NamedValue, err
 	}
 	beamArgs, beamArgsExists := framework.Parameters["beamArgs"]
 	if beamArgsExists {
-		var res map[string]string
+		var res []apis.NamedValue
 		if err := json.Unmarshal(beamArgs.Raw, &res); err != nil {
 			return nil, err
 		}
 
-		var beamArgs []apis.NamedValue
-		for name, value := range res {
-			beamArgs = append(beamArgs, apis.NamedValue{
-				Name:  name,
-				Value: value,
-			})
-		}
-
-		return beamArgs, nil
+		return res, nil
 	} else {
 		return nil, errors.New("missing beamArgs in tfx framework parameters")
 	}

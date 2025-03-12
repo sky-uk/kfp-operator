@@ -31,9 +31,9 @@ func RandomPipelineSpec(provider string) PipelineSpec {
 	randomParameters := make(map[string]*apiextensionsv1.JSON)
 	randomParameters["components"] = &apiextensionsv1.JSON{Raw: []byte((fmt.Sprintf(`"%s"`, RandomString())))}
 
-	beamArgs := map[string]string{
-		"key1": "value1",
-		"key2": "1234",
+	beamArgs := []NamedValue{
+		{Name: "key1", Value: "value1"},
+		{Name: "key2", Value: "1234"},
 	}
 
 	beamArgsMarshalled, _ := json.Marshal(beamArgs)

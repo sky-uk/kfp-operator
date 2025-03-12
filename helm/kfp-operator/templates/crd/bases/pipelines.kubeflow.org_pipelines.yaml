@@ -378,18 +378,6 @@ spec:
             type: object
           spec:
             properties:
-              beamArgs:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                  required:
-                  - name
-                  - value
-                  type: object
-                type: array
               env:
                 items:
                   properties:

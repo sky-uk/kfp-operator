@@ -52,11 +52,7 @@ var _ = Context("Conversions", func() {
 			err := AddBeamArgsToFrameworkParams(beamArgs, &framework)
 			Expect(err).To(Not(HaveOccurred()))
 
-			expectedBeamArgFormat := map[string]string{
-				"name1": "value1",
-				"name2": "value2",
-			}
-			marshal, _ := json.Marshal(expectedBeamArgFormat)
+			marshal, _ := json.Marshal(beamArgs)
 			Expect(framework.Parameters["beamArgs"]).To(Equal(&apiextensionsv1.JSON{Raw: marshal}))
 		})
 	})
@@ -116,11 +112,7 @@ var _ = Context("Conversions", func() {
 
 			framework := NewPipelineFramework("tfx")
 
-			expectedBeamArgFormat := map[string]string{
-				"name1": "value1",
-				"name2": "value2",
-			}
-			marshal, _ := json.Marshal(expectedBeamArgFormat)
+			marshal, _ := json.Marshal(beamArgs)
 			framework.Parameters["beamArgs"] = &apiextensionsv1.JSON{Raw: marshal}
 
 			beamArgsFromFramework, err := BeamArgsFromFramework(&framework)

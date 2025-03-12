@@ -14,10 +14,9 @@ import (
 )
 
 type PipelineSpec struct {
-	Provider string            `json:"provider" yaml:"provider"`
-	Image    string            `json:"image" yaml:"image"`
-	Env      []apis.NamedValue `json:"env,omitempty" yaml:"env"`
-	//BeamArgs  []apis.NamedValue `json:"beamArgs,omitempty"`
+	Provider  string            `json:"provider" yaml:"provider"`
+	Image     string            `json:"image" yaml:"image"`
+	Env       []apis.NamedValue `json:"env,omitempty" yaml:"env"`
 	Framework PipelineFramework `json:"framework" yaml:"framework"`
 }
 
