@@ -1,24 +1,21 @@
-include ../docker-targets.mk
 include ../help.mk
-
-all: build
 
 ##@ Development
 
-test: ## Test
+test-all: ## Test all compilers
 	$(MAKE) -C tfx test
 
-integration-test-all: ## Integration test
-	$(MAKE) -C compilers/tfx integration-test
+integration-test-all: ## Integration test for all compilers
+	$(MAKE) -C tfx integration-test
 
 ##@ Build
 
-build: ## Build
+build-all: ## Build all compilers
 	$(MAKE) -C tfx build
 
 ##@ Containers
 
-docker-build-all: ## Push all compiler docker images
+docker-build-all: ## Build all compiler docker images
 	$(MAKE) -C tfx docker-build
 
 docker-push-all: ## Push all compiler docker images
