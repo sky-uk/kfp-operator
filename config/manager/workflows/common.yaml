@@ -5,24 +5,6 @@ metadata:
   namespace: kfp-operator-system
 spec:
   templates:
-  - name: select-provider-parameter
-    inputs:
-      parameters:
-      - name: field
-      - name: provider-config
-      artifacts:
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{workflow.parameters.provider-config}}
-    script:
-      command:
-      - ash
-      image: mikefarah/yq:4.45.1
-      source: yq e -r '.{{inputs.parameters.field}}' '/provider-config.json'
-    metadata: {}
-    activeDeadlineSeconds: 300
   - name: select-resource-image
     inputs:
       artifacts:

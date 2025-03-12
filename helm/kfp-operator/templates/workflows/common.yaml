@@ -5,25 +5,6 @@ metadata:
   namespace: {{ include "kfp-operator.argoNamespace" . }}
 spec:
   templates:
-  - name: select-provider-parameter
-    inputs:
-      parameters:
-      - name: field
-      - name: provider-config
-      artifacts:
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
-    script:
-      command:
-      - ash
-      image: mikefarah/yq:4.45.1
-      source: yq e -r '.{{`{{inputs.parameters.field}}`}}' '/provider-config.json'
-    metadata:
-      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
-    activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
   - name: select-resource-image
     inputs:
       artifacts:
