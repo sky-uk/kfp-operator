@@ -1,3 +1,5 @@
+include ../../help.mk
+
 ##@ Build
 
 build: ## Build
