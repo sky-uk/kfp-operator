@@ -6,7 +6,7 @@ KFP SDK Compiler is a tool that compiles a KFP SDK pipeline definition into Kube
 
 KFP SDK compiler is compatible with KFP SDK [2.12.2](https://kubeflow-pipelines.readthedocs.io/en/sdk-2.12.1/), supports Python 3.9 onwards and requires minimum of `v1beta1` Pipeline resource definition with:
 - framework `type` set to `kfpsdk`
-- `pipeline` parameter set to fully qualified name of Python function creating pipeline components, separated by `.`
+- `pipeline` parameter set to fully qualified name of Python function decorated with `@dsl.pipeline`, separated by `.`
 
 ```yaml
 ---
