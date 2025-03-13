@@ -7,13 +7,11 @@ import (
 )
 
 type PipelineDefinition struct {
-	Name          common.NamespacedName          `json:"name" yaml:"name"`
-	Version       string                         `json:"version" yaml:"version"`
-	Image         string                         `json:"image" yaml:"image"`
-	TfxComponents string                         `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []apis.NamedValue              `json:"env,omitempty" yaml:"env,omitempty"`
-	BeamArgs      []apis.NamedValue              `json:"beamArgs,omitempty" yaml:"beamArgs,omitempty"`
-	Framework     pipelineshub.PipelineFramework `json:"framework" yaml:"framework"`
+	Name      common.NamespacedName          `json:"name" yaml:"name"`
+	Version   string                         `json:"version" yaml:"version"`
+	Image     string                         `json:"image" yaml:"image"`
+	Env       []apis.NamedValue              `json:"env,omitempty" yaml:"env,omitempty"`
+	Framework pipelineshub.PipelineFramework `json:"framework" yaml:"framework"`
 }
 
 type ExperimentDefinition struct {
