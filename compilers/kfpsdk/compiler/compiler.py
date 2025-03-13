@@ -29,7 +29,10 @@ def _compile(pipeline_config: str, output_file: str):
 def load_fn(pipeline_config_contents: dict):
     framework = pipeline_config_contents['framework']
     framework_parameters = framework['parameters']
-    pipeline = framework_parameters['pipeline']
+    try:
+        pipeline = framework_parameters['pipeline']
+    except KeyError as e:
+        raise KeyError(f'Missing required framework parameter: [{e.args[0]}].')
 
     (module_name, fn_name) = pipeline.rsplit('.', 1)
     module = importlib.import_module(module_name)
