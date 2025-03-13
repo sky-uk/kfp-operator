@@ -32,6 +32,9 @@ def load_fn(pipeline_config_contents: dict):
         raise KeyError('Missing required framework parameter: [pipeline].')
     pipeline = framework_parameters['pipeline']
 
+    if "." not in pipeline:
+        raise ValueError(f"Invalid pipeline format: [{pipeline}]. Expected format: 'module_path.function_name'.")
+
     (module_name, fn_name) = pipeline.rsplit('.', 1)
     module = importlib.import_module(module_name)
 
