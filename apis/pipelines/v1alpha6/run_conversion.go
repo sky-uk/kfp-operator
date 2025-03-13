@@ -15,6 +15,7 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
+	dst.Spec.Provider = addDefaultWorkflowNamespaceToProvider(dst.Spec.Provider)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil

@@ -16,7 +16,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Run.Provider = getProviderAnnotation(src)
+	dst.Spec.Run.Provider = addWorkflowNamespaceToProvider(getProviderAnnotation(src))
 	removeProviderAnnotation(dst)
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Run.Pipeline.Name,

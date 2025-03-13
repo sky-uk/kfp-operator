@@ -1,12 +1,15 @@
 package v1alpha5
 
 import (
+	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var DefaultProvider string
+var DefaultWorkflowNamespace string
 
 var ResourceAnnotations = struct {
 	Provider string
@@ -76,5 +79,19 @@ func convertProviderAndIdFrom(providerAndId hub.ProviderAndId) ProviderAndId {
 	return ProviderAndId{
 		Provider: providerAndId.Name,
 		Id:       providerAndId.Id,
+	}
+}
+
+func addWorkflowNamespaceToProvider(provider string) string {
+	namespacedName, err := common.NamespacedNameFromString(provider)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if namespacedName.Namespace != "" {
+		return provider
+	} else {
+		return fmt.Sprintf("%s/%s", DefaultWorkflowNamespace, provider)
 	}
 }

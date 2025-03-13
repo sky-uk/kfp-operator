@@ -15,9 +15,9 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.Provider = getProviderAnnotation(src)
+	dst.Spec.Provider = addWorkflowNamespaceToProvider(getProviderAnnotation(src))
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId)
+	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId) // TODO don't think we need to set the namespace on this provider field, parking this thought for now
 
 	removeProviderAnnotation(dst)
 

@@ -3,6 +3,7 @@
 package v1alpha5
 
 import (
+	"fmt"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,12 +16,13 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 		Specify("converts to and from the same object using default provider", func() {
 			src := RandomRunSchedule()
 			DefaultProvider = "default-provider"
+			DefaultWorkflowNamespace = "default-workflow-namespace"
 			intermediate := &hub.RunSchedule{}
 			dst := &RunSchedule{}
 
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+			Expect(getProviderAnnotation(dst)).To(Equal(fmt.Sprintf("%s/%s", DefaultWorkflowNamespace, DefaultProvider)))
 		})
 
 		Specify("converts to and from the same object", func() {
@@ -37,7 +39,7 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
-			src := hub.RandomRunSchedule(apis.RandomLowercaseString())
+			src := hub.RandomRunSchedule(apis.RandomNamespacedName().String())
 			intermediate := &RunSchedule{}
 			dst := &hub.RunSchedule{}
 
