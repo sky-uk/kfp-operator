@@ -4,12 +4,12 @@ package provider
 
 import (
 	"fmt"
+	testutil "github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider/testutil"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -23,7 +23,7 @@ var _ = Describe("JobBuilder", func() {
 	Context("MkRunPipelineJob", func() {
 		When("templateUri is valid", func() {
 			It("should make a run pipeline job", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				job, err := jb.MkRunPipelineJob(rd)
 				expectedTemplateUri := fmt.Sprintf(
 					"gs://%s/%s/%s/%s",
@@ -44,7 +44,7 @@ var _ = Describe("JobBuilder", func() {
 		})
 		When("templateUri is invalid", func() {
 			It("should return error", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				rd.PipelineName.Name = ""
 				_, err := jb.MkRunPipelineJob(rd)
 
