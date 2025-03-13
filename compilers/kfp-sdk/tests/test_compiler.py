@@ -32,3 +32,17 @@ def test_compiler_missing_pipeline_parameter():
         compiler.load_fn(pipeline_config_contents)()
 
     assert str(error.value) == "'Missing required framework parameter: [pipeline].'"
+
+def test_compiler_invalid_pipeline_format():
+    pipeline_config_contents = {
+        'framework': {
+            'parameters': {
+                'pipeline': 'function'
+            }
+        }
+    }
+    sys.path.append(os.path.dirname(__file__))
+    with pytest.raises(ValueError) as error:
+        compiler.load_fn(pipeline_config_contents)()
+
+    assert str(error.value) == "Invalid pipeline format: [function]. Expected format: 'module_path.function_name'."
