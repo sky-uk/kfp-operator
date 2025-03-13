@@ -3,7 +3,7 @@ include ../help.mk
 ##@ Development
 
 test-all: ## Test all compilers
-	#$(MAKE) -C tfx test
+	$(MAKE) -C tfx test
 	$(MAKE) -C kfp-sdk test
 
 integration-test-all: ## Integration test for all compilers
