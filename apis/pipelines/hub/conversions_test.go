@@ -65,7 +65,7 @@ var _ = Context("Conversions", func() {
 			components, err := ComponentsFromFramework(&framework)
 
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(components).To(Equal(""))
+			Expect(components).ToBe(Empty())
 		})
 
 		Specify("returns components for populated framework", func() {
@@ -89,7 +89,7 @@ var _ = Context("Conversions", func() {
 			components, err := ComponentsFromFramework(&framework)
 
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(components).To(Equal(""))
+			Expect(components).ToBe(Empty())
 		})
 	})
 

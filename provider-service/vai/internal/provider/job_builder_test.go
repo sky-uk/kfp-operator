@@ -4,7 +4,7 @@ package provider
 
 import (
 	"fmt"
-	testutil "github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"

@@ -59,8 +59,6 @@ var _ = Describe("PipelineParamsCreator", func() {
 				configYaml, err := json.Marshal(compilerConfig)
 				Expect(err).NotTo(HaveOccurred())
 
-				println(string(configYaml))
-
 				var result interface{}
 				err = json.Unmarshal(configYaml, &result)
 				Expect(err).NotTo(HaveOccurred())
