@@ -27,8 +27,7 @@ def _compile(pipeline_config: str, output_file: str):
 
 
 def load_fn(pipeline_config_contents: dict):
-    framework = pipeline_config_contents['framework']
-    framework_parameters = framework['parameters']
+    framework_parameters = pipeline_config_contents['framework']['parameters']
     if 'pipeline' not in framework_parameters:
         raise KeyError('Missing required framework parameter: [pipeline].')
     pipeline = framework_parameters['pipeline']
