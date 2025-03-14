@@ -26,12 +26,15 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents,
                                                                                         provider_config_contents)
 
+        framework_parameters = pipeline_config_contents['framework']['parameters']
         beam_args = provider_config_contents.get('defaultBeamArgs', [])
-        beam_args.extend(pipeline_config_contents.get('beamArgs', []))
+        pipeline_beam_args = framework_parameters.get('beamArgs', [])
+
+        beam_args.extend(pipeline_beam_args)
         beam_cli_args = name_values_to_cli_args(beam_args)
         beam_cli_args.append(f"--temp_location={temp_location}")
 
-        components = load_fn(pipeline_config_contents['tfxComponents'], pipeline_config_contents.get('env', []))()
+        components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
         expanded_components = expand_components_with_pusher(components, serving_model_directory)
 
         compile_fn = compile_v1 if provider_config_contents['executionMode'] == 'v1' else compile_v2

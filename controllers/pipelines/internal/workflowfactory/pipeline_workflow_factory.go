@@ -2,6 +2,7 @@ package workflowfactory
 
 import (
 	"fmt"
+	"strings"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -25,20 +26,15 @@ func (ppc PipelineParamsCreator) pipelineDefinition(
 			Namespace: pipeline.ObjectMeta.Namespace,
 			Name:      pipeline.ObjectMeta.Name,
 		},
-		Version:       pipeline.ComputeVersion(),
-		Image:         pipeline.Spec.Image,
-		Framework:     pipeline.Spec.Framework,
-		TfxComponents: pipeline.Spec.TfxComponents,
-		Env:           pipeline.Spec.Env,
-		BeamArgs:      pipeline.Spec.BeamArgs,
+		Version:   pipeline.ComputeVersion(),
+		Image:     pipeline.Spec.Image,
+		Framework: pipeline.Spec.Framework,
+		Env:       pipeline.Spec.Env,
 	}, nil
 }
 
 func (ppc PipelineParamsCreator) additionalParams(pipeline *pipelineshub.Pipeline) ([]argo.Parameter, error) {
-	requestedFramework := defaultFramework
-	if pipeline.Spec.Framework != "" {
-		requestedFramework = pipeline.Spec.Framework
-	}
+	requestedFramework := strings.ToLower(pipeline.Spec.Framework.Type)
 	frameworkImage, found := ppc.Config.PipelineFrameworkImages[requestedFramework]
 	if !found {
 		return nil, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not found", requestedFramework)}
