@@ -3,6 +3,7 @@ package resource
 import (
 	"encoding/json"
 	"fmt"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -10,12 +11,16 @@ import (
 )
 
 type PipelineDefinition struct {
-	Name          common.NamespacedName `json:"name" yaml:"name"`
-	Version       string                `json:"version" yaml:"version"`
-	Image         string                `json:"image" yaml:"image"`
-	TfxComponents string                `json:"tfxComponents" yaml:"tfxComponents"`
-	Env           []apis.NamedValue     `json:"env" yaml:"env"`
-	BeamArgs      []apis.NamedValue     `json:"beamArgs" yaml:"beamArgs"`
+	Name      common.NamespacedName `json:"name" yaml:"name"`
+	Version   string                `json:"version" yaml:"version"`
+	Image     string                `json:"image" yaml:"image"`
+	Env       []apis.NamedValue     `json:"env" yaml:"env"`
+	Framework PipelineFramework     `json:"framework" yaml:"framework"`
+}
+
+type PipelineFramework struct {
+	Type       string                           `json:"type" yaml:"type"`
+	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
 }
 
 // CompiledManifest represents the output of the python compile step, and
@@ -93,7 +98,7 @@ func (e *UserError) Error() string {
 }
 
 type UnimplementedError struct {
-	Method string
+	Method       string
 	ResourceType string
 }
 
