@@ -3,10 +3,16 @@ title: "Overview"
 weight: 1
 ---
 
-The Kubeflow Pipelines Operator (KFP Operator) offers a declarative API designed to streamline the management and 
-execution of ML pipelines across various providers using resource definitions. 
+The Kubeflow Pipelines Operator (KFP Operator) offers a declarative API designed to streamline the management, 
+execution, and events of ML pipelines across various providers using resource definitions.
 A "provider" refers to a runtime environment that handles the orchestration and execution of these pipelines and 
 associated resources.
+
+The diagram below gives a high level overview of what the KFP Operator offers.
+
+![high-level-overview]({{< param "subpath" >}}/master/images/high-level-overview.svg)
+
+For a more detailed architecture, see this [overview](../introduction/#architecture-overview).
 
 ### Why KFP Operator
 

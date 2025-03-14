@@ -3,7 +3,7 @@ title: "Run Completion Events"
 weight: 5
 ---
 
-Run completion events are created by a [`Provider`](../reference/providers/overview) to signal the completion of a pipeline run, and is used to trigger downstream processes. 
+Run completion events are created by a [`Provider`](../../reference/providers/overview) to signal the completion of a pipeline run, and is used to trigger downstream processes. 
 Within the operator this can be updating the status fields of resources such as their `synchronizationState` or `providerId`. Within the ML Ops ecosystem,
 this can also be used to reload a serving instance of a model with the newly trained version.
 
@@ -92,7 +92,7 @@ spec:
         log: {}
 ```
 
-For more information and an in-depth example, see the [Quickstart Guide](../../getting-started#5-optional-deploy-newly-trained-models) and [Argo-Events Documentation](https://argoproj.github.io/argo-events/).
+For more information and an in-depth example, see the [Quickstart Guide](../../examples/pipeline_training/#5-optional-deploy-newly-trained-models) and [Argo-Events Documentation](https://argoproj.github.io/argo-events/).
 
 Please make sure to provide an event bus for the eventsource and the sensor to connect to.
 You can define a default event bus, which does not require further configuration on either end, as follows:
