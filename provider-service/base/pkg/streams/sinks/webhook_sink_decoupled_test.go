@@ -9,7 +9,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
@@ -71,7 +70,7 @@ var _ = Context("Webhook Sink", Ordered, func() {
 	scheme.AddKnownTypes(groupVersion, &pipelineshub.RunConfiguration{})
 	metav1.AddToGroupVersion(scheme, groupVersion)
 
-	rc := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
+	rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
 
 	var handlers []webhook.RunCompletionEventHandler
 	stubHandler := StubRCEHandler{}

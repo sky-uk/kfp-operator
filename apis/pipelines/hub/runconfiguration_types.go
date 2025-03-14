@@ -5,6 +5,7 @@ import (
 
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -62,7 +63,7 @@ type LatestRuns struct {
 
 type RunConfigurationStatus struct {
 	SynchronizationState     apis.SynchronizationState `json:"synchronizationState,omitempty"`
-	Provider                 string                    `json:"provider,omitempty"`
+	Provider                 common.NamespacedName     `json:"provider,omitempty"`
 	ObservedPipelineVersion  string                    `json:"observedPipelineVersion,omitempty"`
 	TriggeredPipelineVersion string                    `json:"triggeredPipelineVersion,omitempty"`
 	LatestRuns               LatestRuns                `json:"latestRuns,omitempty"`

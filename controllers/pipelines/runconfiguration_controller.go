@@ -76,7 +76,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	provider := runConfiguration.Spec.Run.Provider
-	if runConfiguration.Status.Provider != "" && provider != runConfiguration.Status.Provider {
+	if !runConfiguration.Status.Provider.Empty() && provider != runConfiguration.Status.Provider {
 		//TODO: refactor to use Commands and introduce a StateHandler
 		runConfiguration.Status.SynchronizationState = apis.Failed
 
@@ -113,7 +113,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			return ctrl.Result{}, err
 		}
 
-		state, message, err = r.syncStatus(ctx, provider, runConfiguration, resolvedParameters)
+		state, message, err = r.syncStatus(ctx, runConfiguration, resolvedParameters)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
@@ -210,7 +210,6 @@ func (r *RunConfigurationReconciler) syncWithRuns(
 
 func (r *RunConfigurationReconciler) syncStatus(
 	ctx context.Context,
-	provider string,
 	runConfiguration *pipelineshub.RunConfiguration,
 	resolvedParameters []apis.NamedValue,
 ) (state apis.SynchronizationState, message string, err error) {
