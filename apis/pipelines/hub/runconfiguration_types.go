@@ -88,7 +88,7 @@ func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.Synchroniz
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName="mlrc"
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type==\"Synchronized\")].reason"
 // +kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
 // +kubebuilder:storageversion
 type RunConfiguration struct {

@@ -89,7 +89,7 @@ func (rcs *RunConfigurationStatus) SetSynchronizationState(
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName="mlrc"
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type==\"Synchronized\")].reason"
 // +kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`

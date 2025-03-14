@@ -155,7 +155,7 @@ type RunStatus struct {
 //+kubebuilder:resource:shortName="mlr"
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
-//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type==\"Synchronized\")].reason"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 //+kubebuilder:printcolumn:name="CompletionState",type="string",JSONPath=".status.completionState"
 
