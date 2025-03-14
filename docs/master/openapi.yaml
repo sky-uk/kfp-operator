@@ -222,8 +222,6 @@ components:
               type: string
             image:
               type: string
-            tfxComponents:
-              type: string
             env:
               type: object
               properties:
@@ -231,13 +229,14 @@ components:
                   type: string
                 value:
                   type: string
-            beamArgs:
+            framework:
               type: object
               properties:
-                name:
+                type:
                   type: string
-                value:
-                  type: string
+                parameters:
+                  type: object
+                  additionalProperties: true
         compiledPipeline:
           type: object
     Experiment:

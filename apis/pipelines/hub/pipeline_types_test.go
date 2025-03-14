@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
 var _ = Context("Pipeline", func() {
@@ -21,21 +22,19 @@ var _ = Context("Pipeline", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("TfxComponents should change the hash", func() {
-			pipeline := Pipeline{}
-			hash1 := pipeline.ComputeHash()
-
-			pipeline.Spec.TfxComponents = "notempty"
-			hash2 := pipeline.ComputeHash()
-
-			Expect(hash1).NotTo(Equal(hash2))
-		})
-
 		Specify("Framework should change the hash", func() {
 			pipeline := Pipeline{}
 			hash1 := pipeline.ComputeHash()
 
-			pipeline.Spec.Framework = "notempty"
+			pipeline.Spec.Framework = PipelineFramework{
+				Type: "some-framework",
+				Parameters: map[string]*apiextensionsv1.JSON{
+					"key": {Raw: []byte(`"value"`)},
+				},
+			}
+
+			Expect(pipeline.Spec.Framework.Type).To(Equal("some-framework"))
+
 			hash2 := pipeline.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
@@ -57,24 +56,6 @@ var _ = Context("Pipeline", func() {
 			}
 			hash3 := pipeline.ComputeHash()
 
-			Expect(hash2).NotTo(Equal(hash3))
-		})
-
-		Specify("All BeamArgs keys should change the hash", func() {
-			pipeline := Pipeline{}
-			hash1 := pipeline.ComputeHash()
-
-			pipeline.Spec.BeamArgs = []apis.NamedValue{
-				{Name: "a", Value: ""},
-			}
-			hash2 := pipeline.ComputeHash()
-
-			pipeline.Spec.BeamArgs = []apis.NamedValue{
-				{Name: "b", Value: "NotEmpty"},
-			}
-			hash3 := pipeline.ComputeHash()
-
-			Expect(hash1).NotTo(Equal(hash2))
 			Expect(hash2).NotTo(Equal(hash3))
 		})
 

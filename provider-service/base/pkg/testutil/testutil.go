@@ -32,12 +32,11 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 
 func RandomPipelineDefinition() resource.PipelineDefinition {
 	return resource.PipelineDefinition{
-		Name:          common.RandomNamespacedName(),
-		Version:       common.RandomString(),
-		Image:         common.RandomString(),
-		TfxComponents: common.RandomString(),
-		Env:           make([]apis.NamedValue, 0),
-		BeamArgs:      make([]apis.NamedValue, 0),
+		Name:      common.RandomNamespacedName(),
+		Version:   common.RandomString(),
+		Image:     common.RandomString(),
+		Env:       make([]apis.NamedValue, 0),
+		Framework: resource.PipelineFramework{Type: common.RandomString()},
 	}
 }
 
