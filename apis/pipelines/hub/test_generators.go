@@ -3,6 +3,7 @@
 package v1beta1
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"time"
@@ -26,13 +27,38 @@ func RandomPipeline(provider string) *Pipeline {
 	}
 }
 
+func AddTfxValues(pipelineSpec *PipelineSpec) {
+	pipelineSpec.Framework.Type = "tfx"
+	pipelineSpec.Framework.Parameters = make(map[string]*apiextensionsv1.JSON)
+	component, _ := json.Marshal(RandomString())
+	pipelineSpec.Framework.Parameters["components"] = &apiextensionsv1.JSON{Raw: component}
+
+	beamArgs := []NamedValue{
+		{Name: "key1", Value: "value1"},
+		{Name: "key2", Value: "1234"},
+	}
+
+	beamArgsMarshalled, _ := json.Marshal(beamArgs)
+	pipelineSpec.Framework.Parameters["beamArgs"] = &apiextensionsv1.JSON{Raw: beamArgsMarshalled}
+}
+
 func RandomPipelineSpec(provider string) PipelineSpec {
+	randParams := RandomMap()
+	randomParameters := make(map[string]*apiextensionsv1.JSON)
+	for key, value := range randParams {
+		randomValue, _ := json.Marshal(value)
+		a := apiextensionsv1.JSON{Raw: randomValue}
+		randomParameters[key] = &a
+	}
+
 	return PipelineSpec{
-		Provider:      provider,
-		Image:         fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
-		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
-		Env:           RandomNamedValues(),
-		BeamArgs:      RandomNamedValues(),
+		Provider: provider,
+		Image:    fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
+		Env:      RandomNamedValues(),
+		Framework: PipelineFramework{
+			Type:       RandomString(),
+			Parameters: randomParameters,
+		},
 	}
 }
 
@@ -62,21 +88,6 @@ func RandomProviderSpec() ProviderSpec {
 		DefaultBeamArgs:     RandomNamedValues(),
 		PipelineRootStorage: RandomLowercaseString(),
 		Parameters:          randomParameters,
-	}
-}
-
-func RandomConditions() Conditions {
-	return RandomList(RandomCondition)
-}
-
-func RandomCondition() metav1.Condition {
-	return metav1.Condition{
-		Type:               RandomLowercaseString(),
-		Status:             RandomConditionStatus(),
-		ObservedGeneration: common.RandomInt64(),
-		LastTransitionTime: metav1.Time{Time: time.Now()},
-		Reason:             RandomLowercaseString(),
-		Message:            RandomLowercaseString(),
 	}
 }
 

@@ -18,7 +18,9 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
-			pipelineHelper := Create(pipelineshub.RandomPipeline(Provider.Name))
+			pipeline := pipelineshub.RandomPipeline(Provider.Name)
+			pipeline.Spec.Framework.Type = TestFramework
+			pipelineHelper := Create(pipeline)
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {
 				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
@@ -38,6 +40,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 
 			Expect(pipelineHelper.Update(func(pipeline *pipelineshub.Pipeline) {
 				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.Name)
+				pipeline.Spec.Framework.Type = TestFramework
 			})).To(Succeed())
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {

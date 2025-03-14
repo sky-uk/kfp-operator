@@ -43,24 +43,33 @@ docker run -v $SHARED_DIR:/shared $KFP_COMPILER_IMAGE /shared
 
 ### Compiler configuration
 
-The compilation process can be configured as follows:
+The compilation process relies on the pipeline resource and the provider configuration being passed:
 
 ```shell
 export PIPELINE_IMAGE=<your pipeline image>
 # Choose an execution mode: v1 for KFP or v2 for Vertex AI
 export EXECUTION_MODE=v1
 
-# create the compiler configuration
-cat > $SHARED_DIR/config.yaml << EOF
+# create the pipeline resource
+cat > $SHARED_DIR/pipeline.yaml << EOF
 name: <Your pipeline name>
-rootLocation: <pipeline root location. for debugging, this can be any string>
-servingLocation: <model serving location. for debugging, this can be any string>
 image: $PIPELINE_IMAGE
-tfxComponents: <component function>
+framework:
+  type: tfx
+  parameters:
+    components: <component function>
+    beamArgs:
+      - [] # List of NamedValues for beam arguments
 env:
   <Dict[str, str] of environment variables to be passed to the compilation step>
-beamArgs:
-  <Dict[str, List[str]] of beam arguments>
+EOF
+
+# create the required provider configuration
+cat > $SHARED_DIR/provider.yaml << EOF
+executionMode: $EXECUTION_MODE
+pipelineRootStorage: <pipeline root storage location>
+defaultBeamArgs:
+  - [] # List of NamedValues for default beam arguments
 EOF
 ```
 
@@ -70,5 +79,5 @@ You can then run the compiler from inside your pipeline container to produce `$S
 
 ```shell
 # Run the compiler in your pipeline image
-docker run -v $SHARED_DIR:/shared --entrypoint /shared/compile.sh $PIPELINE_IMAGE --pipeline_config /shared/config.yaml --output_file /shared/pipeline_out.yaml --execution_mode $EXECUTION_MODE
+docker run -v $SHARED_DIR:/shared --entrypoint /shared/compile.sh $PIPELINE_IMAGE --provider_config /shard/provider.yaml --pipeline_config /shared/pipeline.yaml --output_file /shared/pipeline_out.yaml
 ```

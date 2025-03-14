@@ -17,7 +17,10 @@ metadata:
 spec:
   provider: kfp
   image: kfp-quickstart:v1
-  tfxComponents: base_pipeline.create_components
+  frameworks:
+    type: tfx
+    parameters:
+      components: base_pipeline.create_components
   env:
   - name: TRAINING_RUNS
     value: 100
@@ -25,14 +28,13 @@ spec:
 
 ## Fields
 
-| Name                 | Description                                                                                                                                                                                    |
-|----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spec.provider`      | The name of the associated [Provider resource](../provider/).                                                                                                                                  |
-| `spec.image`         | Container image containing TFX component definitions.                                                                                                                                          |
-| `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components.                                                                                                                      |
-| `spec.env`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                                                                        |
-| `spec.beamArgs`      | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline.                                                                                             |
-| `spec.framework`     | Optional. Sets a specific [pipeline framework](../../frameworks) to use. If set the pipeline framework image to use is looked up [here](../../configuration) else the `default` entry is used. |
+| Name                        | Description                                                                                                                                                                 |
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `spec.provider`             | The name of the associated [Provider resource](../provider/).                                                                                                               |
+| `spec.image`                | Container image containing TFX component definitions.                                                                                                                       |
+| `spec.env`                  | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                                                     |
+| `spec.framework.type`       | Sets a specific [pipeline framework](../../frameworks) to use. The pipeline framework image to use is looked up [here](../../configuration).                                |
+| `spec.framework.parameters` | Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. `components: base_pipeline.create_components` |
 
 ## Versioning
 

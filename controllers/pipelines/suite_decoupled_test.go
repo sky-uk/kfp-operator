@@ -36,6 +36,10 @@ var (
 	k8sManager manager.Manager
 )
 
+const (
+	TestFramework = "dummyframework"
+)
+
 var _ = BeforeSuite(func() {
 
 	By("bootstrapping test environment")
@@ -102,7 +106,7 @@ var _ = BeforeSuite(func() {
 		DefaultProvider:   apis.RandomLowercaseString(),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
 		PipelineFrameworkImages: map[string]string{
-			"default": "default-compiler",
+			TestFramework: "default-compiler",
 		},
 	}
 
