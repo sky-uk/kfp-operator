@@ -44,7 +44,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object when the framework is tfx", func() {
 			src := hub.RandomPipeline(apis.RandomLowercaseString())
-			src.Spec.Framework.Type = "tfx"
+			hub.AddTfxValues(&src.Spec)
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}
 

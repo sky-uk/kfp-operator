@@ -15,7 +15,8 @@ var _ = Context("Conversions", func() {
 		Specify("adds tfx framework for empty string", func() {
 			framework := NewPipelineFramework("tfx")
 
-			AddComponentsToFrameworkParams("", &framework)
+			err := AddComponentsToFrameworkParams("", &framework)
+			Expect(err).To(Not(HaveOccurred()))
 
 			Expect(framework.Parameters).To(HaveKey("components"))
 		})
@@ -24,7 +25,8 @@ var _ = Context("Conversions", func() {
 			tfxComponents := apis.RandomString()
 			framework := NewPipelineFramework("tfx")
 
-			AddComponentsToFrameworkParams(tfxComponents, &framework)
+			err := AddComponentsToFrameworkParams(tfxComponents, &framework)
+			Expect(err).To(Not(HaveOccurred()))
 
 			marshal, _ := json.Marshal(tfxComponents)
 			Expect(framework.Parameters["components"]).To(Equal(&apiextensionsv1.JSON{Raw: marshal}))
@@ -65,7 +67,7 @@ var _ = Context("Conversions", func() {
 			components, err := ComponentsFromFramework(&framework)
 
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(components).ToBe(Empty())
+			Expect(components).To(BeEmpty())
 		})
 
 		Specify("returns components for populated framework", func() {
@@ -89,7 +91,7 @@ var _ = Context("Conversions", func() {
 			components, err := ComponentsFromFramework(&framework)
 
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(components).ToBe(Empty())
+			Expect(components).To(BeEmpty())
 		})
 	})
 

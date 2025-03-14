@@ -6,9 +6,13 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
-func AddComponentsToFrameworkParams(tfxComponents string, framework *PipelineFramework) {
-	marshal, _ := json.Marshal(tfxComponents)
+func AddComponentsToFrameworkParams(tfxComponents string, framework *PipelineFramework) error {
+	marshal, err := json.Marshal(tfxComponents)
+	if err != nil {
+		return err
+	}
 	framework.Parameters["components"] = &apiextensionsv1.JSON{Raw: marshal}
+	return nil
 }
 
 func AddBeamArgsToFrameworkParams(beamArgs []apis.NamedValue, framework *PipelineFramework) error {

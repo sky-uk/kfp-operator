@@ -68,7 +68,11 @@ var _ = Describe("PipelineParamsCreator", func() {
 				Expect(resultMap["name"]).To(Equal("pipelineNamespace/pipelineName"))
 				Expect(resultMap["image"]).To(Equal("pipelineImage"))
 
-				framework := resultMap["framework"].(map[string]interface{})
+				Expect(resultMap["framework"]).NotTo(BeNil())
+
+				framework, ok := resultMap["framework"].(map[string]interface{})
+				Expect(ok).To(BeTrue())
+
 				Expect(framework["type"]).To(Equal(expectedFramework.Type))
 
 				parameters := framework["parameters"].(map[string]interface{})

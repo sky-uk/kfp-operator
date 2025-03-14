@@ -30,7 +30,9 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		dst.Spec.Framework = remainder.Framework
 	} else if src.Spec.TfxComponents != "" {
 		framework := hub.NewPipelineFramework("tfx")
-		hub.AddComponentsToFrameworkParams(src.Spec.TfxComponents, &framework)
+		if err := hub.AddComponentsToFrameworkParams(src.Spec.TfxComponents, &framework); err != nil {
+			return err
+		}
 		if err := hub.AddBeamArgsToFrameworkParams(src.Spec.BeamArgs, &framework); err != nil {
 			return err
 		}
