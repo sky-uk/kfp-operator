@@ -1,6 +1,6 @@
 //go:build unit
 
-package pipelines
+package apis
 
 import (
 	"errors"

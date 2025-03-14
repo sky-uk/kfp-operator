@@ -11,10 +11,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// TODO This can be moved to the apis root dir
 var _ = Context("Conditions", func() {
 	var _ = Describe("MergeIntoConditions", func() {
 		Specify("Overrides an existing condition if the reason has changed", func() {
-			conditions := Conditions{
+			conditions := apis.Conditions{
 				{
 					Reason: apis.RandomString(),
 				},
@@ -28,7 +29,7 @@ var _ = Context("Conditions", func() {
 		})
 
 		Specify("Overrides an existing condition if the status has changed", func() {
-			conditions := Conditions{
+			conditions := apis.Conditions{
 				{
 					Status: metav1.ConditionStatus(apis.RandomString()),
 				},
@@ -42,7 +43,7 @@ var _ = Context("Conditions", func() {
 		})
 
 		Specify("Overrides an existing condition if the observedGeneration has changed", func() {
-			conditions := Conditions{
+			conditions := apis.Conditions{
 				{
 					ObservedGeneration: rand.Int63(),
 				},
@@ -63,7 +64,7 @@ var _ = Context("Conditions", func() {
 				LastTransitionTime: metav1.Now(),
 			}
 
-			conditions := Conditions{
+			conditions := apis.Conditions{
 				oldCondition,
 			}
 
@@ -79,7 +80,7 @@ var _ = Context("Conditions", func() {
 		})
 
 		Specify("Keeps other conditions unchanged", func() {
-			oldConditions := Conditions(apis.RandomList(func() metav1.Condition {
+			oldConditions := apis.Conditions(apis.RandomList(func() metav1.Condition {
 				return metav1.Condition{
 					Type: apis.RandomString(),
 				}
@@ -94,7 +95,7 @@ var _ = Context("Conditions", func() {
 	})
 	var _ = Describe("ConditionStatusForSynchronizationState", func() {
 		DescribeTable("Converts SynchronizationState to ConditionStatus", func(state apis.SynchronizationState, status metav1.ConditionStatus) {
-			Expect(ConditionStatusForSynchronizationState(state)).To(Equal(status))
+			Expect(apis.ConditionStatusForSynchronizationState(state)).To(Equal(status))
 		},
 			Entry("", apis.Succeeded, metav1.ConditionTrue),
 			Entry("", apis.Deleted, metav1.ConditionTrue),

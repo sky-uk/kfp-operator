@@ -14,7 +14,7 @@ import (
 var _ = Context("Conditions", func() {
 	var _ = Describe("MergeIntoConditions", func() {
 		Specify("Overrides an existing condition if the reason has changed", func() {
-			conditions := Conditions{
+			conditions := apis.Conditions{
 				{
 					Reason: apis.RandomString(),
 				},
@@ -28,7 +28,7 @@ var _ = Context("Conditions", func() {
 		})
 
 		Specify("Overrides an existing condition if the status has changed", func() {
-			conditions := Conditions{
+			conditions := apis.Conditions{
 				{
 					Status: metav1.ConditionStatus(apis.RandomString()),
 				},
@@ -42,7 +42,7 @@ var _ = Context("Conditions", func() {
 		})
 
 		Specify("Overrides an existing condition if the observedGeneration has changed", func() {
-			conditions := Conditions{
+			conditions := apis.Conditions{
 				{
 					ObservedGeneration: rand.Int63(),
 				},
@@ -55,7 +55,7 @@ var _ = Context("Conditions", func() {
 			Expect(conditions.MergeIntoConditions(newCondition)).To(ConsistOf(newCondition))
 		})
 
-		Specify("Keeps existing condition if neither the reason nor the status nor the observedGeneration have changed", func() {
+		Specify("Keeps existing condition if neither the reason nor the status nor the observedGeneration nor the message nor the latestTransitionTime have changed", func() {
 			oldCondition := metav1.Condition{
 				Status:             apis.RandomConditionStatus(),
 				Reason:             apis.RandomString(),
@@ -63,7 +63,7 @@ var _ = Context("Conditions", func() {
 				LastTransitionTime: metav1.Now(),
 			}
 
-			conditions := Conditions{
+			conditions := apis.Conditions{
 				oldCondition,
 			}
 
@@ -71,15 +71,15 @@ var _ = Context("Conditions", func() {
 				Status:             oldCondition.Status,
 				Reason:             oldCondition.Reason,
 				ObservedGeneration: oldCondition.ObservedGeneration,
-				LastTransitionTime: metav1.Now(),
-				Message:            apis.RandomString(),
+				LastTransitionTime: oldCondition.LastTransitionTime,
+				Message:            oldCondition.Message,
 			}
 
 			Expect(conditions.MergeIntoConditions(newCondition)).To(ConsistOf(oldCondition))
 		})
 
 		Specify("Keeps other conditions unchanged", func() {
-			oldConditions := Conditions(apis.RandomList(func() metav1.Condition {
+			oldConditions := apis.Conditions(apis.RandomList(func() metav1.Condition {
 				return metav1.Condition{
 					Type: apis.RandomString(),
 				}
@@ -94,7 +94,7 @@ var _ = Context("Conditions", func() {
 	})
 	var _ = Describe("ConditionStatusForSynchronizationState", func() {
 		DescribeTable("Converts SynchronizationState to ConditionStatus", func(state apis.SynchronizationState, status metav1.ConditionStatus) {
-			Expect(ConditionStatusForSynchronizationState(state)).To(Equal(status))
+			Expect(apis.ConditionStatusForSynchronizationState(state)).To(Equal(status))
 		},
 			Entry("", apis.Succeeded, metav1.ConditionTrue),
 			Entry("", apis.Deleted, metav1.ConditionTrue),

@@ -65,6 +65,8 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
+			setStatus.statusWithCondition()
+
 			modifiedCommands = append(modifiedCommands, setStatus)
 		} else {
 			modifiedCommands = append(modifiedCommands, command)
@@ -74,20 +76,25 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	if !setStatusExists {
 		newStatus := resource.GetStatus()
 		newStatus.ObservedGeneration = currentGeneration
-		modifiedCommands = append(modifiedCommands, SetStatus{Status: newStatus})
+		st := From(newStatus)
+		st.statusWithCondition()
+
+		modifiedCommands = append(modifiedCommands, st)
 	}
 
 	return modifiedCommands
 }
 
 type SetStatus struct {
-	Message string
-	Status  pipelineshub.Status
+	Message            string
+	LastTransitionTime metav1.Time
+	Status             pipelineshub.Status
 }
 
 func From(status pipelineshub.Status) *SetStatus {
 	return &SetStatus{
-		Status: status,
+		LastTransitionTime: metav1.Now(),
+		Status:             status,
 	}
 }
 
@@ -96,7 +103,20 @@ func NewSetStatus() *SetStatus {
 }
 
 func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState) *SetStatus {
-	sps.Status.SynchronizationState = state
+	condition := metav1.Condition{
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
+		Message:            sps.Message,
+		ObservedGeneration: sps.Status.ObservedGeneration,
+		Reason:             string(state),
+		LastTransitionTime: sps.LastTransitionTime,
+		Status:             apis.ConditionStatusForSynchronizationState(state),
+	}
+
+	if sps.Status.Conditions == nil {
+		sps.Status.Conditions = apis.Conditions{condition}
+	} else {
+		sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(condition)
+	}
 
 	return sps
 }
@@ -119,8 +139,13 @@ func (sps *SetStatus) WithMessage(message string) *SetStatus {
 	return sps
 }
 
+func (sps *SetStatus) WithLastTransitionTime(time metav1.Time) *SetStatus {
+	sps.LastTransitionTime = time
+	return sps
+}
+
 func eventMessage(sps SetStatus) (message string) {
-	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.SynchronizationState), sps.Status.Version)
+	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.Conditions.GetSyncStateFromReason()), sps.Status.Version)
 
 	if sps.Message != "" {
 		message = fmt.Sprintf("%s: %s", message, sps.Message)
@@ -130,7 +155,7 @@ func eventMessage(sps SetStatus) (message string) {
 }
 
 func eventType(sps SetStatus) string {
-	if sps.Status.SynchronizationState == apis.Failed {
+	if sps.Status.Conditions.GetSyncStateFromReason() == apis.Failed {
 		return EventTypes.Warning
 	} else {
 		return EventTypes.Normal
@@ -138,7 +163,7 @@ func eventType(sps SetStatus) string {
 }
 
 func eventReason(sps SetStatus) string {
-	switch sps.Status.SynchronizationState {
+	switch sps.Status.Conditions.GetSyncStateFromReason() {
 	case apis.Succeeded, apis.Deleted:
 		return EventReasons.Synced
 	case apis.Failed:
@@ -148,17 +173,17 @@ func eventReason(sps SetStatus) string {
 	}
 }
 
-func (sps SetStatus) statusWithCondition() pipelineshub.Status {
+func (sps *SetStatus) statusWithCondition() *SetStatus {
 	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(metav1.Condition{
-		LastTransitionTime: metav1.Now(),
+		LastTransitionTime: sps.LastTransitionTime,
 		Message:            sps.Message,
 		ObservedGeneration: sps.Status.ObservedGeneration,
-		Type:               pipelineshub.ConditionTypes.SynchronizationSucceeded,
-		Status:             pipelineshub.ConditionStatusForSynchronizationState(sps.Status.SynchronizationState),
-		Reason:             string(sps.Status.SynchronizationState),
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
+		Status:             apis.ConditionStatusForSynchronizationState(sps.Status.Conditions.GetSyncStateFromReason()),
+		Reason:             string(sps.Status.Conditions.GetSyncStateFromReason()),
 	})
 
-	return sps.Status
+	return sps
 }
 
 func (sps SetStatus) execute(
@@ -175,7 +200,7 @@ func (sps SetStatus) execute(
 		sps.Status,
 	)
 
-	resource.SetStatus(sps.statusWithCondition())
+	resource.SetStatus(sps.statusWithCondition().Status)
 
 	err := ec.Client.Status().Update(ctx, resource)
 

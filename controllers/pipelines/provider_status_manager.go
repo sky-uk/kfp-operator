@@ -22,8 +22,7 @@ func (sm StatusManager) UpdateProviderStatus(ctx context.Context, provider *pipe
 	if state == apis.Succeeded {
 		provider.Status.ObservedGeneration = provider.Generation
 	}
-	provider.Status.SynchronizationState = state
-	provider.StatusWithCondition(message)
+	provider.StatusWithCondition(state, message)
 
 	if err := sm.client.Status().Update(ctx, provider); err != nil {
 		logger.Error(err, "Failed to update provider status", "provider", provider.GetNamespacedName(), "status", state)

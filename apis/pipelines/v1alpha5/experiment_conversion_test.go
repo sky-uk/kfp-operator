@@ -34,7 +34,7 @@ var _ = Context("Experiment Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					ExperimentConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), syncStateComparer))
 			})
 		})
 		When("status provider is non-empty", func() {
@@ -55,7 +55,7 @@ var _ = Context("Experiment Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					ExperimentConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), syncStateComparer))
 			})
 		})
 	})

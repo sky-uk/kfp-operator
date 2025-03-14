@@ -46,6 +46,7 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	setProviderAnnotation(src.Spec.Provider.Name, &dst.ObjectMeta)
 	remainder.ProviderNamespace = src.Spec.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
+	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 	dst.TypeMeta.APIVersion = dstApiVersion
 

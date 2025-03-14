@@ -99,7 +99,7 @@ func dependentPipelineVersionIfSucceeded(pipeline *pipelineshub.Pipeline) (strin
 		return "", true
 	}
 
-	switch pipeline.Status.SynchronizationState {
+	switch pipeline.Status.Conditions.GetSyncStateFromReason() {
 	case apis.Succeeded:
 		return pipeline.Status.Version, true
 	case apis.Deleted:

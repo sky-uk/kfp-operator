@@ -55,6 +55,8 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	dstApiVersion := dst.APIVersion
 	remainder := PipelineConversionRemainder{}
 
+	status := src.Status.Conditions.GetSyncStateFromReason()
+
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
@@ -65,6 +67,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	remainder.ProviderNamespace = src.Spec.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
+	dst.Status.SynchronizationState = status
 
 	if src.Spec.Framework.Type != "tfx" {
 		remainder.Framework = src.Spec.Framework
