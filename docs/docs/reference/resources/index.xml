@@ -10,7 +10,10 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">kfp&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-quickstart:v1&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">tfxComponents&lt;/span>: &lt;span style="color:#ae81ff">base_pipeline.create_components&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">frameworks&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">type&lt;/span>: &lt;span style="color:#ae81ff">tfx&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">parameters&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">components&lt;/span>: &lt;span style="color:#ae81ff">base_pipeline.create_components&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">env&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#ae81ff">100&lt;/span>
@@ -32,20 +35,16 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;td style="text-align: left">Container image containing TFX component definitions.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.tfxComponents&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Fully qualified name of the Python function creating pipeline components.&lt;/td>
- &lt;/tr>
- &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.env&lt;/code>&lt;/td>
  &lt;td style="text-align: left">List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.beamArgs&lt;/code>&lt;/td>
- &lt;td style="text-align: left">List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline.&lt;/td>
+ &lt;td style="text-align: left">&lt;code>spec.framework.type&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use. The pipeline framework image to use is looked up &lt;a href="../../configuration">here&lt;/a>.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.framework&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Optional. Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use. If set the pipeline framework image to use is looked up &lt;a href="../../configuration">here&lt;/a> else the &lt;code>default&lt;/code> entry is used.&lt;/td>
+ &lt;td style="text-align: left">&lt;code>spec.framework.parameters&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. &lt;code>components: base_pipeline.create_components&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
