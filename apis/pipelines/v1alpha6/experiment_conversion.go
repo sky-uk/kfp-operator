@@ -15,6 +15,7 @@ func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 	dstApiVersion := dst.APIVersion
 
 	err := pipelines.TransformInto(src, &dst)
+
 	if err != nil {
 		return err
 	}
@@ -29,11 +30,14 @@ func (dst *Experiment) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Experiment)
 	dstApiVersion := dst.APIVersion
 
+	status := src.Status.Conditions.GetSyncStateFromReason()
+
 	err := pipelines.TransformInto(src, &dst)
 	if err != nil {
 		return err
 	}
 
+	dst.Status.SynchronizationState = status
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil

@@ -90,11 +90,12 @@ var _ = Describe("eventReason", func() {
 
 var _ = Describe("alwaysSetObservedGeneration", func() {
 	It("updates existing SetStatus", func() {
+		status := SetStatus{
+			Status: pipelineshub.Status{},
+		}
 		commands := []Command{
 			AcquireResource{},
-			SetStatus{
-				Status: pipelineshub.Status{SynchronizationState: apis.Succeeded},
-			},
+			status.WithSynchronizationState(apis.Succeeded),
 			ReleaseResource{},
 		}
 		resource := &pipelineshub.Pipeline{
@@ -111,8 +112,8 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 				AcquireResource{},
 				SetStatus{
 					Status: pipelineshub.Status{
-						SynchronizationState: apis.Succeeded,
 						ObservedGeneration:   resource.Generation,
+						Conditions: 
 					},
 				},
 				ReleaseResource{},

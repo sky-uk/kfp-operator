@@ -24,12 +24,16 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Run)
 	dstApiVersion := dst.APIVersion
 
+	status := src.Status.Conditions.GetSyncStateFromReason()
+
 	err := pipelines.TransformInto(src, &dst)
 	if err != nil {
 		return err
 	}
 
 	dst.TypeMeta.APIVersion = dstApiVersion
+
+	dst.Status.SynchronizationState = status
 
 	return nil
 }

@@ -28,6 +28,8 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Run)
 	dstApiVersion := dst.APIVersion
 
+	status := src.Status.Conditions.GetSyncStateFromReason()
+
 	err := pipelines.TransformInto(src, &dst)
 	if err != nil {
 		return err
@@ -35,6 +37,7 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
+	dst.Status.SynchronizationState = status
 
 	return nil
 }

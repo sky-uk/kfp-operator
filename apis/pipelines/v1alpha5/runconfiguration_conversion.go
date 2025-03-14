@@ -38,6 +38,9 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 
 func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
+
+	status := src.Status.Conditions.GetSyncStateFromReason()
+
 	v1alpha6Remainder := hub.RunConfigurationConversionRemainder{}
 	dst.ObjectMeta = src.ObjectMeta
 	setProviderAnnotation(src.Spec.Run.Provider, &dst.ObjectMeta)
@@ -49,6 +52,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.Run.RuntimeParameters)
 	dst.Spec.Run.Artifacts = convertArtifactsFrom(src.Spec.Run.Artifacts)
 	dst.Spec.Triggers = convertTriggersFrom(src.Spec.Triggers, &v1alpha6Remainder)
+	dst.Status.SynchronizationState = status
 
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err

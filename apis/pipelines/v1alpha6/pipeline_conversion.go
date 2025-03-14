@@ -51,6 +51,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 
 	dst.TypeMeta.APIVersion = dstApiVersion
+	status := src.Status.Conditions.GetSyncStateFromReason()
 
 	if src.Spec.Framework.Type != "tfx" {
 		return pipelines.SetConversionAnnotations(dst, hub.PipelineConversionRemainder{
@@ -69,6 +70,8 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 	dst.Spec.BeamArgs = beamArgs
+
+	dst.Status.SynchronizationState = status
 
 	return nil
 }

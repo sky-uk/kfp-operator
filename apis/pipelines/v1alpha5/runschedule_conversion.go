@@ -38,6 +38,8 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 
 func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunSchedule)
+	status := src.Status.Conditions.GetSyncStateFromReason()
+
 	v1alpha6Remainder := hub.RunScheduleConversionRemainder{}
 	dst.ObjectMeta = src.ObjectMeta
 	setProviderAnnotation(src.Spec.Provider, &dst.ObjectMeta)
@@ -57,6 +59,7 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
+	dst.Status.SynchronizationState = status
 
 	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
 }
