@@ -1,7 +1,7 @@
 package v1beta1
 
 import (
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/apis"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -21,15 +21,15 @@ func (rc *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.Validator = &RunConfiguration{}
 
 func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) {
-	duplicateSchedules := pipelines.Duplicates(rc.Spec.Triggers.Schedules)
+	duplicateSchedules := apis.Duplicates(rc.Spec.Triggers.Schedules)
 	schedulePath := field.NewPath("spec").Key("triggers").Key("schedules")
-	errors = append(errors, pipelines.Map(duplicateSchedules, func(schedule Schedule) *field.Error {
+	errors = append(errors, apis.Map(duplicateSchedules, func(schedule Schedule) *field.Error {
 		return field.Duplicate(schedulePath, schedule)
 	})...)
 
-	duplicateOnChangeTriggers := pipelines.Duplicates(rc.Spec.Triggers.OnChange)
+	duplicateOnChangeTriggers := apis.Duplicates(rc.Spec.Triggers.OnChange)
 	onChangePath := field.NewPath("spec").Key("triggers").Key("onChange")
-	errors = append(errors, pipelines.Map(duplicateOnChangeTriggers, func(onChange OnChangeType) *field.Error {
+	errors = append(errors, apis.Map(duplicateOnChangeTriggers, func(onChange OnChangeType) *field.Error {
 		return field.Duplicate(onChangePath, onChange)
 	})...)
 
@@ -50,7 +50,7 @@ func (rc *RunConfiguration) validateRuntimeParameters() (errors field.ErrorList)
 }
 
 func (rc *RunConfiguration) validate() (admission.Warnings, error) {
-	errors := pipelines.Flatten(rc.validateRuntimeParameters(), rc.validateUniqueStructures())
+	errors := apis.Flatten(rc.validateRuntimeParameters(), rc.validateUniqueStructures())
 
 	if len(errors) > 0 {
 		return nil, apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(), rc.Name, errors)

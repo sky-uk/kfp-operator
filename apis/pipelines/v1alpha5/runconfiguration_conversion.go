@@ -49,6 +49,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
 	remainder := RunConfigurationConversionRemainder{}
+
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Run.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Run.Pipeline.Name,
@@ -58,6 +59,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.Run.RuntimeParameters)
 	dst.Spec.Run.Artifacts = convertArtifactsFrom(src.Spec.Run.Artifacts)
 	dst.Spec.Triggers = convertTriggersFrom(src.Spec.Triggers, &remainder)
+	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err

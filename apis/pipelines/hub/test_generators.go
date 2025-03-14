@@ -114,8 +114,8 @@ func RandomRunConfiguration(provider common.NamespacedName) *RunConfiguration {
 		},
 		Spec: RandomRunConfigurationSpec(provider),
 		Status: RunConfigurationStatus{
-			SynchronizationState: RandomSynchronizationState(),
-			Provider:             provider,
+			Provider: provider,
+			//TODO Random state conditions
 		},
 	}
 }
@@ -276,13 +276,17 @@ func RandomExperimentSpec(provider common.NamespacedName) ExperimentSpec {
 
 func RandomStatus(provider common.NamespacedName) Status {
 	return Status{
-		SynchronizationState: RandomSynchronizationState(),
-		Version:              RandomString(),
+		Version: RandomString(),
 		Provider: ProviderAndId{
 			Name: provider,
 			Id:   RandomString(),
 		},
 		ObservedGeneration: rand.Int63(),
+		Conditions: Conditions{
+			RandomSynchronizationStateCondition(
+				RandomSynchronizationState(),
+			),
+		},
 	}
 }
 

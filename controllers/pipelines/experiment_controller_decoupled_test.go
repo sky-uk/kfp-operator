@@ -19,14 +19,23 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
 			anotherProviderId := "67890"
-			experimentHelper := Create(
-				pipelineshub.RandomExperiment(
-					Provider.GetCommonNamespacedName(),
-				),
+			r := pipelineshub.RandomExperiment(
+				Provider.GetCommonNamespacedName(),
 			)
 
+			//r.Status.Conditions = apis.Conditions{
+			//	{
+			//		Type:               apis.ConditionTypes.SynchronizationSucceeded,
+			//		Reason:             apis.RandomString(),
+			//		LastTransitionTime: metav1.Now().Rfc3339Copy(),
+			//	},
+			//}
+			r.Status.Provider.Id = ""
+
+			experimentHelper := Create(r)
+
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
+				//fmt.Printf("\n #######################: %+v", experiment)
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(experiment.Status.ObservedGeneration).To(Equal(experiment.GetGeneration()))
 			})).Should(Succeed())
@@ -37,7 +46,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(experiment.Status.Provider.Name).To(Equal(experiment.Spec.Provider))
 			})).Should(Succeed())
@@ -49,7 +57,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).To(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Updating))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 			})).Should(Succeed())
 
@@ -59,7 +66,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(experiment.Status.Provider.Name).To(Equal(experiment.Spec.Provider))
 			})).Should(Succeed())
@@ -67,7 +73,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			Expect(experimentHelper.Delete()).To(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Deleting))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Deleting))
 			})).Should(Succeed())
 

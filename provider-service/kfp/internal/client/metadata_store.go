@@ -91,6 +91,7 @@ func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName str
 	if err != nil {
 		return nil, err
 	}
+
 	contextId := contextResponse.GetContext().GetId()
 	if contextId == InvalidId {
 		return nil, fmt.Errorf("invalid context ID")

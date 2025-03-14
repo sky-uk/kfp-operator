@@ -67,8 +67,8 @@ func (p *Provider) StatusWithCondition(message string) {
 		LastTransitionTime: metav1.Now(),
 		Message:            message,
 		ObservedGeneration: p.Status.ObservedGeneration,
-		Type:               ConditionTypes.SynchronizationSucceeded,
-		Status:             ConditionStatusForSynchronizationState(p.Status.SynchronizationState),
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
+		Status:             apis.ConditionStatusForSynchronizationState(p.Status.SynchronizationState),
 		Reason:             string(p.Status.SynchronizationState),
 	})
 }

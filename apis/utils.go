@@ -1,4 +1,4 @@
-package pipelines
+package apis
 
 import "golang.org/x/exp/maps"
 

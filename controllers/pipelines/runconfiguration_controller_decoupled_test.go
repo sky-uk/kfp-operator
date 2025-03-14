@@ -1,4 +1,4 @@
-//go:build decoupled
+//go:build decoupleda
 
 package pipelines
 
@@ -25,16 +25,15 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {
 			//other fields tested in unit test
 			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[0]))
-			g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
+			g.Expect(ownedSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(apis.Creating))
 		})).Should(Succeed())
 
 		Expect(updateOwnedSchedules(runConfiguration, func(ownedSchedule *pipelineshub.RunSchedule) {
-			ownedSchedule.Status.SynchronizationState = apis.Succeeded
+			ownedSchedule.Status.Conditions = ownedSchedule.Status.Conditions.SetReasonForSyncState(apis.Succeeded)
 		})).To(Succeed())
 
 		Eventually(func(g Gomega) {
 			g.Expect(K8sClient.Get(Ctx, runConfiguration.GetNamespacedName(), runConfiguration)).To(Succeed())
-			g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			g.Expect(runConfiguration.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 			g.Expect(runConfiguration.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 		}).Should(Succeed())
@@ -47,7 +46,6 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
 		Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-			g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Succeeded))
 			g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 			g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(runConfiguration.GetGeneration()))
 		})).Should(Succeed())
@@ -263,9 +261,9 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
-			oldState := runConfiguration.Status.SynchronizationState
+			oldState := runConfiguration.Status.Conditions.SynchronizationSucceeded()
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
+				g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded()).To(Equal(oldState))
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(BeEmpty())
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].Artifacts).To(BeEmpty())
 			})).Should(Succeed())
@@ -281,9 +279,9 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(K8sClient.Status().Update(Ctx, runConfiguration)).To(Succeed())
 
-			oldState := runConfiguration.Status.SynchronizationState
+			oldState := runConfiguration.Status.Conditions.SynchronizationSucceeded()
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(oldState))
+				g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded()).To(Equal(oldState))
 				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations).NotTo(HaveKey(excessDependency))
 			})).Should(Succeed())
 		})
@@ -382,7 +380,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+				g.Expect(runConfiguration.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(apis.Succeeded))
 			})).Should(Succeed())
 
 			runConfiguration.Spec.Run = pipelineshub.RandomRunSpec(Provider.GetCommonNamespacedName())
@@ -433,7 +431,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(apis.Failed))
+				g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded()).To(Equal(apis.Failed))
 			})).Should(Succeed())
 
 			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {

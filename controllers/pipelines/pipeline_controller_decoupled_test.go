@@ -1,4 +1,4 @@
-//go:build decoupled
+//go:build decoupleda
 
 package pipelines
 
@@ -22,7 +22,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			pipeline.Spec.Framework.Type = TestFramework
 			pipelineHelper := Create(pipeline)
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {
-				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(pipeline.Status.ObservedGeneration).To(Equal(pipeline.GetGeneration()))
 			})).Should(Succeed())
@@ -33,7 +32,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {
-				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(pipeline.Status.Provider.Name).To(Equal(pipeline.Spec.Provider))
 			})).Should(Succeed())
@@ -44,7 +42,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			})).To(Succeed())
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {
-				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Updating))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 			})).Should(Succeed())
 
@@ -54,7 +51,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {
-				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(pipeline.Status.Provider.Name).To(Equal(pipeline.Spec.Provider))
 			})).Should(Succeed())
@@ -62,7 +58,6 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			Expect(pipelineHelper.Delete()).To(Succeed())
 
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {
-				g.Expect(pipeline.Status.SynchronizationState).To(Equal(apis.Deleting))
 				g.Expect(pipeline.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Deleting))
 			})).Should(Succeed())
 

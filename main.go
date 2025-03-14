@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"github.com/sky-uk/kfp-operator/apis"
 	"os"
 
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
@@ -34,7 +35,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	pipelineshubalpha5 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha5"
 	pipelineshubalpha6 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
@@ -206,7 +206,7 @@ func main() {
 
 	setupLog.Info("starting run completion feed")
 
-	handlers := pipelines.Map(
+	handlers := apis.Map(
 		ctrlConfig.Spec.RunCompletionFeed.Endpoints,
 		func(endpoint config.Endpoint) webhook.RunCompletionEventHandler {
 			return webhook.NewRuntimeCompletionEventTrigger(ctx, endpoint)
