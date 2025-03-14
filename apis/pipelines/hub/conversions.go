@@ -35,9 +35,9 @@ func ComponentsFromFramework(framework *PipelineFramework) (string, error) {
 			return "", err
 		}
 		return res, nil
-	} else {
-		return "", nil
 	}
+
+	return "", nil
 }
 
 func BeamArgsFromFramework(framework *PipelineFramework) ([]apis.NamedValue, error) {
@@ -52,7 +52,7 @@ func BeamArgsFromFramework(framework *PipelineFramework) ([]apis.NamedValue, err
 		}
 
 		return res, nil
-	} else {
-		return []apis.NamedValue{}, nil
 	}
+
+	return []apis.NamedValue{}, nil
 }
