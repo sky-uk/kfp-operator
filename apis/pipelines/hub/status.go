@@ -35,6 +35,15 @@ func (conditions Conditions) SynchronizationSucceeded() metav1.Condition {
 	return conditions.ToMap()[ConditionTypes.SynchronizationSucceeded]
 }
 
+func (conditions Conditions) GetSyncStateFromReason() apis.SynchronizationState {
+	reason := conditions.SynchronizationSucceeded().Reason
+	state, err := apis.SynchronisationState(reason)
+	if err != nil {
+
+	}
+	return state
+}
+
 func (conditions Conditions) ToMap() map[string]metav1.Condition {
 	return pipelines.ToMap(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
 		return condition.Type, condition
@@ -55,9 +64,8 @@ func (conditions Conditions) MergeIntoConditions(condition metav1.Condition) Con
 
 // +kubebuilder:object:generate=true
 type Status struct {
-	Provider             ProviderAndId             `json:"provider,omitempty"`
-	SynchronizationState apis.SynchronizationState `json:"synchronizationState,omitempty"`
-	Version              string                    `json:"version,omitempty"`
-	ObservedGeneration   int64                     `json:"observedGeneration,omitempty"`
-	Conditions           Conditions                `json:"conditions,omitempty"`
+	Provider           ProviderAndId `json:"provider,omitempty"`
+	Version            string        `json:"version,omitempty"`
+	ObservedGeneration int64         `json:"observedGeneration,omitempty"`
+	Conditions         Conditions    `json:"conditions,omitempty"`
 }

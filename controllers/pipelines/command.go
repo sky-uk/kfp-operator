@@ -96,8 +96,9 @@ func NewSetStatus() *SetStatus {
 }
 
 func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState) *SetStatus {
-	sps.Status.SynchronizationState = state
-
+	condition := sps.Status.Conditions.SynchronizationSucceeded()
+	condition.Reason = string(state)
+	condition.Status = pipelineshub.ConditionStatusForSynchronizationState(state)
 	return sps
 }
 
@@ -120,7 +121,7 @@ func (sps *SetStatus) WithMessage(message string) *SetStatus {
 }
 
 func eventMessage(sps SetStatus) (message string) {
-	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.SynchronizationState), sps.Status.Version)
+	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.Conditions.GetSyncStateFromReason()), sps.Status.Version)
 
 	if sps.Message != "" {
 		message = fmt.Sprintf("%s: %s", message, sps.Message)
@@ -130,7 +131,7 @@ func eventMessage(sps SetStatus) (message string) {
 }
 
 func eventType(sps SetStatus) string {
-	if sps.Status.SynchronizationState == apis.Failed {
+	if sps.Status.Conditions.GetSyncStateFromReason() == apis.Failed {
 		return EventTypes.Warning
 	} else {
 		return EventTypes.Normal
@@ -138,7 +139,7 @@ func eventType(sps SetStatus) string {
 }
 
 func eventReason(sps SetStatus) string {
-	switch sps.Status.SynchronizationState {
+	switch sps.Status.Conditions.GetSyncStateFromReason() {
 	case apis.Succeeded, apis.Deleted:
 		return EventReasons.Synced
 	case apis.Failed:
@@ -154,8 +155,8 @@ func (sps SetStatus) statusWithCondition() pipelineshub.Status {
 		Message:            sps.Message,
 		ObservedGeneration: sps.Status.ObservedGeneration,
 		Type:               pipelineshub.ConditionTypes.SynchronizationSucceeded,
-		Status:             pipelineshub.ConditionStatusForSynchronizationState(sps.Status.SynchronizationState),
-		Reason:             string(sps.Status.SynchronizationState),
+		Status:             pipelineshub.ConditionStatusForSynchronizationState(sps.Status.Conditions.GetSyncStateFromReason()),
+		Reason:             string(sps.Status.Conditions.GetSyncStateFromReason()),
 	})
 
 	return sps.Status

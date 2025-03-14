@@ -37,7 +37,7 @@ func (st *StateHandler[R]) stateTransition(
 		commands = []Command{*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
 			WithMessage(StateHandlerConstants.ProviderChangedError)}
 	} else {
-		switch resource.GetStatus().SynchronizationState {
+		switch resource.GetStatus().Conditions.GetSyncStateFromReason() {
 		case apis.Creating:
 			commands = st.onCreating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)))
 		case apis.Succeeded, apis.Failed:
@@ -56,7 +56,7 @@ func (st *StateHandler[R]) stateTransition(
 		}
 	}
 
-	if resource.GetStatus().SynchronizationState == apis.Deleted {
+	if resource.GetStatus().Conditions.GetSyncStateFromReason() == apis.Deleted {
 		commands = append([]Command{ReleaseResource{}}, commands...)
 	} else {
 		commands = append([]Command{AcquireResource{}}, commands...)
@@ -125,13 +125,14 @@ func (st *StateHandler[R]) onUnknown(
 		}
 	}
 
-	return []Command{
-		SetStatus{
-			Status: pipelineshub.Status{
-				Version:              newVersion,
-				SynchronizationState: apis.Creating,
-			},
+	status := SetStatus{
+		Status: pipelineshub.Status{
+			Version: newVersion,
 		},
+	}
+
+	return []Command{
+		status.WithSynchronizationState(apis.Creating),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }

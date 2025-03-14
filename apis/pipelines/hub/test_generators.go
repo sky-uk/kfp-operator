@@ -260,8 +260,8 @@ func RandomExperimentSpec(provider string) ExperimentSpec {
 
 func RandomStatus() Status {
 	return Status{
-		SynchronizationState: RandomSynchronizationState(),
-		Version:              RandomString(),
+		//SynchronizationState: RandomSynchronizationState(),
+		Version: RandomString(),
 		Provider: ProviderAndId{
 			Name: RandomString(),
 			Id:   RandomString(),

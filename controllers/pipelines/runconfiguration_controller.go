@@ -444,10 +444,11 @@ func aggregateState(dependencies []pipelineshub.RunSchedule) (aggState apis.Sync
 	aggState = apis.Succeeded
 
 	for _, dependency := range dependencies {
-		if dependency.Status.SynchronizationState == apis.Failed {
+		state := dependency.Status.Conditions.GetSyncStateFromReason()
+		if state == apis.Failed {
 			aggState = apis.Failed
 			message = dependency.Status.Conditions.SynchronizationSucceeded().Message
-		} else if dependency.Status.SynchronizationState != apis.Succeeded {
+		} else if state != apis.Succeeded {
 			aggState = apis.Updating
 			message = ""
 			return
