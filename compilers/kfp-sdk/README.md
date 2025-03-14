@@ -39,3 +39,18 @@ def component():
 def pipeline_function():
     component()
 ```
+
+### Compiler
+The compile command is used to process a pipeline configuration file and generate an output file based on it.
+
+**Compiler Requirements**
+
+The compile command requires the following flags/parameters:
+
+*--pipeline_config* (required): Path to the pipeline configuration file in YAML format.
+
+*--output_file* (required): Path where the compiled output will be saved.
+
+These parameters are currently ignored:
+
+*--provider_config* (optional): Path to the provider configuration file in YAML format. (Not used in the compilation process.)
