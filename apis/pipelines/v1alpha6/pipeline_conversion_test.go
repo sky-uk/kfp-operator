@@ -24,11 +24,12 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 
 		Specify("converts to and from the same object", func() {
 			src := RandomPipeline(apis.RandomLowercaseString())
-
 			intermediate := &hub.Pipeline{}
 			dst := &Pipeline{}
 
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
+			Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+			Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))

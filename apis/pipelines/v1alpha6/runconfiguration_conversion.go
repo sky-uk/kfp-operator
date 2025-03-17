@@ -9,15 +9,23 @@ import (
 func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunConfiguration)
 	dstApiVersion := dst.APIVersion
+	remainder := RunConfigurationConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
+		return err
+	}
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
-	providerNamespace := getProviderNamespaceAnnotation(src)
-	removeProviderNamespaceAnnotation(dst)
-	dst.Spec.Run.Provider = namespaceToProvider(src.Spec.Run.Provider, providerNamespace)
+	dst.Spec.Run.Provider = convertProviderTo(
+		src.Spec.Run.Provider,
+		remainder.ProviderNamespace,
+	)
+	dst.Status.Provider = convertProviderTo(
+		src.Status.Provider,
+		remainder.ProviderNamespace,
+	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil
@@ -26,13 +34,15 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
 	dstApiVersion := dst.APIVersion
+	remainder := RunConfigurationConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
+	dst.Spec.Run.Provider = convertProviderFrom4(src.Spec.Run.Provider, &remainder)
+	dst.Status.Provider = convertProviderFrom4(src.Status.Provider, &remainder)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	return nil
+	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

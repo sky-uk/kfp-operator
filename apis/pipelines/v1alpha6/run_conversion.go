@@ -9,15 +9,16 @@ import (
 func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Run)
 	dstApiVersion := dst.APIVersion
+	remainder := RunConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
+		return err
+	}
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
-	providerNamespace := getProviderNamespaceAnnotation(src)
-	removeProviderNamespaceAnnotation(dst)
-	dst.Spec.Provider = namespaceToProvider(src.Spec.Provider, providerNamespace)
+	dst.Spec.Provider = convertProviderTo(src.Spec.Provider, remainder.ProviderNamespace)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil
@@ -26,13 +27,14 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Run)
 	dstApiVersion := dst.APIVersion
+	remainder := RunConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
+	dst.Spec.Provider = convertProviderFrom(src.Spec.Provider, &remainder)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	return nil
+	return pipelines.SetConversionAnnotations(dst, &remainder)
 }
