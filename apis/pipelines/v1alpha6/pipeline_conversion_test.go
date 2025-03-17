@@ -18,6 +18,8 @@ func namedValueSort(a, b apis.NamedValue) bool {
 }
 
 var _ = Context("Pipeline Conversion", PropertyBased, func() {
+	DefaultProviderNamespace = "default-provider-namespace"
+
 	var _ = Describe("Roundtrip forward", func() {
 
 		Specify("converts to and from the same object", func() {
