@@ -6,38 +6,37 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
-// Ensure MyResource implements conversion.Convertible
 var _ conversion.Convertible = &Experiment{}
 
-// ConvertTo converts this version to the Hub version.
 func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Experiment)
 	dstApiVersion := dst.APIVersion
+	remainder := ExperimentConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
+		return err
+	}
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
-	providerNamespace := getProviderNamespaceAnnotation(src)
-	removeProviderNamespaceAnnotation(dst)
-	dst.Spec.Provider = namespaceToProvider(src.Spec.Provider, providerNamespace)
+	dst.Spec.Provider = convertProviderTo(src.Spec.Provider, remainder.ProviderNamespace)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil
 }
 
-// ConvertFrom converts from the Hub version to this version.
 func (dst *Experiment) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Experiment)
 	dstApiVersion := dst.APIVersion
+	remainder := ExperimentConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
+	dst.Spec.Provider = convertProviderFrom2(src.Spec.Provider, &remainder)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	return nil
+	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

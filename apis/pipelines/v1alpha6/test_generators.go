@@ -22,7 +22,7 @@ func RandomPipeline(provider string) *Pipeline {
 			Namespace: "default",
 		},
 		Spec:   RandomPipelineSpec(provider),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
@@ -44,7 +44,7 @@ func RandomProvider() *Provider {
 			Namespace: "default",
 		},
 		Spec:   RandomProviderSpec(),
-		Status: RandomStatus(),
+		Status: RandomProviderStatus(),
 	}
 }
 
@@ -89,6 +89,7 @@ func RandomRunConfiguration(provider string) *RunConfiguration {
 		Spec: RandomRunConfigurationSpec(provider),
 		Status: RunConfigurationStatus{
 			SynchronizationState: RandomSynchronizationState(),
+			Provider:             provider,
 		},
 	}
 }
@@ -145,7 +146,7 @@ func RandomRunSchedule(provider string) *RunSchedule {
 			Namespace: "default",
 		},
 		Spec:   RandomRunScheduleSpec(provider),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
@@ -184,7 +185,7 @@ func RandomRun(provider string) *Run {
 		Spec: RandomRunSpec(provider),
 		Status: RunStatus{
 			ObservedPipelineVersion: RandomString(),
-			Status:                  RandomStatus(),
+			Status:                  RandomStatus(provider),
 		},
 	}
 }
@@ -236,7 +237,7 @@ func RandomExperiment(provider string) *Experiment {
 			Namespace: "default",
 		},
 		Spec:   RandomExperimentSpec(provider),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
@@ -247,7 +248,21 @@ func RandomExperimentSpec(provider string) ExperimentSpec {
 	}
 }
 
-func RandomStatus() Status {
+func RandomStatus(provider string) Status {
+	return Status{
+		SynchronizationState: RandomSynchronizationState(),
+		Version:              RandomString(),
+		Provider: ProviderAndId{
+			Name: provider,
+			Id:   RandomString(),
+		},
+		ObservedGeneration: rand.Int63(),
+	}
+}
+
+// RandomProviderStatus differs from RandomStatus by not setting the provider
+// name because in practice it will never be populated.
+func RandomProviderStatus() Status {
 	return Status{
 		SynchronizationState: RandomSynchronizationState(),
 		Version:              RandomString(),
@@ -299,7 +314,7 @@ func (tr *TestResource) GetKind() string {
 
 func RandomResource() *TestResource {
 	return &TestResource{
-		Status:          RandomStatus(),
+		Status:          RandomProviderStatus(),
 		NamespacedName:  RandomNamespacedName(),
 		Kind:            RandomString(),
 		ComputedVersion: RandomShortHash(),

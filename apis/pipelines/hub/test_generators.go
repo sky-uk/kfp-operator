@@ -115,6 +115,7 @@ func RandomRunConfiguration(provider common.NamespacedName) *RunConfiguration {
 		Spec: RandomRunConfigurationSpec(provider),
 		Status: RunConfigurationStatus{
 			SynchronizationState: RandomSynchronizationState(),
+			Provider:             provider,
 		},
 	}
 }
