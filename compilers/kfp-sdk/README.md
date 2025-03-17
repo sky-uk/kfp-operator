@@ -25,6 +25,9 @@ spec:
 
 ### Sample KFP SDK pipeline
 
+> [!IMPORTANT]
+> Setting @dsl.pipeline `name` is not currently supported and will be overwritten by the compiler.
+
 ```python
 from kfp import dsl
 
