@@ -49,4 +49,16 @@ Currently, we support the following eventsources:
 
 ## Architecture Overview
 
-To do.
+The KFP Operator follows [the standard Kubernetes operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/), where a *controller* manages the state of each [custom resource](../../reference/resources/). Each controller creates [Argo Workflows](https://argoproj.github.io/workflows/) that make calls to the [Provider Service](../../reference/providers/overview), which in turn call the Orchestration Provider's API (e.g. Vertex AI).
+
+The KFP Operator also handles Run Completion Events, extracted from the Orchestration Provider, and publishes these events to an [EventBus](https://argoproj.github.io/argo-events/eventbus/eventbus/) for clients to react to.
+
+![Architecture]({{< param "subpath" >}}/master/images/architecture.svg)
+
+The sequence of operations that the KFP Operator handles can be roughly broken down into three separate journeys:
+- **User Journey**: How the operator reacts when a user submits a custom resource, e.g. a [Pipeline](../../reference/resources/pipeline) or [RunConfiguration](../../reference/resources/runconfiguration)
+- **Event Journey**: How the operator reacts to [run completion events](../../reference/run-completion)
+- **Provider Management**: How the operator manages the state of [the Provider custom resource](../../reference/resources/provider)
+
+
+![KFP Operator sequence diagram]({{< param "subpath" >}}/master/images/sequence-diagram.svg)
