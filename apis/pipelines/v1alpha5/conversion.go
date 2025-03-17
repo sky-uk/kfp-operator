@@ -8,7 +8,7 @@ import (
 )
 
 var DefaultProvider string
-var DefaultWorkflowNamespace string
+var DefaultProviderNamespace string
 
 var ResourceAnnotations = struct {
 	Provider          string
@@ -101,12 +101,11 @@ func convertProviderAndIdFrom(providerAndId hub.ProviderAndId) ProviderAndId {
 	}
 }
 
-// TODO: rename because it's not adding anything, but computing
 func namespaceToProvider(resource v1.Object) common.NamespacedName {
 	provider := getProviderAnnotation(resource)
 	providerNamespace := getProviderNamespaceAnnotation(resource)
 	if providerNamespace == "" {
-		providerNamespace = DefaultWorkflowNamespace
+		providerNamespace = DefaultProviderNamespace
 	}
 	return common.NamespacedName{
 		Name:      provider,

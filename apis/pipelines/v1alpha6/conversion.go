@@ -4,7 +4,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
-var DefaultWorkflowNamespace string
+var DefaultProviderNamespace string
 
 func addWorkflowNamespaceToProvider(provider string) common.NamespacedName {
 	namespacedName, err := common.NamespacedNameFromString(provider)
@@ -18,7 +18,7 @@ func addWorkflowNamespaceToProvider(provider string) common.NamespacedName {
 	} else {
 		return common.NamespacedName{
 			Name:      namespacedName.Name,
-			Namespace: DefaultWorkflowNamespace,
+			Namespace: DefaultProviderNamespace,
 		}
 	}
 }
