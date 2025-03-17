@@ -507,7 +507,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {
-				g.Expect(ownedSchedule.Spec.Provider).To(Equal(Provider.Name))
+				g.Expect(ownedSchedule.Spec.Provider.Name).To(Equal(Provider.Name))
+				g.Expect(ownedSchedule.Spec.Provider.Namespace).To(Equal(Provider.Namespace))
 			})).Should(Succeed())
 		})
 	})

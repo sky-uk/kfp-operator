@@ -16,13 +16,14 @@ var _ = Context("Run Conversion", PropertyBased, func() {
 		Specify("converts to and from the same object using default provider", func() {
 			src := RandomRun()
 			DefaultProvider = "default-provider"
+			DefaultProviderNamespace = "default-provider-namespace"
 			intermediate := &hub.Run{}
 			dst := &Run{}
 
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
-			Expect(getProviderNamespaceAnnotation(dst)).To(Equal(DefaultWorkflowNamespace))
+			Expect(getProviderNamespaceAnnotation(dst)).To(Equal(DefaultProviderNamespace))
 		})
 
 		Specify("converts to and from the same object", func() {

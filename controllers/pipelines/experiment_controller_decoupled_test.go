@@ -8,8 +8,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
 	v1 "k8s.io/api/core/v1"
 )
@@ -19,7 +19,11 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
 			anotherProviderId := "67890"
-			experimentHelper := Create(pipelineshub.RandomExperiment(common.RandomNamespacedName()))
+			experimentHelper := Create(
+				pipelineshub.RandomExperiment(
+					Provider.GetCommonNamespacedName(),
+				),
+			)
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -39,7 +43,9 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(experimentHelper.Update(func(pipeline *pipelineshub.Experiment) {
-				pipeline.Spec = pipelineshub.RandomExperimentSpec(common.RandomNamespacedName())
+				pipeline.Spec = pipelineshub.RandomExperimentSpec(
+					Provider.GetCommonNamespacedName(),
+				)
 			})).To(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {

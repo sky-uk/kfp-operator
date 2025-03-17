@@ -14,7 +14,7 @@ var ConditionTypes = struct {
 
 // +kubebuilder:object:generate=true
 type ProviderAndId struct {
-	Name string `json:"name,omitempty"` //TODO: rename to NamespacedName
+	Name string `json:"name,omitempty"`
 	Id   string `json:"id,omitempty"`
 }
 
