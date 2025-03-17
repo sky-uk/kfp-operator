@@ -18,11 +18,12 @@ def _compile(pipeline_config: str, output_file: str):
     """Compiles KFP SDK pipeline into a Kubeflow Pipelines pipeline definition"""
     with open(pipeline_config, "r") as pipeline_stream:
         pipeline_config_contents = yaml.safe_load(pipeline_stream)
-        click.secho(f'Compiling with pipeline: {pipeline_config_contents}', fg='green')
+        pipeline_name = sanitise_namespaced_pipeline_name(pipeline_config_contents['name'])
+        click.secho(f'Compiling {pipeline_name} pipeline: {pipeline_config_contents}', fg='green')
 
         pipeline_fn = load_fn(pipeline_config_contents)
 
-        compiler.Compiler().compile(pipeline_fn, package_path=output_file)
+        compiler.Compiler().compile(pipeline_fn, pipeline_name=pipeline_name, package_path=output_file)
         click.secho(f'{output_file} compiled', fg='green')
 
 
@@ -44,3 +45,7 @@ def load_fn(pipeline_config_contents: dict):
     fn = getattr(module, fn_name)
 
     return fn
+
+
+def sanitise_namespaced_pipeline_name(namespaced_name: str) -> str:
+    return namespaced_name.replace("/", "-")

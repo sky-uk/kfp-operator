@@ -1,3 +1,4 @@
+name: test
 framework:
   parameters:
     pipeline: pipeline.add_pipeline

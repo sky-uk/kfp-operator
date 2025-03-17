@@ -46,3 +46,6 @@ def test_compiler_invalid_pipeline_format():
         compiler.load_fn(pipeline_config_contents)()
 
     assert str(error.value) == "Invalid pipeline format: [function]. Expected format: 'module_path.function_name'."
+
+def test_sanitise_namespaced_pipeline_name():
+    assert compiler.sanitise_namespaced_pipeline_name('namespace/name') == 'namespace-name'
