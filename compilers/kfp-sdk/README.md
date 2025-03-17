@@ -36,7 +36,6 @@ def component():
     pass
 
 @dsl.pipeline(
-    name='Quickstart',
     description='A simple pipeline to get started with the KFP SDK.'
 )
 def pipeline_function():
