@@ -1,7 +1,7 @@
 from kfp import dsl
 
 
-@dsl.component
+@dsl.component(base_image='python:3.9')
 def add(a: float, b: float) -> float:
     '''Calculates sum of two arguments'''
     return a + b
