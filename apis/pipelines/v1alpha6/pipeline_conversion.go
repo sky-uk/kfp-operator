@@ -2,6 +2,7 @@ package v1alpha6
 
 import (
 	"errors"
+
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
@@ -20,7 +21,12 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.Provider = addWorkflowNamespaceToProvider(src.Spec.Provider)
+	providerNamespace := getProviderNamespaceAnnotation(src)
+	removeProviderNamespaceAnnotation(dst)
+
+	generatedNamespace := namespaceToProvider(src.Spec.Provider, providerNamespace)
+
+	dst.Spec.Provider = generatedNamespace
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	tfxComponents := src.Spec.TfxComponents
@@ -49,6 +55,11 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
+	}
+	dst.Spec.Provider = src.Spec.Provider.Name
+
+	if src.Spec.Provider.Namespace != DefaultProviderNamespace {
+		setProviderNamespaceAnnotation(src.Spec.Provider.Namespace, &dst.ObjectMeta)
 	}
 
 	dst.TypeMeta.APIVersion = dstApiVersion
