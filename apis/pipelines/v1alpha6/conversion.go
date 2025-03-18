@@ -21,53 +21,9 @@ func convertProviderTo(
 	}
 }
 
-func convertProviderFrom(
-	provider common.NamespacedName,
-	remainder *RunConversionRemainder,
-) string {
-	if provider.Namespace != DefaultProviderNamespace {
-		remainder.ProviderNamespace = provider.Namespace
-	}
-
-	return provider.Name
-}
-
-func convertProviderFrom2(
-	provider common.NamespacedName,
-	remainder *ExperimentConversionRemainder,
-) string {
-	if provider.Namespace != DefaultProviderNamespace {
-		remainder.ProviderNamespace = provider.Namespace
-	}
-
-	return provider.Name
-}
-
 func convertProviderFrom3(
 	provider common.NamespacedName,
 	remainder *RunScheduleConversionRemainder,
-) string {
-	if provider.Namespace != DefaultProviderNamespace {
-		remainder.ProviderNamespace = provider.Namespace
-	}
-
-	return provider.Name
-}
-
-func convertProviderFrom4(
-	provider common.NamespacedName,
-	remainder *RunConfigurationConversionRemainder,
-) string {
-	if provider.Namespace != DefaultProviderNamespace {
-		remainder.ProviderNamespace = provider.Namespace
-	}
-
-	return provider.Name
-}
-
-func convertProviderFrom5(
-	provider common.NamespacedName,
-	remainder *PipelineConversionRemainder,
 ) string {
 	if provider.Namespace != DefaultProviderNamespace {
 		remainder.ProviderNamespace = provider.Namespace

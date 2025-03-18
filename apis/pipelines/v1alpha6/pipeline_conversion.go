@@ -53,8 +53,9 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.Provider = convertProviderFrom5(src.Spec.Provider, &remainder)
-	dst.Status.Provider.Name = convertProviderFrom5(src.Spec.Provider, &remainder)
+	dst.Spec.Provider = src.Spec.Provider.Name
+	dst.Status.Provider.Name = src.Spec.Provider.Name
+	remainder.ProviderNamespace = src.Spec.Provider.Namespace
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 

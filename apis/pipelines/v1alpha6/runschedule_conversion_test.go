@@ -24,6 +24,10 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 			Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 			Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+			delete(
+				dst.GetAnnotations(),
+				RunScheduleConversionRemainder{}.ConversionAnnotation(),
+			)
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})
