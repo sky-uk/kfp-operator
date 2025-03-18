@@ -38,6 +38,7 @@ type DeploymentManager struct {
 }
 
 const ProviderNameEnvVar = "PROVIDERNAME"
+const PipelineRootStorageEnvVar = "PIPELINEROOTSTORAGE"
 
 func (dm DeploymentManager) Create(ctx context.Context, new *appsv1.Deployment, owner *pipelineshub.Provider) error {
 	logger := log.FromContext(ctx)
@@ -143,6 +144,9 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 	envVars := []corev1.EnvVar{{
 		Name:  ProviderNameEnvVar,
 		Value: provider.Name,
+	}, {
+		Name:  PipelineRootStorageEnvVar,
+		Value: provider.Spec.PipelineRootStorage,
 	}}
 	for name, value := range provider.Spec.Parameters {
 		envVars = append(envVars, corev1.EnvVar{Name: fmt.Sprintf("PARAMETERS_%s", strings.ToUpper(name)), Value: jsonToString(value)})

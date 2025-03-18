@@ -1,8 +1,9 @@
 package config
 
 type KfpProviderConfig struct {
-	Name       string     `yaml:"name"`
-	Parameters Parameters `yaml:"parameters"`
+	Name                string     `yaml:"name"`
+	PipelineRootStorage string     `yaml:"pipelineRootStorage"`
+	Parameters          Parameters `yaml:"parameters"`
 }
 
 type Parameters struct {
