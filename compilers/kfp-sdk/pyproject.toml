@@ -12,6 +12,7 @@ PyYAML = ">=6"
 [tool.poetry.dev-dependencies]
 kfp = ">=2,<3"
 pytest = ">=8"
+black = ">=25"
 
 [tool.poetry-dynamic-versioning]
 enable = true

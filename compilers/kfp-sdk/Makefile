@@ -5,6 +5,7 @@ include ../../help.mk
 build: ## Build
 	pip install poetry-dynamic-versioning --quiet
 	poetry install
+	poetry run black .
 	poetry build
 
 ##@ Containers
