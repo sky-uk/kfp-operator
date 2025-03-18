@@ -24,6 +24,10 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 			Expect(intermediate.Spec.Run.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 			Expect(intermediate.Status.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+			delete(
+				dst.GetAnnotations(),
+				RunConfigurationConversionRemainder{}.ConversionAnnotation(),
+			)
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})

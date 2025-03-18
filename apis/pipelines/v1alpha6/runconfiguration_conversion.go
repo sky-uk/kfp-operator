@@ -40,8 +40,10 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.Run.Provider = convertProviderFrom4(src.Spec.Run.Provider, &remainder)
-	dst.Status.Provider = convertProviderFrom4(src.Status.Provider, &remainder)
+	dst.Spec.Run.Provider = src.Spec.Run.Provider.Name
+	dst.Status.Provider = src.Status.Provider.Name
+	remainder.ProviderNamespace = src.Spec.Run.Provider.Namespace
+
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
