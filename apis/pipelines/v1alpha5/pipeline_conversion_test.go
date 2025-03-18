@@ -17,42 +17,30 @@ func namedValueSort(a, b apis.NamedValue) bool {
 }
 
 var _ = Context("Pipeline Conversion", PropertyBased, func() {
+	DefaultProvider = "default-provider"
+	DefaultProviderNamespace = "default-provider-namespace"
+
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object using default provider", func() {
-			src := RandomPipeline()
-			DefaultProvider = "default-provider"
-			DefaultProviderNamespace = "default-provider-namespace"
-			intermediate := &hub.Pipeline{}
-			dst := &Pipeline{}
-
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
-			Expect(getProviderNamespaceAnnotation(dst)).To(Equal(DefaultProviderNamespace))
-		})
-
 		Specify("converts to and from the same object", func() {
 			src := RandomPipeline()
-			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
-			setProviderNamespaceAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
 			intermediate := &hub.Pipeline{}
 			dst := &Pipeline{}
 
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
+			Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
+			Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-
+			delete(
+				dst.GetAnnotations(),
+				PipelineConversionRemainder{}.ConversionAnnotation(),
+			)
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
 	})
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object when the framework is tfx", func() {
-			src := hub.RandomPipeline(
-				common.NamespacedName{
-					Name:      common.RandomString(),
-					Namespace: common.RandomString(),
-				},
-			)
+			src := hub.RandomPipeline(common.RandomNamespacedName())
 			hub.AddTfxValues(&src.Spec)
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}
@@ -64,12 +52,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 		})
 
 		Specify("converts to and from the same object when the framework is not tfx", func() {
-			src := hub.RandomPipeline(
-				common.NamespacedName{
-					Name:      common.RandomString(),
-					Namespace: common.RandomString(),
-				},
-			)
+			src := hub.RandomPipeline(common.RandomNamespacedName())
 			src.Spec.Framework.Type = "some-other-framework"
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}

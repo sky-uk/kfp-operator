@@ -112,3 +112,20 @@ func namespaceToProvider(resource v1.Object) common.NamespacedName {
 		Namespace: providerNamespace,
 	}
 }
+
+func convertProviderTo(remainderProvider common.NamespacedName) common.NamespacedName {
+	var namespace = remainderProvider.Namespace
+	if namespace == "" {
+		namespace = DefaultProviderNamespace
+	}
+
+	var name = remainderProvider.Name
+	if name == "" {
+		name = DefaultProvider
+	}
+
+	return common.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
+}

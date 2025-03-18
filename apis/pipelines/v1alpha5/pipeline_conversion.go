@@ -10,24 +10,24 @@ import (
 func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Pipeline)
 	dstApiVersion := dst.APIVersion
+	remainder := PipelineConversionRemainder{}
 
-	remainder := hub.PipelineConversionRemainder{}
 	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
 		return err
 	}
-
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
-	dst.Spec.Provider = namespaceToProvider(src)
+	namespacedName := convertProviderTo(remainder.Provider)
+	dst.Spec.Provider = namespacedName
+	dst.Status.Provider = convertProviderAndIdTo(
+		src.Status.ProviderId,
+		namespacedName.Namespace,
+	)
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId, dst.Spec.Provider.Namespace)
 
-	removeProviderAnnotation(dst)
-	removeProviderNamespaceAnnotation(dst)
-
-	if !remainder.Empty() {
+	if remainder.Framework.Type != "" {
 		dst.Spec.Framework = remainder.Framework
 	} else if src.Spec.TfxComponents != "" {
 		framework := hub.NewPipelineFramework("tfx")
@@ -49,19 +49,19 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Pipeline)
 	dstApiVersion := dst.APIVersion
+	remainder := PipelineConversionRemainder{}
 
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
-	setProviderAnnotation(src.Spec.Provider.Name, &dst.ObjectMeta)
-	setProviderNamespaceAnnotation(src.Spec.Provider.Namespace, &dst.ObjectMeta)
+
 	dst.TypeMeta.APIVersion = dstApiVersion
+
+	remainder.Provider = src.Spec.Provider
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 
 	if src.Spec.Framework.Type != "tfx" {
-		return pipelines.SetConversionAnnotations(dst, hub.PipelineConversionRemainder{
-			Framework: src.Spec.Framework,
-		})
+		remainder.Framework = src.Spec.Framework
 	}
 
 	components, err := hub.ComponentsFromFramework(&src.Spec.Framework)
@@ -76,5 +76,5 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 	dst.Spec.BeamArgs = beamArgs
 
-	return nil
+	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

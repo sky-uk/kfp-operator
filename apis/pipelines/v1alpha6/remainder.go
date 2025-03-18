@@ -12,7 +12,7 @@ func (rcr RunConversionRemainder) Empty() bool {
 	return rcr.ProviderNamespace == ""
 }
 
-func (rcr RunConversionRemainder) ConversionAnnotation() string {
+func (RunConversionRemainder) ConversionAnnotation() string {
 	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
 }
 
@@ -24,7 +24,7 @@ func (rsr RunScheduleConversionRemainder) Empty() bool {
 	return rsr.ProviderNamespace == ""
 }
 
-func (rsr RunScheduleConversionRemainder) ConversionAnnotation() string {
+func (RunScheduleConversionRemainder) ConversionAnnotation() string {
 	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
 }
 
@@ -36,7 +36,7 @@ func (rccr RunConfigurationConversionRemainder) Empty() bool {
 	return rccr.ProviderNamespace == ""
 }
 
-func (rccr RunConfigurationConversionRemainder) ConversionAnnotation() string {
+func (RunConfigurationConversionRemainder) ConversionAnnotation() string {
 	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
 }
 
@@ -49,7 +49,7 @@ func (pcr PipelineConversionRemainder) Empty() bool {
 	return pcr.ProviderNamespace == "" && pcr.Framework.Type == ""
 }
 
-func (pcr PipelineConversionRemainder) ConversionAnnotation() string {
+func (PipelineConversionRemainder) ConversionAnnotation() string {
 	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
 }
 
@@ -61,6 +61,6 @@ func (er ExperimentConversionRemainder) Empty() bool {
 	return er.ProviderNamespace == ""
 }
 
-func (er ExperimentConversionRemainder) ConversionAnnotation() string {
+func (ExperimentConversionRemainder) ConversionAnnotation() string {
 	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
 }
