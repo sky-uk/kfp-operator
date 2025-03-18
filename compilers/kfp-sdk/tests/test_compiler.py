@@ -48,4 +48,9 @@ def test_compiler_invalid_pipeline_format():
     assert str(error.value) == "Invalid pipeline format: [function]. Expected format: 'module_path.function_name'."
 
 def test_sanitise_namespaced_pipeline_name():
-    assert compiler.sanitise_namespaced_pipeline_name('namespace/name') == 'namespace-name'
+    tests = [('namespace/name', 'namespace-name'), ('test', 'test'), ('/', '-'),
+             ('a/b/c/d/e/f/g/h/', 'a-b-c-d-e-f-g-h-')]
+
+    for input, output in tests:
+        sanitised = compiler.sanitise_namespaced_pipeline_name(input)
+        assert sanitised == output, f'Expected {output}, got {sanitised}'
