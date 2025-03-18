@@ -20,6 +20,10 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.Spec.Provider = convertProviderTo(src.Spec.Provider, remainder.ProviderNamespace)
+	dst.Status.Provider.Name = convertProviderTo(
+		src.Status.Provider.Name,
+		remainder.ProviderNamespace,
+	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil
@@ -35,6 +39,10 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 
 	dst.Spec.Provider = convertProviderFrom3(src.Spec.Provider, &remainder)
+	dst.Status.Provider.Name = convertProviderFrom3(
+		src.Status.Provider.Name,
+		&remainder,
+	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
