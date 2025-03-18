@@ -20,14 +20,3 @@ func convertProviderTo(
 		Namespace: namespace,
 	}
 }
-
-func convertProviderFrom3(
-	provider common.NamespacedName,
-	remainder *RunScheduleConversionRemainder,
-) string {
-	if provider.Namespace != DefaultProviderNamespace {
-		remainder.ProviderNamespace = provider.Namespace
-	}
-
-	return provider.Name
-}

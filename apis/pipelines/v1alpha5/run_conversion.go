@@ -9,18 +9,22 @@ import (
 func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Run)
 	dstApiVersion := dst.APIVersion
+	remainder := RunConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
+		return err
+	}
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
+	namespacedName := convertProviderTo(remainder.Provider)
+	dst.Spec.Provider = namespacedName
+	dst.Status.Provider = convertProviderAndIdTo(
+		src.Status.ProviderId,
+		namespacedName.Namespace,
+	)
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Spec.Provider = namespaceToProvider(src)
-	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId, dst.Spec.Provider.Namespace)
-
-	removeProviderAnnotation(dst)
-	removeProviderNamespaceAnnotation(dst)
 
 	return nil
 }
@@ -28,15 +32,15 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Run)
 	dstApiVersion := dst.APIVersion
+	remainder := RunConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
-	setProviderAnnotation(src.Spec.Provider.Name, &dst.ObjectMeta)
-	setProviderNamespaceAnnotation(src.Spec.Provider.Namespace, &dst.ObjectMeta)
-	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 
-	return nil
+	remainder.Provider = src.Spec.Provider
+	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
+	dst.TypeMeta.APIVersion = dstApiVersion
+
+	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

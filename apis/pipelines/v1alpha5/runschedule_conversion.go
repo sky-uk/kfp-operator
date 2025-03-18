@@ -10,14 +10,11 @@ import (
 
 func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunSchedule)
-	v1alpha6Remainder := hub.RunScheduleConversionRemainder{}
-	if err := pipelines.GetAndUnsetConversionAnnotations(src, &v1alpha6Remainder); err != nil {
+	remainder := RunScheduleConversionRemainder{}
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
 		return err
 	}
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Provider = namespaceToProvider(src)
-	removeProviderAnnotation(dst)
-	removeProviderNamespaceAnnotation(dst)
 	dst.Spec.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
 		Version: src.Spec.Pipeline.Version,
@@ -27,22 +24,25 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	dst.Spec.Artifacts = convertArtifactsTo(src.Spec.Artifacts)
 	dst.Spec.Schedule = convertScheduleTo(
 		src.Spec.Schedule,
-		v1alpha6Remainder.Schedule,
+		remainder.Schedule,
 	)
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
-	dst.Status.Provider = convertProviderAndIdTo(src.Status.ProviderId, dst.Spec.Provider.Namespace)
+	namespacedName := convertProviderTo(remainder.Provider)
+	dst.Spec.Provider = namespacedName
+	dst.Status.Provider = convertProviderAndIdTo(
+		src.Status.ProviderId,
+		namespacedName.Namespace,
+	)
 
 	return nil
 }
 
 func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunSchedule)
-	v1alpha6Remainder := hub.RunScheduleConversionRemainder{}
+	remainder := RunScheduleConversionRemainder{}
 	dst.ObjectMeta = src.ObjectMeta
-	setProviderAnnotation(src.Spec.Provider.Name, &dst.ObjectMeta)
-	setProviderNamespaceAnnotation(src.Spec.Provider.Namespace, &dst.ObjectMeta)
 	dst.Spec.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
 		Version: src.Spec.Pipeline.Version,
@@ -50,7 +50,7 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Artifacts = convertArtifactsFrom(src.Spec.Artifacts)
-	schedule, err := convertCronExpressionFrom(src.Spec.Schedule, &v1alpha6Remainder)
+	schedule, err := convertCronExpressionFrom(src.Spec.Schedule, &remainder)
 	if err != nil {
 		return err
 	}
@@ -59,8 +59,9 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
+	remainder.Provider = src.Status.Provider.Name
 
-	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
+	return pipelines.SetConversionAnnotations(dst, &remainder)
 }
 
 // +kubebuilder:object:generate=false
@@ -74,7 +75,7 @@ func (e *ConversionError) Error() string {
 
 func convertCronExpressionFrom(
 	schedule hub.Schedule,
-	remainder *hub.RunScheduleConversionRemainder,
+	remainder *RunScheduleConversionRemainder,
 ) (string, error) {
 	if remainder == nil {
 		return "", &ConversionError{"expected a v1alpha6 remainder but got nil"}

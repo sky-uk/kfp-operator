@@ -4,12 +4,12 @@ type RunScheduleConversionRemainder struct {
 	Schedule Schedule `json:"schedule,omitempty"`
 }
 
-func (s Schedule) empty() bool {
+func (s Schedule) Empty() bool {
 	return s.StartTime == nil && s.EndTime == nil
 }
 
 func (rscr RunScheduleConversionRemainder) Empty() bool {
-	return rscr.Schedule.empty()
+	return rscr.Schedule.Empty()
 }
 
 func (rscr RunScheduleConversionRemainder) ConversionAnnotation() string {
@@ -22,7 +22,7 @@ type RunConfigurationConversionRemainder struct {
 
 func (rccr RunConfigurationConversionRemainder) Empty() bool {
 	for _, schedule := range rccr.Schedules {
-		if schedule.empty() {
+		if schedule.Empty() {
 			return false
 		}
 	}
