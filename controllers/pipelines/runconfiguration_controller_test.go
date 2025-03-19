@@ -19,11 +19,11 @@ var _ = Context("aggregateState", func() {
 		for i, state := range subStates {
 			runSchedules[i] = pipelineshub.RunSchedule{
 				Status: pipelineshub.Status{
-					SynchronizationState: state,
 					Conditions: []metav1.Condition{
 						{
 							Type:    pipelineshub.ConditionTypes.SynchronizationSucceeded,
 							Message: string(state),
+							Reason:  string(state),
 						},
 					},
 				},

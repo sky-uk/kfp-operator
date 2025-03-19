@@ -112,8 +112,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 				AcquireResource{},
 				SetStatus{
 					Status: pipelineshub.Status{
-						ObservedGeneration:   resource.Generation,
-						Conditions: 
+						ObservedGeneration: resource.Generation,
 					},
 				},
 				ReleaseResource{},
@@ -172,7 +171,7 @@ var _ = Describe("statusWithCondition", func() {
 		conditions := setStatus.statusWithCondition().Conditions
 
 		Expect(conditions[0].Message).To(Equal(setStatus.Message))
-		Expect(conditions[0].Reason).To(Equal(string(setStatus.Status.SynchronizationState)))
+		Expect(conditions[0].Reason).To(Equal(setStatus.Status.Conditions.SynchronizationSucceeded().Reason))
 		Expect(conditions[0].Type).To(Equal(pipelineshub.ConditionTypes.SynchronizationSucceeded))
 		Expect(conditions[0].ObservedGeneration).To(Equal(setStatus.Status.ObservedGeneration))
 	},

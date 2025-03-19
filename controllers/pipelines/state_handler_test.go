@@ -258,9 +258,15 @@ var _ = Describe("State handler", func() {
 	) StateTransitionTestCase {
 		resource := pipelineshub.RandomResource()
 		resource.SetStatus(pipelineshub.Status{
-			SynchronizationState: status,
-			Version:              versionInState,
-			Provider:             id,
+			Version:  versionInState,
+			Provider: id,
+			Conditions: pipelineshub.Conditions{
+				{
+					Type:   pipelineshub.ConditionTypes.SynchronizationSucceeded,
+					Status: pipelineshub.ConditionStatusForSynchronizationState(status),
+					Reason: string(status),
+				},
+			},
 		})
 		resource.SetComputedVersion(computedVersion)
 

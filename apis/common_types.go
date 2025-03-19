@@ -1,7 +1,5 @@
 package apis
 
-import "fmt"
-
 type SynchronizationState string
 
 const (
@@ -23,12 +21,12 @@ var validStates = map[string]SynchronizationState{
 	string(Failed):    Failed,
 }
 
-func SynchronisationState(s string) (SynchronizationState, error) {
+func SynchronisationState(s string) SynchronizationState {
 	state, ok := validStates[s]
 	if !ok {
-		return Unknown, fmt.Errorf("invalid state: %s", s)
+		state = Unknown
 	}
-	return state, nil
+	return state
 }
 
 const Group = "pipelines.kubeflow.org"

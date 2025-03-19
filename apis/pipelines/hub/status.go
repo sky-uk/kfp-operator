@@ -37,11 +37,7 @@ func (conditions Conditions) SynchronizationSucceeded() metav1.Condition {
 
 func (conditions Conditions) GetSyncStateFromReason() apis.SynchronizationState {
 	reason := conditions.SynchronizationSucceeded().Reason
-	state, err := apis.SynchronisationState(reason)
-	if err != nil {
-
-	}
-	return state
+	return apis.SynchronisationState(reason)
 }
 
 func (conditions Conditions) ToMap() map[string]metav1.Condition {
