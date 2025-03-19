@@ -19,12 +19,11 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	namespacedName := convertProviderTo(remainder.Provider)
-	dst.Spec.Provider = namespacedName
-	dst.Status.Provider = convertProviderAndIdTo(
-		src.Status.ProviderId,
-		namespacedName.Namespace,
-	)
+	dst.Spec.Provider = convertProviderTo(remainder.Provider.Name, remainder.Provider.Namespace)
+	dst.Status.Provider = hub.ProviderAndId{
+		Name: convertProviderTo(src.Status.ProviderId.Provider, remainder.ProviderStatusNamespace),
+		Id:   src.Status.ProviderId.Id,
+	}
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	if remainder.Framework.Type != "" {
@@ -58,6 +57,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	remainder.Provider = src.Spec.Provider
+	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 
 	if src.Spec.Framework.Type != "tfx" {

@@ -29,12 +29,11 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
-	namespacedName := convertProviderTo(remainder.Provider)
-	dst.Spec.Provider = namespacedName
-	dst.Status.Provider = convertProviderAndIdTo(
-		src.Status.ProviderId,
-		namespacedName.Namespace,
-	)
+	dst.Spec.Provider = convertProviderTo(remainder.Provider.Name, remainder.Provider.Namespace)
+	dst.Status.Provider = hub.ProviderAndId{
+		Name: convertProviderTo(src.Status.ProviderId.Provider, remainder.ProviderStatusNamespace),
+		Id:   src.Status.ProviderId.Id,
+	}
 
 	return nil
 }
@@ -50,16 +49,21 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
 	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Artifacts = convertArtifactsFrom(src.Spec.Artifacts)
+
 	schedule, err := convertCronExpressionFrom(src.Spec.Schedule, &remainder)
 	if err != nil {
 		return err
 	}
+
 	dst.Spec.Schedule = schedule
+
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
+
+	remainder.Provider = src.Spec.Provider
+	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
-	remainder.Provider = src.Status.Provider.Name
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

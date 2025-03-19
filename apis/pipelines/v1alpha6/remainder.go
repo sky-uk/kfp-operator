@@ -5,11 +5,12 @@ import (
 )
 
 type RunConversionRemainder struct {
-	ProviderNamespace string `json:"providerNamespace"`
+	ProviderNamespace       string `json:"providerNamespace"`
+	ProviderStatusNamespace string `json:"providerStatusNamespace"`
 }
 
 func (rcr RunConversionRemainder) Empty() bool {
-	return rcr.ProviderNamespace == ""
+	return rcr.ProviderNamespace == "" && rcr.ProviderStatusNamespace == ""
 }
 
 func (RunConversionRemainder) ConversionAnnotation() string {
@@ -17,11 +18,12 @@ func (RunConversionRemainder) ConversionAnnotation() string {
 }
 
 type RunScheduleConversionRemainder struct {
-	ProviderNamespace string `json:"providerNamespace"`
+	ProviderNamespace       string `json:"providerNamespace"`
+	ProviderStatusNamespace string `json:"providerStatusNamespace"`
 }
 
 func (rsr RunScheduleConversionRemainder) Empty() bool {
-	return rsr.ProviderNamespace == ""
+	return rsr.ProviderNamespace == "" && rsr.ProviderStatusNamespace == ""
 }
 
 func (RunScheduleConversionRemainder) ConversionAnnotation() string {
@@ -29,11 +31,12 @@ func (RunScheduleConversionRemainder) ConversionAnnotation() string {
 }
 
 type RunConfigurationConversionRemainder struct {
-	ProviderNamespace string `json:"providerNamespace"`
+	ProviderNamespace       string `json:"providerNamespace"`
+	ProviderStatusNamespace string `json:"providerStatusNamespace"`
 }
 
 func (rccr RunConfigurationConversionRemainder) Empty() bool {
-	return rccr.ProviderNamespace == ""
+	return rccr.ProviderNamespace == "" && rccr.ProviderStatusNamespace == ""
 }
 
 func (RunConfigurationConversionRemainder) ConversionAnnotation() string {
@@ -41,12 +44,13 @@ func (RunConfigurationConversionRemainder) ConversionAnnotation() string {
 }
 
 type PipelineConversionRemainder struct {
-	ProviderNamespace string                `json:"providerNamespace"`
-	Framework         hub.PipelineFramework `json:"framework"`
+	ProviderNamespace       string                `json:"providerNamespace"`
+	ProviderStatusNamespace string                `json:"providerStatusNamespace"`
+	Framework               hub.PipelineFramework `json:"framework"`
 }
 
 func (pcr PipelineConversionRemainder) Empty() bool {
-	return pcr.ProviderNamespace == "" && pcr.Framework.Type == ""
+	return pcr.ProviderNamespace == "" && pcr.Framework.Type == "" && pcr.ProviderStatusNamespace == ""
 }
 
 func (PipelineConversionRemainder) ConversionAnnotation() string {
@@ -54,11 +58,12 @@ func (PipelineConversionRemainder) ConversionAnnotation() string {
 }
 
 type ExperimentConversionRemainder struct {
-	ProviderNamespace string `json:"providerNamespace"`
+	ProviderNamespace       string `json:"providerNamespace"`
+	ProviderStatusNamespace string `json:"providerStatusNamespace"`
 }
 
 func (er ExperimentConversionRemainder) Empty() bool {
-	return er.ProviderNamespace == ""
+	return er.ProviderNamespace == "" && er.ProviderStatusNamespace == ""
 }
 
 func (ExperimentConversionRemainder) ConversionAnnotation() string {

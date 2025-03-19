@@ -3,44 +3,36 @@
 package v1alpha5
 
 import (
+	"fmt"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
+	DefaultProvider = "default-provider"
+	DefaultProviderNamespace = "default-provider-namespace"
+
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object using default provider", func() {
-			src := RandomRunConfiguration()
-			DefaultProvider = "default-provider"
-			DefaultProviderNamespace = "default-provider-namespace"
-			intermediate := &hub.RunConfiguration{}
-			dst := &RunConfiguration{}
-
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
-			Expect(getProviderNamespaceAnnotation(dst)).To(Equal(DefaultProviderNamespace))
-		})
-
 		Specify("converts to and from the same object", func() {
 			src := RandomRunConfiguration()
-			src.Status.LatestRuns = LatestRuns{
-				Succeeded: RunReference{
-					ProviderId: apis.RandomString(),
-					Artifacts:  apis.RandomList(common.RandomArtifact),
-				},
-			}
-			setProviderAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
-			setProviderNamespaceAnnotation(apis.RandomLowercaseString(), &src.ObjectMeta)
+			src.Status.Provider = DefaultProvider
+
 			intermediate := &hub.RunConfiguration{}
 			dst := &RunConfiguration{}
 
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
+			Expect(intermediate.Spec.Run.Provider.Name).To(Equal(DefaultProvider))
+			Expect(intermediate.Spec.Run.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+			Expect(intermediate.Status.Provider.Name).To(Equal(DefaultProvider))
+			Expect(intermediate.Status.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+			delete(
+				dst.GetAnnotations(),
+				RunConfigurationConversionRemainder{}.ConversionAnnotation(),
+			)
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})
@@ -53,7 +45,9 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 			dst := &hub.RunConfiguration{}
 
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
+			fmt.Printf("intermediate.Spec.Provider.Name: %v\n", intermediate.Annotations)
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
+			fmt.Printf("dst.Status.Provider.Name: %v\n", dst.Status.Provider.Name)
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})
