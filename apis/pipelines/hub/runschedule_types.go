@@ -25,6 +25,10 @@ type Schedule struct {
 	EndTime        *metav1.Time `json:"endTime,omitempty"`
 }
 
+func (s Schedule) Empty() bool {
+	return s.StartTime == nil && s.EndTime == nil
+}
+
 func (rs RunSchedule) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(rs.Spec.Pipeline.String())
