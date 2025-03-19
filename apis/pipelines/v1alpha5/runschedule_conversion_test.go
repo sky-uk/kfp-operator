@@ -3,6 +3,7 @@
 package v1alpha5
 
 import (
+	"fmt"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -21,6 +22,9 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 			dst := &RunSchedule{}
 
 			Expect(src.ConvertTo(intermediate)).To(Succeed())
+
+			fmt.Println("intermediate.Spec.Provider.Name: ", intermediate.Spec.Provider.Name)
+			fmt.Println("intermediate.Spec.Provider.Namespace: ", intermediate.Spec.Provider.Namespace)
 			Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
 			Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())

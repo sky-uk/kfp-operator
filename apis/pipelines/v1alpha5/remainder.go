@@ -6,11 +6,12 @@ import (
 )
 
 type RunConversionRemainder struct {
-	Provider common.NamespacedName `json:"provider,omitempty"`
+	Provider                common.NamespacedName `json:"provider,omitempty"`
+	ProviderStatusNamespace string                `json:"providerStatusNamespace,omitempty"`
 }
 
 func (rcr RunConversionRemainder) Empty() bool {
-	return rcr.Provider.Empty()
+	return rcr.Provider.Empty() && rcr.ProviderStatusNamespace == ""
 }
 
 func (RunConversionRemainder) ConversionAnnotation() string {
@@ -18,12 +19,13 @@ func (RunConversionRemainder) ConversionAnnotation() string {
 }
 
 type RunScheduleConversionRemainder struct {
-	Provider common.NamespacedName `json:"provider,omitempty"`
-	Schedule hub.Schedule          `json:"schedule,omitempty"`
+	Provider                common.NamespacedName `json:"provider,omitempty"`
+	ProviderStatusNamespace string                `json:"providerStatusNamespace,omitempty"`
+	Schedule                hub.Schedule          `json:"schedule,omitempty"`
 }
 
 func (rscr RunScheduleConversionRemainder) Empty() bool {
-	return rscr.Provider.Empty() && rscr.Schedule.Empty()
+	return rscr.Provider.Empty() && rscr.ProviderStatusNamespace == "" && rscr.Schedule.Empty()
 }
 
 func (RunScheduleConversionRemainder) ConversionAnnotation() string {
@@ -31,17 +33,19 @@ func (RunScheduleConversionRemainder) ConversionAnnotation() string {
 }
 
 type RunConfigurationConversionRemainder struct {
-	Provider  common.NamespacedName `json:"provider,omitempty"`
-	Schedules []hub.Schedule        `json:"schedules,omitempty"`
+	Provider                common.NamespacedName `json:"provider,omitempty"`
+	ProviderStatusNamespace string                `json:"providerStatusNamespace,omitempty"`
+	Schedules               []hub.Schedule        `json:"schedules,omitempty"`
 }
 
 func (rccr RunConfigurationConversionRemainder) Empty() bool {
 	for _, schedule := range rccr.Schedules {
-		if schedule.Empty() {
+		if !schedule.Empty() {
 			return false
 		}
 	}
-	return len(rccr.Schedules) == 0 && rccr.Empty()
+
+	return len(rccr.Schedules) == 0 && rccr.ProviderStatusNamespace == "" && rccr.Provider.Empty()
 }
 
 func (RunConfigurationConversionRemainder) ConversionAnnotation() string {
@@ -49,11 +53,12 @@ func (RunConfigurationConversionRemainder) ConversionAnnotation() string {
 }
 
 type ExperimentConversionRemainder struct {
-	Provider common.NamespacedName `json:"provider,omitempty"`
+	Provider                common.NamespacedName `json:"provider,omitempty"`
+	ProviderStatusNamespace string                `json:"providerStatusNamespace,omitempty"`
 }
 
 func (ecr ExperimentConversionRemainder) Empty() bool {
-	return ecr.Provider.Empty()
+	return ecr.Provider.Empty() && ecr.ProviderStatusNamespace == ""
 }
 
 func (ExperimentConversionRemainder) ConversionAnnotation() string {
@@ -61,12 +66,13 @@ func (ExperimentConversionRemainder) ConversionAnnotation() string {
 }
 
 type PipelineConversionRemainder struct {
-	Provider  common.NamespacedName `json:"provider,omitempty"`
-	Framework hub.PipelineFramework `json:"framework"`
+	Provider                common.NamespacedName `json:"provider,omitempty"`
+	ProviderStatusNamespace string                `json:"providerStatusNamespace,omitempty"`
+	Framework               hub.PipelineFramework `json:"framework"`
 }
 
 func (pcr PipelineConversionRemainder) Empty() bool {
-	return pcr.Provider.Empty() && pcr.Framework.Type == ""
+	return pcr.Provider.Empty() && pcr.ProviderStatusNamespace == "" && pcr.Framework.Type == ""
 }
 
 func (PipelineConversionRemainder) ConversionAnnotation() string {

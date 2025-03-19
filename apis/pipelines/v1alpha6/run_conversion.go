@@ -21,7 +21,7 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 	dst.Spec.Provider = convertProviderTo(src.Spec.Provider, remainder.ProviderNamespace)
 	dst.Status.Provider.Name = convertProviderTo(
 		src.Status.Provider.Name,
-		remainder.ProviderNamespace,
+		remainder.ProviderStatusNamespace,
 	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
@@ -40,6 +40,7 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Spec.Provider = src.Spec.Provider.Name
 	dst.Status.Provider.Name = src.Status.Provider.Name.Name
 	remainder.ProviderNamespace = src.Spec.Provider.Namespace
+	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 
