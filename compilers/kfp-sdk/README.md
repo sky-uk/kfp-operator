@@ -26,7 +26,7 @@ spec:
 ### Sample KFP SDK pipeline
 
 > [!IMPORTANT]
-> Setting @dsl.pipeline `name` is not currently supported and will be overwritten by the compiler.
+> Setting @dsl.pipeline `name` and `pipeline_root` is not currently supported and will be overwritten by the compiler.
 
 ```python
 from kfp import dsl
@@ -42,17 +42,9 @@ def pipeline_function():
     component()
 ```
 
-### Compiler
-The compile command is used to process a pipeline configuration file and generate an output file based on it.
+### Compiler parameters
+The compiler requires the following mandatory flags/parameters:
 
-**Compiler Requirements**
-
-The compile command requires the following flags/parameters:
-
-*--pipeline_config* (required): Path to the pipeline configuration file in YAML format.
-
-*--output_file* (required): Path where the compiled output will be saved.
-
-These parameters are currently ignored:
-
-*--provider_config* (optional): Path to the provider configuration file in YAML format. (Not used in the compilation process.)
+- `--pipeline_config`: Path to the pipeline configuration file in YAML format.
+- `--output_file`: Path where the compiled output will be saved.
+- `--provider_config`: Path to the provider configuration file in YAML/json format.
