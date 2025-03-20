@@ -4,6 +4,7 @@ import importlib.util
 import click
 import yaml
 from kfp import compiler
+import os
 
 
 @click.command()
@@ -25,12 +26,13 @@ def _compile(pipeline_config: str, output_file: str):
         pipeline_name = sanitise_namespaced_pipeline_name(
             pipeline_config_contents["name"]
         )
+        pipeline_environment = pipeline_config_contents.get("env", [])
         click.secho(
             f"Compiling {pipeline_name} pipeline: {pipeline_config_contents}",
             fg="green",
         )
 
-        pipeline_fn = load_fn(pipeline_config_contents)
+        pipeline_fn = load_fn(pipeline_config_contents, pipeline_environment)
 
         compiler.Compiler().compile(
             pipeline_fn, pipeline_name=pipeline_name, package_path=output_file
@@ -38,7 +40,7 @@ def _compile(pipeline_config: str, output_file: str):
         click.secho(f"{output_file} compiled", fg="green")
 
 
-def load_fn(pipeline_config_contents: dict):
+def load_fn(pipeline_config_contents: dict, environment: list):
     framework_parameters = pipeline_config_contents["framework"]["parameters"]
     if "pipeline" not in framework_parameters:
         raise KeyError("Missing required framework parameter: [pipeline].")
@@ -48,6 +50,9 @@ def load_fn(pipeline_config_contents: dict):
         raise ValueError(
             f"Invalid pipeline format: [{pipeline}]. Expected format: 'module_path.function_name'."
         )
+
+    for env in environment:
+        os.environ[env["name"]] = env["value"]
 
     (module_name, fn_name) = pipeline.rsplit(".", 1)
     module = importlib.import_module(module_name)
