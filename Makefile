@@ -223,7 +223,7 @@ website: ## Build website
 	$(MAKE) -C docs-gen build
 
 docker-push-quickstart: ##  Build and push quickstart docker image
-	$(MAKE) -C docs-gen/includes/master/quickstart docker-push
+	$(MAKE) -C docs-gen docker-push-quickstart
 
 ##@ Package
 

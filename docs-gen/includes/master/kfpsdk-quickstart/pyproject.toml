@@ -1,0 +1,9 @@
+[tool.poetry]
+name = "getting_started"
+version = "0.1.0"
+description = ""
+authors = []
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+kfp = ">=2,<3"
