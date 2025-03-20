@@ -14,15 +14,36 @@ def test_compiler_load_fn():
         "framework": {"parameters": {"pipeline": "test_compiler.pipeline_fn"}}
     }
     sys.path.append(os.path.dirname(__file__))
-    result = compiler.load_fn(pipeline_config_contents)()
+    result = compiler.load_fn(pipeline_config_contents, environment=[])()
     assert result
+
+
+def pipeline_fn_env():
+    return os.environ
+
+
+def test_compiler_load_fn_env():
+
+    environment = [
+        {"name": "a", "value": "aVal"},
+    ]
+
+    pipeline_config_contents = {
+        "framework": {"parameters": {"pipeline": "test_compiler.pipeline_fn_env"}},
+        "env": environment,
+    }
+
+    sys.path.append(os.path.dirname(__file__))
+    result = compiler.load_fn(pipeline_config_contents, environment)()
+
+    assert result["a"] == "aVal"
 
 
 def test_compiler_missing_pipeline_parameter():
     pipeline_config_contents = {"framework": {"parameters": {}}}
     sys.path.append(os.path.dirname(__file__))
     with pytest.raises(KeyError) as error:
-        compiler.load_fn(pipeline_config_contents)()
+        compiler.load_fn(pipeline_config_contents, environment=[])
 
     assert str(error.value) == "'Missing required framework parameter: [pipeline].'"
 
@@ -31,7 +52,7 @@ def test_compiler_invalid_pipeline_format():
     pipeline_config_contents = {"framework": {"parameters": {"pipeline": "function"}}}
     sys.path.append(os.path.dirname(__file__))
     with pytest.raises(ValueError) as error:
-        compiler.load_fn(pipeline_config_contents)()
+        compiler.load_fn(pipeline_config_contents, environment=[])()
 
     assert (
         str(error.value)
