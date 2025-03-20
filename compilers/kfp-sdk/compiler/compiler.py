@@ -25,7 +25,9 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         pipeline_name = sanitise_namespaced_pipeline_name(
             pipeline_config_contents["name"]
         )
-        pipeline_root = get_pipeline_root(provider_config_contents)
+        pipeline_root = get_pipeline_root(
+            pipeline_config_contents, provider_config_contents
+        )
         pipeline_environment = pipeline_config_contents.get("env", [])
         click.secho(
             f"Compiling {pipeline_name} pipeline with root {pipeline_root}: {pipeline_config_contents}",
@@ -43,9 +45,13 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         click.secho(f"{output_file} compiled", fg="green")
 
 
-def get_pipeline_root(provider_config_contents: dict):
+def get_pipeline_root(pipeline_config_contents: dict, provider_config_contents: dict):
     if "pipelineRootStorage" in provider_config_contents:
-        return provider_config_contents["pipelineRootStorage"]
+        return (
+            provider_config_contents["pipelineRootStorage"]
+            + "/"
+            + pipeline_config_contents["name"]
+        )
     else:
         raise KeyError("Missing required pipeline root in provider configuration.")
 
