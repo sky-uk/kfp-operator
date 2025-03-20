@@ -15,20 +15,48 @@ var _ = Context("Experiment Conversion", PropertyBased, func() {
 	DefaultProviderNamespace = "default-provider-namespace"
 
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object", func() {
-			src := RandomExperiment()
-			intermediate := &hub.Experiment{}
-			dst := &Experiment{}
+		When("status provider is empty", func() {
+			It("converts to and from the same object", func() {
+				noProvider := ""
+				src := RandomExperiment(noProvider)
+				intermediate := &hub.Experiment{}
+				dst := &Experiment{}
 
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
-			Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			delete(
-				dst.GetAnnotations(),
-				ExperimentConversionRemainder{}.ConversionAnnotation(),
-			)
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Name).To(BeEmpty())
+				Expect(intermediate.Status.Provider.Name.Namespace).To(BeEmpty())
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					ExperimentConversionRemainder{}.ConversionAnnotation(),
+				)
+				delete(dst.GetAnnotations(), ResourceAnnotations.Provider)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
+		})
+		When("status provider is non-empty", func() {
+			It("converts to and from the same object", func() {
+				provider := common.RandomString()
+				src := RandomExperiment(provider)
+				intermediate := &hub.Experiment{}
+				dst := &Experiment{}
+
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Name).To(Equal(provider))
+				Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+				delete(
+					dst.GetAnnotations(),
+					ExperimentConversionRemainder{}.ConversionAnnotation(),
+				)
+				delete(dst.GetAnnotations(), ResourceAnnotations.Provider)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
 		})
 	})
 

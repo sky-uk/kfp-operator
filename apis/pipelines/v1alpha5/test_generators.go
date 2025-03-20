@@ -15,14 +15,14 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func RandomPipeline() *Pipeline {
+func RandomPipeline(provider string) *Pipeline {
 	return &Pipeline{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
 		Spec:   RandomPipelineSpec(),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
@@ -43,7 +43,7 @@ func RandomProvider() *Provider {
 			Namespace: "default",
 		},
 		Spec:   RandomProviderSpec(),
-		Status: RandomStatus(),
+		Status: RandomProviderStatus(),
 	}
 }
 
@@ -78,7 +78,7 @@ func RandomCondition() metav1.Condition {
 	}
 }
 
-func RandomRunConfiguration() *RunConfiguration {
+func RandomRunConfiguration(provider string) *RunConfiguration {
 	return &RunConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
@@ -87,6 +87,7 @@ func RandomRunConfiguration() *RunConfiguration {
 		Spec: RandomRunConfigurationSpec(),
 		Status: RunConfigurationStatus{
 			SynchronizationState: RandomSynchronizationState(),
+			Provider:             provider,
 		},
 	}
 }
@@ -118,14 +119,14 @@ func RandomOnChangeTrigger() Triggers {
 	return Triggers{OnChange: []OnChangeType{OnChangeTypes.Pipeline}}
 }
 
-func RandomRunSchedule() *RunSchedule {
+func RandomRunSchedule(provider string) *RunSchedule {
 	return &RunSchedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
 		Spec:   RandomRunScheduleSpec(),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
@@ -153,7 +154,7 @@ func RandomRunScheduleSpec() RunScheduleSpec {
 	}
 }
 
-func RandomRun() *Run {
+func RandomRun(provider string) *Run {
 	return &Run{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        RandomLowercaseString(),
@@ -163,7 +164,7 @@ func RandomRun() *Run {
 		Spec: RandomRunSpec(),
 		Status: RunStatus{
 			ObservedPipelineVersion: RandomString(),
-			Status:                  RandomStatus(),
+			Status:                  RandomStatus(provider),
 		},
 	}
 }
@@ -207,14 +208,14 @@ func RandomRunSpec() RunSpec {
 	}
 }
 
-func RandomExperiment() *Experiment {
+func RandomExperiment(provider string) *Experiment {
 	return &Experiment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
 		Spec:   RandomExperimentSpec(),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
@@ -224,13 +225,27 @@ func RandomExperimentSpec() ExperimentSpec {
 	}
 }
 
-func RandomStatus() Status {
+func RandomStatus(provider string) Status {
 	return Status{
 		SynchronizationState: RandomSynchronizationState(),
 		Version:              RandomString(),
 		ProviderId: ProviderAndId{
-			Provider: RandomString(),
+			Provider: provider,
 			Id:       RandomString(),
+		},
+		ObservedGeneration: rand.Int63(),
+	}
+}
+
+// RandomProviderStatus differs from RandomStatus by not setting the provider
+// because in practice it will never be populated.
+func RandomProviderStatus() Status {
+	return Status{
+		SynchronizationState: RandomSynchronizationState(),
+		Version:              RandomString(),
+		ProviderId: ProviderAndId{
+			Provider: "",
+			Id:       "",
 		},
 		ObservedGeneration: rand.Int63(),
 	}
@@ -280,7 +295,7 @@ func (tr *TestResource) GetKind() string {
 
 func RandomResource() *TestResource {
 	return &TestResource{
-		Status:          RandomStatus(),
+		Status:          RandomStatus(RandomString()),
 		NamespacedName:  RandomNamespacedName(),
 		Kind:            RandomString(),
 		ComputedVersion: RandomShortHash(),
