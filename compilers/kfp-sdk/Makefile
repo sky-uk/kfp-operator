@@ -6,6 +6,7 @@ build: ## Build
 	pip install poetry-dynamic-versioning --quiet
 	poetry install
 	poetry run black .
+	poetry run flake8
 	poetry build
 
 ##@ Containers
