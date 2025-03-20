@@ -142,13 +142,17 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		expectedResource := resource.Status.DeepCopy()
 		expectedResource.ObservedGeneration = resource.GetGeneration()
 
-		Expect(modifiedCommands).To(Equal(
+		expectedSetStatus := SetStatus{
+			LastTransitionTime: modifiedCommands[2].(*SetStatus).LastTransitionTime,
+			Status:             *expectedResource,
+		}
+		expectedSetStatus.Status = expectedSetStatus.statusWithCondition()
+
+		Expect(modifiedCommands).To(ContainElements(
 			[]Command{
 				AcquireResource{},
 				ReleaseResource{},
-				SetStatus{
-					Status: *expectedResource,
-				},
+				&expectedSetStatus,
 			}))
 	})
 

@@ -65,7 +65,8 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
-			setStatus.statusWithCondition()
+			setStatus.Status = setStatus.statusWithCondition()
+
 			modifiedCommands = append(modifiedCommands, setStatus)
 		} else {
 			modifiedCommands = append(modifiedCommands, command)
@@ -75,7 +76,10 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	if !setStatusExists {
 		newStatus := resource.GetStatus()
 		newStatus.ObservedGeneration = currentGeneration
-		modifiedCommands = append(modifiedCommands, From(newStatus))
+		st := From(newStatus)
+		st.Status = st.statusWithCondition()
+
+		modifiedCommands = append(modifiedCommands, st)
 	}
 
 	return modifiedCommands
@@ -171,7 +175,7 @@ func eventReason(sps SetStatus) string {
 
 func (sps SetStatus) statusWithCondition() pipelineshub.Status {
 	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(metav1.Condition{
-		LastTransitionTime: metav1.Now(),
+		LastTransitionTime: sps.LastTransitionTime,
 		Message:            sps.Message,
 		ObservedGeneration: sps.Status.ObservedGeneration,
 		Type:               apis.ConditionTypes.SynchronizationSucceeded,
