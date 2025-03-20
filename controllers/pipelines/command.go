@@ -65,6 +65,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
+			setStatus.statusWithCondition()
 			modifiedCommands = append(modifiedCommands, setStatus)
 		} else {
 			modifiedCommands = append(modifiedCommands, command)
@@ -74,7 +75,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	if !setStatusExists {
 		newStatus := resource.GetStatus()
 		newStatus.ObservedGeneration = currentGeneration
-		modifiedCommands = append(modifiedCommands, SetStatus{Status: newStatus})
+		modifiedCommands = append(modifiedCommands, From(newStatus))
 	}
 
 	return modifiedCommands

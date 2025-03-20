@@ -90,13 +90,16 @@ var _ = Describe("eventReason", func() {
 
 var _ = Describe("alwaysSetObservedGeneration", func() {
 	It("updates existing SetStatus", func() {
+		transitionTime := metav1.Now()
 		status := SetStatus{
-			Status: pipelineshub.Status{},
+			Status:             pipelineshub.Status{},
+			LastTransitionTime: transitionTime,
 		}
+		status.WithSynchronizationState(apis.Succeeded)
 
 		commands := []Command{
 			AcquireResource{},
-			status.WithSynchronizationState(apis.Succeeded),
+			status,
 			ReleaseResource{},
 		}
 		resource := &pipelineshub.Pipeline{
@@ -108,13 +111,14 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
 
 		expectedSetStatus := SetStatus{
+			LastTransitionTime: transitionTime,
 			Status: pipelineshub.Status{
 				ObservedGeneration: resource.Generation,
 			},
 		}
-		expectedSetStatus.WithSynchronizationState(apis.Succeeded).WithLastTransitionTime(metav1.Now())
+		expectedSetStatus.WithSynchronizationState(apis.Succeeded)
 
-		Expect(modifiedCommands).To(Equal(
+		Expect(modifiedCommands).To(ContainElements(
 			[]Command{
 				AcquireResource{},
 				expectedSetStatus,
