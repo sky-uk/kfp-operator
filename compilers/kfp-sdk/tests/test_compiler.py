@@ -74,5 +74,9 @@ def test_sanitise_namespaced_pipeline_name():
 
 
 def test_compiler_get_pipeline_root():
-    provider_config_contents = {"pipelineRootStorage": "test"}
-    assert compiler.get_pipeline_root(provider_config_contents) == "test"
+    pipeline_config_contents = {"name": "pipeline"}
+    provider_config_contents = {"pipelineRootStorage": "storage"}
+    assert (
+        compiler.get_pipeline_root(pipeline_config_contents, provider_config_contents)
+        == "storage/pipeline"
+    )
