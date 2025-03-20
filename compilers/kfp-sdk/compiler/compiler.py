@@ -12,7 +12,7 @@ from kfp import compiler
     "--pipeline_config", help="Pipeline configuration in yaml format", required=True
 )
 @click.option(
-    "--provider_config", help="Provider configuration in yaml format", required=False
+    "--provider_config", help="Provider configuration in yaml format", required=True
 )
 @click.option("--output_file", help="Output file path", required=True)
 def compile(pipeline_config: str, provider_config: str, output_file: str):
