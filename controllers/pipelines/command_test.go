@@ -146,7 +146,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			LastTransitionTime: modifiedCommands[2].(*SetStatus).LastTransitionTime,
 			Status:             *expectedResource,
 		}
-		expectedSetStatus.Status = expectedSetStatus.statusWithCondition()
+		expectedSetStatus.statusWithCondition()
 
 		Expect(modifiedCommands).To(ContainElements(
 			[]Command{
@@ -182,9 +182,7 @@ var _ = Describe("statusWithCondition", func() {
 		setStatus.WithSynchronizationState(state)
 		setStatus.Status.ObservedGeneration = rand.Int63()
 
-		conditions := setStatus.statusWithCondition().Conditions
-
-		fmt.Println("statusConditions:", setStatus.Status.Conditions.SynchronizationSucceeded())
+		conditions := setStatus.statusWithCondition().Status.Conditions
 
 		Expect(conditions[0].Message).To(Equal(setStatus.Message))
 		Expect(conditions[0].Reason).To(Equal(setStatus.Status.Conditions.SynchronizationSucceeded().Reason))

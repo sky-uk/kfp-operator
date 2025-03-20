@@ -65,7 +65,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
-			setStatus.Status = setStatus.statusWithCondition()
+			setStatus.statusWithCondition()
 
 			modifiedCommands = append(modifiedCommands, setStatus)
 		} else {
@@ -77,7 +77,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 		newStatus := resource.GetStatus()
 		newStatus.ObservedGeneration = currentGeneration
 		st := From(newStatus)
-		st.Status = st.statusWithCondition()
+		st.statusWithCondition()
 
 		modifiedCommands = append(modifiedCommands, st)
 	}
@@ -173,7 +173,7 @@ func eventReason(sps SetStatus) string {
 	}
 }
 
-func (sps SetStatus) statusWithCondition() pipelineshub.Status {
+func (sps *SetStatus) statusWithCondition() *SetStatus {
 	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(metav1.Condition{
 		LastTransitionTime: sps.LastTransitionTime,
 		Message:            sps.Message,
@@ -183,7 +183,7 @@ func (sps SetStatus) statusWithCondition() pipelineshub.Status {
 		Reason:             string(sps.Status.Conditions.GetSyncStateFromReason()),
 	})
 
-	return sps.Status
+	return sps
 }
 
 func (sps SetStatus) execute(
@@ -200,7 +200,7 @@ func (sps SetStatus) execute(
 		sps.Status,
 	)
 
-	resource.SetStatus(sps.statusWithCondition())
+	resource.SetStatus(sps.statusWithCondition().Status)
 
 	err := ec.Client.Status().Update(ctx, resource)
 

@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 )
@@ -75,9 +74,7 @@ var validStates = map[string]SynchronizationState{
 
 func SynchronisationState(s string) SynchronizationState {
 	state, ok := validStates[strings.ToLower(s)]
-
 	if !ok {
-		fmt.Println("Unknown state: ", s)
 		state = Unknown
 	}
 	return state

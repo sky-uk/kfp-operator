@@ -36,11 +36,11 @@ func (st *StateHandler[R]) stateTransition(
 ) (commands []Command) {
 	resourceProvider := resource.GetStatus().Provider.Name
 	if resourceProvider != "" && resourceProvider != provider.Name {
-		commands = []Command{*From(resource.GetStatus()).
+		setStatus := From(resource.GetStatus()).
 			WithSynchronizationState(apis.Failed).
 			WithMessage(StateHandlerConstants.ProviderChangedError).
-			WithLastTransitionTime(transitionTime),
-		}
+			WithLastTransitionTime(transitionTime).statusWithCondition()
+		commands = []Command{*setStatus}
 	} else {
 		switch resource.GetStatus().Conditions.GetSyncStateFromReason() {
 		case apis.Creating:
