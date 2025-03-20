@@ -3,6 +3,7 @@
 package apis
 
 import (
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"math/rand"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -72,6 +73,19 @@ func RandomOf[T any](ts []T) T {
 
 func RandomConditionStatus() metav1.ConditionStatus {
 	return RandomOf([]metav1.ConditionStatus{metav1.ConditionTrue, metav1.ConditionFalse, metav1.ConditionUnknown})
+}
+
+func RandomSynchronizationStateCondition() metav1.Condition {
+	state := RandomSynchronizationState()
+	condition := metav1.Condition{
+		Type:               ConditionTypes.SynchronizationSucceeded,
+		Message:            RandomString(),
+		ObservedGeneration: common.RandomInt64(),
+		Reason:             string(state),
+		LastTransitionTime: metav1.Now(),
+		Status:             ConditionStatusForSynchronizationState(state),
+	}
+	return condition
 }
 
 func RandomSynchronizationState() SynchronizationState {

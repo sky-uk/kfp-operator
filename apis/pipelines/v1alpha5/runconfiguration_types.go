@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -76,7 +75,7 @@ func (rcs *RunConfigurationStatus) SetSynchronizationState(
 ) {
 	rcs.SynchronizationState = state
 	condition := metav1.Condition{
-		Type:               ConditionTypes.SynchronizationSucceeded,
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
 		Message:            message,
 		ObservedGeneration: rcs.ObservedGeneration,
 		Reason:             string(state),
@@ -111,7 +110,7 @@ func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
 }
 
 func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return pipelines.Collect(
+	return apis.Collect(
 		rc.Spec.Run.RuntimeParameters,
 		func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 			if rp.ValueFrom == nil {
@@ -123,15 +122,15 @@ func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
 }
 
 func (rc *RunConfiguration) GetReferencedRCs() []string {
-	triggeringRcs := pipelines.Map(
+	triggeringRcs := apis.Map(
 		rc.Spec.Triggers.RunConfigurations,
 		func(rcName string) string { return rcName },
 	)
-	parameterRcs := pipelines.Map(
+	parameterRcs := apis.Map(
 		rc.GetReferencedRCArtifacts(),
 		func(r RunConfigurationRef) string { return r.Name },
 	)
-	return pipelines.Unique(append(parameterRcs, triggeringRcs...))
+	return apis.Unique(append(parameterRcs, triggeringRcs...))
 }
 
 func (rc *RunConfiguration) GetProvider() string {

@@ -131,8 +131,10 @@ func (st *StateHandler[R]) onUnknown(
 		},
 	}
 
+	status.WithSynchronizationState(apis.Creating)
+
 	return []Command{
-		status.WithSynchronizationState(apis.Creating),
+		status,
 		CreateWorkflow{Workflow: *workflow},
 	}
 }

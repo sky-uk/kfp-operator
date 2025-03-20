@@ -260,10 +260,10 @@ var _ = Describe("State handler", func() {
 		resource.SetStatus(pipelineshub.Status{
 			Version:  versionInState,
 			Provider: id,
-			Conditions: pipelineshub.Conditions{
+			Conditions: apis.Conditions{
 				{
-					Type:   pipelineshub.ConditionTypes.SynchronizationSucceeded,
-					Status: pipelineshub.ConditionStatusForSynchronizationState(status),
+					Type:   apis.ConditionTypes.SynchronizationSucceeded,
+					Status: apis.ConditionStatusForSynchronizationState(status),
 					Reason: string(status),
 				},
 			},

@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	_ "github.com/sky-uk/kfp-operator/apis"
 	"strconv"
 	"strings"
 )

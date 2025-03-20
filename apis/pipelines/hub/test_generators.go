@@ -97,9 +97,9 @@ func RandomRunConfiguration(provider string) *RunConfiguration {
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
-		Spec: RandomRunConfigurationSpec(provider),
+		Spec:   RandomRunConfigurationSpec(provider),
 		Status: RunConfigurationStatus{
-			SynchronizationState: RandomSynchronizationState(),
+			//TODO Random state conditions
 		},
 	}
 }
@@ -260,13 +260,15 @@ func RandomExperimentSpec(provider string) ExperimentSpec {
 
 func RandomStatus() Status {
 	return Status{
-		//SynchronizationState: RandomSynchronizationState(),
 		Version: RandomString(),
 		Provider: ProviderAndId{
 			Name: RandomString(),
 			Id:   RandomString(),
 		},
 		ObservedGeneration: rand.Int63(),
+		Conditions: Conditions{
+			RandomSynchronizationStateCondition(),
+		},
 	}
 }
 

@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,7 +20,7 @@ var _ = Context("aggregateState", func() {
 				Status: pipelineshub.Status{
 					Conditions: []metav1.Condition{
 						{
-							Type:    pipelineshub.ConditionTypes.SynchronizationSucceeded,
+							Type:    apis.ConditionTypes.SynchronizationSucceeded,
 							Message: string(state),
 							Reason:  string(state),
 						},
@@ -70,7 +69,7 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 	It("sets all spec fields", func() {
 		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
 		runConfiguration.Spec.Triggers = pipelineshub.Triggers{Schedules: apis.RandomList(pipelineshub.RandomSchedule)}
-		resolvedParameters := pipelines.Map(runConfiguration.Spec.Run.RuntimeParameters, func(rp pipelineshub.RuntimeParameter) apis.NamedValue {
+		resolvedParameters := apis.Map(runConfiguration.Spec.Run.RuntimeParameters, func(rp pipelineshub.RuntimeParameter) apis.NamedValue {
 			return apis.NamedValue{Name: rp.Name, Value: rp.Value}
 		})
 

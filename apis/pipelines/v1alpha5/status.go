@@ -3,16 +3,9 @@ package v1alpha5
 import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
 )
-
-var ConditionTypes = struct {
-	SynchronizationSucceeded string
-}{
-	SynchronizationSucceeded: "Synchronized",
-}
 
 // +kubebuilder:validation:Type=string
 type ProviderAndId struct {
@@ -69,11 +62,11 @@ func ConditionStatusForSynchronizationState(state apis.SynchronizationState) met
 type Conditions []metav1.Condition
 
 func (conditions Conditions) SynchronizationSucceeded() metav1.Condition {
-	return conditions.ToMap()[ConditionTypes.SynchronizationSucceeded]
+	return conditions.ToMap()[apis.ConditionTypes.SynchronizationSucceeded]
 }
 
 func (conditions Conditions) ToMap() map[string]metav1.Condition {
-	return pipelines.ToMap(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
+	return apis.ToMap(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
 		return condition.Type, condition
 	})
 }
@@ -87,7 +80,7 @@ func (conditions Conditions) MergeIntoConditions(condition metav1.Condition) Con
 		conditionsAsMap[condition.Type] = condition
 	}
 
-	return pipelines.Values(conditionsAsMap)
+	return apis.Values(conditionsAsMap)
 }
 
 // +kubebuilder:object:generate=true

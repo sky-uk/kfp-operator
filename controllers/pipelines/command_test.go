@@ -93,6 +93,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		status := SetStatus{
 			Status: pipelineshub.Status{},
 		}
+
 		commands := []Command{
 			AcquireResource{},
 			status.WithSynchronizationState(apis.Succeeded),
@@ -104,17 +105,22 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			},
 		}
 		resource.SetGeneration(rand.Int63())
+		transitionTime := resource.Status.Conditions.SynchronizationSucceeded().LastTransitionTime
 
 		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+
+		expectedSetStatus := SetStatus{
+			Status: pipelineshub.Status{
+				ObservedGeneration: resource.Generation,
+			},
+			LastTransitionTime: transitionTime,
+		}
+		expectedSetStatus.WithSynchronizationState(apis.Succeeded)
 
 		Expect(modifiedCommands).To(Equal(
 			[]Command{
 				AcquireResource{},
-				SetStatus{
-					Status: pipelineshub.Status{
-						ObservedGeneration: resource.Generation,
-					},
-				},
+				expectedSetStatus,
 				ReleaseResource{},
 			}))
 	})
@@ -166,13 +172,18 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 
 var _ = Describe("statusWithCondition", func() {
 	DescribeTable("sets the condition of the status", func(state apis.SynchronizationState, expectedStatus metav1.ConditionStatus) {
-		setStatus := NewSetStatus().WithMessage(apis.RandomString()).WithSynchronizationState(state)
+		setStatus := NewSetStatus().WithMessage(apis.RandomString())
+		setStatus.Status.Conditions = apis.Conditions{}
+		setStatus.WithSynchronizationState(state)
 		setStatus.Status.ObservedGeneration = rand.Int63()
+
 		conditions := setStatus.statusWithCondition().Conditions
+
+		fmt.Println("statusConditions:", setStatus.Status.Conditions.SynchronizationSucceeded())
 
 		Expect(conditions[0].Message).To(Equal(setStatus.Message))
 		Expect(conditions[0].Reason).To(Equal(setStatus.Status.Conditions.SynchronizationSucceeded().Reason))
-		Expect(conditions[0].Type).To(Equal(pipelineshub.ConditionTypes.SynchronizationSucceeded))
+		Expect(conditions[0].Type).To(Equal(apis.ConditionTypes.SynchronizationSucceeded))
 		Expect(conditions[0].ObservedGeneration).To(Equal(setStatus.Status.ObservedGeneration))
 	},
 		Entry("Creating", apis.Creating, metav1.ConditionUnknown),

@@ -2,9 +2,9 @@ package pipelines
 
 import (
 	"context"
+	"github.com/sky-uk/kfp-operator/apis"
 	"reflect"
 
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -36,7 +36,7 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
-	artifactReferencesByDependency := pipelines.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelineshub.RunConfigurationRef) (string, string) {
+	artifactReferencesByDependency := apis.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelineshub.RunConfigurationRef) (string, string) {
 		return r.Name, r.OutputArtifact
 	})
 	for _, rc := range resource.GetReferencedRCs() {

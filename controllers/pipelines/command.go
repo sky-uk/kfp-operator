@@ -81,13 +81,15 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 }
 
 type SetStatus struct {
-	Message string
-	Status  pipelineshub.Status
+	Message            string
+	LastTransitionTime metav1.Time
+	Status             pipelineshub.Status
 }
 
 func From(status pipelineshub.Status) *SetStatus {
 	return &SetStatus{
-		Status: status,
+		LastTransitionTime: metav1.Now(),
+		Status:             status,
 	}
 }
 
@@ -96,9 +98,21 @@ func NewSetStatus() *SetStatus {
 }
 
 func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState) *SetStatus {
-	condition := sps.Status.Conditions.SynchronizationSucceeded()
-	condition.Reason = string(state)
-	condition.Status = pipelineshub.ConditionStatusForSynchronizationState(state)
+	condition := metav1.Condition{
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
+		Message:            sps.Message,
+		ObservedGeneration: sps.Status.ObservedGeneration,
+		Reason:             string(state),
+		LastTransitionTime: sps.LastTransitionTime,
+		Status:             apis.ConditionStatusForSynchronizationState(state),
+	}
+
+	if sps.Status.Conditions == nil {
+		sps.Status.Conditions = apis.Conditions{condition}
+	} else {
+		sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(condition)
+	}
+
 	return sps
 }
 
@@ -154,8 +168,8 @@ func (sps SetStatus) statusWithCondition() pipelineshub.Status {
 		LastTransitionTime: metav1.Now(),
 		Message:            sps.Message,
 		ObservedGeneration: sps.Status.ObservedGeneration,
-		Type:               pipelineshub.ConditionTypes.SynchronizationSucceeded,
-		Status:             pipelineshub.ConditionStatusForSynchronizationState(sps.Status.Conditions.GetSyncStateFromReason()),
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
+		Status:             apis.ConditionStatusForSynchronizationState(sps.Status.Conditions.GetSyncStateFromReason()),
 		Reason:             string(sps.Status.Conditions.GetSyncStateFromReason()),
 	})
 

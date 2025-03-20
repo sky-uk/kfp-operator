@@ -16,10 +16,10 @@ var _ = Describe("DependingOnPipelineReconciler", func() {
 		return &pipelineshub.Pipeline{
 			Status: pipelineshub.Status{
 				Version: version,
-				Conditions: pipelineshub.Conditions{
+				Conditions: apis.Conditions{
 					{
-						Type:   pipelineshub.ConditionTypes.SynchronizationSucceeded,
-						Status: pipelineshub.ConditionStatusForSynchronizationState(state),
+						Type:   apis.ConditionTypes.SynchronizationSucceeded,
+						Status: apis.ConditionStatusForSynchronizationState(state),
 						Reason: string(state),
 					},
 				},
