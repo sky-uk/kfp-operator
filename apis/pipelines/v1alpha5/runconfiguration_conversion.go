@@ -16,7 +16,10 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Run.Provider = convertProviderTo(remainder.Provider.Name, remainder.Provider.Namespace)
+	dst.Spec.Run.Provider = convertProviderTo(
+		getProviderAnnotation(src),
+		remainder.ProviderNamespace,
+	)
 
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Run.Pipeline.Name,
@@ -34,7 +37,11 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Status.Provider = convertProviderTo(src.Status.Provider, remainder.ProviderStatusNamespace)
+	dst.Status.Provider = convertStatusProviderTo(
+		src.Status.Provider,
+		remainder.ProviderStatusNamespace,
+	)
+	removeProviderAnnotation(dst)
 
 	return nil
 }
@@ -43,7 +50,6 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
 	remainder := RunConfigurationConversionRemainder{}
 	dst.ObjectMeta = src.ObjectMeta
-
 	dst.Spec.Run.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Run.Pipeline.Name,
 		Version: src.Spec.Run.Pipeline.Version,
@@ -56,9 +62,10 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
-	dst.Status.Provider = src.Status.Provider.Name
 
-	remainder.Provider = src.Spec.Run.Provider
+	dst.Status.Provider = src.Status.Provider.Name
+	setProviderAnnotation(src.Spec.Run.Provider.Name, &dst.ObjectMeta)
+	remainder.ProviderNamespace = src.Spec.Run.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Namespace
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)

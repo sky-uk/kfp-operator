@@ -3,7 +3,6 @@
 package v1alpha5
 
 import (
-	"fmt"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -16,24 +15,49 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 	DefaultProviderNamespace = "default-provider-namespace"
 
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object", func() {
-			src := RandomRunConfiguration()
-			src.Status.Provider = DefaultProvider
+		When("status provider is empty", func() {
+			Specify("converts to and from the same object", func() {
+				noProvider := ""
+				src := RandomRunConfiguration(noProvider)
+				intermediate := &hub.RunConfiguration{}
+				dst := &RunConfiguration{}
 
-			intermediate := &hub.RunConfiguration{}
-			dst := &RunConfiguration{}
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Run.Provider.Name).To(Equal(DefaultProvider))
+				Expect(intermediate.Spec.Run.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name).To(BeEmpty())
+				Expect(intermediate.Status.Provider.Namespace).To(BeEmpty())
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+				delete(
+					dst.GetAnnotations(),
+					RunConfigurationConversionRemainder{}.ConversionAnnotation(),
+				)
+				delete(dst.GetAnnotations(), ResourceAnnotations.Provider)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
+		})
+		When("status provider is non-empty", func() {
+			Specify("converts to and from the same object", func() {
+				provider := common.RandomString()
+				src := RandomRunConfiguration(provider)
+				intermediate := &hub.RunConfiguration{}
+				dst := &RunConfiguration{}
 
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(intermediate.Spec.Run.Provider.Name).To(Equal(DefaultProvider))
-			Expect(intermediate.Spec.Run.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(intermediate.Status.Provider.Name).To(Equal(DefaultProvider))
-			Expect(intermediate.Status.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			delete(
-				dst.GetAnnotations(),
-				RunConfigurationConversionRemainder{}.ConversionAnnotation(),
-			)
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Run.Provider.Name).To(Equal(DefaultProvider))
+				Expect(intermediate.Spec.Run.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name).To(Equal(provider))
+				Expect(intermediate.Status.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				Expect(getProviderAnnotation(dst)).To(Equal(DefaultProvider))
+				delete(
+					dst.GetAnnotations(),
+					RunConfigurationConversionRemainder{}.ConversionAnnotation(),
+				)
+				delete(dst.GetAnnotations(), ResourceAnnotations.Provider)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
 		})
 	})
 
@@ -45,9 +69,7 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 			dst := &hub.RunConfiguration{}
 
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
-			fmt.Printf("intermediate.Spec.Provider.Name: %v\n", intermediate.Annotations)
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
-			fmt.Printf("dst.Status.Provider.Name: %v\n", dst.Status.Provider.Name)
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})

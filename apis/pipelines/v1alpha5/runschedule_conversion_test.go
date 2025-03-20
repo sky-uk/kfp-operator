@@ -3,7 +3,6 @@
 package v1alpha5
 
 import (
-	"fmt"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -16,23 +15,47 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 	DefaultProviderNamespace = "default-provider-namespace"
 
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object using default provider", func() {
-			src := RandomRunSchedule()
-			intermediate := &hub.RunSchedule{}
-			dst := &RunSchedule{}
+		When("status provider is empty", func() {
+			Specify("converts to and from the same object", func() {
+				noProvider := ""
+				src := RandomRunSchedule(noProvider)
+				intermediate := &hub.RunSchedule{}
+				dst := &RunSchedule{}
 
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Name).To(BeEmpty())
+				Expect(intermediate.Status.Provider.Name.Namespace).To(BeEmpty())
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					RunScheduleConversionRemainder{}.ConversionAnnotation(),
+				)
+				delete(dst.GetAnnotations(), ResourceAnnotations.Provider)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
+		})
+		When("status provider is non-empty", func() {
+			Specify("converts to and from the same object", func() {
+				provider := common.RandomString()
+				src := RandomRunSchedule(provider)
+				intermediate := &hub.RunSchedule{}
+				dst := &RunSchedule{}
 
-			fmt.Println("intermediate.Spec.Provider.Name: ", intermediate.Spec.Provider.Name)
-			fmt.Println("intermediate.Spec.Provider.Namespace: ", intermediate.Spec.Provider.Namespace)
-			Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
-			Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			delete(
-				dst.GetAnnotations(),
-				RunScheduleConversionRemainder{}.ConversionAnnotation(),
-			)
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Name).To(Equal(provider))
+				Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					RunScheduleConversionRemainder{}.ConversionAnnotation(),
+				)
+				delete(dst.GetAnnotations(), ResourceAnnotations.Provider)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
 		})
 	})
 

@@ -6,7 +6,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
-// ConvertTo converts this Experiment to the Hub version.
 func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Experiment)
 	dstApiVersion := dst.APIVersion
@@ -19,29 +18,32 @@ func (src *Experiment) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.Provider = convertProviderTo(remainder.Provider.Name, remainder.Provider.Namespace)
-	dst.Status.Provider = hub.ProviderAndId{
-		Name: convertProviderTo(src.Status.ProviderId.Provider, remainder.ProviderStatusNamespace),
-		Id:   src.Status.ProviderId.Id,
-	}
+	dst.Spec.Provider = convertProviderTo(
+		getProviderAnnotation(src),
+		remainder.ProviderNamespace,
+	)
+	dst.Status.Provider = convertProviderAndIdTo(
+		src.Status.ProviderId,
+		remainder.ProviderStatusNamespace,
+	)
+	removeProviderAnnotation(dst)
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return nil
 }
 
-// ConvertFrom converts from the Hub version to this version.
 func (dst *Experiment) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Experiment)
 	dstApiVersion := dst.APIVersion
 	remainder := ExperimentConversionRemainder{}
 
-	err := pipelines.TransformInto(src, &dst)
-	if err != nil {
+	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
 
-	remainder.Provider = src.Spec.Provider
+	setProviderAnnotation(src.Spec.Provider.Name, &dst.ObjectMeta)
+	remainder.ProviderNamespace = src.Spec.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 	dst.TypeMeta.APIVersion = dstApiVersion
