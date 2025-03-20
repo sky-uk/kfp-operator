@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -31,11 +32,15 @@ func (st *StateHandler[R]) stateTransition(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
 	resource R,
+	transitionTime metav1.Time,
 ) (commands []Command) {
 	resourceProvider := resource.GetStatus().Provider.Name
 	if resourceProvider != "" && resourceProvider != provider.Name {
-		commands = []Command{*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
-			WithMessage(StateHandlerConstants.ProviderChangedError)}
+		commands = []Command{*From(resource.GetStatus()).
+			WithSynchronizationState(apis.Failed).
+			WithMessage(StateHandlerConstants.ProviderChangedError).
+			WithLastTransitionTime(transitionTime),
+		}
 	} else {
 		switch resource.GetStatus().Conditions.GetSyncStateFromReason() {
 		case apis.Creating:
@@ -74,7 +79,7 @@ func (st *StateHandler[R]) StateTransition(
 	logger := log.FromContext(ctx)
 	logger.Info("state transition start")
 
-	stateTransitionCommands := st.stateTransition(ctx, provider, providerSvc, resource)
+	stateTransitionCommands := st.stateTransition(ctx, provider, providerSvc, resource, metav1.Now())
 	return alwaysSetObservedGeneration(ctx, stateTransitionCommands, resource)
 }
 

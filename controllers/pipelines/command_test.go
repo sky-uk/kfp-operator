@@ -105,17 +105,14 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			},
 		}
 		resource.SetGeneration(rand.Int63())
-		transitionTime := resource.Status.Conditions.SynchronizationSucceeded().LastTransitionTime
-
 		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
 
 		expectedSetStatus := SetStatus{
 			Status: pipelineshub.Status{
 				ObservedGeneration: resource.Generation,
 			},
-			LastTransitionTime: transitionTime,
 		}
-		expectedSetStatus.WithSynchronizationState(apis.Succeeded)
+		expectedSetStatus.WithSynchronizationState(apis.Succeeded).WithLastTransitionTime(metav1.Now())
 
 		Expect(modifiedCommands).To(Equal(
 			[]Command{

@@ -68,18 +68,18 @@ type RunConfigurationStatus struct {
 	Dependencies             Dependencies              `json:"dependencies,omitempty"`
 	Triggers                 TriggersStatus            `json:"triggers,omitempty"`
 	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
-	Conditions               Conditions                `json:"conditions,omitempty"`
+	Conditions               apis.Conditions           `json:"conditions,omitempty"`
 }
 
 func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.SynchronizationState, message string) {
 	rcs.SynchronizationState = state
 	condition := metav1.Condition{
-		Type:               ConditionTypes.SynchronizationSucceeded,
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
 		Message:            message,
 		ObservedGeneration: rcs.ObservedGeneration,
 		Reason:             string(state),
 		LastTransitionTime: metav1.Now(),
-		Status:             ConditionStatusForSynchronizationState(state),
+		Status:             apis.ConditionStatusForSynchronizationState(state),
 	}
 	rcs.Conditions = rcs.Conditions.MergeIntoConditions(condition)
 }

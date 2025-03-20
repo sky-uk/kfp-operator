@@ -134,6 +134,11 @@ func (sps *SetStatus) WithMessage(message string) *SetStatus {
 	return sps
 }
 
+func (sps *SetStatus) WithLastTransitionTime(time metav1.Time) *SetStatus {
+	sps.LastTransitionTime = time
+	return sps
+}
+
 func eventMessage(sps SetStatus) (message string) {
 	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.Conditions.GetSyncStateFromReason()), sps.Status.Version)
 
