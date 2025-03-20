@@ -22,15 +22,12 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
     ) as provider_stream:
         pipeline_config_contents = yaml.safe_load(pipeline_stream)
         provider_config_contents = yaml.safe_load(provider_stream)
-        pipeline_name = sanitise_namespaced_pipeline_name(
-            pipeline_config_contents["name"]
-        )
-        pipeline_root = get_pipeline_root(
-            pipeline_config_contents, provider_config_contents
-        )
+        pipeline_name = get_pipeline_name(pipeline_config_contents)
+        sanitised_pipeline_name = sanitise_namespaced_pipeline_name(pipeline_name)
+        pipeline_root = get_pipeline_root(provider_config_contents, pipeline_name)
         pipeline_environment = pipeline_config_contents.get("env", [])
         click.secho(
-            f"Compiling {pipeline_name} pipeline with root {pipeline_root}: {pipeline_config_contents}",
+            f"Compiling {sanitised_pipeline_name} pipeline with root {pipeline_root}: {pipeline_config_contents}",
             fg="green",
         )
 
@@ -40,18 +37,21 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         pipeline_fn.pipeline_spec.default_pipeline_root = pipeline_root
 
         compiler.Compiler().compile(
-            pipeline_fn, pipeline_name=pipeline_name, package_path=output_file
+            pipeline_fn, pipeline_name=sanitised_pipeline_name, package_path=output_file
         )
         click.secho(f"{output_file} compiled", fg="green")
 
 
-def get_pipeline_root(pipeline_config_contents: dict, provider_config_contents: dict):
+def get_pipeline_name(pipeline_config_contents: dict):
+    if "name" in pipeline_config_contents:
+        return pipeline_config_contents["name"]
+    else:
+        raise KeyError("Missing required pipeline name in pipeline configuration.")
+
+
+def get_pipeline_root(provider_config_contents: dict, pipeline_name: str):
     if "pipelineRootStorage" in provider_config_contents:
-        return (
-            provider_config_contents["pipelineRootStorage"]
-            + "/"
-            + pipeline_config_contents["name"]
-        )
+        return provider_config_contents["pipelineRootStorage"] + "/" + pipeline_name
     else:
         raise KeyError("Missing required pipeline root in provider configuration.")
 
