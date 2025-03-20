@@ -104,14 +104,14 @@ func (st *StateHandler[R]) onUnknown(
 			return []Command{
 				*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
 					WithVersion(newVersion).
-					WithMessage(failureMessage),
+					WithMessage(failureMessage).statusWithCondition(),
 			}
 		}
 
 		return []Command{
 			*From(resource.GetStatus()).
 				WithSynchronizationState(apis.Updating).
-				WithVersion(newVersion),
+				WithVersion(newVersion).statusWithCondition(),
 			CreateWorkflow{Workflow: *workflow},
 		}
 	}
@@ -126,7 +126,7 @@ func (st *StateHandler[R]) onUnknown(
 		return []Command{
 			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
 				WithVersion(newVersion).
-				WithMessage(failureMessage),
+				WithMessage(failureMessage).statusWithCondition(),
 		}
 	}
 
@@ -155,7 +155,7 @@ func (st StateHandler[R]) onDelete(
 
 	if resource.GetStatus().Provider.Id == "" {
 		return []Command{
-			*From(resource.GetStatus()).WithSynchronizationState(apis.Deleted),
+			*From(resource.GetStatus()).WithSynchronizationState(apis.Deleted).statusWithCondition(),
 		}
 	}
 
@@ -166,12 +166,12 @@ func (st StateHandler[R]) onDelete(
 		logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{
-			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage),
+			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage).statusWithCondition(),
 		}
 	}
 
 	return []Command{
-		*From(resource.GetStatus()).WithSynchronizationState(apis.Deleting),
+		*From(resource.GetStatus()).WithSynchronizationState(apis.Deleting).statusWithCondition(),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -212,7 +212,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 				*From(resource.GetStatus()).
 					WithSynchronizationState(apis.Failed).
 					WithVersion(newResourceVersion).
-					WithMessage(failureMessage),
+					WithMessage(failureMessage).statusWithCondition(),
 			}
 		}
 
@@ -231,7 +231,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 				*From(resource.GetStatus()).
 					WithSynchronizationState(apis.Failed).
 					WithVersion(newResourceVersion).
-					WithMessage(failureMessage),
+					WithMessage(failureMessage).statusWithCondition(),
 			}
 		}
 
@@ -241,7 +241,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 	return []Command{
 		*From(resource.GetStatus()).
 			WithSynchronizationState(targetState).
-			WithVersion(newResourceVersion),
+			WithVersion(newResourceVersion).statusWithCondition(),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -287,14 +287,14 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 		if err != nil {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage).statusWithCondition()
 		}
 
 		providerAndId := pipelineshub.ProviderAndId{Name: provider, Id: result.Id}
 
 		if result.ProviderError != "" {
 			logger.Error(err, fmt.Sprintf("%s, failing resource", result.ProviderError))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithProvider(providerAndId)
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithProvider(providerAndId).statusWithCondition()
 		}
 
 		err = states.VerifyId(result.Id)
@@ -302,10 +302,10 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 		if err != nil {
 			failureMessage := err.Error()
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
+			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage).statusWithCondition()
 		}
 
-		return From(status).WithSynchronizationState(states.SuccessState).WithProvider(providerAndId)
+		return From(status).WithSynchronizationState(states.SuccessState).WithProvider(providerAndId).statusWithCondition()
 	}
 
 	inProgress, succeeded, failed := workflowutil.LatestWorkflowByPhase(workflows)
@@ -319,7 +319,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 
 	if succeeded != nil {
 		logger.Info("operation succeeded")
-		setStatusCommand = statusFromProviderOutput(succeeded)
+		setStatusCommand = statusFromProviderOutput(succeeded).statusWithCondition()
 	} else {
 		var failureMessage string
 
@@ -330,7 +330,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 		}
 
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
-		setStatusCommand = From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage)
+		setStatusCommand = From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage).statusWithCondition()
 	}
 
 	return []Command{
@@ -349,7 +349,7 @@ func (st StateHandler[R]) onCreating(ctx context.Context, resource R, creationWo
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{
-			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage),
+			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage).statusWithCondition(),
 		}
 	}
 
@@ -364,7 +364,7 @@ func (st StateHandler[R]) onUpdating(ctx context.Context, resource R, updateWork
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{
-			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage),
+			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage).statusWithCondition(),
 		}
 	}
 

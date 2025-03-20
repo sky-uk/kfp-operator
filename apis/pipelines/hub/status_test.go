@@ -55,7 +55,7 @@ var _ = Context("Conditions", func() {
 			Expect(conditions.MergeIntoConditions(newCondition)).To(ConsistOf(newCondition))
 		})
 
-		Specify("Keeps existing condition if neither the reason nor the status nor the observedGeneration have changed", func() {
+		Specify("Keeps existing condition if neither the reason nor the status nor the observedGeneration nor the message nor the latestTransitionTime have changed", func() {
 			oldCondition := metav1.Condition{
 				Status:             apis.RandomConditionStatus(),
 				Reason:             apis.RandomString(),
@@ -71,8 +71,8 @@ var _ = Context("Conditions", func() {
 				Status:             oldCondition.Status,
 				Reason:             oldCondition.Reason,
 				ObservedGeneration: oldCondition.ObservedGeneration,
-				LastTransitionTime: metav1.Now(),
-				Message:            apis.RandomString(),
+				LastTransitionTime: oldCondition.LastTransitionTime,
+				Message:            oldCondition.Message,
 			}
 
 			Expect(conditions.MergeIntoConditions(newCondition)).To(ConsistOf(oldCondition))
