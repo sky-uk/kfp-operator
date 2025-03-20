@@ -2,3 +2,6 @@ name: namespace/name
 framework:
   parameters:
     pipeline: getting_started.pipeline.add_pipeline
+env:
+  - name: KFP_SDK_INTEGRATION_TEST
+    value: "true"

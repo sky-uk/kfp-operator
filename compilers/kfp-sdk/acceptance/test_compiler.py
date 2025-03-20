@@ -1,10 +1,13 @@
 import os
 import sys
 import uuid
+import yaml
 
 import pytest
 from click.testing import CliRunner
 from compiler import compiler
+from tempfile import TemporaryDirectory
+
 
 runner = CliRunner()
 
@@ -21,31 +24,33 @@ def setup():
             "includes",
             "master",
             "kfpsdk-quickstart",
-            "getting_started",
         )
     )
 
 
 def test_compiler__compile(tmp_path):
-    pipeline_config = "acceptance/pipeline.yaml"
-    provider_config = "acceptance/provider.yaml"
-    output_file = temp_yaml_file(tmp_path)
+    with TemporaryDirectory() as tmp_dir:
+        output_file = os.path.join(tmp_dir, "pipeline.yaml")
 
-    result = runner.invoke(
-        compiler.compile,
-        [
-            "--pipeline_config",
-            pipeline_config,
-            "--provider_config",
-            provider_config,
-            "--output_file",
-            str(output_file),
-        ],
-    )
+        pipeline_config = "acceptance/pipeline.yaml"
+        provider_config = "acceptance/provider.yaml"
 
-    assert result.exit_code == 0
-    assert os.stat(output_file).st_size != 0
+        result = runner.invoke(
+            compiler.compile,
+            [
+                "--pipeline_config",
+                pipeline_config,
+                "--provider_config",
+                provider_config,
+                "--output_file",
+                str(output_file),
+            ],
+        )
 
+        assert result.exit_code == 0
+        assert os.stat(output_file).st_size != 0
 
-def temp_yaml_file(tmp_path):
-    return tmp_path / f"{uuid.uuid4()}.yaml"
+        with open(output_file, "r") as f:
+            pipeline = yaml.safe_load(f.read())
+
+        assert pipeline["schemaVersion"] == "2.1.0"
