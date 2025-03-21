@@ -10,9 +10,11 @@ func convertProviderTo(
 	provider string,
 	remainderNamespace string,
 ) common.NamespacedName {
-	var namespace = remainderNamespace
-	if namespace == "" {
+	var namespace string
+	if remainderNamespace == "" && provider != "" {
 		namespace = DefaultProviderNamespace
+	} else {
+		namespace = remainderNamespace
 	}
 
 	return common.NamespacedName{

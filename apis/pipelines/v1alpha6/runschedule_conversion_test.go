@@ -15,20 +15,40 @@ var _ = Context("RunSchedule Conversion", PropertyBased, func() {
 	DefaultProviderNamespace = "default-provider-namespace"
 
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object", func() {
-			src := RandomRunSchedule(apis.RandomLowercaseString())
-			intermediate := &hub.RunSchedule{}
-			dst := &RunSchedule{}
+		When("status provider is empty", func() {
+			It("converts to and from the same object", func() {
+				src := RandomRunSchedule(apis.RandomLowercaseString())
+				src.Status.Provider.Name = ""
+				intermediate := &hub.RunSchedule{}
+				dst := &RunSchedule{}
 
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			delete(
-				dst.GetAnnotations(),
-				RunScheduleConversionRemainder{}.ConversionAnnotation(),
-			)
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Namespace).To(BeEmpty())
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					RunScheduleConversionRemainder{}.ConversionAnnotation(),
+				)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
+		})
+		When("status provider is non-empty", func() {
+			It("converts to and from the same object", func() {
+				src := RandomRunSchedule(apis.RandomLowercaseString())
+				intermediate := &hub.RunSchedule{}
+				dst := &RunSchedule{}
+
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					RunScheduleConversionRemainder{}.ConversionAnnotation(),
+				)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
 		})
 	})
 

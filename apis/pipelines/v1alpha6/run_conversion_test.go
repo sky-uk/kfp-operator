@@ -15,20 +15,40 @@ var _ = Context("Run Conversion", PropertyBased, func() {
 	DefaultProviderNamespace = "default-provider-namespace"
 
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object", func() {
-			src := RandomRun(apis.RandomLowercaseString())
-			intermediate := &hub.Run{}
-			dst := &Run{}
+		When("status provider is empty", func() {
+			It("converts to and from the same object", func() {
+				src := RandomRun(apis.RandomLowercaseString())
+				src.Status.Provider.Name = ""
+				intermediate := &hub.Run{}
+				dst := &Run{}
 
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			delete(
-				dst.GetAnnotations(),
-				RunConversionRemainder{}.ConversionAnnotation(),
-			)
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Namespace).To(BeEmpty())
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					RunConversionRemainder{}.ConversionAnnotation(),
+				)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
+		})
+		When("status provider is non-empty", func() {
+			It("converts to and from the same object", func() {
+				src := RandomRun(apis.RandomLowercaseString())
+				intermediate := &hub.Run{}
+				dst := &Run{}
+
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					RunConversionRemainder{}.ConversionAnnotation(),
+				)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
 		})
 	})
 

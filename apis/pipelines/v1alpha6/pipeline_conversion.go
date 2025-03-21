@@ -25,7 +25,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		remainder.ProviderNamespace,
 	)
 	dst.Status.Provider.Name = convertProviderTo(
-		src.Spec.Provider,
+		src.Status.Provider.Name,
 		remainder.ProviderStatusNamespace,
 	)
 	dst.TypeMeta.APIVersion = dstApiVersion
