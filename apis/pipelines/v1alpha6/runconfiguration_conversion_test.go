@@ -15,20 +15,40 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 	DefaultProviderNamespace = "default-provider-namespace"
 
 	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object", func() {
-			src := RandomRunConfiguration(apis.RandomLowercaseString())
-			intermediate := &hub.RunConfiguration{}
-			dst := &RunConfiguration{}
+		When("when status provider is empty", func() {
+			It("converts to and from the same object", func() {
+				src := RandomRunConfiguration(apis.RandomLowercaseString())
+				src.Status.Provider = ""
+				intermediate := &hub.RunConfiguration{}
+				dst := &RunConfiguration{}
 
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(intermediate.Spec.Run.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(intermediate.Status.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			delete(
-				dst.GetAnnotations(),
-				RunConfigurationConversionRemainder{}.ConversionAnnotation(),
-			)
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Run.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Namespace).To(BeEmpty())
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					RunConfigurationConversionRemainder{}.ConversionAnnotation(),
+				)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
+		})
+		When("when status provider is non-empty", func() {
+			It("converts to and from the same object", func() {
+				src := RandomRunConfiguration(apis.RandomLowercaseString())
+				intermediate := &hub.RunConfiguration{}
+				dst := &RunConfiguration{}
+
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Run.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					RunConfigurationConversionRemainder{}.ConversionAnnotation(),
+				)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+			})
 		})
 	})
 
