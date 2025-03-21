@@ -20,7 +20,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.Spec.Run.Provider = convertProviderTo(
 		src.Spec.Run.Provider,
-		remainder.ProviderStatusNamespace,
+		remainder.ProviderNamespace,
 	)
 	dst.Status.Provider = convertProviderTo(
 		src.Status.Provider,

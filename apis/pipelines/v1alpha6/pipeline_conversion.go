@@ -20,8 +20,14 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.Provider = convertProviderTo(src.Spec.Provider, remainder.ProviderNamespace)
-	dst.Status.Provider.Name = convertProviderTo(src.Spec.Provider, remainder.ProviderStatusNamespace)
+	dst.Spec.Provider = convertProviderTo(
+		src.Spec.Provider,
+		remainder.ProviderNamespace,
+	)
+	dst.Status.Provider.Name = convertProviderTo(
+		src.Spec.Provider,
+		remainder.ProviderStatusNamespace,
+	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	tfxComponents := src.Spec.TfxComponents
@@ -54,7 +60,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 
 	dst.Spec.Provider = src.Spec.Provider.Name
-	dst.Status.Provider.Name = src.Spec.Provider.Name
+	dst.Status.Provider.Name = src.Status.Provider.Name.Name
 	remainder.ProviderNamespace = src.Spec.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 
