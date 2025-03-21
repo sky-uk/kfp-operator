@@ -19,7 +19,10 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.Provider = convertProviderTo(src.Spec.Provider, remainder.ProviderNamespace)
+	dst.Spec.Provider = convertProviderTo(
+		src.Spec.Provider,
+		remainder.ProviderNamespace,
+	)
 	dst.Status.Provider.Name = convertProviderTo(
 		src.Status.Provider.Name,
 		remainder.ProviderStatusNamespace,
