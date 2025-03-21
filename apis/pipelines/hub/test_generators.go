@@ -16,14 +16,14 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func RandomPipeline(provider string) *Pipeline {
+func RandomPipeline(provider common.NamespacedName) *Pipeline {
 	return &Pipeline{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
 		Spec:   RandomPipelineSpec(provider),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
@@ -42,7 +42,7 @@ func AddTfxValues(pipelineSpec *PipelineSpec) {
 	pipelineSpec.Framework.Parameters["beamArgs"] = &apiextensionsv1.JSON{Raw: beamArgsMarshalled}
 }
 
-func RandomPipelineSpec(provider string) PipelineSpec {
+func RandomPipelineSpec(provider common.NamespacedName) PipelineSpec {
 	randParams := RandomMap()
 	randomParameters := make(map[string]*apiextensionsv1.JSON)
 	for key, value := range randParams {
@@ -70,7 +70,7 @@ func RandomProvider() *Provider {
 			Namespace: "default",
 		},
 		Spec:   RandomProviderSpec(),
-		Status: RandomStatus(),
+		Status: RandomStatus(common.NamespacedName{}),
 	}
 }
 
@@ -91,7 +91,22 @@ func RandomProviderSpec() ProviderSpec {
 	}
 }
 
-func RandomRunConfiguration(provider string) *RunConfiguration {
+func RandomConditions() Conditions {
+	return RandomList(RandomCondition)
+}
+
+func RandomCondition() metav1.Condition {
+	return metav1.Condition{
+		Type:               RandomLowercaseString(),
+		Status:             RandomConditionStatus(),
+		ObservedGeneration: common.RandomInt64(),
+		LastTransitionTime: metav1.Time{Time: time.Now()},
+		Reason:             RandomLowercaseString(),
+		Message:            RandomLowercaseString(),
+	}
+}
+
+func RandomRunConfiguration(provider common.NamespacedName) *RunConfiguration {
 	return &RunConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
@@ -100,11 +115,12 @@ func RandomRunConfiguration(provider string) *RunConfiguration {
 		Spec: RandomRunConfigurationSpec(provider),
 		Status: RunConfigurationStatus{
 			SynchronizationState: RandomSynchronizationState(),
+			Provider:             provider,
 		},
 	}
 }
 
-func RandomRunConfigurationSpec(provider string) RunConfigurationSpec {
+func RandomRunConfigurationSpec(provider common.NamespacedName) RunConfigurationSpec {
 	return RunConfigurationSpec{
 		Run:      RandomRunSpec(provider),
 		Triggers: RandomTriggers(),
@@ -149,14 +165,14 @@ func RandomOnChangeTrigger() Triggers {
 	return Triggers{OnChange: []OnChangeType{OnChangeTypes.Pipeline}}
 }
 
-func RandomRunSchedule(provider string) *RunSchedule {
+func RandomRunSchedule(provider common.NamespacedName) *RunSchedule {
 	return &RunSchedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
 		Spec:   RandomRunScheduleSpec(provider),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
@@ -174,7 +190,7 @@ func RandomOutputArtifact() OutputArtifact {
 	}
 }
 
-func RandomRunScheduleSpec(provider string) RunScheduleSpec {
+func RandomRunScheduleSpec(provider common.NamespacedName) RunScheduleSpec {
 	return RunScheduleSpec{
 		Provider:          provider,
 		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
@@ -185,7 +201,7 @@ func RandomRunScheduleSpec(provider string) RunScheduleSpec {
 	}
 }
 
-func RandomRun(provider string) *Run {
+func RandomRun(provider common.NamespacedName) *Run {
 	return &Run{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        RandomLowercaseString(),
@@ -195,7 +211,7 @@ func RandomRun(provider string) *Run {
 		Spec: RandomRunSpec(provider),
 		Status: RunStatus{
 			ObservedPipelineVersion: RandomString(),
-			Status:                  RandomStatus(),
+			Status:                  RandomStatus(provider),
 		},
 	}
 }
@@ -216,7 +232,7 @@ func WithValueFrom(runSpec *RunSpec) {
 	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(RandomRunConfigurationRefRuntimeParameter)...)
 }
 
-func RandomRunSpec(provider string) RunSpec {
+func RandomRunSpec(provider common.NamespacedName) RunSpec {
 	return RunSpec{
 		Provider:       provider,
 		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},
@@ -240,30 +256,30 @@ func RandomRunSpec(provider string) RunSpec {
 	}
 }
 
-func RandomExperiment(provider string) *Experiment {
+func RandomExperiment(provider common.NamespacedName) *Experiment {
 	return &Experiment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
 			Namespace: "default",
 		},
 		Spec:   RandomExperimentSpec(provider),
-		Status: RandomStatus(),
+		Status: RandomStatus(provider),
 	}
 }
 
-func RandomExperimentSpec(provider string) ExperimentSpec {
+func RandomExperimentSpec(provider common.NamespacedName) ExperimentSpec {
 	return ExperimentSpec{
 		Provider:    provider,
 		Description: RandomString(),
 	}
 }
 
-func RandomStatus() Status {
+func RandomStatus(provider common.NamespacedName) Status {
 	return Status{
 		SynchronizationState: RandomSynchronizationState(),
 		Version:              RandomString(),
 		Provider: ProviderAndId{
-			Name: RandomString(),
+			Name: provider,
 			Id:   RandomString(),
 		},
 		ObservedGeneration: rand.Int63(),
@@ -310,7 +326,7 @@ func (tr *TestResource) GetKind() string {
 
 func RandomResource() *TestResource {
 	return &TestResource{
-		Status:          RandomStatus(),
+		Status:          RandomStatus(common.RandomNamespacedName()),
 		NamespacedName:  RandomNamespacedName(),
 		Kind:            RandomString(),
 		ComputedVersion: RandomShortHash(),

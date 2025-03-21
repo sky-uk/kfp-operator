@@ -12,13 +12,13 @@ kind: Experiment
 metadata:
   name: penguin-experiment
 spec:
-  provider: kfp
+  provider: provider-namespace/kfp
   description: 'An experiment for the penguin pipeline'
 ```
 
 ## Fields
 
-| Name               | Description                                                   |
-| ------------------ | ------------------------------------------------------------- |
-| `spec.provider`    | The name of the associated [Provider resource](../provider/). |
-| `spec.description` | The description of the experiment.                            |
+| Name               | Description                                                             |
+| ------------------ |-------------------------------------------------------------------------|
+| `spec.provider`    | The namespace/name of the associated [Provider resource](../provider/). |
+| `spec.description` | The description of the experiment.                                      |

@@ -90,8 +90,10 @@ func main() {
 		}
 	}
 
-	// TODO: This is temporary whilst have conversion from v1alpha5 to v1alpha6, this is to be removed once v1alpha5 is removed.
+	// TODO: This is temporary whilst have conversion from v1alpha5/6 to v1beta1, this is to be removed once v1alpha6 is removed.
 	pipelineshubalpha5.DefaultProvider = ctrlConfig.Spec.DefaultProvider
+	pipelineshubalpha5.DefaultProviderNamespace = ctrlConfig.Spec.WorkflowNamespace
+	pipelineshubalpha6.DefaultProviderNamespace = ctrlConfig.Spec.WorkflowNamespace
 
 	var mgr ctrl.Manager
 

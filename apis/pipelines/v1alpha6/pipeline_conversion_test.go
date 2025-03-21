@@ -3,12 +3,14 @@
 package v1alpha6
 
 import (
+	"strings"
+
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"strings"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 func namedValueSort(a, b apis.NamedValue) bool {
@@ -16,24 +18,51 @@ func namedValueSort(a, b apis.NamedValue) bool {
 }
 
 var _ = Context("Pipeline Conversion", PropertyBased, func() {
+	DefaultProviderNamespace = "default-provider-namespace"
+
 	var _ = Describe("Roundtrip forward", func() {
+		When("status provider is empty", func() {
+			It("converts to and from the same object", func() {
+				src := RandomPipeline(apis.RandomLowercaseString())
+				src.Status.Provider.Name = ""
+				intermediate := &hub.Pipeline{}
+				dst := &Pipeline{}
 
-		Specify("converts to and from the same object", func() {
-			src := RandomPipeline(apis.RandomLowercaseString())
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Namespace).To(BeEmpty())
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					PipelineConversionRemainder{}.ConversionAnnotation(),
+				)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
+			})
+		})
 
-			intermediate := &hub.Pipeline{}
-			dst := &Pipeline{}
+		When("status provider is non-empty", func() {
+			It("converts to and from the same object", func() {
+				src := RandomPipeline(apis.RandomLowercaseString())
+				intermediate := &hub.Pipeline{}
+				dst := &Pipeline{}
 
-			Expect(src.ConvertTo(intermediate)).To(Succeed())
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				Expect(src.ConvertTo(intermediate)).To(Succeed())
+				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
+				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+				delete(
+					dst.GetAnnotations(),
+					PipelineConversionRemainder{}.ConversionAnnotation(),
+				)
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
+			})
 
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
 	})
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object when the framework is tfx", func() {
-			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src := hub.RandomPipeline(common.RandomNamespacedName())
 			hub.AddTfxValues(&src.Spec)
 
 			intermediate := &Pipeline{}
@@ -46,7 +75,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 		})
 
 		Specify("converts to and from the same object when the framework is not tfx", func() {
-			src := hub.RandomPipeline(apis.RandomLowercaseString())
+			src := hub.RandomPipeline(common.RandomNamespacedName())
 			src.Spec.Framework.Type = "some-other-framework"
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}

@@ -3,10 +3,12 @@ package v1alpha5
 import (
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var DefaultProvider string
+var DefaultProviderNamespace string
 
 var ResourceAnnotations = struct {
 	Provider string
@@ -49,7 +51,6 @@ func convertArtifactsFrom(hubArtifacts []hub.OutputArtifact) []OutputArtifact {
 	}
 	return artifacts
 }
-
 func getProviderAnnotation(resource v1.Object) string {
 	if provider, hasProvider := resource.GetAnnotations()[ResourceAnnotations.Provider]; hasProvider {
 		return provider
@@ -65,16 +66,62 @@ func removeProviderAnnotation(resource v1.Object) {
 	delete(resource.GetAnnotations(), ResourceAnnotations.Provider)
 }
 
-func convertProviderAndIdTo(providerAndId ProviderAndId) hub.ProviderAndId {
+func convertProviderAndIdTo(
+	providerAndId ProviderAndId,
+	providerNamespace string,
+) hub.ProviderAndId {
+	var namespace string
+	if providerNamespace == "" && providerAndId.Provider != "" {
+		namespace = DefaultProviderNamespace
+	} else {
+		namespace = providerNamespace
+	}
+
 	return hub.ProviderAndId{
-		Name: providerAndId.Provider,
-		Id:   providerAndId.Id,
+		Name: common.NamespacedName{
+			Name:      providerAndId.Provider,
+			Namespace: namespace,
+		},
+		Id: providerAndId.Id,
+	}
+}
+
+func convertStatusProviderTo(
+	provider string,
+	namespace string,
+) common.NamespacedName {
+	var ns string
+	if namespace == "" && provider != "" {
+		ns = DefaultProviderNamespace
+	} else {
+		ns = namespace
+	}
+
+	return common.NamespacedName{
+		Name:      provider,
+		Namespace: ns,
+	}
+}
+
+func convertProviderTo(
+	provider string,
+	namespace string,
+) common.NamespacedName {
+	if provider == "" {
+		provider = DefaultProvider
+	}
+	if namespace == "" {
+		namespace = DefaultProviderNamespace
+	}
+	return common.NamespacedName{
+		Name:      provider,
+		Namespace: namespace,
 	}
 }
 
 func convertProviderAndIdFrom(providerAndId hub.ProviderAndId) ProviderAndId {
 	return ProviderAndId{
-		Provider: providerAndId.Name,
+		Provider: providerAndId.Name.Name,
 		Id:       providerAndId.Id,
 	}
 }

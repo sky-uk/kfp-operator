@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -86,7 +87,7 @@ var _ = Context("RunSchedule", func() {
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			rs := RandomRunSchedule(apis.RandomLowercaseString())
+			rs := RandomRunSchedule(common.RandomNamespacedName())
 			expected := rs.DeepCopy()
 			rs.ComputeHash()
 

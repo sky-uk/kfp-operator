@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -14,8 +15,8 @@ var ConditionTypes = struct {
 
 // +kubebuilder:object:generate=true
 type ProviderAndId struct {
-	Name string `json:"name,omitempty"`
-	Id   string `json:"id,omitempty"`
+	Name common.NamespacedName `json:"name,omitempty"`
+	Id   string                `json:"id,omitempty"`
 }
 
 func ConditionStatusForSynchronizationState(state apis.SynchronizationState) metav1.ConditionStatus {

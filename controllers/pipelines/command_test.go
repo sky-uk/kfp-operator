@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -125,7 +126,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			ReleaseResource{},
 		}
 		resource := &pipelineshub.Pipeline{
-			Status: pipelineshub.RandomStatus(),
+			Status: pipelineshub.RandomStatus(common.RandomNamespacedName()),
 		}
 		resource.SetGeneration(rand.Int63())
 		resource.Status.ObservedGeneration = -1
