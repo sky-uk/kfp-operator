@@ -28,7 +28,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;tbody>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace/name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
+ &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
@@ -110,7 +110,7 @@ One-off pipeline training runs can be configured using this resource as follows:
  &lt;tbody>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace/name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
+ &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.pipeline&lt;/code>&lt;/td>
@@ -151,7 +151,7 @@ and can be configured as follows:&lt;/p>
  &lt;tbody>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace/name of the associated &lt;a href="../provider/">Provider resource&lt;/a>.&lt;/td>
+ &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.description&lt;/code>&lt;/td>

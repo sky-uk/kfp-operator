@@ -32,13 +32,13 @@ Note the usage of `metadata.generateName` which tells Kubernetes to generate a n
 
 ## Fields
 
-| Name                       | Description                                                                                                                                                                                                                                   |
-| -------------------------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spec.provider`            | The namespace/name of the associated [Provider resource](../provider/).                                                                                                                                                                       |
-| `spec.pipeline`            | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.                                         |
+| Name                       | Description                                                                                                                                                                                                                                       |
+| -------------------------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `spec.provider`            | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`.                                                                                                           |
+| `spec.pipeline`            | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.                                             |
 | `spec.experimentName`      | The name of the corresponding experiment resource (optional - the `Default` Experiment as defined in the [Installation and Configuration section of the documentation](README.md#configuration) will be used if no `experimentName` is provided). |
-| `spec.runtimeParameters[]` | Runtime parameters for the pipeline training run. See below for more information.                                                                                                                                                             |
-| `spec.run.artifacts[]`     | Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.                                                                                                           |
+| `spec.runtimeParameters[]` | Runtime parameters for the pipeline training run. See below for more information.                                                                                                                                                                 |
+| `spec.run.artifacts[]`     | Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.                                                                                                               |
 
 ### Runtime Parameter Definition
 

@@ -28,12 +28,12 @@ spec:
 
 ## Fields
 
-| Name                        | Description                                                                                                                                                             |
-|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spec.provider`             | The namespace/name of the associated [Provider resource](../provider/).                                                                                                 |
-| `spec.image`                | Container image containing TFX component definitions.                                                                                                                   |
-| `spec.env`                  | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                                                 |
-| `spec.framework.type`       | Sets a specific [pipeline framework](../../frameworks) to use. The pipeline framework image to use is looked up [here](../../configuration).                            |
+| Name                        | Description                                                                                                                                                                 |
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `spec.provider`             | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`.                                     |
+| `spec.image`                | Container image containing TFX component definitions.                                                                                                                       |
+| `spec.env`                  | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                                                     |
+| `spec.framework.type`       | Sets a specific [pipeline framework](../../frameworks) to use. The pipeline framework image to use is looked up [here](../../configuration).                                |
 | `spec.framework.parameters` | Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. `components: base_pipeline.create_components` |
 
 ## Versioning

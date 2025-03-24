@@ -18,7 +18,7 @@ spec:
 
 ## Fields
 
-| Name               | Description                                                             |
-| ------------------ |-------------------------------------------------------------------------|
-| `spec.provider`    | The namespace/name of the associated [Provider resource](../provider/). |
-| `spec.description` | The description of the experiment.                                      |
+| Name               | Description                                                                                                                             |
+| ------------------ |-----------------------------------------------------------------------------------------------------------------------------------------|
+| `spec.provider`    | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`. |
+| `spec.description` | The description of the experiment.                                                                                                      |
