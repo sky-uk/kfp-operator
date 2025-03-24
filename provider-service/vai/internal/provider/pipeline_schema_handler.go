@@ -11,7 +11,7 @@ import (
 
 var (
 	SchemaVersionNotFound = errors.New("expected 'schemaVersion' or 'pipelineSpec' in the pipeline values")
-	SemVarV2              = semver.MustParse("2.0")
+	SemVerV2              = semver.MustParse("2.0")
 )
 
 type PipelineValues struct {
@@ -59,7 +59,7 @@ func (dps DefaultPipelineSchemaHandler) extract(raw map[string]any) (*PipelineVa
 	if err != nil {
 		return nil, err
 	}
-	if version.GreaterThan(SemVarV2) {
+	if version.GreaterThan(SemVerV2) {
 		return dps.schema2_1Handler.extract(raw)
 	} else {
 		return dps.schema2Handler.extract(raw)

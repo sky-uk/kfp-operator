@@ -4,6 +4,7 @@ package provider
 
 import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
+	"errors"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
@@ -37,7 +38,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 
 	Context("Enrich", Ordered, func() {
 		input := map[string]any{"schemaVersion": "2.0"}
-		It("should use schema2JobEnricher for 2.0 schemaVersion", func() {
+		It("enrich job with pipeline values returned by pipelineSchemaHandler", func() {
 			mockPipelineSchemaHandler.On("extract", input).Return(&expectedReturn, nil)
 
 			job := aiplatformpb.PipelineJob{}
@@ -47,6 +48,14 @@ var _ = Describe("DefaultJobEnricher", func() {
 			Expect(job.Name).To(Equal(expectedReturn.name))
 			Expect(job.Labels).To(Equal(expectedReturn.labels))
 			Expect(job.PipelineSpec).To(Equal(expectedReturn.pipelineSpec))
+		})
+
+		It("enrich job with pipeline values returned by pipelineSchemaHandler", func() {
+			mockPipelineSchemaHandler.On("extract", input).Return(nil, errors.New("an error"))
+
+			job := aiplatformpb.PipelineJob{}
+			_, err := dje.Enrich(&job, input)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })

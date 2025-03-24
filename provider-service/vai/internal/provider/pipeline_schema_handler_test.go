@@ -3,6 +3,7 @@
 package provider
 
 import (
+	"errors"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -17,16 +18,6 @@ var _ = Describe("Schema2_1Handler", func() {
 		defaultHandler               DefaultPipelineSchemaHandler
 		expectedReturn               PipelineValues
 	)
-	raw2 = map[string]any{
-		"pipelineSpec": map[string]any{
-			"schemaVersion": "2.0",
-		},
-	}
-	raw2_1 = map[string]any{
-		"schemaVersion": "2.1",
-	}
-
-	expectedReturn = PipelineValues{}
 
 	BeforeEach(func() {
 		mockPipelineSchemaHandler2 = MockPipelineSchemaHandler{}
@@ -35,6 +26,17 @@ var _ = Describe("Schema2_1Handler", func() {
 			schema2Handler:   &mockPipelineSchemaHandler2,
 			schema2_1Handler: &mockPipelineSchemaHandler2_1,
 		}
+
+		raw2 = map[string]any{
+			"pipelineSpec": map[string]any{
+				"schemaVersion": "2.0",
+			},
+		}
+		raw2_1 = map[string]any{
+			"schemaVersion": "2.1",
+		}
+
+		expectedReturn = PipelineValues{}
 	})
 
 	Context("Extract", Ordered, func() {
@@ -57,6 +59,33 @@ var _ = Describe("Schema2_1Handler", func() {
 		It("should return error when schemaVersion is not found", func() {
 			_, err := defaultHandler.extract(map[string]any{})
 			Expect(err).To(HaveOccurred())
+		})
+
+		It("should return error when schemaVersion in schema 2.1 position and is not a string", func() {
+			raw2_1["schemaVersion"] = 123
+			_, err := defaultHandler.extract(raw2_1)
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("should return error when schemaVersion in schema 2.0 position and is not a string", func() {
+			raw2["pipelineSpec"].(map[string]any)["schemaVersion"] = 123
+			_, err := defaultHandler.extract(raw2)
+			Expect(err).To(HaveOccurred())
+		})
+
+		someError := errors.New("an error")
+		It("should use return error from 2.0 handler", func() {
+			mockPipelineSchemaHandler2.On("extract", raw2).Return(nil, someError)
+			_, err := defaultHandler.extract(raw2)
+			Expect(err).To(HaveOccurred())
+			Expect(mockPipelineSchemaHandler2_1.Calls).To(BeEmpty())
+		})
+
+		It("should use return error from 2.1 handler", func() {
+			mockPipelineSchemaHandler2_1.On("extract", raw2_1).Return(&expectedReturn, someError)
+			_, err := defaultHandler.extract(raw2_1)
+			Expect(err).To(HaveOccurred())
+			Expect(mockPipelineSchemaHandler2.Calls).To(BeEmpty())
 		})
 	})
 })
