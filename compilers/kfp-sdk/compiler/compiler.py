@@ -5,6 +5,7 @@ import os
 import click
 import yaml
 from kfp import compiler
+from typing import Callable
 
 
 @click.command()
@@ -42,21 +43,21 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         click.secho(f"{output_file} compiled", fg="green")
 
 
-def get_pipeline_name(pipeline_config_contents: dict):
+def get_pipeline_name(pipeline_config_contents: dict) -> str:
     if "name" in pipeline_config_contents:
         return pipeline_config_contents["name"]
     else:
         raise KeyError("Missing required pipeline name in pipeline configuration.")
 
 
-def get_pipeline_root(provider_config_contents: dict, pipeline_name: str):
+def get_pipeline_root(provider_config_contents: dict, pipeline_name: str) -> str:
     if "pipelineRootStorage" in provider_config_contents:
         return provider_config_contents["pipelineRootStorage"] + "/" + pipeline_name
     else:
         raise KeyError("Missing required pipeline root in provider configuration.")
 
 
-def load_fn(pipeline_config_contents: dict, environment: list):
+def load_fn(pipeline_config_contents: dict, environment: list) -> Callable:
     framework_parameters = pipeline_config_contents["framework"]["parameters"]
     if "pipeline" not in framework_parameters:
         raise KeyError("Missing required framework parameter: [pipeline].")
