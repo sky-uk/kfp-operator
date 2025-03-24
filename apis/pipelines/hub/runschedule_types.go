@@ -26,7 +26,7 @@ type Schedule struct {
 }
 
 func (s Schedule) Empty() bool {
-	return s.StartTime == nil && s.EndTime == nil
+	return s.CronExpression == "" && s.StartTime == nil && s.EndTime == nil
 }
 
 func (rs RunSchedule) ComputeHash() []byte {
