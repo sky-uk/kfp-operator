@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
@@ -19,12 +18,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := apis.RandomString()
-			rcHelper := Create(pipelineshub.RandomRunSchedule(
-				common.NamespacedName{
-					Name:      Provider.Name,
-					Namespace: Provider.Namespace,
-				},
-			))
+			rcHelper := Create(pipelineshub.RandomRunSchedule(Provider.GetCommonNamespacedName()))
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
@@ -43,12 +37,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(rcHelper.Update(func(runSchedule *pipelineshub.RunSchedule) {
-				runSchedule.Spec = pipelineshub.RandomRunScheduleSpec(
-					common.NamespacedName{
-						Name:      Provider.Name,
-						Namespace: Provider.Namespace,
-					},
-				)
+				runSchedule.Spec = pipelineshub.RandomRunScheduleSpec(Provider.GetCommonNamespacedName())
 			})).To(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {
