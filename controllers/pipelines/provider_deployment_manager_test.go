@@ -199,6 +199,10 @@ var _ = Context("Provider Deployment Manager", func() {
 					Value: "1",
 				},
 				{
+					Name:  "PIPELINEROOTSTORAGE",
+					Value: provider.Spec.PipelineRootStorage,
+				},
+				{
 					Name:  ProviderNameEnvVar,
 					Value: provider.Name,
 				},

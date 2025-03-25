@@ -39,7 +39,7 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded base config: %+v", serviceConfig))
 
-	kfpProviderConfig, err := baseConfig.LoadConfig(kfpConfig.KfpProviderConfig{Name: serviceConfig.ProviderName})
+	kfpProviderConfig, err := baseConfig.LoadConfig(kfpConfig.KfpProviderConfig{Name: serviceConfig.ProviderName, PipelineRootStorage: serviceConfig.PipelineRootStorage})
 	if err != nil {
 		logger.Error(err, "failed to load provider config", "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 		panic(err)

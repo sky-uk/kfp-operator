@@ -60,11 +60,12 @@ func NewVAIProvider(
 		pipelineClient: pc,
 		scheduleClient: sc,
 		jobBuilder: DefaultJobBuilder{
-			serviceAccount: config.Parameters.VaiJobServiceAccount,
-			pipelineBucket: config.Parameters.PipelineBucket,
-			labelGen:       DefaultLabelGen{},
+			serviceAccount:      config.Parameters.VaiJobServiceAccount,
+			pipelineRootStorage: config.PipelineRootStorage,
+			pipelineBucket:      config.Parameters.PipelineBucket,
+			labelGen:            DefaultLabelGen{},
 		},
-		jobEnricher: DefaultJobEnricher{},
+		jobEnricher: DefaultJobEnricher{pipelineSchemaHandler: DefaultPipelineSchemaHandler{}},
 	}, nil
 }
 
