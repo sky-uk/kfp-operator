@@ -23,13 +23,15 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		When("status provider is empty", func() {
 			Specify("converts to and from the same object", func() {
-				noProvider := ""
-				src := RandomPipeline(noProvider)
+				provider := common.RandomString()
+				noStatusProvider := ""
+				src := RandomPipeline(noStatusProvider)
+				setProviderAnnotation(provider, &src.ObjectMeta)
 				intermediate := &hub.Pipeline{}
 				dst := &Pipeline{}
 
 				Expect(src.ConvertTo(intermediate)).To(Succeed())
-				Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
+				Expect(intermediate.Spec.Provider.Name).To(Equal(provider))
 				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 				Expect(intermediate.Status.Provider.Name.Name).To(BeEmpty())
 				Expect(intermediate.Status.Provider.Name.Namespace).To(BeEmpty())
@@ -38,7 +40,6 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					PipelineConversionRemainder{}.ConversionAnnotation(),
 				)
-				delete(dst.GetAnnotations(), ResourceAnnotations.Provider)
 				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 			})
 		})
@@ -46,11 +47,12 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 			Specify("converts to and from the same object", func() {
 				provider := common.RandomString()
 				src := RandomPipeline(provider)
+				setProviderAnnotation(provider, &src.ObjectMeta)
 				intermediate := &hub.Pipeline{}
 				dst := &Pipeline{}
 
 				Expect(src.ConvertTo(intermediate)).To(Succeed())
-				Expect(intermediate.Spec.Provider.Name).To(Equal(DefaultProvider))
+				Expect(intermediate.Spec.Provider.Name).To(Equal(provider))
 				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 				Expect(intermediate.Status.Provider.Name.Name).To(Equal(provider))
 				Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
@@ -59,7 +61,6 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					PipelineConversionRemainder{}.ConversionAnnotation(),
 				)
-				delete(dst.GetAnnotations(), ResourceAnnotations.Provider)
 				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 			})
 		})
@@ -67,24 +68,28 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object when the framework is tfx", func() {
-			src := hub.RandomPipeline(common.RandomNamespacedName())
+			provider := common.RandomNamespacedName()
+			src := hub.RandomPipeline(provider)
 			hub.AddTfxValues(&src.Spec)
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}
 
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
+			Expect(intermediate.Status.ProviderId.Provider).To(Equal(provider.Name))
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
 
 		Specify("converts to and from the same object when the framework is not tfx", func() {
-			src := hub.RandomPipeline(common.RandomNamespacedName())
+			provider := common.RandomNamespacedName()
+			src := hub.RandomPipeline(provider)
 			src.Spec.Framework.Type = "some-other-framework"
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}
 
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
+			Expect(intermediate.Status.ProviderId.Provider).To(Equal(provider.Name))
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
