@@ -9,7 +9,6 @@ import (
 
 	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -32,34 +31,6 @@ func RandomPipelineSpec() PipelineSpec {
 		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
 		Env:           RandomNamedValues(),
 		BeamArgs:      RandomNamedValues(),
-	}
-}
-
-func RandomProvider() *Provider {
-	return &Provider{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      RandomLowercaseString(),
-			Namespace: "default",
-		},
-		Spec:   RandomProviderSpec(),
-		Status: RandomProviderStatus(),
-	}
-}
-
-func RandomProviderSpec() ProviderSpec {
-	randomParameters := make(map[string]*apiextensionsv1.JSON)
-	for key, _ := range RandomMap() {
-		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(`{"key1": "value1", "key2": 1234}`)}
-	}
-
-	return ProviderSpec{
-		Image:               "kfp-operator-unused-old-provider-cli",
-		ExecutionMode:       "none",
-		ServiceAccount:      "default",
-		DefaultBeamArgs:     RandomNamedValues(),
-		PipelineRootStorage: RandomLowercaseString(),
-		Parameters:          randomParameters,
 	}
 }
 
@@ -232,20 +203,6 @@ func RandomStatus(provider string) Status {
 		ProviderId: ProviderAndId{
 			Provider: provider,
 			Id:       RandomString(),
-		},
-		ObservedGeneration: rand.Int63(),
-	}
-}
-
-// RandomProviderStatus differs from RandomStatus by not setting the provider
-// because in practice it will never be populated.
-func RandomProviderStatus() Status {
-	return Status{
-		SynchronizationState: RandomSynchronizationState(),
-		Version:              RandomString(),
-		ProviderId: ProviderAndId{
-			Provider: "",
-			Id:       "",
 		},
 		ObservedGeneration: rand.Int63(),
 	}

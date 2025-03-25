@@ -9,7 +9,6 @@ import (
 
 	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,35 +32,6 @@ func RandomPipelineSpec(provider string) PipelineSpec {
 		TfxComponents: fmt.Sprintf("%s.%s", RandomLowercaseString(), RandomLowercaseString()),
 		Env:           RandomNamedValues(),
 		BeamArgs:      RandomNamedValues(),
-	}
-}
-
-func RandomProvider() *Provider {
-	return &Provider{
-		TypeMeta: metav1.TypeMeta{},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      RandomLowercaseString(),
-			Namespace: "default",
-		},
-		Spec:   RandomProviderSpec(),
-		Status: RandomProviderStatus(),
-	}
-}
-
-func RandomProviderSpec() ProviderSpec {
-	randomParameters := make(map[string]*apiextensionsv1.JSON)
-	for key := range RandomMap() {
-		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(`{"key1": "value1", "key2": 1234}`)}
-	}
-
-	return ProviderSpec{
-		ServiceImage:        "service-image",
-		Image:               "kfp-operator-unused-old-provider-cli",
-		ExecutionMode:       "none",
-		ServiceAccount:      "default",
-		DefaultBeamArgs:     RandomNamedValues(),
-		PipelineRootStorage: RandomLowercaseString(),
-		Parameters:          randomParameters,
 	}
 }
 
@@ -260,20 +230,6 @@ func RandomStatus(provider string) Status {
 	}
 }
 
-// RandomProviderStatus differs from RandomStatus by not setting the provider
-// name because in practice it will never be populated.
-func RandomProviderStatus() Status {
-	return Status{
-		SynchronizationState: RandomSynchronizationState(),
-		Version:              RandomString(),
-		Provider: ProviderAndId{
-			Name: RandomString(),
-			Id:   RandomString(),
-		},
-		ObservedGeneration: rand.Int63(),
-	}
-}
-
 type TestResource struct {
 	metav1.TypeMeta
 	metav1.ObjectMeta
@@ -314,7 +270,7 @@ func (tr *TestResource) GetKind() string {
 
 func RandomResource() *TestResource {
 	return &TestResource{
-		Status:          RandomProviderStatus(),
+		Status:          RandomStatus(RandomString()),
 		NamespacedName:  RandomNamespacedName(),
 		Kind:            RandomString(),
 		ComputedVersion: RandomShortHash(),
