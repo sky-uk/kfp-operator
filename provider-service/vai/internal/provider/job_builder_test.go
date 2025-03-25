@@ -15,9 +15,10 @@ import (
 
 var _ = Describe("JobBuilder", func() {
 	var jb = DefaultJobBuilder{
-		serviceAccount: "service-account",
-		pipelineBucket: "pipeline-bucket",
-		labelGen:       mocks.MockLabelGen{},
+		serviceAccount:      "service-account",
+		pipelineBucket:      "pipeline-bucket",
+		pipelineRootStorage: "gs://pipeline-root-storage",
+		labelGen:            mocks.MockLabelGen{},
 	}
 
 	Context("MkRunPipelineJob", func() {
@@ -40,12 +41,22 @@ var _ = Describe("JobBuilder", func() {
 				}
 				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
 				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
+				Expect(job.RuntimeConfig.GcsOutputDirectory).To(Equal(fmt.Sprintf("%s/%s/%s", jb.pipelineRootStorage, rd.Name.Namespace, rd.Name.Name)))
 			})
 		})
 		When("templateUri is invalid", func() {
 			It("should return error", func() {
 				rd := testutil.RandomRunDefinition()
 				rd.PipelineName.Name = ""
+				_, err := jb.MkRunPipelineJob(rd)
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+		When("run definition name is invalid", func() {
+			It("should return error", func() {
+				rd := testutil.RandomRunDefinition()
+				rd.Name.Name = ""
 				_, err := jb.MkRunPipelineJob(rd)
 
 				Expect(err).To(HaveOccurred())

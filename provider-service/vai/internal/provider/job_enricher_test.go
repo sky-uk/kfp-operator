@@ -50,7 +50,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 			Expect(job.PipelineSpec).To(Equal(expectedReturn.pipelineSpec))
 		})
 
-		It("enrich job with pipeline values returned by pipelineSchemaHandler", func() {
+		It("enrich job returns error on pipelineSchemaHandler error", func() {
 			mockPipelineSchemaHandler.On("extract", input).Return(nil, errors.New("an error"))
 
 			job := aiplatformpb.PipelineJob{}
