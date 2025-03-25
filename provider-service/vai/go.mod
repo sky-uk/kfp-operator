@@ -35,6 +35,7 @@ require (
 	cloud.google.com/go/iam v1.1.6 // indirect
 	cloud.google.com/go/longrunning v0.5.5 // indirect
 	cloud.google.com/go/pubsub v1.36.1 // indirect
+	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/argoproj/argo-workflows/v3 v3.3.9 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

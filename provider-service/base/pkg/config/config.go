@@ -10,10 +10,11 @@ import (
 )
 
 type Config struct {
-	ProviderName    string `mapstructure:"providerName"`
-	OperatorWebhook string `mapstructure:"operatorWebhook"`
-	Pod             Pod    `mapstructure:"pod"`
-	Server          Server `mapstructure:"server"`
+	ProviderName        string `mapstructure:"providerName"`
+	PipelineRootStorage string `mapstructure:"pipelineRootStorage"`
+	OperatorWebhook     string `mapstructure:"operatorWebhook"`
+	Pod                 Pod    `mapstructure:"pod"`
+	Server              Server `mapstructure:"server"`
 }
 
 type Pod struct {
