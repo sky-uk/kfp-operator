@@ -62,6 +62,7 @@ spec:
       artifacts:
         - name: combined
           path: /tmp/combined.json
+    metadata: {}
     container:
       image: mikefarah/yq:4.45.1
       command: [sh,-c]

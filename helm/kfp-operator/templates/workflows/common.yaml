@@ -30,6 +30,8 @@ spec:
       - name: url-encoded
         valueFrom:
           path: "/tmp/url-encoded.txt"
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     container:
       image: stedolan/jq:latest
       command: [sh, -c]

@@ -29,6 +29,7 @@ spec:
       - name: url-encoded
         valueFrom:
           path: "/tmp/url-encoded.txt"
+    metadata: {}
     container:
       image: stedolan/jq:latest
       command: [sh, -c]
