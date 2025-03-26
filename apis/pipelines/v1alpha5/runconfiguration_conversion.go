@@ -10,37 +10,46 @@ import (
 func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.RunConfiguration)
 
-	v1alpha6Remainder := hub.RunConfigurationConversionRemainder{}
-	if err := pipelines.GetAndUnsetConversionAnnotations(src, &v1alpha6Remainder); err != nil {
+	remainder := RunConfigurationConversionRemainder{}
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
 		return err
 	}
 
 	dst.ObjectMeta = src.ObjectMeta
-	dst.Spec.Run.Provider = getProviderAnnotation(src)
-	removeProviderAnnotation(dst)
+	dst.Spec.Run.Provider = convertProviderTo(
+		getProviderAnnotation(src),
+		remainder.ProviderNamespace,
+	)
+
 	dst.Spec.Run.Pipeline = hub.PipelineIdentifier{
 		Name:    src.Spec.Run.Pipeline.Name,
 		Version: src.Spec.Run.Pipeline.Version,
 	}
+
 	dst.Spec.Run.ExperimentName = src.Spec.Run.ExperimentName
 	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersTo(
 		src.Spec.Run.RuntimeParameters,
 	)
 	dst.Spec.Run.Artifacts = convertArtifactsTo(src.Spec.Run.Artifacts)
-	dst.Spec.Triggers = convertTriggersTo(src.Spec.Triggers, v1alpha6Remainder)
+	dst.Spec.Triggers = convertTriggersTo(src.Spec.Triggers, remainder)
 
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
+
+	dst.Status.Provider = convertStatusProviderTo(
+		src.Status.Provider,
+		remainder.ProviderStatusNamespace,
+	)
+	removeProviderAnnotation(dst)
 
 	return nil
 }
 
 func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunConfiguration)
-	v1alpha6Remainder := hub.RunConfigurationConversionRemainder{}
+	remainder := RunConfigurationConversionRemainder{}
 	dst.ObjectMeta = src.ObjectMeta
-	setProviderAnnotation(src.Spec.Run.Provider, &dst.ObjectMeta)
 	dst.Spec.Run.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Run.Pipeline.Name,
 		Version: src.Spec.Run.Pipeline.Version,
@@ -48,13 +57,18 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Spec.Run.ExperimentName = src.Spec.Run.ExperimentName
 	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.Run.RuntimeParameters)
 	dst.Spec.Run.Artifacts = convertArtifactsFrom(src.Spec.Run.Artifacts)
-	dst.Spec.Triggers = convertTriggersFrom(src.Spec.Triggers, &v1alpha6Remainder)
+	dst.Spec.Triggers = convertTriggersFrom(src.Spec.Triggers, &remainder)
 
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
 
-	return pipelines.SetConversionAnnotations(dst, &v1alpha6Remainder)
+	dst.Status.Provider = src.Status.Provider.Name
+	setProviderAnnotation(src.Spec.Run.Provider.Name, &dst.ObjectMeta)
+	remainder.ProviderNamespace = src.Spec.Run.Provider.Namespace
+	remainder.ProviderStatusNamespace = src.Status.Provider.Namespace
+
+	return pipelines.SetConversionAnnotations(dst, &remainder)
 }
 
 // Converts spoke Triggers into hub Triggers whilst taking into account of
@@ -66,7 +80,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 // remainder then the StartTime and EndTime pointers will be set to nil.
 func convertTriggersTo(
 	triggers Triggers,
-	remainder hub.RunConfigurationConversionRemainder,
+	remainder RunConfigurationConversionRemainder,
 ) hub.Triggers {
 	convertOnChangesTo := func(oct []OnChangeType) []hub.OnChangeType {
 		var hubOct []hub.OnChangeType
@@ -77,7 +91,7 @@ func convertTriggersTo(
 	}
 	convertSchedulesTo := func(
 		schedules []string,
-		remainder hub.RunConfigurationConversionRemainder,
+		remainder RunConfigurationConversionRemainder,
 	) []hub.Schedule {
 		// map of the hub CronExpression -> { StartTime, EndTime }.
 		// This could potentially be lossy because if two schedules share
@@ -119,7 +133,7 @@ func convertTriggersTo(
 
 func convertTriggersFrom(
 	triggers hub.Triggers,
-	remainder *hub.RunConfigurationConversionRemainder,
+	remainder *RunConfigurationConversionRemainder,
 ) Triggers {
 	convertSchedulesFrom := func(hubSchedules []hub.Schedule) (schedules []string) {
 		for _, schedule := range hubSchedules {

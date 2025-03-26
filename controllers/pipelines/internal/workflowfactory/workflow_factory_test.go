@@ -15,7 +15,7 @@ var _ = Describe("CommonWorkflowMeta", func() {
 	It("creates metadata", func() {
 		owner := pipelineshub.RandomResource()
 		namespace := RandomString()
-		w := ResourceWorkflowFactory[*pipelineshub.TestResource, interface{}]{
+		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
 			Config: config.KfpControllerConfigSpec{
 				WorkflowNamespace: namespace,
 			},
@@ -28,5 +28,18 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		Expect(meta.Labels[workflowconstants.OwnerKindLabelKey]).To(Equal(owner.GetKind()))
 		Expect(meta.Labels[workflowconstants.OwnerNameLabelKey]).To(Equal(owner.GetName()))
 		Expect(meta.Labels[workflowconstants.OwnerNamespaceLabelKey]).To(Equal(owner.GetNamespace()))
+	})
+
+	It("uses config.WorkflowNamespace if set", func() {
+		owner := pipelineshub.RandomResource()
+		configuredNamespace := "configuredNamespace"
+		w := ResourceWorkflowFactory[*pipelineshub.TestResource, any]{
+			Config: config.KfpControllerConfigSpec{
+				WorkflowNamespace: configuredNamespace,
+			},
+		}
+		meta := w.CommonWorkflowMeta(owner)
+
+		Expect(meta.Namespace).To(Equal(configuredNamespace))
 	})
 })

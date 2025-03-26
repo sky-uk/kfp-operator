@@ -1,59 +1,52 @@
 //go:build unit
 
-package v1alpha5
+package v1alpha6
 
 import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
-var _ = Context("Run Conversion", PropertyBased, func() {
-	DefaultProvider = "default-provider"
+var _ = Context("Experiment Conversion", PropertyBased, func() {
 	DefaultProviderNamespace = "default-provider-namespace"
 
 	var _ = Describe("Roundtrip forward", func() {
 		When("status provider is empty", func() {
-			Specify("converts to and from the same object", func() {
-				provider := common.RandomString()
-				noStatusProvider := ""
-				src := RandomRun(noStatusProvider)
-				setProviderAnnotation(provider, &src.ObjectMeta)
-				intermediate := &hub.Run{}
-				dst := &Run{}
+			It("converts to and from the same object", func() {
+				src := RandomExperiment(apis.RandomLowercaseString())
+				src.Status.Provider.Name = ""
+				intermediate := &hub.Experiment{}
+				dst := &Experiment{}
 
 				Expect(src.ConvertTo(intermediate)).To(Succeed())
-				Expect(intermediate.Spec.Provider.Name).To(Equal(provider))
 				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-				Expect(intermediate.Status.Provider.Name.Name).To(BeEmpty())
 				Expect(intermediate.Status.Provider.Name.Namespace).To(BeEmpty())
 				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 				delete(
 					dst.GetAnnotations(),
-					RunConversionRemainder{}.ConversionAnnotation(),
+					ExperimentConversionRemainder{}.ConversionAnnotation(),
 				)
 				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 			})
 		})
+
 		When("status provider is non-empty", func() {
-			Specify("converts to and from the same object", func() {
-				provider := common.RandomString()
-				src := RandomRun(provider)
-				setProviderAnnotation(provider, &src.ObjectMeta)
-				intermediate := &hub.Run{}
-				dst := &Run{}
+			It("converts to and from the same object", func() {
+				src := RandomExperiment(apis.RandomLowercaseString())
+				intermediate := &hub.Experiment{}
+				dst := &Experiment{}
 
 				Expect(src.ConvertTo(intermediate)).To(Succeed())
-				Expect(intermediate.Spec.Provider.Name).To(Equal(provider))
 				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
-				Expect(intermediate.Status.Provider.Name.Name).To(Equal(provider))
 				Expect(intermediate.Status.Provider.Name.Namespace).To(Equal(DefaultProviderNamespace))
 				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 				delete(
 					dst.GetAnnotations(),
-					RunConversionRemainder{}.ConversionAnnotation(),
+					ExperimentConversionRemainder{}.ConversionAnnotation(),
 				)
 				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 			})
@@ -62,15 +55,12 @@ var _ = Context("Run Conversion", PropertyBased, func() {
 
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
-			provider := common.RandomNamespacedName()
-			src := hub.RandomRun(provider)
-			intermediate := &Run{}
-			dst := &hub.Run{}
+			src := hub.RandomExperiment(common.RandomNamespacedName())
+			intermediate := &Experiment{}
+			dst := &hub.Experiment{}
 
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
-			Expect(intermediate.Status.ProviderId.Provider).To(Equal(provider.Name))
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
-
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})

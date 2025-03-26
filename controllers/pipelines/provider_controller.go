@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"time"
 
@@ -77,7 +78,10 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started", "request", req)
 
-	provider, err := r.ProviderLoader.LoadProvider(ctx, req.Namespace, req.Name)
+	provider, err := r.ProviderLoader.LoadProvider(ctx, common.NamespacedName{
+		Name:      req.Name,
+		Namespace: req.Namespace,
+	})
 	if err != nil {
 		logger.Error(err, "unable to get provider", "provider", req.NamespacedName)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
