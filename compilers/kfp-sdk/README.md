@@ -41,10 +41,3 @@ def component():
 def pipeline_function():
     component()
 ```
-
-### Compiler parameters
-The compiler requires the following mandatory flags/parameters:
-
-- `--pipeline_config`: Path to the pipeline configuration file in YAML format.
-- `--output_file`: Path where the compiled output will be saved.
-- `--provider_config`: Path to the provider configuration file in YAML/json format.
