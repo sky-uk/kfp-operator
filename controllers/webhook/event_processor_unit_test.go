@@ -40,7 +40,7 @@ var _ = Context("ToRunCompletionEvent", func() {
 
 	When("given valid runCompletionEventData", func() {
 		It("converts to a runCompletionEvent with filtered artifacts", func() {
-			rc := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
+			rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
 
 			runCompletionEventData := RandomRunCompletionEventData()
 			runCompletionEventData.RunConfigurationName = &common.NamespacedName{
@@ -172,7 +172,7 @@ var _ = Context("extractResourceArtifacts", func() {
 
 	When("run configuration passed and no run name namespace", func() {
 		It("should return run configuration artifacts", func() {
-			rc := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
+			rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
 			rcName := &common.NamespacedName{
 				Namespace: rc.Namespace,
 				Name:      rc.Name,
@@ -186,7 +186,7 @@ var _ = Context("extractResourceArtifacts", func() {
 
 	When("run passed and no run configuration", func() {
 		It("should return run artifacts", func() {
-			run := pipelineshub.RandomRun(apis.RandomLowercaseString())
+			run := pipelineshub.RandomRun(common.RandomNamespacedName())
 			rName := &common.NamespacedName{
 				Namespace: run.Namespace,
 				Name:      run.Name,
@@ -200,8 +200,8 @@ var _ = Context("extractResourceArtifacts", func() {
 
 	When("both run configuration and run passed", func() {
 		It("should return run configuration artifacts", func() {
-			rc := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
-			run := pipelineshub.RandomRun(apis.RandomLowercaseString())
+			rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
+			run := pipelineshub.RandomRun(common.RandomNamespacedName())
 			rName := &common.NamespacedName{
 				Namespace: run.Namespace,
 				Name:      run.Name,

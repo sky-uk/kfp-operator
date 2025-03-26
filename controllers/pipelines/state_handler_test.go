@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowutil"
@@ -222,20 +223,30 @@ var _ = Describe("State handler", func() {
 	provider := pipelineshub.RandomProvider()
 	providerSvc := RandomProviderService()
 	providerId := pipelineshub.ProviderAndId{
-		Name: provider.Name,
-		Id:   apis.RandomString(),
+		Name: common.NamespacedName{
+			Name:      provider.Name,
+			Namespace: provider.Namespace,
+		},
+		Id: apis.RandomString(),
 	}
 	anotherIdSameProvider := pipelineshub.ProviderAndId{
-		Name: provider.Name,
-		Id:   apis.RandomString(),
+		Name: common.NamespacedName{
+			Name:      provider.Name,
+			Namespace: provider.Namespace,
+		},
+		Id: apis.RandomString(),
 	}
 	anotherProviderId := pipelineshub.ProviderAndId{
-		Name: apis.RandomString(),
-		Id:   apis.RandomString(),
+		Name: common.NamespacedName{
+			Name:      apis.RandomString(),
+			Namespace: apis.RandomString(),
+		},
+		Id: apis.RandomString(),
 	}
 	emptyProviderId := pipelineshub.ProviderAndId{}
 	emptyProvider := pipelineshub.RandomProvider()
 	emptyProvider.Name = ""
+	emptyProvider.Namespace = ""
 
 	providerError := "a provider error has occurred"
 	irrelevant := "irrelevant"

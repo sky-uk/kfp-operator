@@ -15,7 +15,7 @@ kind: Pipeline
 metadata:
   name: penguin-pipeline
 spec:
-  provider: kfp
+  provider: provider-namespace/kfp
   image: kfp-quickstart:v1
   frameworks:
     type: tfx
@@ -30,7 +30,7 @@ spec:
 
 | Name                        | Description                                                                                                                                                                 |
 |-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spec.provider`             | The name of the associated [Provider resource](../provider/).                                                                                                               |
+| `spec.provider`             | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`.                                     |
 | `spec.image`                | Container image containing TFX component definitions.                                                                                                                       |
 | `spec.env`                  | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                                                     |
 | `spec.framework.type`       | Sets a specific [pipeline framework](../../frameworks) to use. The pipeline framework image to use is looked up [here](../../configuration).                                |
