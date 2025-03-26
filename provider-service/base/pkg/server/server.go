@@ -144,9 +144,18 @@ func newHandler(resources []resource.HttpHandledResource) http.Handler {
 	return mux
 }
 
-func Start(ctx context.Context, cfg config.Server, provider resource.Provider) error {
-	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+func Start(ctx context.Context, cfg config.Config, provider resource.Provider) error {
+	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	logger := common.LoggerFromContext(ctx)
+
+	onShutdown, err := InitialiseMetricsServer(ctx, cfg.Metrics)
+
+	if err != nil {
+		logger.Error(err, "Failed to start metrics server")
+		return err
+	}
+
+	defer onShutdown()
 
 	httpResources := []resource.HttpHandledResource{
 		&resource.Pipeline{Ctx: ctx, Provider: provider},

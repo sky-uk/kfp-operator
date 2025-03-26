@@ -10,10 +10,11 @@ import (
 )
 
 type Config struct {
-	ProviderName    string `mapstructure:"providerName"`
-	OperatorWebhook string `mapstructure:"operatorWebhook"`
-	Pod             Pod    `mapstructure:"pod"`
-	Server          Server `mapstructure:"server"`
+	ProviderName    string        `mapstructure:"providerName"`
+	OperatorWebhook string        `mapstructure:"operatorWebhook"`
+	Pod             Pod           `mapstructure:"pod"`
+	Server          Server        `mapstructure:"server"`
+	Metrics         MetricsConfig `mapstructure:"metrics"`
 }
 
 type Pod struct {
@@ -23,6 +24,10 @@ type Pod struct {
 type Server struct {
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
+}
+
+type MetricsConfig struct {
+	Port int `mapstructure:"port"`
 }
 
 func LoadConfig[T any](initConfig T) (*T, error) {

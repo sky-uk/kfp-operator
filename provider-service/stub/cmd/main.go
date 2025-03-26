@@ -7,7 +7,6 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
-	"github.com/sky-uk/kfp-operator/provider-service/stub/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/stub/internal/provider"
 	"go.uber.org/zap/zapcore"
 )
@@ -21,10 +20,13 @@ func main() {
 	ctx := logr.NewContext(context.Background(), logger)
 	provider := provider.New(logger)
 	cfg, err := baseConfig.LoadConfig(
-		config.Config{
+		baseConfig.Config{
 			Server: baseConfig.Server{
 				Host: "0.0.0.0",
 				Port: 8080,
+			},
+			Metrics: baseConfig.MetricsConfig{
+				Port: 8181,
 			},
 		},
 	)
@@ -32,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	if err = server.Start(ctx, cfg.Server, provider); err != nil {
+	if err = server.Start(ctx, *cfg, provider); err != nil {
 		panic(err)
 	}
 

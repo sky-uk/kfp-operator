@@ -74,4 +74,4 @@ provider:
       cpu: 500m
       memory: 256Mi
   servicePort: 8080
-
+  metricsPort: 8081
