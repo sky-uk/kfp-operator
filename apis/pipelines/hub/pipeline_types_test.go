@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
@@ -60,7 +61,7 @@ var _ = Context("Pipeline", func() {
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			rcs := RandomPipeline(apis.RandomLowercaseString())
+			rcs := RandomPipeline(common.RandomNamespacedName())
 			expected := rcs.DeepCopy()
 			rcs.ComputeHash()
 

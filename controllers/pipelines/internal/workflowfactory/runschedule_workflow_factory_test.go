@@ -16,7 +16,7 @@ var _ = Context("runConfigurationNameForRunSchedule", func() {
 	Specify("returns the name of the owner if set", func() {
 		runSchedule := pipelineshub.RunSchedule{}
 		runSchedule.Namespace = apis.RandomString()
-		runConfiguration := pipelineshub.RandomRunConfiguration(apis.RandomLowercaseString())
+		runConfiguration := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
 
 		runSchedule.OwnerReferences = []metav1.OwnerReference{{
 			Controller: pointer.Bool(true),

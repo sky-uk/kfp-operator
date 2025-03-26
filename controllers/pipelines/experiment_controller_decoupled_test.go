@@ -19,7 +19,11 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
 			anotherProviderId := "67890"
-			experimentHelper := Create(pipelineshub.RandomExperiment(Provider.Name))
+			experimentHelper := Create(
+				pipelineshub.RandomExperiment(
+					Provider.GetCommonNamespacedName(),
+				),
+			)
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
 				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
@@ -39,7 +43,9 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(experimentHelper.Update(func(pipeline *pipelineshub.Experiment) {
-				pipeline.Spec = pipelineshub.RandomExperimentSpec(Provider.Name)
+				pipeline.Spec = pipelineshub.RandomExperimentSpec(
+					Provider.GetCommonNamespacedName(),
+				)
 			})).To(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
