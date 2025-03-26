@@ -110,7 +110,8 @@ spec:
       - name: provider-output
         valueFrom:
           path: /tmp/provider-output.json
-    metadata: {}
+    metadata:
+      {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     activeDeadlineSeconds: {{ .Values.manager.argo.stepTimeoutSeconds.default }}
     container:
       image: curlimages/curl:8.12.1
