@@ -18,7 +18,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := apis.RandomString()
-			rcHelper := Create(pipelineshub.RandomRunSchedule(Provider.Name))
+			rcHelper := Create(pipelineshub.RandomRunSchedule(Provider.GetCommonNamespacedName()))
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {
 				g.Expect(runSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(runSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
@@ -37,7 +37,7 @@ var _ = Describe("RunSchedule controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(rcHelper.Update(func(runSchedule *pipelineshub.RunSchedule) {
-				runSchedule.Spec = pipelineshub.RandomRunScheduleSpec(Provider.Name)
+				runSchedule.Spec = pipelineshub.RandomRunScheduleSpec(Provider.GetCommonNamespacedName())
 			})).To(Succeed())
 
 			Eventually(rcHelper.ToMatch(func(g Gomega, runSchedule *pipelineshub.RunSchedule) {

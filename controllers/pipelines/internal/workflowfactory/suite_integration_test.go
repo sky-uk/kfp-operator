@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
@@ -26,7 +27,6 @@ import (
 const (
 	TestTimeout   = 120
 	TestNamespace = "argo"
-	TestProvider  = "stub"
 )
 
 var (
@@ -35,6 +35,10 @@ var (
 		APIPath: "/api",
 	}
 	TestProviderConfig = pipelineshub.RandomProvider()
+	TestProvider       = common.NamespacedName{
+		Name:      "stub",
+		Namespace: "default",
+	}
 )
 
 func TestPipelineControllersIntegrationSuite(t *testing.T) {

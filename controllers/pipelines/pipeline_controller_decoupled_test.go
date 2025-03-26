@@ -18,7 +18,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 	When("Creating, updating and deleting", func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
-			pipeline := pipelineshub.RandomPipeline(Provider.Name)
+			pipeline := pipelineshub.RandomPipeline(Provider.GetCommonNamespacedName())
 			pipeline.Spec.Framework.Type = TestFramework
 			pipelineHelper := Create(pipeline)
 			Eventually(pipelineHelper.ToMatch(func(g Gomega, pipeline *pipelineshub.Pipeline) {
@@ -39,7 +39,7 @@ var _ = Describe("Pipeline controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Expect(pipelineHelper.Update(func(pipeline *pipelineshub.Pipeline) {
-				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.Name)
+				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.GetCommonNamespacedName())
 				pipeline.Spec.Framework.Type = TestFramework
 			})).To(Succeed())
 

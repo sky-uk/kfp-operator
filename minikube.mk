@@ -12,16 +12,20 @@ minikube-install-dependencies:
 	openssl x509 -req -in ./local/kfp-operator-webhook.csr -signkey ./local/kfp-operator-webhook.key -out ./local/kfp-operator-webhook.crt \
 	  -extensions v3_req -extfile <(echo "[v3_req]"; echo "subjectAltName=DNS:kfp-operator-webhook-service.kfp-operator-system.svc,DNS:kfp-operator-webhook-service")
 	kubectl create namespace kfp-operator-system
+	kubectl create namespace vai
+	kubectl create namespace kfp
 	kubectl create secret tls webhook-server-cert --cert=./local/kfp-operator-webhook.crt --key=./local/kfp-operator-webhook.key --namespace kfp-operator-system
+	sleep 20
 
 minikube-helm-install-operator: helm-package-operator ./local/values.yaml
+
 	$(HELM) install -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
 
 minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
 minikube-install-operator:
-	$(MAKE) docker-push docker-push-triggers
+	$(MAKE) docker-push docker-push-triggers docker-push-providers
 	$(MAKE) minikube-helm-install-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
 
 minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')

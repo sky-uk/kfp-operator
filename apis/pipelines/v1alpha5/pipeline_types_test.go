@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 var _ = Context("Pipeline", func() {
@@ -69,7 +70,7 @@ var _ = Context("Pipeline", func() {
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			rcs := RandomPipeline()
+			rcs := RandomPipeline(common.RandomString())
 			expected := rcs.DeepCopy()
 			rcs.ComputeHash()
 

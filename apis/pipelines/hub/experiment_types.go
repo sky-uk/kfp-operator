@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type ExperimentSpec struct {
-	Provider    string `json:"provider" yaml:"provider"`
-	Description string `json:"description,omitempty"`
+	Provider    common.NamespacedName `json:"provider" yaml:"provider"`
+	Description string                `json:"description,omitempty"`
 }
 
 func (es Experiment) ComputeHash() []byte {

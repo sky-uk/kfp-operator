@@ -26,11 +26,11 @@ type ValueFrom struct {
 }
 
 type RunSpec struct {
-	Provider          string             `json:"provider" yaml:"provider"`
-	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
-	ExperimentName    string             `json:"experimentName,omitempty"`
-	RuntimeParameters []RuntimeParameter `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
+	Provider          common.NamespacedName `json:"provider" yaml:"provider"`
+	Pipeline          PipelineIdentifier    `json:"pipeline,omitempty"`
+	ExperimentName    string                `json:"experimentName,omitempty"`
+	RuntimeParameters []RuntimeParameter    `json:"runtimeParameters,omitempty"`
+	Artifacts         []OutputArtifact      `json:"artifacts,omitempty"`
 }
 
 func (runSpec *RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
