@@ -101,9 +101,9 @@ def load_fn(tfx_components: str, env: list):
     for name_value in env:
         os.environ[name_value['name']] = name_value['value']
 
-    if "." not in pipeline:
+    if "." not in tfx_components:
         raise ValueError(
-            f"Invalid pipeline format: [{tfx_components}]. Expected format: 'module_path.function_name'."
+            f"Invalid tfxComponents format: [{tfx_components}]. Expected format: 'module_path.function_name'."
         )
 
     (module_name, fn_name) = tfx_components.rsplit('.', 1)
