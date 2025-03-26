@@ -55,4 +55,6 @@ data:
                 value: http://{{ include "kfp-operator.fullname" . }}-runcompletion-webhook-service.{{ .Values.namespace.name }}:80/events
               - name: SERVER_PORT
                 value: '{{ .Values.provider.servicePort }}'
+              - name: METRICS_PORT
+                value: '{{ .Values.provider.metricsPort }}'
               {{- if .Values.provider.env }}{{- $.Values.provider.env | toYaml | nindent 14 }}{{ end }}
