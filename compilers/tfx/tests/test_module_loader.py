@@ -25,3 +25,10 @@ def test_load_fn():
 def test_load_fn_invalid_fn():
     with pytest.raises(Exception) as e_info:
         compiler.load_fn('nonexistent.components_fn', {})()
+
+
+def test_load_fn_invalid_module_path():
+    with pytest.raises(Exception) as e_info:
+        compiler.load_fn('components_fn', {})()
+
+   assert str(e_info.value) == "Invalid pipeline format: [components_fn]. Expected format: 'module_path.function_name'."
