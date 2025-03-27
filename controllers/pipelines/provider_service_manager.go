@@ -78,7 +78,8 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelineshub.Provider) 
 
 func (sm ServiceManager) Construct(provider *pipelineshub.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
-
+	matchLabels := map[string]string{AppLabel: prefixedProviderName}
+	labels := MapConcat(sm.config.DefaultProviderValues.Labels, matchLabels)
 	ports := []corev1.ServicePort{
 		{
 			Name:       "http",
@@ -98,6 +99,7 @@ func (sm ServiceManager) Construct(provider *pipelineshub.Provider) *corev1.Serv
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("%s-", prefixedProviderName),
 			Namespace:    provider.Namespace,
+			Labels:       labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports:    ports,

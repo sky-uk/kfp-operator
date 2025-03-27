@@ -52,6 +52,10 @@ var _ = Context("Provider Service Manager", func() {
 				DefaultProviderValues: configv1.DefaultProviderValues{
 					ServiceContainerName: "ServiceContainerName",
 					ServicePort:          9999,
+					MetricsPort:          9998,
+					Labels: map[string]string{
+						"extra": "label",
+					},
 				},
 			},
 		}
@@ -190,6 +194,10 @@ var _ = Context("Provider Service Manager", func() {
 
 			Expect(result.GenerateName).To(Equal(providerSuffixedName + "-"))
 			Expect(result.Namespace).To(Equal(provider.Namespace))
+			Expect(result.Labels).To(Equal(map[string]string{
+				"app":   providerSuffixedName,
+				"extra": "label",
+			}))
 			Expect(result.Spec.Ports).To(Equal(expectedPorts))
 			Expect(result.Spec.Selector).To(Equal(map[string]string{"app": providerSuffixedName}))
 		})
