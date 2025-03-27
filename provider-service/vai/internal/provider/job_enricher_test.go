@@ -50,6 +50,20 @@ var _ = Describe("DefaultJobEnricher", func() {
 			Expect(job.PipelineSpec).To(Equal(expectedReturn.pipelineSpec))
 		})
 
+		It("enrich job with existing labels with pipeline values returned by pipelineSchemaHandler", func() {
+			mockPipelineSchemaHandler.On("extract", input).Return(&expectedReturn, nil)
+
+			expectedCombinedLabels := map[string]string{"key": "value", "key2": "value2"}
+
+			job := aiplatformpb.PipelineJob{Labels: map[string]string{"key2": "value2"}}
+			_, err := dje.Enrich(&job, input)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(job.Name).To(Equal(expectedReturn.name))
+			Expect(job.Labels).To(Equal(expectedCombinedLabels))
+			Expect(job.PipelineSpec).To(Equal(expectedReturn.pipelineSpec))
+		})
+
 		It("enrich job returns error on pipelineSchemaHandler error", func() {
 			mockPipelineSchemaHandler.On("extract", input).Return(nil, errors.New("an error"))
 

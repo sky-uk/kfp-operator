@@ -65,7 +65,10 @@ func NewVAIProvider(
 			pipelineBucket:      config.Parameters.PipelineBucket,
 			labelGen:            DefaultLabelGen{},
 		},
-		jobEnricher: DefaultJobEnricher{pipelineSchemaHandler: DefaultPipelineSchemaHandler{}},
+		jobEnricher: DefaultJobEnricher{pipelineSchemaHandler: DefaultPipelineSchemaHandler{
+			schema2Handler:   Schema2Handler{},
+			schema2_1Handler: Schema2_1Handler{},
+		}},
 	}, nil
 }
 
