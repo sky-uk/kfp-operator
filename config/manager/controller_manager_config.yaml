@@ -33,6 +33,9 @@ spec:
           - containerPort: 8080
             name: http
             protocol: TCP
+          - containerPort: 8081
+            name: metrics
+            protocol: TCP
           volumeMounts: []
           securityContext:
             allowPrivilegeEscalation: false

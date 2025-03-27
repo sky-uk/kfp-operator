@@ -41,6 +41,9 @@ data:
               - containerPort: {{ .Values.provider.servicePort }}
                 name: http
                 protocol: TCP
+              - containerPort: {{ .Values.provider.metricsPort }}
+                name: metrics
+                protocol: TCP
               volumeMounts: {{- if .Values.provider.volumeMounts }}{{- toYaml .Values.provider.volumeMounts | nindent 14 }}{{ else }} []{{ end }}
               securityContext:
                 allowPrivilegeEscalation: false
