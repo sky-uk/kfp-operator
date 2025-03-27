@@ -3,6 +3,8 @@ package pipelines
 import (
 	"context"
 	"fmt"
+	"slices"
+
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
@@ -16,7 +18,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"slices"
 )
 
 type ServiceResourceManager interface {
@@ -78,12 +79,20 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelineshub.Provider) 
 func (sm ServiceManager) Construct(provider *pipelineshub.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 
-	ports := []corev1.ServicePort{{
-		Name:       "http",
-		Port:       int32(sm.config.DefaultProviderValues.ServicePort),
-		TargetPort: intstr.FromInt(sm.config.DefaultProviderValues.ServicePort),
-		Protocol:   corev1.ProtocolTCP,
-	}}
+	ports := []corev1.ServicePort{
+		{
+			Name:       "http",
+			Port:       int32(sm.config.DefaultProviderValues.ServicePort),
+			TargetPort: intstr.FromInt(sm.config.DefaultProviderValues.ServicePort),
+			Protocol:   corev1.ProtocolTCP,
+		},
+		{
+			Name:       "metrics",
+			Port:       int32(sm.config.DefaultProviderValues.MetricsPort),
+			TargetPort: intstr.FromInt(sm.config.DefaultProviderValues.MetricsPort),
+			Protocol:   corev1.ProtocolTCP,
+		},
+	}
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{

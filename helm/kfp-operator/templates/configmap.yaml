@@ -30,6 +30,8 @@ data:
         replicas: {{ .Values.provider.replicas }}
         serviceContainerName: provider-service
         servicePort: {{ .Values.provider.servicePort }}
+        metricsPort: {{ .Values.provider.metricsPort }}
+        labels: {{- if .Values.provider.labels }}{{- toYaml .Values.provider.labels | nindent 10 }}{{ else }} []{{ end }}
         podTemplateSpec:
           spec:
             volumes: {{- if .Values.provider.volumes }}{{- toYaml .Values.provider.volumes | nindent 12 }}{{ else }} []{{ end }}

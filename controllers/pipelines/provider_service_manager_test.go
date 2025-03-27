@@ -5,6 +5,7 @@ package pipelines
 import (
 	"context"
 	"fmt"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -177,6 +178,12 @@ var _ = Context("Provider Service Manager", func() {
 					Name:       "http",
 					Port:       int32(serviceManager.config.DefaultProviderValues.ServicePort),
 					TargetPort: intstr.FromInt(serviceManager.config.DefaultProviderValues.ServicePort),
+					Protocol:   corev1.ProtocolTCP,
+				},
+				{
+					Name:       "metrics",
+					Port:       int32(serviceManager.config.DefaultProviderValues.MetricsPort),
+					TargetPort: intstr.FromInt(serviceManager.config.DefaultProviderValues.MetricsPort),
 					Protocol:   corev1.ProtocolTCP,
 				},
 			}
