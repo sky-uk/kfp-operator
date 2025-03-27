@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
+	. "github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"golang.org/x/exp/maps"
@@ -78,7 +79,8 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelinesv1.Provider) (
 
 func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
-
+	matchLabels := map[string]string{AppLabel: prefixedProviderName}
+	labels := MapConcat(sm.config.DefaultProviderValues.Labels, matchLabels)
 	ports := []corev1.ServicePort{
 		{
 			Name:       "http",
@@ -98,6 +100,7 @@ func (sm ServiceManager) Construct(provider *pipelinesv1.Provider) *corev1.Servi
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("%s-", prefixedProviderName),
 			Namespace:    provider.Namespace,
+			Labels:       labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports:    ports,
