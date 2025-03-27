@@ -12,7 +12,7 @@ The version differs from those of the resulting containers (which are based on `
 This module is meant to be used inside Argo workflows as part of the Kubeflow Pipelines Operator.
 
 It requires a valid configuration file similar to [pipeline_conf.yaml](acceptance/pipeline_conf.yaml).
-`tfxComponents` specified in this config file must be present on the Python path.
+`tfxComponents` specified in this config file must be present on the Python path and must be set to fully qualified name of Python function returning list of TFX components.
 
 
 ```bash
