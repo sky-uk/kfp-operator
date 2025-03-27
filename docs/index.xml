@@ -94,8 +94,18 @@
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>servicePort&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
+ &lt;td style="text-align: left">The port that should expose the service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>http&lt;/code> port defined in the podTemplateSpec&lt;/td>
  &lt;td style="text-align: left">&lt;code>8080&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>metricsPort&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">The port that should expose the metrics service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>metrics&lt;/code> port defined in the podTemplateSpec&lt;/td>
+ &lt;td style="text-align: left">&lt;code>8081&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: left">&lt;code>labels&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>.&lt;/td>
+ &lt;td style="text-align: left">&lt;code>a: label&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>podTemplateSpec&lt;/code>&lt;/td>

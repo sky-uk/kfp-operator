@@ -24,6 +24,9 @@ spec:
     serviceContainerName: provider-service
     servicePort: 8080
     metricsPort: 8081
+    labels: 
+      a: label
+      another: label
     podTemplateSpec:
       spec:
         volumes: []
