@@ -24,7 +24,12 @@ func (dje DefaultJobEnricher) Enrich(
 		return nil, err
 	}
 	job.Name = pv.name
-	job.Labels = pv.labels
+	if job.Labels == nil {
+		job.Labels = map[string]string{}
+	}
+	for k, v := range pv.labels {
+		job.Labels[k] = v
+	}
 	job.PipelineSpec = pv.pipelineSpec
 	return job, nil
 }
