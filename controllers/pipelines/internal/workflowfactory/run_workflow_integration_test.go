@@ -6,8 +6,8 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	testutil "github.com/sky-uk/kfp-operator/common/testutil/provider"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
@@ -26,15 +26,15 @@ var _ = Context("Run Resource Workflows", Serial, func() {
 		WorkflowNamespace:      "argo",
 	})
 
-	var newRun = func() *pipelinesv1.Run {
-		return withIntegrationTestFields(pipelinesv1.RandomRun(TestProvider))
+	var newRun = func() *pipelineshub.Run {
+		return withIntegrationTestFields(pipelineshub.RandomRun(TestProvider))
 	}
 
-	newRunWithProviderId := func(providerId string) *pipelinesv1.Run {
+	newRunWithProviderId := func(providerId string) *pipelineshub.Run {
 		run := newRun()
 		run.SetStatus(
-			pipelinesv1.Status{
-				Provider: pipelinesv1.ProviderAndId{
+			pipelineshub.Status{
+				Provider: pipelineshub.ProviderAndId{
 					Id: providerId,
 				},
 			},
@@ -43,7 +43,7 @@ var _ = Context("Run Resource Workflows", Serial, func() {
 		return run
 	}
 
-	DescribeTable("Workflows", AssertWorkflow[*pipelinesv1.Run],
+	DescribeTable("Workflows", AssertWorkflow[*pipelineshub.Run],
 		Entry(
 			"Creation",
 			newRun(),
@@ -67,7 +67,7 @@ var _ = Context("Run Resource Workflows", Serial, func() {
 
 	Describe("Update fails", func() {
 		It("fails the workflow", func() {
-			testCtx := WorkflowTestHelper[*pipelinesv1.Run]{
+			testCtx := WorkflowTestHelper[*pipelineshub.Run]{
 				Resource: newRun(),
 			}
 

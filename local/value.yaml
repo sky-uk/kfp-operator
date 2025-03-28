@@ -21,9 +21,9 @@ manager:
   runcompletionWebhook:
     port: 8082
     endpoints:
-    - host: kfp-operator-run-completion-event-trigger.kfp-operator-system
-      path: ""
-      port: 50051
+      - host: kfp-operator-run-completion-event-trigger.kfp-operator-system
+        path: ""
+        port: 50051
 
 runcompletionEventTrigger:
   enabled: true

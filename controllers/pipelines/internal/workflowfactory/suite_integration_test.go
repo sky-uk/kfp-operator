@@ -9,7 +9,8 @@ import (
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
@@ -26,7 +27,6 @@ import (
 const (
 	TestTimeout   = 120
 	TestNamespace = "argo"
-	TestProvider  = "stub"
 )
 
 var (
@@ -34,7 +34,11 @@ var (
 		Host:    "http://localhost:8080",
 		APIPath: "/api",
 	}
-	TestProviderConfig = pipelinesv1.RandomProvider()
+	TestProviderConfig = pipelineshub.RandomProvider()
+	TestProvider       = common.NamespacedName{
+		Name:      "stub",
+		Namespace: "default",
+	}
 )
 
 func TestPipelineControllersIntegrationSuite(t *testing.T) {
@@ -50,24 +54,24 @@ var _ = BeforeSuite(func() {
 	Ctx = context.Background()
 })
 
-var provider = pipelinesv1.Provider{
+var provider = pipelineshub.Provider{
 	ObjectMeta: metav1.ObjectMeta{
 		Name:      "kfp-operator-integration-tests-providers",
 		Namespace: TestNamespace,
 	},
-	Spec: pipelinesv1.ProviderSpec{
+	Spec: pipelineshub.ProviderSpec{
 		ServiceImage:   "kfp-operator-stub-provider-service",
 		Image:          "kfp-operator-unused-old-stub-provider-cli",
 		ExecutionMode:  "none",
 		ServiceAccount: "default",
 	},
-	Status: pipelinesv1.Status{},
+	Status: pipelineshub.Status{},
 }
 
-func AssertWorkflow[R pipelinesv1.Resource](
+func AssertWorkflow[R pipelineshub.Resource](
 	resource R,
 	expectedOutput base.Output,
-	constructWorkflow func(pipelinesv1.Provider, corev1.Service, R) (*argo.Workflow, error),
+	constructWorkflow func(pipelineshub.Provider, corev1.Service, R) (*argo.Workflow, error),
 ) {
 
 	testCtx := WorkflowTestHelper[R]{
@@ -109,7 +113,7 @@ func AssertWorkflow[R pipelinesv1.Resource](
 	).Should(Succeed())
 }
 
-func withIntegrationTestFields[T pipelinesv1.Resource](resource T) T {
+func withIntegrationTestFields[T pipelineshub.Resource](resource T) T {
 	resource.SetNamespace(TestNamespace)
 	resourceStatus := resource.GetStatus()
 	resourceStatus.Provider.Name = TestProvider

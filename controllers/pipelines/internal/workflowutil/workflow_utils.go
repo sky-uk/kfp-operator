@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 )
@@ -52,7 +52,7 @@ func GetWorkflowOutput(
 
 func SetWorkflowProvider(
 	workflow *argo.Workflow,
-	provider pipelinesv1.Provider,
+	provider pipelineshub.Provider,
 ) (*argo.Workflow, error) {
 	providerStr, err := json.Marshal(provider)
 	if err != nil {
@@ -66,11 +66,18 @@ func SetWorkflowProvider(
 			Value: argo.AnyStringPtr(providerStr),
 		},
 	)
+
+	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		fmt.Println("WorkflowUtils: err: ", err)
+		return nil, err
+	}
+
 	workflow.Spec.Arguments.Parameters = append(
 		workflow.Spec.Arguments.Parameters,
 		argo.Parameter{
 			Name:  workflowconstants.ProviderNameParameterName,
-			Value: argo.AnyStringPtr(provider.Name),
+			Value: argo.AnyStringPtr(namespacedProvider),
 		},
 	)
 

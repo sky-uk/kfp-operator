@@ -62,7 +62,7 @@ var _ = Context("Run", func() {
 		})
 
 		Specify("The original object should not change", PropertyBased, func() {
-			run := RandomRun()
+			run := RandomRun(common.RandomString())
 			expected := run.DeepCopy()
 			run.ComputeHash()
 

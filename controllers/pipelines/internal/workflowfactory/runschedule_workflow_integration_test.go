@@ -4,8 +4,8 @@ package workflowfactory
 
 import (
 	. "github.com/onsi/ginkgo/v2"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	testutil "github.com/sky-uk/kfp-operator/common/testutil/provider"
 )
@@ -21,15 +21,15 @@ var _ = Context("RunSchedule Resource Workflows", Serial, func() {
 		WorkflowNamespace:      "argo",
 	})
 
-	var newRunSchedule = func() *pipelinesv1.RunSchedule {
-		return withIntegrationTestFields(pipelinesv1.RandomRunSchedule(TestProvider))
+	var newRunSchedule = func() *pipelineshub.RunSchedule {
+		return withIntegrationTestFields(pipelineshub.RandomRunSchedule(TestProvider))
 	}
 
-	newRunScheduleWithProviderId := func(providerId string) *pipelinesv1.RunSchedule {
+	newRunScheduleWithProviderId := func(providerId string) *pipelineshub.RunSchedule {
 		rsd := newRunSchedule()
 		rsd.SetStatus(
-			pipelinesv1.Status{
-				Provider: pipelinesv1.ProviderAndId{
+			pipelineshub.Status{
+				Provider: pipelineshub.ProviderAndId{
 					Id: providerId,
 				},
 			},
@@ -38,7 +38,7 @@ var _ = Context("RunSchedule Resource Workflows", Serial, func() {
 		return rsd
 	}
 
-	DescribeTable("Workflows", AssertWorkflow[*pipelinesv1.RunSchedule],
+	DescribeTable("Workflows", AssertWorkflow[*pipelineshub.RunSchedule],
 		Entry("Creation",
 			newRunSchedule(),
 			base.Output{Id: testutil.CreateRunScheduleSucceeded},

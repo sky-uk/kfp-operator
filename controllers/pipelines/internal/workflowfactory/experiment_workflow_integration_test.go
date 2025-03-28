@@ -4,8 +4,8 @@ package workflowfactory
 
 import (
 	. "github.com/onsi/ginkgo/v2"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	testutil "github.com/sky-uk/kfp-operator/common/testutil/provider"
 )
@@ -21,15 +21,15 @@ var _ = Context("Experiment Resource Workflows", Serial, func() {
 		WorkflowNamespace:      "argo",
 	})
 
-	var newExperiment = func() *pipelinesv1.Experiment {
-		return withIntegrationTestFields(pipelinesv1.RandomExperiment(TestProvider))
+	var newExperiment = func() *pipelineshub.Experiment {
+		return withIntegrationTestFields(pipelineshub.RandomExperiment(TestProvider))
 	}
 
-	newExperimentWithProviderId := func(providerId string) *pipelinesv1.Experiment {
+	newExperimentWithProviderId := func(providerId string) *pipelineshub.Experiment {
 		experiment := newExperiment()
 		experiment.SetStatus(
-			pipelinesv1.Status{
-				Provider: pipelinesv1.ProviderAndId{
+			pipelineshub.Status{
+				Provider: pipelineshub.ProviderAndId{
 					Id: providerId,
 				},
 			},
@@ -38,7 +38,7 @@ var _ = Context("Experiment Resource Workflows", Serial, func() {
 		return experiment
 	}
 
-	DescribeTable("Workflows", AssertWorkflow[*pipelinesv1.Experiment],
+	DescribeTable("Workflows", AssertWorkflow[*pipelineshub.Experiment],
 		Entry(
 			"Creation",
 			newExperiment(),

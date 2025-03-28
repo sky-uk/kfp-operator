@@ -8,13 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider/testutil"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
@@ -156,7 +156,7 @@ var _ = Describe("Provider", func() {
 	Context("CreateRun", func() {
 		When("creating a run", func() {
 			It("return a run ID", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
@@ -185,7 +185,7 @@ var _ = Describe("Provider", func() {
 			})
 
 			It("return an error when the file handler read fails", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				mockFileHandler.On(
 					"Read",
 					vaiProvider.config.Parameters.PipelineBucket,
@@ -198,7 +198,7 @@ var _ = Describe("Provider", func() {
 			})
 
 			It("return an error when the job builder fails", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				mockFileHandler.On(
 					"Read",
 					vaiProvider.config.Parameters.PipelineBucket,
@@ -212,7 +212,7 @@ var _ = Describe("Provider", func() {
 			})
 
 			It("return an error when the job enricher fails", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
@@ -228,7 +228,7 @@ var _ = Describe("Provider", func() {
 			})
 
 			It("return an error when the pipeline client fails", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",

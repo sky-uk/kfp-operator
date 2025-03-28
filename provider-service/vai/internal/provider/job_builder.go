@@ -26,9 +26,10 @@ type JobBuilder interface {
 }
 
 type DefaultJobBuilder struct {
-	serviceAccount string
-	pipelineBucket string
-	labelGen       LabelGen
+	serviceAccount      string
+	pipelineBucket      string
+	pipelineRootStorage string
+	labelGen            LabelGen
 }
 
 // MkRunPipelineJob creates a vai pipeline job for a run that can be submitted
@@ -59,10 +60,15 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 		return nil, err
 	}
 
+	pipelineResourceName, err := rd.Name.String()
+	if err != nil {
+		return nil, err
+	}
 	job := &aiplatformpb.PipelineJob{
 		Labels: labels,
 		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
-			Parameters: params,
+			Parameters:         params,
+			GcsOutputDirectory: fmt.Sprintf("%s/%s", jb.pipelineRootStorage, pipelineResourceName),
 		},
 		ServiceAccount: jb.serviceAccount,
 		TemplateUri:    templateUri,

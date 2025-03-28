@@ -1,4 +1,4 @@
-package v1alpha6
+package v1beta1
 
 import (
 	"reflect"
@@ -17,7 +17,7 @@ func (r *Run) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1alpha6-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=create;update,versions=v1alpha6,name=vrun.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1beta1-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=create;update,versions=v1beta1,name=vrun.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Validator = &Run{}
 

@@ -1,4 +1,4 @@
-apiVersion: config.kubeflow.org/v1alpha6
+apiVersion: config.kubeflow.org/v1beta1
 kind: KfpControllerConfig
 controller:
   health:
@@ -14,8 +14,7 @@ spec:
   multiversion: true
   workflowNamespace: kfp-operator-system
   workflowTemplatePrefix: kfp-operator-
-  pipelineFrameworkImages:
-    default: kfp-operator-tfx-compiler:latest
+  pipelineFrameworkImages: {}
   runCompletionFeed:
     port: 8082
     endpoints: []

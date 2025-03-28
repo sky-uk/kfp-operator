@@ -1,9 +1,12 @@
 name: namespace/test
 image: test-pipeline
-tfxComponents: pipeline.create_components
+framework:
+  type: tfx
+  parameters:
+    components: pipeline.create_components
+    beamArgs:
+      - name: anArg
+        value: aValue
 env:
 - name: foo
   value: bar
-beamArgs:
-- name: anArg
-  value: aValue

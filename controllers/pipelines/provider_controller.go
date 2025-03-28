@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -33,7 +34,7 @@ type ProviderReconciler struct {
 
 func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerConfigSpec) *ProviderReconciler {
 	return &ProviderReconciler{
-		ProviderLoader: ResourceReconciler[*pipelinesv1.Provider]{
+		ProviderLoader: ResourceReconciler[*pipelineshub.Provider]{
 			EC:     ec,
 			Config: config,
 		},
@@ -54,7 +55,7 @@ func NewProviderReconciler(ec K8sExecutionContext, config config.KfpControllerCo
 }
 
 func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	provider := &pipelinesv1.Provider{}
+	provider := &pipelineshub.Provider{}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(provider, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
@@ -77,7 +78,10 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	startTime := time.Now()
 	logger.V(2).Info("reconciliation started", "request", req)
 
-	provider, err := r.ProviderLoader.LoadProvider(ctx, req.Namespace, req.Name)
+	provider, err := r.ProviderLoader.LoadProvider(ctx, common.NamespacedName{
+		Name:      req.Name,
+		Namespace: req.Namespace,
+	})
 	if err != nil {
 		logger.Error(err, "unable to get provider", "provider", req.NamespacedName)
 		return ctrl.Result{}, client.IgnoreNotFound(err)

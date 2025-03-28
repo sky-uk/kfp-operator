@@ -4,26 +4,27 @@ package provider
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider/testutil"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ = Describe("JobBuilder", func() {
 	var jb = DefaultJobBuilder{
-		serviceAccount: "service-account",
-		pipelineBucket: "pipeline-bucket",
-		labelGen:       mocks.MockLabelGen{},
+		serviceAccount:      "service-account",
+		pipelineBucket:      "pipeline-bucket",
+		pipelineRootStorage: "gs://pipeline-root-storage",
+		labelGen:            mocks.MockLabelGen{},
 	}
 
 	Context("MkRunPipelineJob", func() {
 		When("templateUri is valid", func() {
 			It("should make a run pipeline job", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				job, err := jb.MkRunPipelineJob(rd)
 				expectedTemplateUri := fmt.Sprintf(
 					"gs://%s/%s/%s/%s",
@@ -40,12 +41,22 @@ var _ = Describe("JobBuilder", func() {
 				}
 				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
 				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
+				Expect(job.RuntimeConfig.GcsOutputDirectory).To(Equal(fmt.Sprintf("%s/%s/%s", jb.pipelineRootStorage, rd.Name.Namespace, rd.Name.Name)))
 			})
 		})
 		When("templateUri is invalid", func() {
 			It("should return error", func() {
-				rd := testutil.RandomBasicRunDefinition()
+				rd := testutil.RandomRunDefinition()
 				rd.PipelineName.Name = ""
+				_, err := jb.MkRunPipelineJob(rd)
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+		When("run definition name is invalid", func() {
+			It("should return error", func() {
+				rd := testutil.RandomRunDefinition()
+				rd.Name.Name = ""
 				_, err := jb.MkRunPipelineJob(rd)
 
 				Expect(err).To(HaveOccurred())

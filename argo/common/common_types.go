@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// +kubebuilder:validation:Type=string
 type NamespacedName struct {
 	Name      string `json:"-" yaml:"-"`
 	Namespace string `json:"-" yaml:"-"`

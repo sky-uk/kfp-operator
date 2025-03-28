@@ -18,7 +18,6 @@ type PipelineSpec struct {
 	TfxComponents string            `json:"tfxComponents" yaml:"tfxComponents"`
 	Env           []apis.NamedValue `json:"env,omitempty" yaml:"env"`
 	BeamArgs      []apis.NamedValue `json:"beamArgs,omitempty"`
-	Framework     string            `json:"framework,omitempty" yaml:"framework"`
 }
 
 func (ps Pipeline) ComputeHash() []byte {
@@ -48,7 +47,6 @@ func (ps Pipeline) ComputeVersion() string {
 // +kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider.name"
 // +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
-// +kubebuilder:storageversion
 type Pipeline struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

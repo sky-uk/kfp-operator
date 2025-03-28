@@ -4,13 +4,15 @@ import (
 	"context"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	config "github.com/sky-uk/kfp-operator/apis/config/v1alpha6"
-	pipelinesv1 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
+	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -18,25 +20,27 @@ import (
 type ProviderLoader interface {
 	LoadProvider(
 		ctx context.Context,
-		namespace string,
-		desiredProvider string) (pipelinesv1.Provider, error)
+		desiredProvider common.NamespacedName,
+	) (pipelineshub.Provider, error)
 }
 
-type ResourceReconciler[R pipelinesv1.Resource] struct {
+type ResourceReconciler[R pipelineshub.Resource] struct {
 	EC     K8sExecutionContext
 	Config config.KfpControllerConfigSpec
 }
 
 func (br ResourceReconciler[R]) LoadProvider(
 	ctx context.Context,
-	namespace string,
-	desiredProvider string,
-) (pipelinesv1.Provider, error) {
+	desiredProvider common.NamespacedName,
+) (pipelineshub.Provider, error) {
+	logger := log.FromContext(ctx)
+	logger.Info("loading provider:", "provider", desiredProvider)
+
 	providerNamespacedName := types.NamespacedName{
-		Namespace: namespace,
-		Name:      desiredProvider,
+		Name:      desiredProvider.Name,
+		Namespace: desiredProvider.Namespace,
 	}
-	var provider = pipelinesv1.Provider{}
+	var provider = pipelineshub.Provider{}
 
 	err := br.EC.Client.NonCached.Get(ctx, providerNamespacedName, &provider)
 
@@ -44,7 +48,7 @@ func (br ResourceReconciler[R]) LoadProvider(
 }
 
 func (br ResourceReconciler[R]) reconciliationRequestsForWorkflow(
-	resource pipelinesv1.Resource,
+	resource pipelineshub.Resource,
 ) handler.MapFunc {
 	return func(ctx context.Context, workflow client.Object) []reconcile.Request {
 		kind, hasKind := workflow.GetLabels()[workflowconstants.OwnerKindLabelKey]

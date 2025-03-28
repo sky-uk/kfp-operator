@@ -15,7 +15,7 @@
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>defaultProvider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers/overview">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed on release of v1alpha7&lt;/td>
+ &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
  &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
@@ -45,7 +45,7 @@
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>defaultProviderValues&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../../reference/providers/overview">providers&lt;/a>&lt;/td>
+ &lt;td style="text-align: left">&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
  &lt;td style="text-align: left">&lt;/td>
  &lt;/tr>
  &lt;/tbody>

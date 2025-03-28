@@ -13,7 +13,7 @@ Any referenced resources must always match the provider of the referencing resou
 ### Common Fields
 
 | Name                       | Description                                                                                                                                                                                                                        | Example                                                |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
 | `spec.serviceImage`        | Container image of [the provider service](../../providers/#provider-service)                                                                                                                                                       | `kfp-operator-kfp-provider-service:0.0.2`              |
 | `spec.image`               | Container image of [the provider CLI](../../providers/#provider-cli)                                                                                                                                                               | `kfp-operator-kfp-provider:0.0.2`                      |
 | `spec.executionMode`       | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode)                                                                                               | `v1` (currently KFP) or `v2` (Vertex AI)               |
@@ -25,7 +25,7 @@ Any referenced resources must always match the provider of the referencing resou
 ### Kubeflow:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha6
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Provider
 metadata:
   name: kfp
@@ -58,7 +58,7 @@ spec:
 ### Vertex AI:
 
 ```yaml
-apiVersion: pipelines.kubeflow.org/v1alpha6
+apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Provider
 metadata:
   name: vai
