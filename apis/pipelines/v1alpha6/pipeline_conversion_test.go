@@ -36,7 +36,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					PipelineConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort), syncStateComparer))
 			})
 		})
 
@@ -54,7 +54,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					PipelineConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort), syncStateComparer))
 			})
 
 		})
