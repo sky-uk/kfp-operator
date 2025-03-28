@@ -71,14 +71,14 @@ func (p *Provider) GetKind() string {
 	return "provider"
 }
 
-func (p *Provider) StatusWithCondition(message string) {
+func (p *Provider) StatusWithCondition(state apis.SynchronizationState, message string) {
 	p.Status.Conditions = p.Status.Conditions.MergeIntoConditions(metav1.Condition{
-		LastTransitionTime: metav1.Now(),
+		LastTransitionTime: metav1.Now().Rfc3339Copy(),
 		Message:            message,
 		ObservedGeneration: p.Status.ObservedGeneration,
-		Type:               ConditionTypes.SynchronizationSucceeded,
-		Status:             ConditionStatusForSynchronizationState(p.Status.SynchronizationState),
-		Reason:             string(p.Status.SynchronizationState),
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
+		Status:             apis.ConditionStatusForSynchronizationState(state),
+		Reason:             string(state),
 	})
 }
 

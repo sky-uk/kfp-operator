@@ -1,16 +1,5 @@
 package apis
 
-type SynchronizationState string
-
-const (
-	Creating  SynchronizationState = "Creating"
-	Succeeded SynchronizationState = "Succeeded"
-	Updating  SynchronizationState = "Updating"
-	Deleting  SynchronizationState = "Deleting"
-	Deleted   SynchronizationState = "Deleted"
-	Failed    SynchronizationState = "Failed"
-)
-
 const Group = "pipelines.kubeflow.org"
 
 // +kubebuilder:object:generate=true

@@ -34,7 +34,7 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					RunConfigurationConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), syncStateComparer))
 			})
 		})
 		When("status provider is non-empty", func() {
@@ -55,7 +55,7 @@ var _ = Context("RunConfiguration Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					RunConfigurationConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), syncStateComparer))
 			})
 		})
 	})

@@ -46,6 +46,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	remainder.ProviderStatusNamespace = src.Status.Provider.Namespace
 
 	dst.TypeMeta.APIVersion = dstApiVersion
+	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }
