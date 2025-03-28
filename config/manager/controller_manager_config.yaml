@@ -25,6 +25,8 @@ spec:
     metricsPort: 8081
     labels: []
     podTemplateSpec:
+      metadata:
+        labels: []
       spec:
         volumes: []
         securityContext:
