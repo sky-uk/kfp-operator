@@ -23,7 +23,11 @@ spec:
     replicas: 1
     serviceContainerName: provider-service
     servicePort: 8080
+    metricsPort: 8081
+    labels: []
     podTemplateSpec:
+      metadata:
+        labels: []
       spec:
         volumes: []
         securityContext:
@@ -33,6 +37,9 @@ spec:
           ports:
           - containerPort: 8080
             name: http
+            protocol: TCP
+          - containerPort: 8081
+            name: metrics
             protocol: TCP
           volumeMounts: []
           securityContext:
@@ -53,3 +60,5 @@ spec:
             value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
           - name: SERVER_PORT
             value: '8080'
+          - name: METRICS_PORT
+            value: '8081'

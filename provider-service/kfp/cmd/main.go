@@ -64,7 +64,7 @@ func runServer(ctx context.Context, kfpConfig *kfpConfig.KfpProviderConfig, base
 		panic(err)
 	}
 
-	if err = server.Start(ctx, baseConfig.Server, provider); err != nil {
+	if err = server.Start(ctx, *baseConfig, provider); err != nil {
 		panic(err)
 	}
 }

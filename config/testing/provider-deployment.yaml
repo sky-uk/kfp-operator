@@ -27,6 +27,8 @@ spec:
           value: http://kfp-operator-runcompletion-webhook-service.kfp-operator-system:80/events
         - name: SERVER_PORT
           value: "8080"
+        - name: METRICS_PORT
+          value: "8081"
         - name: PROVIDERNAME
           value: test
         image: kfp-operator-stub-provider-service
@@ -34,6 +36,9 @@ spec:
         ports:
         - containerPort: 8080
           name: http
+          protocol: TCP
+        - containerPort: 8081
+          name: metrics
           protocol: TCP
         resources:
           limits:
