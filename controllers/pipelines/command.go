@@ -65,6 +65,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
+			fmt.Printf("\n setStatus: %v\n", setStatus)
 			setStatus.statusWithCondition()
 
 			modifiedCommands = append(modifiedCommands, setStatus)
@@ -74,10 +75,13 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	}
 
 	if !setStatusExists {
+
 		newStatus := resource.GetStatus()
 		newStatus.ObservedGeneration = currentGeneration
 		st := From(newStatus)
 		st.statusWithCondition()
+
+		fmt.Printf("\n setStatusExists: %v\n", st)
 
 		modifiedCommands = append(modifiedCommands, st)
 	}
@@ -99,7 +103,9 @@ func From(status pipelineshub.Status) *SetStatus {
 }
 
 func NewSetStatus() *SetStatus {
-	return &SetStatus{}
+	return &SetStatus{
+		LastTransitionTime: metav1.Now(),
+	}
 }
 
 func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState) *SetStatus {
@@ -205,6 +211,7 @@ func (sps SetStatus) execute(
 	err := ec.Client.Status().Update(ctx, resource)
 
 	if err == nil {
+		fmt.Println("######### NO ERROR HERE ")
 		ec.Recorder.Event(
 			resource,
 			eventType(sps),
@@ -212,6 +219,8 @@ func (sps SetStatus) execute(
 			eventMessage(sps),
 		)
 	}
+
+	fmt.Printf("######### BIG ERROR HERE %+v ", err)
 
 	return err
 }

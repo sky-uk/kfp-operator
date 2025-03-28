@@ -34,6 +34,14 @@ func (conditions Conditions) GetSyncStateFromReason() SynchronizationState {
 	return SynchronisationState(reason)
 }
 
+func (conditions Conditions) SetReasonForSyncState(state SynchronizationState) Conditions {
+	conditionsAsMap := conditions.ToMap()
+	condition := conditionsAsMap[ConditionTypes.SynchronizationSucceeded]
+	condition.Reason = string(state)
+	conditionsAsMap[ConditionTypes.SynchronizationSucceeded] = condition
+	return Values(conditionsAsMap)
+}
+
 func (conditions Conditions) ToMap() map[string]metav1.Condition {
 	return ToMap(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
 		return condition.Type, condition

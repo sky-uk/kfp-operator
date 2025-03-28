@@ -73,7 +73,7 @@ func (p *Provider) GetKind() string {
 
 func (p *Provider) StatusWithCondition(state apis.SynchronizationState, message string) {
 	p.Status.Conditions = p.Status.Conditions.MergeIntoConditions(metav1.Condition{
-		LastTransitionTime: metav1.Now(),
+		LastTransitionTime: metav1.Now().Rfc3339Copy(),
 		Message:            message,
 		ObservedGeneration: p.Status.ObservedGeneration,
 		Type:               apis.ConditionTypes.SynchronizationSucceeded,
