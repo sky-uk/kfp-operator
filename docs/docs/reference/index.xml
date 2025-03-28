@@ -104,7 +104,7 @@
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>labels&lt;/code>&lt;/td>
- &lt;td style="text-align: left">A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>.&lt;/td>
+ &lt;td style="text-align: left">A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>. To attach labels to a provider service pod, use &lt;code>podTemplateSpec&lt;/code>.&lt;/td>
  &lt;td style="text-align: left">&lt;code>a: label&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
