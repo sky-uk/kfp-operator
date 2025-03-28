@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "compiler"
+version = "0.0.0" # set by poetry-dynamic-versioning
+description = ""
+authors = []
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+click = ">=8,<9"
+PyYAML = ">=6"
+
+[tool.poetry.dev-dependencies]
+kfp = ">=2,<3"
+pytest = ">=8"
+black = ">=25"
+flake8 = ">=7"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+format-jinja = "{{base}}+{{distance}}.{{commit}}{% if dirty %}.dirty{% endif %}"
+
+[build-system]
+requires = ["poetry-core>=1.1.9", "poetry-dynamic-versioning"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+compiler = 'compiler.__main__:main'

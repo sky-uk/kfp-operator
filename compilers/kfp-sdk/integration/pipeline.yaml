@@ -1,0 +1,4 @@
+name: namespace/name
+framework:
+  parameters:
+    pipeline: getting_started.pipeline.add_pipeline
