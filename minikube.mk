@@ -35,7 +35,7 @@ minikube-install-operator:
 minikube-install-provider: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
-minikube-install-provider: # install or update provider
+minikube-install-provider:
 	$(MAKE) -C provider-service docker-push
 	$(MAKE) minikube-provider-setup
 
