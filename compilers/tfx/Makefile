@@ -33,6 +33,7 @@ DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-con
 ##@ Development
 
 test: ## Run all tests
+	poetry install
 	poetry run pytest
 
 integration-test: docker-build penguin-39 penguin-310 penguin-310-115 ## Run the integration test
