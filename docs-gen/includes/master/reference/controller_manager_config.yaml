@@ -29,7 +29,8 @@ spec:
       another: label
     podTemplateSpec:
       metadata:
-        labels: []
+        labels: 
+          a: label
       spec:
         volumes: []
         securityContext:

@@ -23,10 +23,10 @@ spec:
     serviceContainerName: provider-service
     servicePort: 8080
     metricsPort: 8081
-    labels: []
+    labels: {}
     podTemplateSpec:
       metadata:
-        labels: []
+        labels: {}
       spec:
         volumes: []
         securityContext:
