@@ -40,7 +40,8 @@ func (st *StateHandler[R]) stateTransition(
 		setStatus := From(resource.GetStatus()).
 			WithSynchronizationState(apis.Failed).
 			WithMessage(StateHandlerConstants.ProviderChangedError).
-			WithLastTransitionTime(transitionTime).statusWithCondition()
+			WithLastTransitionTime(transitionTime).
+			statusWithCondition()
 		commands = []Command{*setStatus}
 	} else {
 		switch resource.GetStatus().Conditions.GetSyncStateFromReason() {

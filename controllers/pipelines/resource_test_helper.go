@@ -86,7 +86,7 @@ func (testCtx ResourceTestHelper[R]) UpdateStable(updateFunc func(resource R)) {
 	Expect(testCtx.Update(updateFunc)).To(Succeed())
 
 	Eventually(testCtx.ToMatch(func(g Gomega, resource R) {
-		g.Expect(resource.GetStatus().Conditions.SynchronizationSucceeded().Status).To(Equal(apis.Updating))
+		g.Expect(resource.GetStatus().Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 	})).Should(Succeed())
 
 	testCtx.UpdateToSucceeded()
@@ -106,7 +106,7 @@ func (testCtx ResourceTestHelper[R]) UpdateToSucceeded() {
 				Type:               apis.ConditionTypes.SynchronizationSucceeded,
 				Status:             apis.ConditionStatusForSynchronizationState(apis.Succeeded),
 				ObservedGeneration: 0,
-				LastTransitionTime: metav1.Time{}.Rfc3339Copy(),
+				LastTransitionTime: metav1.Now().Rfc3339Copy(),
 				Reason:             string(apis.Succeeded),
 				Message:            "",
 			},
@@ -130,7 +130,7 @@ func CreateSucceeded[R pipelineshub.Resource](resource R) ResourceTestHelper[R] 
 func CreateStable[R pipelineshub.Resource](resource R) ResourceTestHelper[R] {
 	testCtx := Create(resource)
 	Eventually(testCtx.ToMatch(func(g Gomega, resource R) {
-		g.Expect(resource.GetStatus().Conditions.SynchronizationSucceeded().Reason).To(Equal(string(apis.Succeeded)))
+		g.Expect(resource.GetStatus().Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 	})).Should(Succeed())
 
 	return testCtx

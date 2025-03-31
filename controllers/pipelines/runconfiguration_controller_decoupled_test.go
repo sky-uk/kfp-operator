@@ -1,4 +1,4 @@
-//go:build decoupleda
+//go:build decoupled
 
 package pipelines
 
@@ -25,7 +25,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {
 			//other fields tested in unit test
 			g.Expect(ownedSchedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[0]))
-			g.Expect(ownedSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(apis.Creating))
+			g.Expect(ownedSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 		})).Should(Succeed())
 
 		Expect(updateOwnedSchedules(runConfiguration, func(ownedSchedule *pipelineshub.RunSchedule) {
@@ -380,7 +380,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(runConfiguration.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(apis.Succeeded))
+				g.Expect(runConfiguration.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 			})).Should(Succeed())
 
 			runConfiguration.Spec.Run = pipelineshub.RandomRunSpec(Provider.GetCommonNamespacedName())
@@ -431,7 +431,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded()).To(Equal(apis.Failed))
+				g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Failed))
 			})).Should(Succeed())
 
 			Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {

@@ -311,18 +311,14 @@ var _ = Describe("State handler", func() {
 		transitionTime := metav1.Time{}
 		for _, command := range commands {
 			if stat, ok := command.(SetStatus); ok {
-				fmt.Println("found a setStatus yeeeeh")
 				transitionTime = stat.LastTransitionTime
 			}
 		}
 
 		for i, stCommand := range st.Commands {
 			if stat, ok := stCommand.(SetStatus); ok {
-				fmt.Println("found a setStatus on stCommands yeeeeh")
 				stat.WithLastTransitionTime(transitionTime).statusWithCondition()
-				fmt.Println("I've set the stat to ", stat)
 				st.Commands[i] = stat
-				fmt.Println("I've set the stCommands to ", st.Commands[i])
 			}
 		}
 

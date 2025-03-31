@@ -56,16 +56,15 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	var modifiedCommands []Command
 
 	for _, command := range commands {
-		setStatus, isSetStatus := command.(SetStatus)
+		setStatus, ok := command.(SetStatus)
 
-		if isSetStatus {
+		if ok {
 			if setStatusExists {
 				logger.Info("attempting to set status more than once in the same reconciliation, this is likely to cause inconsistencies")
 			}
 
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
-			fmt.Printf("\n setStatus: %v\n", setStatus)
 			setStatus.statusWithCondition()
 
 			modifiedCommands = append(modifiedCommands, setStatus)
@@ -75,14 +74,10 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	}
 
 	if !setStatusExists {
-
 		newStatus := resource.GetStatus()
 		newStatus.ObservedGeneration = currentGeneration
 		st := From(newStatus)
 		st.statusWithCondition()
-
-		fmt.Printf("\n setStatusExists: %v\n", st)
-
 		modifiedCommands = append(modifiedCommands, st)
 	}
 
@@ -108,14 +103,15 @@ func NewSetStatus() *SetStatus {
 	}
 }
 
+// TODO: this is not even setting the synchronization state anymore
 func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState) *SetStatus {
 	condition := metav1.Condition{
 		Type:               apis.ConditionTypes.SynchronizationSucceeded,
-		Message:            sps.Message,
-		ObservedGeneration: sps.Status.ObservedGeneration,
-		Reason:             string(state),
-		LastTransitionTime: sps.LastTransitionTime,
 		Status:             apis.ConditionStatusForSynchronizationState(state),
+		ObservedGeneration: sps.Status.ObservedGeneration,
+		LastTransitionTime: sps.LastTransitionTime,
+		Reason:             string(state),
+		Message:            sps.Message,
 	}
 
 	if sps.Status.Conditions == nil {
@@ -179,15 +175,21 @@ func eventReason(sps SetStatus) string {
 	}
 }
 
+// TODO: do not understand why this is required if WithSynchronizationState since
+// available
 func (sps *SetStatus) statusWithCondition() *SetStatus {
-	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(metav1.Condition{
-		LastTransitionTime: sps.LastTransitionTime,
-		Message:            sps.Message,
-		ObservedGeneration: sps.Status.ObservedGeneration,
-		Type:               apis.ConditionTypes.SynchronizationSucceeded,
-		Status:             apis.ConditionStatusForSynchronizationState(sps.Status.Conditions.GetSyncStateFromReason()),
-		Reason:             string(sps.Status.Conditions.GetSyncStateFromReason()),
-	})
+	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(
+		metav1.Condition{
+			Type: apis.ConditionTypes.SynchronizationSucceeded,
+			Status: apis.ConditionStatusForSynchronizationState(
+				sps.Status.Conditions.GetSyncStateFromReason(),
+			),
+			ObservedGeneration: sps.Status.ObservedGeneration,
+			LastTransitionTime: sps.LastTransitionTime,
+			Reason:             string(sps.Status.Conditions.GetSyncStateFromReason()),
+			Message:            sps.Message,
+		},
+	)
 
 	return sps
 }

@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -75,7 +74,6 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, experiment)
 
 	for i := range commands {
-		fmt.Printf("EXECUTE: %+v\n", commands[i])
 		if err := commands[i].execute(ctx, r.EC, experiment); err != nil {
 			logger.Error(err, "error executing command", logkeys.Command, commands[i])
 			return ctrl.Result{}, err

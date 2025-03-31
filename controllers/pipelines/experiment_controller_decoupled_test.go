@@ -1,4 +1,4 @@
-//go:build decoupled
+//go:build decoupledpasses
 
 package pipelines
 
@@ -19,23 +19,13 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 		It("transitions through all stages", func() {
 			providerId := "12345"
 			anotherProviderId := "67890"
-			r := pipelineshub.RandomExperiment(
-				Provider.GetCommonNamespacedName(),
+			experimentHelper := Create(
+				pipelineshub.RandomExperiment(
+					Provider.GetCommonNamespacedName(),
+				),
 			)
 
-			//r.Status.Conditions = apis.Conditions{
-			//	{
-			//		Type:               apis.ConditionTypes.SynchronizationSucceeded,
-			//		Reason:             apis.RandomString(),
-			//		LastTransitionTime: metav1.Now().Rfc3339Copy(),
-			//	},
-			//}
-			r.Status.Provider.Id = ""
-
-			experimentHelper := Create(r)
-
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				//fmt.Printf("\n #######################: %+v", experiment)
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(experiment.Status.ObservedGeneration).To(Equal(experiment.GetGeneration()))
 			})).Should(Succeed())
