@@ -94,11 +94,7 @@ func (st *StateHandler[R]) onUnknown(
 
 	newVersion := resource.ComputeVersion()
 
-	fmt.Printf("\n#: onUnknown %+v", resource)
 	if resource.GetStatus().Provider.Id != "" {
-
-		fmt.Println("\n##: provider id was set")
-
 		logger.Info("empty state but ProviderId already exists, updating resource")
 		workflow, err := st.WorkflowFactory.ConstructUpdateWorkflow(provider, providerSvc, resource)
 
@@ -121,23 +117,17 @@ func (st *StateHandler[R]) onUnknown(
 		}
 	}
 
-	fmt.Println("\n##: provider id was not set")
-
 	logger.Info("empty state, creating resource")
-	fmt.Println("\n##: running a create workflow")
+
 	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(provider, providerSvc, resource)
 
 	if err != nil {
-		fmt.Printf("\n ##: went wrong trying to create workflow, %+v", err)
-
 		failureMessage := workflowconstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 		cmd := From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
 			WithVersion(newVersion).
 			WithMessage(failureMessage).statusWithCondition()
-
-		fmt.Printf("\n ##: cmd %+v", cmd)
 
 		return []Command{
 			*cmd,
@@ -150,9 +140,7 @@ func (st *StateHandler[R]) onUnknown(
 		},
 	}
 
-	status.WithSynchronizationState(apis.Creating).statusWithCondition()
-
-	fmt.Printf("\n ##: status %+v", status)
+	status.WithLastTransitionTime(metav1.Now()).WithSynchronizationState(apis.Creating).statusWithCondition()
 
 	return []Command{
 		status,

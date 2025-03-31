@@ -211,7 +211,6 @@ func (sps SetStatus) execute(
 	err := ec.Client.Status().Update(ctx, resource)
 
 	if err == nil {
-		fmt.Println("######### NO ERROR HERE ")
 		ec.Recorder.Event(
 			resource,
 			eventType(sps),
@@ -219,8 +218,6 @@ func (sps SetStatus) execute(
 			eventMessage(sps),
 		)
 	}
-
-	fmt.Printf("######### BIG ERROR HERE %+v ", err)
 
 	return err
 }
