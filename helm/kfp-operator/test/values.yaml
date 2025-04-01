@@ -1,6 +1,7 @@
 fullnameOverride: kfp-operator
 containerRegistry: ""
 manager:
+  storedVersion: v1beta1
   argo:
     containerDefaults: {}
   monitoring:
