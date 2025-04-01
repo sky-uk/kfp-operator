@@ -158,7 +158,7 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: false
+    storage: {{ eq .Values.manager.storedVersion "v1alpha5" }}
     subresources:
       status: {}
   - additionalPrinterColumns:
@@ -311,7 +311,7 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: false
+    storage: {{ eq .Values.manager.storedVersion "v1alpha6" }}
     subresources:
       status: {}
   {{- end }}
@@ -463,6 +463,6 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: true
+    storage: {{ eq .Values.manager.storedVersion "v1beta1" }}
     subresources:
       status: {}
