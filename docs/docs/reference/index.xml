@@ -94,7 +94,7 @@
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>servicePort&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that should expose the service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>http&lt;/code> port defined in the podTemplateSpec&lt;/td>
+ &lt;td style="text-align: left">The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
  &lt;td style="text-align: left">&lt;code>8080&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>

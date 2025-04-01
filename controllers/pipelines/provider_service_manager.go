@@ -77,7 +77,6 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelineshub.Provider) 
 
 }
 
-
 func tcpServicePort(name string, port int) corev1.ServicePort {
 	return corev1.ServicePort{Name: name, Port: int32(port), TargetPort: intstr.FromInt(port), Protocol: corev1.ProtocolTCP}
 }
