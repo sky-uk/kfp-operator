@@ -18,24 +18,30 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 )
 
-func InitialiseMetricsServer(ctx context.Context, cfg config.MetricsConfig) (func(), error) {
+type MetricsServer struct{}
+
+func (ms MetricsServer) Start(ctx context.Context, cfg config.MetricsConfig, serviceName string) error {
 	if cfg.Port == 0 {
-		return nil, errors.New("metrics.Port must be specified")
+		return errors.New("metrics.Port must be specified")
 	}
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return initialiseMetricsServerFromListener(ctx, listener)
-
+	onShutdown, err := initialiseMetricsServerFromListener(ctx, listener, serviceName)
+	if err != nil {
+		return err
+	}
+	defer onShutdown()
+	return nil
 }
 
-func initialiseMetricsServerFromListener(ctx context.Context, listener net.Listener) (func(), error) {
+func initialiseMetricsServerFromListener(ctx context.Context, listener net.Listener, serviceName string) (func(), error) {
 	logger := common.LoggerFromContext(ctx)
 
-	meterProvider, err := newMeterProvider()
+	meterProvider, err := newMeterProvider(serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -50,19 +56,19 @@ func initialiseMetricsServerFromListener(ctx context.Context, listener net.Liste
 	}, nil
 }
 
-func newResource() *resource.Resource {
+func newResource(serviceName string) *resource.Resource {
 	return resource.NewWithAttributes(semconv.SchemaURL,
-		semconv.ServiceName("kfp-operator"),
+		semconv.ServiceName(fmt.Sprintf("provider-service-%s", serviceName)),
 	)
 }
 
-func newMeterProvider() (*metric.MeterProvider, error) {
+func newMeterProvider(serviceName string) (*metric.MeterProvider, error) {
 	metricExporter, err := prometheus.New()
 	if err != nil {
 		return nil, err
 	}
 
-	meterProvider := metric.NewMeterProvider(metric.WithResource(newResource()), metric.WithReader(metricExporter))
+	meterProvider := metric.NewMeterProvider(metric.WithResource(newResource(serviceName)), metric.WithReader(metricExporter))
 	return meterProvider, nil
 }
 
@@ -70,10 +76,9 @@ func serveMetrics(ctx context.Context, listener net.Listener) {
 	logger := common.LoggerFromContext(ctx)
 	route := "/metrics"
 
-	logger.Info(fmt.Sprintf("Serving metrics from %s at %s", listener.Addr().String(), route))
-
 	http.Handle(route, promhttp.Handler())
 	if err := http.Serve(listener, nil); err != nil {
 		logger.Error(err, "Metrics serving failed")
 	}
+	logger.Info(fmt.Sprintf("Serving metrics from %s at %s", listener.Addr().String(), route))
 }

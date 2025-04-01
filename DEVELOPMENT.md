@@ -82,16 +82,11 @@ Provide an optional [.netrc file](https://www.gnu.org/software/inetutils/manual/
 
 ## Running locally
 
-Configure the controller to your environment in [controller_manager_config.yaml](../../config/manager/controller_manager_config.yaml) replacing the placeholders (see [docs](../README.md#configuration)).
+Running `make minikube-up` will spin up a local K8s cluster with the operator deployed.
 
-Next install Custom Resource Definitions and run the controller:
+You can optionally perform additional provider setup and teardown steps by including a `provider-setup.sh` and `provider-teardown.sh` script.
 
-```sh
-make install
-make run
-```
-
-CRDs will be installed into an existing Kubernetes cluster. A running instance of Kubeflow is required on that cluster. The controller will run locally, interacting with the remote Kubernetes API.
+CRDs will be installed into a local [minikube](https://github.com/kubernetes/minikube) cluster.
 
 Please refer to the [quickstart tutorial](../quickstart) for instructions on creating a sample pipeline resource.
 
@@ -114,12 +109,6 @@ Finally, bring down the environment after your tests:
 ```sh
 make integration-test-down
 ```
-
-## Run locally
-
-Running `make minikube-up` will spin up a local K8s cluster with the operator deployed.
-
-You can optionally perform additional provider setup and teardown steps by including a `provider-setup.sh` and `provider-teardown.sh` script.
 
 ## Coding Guidelines
 

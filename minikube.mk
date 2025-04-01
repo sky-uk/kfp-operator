@@ -24,7 +24,6 @@ minikube-helm-install-operator: helm-package-operator ./local/values.yaml
 minikube-helm-upgrade-operator: helm-package-operator ./local/values.yaml
 	$(HELM) upgrade -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
 
-
 minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator

@@ -28,13 +28,14 @@ func NewMetricsTestContext() *MetricsTestContext {
 	listener, err := net.Listen("tcp", ":0")
 	Expect(err).NotTo(HaveOccurred())
 
-	shutdown, err := initialiseMetricsServerFromListener(ctx, listener)
+	shutdown, err := initialiseMetricsServerFromListener(ctx, listener, "stub")
 	Expect(err).NotTo(HaveOccurred())
 
 	metricsAddr := listener.Addr()
 
 	return &MetricsTestContext{ctx: ctx, Addr: metricsAddr, shutdown: shutdown}
 }
+
 func TestMetricsServerDecoupledSuite(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Metrics Server decoupled Suite")
@@ -57,7 +58,7 @@ var _ = Context("Metrics Server", func() {
 	When("initialising the metrics server", func() {
 		It("returns an error when port is not specified", func() {
 			ctx := context.Background()
-			_, err := InitialiseMetricsServer(ctx, config.MetricsConfig{})
+			err := MetricsServer{}.Start(ctx, config.MetricsConfig{}, "stub")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(Equal("metrics.Port must be specified"))
 		})

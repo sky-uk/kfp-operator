@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	. "github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"golang.org/x/exp/maps"
@@ -76,23 +77,18 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelineshub.Provider) 
 
 }
 
+
+func tcpServicePort(name string, port int) corev1.ServicePort {
+	return corev1.ServicePort{Name: name, Port: int32(port), TargetPort: intstr.FromInt(port), Protocol: corev1.ProtocolTCP}
+}
+
 func (sm ServiceManager) Construct(provider *pipelineshub.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 	matchLabels := map[string]string{AppLabel: prefixedProviderName}
 	labels := MapConcat(sm.config.DefaultProviderValues.Labels, matchLabels)
 	ports := []corev1.ServicePort{
-		{
-			Name:       "http",
-			Port:       int32(sm.config.DefaultProviderValues.ServicePort),
-			TargetPort: intstr.FromInt(sm.config.DefaultProviderValues.ServicePort),
-			Protocol:   corev1.ProtocolTCP,
-		},
-		{
-			Name:       "metrics",
-			Port:       int32(sm.config.DefaultProviderValues.MetricsPort),
-			TargetPort: intstr.FromInt(sm.config.DefaultProviderValues.MetricsPort),
-			Protocol:   corev1.ProtocolTCP,
-		},
+		tcpServicePort("http", sm.config.DefaultProviderValues.ServicePort),
+		tcpServicePort("metrics", sm.config.DefaultProviderValues.MetricsPort),
 	}
 
 	svc := &corev1.Service{
