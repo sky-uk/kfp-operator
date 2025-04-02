@@ -1,4 +1,4 @@
-//go:build decoupledpasses
+//go:build decoupled
 
 package pipelines
 

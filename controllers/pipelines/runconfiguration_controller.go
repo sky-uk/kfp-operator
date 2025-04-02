@@ -77,7 +77,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	provider := runConfiguration.Spec.Run.Provider
 	if !runConfiguration.Status.Provider.Empty() && provider != runConfiguration.Status.Provider {
 		//TODO: refactor to use Commands and introduce a StateHandler
-		//runConfiguration.Status.SynchronizationState = apis.Failed //TODO set condition to failed
+		runConfiguration.Status.SetSynchronizationState(apis.Failed, StateHandlerConstants.ProviderChangedError)
 
 		message := fmt.Sprintf(
 			`%s: %s`,

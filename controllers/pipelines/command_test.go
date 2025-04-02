@@ -93,8 +93,8 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 	It("updates existing SetStatus", func() {
 		transitionTime := metav1.Now()
 		status := SetStatus{
-			Status:             pipelineshub.Status{},
 			LastTransitionTime: transitionTime,
+			Status:             pipelineshub.Status{},
 		}
 		status.WithSynchronizationState(apis.Succeeded)
 
@@ -144,16 +144,14 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		expectedResource.ObservedGeneration = resource.GetGeneration()
 
 		expectedSetStatus := SetStatus{
-			LastTransitionTime: modifiedCommands[2].(*SetStatus).LastTransitionTime,
-			Status:             *expectedResource,
+			Status: *expectedResource,
 		}
-		expectedSetStatus.statusWithCondition()
 
 		Expect(modifiedCommands).To(ContainElements(
 			[]Command{
 				AcquireResource{},
 				ReleaseResource{},
-				&expectedSetStatus,
+				expectedSetStatus,
 			}))
 	})
 
@@ -174,27 +172,4 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 
 		Expect(modifiedCommands).To(Equal(commands))
 	})
-})
-
-var _ = Describe("statusWithCondition", func() {
-	DescribeTable("sets the condition of the status", func(state apis.SynchronizationState, expectedStatus metav1.ConditionStatus) {
-		setStatus := NewSetStatus().WithMessage(apis.RandomString())
-		setStatus.Status.Conditions = apis.Conditions{}
-		setStatus.WithSynchronizationState(state)
-		setStatus.Status.ObservedGeneration = rand.Int63()
-
-		conditions := setStatus.statusWithCondition().Status.Conditions
-
-		Expect(conditions[0].Message).To(Equal(setStatus.Message))
-		Expect(conditions[0].Reason).To(Equal(setStatus.Status.Conditions.SynchronizationSucceeded().Reason))
-		Expect(conditions[0].Type).To(Equal(apis.ConditionTypes.SynchronizationSucceeded))
-		Expect(conditions[0].ObservedGeneration).To(Equal(setStatus.Status.ObservedGeneration))
-	},
-		Entry("Creating", apis.Creating, metav1.ConditionUnknown),
-		Entry("Succeeded", apis.Succeeded, metav1.ConditionTrue),
-		Entry("Updating", apis.Updating, metav1.ConditionUnknown),
-		Entry("Deleting", apis.Deleting, metav1.ConditionUnknown),
-		Entry("Deleted", apis.Deleted, metav1.ConditionTrue),
-		Entry("Failed", apis.Failed, metav1.ConditionFalse),
-	)
 })

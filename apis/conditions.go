@@ -42,6 +42,20 @@ func (conditions Conditions) SetReasonForSyncState(state SynchronizationState) C
 	return Values(conditionsAsMap)
 }
 
+// SetObservedGeneration updates all conditions that match a Message and LastTransitionTime
+// to a given generation. In practice, at most one condition should satisfy this criteria.
+func (conditions Conditions) SetObservedGeneration(
+	msg string,
+	time metav1.Time,
+	generation int64,
+) {
+	for i := range conditions {
+		if conditions[i].Message == msg && conditions[i].LastTransitionTime == time {
+			conditions[i].ObservedGeneration = generation
+		}
+	}
+}
+
 func (conditions Conditions) ToMap() map[string]metav1.Condition {
 	return ToMap(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
 		return condition.Type, condition

@@ -38,28 +38,42 @@ func (st *StateHandler[R]) stateTransition(
 	resourceProvider := resource.GetStatus().Provider.Name
 	if !resourceProvider.Empty() && resourceProvider != provider.GetCommonNamespacedName() {
 		setStatus := From(resource.GetStatus()).
-			WithSynchronizationState(apis.Failed).
 			WithMessage(StateHandlerConstants.ProviderChangedError).
 			WithLastTransitionTime(transitionTime).
-			statusWithCondition()
+			WithSynchronizationState(apis.Failed)
 		commands = []Command{*setStatus}
 	} else {
 		switch resource.GetStatus().Conditions.GetSyncStateFromReason() {
 		case apis.Creating:
-			commands = st.onCreating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)))
+			commands = st.onCreating(
+				ctx,
+				resource,
+				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)),
+				transitionTime,
+			)
 		case apis.Succeeded, apis.Failed:
 			if !resource.GetDeletionTimestamp().IsZero() {
-				commands = st.onDelete(ctx, provider, providerSvc, resource)
+				commands = st.onDelete(ctx, provider, providerSvc, resource, transitionTime)
 			} else {
-				commands = st.onSucceededOrFailed(ctx, provider, providerSvc, resource)
+				commands = st.onSucceededOrFailed(ctx, provider, providerSvc, resource, transitionTime)
 			}
 		case apis.Updating:
-			commands = st.onUpdating(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)))
+			commands = st.onUpdating(
+				ctx,
+				resource,
+				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)),
+				transitionTime,
+			)
 		case apis.Deleting:
-			commands = st.onDeleting(ctx, resource, st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)))
+			commands = st.onDeleting(
+				ctx,
+				resource,
+				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)),
+				transitionTime,
+			)
 		case apis.Deleted:
 		default:
-			commands = st.onUnknown(ctx, provider, providerSvc, resource)
+			commands = st.onUnknown(ctx, provider, providerSvc, resource, transitionTime)
 		}
 	}
 
@@ -90,6 +104,7 @@ func (st *StateHandler[R]) onUnknown(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
 	resource R,
+	transitionTime metav1.Time,
 ) []Command {
 	logger := log.FromContext(ctx)
 
@@ -104,16 +119,19 @@ func (st *StateHandler[R]) onUnknown(
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 			return []Command{
-				*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
+				*From(resource.GetStatus()).
 					WithVersion(newVersion).
-					WithMessage(failureMessage).statusWithCondition(),
+					WithMessage(failureMessage).
+					WithLastTransitionTime(transitionTime).
+					WithSynchronizationState(apis.Failed),
 			}
 		}
 
 		return []Command{
 			*From(resource.GetStatus()).
+				WithLastTransitionTime(transitionTime).
 				WithSynchronizationState(apis.Updating).
-				WithVersion(newVersion).statusWithCondition(),
+				WithVersion(newVersion),
 			CreateWorkflow{Workflow: *workflow},
 		}
 	}
@@ -126,9 +144,11 @@ func (st *StateHandler[R]) onUnknown(
 		failureMessage := workflowconstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
-		cmd := From(resource.GetStatus()).WithSynchronizationState(apis.Failed).
-			WithVersion(newVersion).
-			WithMessage(failureMessage).statusWithCondition()
+		cmd := From(resource.GetStatus()).
+			WithLastTransitionTime(transitionTime).
+			WithMessage(failureMessage).
+			WithSynchronizationState(apis.Failed).
+			WithVersion(newVersion)
 
 		return []Command{
 			*cmd,
@@ -141,7 +161,7 @@ func (st *StateHandler[R]) onUnknown(
 		},
 	}
 
-	status.WithLastTransitionTime(metav1.Now()).WithSynchronizationState(apis.Creating).statusWithCondition()
+	status.WithLastTransitionTime(transitionTime).WithSynchronizationState(apis.Creating)
 
 	return []Command{
 		status,
@@ -154,13 +174,16 @@ func (st StateHandler[R]) onDelete(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
 	resource R,
+	transitionTime metav1.Time,
 ) []Command {
 	logger := log.FromContext(ctx)
 	logger.Info("deletion requested, deleting")
 
 	if resource.GetStatus().Provider.Id == "" {
 		return []Command{
-			*From(resource.GetStatus()).WithSynchronizationState(apis.Deleted).statusWithCondition(),
+			*From(resource.GetStatus()).
+				WithLastTransitionTime(transitionTime).
+				WithSynchronizationState(apis.Deleted),
 		}
 	}
 
@@ -171,12 +194,17 @@ func (st StateHandler[R]) onDelete(
 		logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{
-			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage).statusWithCondition(),
+			*From(resource.GetStatus()).
+				WithMessage(failureMessage).
+				WithLastTransitionTime(transitionTime).
+				WithSynchronizationState(apis.Failed),
 		}
 	}
 
 	return []Command{
-		*From(resource.GetStatus()).WithSynchronizationState(apis.Deleting).statusWithCondition(),
+		*From(resource.GetStatus()).
+			WithLastTransitionTime(transitionTime).
+			WithSynchronizationState(apis.Deleting),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -186,6 +214,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
 	resource R,
+	transitionTime metav1.Time,
 ) []Command {
 	logger := log.FromContext(ctx)
 	newResourceVersion := resource.ComputeVersion()
@@ -215,9 +244,10 @@ func (st StateHandler[R]) onSucceededOrFailed(
 			}
 			return []Command{
 				*From(resource.GetStatus()).
-					WithSynchronizationState(apis.Failed).
 					WithVersion(newResourceVersion).
-					WithMessage(failureMessage).statusWithCondition(),
+					WithMessage(failureMessage).
+					WithLastTransitionTime(transitionTime).
+					WithSynchronizationState(apis.Failed),
 			}
 		}
 
@@ -234,9 +264,10 @@ func (st StateHandler[R]) onSucceededOrFailed(
 			}
 			return []Command{
 				*From(resource.GetStatus()).
-					WithSynchronizationState(apis.Failed).
 					WithVersion(newResourceVersion).
-					WithMessage(failureMessage).statusWithCondition(),
+					WithMessage(failureMessage).
+					WithLastTransitionTime(transitionTime).
+					WithSynchronizationState(apis.Failed),
 			}
 		}
 
@@ -245,8 +276,9 @@ func (st StateHandler[R]) onSucceededOrFailed(
 
 	return []Command{
 		*From(resource.GetStatus()).
+			WithLastTransitionTime(transitionTime).
 			WithSynchronizationState(targetState).
-			WithVersion(newResourceVersion).statusWithCondition(),
+			WithVersion(newResourceVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -281,13 +313,22 @@ var deletedForNonEmptyId = IdVerifier{
 	},
 }
 
-func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status pipelineshub.Status, workflows []argo.Workflow, states IdVerifier) []Command {
+func (st StateHandler[R]) setStateIfProviderFinished(
+	ctx context.Context,
+	status pipelineshub.Status,
+	workflows []argo.Workflow,
+	states IdVerifier,
+	transitionTime metav1.Time,
+) []Command {
 	logger := log.FromContext(ctx)
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
 		var handleWorkflowErr = func(err error) *SetStatus {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage).statusWithCondition()
+			return From(status).
+				WithMessage(failureMessage).
+				WithLastTransitionTime(transitionTime).
+				WithSynchronizationState(states.FailureState)
 		}
 
 		result, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.ProviderOutputParameterName)
@@ -305,7 +346,11 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 
 		if result.ProviderError != "" {
 			logger.Error(err, fmt.Sprintf("%s, failing resource", result.ProviderError))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(result.ProviderError).WithProvider(providerAndId).statusWithCondition()
+			return From(status).
+				WithMessage(result.ProviderError).
+				WithProvider(providerAndId).
+				WithLastTransitionTime(transitionTime).
+				WithSynchronizationState(states.FailureState)
 		}
 
 		err = states.VerifyId(result.Id)
@@ -313,10 +358,16 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 		if err != nil {
 			failureMessage := err.Error()
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
-			return From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage).statusWithCondition()
+			return From(status).
+				WithMessage(failureMessage).
+				WithLastTransitionTime(transitionTime).
+				WithSynchronizationState(states.FailureState)
 		}
 
-		return From(status).WithSynchronizationState(states.SuccessState).WithProvider(providerAndId).statusWithCondition()
+		return From(status).
+			WithLastTransitionTime(transitionTime).
+			WithSynchronizationState(states.SuccessState).
+			WithProvider(providerAndId)
 	}
 
 	inProgress, succeeded, failed := workflowutil.LatestWorkflowByPhase(workflows)
@@ -330,7 +381,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 
 	if succeeded != nil {
 		logger.Info("operation succeeded")
-		setStatusCommand = statusFromProviderOutput(succeeded).statusWithCondition()
+		setStatusCommand = statusFromProviderOutput(succeeded)
 	} else {
 		var failureMessage string
 
@@ -341,7 +392,10 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 		}
 
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
-		setStatusCommand = From(status).WithSynchronizationState(states.FailureState).WithMessage(failureMessage).statusWithCondition()
+		setStatusCommand = From(status).
+			WithMessage(failureMessage).
+			WithLastTransitionTime(transitionTime).
+			WithSynchronizationState(states.FailureState)
 	}
 
 	return []Command{
@@ -352,7 +406,12 @@ func (st StateHandler[R]) setStateIfProviderFinished(ctx context.Context, status
 	}
 }
 
-func (st StateHandler[R]) onCreating(ctx context.Context, resource R, creationWorkflows []argo.Workflow) []Command {
+func (st StateHandler[R]) onCreating(
+	ctx context.Context,
+	resource R,
+	creationWorkflows []argo.Workflow,
+	transitionTime metav1.Time,
+) []Command {
 	logger := log.FromContext(ctx)
 
 	if resource.GetStatus().Version == "" {
@@ -360,14 +419,22 @@ func (st StateHandler[R]) onCreating(ctx context.Context, resource R, creationWo
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{
-			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage).statusWithCondition(),
+			*From(resource.GetStatus()).
+				WithMessage(failureMessage).
+				WithLastTransitionTime(transitionTime).
+				WithSynchronizationState(apis.Failed),
 		}
 	}
 
-	return st.setStateIfProviderFinished(ctx, resource.GetStatus(), creationWorkflows, succeedForEmptyId)
+	return st.setStateIfProviderFinished(ctx, resource.GetStatus(), creationWorkflows, succeedForEmptyId, transitionTime)
 }
 
-func (st StateHandler[R]) onUpdating(ctx context.Context, resource R, updateWorkflows []argo.Workflow) []Command {
+func (st StateHandler[R]) onUpdating(
+	ctx context.Context,
+	resource R,
+	updateWorkflows []argo.Workflow,
+	transitionTime metav1.Time,
+) []Command {
 	logger := log.FromContext(ctx)
 
 	if resource.GetStatus().Version == "" || resource.GetStatus().Provider.Id == "" {
@@ -375,13 +442,21 @@ func (st StateHandler[R]) onUpdating(ctx context.Context, resource R, updateWork
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
 
 		return []Command{
-			*From(resource.GetStatus()).WithSynchronizationState(apis.Failed).WithMessage(failureMessage).statusWithCondition(),
+			*From(resource.GetStatus()).
+				WithMessage(failureMessage).
+				WithLastTransitionTime(transitionTime).
+				WithSynchronizationState(apis.Failed),
 		}
 	}
 
-	return st.setStateIfProviderFinished(ctx, resource.GetStatus(), updateWorkflows, succeedForEmptyId)
+	return st.setStateIfProviderFinished(ctx, resource.GetStatus(), updateWorkflows, succeedForEmptyId, transitionTime)
 }
 
-func (st StateHandler[R]) onDeleting(ctx context.Context, resource R, deletionWorkflows []argo.Workflow) []Command {
-	return st.setStateIfProviderFinished(ctx, resource.GetStatus(), deletionWorkflows, deletedForNonEmptyId)
+func (st StateHandler[R]) onDeleting(
+	ctx context.Context,
+	resource R,
+	deletionWorkflows []argo.Workflow,
+	transitionTime metav1.Time,
+) []Command {
+	return st.setStateIfProviderFinished(ctx, resource.GetStatus(), deletionWorkflows, deletedForNonEmptyId, transitionTime)
 }

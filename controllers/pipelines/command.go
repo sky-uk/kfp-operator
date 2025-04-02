@@ -65,7 +65,11 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
-			setStatus.statusWithCondition()
+			setStatus.Status.Conditions.SetObservedGeneration(
+				setStatus.Message,
+				setStatus.LastTransitionTime,
+				currentGeneration,
+			)
 
 			modifiedCommands = append(modifiedCommands, setStatus)
 		} else {
@@ -76,9 +80,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	if !setStatusExists {
 		newStatus := resource.GetStatus()
 		newStatus.ObservedGeneration = currentGeneration
-		st := From(newStatus)
-		st.statusWithCondition()
-		modifiedCommands = append(modifiedCommands, st)
+		modifiedCommands = append(modifiedCommands, SetStatus{Status: newStatus})
 	}
 
 	return modifiedCommands
@@ -175,25 +177,6 @@ func eventReason(sps SetStatus) string {
 	}
 }
 
-// TODO: do not understand why this is required if WithSynchronizationState since
-// available
-func (sps *SetStatus) statusWithCondition() *SetStatus {
-	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(
-		metav1.Condition{
-			Type: apis.ConditionTypes.SynchronizationSucceeded,
-			Status: apis.ConditionStatusForSynchronizationState(
-				sps.Status.Conditions.GetSyncStateFromReason(),
-			),
-			ObservedGeneration: sps.Status.ObservedGeneration,
-			LastTransitionTime: sps.LastTransitionTime,
-			Reason:             string(sps.Status.Conditions.GetSyncStateFromReason()),
-			Message:            sps.Message,
-		},
-	)
-
-	return sps
-}
-
 func (sps SetStatus) execute(
 	ctx context.Context,
 	ec K8sExecutionContext,
@@ -208,7 +191,7 @@ func (sps SetStatus) execute(
 		sps.Status,
 	)
 
-	resource.SetStatus(sps.statusWithCondition().Status)
+	resource.SetStatus(sps.Status)
 
 	err := ec.Client.Status().Update(ctx, resource)
 
