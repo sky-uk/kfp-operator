@@ -127,7 +127,7 @@ We use the [zap](https://github.com/uber-go/zap) implementation of [logr](https:
 
 ## CRD Versioning
 
-Steps to create a new version of the pipeline CRDs:
+Steps to create a new CRD version:
 
 1) Copy and paste the current `hub` into its version named directory, e.g. `v1alpha1`.
 1) Change groupversion_info.go to reflect the new version, e.g. `v1alpha2`.
@@ -136,3 +136,4 @@ Steps to create a new version of the pipeline CRDs:
 1) Make the required schema changes in `hub`. This will involve changing the conversion code in all older versions.
 1) Register the old schema (e.g. `v1alpha1`) in the controller runtime (see [here](main.go#L56)).
 1) Copy changes into helm version of the CRD to match that generated in `config/crd/bases`.
+1) Set the new version as the default stored version in `helm/kfp-operator/values.yaml`, e.g. `manager.multiversion.storedVersion: v1alpha2`
