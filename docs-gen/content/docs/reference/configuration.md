@@ -31,6 +31,8 @@ The Kubeflow Pipelines operator can be configured with the following parameters:
 | `replicas`             | Number of replicas used within the deployment                                                                              | `2`                |
 | `serviceContainerName` | Name of the container that will execute the provider image.  **Note:**  this must match the podTemplateSpec name           | `provider-service` |
 | `servicePort`          | The port that should expose the service  **Note:**  this must match the podTemplateSpec ports                              | `8080`             |
+| `metricsPort`          | The port that should expose the metrics service.  **Note:**  this must match the `metrics` port defined in the podTemplateSpec                                                                                                                 | `8081`             |
+| `labels`               | A map of additional labels to add to the provider service Deployment **and** Service. The Deployment and Service will also have a label of `app: provider-<provider_name>`. To attach labels to a provider service pod, use `podTemplateSpec`. | `a: label`         |
 | `podTemplateSpec`      | [k8s pod template spec for the provider service deployment](https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates) |                    |
 
 An example configuration:

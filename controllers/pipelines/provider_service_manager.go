@@ -3,7 +3,10 @@ package pipelines
 import (
 	"context"
 	"fmt"
+	"slices"
+
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	. "github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"golang.org/x/exp/maps"
@@ -16,7 +19,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"slices"
 )
 
 type ServiceResourceManager interface {
@@ -77,18 +79,18 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelineshub.Provider) 
 
 func (sm ServiceManager) Construct(provider *pipelineshub.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
-
-	ports := []corev1.ServicePort{{
-		Name:       "http",
-		Port:       int32(sm.config.DefaultProviderValues.ServicePort),
-		TargetPort: intstr.FromInt(sm.config.DefaultProviderValues.ServicePort),
-		Protocol:   corev1.ProtocolTCP,
-	}}
+	matchLabels := map[string]string{AppLabel: prefixedProviderName}
+	labels := MapConcat(sm.config.DefaultProviderValues.Labels, matchLabels)
+	ports := []corev1.ServicePort{
+		tcpServicePort("http", sm.config.DefaultProviderValues.ServicePort),
+		tcpServicePort("metrics", sm.config.DefaultProviderValues.MetricsPort),
+	}
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: fmt.Sprintf("%s-", prefixedProviderName),
 			Namespace:    provider.Namespace,
+			Labels:       labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports:    ports,
@@ -104,4 +106,8 @@ func (sm ServiceManager) Equal(a, b *corev1.Service) bool {
 	return a.GenerateName == b.GenerateName &&
 		maps.Equal(a.Spec.Selector, b.Spec.Selector) &&
 		slices.Equal(a.Spec.Ports, b.Spec.Ports)
+}
+
+func tcpServicePort(name string, port int) corev1.ServicePort {
+	return corev1.ServicePort{Name: name, Port: int32(port), TargetPort: intstr.FromInt(port), Protocol: corev1.ProtocolTCP}
 }

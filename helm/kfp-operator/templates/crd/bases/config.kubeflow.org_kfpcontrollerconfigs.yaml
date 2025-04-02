@@ -444,6 +444,8 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  metricsPort:
+                    type: integer
                   podTemplateSpec:
                     description: PodTemplateSpec describes the data a pod should have
                       when created from a template
@@ -7936,6 +7938,8 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  metricsPort:
+                    type: integer
                   podTemplateSpec:
                     description: PodTemplateSpec describes the data a pod should have
                       when created from a template

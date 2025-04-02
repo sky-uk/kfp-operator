@@ -44,13 +44,13 @@ make docker-build docker-build-argo
 Push to the container registry:
 
 ```sh
-CONTAINER_REPOSITORIES=<YOUR_CONTAINER_REPOSITORY> make docker-push docker-push-argo
+CONTAINER_REPOSITORIES=<YOUR_CONTAINER_REPOSITORY> make docker-push
 ```
 
 For example, to push to Google Artifact Registry:
 
 ```sh
-CONTAINER_REPOSITORIES=europe-docker.pkg.dev/<PROJECT_NAME>/images make docker-push docker-push-argo
+CONTAINER_REPOSITORIES=europe-docker.pkg.dev/<PROJECT_NAME>/images make docker-push
 ```
 
 ### Building and publishing the Helm chart
@@ -82,16 +82,11 @@ Provide an optional [.netrc file](https://www.gnu.org/software/inetutils/manual/
 
 ## Running locally
 
-Configure the controller to your environment in [controller_manager_config.yaml](../../config/manager/controller_manager_config.yaml) replacing the placeholders (see [docs](../README.md#configuration)).
+Running `make minikube-up` will spin up a local K8s cluster with the operator deployed.
 
-Next install Custom Resource Definitions and run the controller:
+You can optionally perform additional provider setup and teardown steps by including a `provider-setup.sh` and `provider-teardown.sh` script.
 
-```sh
-make install
-make run
-```
-
-CRDs will be installed into an existing Kubernetes cluster. A running instance of Kubeflow is required on that cluster. The controller will run locally, interacting with the remote Kubernetes API.
+CRDs will be installed into a local [minikube](https://github.com/kubernetes/minikube) cluster.
 
 Please refer to the [quickstart tutorial](../quickstart) for instructions on creating a sample pipeline resource.
 
@@ -115,12 +110,6 @@ Finally, bring down the environment after your tests:
 make integration-test-down
 ```
 
-## Run locally
-
-Running `make minikube-up NAME=provider` (set `provider` to the name of your chosen provider e.g. `NAME=vai`) will spin up a local K8s cluster with the operator deployed along with your chosen provider.
-
-You can optionally perform additional provider setup and teardown steps by including a `provider-setup.sh` and `provider-teardown.sh` script.
-
 ## Coding Guidelines
 
 ### Logging
@@ -129,12 +118,12 @@ We use the [zap](https://github.com/uber-go/zap) implementation of [logr](https:
 
 [Verbosity levels](https://github.com/go-logr/logr#why-v-levels) are set according to the following rules:
 
-| Zap Level | Description | Example |
-| --- | --- | --- |
-| 0, `error`, `info` | Will always be logged. Appropriate for all major actions. | state transitions, errors |
-| 1, `debug` | Appropriate for high-level technical information. | resource creation/update/deletion |
-| 2 | Appropriate for low-level technical information. | resource retrieval, finalizers, profiling, expected errors |
-| 3 | Appropriate for verbose debug statements. | printing resources |
+| Zap Level          | Description                                               | Example                                                    |
+| ------------------ | --------------------------------------------------------- | ---------------------------------------------------------- |
+| 0, `error`, `info` | Will always be logged. Appropriate for all major actions. | state transitions, errors                                  |
+| 1, `debug`         | Appropriate for high-level technical information.         | resource creation/update/deletion                          |
+| 2                  | Appropriate for low-level technical information.          | resource retrieval, finalizers, profiling, expected errors |
+| 3                  | Appropriate for verbose debug statements.                 | printing resources                                         |
 
 ## CRD Versioning
 

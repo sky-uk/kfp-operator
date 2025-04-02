@@ -5,6 +5,7 @@ package pipelines
 import (
 	"context"
 	"fmt"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	configv1 "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -51,6 +52,10 @@ var _ = Context("Provider Service Manager", func() {
 				DefaultProviderValues: configv1.DefaultProviderValues{
 					ServiceContainerName: "ServiceContainerName",
 					ServicePort:          9999,
+					MetricsPort:          9998,
+					Labels: map[string]string{
+						"extra": "label",
+					},
 				},
 			},
 		}
@@ -179,10 +184,20 @@ var _ = Context("Provider Service Manager", func() {
 					TargetPort: intstr.FromInt(serviceManager.config.DefaultProviderValues.ServicePort),
 					Protocol:   corev1.ProtocolTCP,
 				},
+				{
+					Name:       "metrics",
+					Port:       int32(serviceManager.config.DefaultProviderValues.MetricsPort),
+					TargetPort: intstr.FromInt(serviceManager.config.DefaultProviderValues.MetricsPort),
+					Protocol:   corev1.ProtocolTCP,
+				},
 			}
 
 			Expect(result.GenerateName).To(Equal(providerSuffixedName + "-"))
 			Expect(result.Namespace).To(Equal(provider.Namespace))
+			Expect(result.Labels).To(Equal(map[string]string{
+				"app":   providerSuffixedName,
+				"extra": "label",
+			}))
 			Expect(result.Spec.Ports).To(Equal(expectedPorts))
 			Expect(result.Spec.Selector).To(Equal(map[string]string{"app": providerSuffixedName}))
 		})

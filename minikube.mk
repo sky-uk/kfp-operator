@@ -21,6 +21,9 @@ minikube-helm-install-operator: helm-package-operator ./local/values.yaml
 
 	$(HELM) install -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
 
+minikube-helm-upgrade-operator: helm-package-operator ./local/values.yaml
+	$(HELM) upgrade -f ./local/values.yaml kfp-operator dist/kfp-operator-$(VERSION).tgz --set containerRegistry=localhost:5000/kfp-operator
+
 minikube-install-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
 minikube-install-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
@@ -32,8 +35,6 @@ minikube-install-provider: export VERSION=$(shell (git describe --tags --match '
 minikube-install-provider: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
 minikube-install-provider: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
 minikube-install-provider:
-	$(MAKE) -C argo/providers docker-push
-	$(MAKE) -C argo/providers/stub docker-push
 	$(MAKE) -C provider-service docker-push
 	$(MAKE) minikube-provider-setup
 
@@ -53,20 +54,25 @@ minikube-provider-teardown:
 		echo "Provider teardown script not found"; \
 	fi
 
+minikube-upgrade-operator: export VERSION=$(shell (git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*') | sed 's/^v//')
+minikube-upgrade-operator: export REGISTRY_PORT=$(shell docker inspect local-kfp-operator --format '{{ (index .NetworkSettings.Ports "5000/tcp" 0).HostPort }}')
+minikube-upgrade-operator: export CONTAINER_REPOSITORIES=localhost:${REGISTRY_PORT}/kfp-operator
+minikube-upgrade-operator:
+	$(MAKE) docker-push docker-push-triggers
+	$(MAKE) minikube-helm-upgrade-operator VERSION=${VERSION} CONTAINER_REPOSITORIES=${CONTAINER_REPOSITORIES}
+
+minikube-upgrade-provider: minikube-provider-teardown minikube-install-provider
+
 minikube-start:
 	minikube start -p local-kfp-operator --driver=docker --registry-mirror="https://mirror.gcr.io"
 	minikube addons enable registry -p local-kfp-operator
 
 minikube-up:
-	@if [ -z ${NAME} ]; then \
-		echo "You must specify the name of the provider you want to install by setting NAME=<provider>, e.g. NAME=vai"; \
-		exit 1; \
-	fi
 	$(MAKE) minikube-start
 	$(MAKE) minikube-install-dependencies
 	$(MAKE) minikube-install-operator
 	$(MAKE) minikube-install-provider
 
 minikube-down:
-	minikube delete -p local-kfp-operator
 	$(MAKE) minikube-provider-teardown
+	minikube delete -p local-kfp-operator
