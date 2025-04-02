@@ -77,10 +77,6 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelineshub.Provider) 
 
 }
 
-func tcpServicePort(name string, port int) corev1.ServicePort {
-	return corev1.ServicePort{Name: name, Port: int32(port), TargetPort: intstr.FromInt(port), Protocol: corev1.ProtocolTCP}
-}
-
 func (sm ServiceManager) Construct(provider *pipelineshub.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 	matchLabels := map[string]string{AppLabel: prefixedProviderName}
@@ -110,4 +106,8 @@ func (sm ServiceManager) Equal(a, b *corev1.Service) bool {
 	return a.GenerateName == b.GenerateName &&
 		maps.Equal(a.Spec.Selector, b.Spec.Selector) &&
 		slices.Equal(a.Spec.Ports, b.Spec.Ports)
+}
+
+func tcpServicePort(name string, port int) corev1.ServicePort {
+	return corev1.ServicePort{Name: name, Port: int32(port), TargetPort: intstr.FromInt(port), Protocol: corev1.ProtocolTCP}
 }
