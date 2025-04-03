@@ -45,7 +45,7 @@ type Command interface {
 	execute(context.Context, K8sExecutionContext, pipelineshub.Resource) error
 }
 
-func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelineshub.Resource) []Command {
+func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelineshub.Resource, time metav1.Time) []Command {
 	currentGeneration := resource.GetGeneration()
 	if currentGeneration == resource.GetStatus().ObservedGeneration {
 		return commands
@@ -67,7 +67,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 			setStatus.Status.ObservedGeneration = currentGeneration
 			setStatus.Status.Conditions.SetObservedGeneration(
 				setStatus.Message,
-				setStatus.LastTransitionTime,
+				time,
 				currentGeneration,
 			)
 
@@ -87,31 +87,26 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 }
 
 type SetStatus struct {
-	Message            string
-	LastTransitionTime metav1.Time
-	Status             pipelineshub.Status
+	Message string
+	Status  pipelineshub.Status
 }
 
 func From(status pipelineshub.Status) *SetStatus {
 	return &SetStatus{
-		LastTransitionTime: metav1.Now(),
-		Status:             status,
+		Status: status,
 	}
 }
 
 func NewSetStatus() *SetStatus {
-	return &SetStatus{
-		LastTransitionTime: metav1.Now(),
-	}
+	return &SetStatus{}
 }
 
-// TODO: this is not even setting the synchronization state anymore
-func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState) *SetStatus {
+func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState, time metav1.Time) *SetStatus {
 	condition := metav1.Condition{
 		Type:               apis.ConditionTypes.SynchronizationSucceeded,
 		Status:             apis.ConditionStatusForSynchronizationState(state),
 		ObservedGeneration: sps.Status.ObservedGeneration,
-		LastTransitionTime: sps.LastTransitionTime,
+		LastTransitionTime: time,
 		Reason:             string(state),
 		Message:            sps.Message,
 	}
@@ -140,11 +135,6 @@ func (sps *SetStatus) WithProvider(providerId pipelineshub.ProviderAndId) *SetSt
 func (sps *SetStatus) WithMessage(message string) *SetStatus {
 	sps.Message = message
 
-	return sps
-}
-
-func (sps *SetStatus) WithLastTransitionTime(time metav1.Time) *SetStatus {
-	sps.LastTransitionTime = time
 	return sps
 }
 
