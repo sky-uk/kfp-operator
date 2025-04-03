@@ -759,8 +759,6 @@ spec:
                 type: string
               provider:
                 type: string
-              synchronizationState:
-                type: string
               triggeredPipelineVersion:
                 type: string
               triggers:
