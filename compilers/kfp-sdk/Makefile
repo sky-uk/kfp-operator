@@ -18,7 +18,7 @@ DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-con
 
 ##@ Development
 
-test: ## Run unit tests
+test: build ## Run unit tests
 	poetry run pytest
 
 integration-test: docker-build ## Build and run integration tests
