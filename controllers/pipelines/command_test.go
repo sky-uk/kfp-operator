@@ -20,7 +20,7 @@ var _ = Describe("eventMessage", func() {
 		version := apis.RandomString()
 		Expect(
 			eventMessage(*NewSetStatus().
-				WithSynchronizationState(state, metav1.Time{}).
+				WithSyncStateCondition(state, metav1.Time{}).
 				WithVersion(version),
 			),
 		).To(Equal(fmt.Sprintf(`%s [version: "%s"]`, string(state), version)))
@@ -38,7 +38,7 @@ var _ = Describe("eventMessage", func() {
 
 		Expect(
 			eventMessage(*NewSetStatus().
-				WithSynchronizationState(state, metav1.Time{}).
+				WithSyncStateCondition(state, metav1.Time{}).
 				WithMessage(message),
 			),
 		).To(HaveSuffix(fmt.Sprintf(": %s", message)))
@@ -55,7 +55,7 @@ var _ = Describe("eventMessage", func() {
 var _ = Describe("eventType", func() {
 	DescribeTable("is 'Normal' for all states but 'Failed'", func(state apis.SynchronizationState) {
 		Expect(
-			eventType(*NewSetStatus().WithSynchronizationState(state, metav1.Time{})),
+			eventType(*NewSetStatus().WithSyncStateCondition(state, metav1.Time{})),
 		).To(Equal(EventTypes.Normal))
 	},
 		Entry("Creating", apis.Creating),
@@ -68,7 +68,7 @@ var _ = Describe("eventType", func() {
 	When("called on 'Failed'", func() {
 		It("results in 'Warning'", func() {
 			Expect(
-				eventType(*NewSetStatus().WithSynchronizationState(apis.Failed, metav1.Time{})),
+				eventType(*NewSetStatus().WithSyncStateCondition(apis.Failed, metav1.Time{})),
 			).To(Equal(EventTypes.Warning))
 		})
 	})
@@ -77,7 +77,7 @@ var _ = Describe("eventType", func() {
 var _ = Describe("eventReason", func() {
 	DescribeTable("is the expected reason for any given SynchronizationState", func(state apis.SynchronizationState, expectedReason string) {
 		Expect(
-			eventReason(*NewSetStatus().WithSynchronizationState(state, metav1.Time{})),
+			eventReason(*NewSetStatus().WithSyncStateCondition(state, metav1.Time{})),
 		).To(Equal(expectedReason))
 	},
 		Entry("Creating", apis.Creating, EventReasons.Syncing),
@@ -95,7 +95,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		status := SetStatus{
 			Status: pipelineshub.Status{},
 		}
-		status.WithSynchronizationState(apis.Succeeded, transitionTime)
+		status.WithSyncStateCondition(apis.Succeeded, transitionTime)
 
 		commands := []Command{
 			AcquireResource{},
@@ -115,7 +115,7 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 				ObservedGeneration: resource.Generation,
 			},
 		}
-		expectedSetStatus.WithSynchronizationState(apis.Succeeded, transitionTime)
+		expectedSetStatus.WithSyncStateCondition(apis.Succeeded, transitionTime)
 
 		Expect(modifiedCommands).To(ContainElements(
 			[]Command{

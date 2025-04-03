@@ -39,7 +39,7 @@ func (st *StateHandler[R]) stateTransition(
 	if !resourceProvider.Empty() && resourceProvider != provider.GetCommonNamespacedName() {
 		setStatus := From(resource.GetStatus()).
 			WithMessage(StateHandlerConstants.ProviderChangedError).
-			WithSynchronizationState(apis.Failed, transitionTime)
+			WithSyncStateCondition(apis.Failed, transitionTime)
 		commands = []Command{*setStatus}
 	} else {
 		switch resource.GetStatus().Conditions.GetSyncStateFromReason() {
@@ -122,13 +122,13 @@ func (st *StateHandler[R]) onUnknown(
 				*From(resource.GetStatus()).
 					WithVersion(newVersion).
 					WithMessage(failureMessage).
-					WithSynchronizationState(apis.Failed, transitionTime),
+					WithSyncStateCondition(apis.Failed, transitionTime),
 			}
 		}
 
 		return []Command{
 			*From(resource.GetStatus()).
-				WithSynchronizationState(apis.Updating, transitionTime).
+				WithSyncStateCondition(apis.Updating, transitionTime).
 				WithVersion(newVersion),
 			CreateWorkflow{Workflow: *workflow},
 		}
@@ -144,7 +144,7 @@ func (st *StateHandler[R]) onUnknown(
 
 		cmd := From(resource.GetStatus()).
 			WithMessage(failureMessage).
-			WithSynchronizationState(apis.Failed, transitionTime).
+			WithSyncStateCondition(apis.Failed, transitionTime).
 			WithVersion(newVersion)
 
 		return []Command{
@@ -158,7 +158,7 @@ func (st *StateHandler[R]) onUnknown(
 		},
 	}
 
-	status.WithSynchronizationState(apis.Creating, transitionTime)
+	status.WithSyncStateCondition(apis.Creating, transitionTime)
 
 	return []Command{
 		status,
@@ -179,7 +179,7 @@ func (st StateHandler[R]) onDelete(
 	if resource.GetStatus().Provider.Id == "" {
 		return []Command{
 			*From(resource.GetStatus()).
-				WithSynchronizationState(apis.Deleted, transitionTime),
+				WithSyncStateCondition(apis.Deleted, transitionTime),
 		}
 	}
 
@@ -192,13 +192,13 @@ func (st StateHandler[R]) onDelete(
 		return []Command{
 			*From(resource.GetStatus()).
 				WithMessage(failureMessage).
-				WithSynchronizationState(apis.Failed, transitionTime),
+				WithSyncStateCondition(apis.Failed, transitionTime),
 		}
 	}
 
 	return []Command{
 		*From(resource.GetStatus()).
-			WithSynchronizationState(apis.Deleting, transitionTime),
+			WithSyncStateCondition(apis.Deleting, transitionTime),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -240,7 +240,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 				*From(resource.GetStatus()).
 					WithVersion(newResourceVersion).
 					WithMessage(failureMessage).
-					WithSynchronizationState(apis.Failed, transitionTime),
+					WithSyncStateCondition(apis.Failed, transitionTime),
 			}
 		}
 
@@ -259,7 +259,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 				*From(resource.GetStatus()).
 					WithVersion(newResourceVersion).
 					WithMessage(failureMessage).
-					WithSynchronizationState(apis.Failed, transitionTime),
+					WithSyncStateCondition(apis.Failed, transitionTime),
 			}
 		}
 
@@ -268,7 +268,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 
 	return []Command{
 		*From(resource.GetStatus()).
-			WithSynchronizationState(targetState, transitionTime).
+			WithSyncStateCondition(targetState, transitionTime).
 			WithVersion(newResourceVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
@@ -318,7 +318,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 			return From(status).
 				WithMessage(failureMessage).
-				WithSynchronizationState(states.FailureState, transitionTime)
+				WithSyncStateCondition(states.FailureState, transitionTime)
 		}
 
 		result, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.ProviderOutputParameterName)
@@ -339,7 +339,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 			return From(status).
 				WithMessage(result.ProviderError).
 				WithProvider(providerAndId).
-				WithSynchronizationState(states.FailureState, transitionTime)
+				WithSyncStateCondition(states.FailureState, transitionTime)
 		}
 
 		err = states.VerifyId(result.Id)
@@ -349,11 +349,11 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 			return From(status).
 				WithMessage(failureMessage).
-				WithSynchronizationState(states.FailureState, transitionTime)
+				WithSyncStateCondition(states.FailureState, transitionTime)
 		}
 
 		return From(status).
-			WithSynchronizationState(states.SuccessState, transitionTime).
+			WithSyncStateCondition(states.SuccessState, transitionTime).
 			WithProvider(providerAndId)
 	}
 
@@ -381,7 +381,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
 		setStatusCommand = From(status).
 			WithMessage(failureMessage).
-			WithSynchronizationState(states.FailureState, transitionTime)
+			WithSyncStateCondition(states.FailureState, transitionTime)
 	}
 
 	return []Command{
@@ -407,7 +407,7 @@ func (st StateHandler[R]) onCreating(
 		return []Command{
 			*From(resource.GetStatus()).
 				WithMessage(failureMessage).
-				WithSynchronizationState(apis.Failed, transitionTime),
+				WithSyncStateCondition(apis.Failed, transitionTime),
 		}
 	}
 
@@ -429,7 +429,7 @@ func (st StateHandler[R]) onUpdating(
 		return []Command{
 			*From(resource.GetStatus()).
 				WithMessage(failureMessage).
-				WithSynchronizationState(apis.Failed, transitionTime),
+				WithSyncStateCondition(apis.Failed, transitionTime),
 		}
 	}
 

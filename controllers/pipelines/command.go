@@ -101,7 +101,7 @@ func NewSetStatus() *SetStatus {
 	return &SetStatus{}
 }
 
-func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState, time metav1.Time) *SetStatus {
+func (sps *SetStatus) WithSyncStateCondition(state apis.SynchronizationState, time metav1.Time) *SetStatus {
 	condition := metav1.Condition{
 		Type:               apis.ConditionTypes.SynchronizationSucceeded,
 		Status:             apis.ConditionStatusForSynchronizationState(state),
