@@ -33,7 +33,7 @@ type RunSpec struct {
 }
 
 func (runSpec *RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
-	return pipelines.MapErr(runSpec.RuntimeParameters, func(r RuntimeParameter) (apis.NamedValue, error) {
+	return apis.MapErr(runSpec.RuntimeParameters, func(r RuntimeParameter) (apis.NamedValue, error) {
 		if r.ValueFrom == nil {
 			return apis.NamedValue{
 				Name:  r.Name,
@@ -155,7 +155,7 @@ type RunStatus struct {
 //+kubebuilder:resource:shortName="mlr"
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
-//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type==\"Synchronized\")].reason"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 //+kubebuilder:printcolumn:name="CompletionState",type="string",JSONPath=".status.completionState"
 
@@ -179,7 +179,7 @@ func (r *Run) GetDependencyRuns() map[string]RunReference {
 }
 
 func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
+	return apis.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}
@@ -189,7 +189,7 @@ func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
 }
 
 func (r *Run) GetReferencedRCs() []string {
-	return pipelines.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+	return apis.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
 		if rp.ValueFrom == nil {
 			return "", false
 		}

@@ -4,7 +4,6 @@ import (
 	"reflect"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -69,18 +68,18 @@ type RunConfigurationStatus struct {
 	Dependencies             Dependencies              `json:"dependencies,omitempty"`
 	Triggers                 TriggersStatus            `json:"triggers,omitempty"`
 	ObservedGeneration       int64                     `json:"observedGeneration,omitempty"`
-	Conditions               Conditions                `json:"conditions,omitempty"`
+	Conditions               apis.Conditions           `json:"conditions,omitempty"`
 }
 
 func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.SynchronizationState, message string) {
 	rcs.SynchronizationState = state
 	condition := metav1.Condition{
-		Type:               ConditionTypes.SynchronizationSucceeded,
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
 		Message:            message,
 		ObservedGeneration: rcs.ObservedGeneration,
 		Reason:             string(state),
 		LastTransitionTime: metav1.Now(),
-		Status:             ConditionStatusForSynchronizationState(state),
+		Status:             apis.ConditionStatusForSynchronizationState(state),
 	}
 	rcs.Conditions = rcs.Conditions.MergeIntoConditions(condition)
 }
@@ -88,7 +87,7 @@ func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.Synchroniz
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName="mlrc"
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type==\"Synchronized\")].reason"
 // +kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider"
 type RunConfiguration struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -110,7 +109,7 @@ func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
 }
 
 func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return pipelines.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
+	return apis.Collect(rc.Spec.Run.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}
@@ -120,15 +119,15 @@ func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
 }
 
 func (rc *RunConfiguration) GetReferencedRCs() []string {
-	triggeringRcs := pipelines.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string) string {
+	triggeringRcs := apis.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string) string {
 		return rcName
 	})
 
-	parameterRcs := pipelines.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef) string {
+	parameterRcs := apis.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef) string {
 		return r.Name
 	})
 
-	return pipelines.Unique(append(parameterRcs, triggeringRcs...))
+	return apis.Unique(append(parameterRcs, triggeringRcs...))
 }
 
 func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {

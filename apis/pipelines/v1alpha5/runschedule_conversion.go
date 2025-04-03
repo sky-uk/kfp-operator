@@ -45,6 +45,7 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.RunSchedule)
 	remainder := RunScheduleConversionRemainder{}
+
 	dst.ObjectMeta = src.ObjectMeta
 	dst.Spec.Pipeline = PipelineIdentifier{
 		Name:    src.Spec.Pipeline.Name,
@@ -69,6 +70,7 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	remainder.ProviderNamespace = src.Spec.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
+	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

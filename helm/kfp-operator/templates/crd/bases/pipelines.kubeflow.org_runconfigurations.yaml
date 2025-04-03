@@ -35,7 +35,7 @@ spec:
   versions:
   {{- if .Values.manager.multiversion.enabled }}
   - additionalPrinterColumns:
-    - jsonPath: .status.synchronizationState
+    - jsonPath: .status.conditions[?(@.type=="Synchronized")].reason
       name: SynchronizationState
       type: string
     - jsonPath: .status.provider
@@ -276,7 +276,7 @@ spec:
     subresources:
       status: {}
   - additionalPrinterColumns:
-    - jsonPath: .status.synchronizationState
+    - jsonPath: .status.conditions[?(@.type=="Synchronized")].reason
       name: SynchronizationState
       type: string
     - jsonPath: .status.provider
@@ -531,7 +531,7 @@ spec:
       status: {}
   {{- end }}
   - additionalPrinterColumns:
-    - jsonPath: .status.synchronizationState
+    - jsonPath: .status.conditions[?(@.type=="Synchronized")].reason
       name: SynchronizationState
       type: string
     - jsonPath: .status.provider
@@ -758,8 +758,6 @@ spec:
               observedPipelineVersion:
                 type: string
               provider:
-                type: string
-              synchronizationState:
                 type: string
               triggeredPipelineVersion:
                 type: string

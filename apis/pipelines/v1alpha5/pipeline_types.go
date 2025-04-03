@@ -44,7 +44,7 @@ func (ps Pipeline) ComputeVersion() string {
 //+kubebuilder:resource:shortName="mlp"
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:name="ProviderId",type="string",JSONPath=".status.providerId"
-//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+//+kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type==\"Synchronized\")].reason"
 //+kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 
 type Pipeline struct {

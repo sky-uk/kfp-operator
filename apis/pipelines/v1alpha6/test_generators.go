@@ -51,6 +51,7 @@ func RandomCondition() metav1.Condition {
 }
 
 func RandomRunConfiguration(provider string) *RunConfiguration {
+	state := RandomSynchronizationState()
 	return &RunConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
@@ -58,8 +59,9 @@ func RandomRunConfiguration(provider string) *RunConfiguration {
 		},
 		Spec: RandomRunConfigurationSpec(provider),
 		Status: RunConfigurationStatus{
-			SynchronizationState: RandomSynchronizationState(),
+			SynchronizationState: state,
 			Provider:             provider,
+			Conditions:           Conditions{RandomSynchronizationStateCondition(state)},
 		},
 	}
 }
@@ -219,14 +221,18 @@ func RandomExperimentSpec(provider string) ExperimentSpec {
 }
 
 func RandomStatus(provider string) Status {
+	state := RandomSynchronizationState()
 	return Status{
-		SynchronizationState: RandomSynchronizationState(),
+		SynchronizationState: state,
 		Version:              RandomString(),
 		Provider: ProviderAndId{
 			Name: provider,
 			Id:   RandomString(),
 		},
 		ObservedGeneration: rand.Int63(),
+		Conditions: Conditions{
+			RandomSynchronizationStateCondition(state),
+		},
 	}
 }
 

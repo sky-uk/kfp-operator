@@ -8,7 +8,6 @@ import (
 
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -78,11 +77,11 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	provider := runConfiguration.Spec.Run.Provider
 	if !runConfiguration.Status.Provider.Empty() && provider != runConfiguration.Status.Provider {
 		//TODO: refactor to use Commands and introduce a StateHandler
-		runConfiguration.Status.SynchronizationState = apis.Failed
+		runConfiguration.Status.SetSynchronizationState(apis.Failed, StateHandlerConstants.ProviderChangedError)
 
 		message := fmt.Sprintf(
 			`%s: %s`,
-			string(runConfiguration.Status.SynchronizationState),
+			string(apis.Failed),
 			StateHandlerConstants.ProviderChangedError,
 		)
 		r.EC.Recorder.Event(runConfiguration, EventTypes.Warning, EventReasons.SyncFailed, message)
@@ -152,7 +151,7 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		return err
 	}
 
-	runExists := pipelines.Exists(runs, func(run pipelineshub.Run) bool {
+	runExists := apis.Exists(runs, func(run pipelineshub.Run) bool {
 		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
 	})
 
@@ -168,15 +167,15 @@ func (r *RunConfigurationReconciler) updateRcTriggers(
 ) pipelineshub.RunConfigurationStatus {
 	newStatus := runConfiguration.Status
 
-	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.Pipeline) {
+	if apis.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.Pipeline) {
 		newStatus.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
 	}
 
-	if pipelines.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.RunSpec) {
+	if apis.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.RunSpec) {
 		newStatus.Triggers.RunSpec.Version = runConfiguration.Spec.Run.ComputeVersion()
 	}
 
-	newStatus.Triggers.RunConfigurations = pipelines.ToMap(
+	newStatus.Triggers.RunConfigurations = apis.ToMap(
 		runConfiguration.Spec.Triggers.RunConfigurations,
 		func(rcName string) (string, pipelineshub.TriggeredRunReference) {
 			triggeredRun := pipelineshub.TriggeredRunReference{
@@ -223,9 +222,9 @@ func (r *RunConfigurationReconciler) syncStatus(
 		return
 	}
 
-	missingSchedules := pipelines.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
-	excessSchedules := pipelines.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
-	excessSchedulesNotMarkedForDeletion := pipelines.Filter(
+	missingSchedules := apis.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
+	excessSchedules := apis.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
+	excessSchedulesNotMarkedForDeletion := apis.Filter(
 		excessSchedules, func(schedule pipelineshub.RunSchedule) bool {
 			return schedule.DeletionTimestamp == nil
 		},
@@ -443,10 +442,11 @@ func aggregateState(dependencies []pipelineshub.RunSchedule) (aggState apis.Sync
 	aggState = apis.Succeeded
 
 	for _, dependency := range dependencies {
-		if dependency.Status.SynchronizationState == apis.Failed {
+		state := dependency.Status.Conditions.GetSyncStateFromReason()
+		if state == apis.Failed {
 			aggState = apis.Failed
 			message = dependency.Status.Conditions.SynchronizationSucceeded().Message
-		} else if dependency.Status.SynchronizationState != apis.Succeeded {
+		} else if state != apis.Succeeded {
 			aggState = apis.Updating
 			message = ""
 			return

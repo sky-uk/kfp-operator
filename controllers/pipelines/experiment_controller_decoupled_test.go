@@ -26,7 +26,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			)
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Creating))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(experiment.Status.ObservedGeneration).To(Equal(experiment.GetGeneration()))
 			})).Should(Succeed())
@@ -37,7 +36,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(experiment.Status.Provider.Name).To(Equal(experiment.Spec.Provider))
 			})).Should(Succeed())
@@ -49,7 +47,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).To(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Updating))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 			})).Should(Succeed())
 
@@ -59,7 +56,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			})).Should(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Succeeded))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Succeeded))
 				g.Expect(experiment.Status.Provider.Name).To(Equal(experiment.Spec.Provider))
 			})).Should(Succeed())
@@ -67,7 +63,6 @@ var _ = Describe("Experiment controller k8s integration", Serial, func() {
 			Expect(experimentHelper.Delete()).To(Succeed())
 
 			Eventually(experimentHelper.ToMatch(func(g Gomega, experiment *pipelineshub.Experiment) {
-				g.Expect(experiment.Status.SynchronizationState).To(Equal(apis.Deleting))
 				g.Expect(experiment.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Deleting))
 			})).Should(Succeed())
 

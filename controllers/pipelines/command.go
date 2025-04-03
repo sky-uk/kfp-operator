@@ -45,7 +45,7 @@ type Command interface {
 	execute(context.Context, K8sExecutionContext, pipelineshub.Resource) error
 }
 
-func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelineshub.Resource) []Command {
+func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resource pipelineshub.Resource, time metav1.Time) []Command {
 	currentGeneration := resource.GetGeneration()
 	if currentGeneration == resource.GetStatus().ObservedGeneration {
 		return commands
@@ -56,15 +56,21 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 	var modifiedCommands []Command
 
 	for _, command := range commands {
-		setStatus, isSetStatus := command.(SetStatus)
+		setStatus, ok := command.(SetStatus)
 
-		if isSetStatus {
+		if ok {
 			if setStatusExists {
 				logger.Info("attempting to set status more than once in the same reconciliation, this is likely to cause inconsistencies")
 			}
 
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
+			setStatus.Status.Conditions.SetObservedGeneration(
+				setStatus.Message,
+				time,
+				currentGeneration,
+			)
+
 			modifiedCommands = append(modifiedCommands, setStatus)
 		} else {
 			modifiedCommands = append(modifiedCommands, command)
@@ -95,8 +101,21 @@ func NewSetStatus() *SetStatus {
 	return &SetStatus{}
 }
 
-func (sps *SetStatus) WithSynchronizationState(state apis.SynchronizationState) *SetStatus {
-	sps.Status.SynchronizationState = state
+func (sps *SetStatus) WithSyncStateCondition(state apis.SynchronizationState, time metav1.Time) *SetStatus {
+	condition := metav1.Condition{
+		Type:               apis.ConditionTypes.SynchronizationSucceeded,
+		Status:             apis.ConditionStatusForSynchronizationState(state),
+		ObservedGeneration: sps.Status.ObservedGeneration,
+		LastTransitionTime: time,
+		Reason:             string(state),
+		Message:            sps.Message,
+	}
+
+	if sps.Status.Conditions == nil {
+		sps.Status.Conditions = apis.Conditions{condition}
+	} else {
+		sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(condition)
+	}
 
 	return sps
 }
@@ -120,7 +139,7 @@ func (sps *SetStatus) WithMessage(message string) *SetStatus {
 }
 
 func eventMessage(sps SetStatus) (message string) {
-	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.SynchronizationState), sps.Status.Version)
+	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.Conditions.GetSyncStateFromReason()), sps.Status.Version)
 
 	if sps.Message != "" {
 		message = fmt.Sprintf("%s: %s", message, sps.Message)
@@ -130,7 +149,7 @@ func eventMessage(sps SetStatus) (message string) {
 }
 
 func eventType(sps SetStatus) string {
-	if sps.Status.SynchronizationState == apis.Failed {
+	if sps.Status.Conditions.GetSyncStateFromReason() == apis.Failed {
 		return EventTypes.Warning
 	} else {
 		return EventTypes.Normal
@@ -138,7 +157,7 @@ func eventType(sps SetStatus) string {
 }
 
 func eventReason(sps SetStatus) string {
-	switch sps.Status.SynchronizationState {
+	switch sps.Status.Conditions.GetSyncStateFromReason() {
 	case apis.Succeeded, apis.Deleted:
 		return EventReasons.Synced
 	case apis.Failed:
@@ -146,19 +165,6 @@ func eventReason(sps SetStatus) string {
 	default:
 		return EventReasons.Syncing
 	}
-}
-
-func (sps SetStatus) statusWithCondition() pipelineshub.Status {
-	sps.Status.Conditions = sps.Status.Conditions.MergeIntoConditions(metav1.Condition{
-		LastTransitionTime: metav1.Now(),
-		Message:            sps.Message,
-		ObservedGeneration: sps.Status.ObservedGeneration,
-		Type:               pipelineshub.ConditionTypes.SynchronizationSucceeded,
-		Status:             pipelineshub.ConditionStatusForSynchronizationState(sps.Status.SynchronizationState),
-		Reason:             string(sps.Status.SynchronizationState),
-	})
-
-	return sps.Status
 }
 
 func (sps SetStatus) execute(
@@ -175,7 +181,7 @@ func (sps SetStatus) execute(
 		sps.Status,
 	)
 
-	resource.SetStatus(sps.statusWithCondition())
+	resource.SetStatus(sps.Status)
 
 	err := ec.Client.Status().Update(ctx, resource)
 

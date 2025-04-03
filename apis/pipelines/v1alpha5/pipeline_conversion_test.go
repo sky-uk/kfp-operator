@@ -40,7 +40,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					PipelineConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort), syncStateComparer))
 			})
 		})
 		When("status provider is non-empty", func() {
@@ -61,7 +61,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					PipelineConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort), syncStateComparer))
 			})
 		})
 	})

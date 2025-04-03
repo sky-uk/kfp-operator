@@ -29,7 +29,7 @@ func (es Experiment) ComputeVersion() string {
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName="mlexp"
 // +kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider.name"
-// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type==\"Synchronized\")].reason"
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 type Experiment struct {
 	metav1.TypeMeta   `json:",inline"`

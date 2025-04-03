@@ -59,8 +59,8 @@ var _ = Context("Provider Status Manager", func() {
 			err = client.Get(ctx, k8sClient.ObjectKey{Name: provider.Name, Namespace: provider.Namespace}, provider)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(provider.Status.SynchronizationState).To(Equal(expectedStatus))
 			Expect(provider.Status.Conditions[0].Message).To(Equal(expectedMessage))
+			Expect(provider.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(string(expectedStatus)))
 			Expect(provider.Status.ObservedGeneration).To(Equal(provider.Generation))
 		})
 
@@ -79,8 +79,8 @@ var _ = Context("Provider Status Manager", func() {
 			err = client.Get(ctx, k8sClient.ObjectKey{Name: provider.Name, Namespace: provider.Namespace}, provider)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(provider.Status.SynchronizationState).To(Equal(expectedStatus))
 			Expect(provider.Status.Conditions[0].Message).To(Equal(expectedMessage))
+			Expect(provider.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(string(expectedStatus)))
 			Expect(provider.Status.ObservedGeneration).ToNot(Equal(provider.Generation))
 		})
 

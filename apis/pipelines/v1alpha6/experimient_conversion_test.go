@@ -30,7 +30,7 @@ var _ = Context("Experiment Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					ExperimentConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), syncStateComparer))
 			})
 		})
 
@@ -48,7 +48,7 @@ var _ = Context("Experiment Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					ExperimentConversionRemainder{}.ConversionAnnotation(),
 				)
-				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), syncStateComparer))
 			})
 		})
 	})

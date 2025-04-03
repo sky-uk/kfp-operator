@@ -38,7 +38,7 @@ spec:
     - jsonPath: .status.providerId
       name: ProviderId
       type: string
-    - jsonPath: .status.synchronizationState
+    - jsonPath: .status.conditions[?(@.type=="Synchronized")].reason
       name: SynchronizationState
       type: string
     - jsonPath: .status.version
@@ -189,7 +189,7 @@ spec:
     - jsonPath: .status.provider.name
       name: Provider
       type: string
-    - jsonPath: .status.synchronizationState
+    - jsonPath: .status.conditions[?(@.type=="Synchronized")].reason
       name: SynchronizationState
       type: string
     - jsonPath: .status.version
@@ -349,7 +349,7 @@ spec:
     - jsonPath: .status.provider.name
       name: Provider
       type: string
-    - jsonPath: .status.synchronizationState
+    - jsonPath: .status.conditions[?(@.type=="Synchronized")].reason
       name: SynchronizationState
       type: string
     - jsonPath: .status.version
@@ -492,8 +492,6 @@ spec:
                   name:
                     type: string
                 type: object
-              synchronizationState:
-                type: string
               version:
                 type: string
             type: object
