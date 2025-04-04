@@ -127,7 +127,7 @@ We use the [zap](https://github.com/uber-go/zap) implementation of [logr](https:
 
 ## CRD Versioning
 
-Steps to create a new version of the pipeline CRDs:
+Steps to create a new CRD version:
 
 1) Copy and paste the current `hub` into its version named directory, e.g. `v1alpha1`.
 1) Change groupversion_info.go to reflect the new version, e.g. `v1alpha2`.
@@ -136,3 +136,16 @@ Steps to create a new version of the pipeline CRDs:
 1) Make the required schema changes in `hub`. This will involve changing the conversion code in all older versions.
 1) Register the old schema (e.g. `v1alpha1`) in the controller runtime (see [here](main.go#L56)).
 1) Copy changes into helm version of the CRD to match that generated in `config/crd/bases`.
+
+Steps to install a new CRD version:
+
+1) Make sure `.Values.manager.storedVersion` in the helm values is set to the currently stable version. This ensures that the new version will not become the stored version until all changes for that version have been released.
+1) Install/upgrade the operator in the desired cluster as normal.
+    - Note that even though the new version will not be stored, K8s will still be able to serve it and clients like `kubectl` will, in fact, get this new version by default (in accordance with the [version priority algorithm](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#version-priority)). This means that when users retrieve their resources, K8s will convert them to the new version, even if they were created with the old one. This shouldn't cause any problems as long as the conversion webhook logic has been implemented correctly. 
+    - Setting `served: false` on the new version to hide it from users until it's ready to be used is not an option because (if you followed the steps above when creating the new version in the code) the operator will always try to get the hub version, and if K8s can't serve that version then the controller manager will error and crash.
+1) The operator can continue to be incrementally upgraded with changes that are to be bundled in the new version.
+
+Steps to roll back a CRD version _that hasn't been stored_:
+
+1) If a new version hasn't been set to the stored version yet, then a rollback of any commit since the introduction of the new version (including the commit that added the version in the first place) can be performed simply by reverting the offending commit and releasing the operator again.
+
