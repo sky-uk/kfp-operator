@@ -35,7 +35,7 @@ Build and Install Create basic values.yaml with the following content:">
 This guide assumes you are familiar with Helm.
 Prerequisites Argo 3.1.6-3.3 installed cluster-wide or into the namespace where the operator’s workflows run (see configuration). Argo-Events 1.7.4+ installed cluster-wide (see configuration). KFP-Operator To get a working installation you will need to install both the KFP-Operator and at least one provider (see below)
 Build and Install Create basic values.yaml with the following content:">
-    <meta itemprop=wordCount content="981">
+    <meta itemprop=wordCount content="979">
     <meta name=twitter:card content="summary">
     <meta name=twitter:title content="Installation">
     <meta name=twitter:description content="We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.
@@ -398,7 +398,8 @@ Build and Install Create basic values.yaml with the following content:">
                         </div>
                         <p>You will need to configure service accounts and roles required by your chosen
                             <code>Provider</code>, <a href=#provider-rbac title="Provider RBAC Reference">see here for
-                                reference</a>.</p>
+                                reference</a>.
+                        </p>
                         <h3 id=configuration-values>Configuration Values</h3>
                         <p>Valid configuration options to override the <a
                                 href=https://github.com/sky-uk/kfp-operator/blob/master/helm/kfp-operator/values.yaml>Default
@@ -500,7 +501,8 @@ Build and Install Create basic values.yaml with the following content:">
                                     <td style=text-align:left>Manager configuration as defined in <a
                                             href=../../reference/configuration>Configuration</a> (note that you can omit
                                         <code>compilerImage</code> and <code>kfpSdkImage</code> when specifying
-                                        <code>containerRegistry</code> as default values will be applied)</td>
+                                        <code>containerRegistry</code> as default values will be applied)
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style=text-align:left><code>manager.monitoring.create</code></td>
@@ -518,7 +520,8 @@ Build and Install Create basic values.yaml with the following content:">
                                 </tr>
                                 <tr>
                                     <td style=text-align:left>
-                                        <code>manager.monitoring.serviceMonitor.endpointConfiguration</code></td>
+                                        <code>manager.monitoring.serviceMonitor.endpointConfiguration</code>
+                                    </td>
                                     <td style=text-align:left>Additional configuration to be used in the service monitor
                                         endpoint (path, port and scheme are provided)</td>
                                 </tr>
@@ -537,7 +540,8 @@ Build and Install Create basic values.yaml with the following content:">
                                     <td style=text-align:left><code>manager.webhookCertificates.provider</code></td>
                                     <td style=text-align:left>K8s conversion webhook TLS certificate provider - choose
                                         <code>cert-manager</code> for Helm to deploy certificates if cert-manager is
-                                        available or <code>custom</code> otherwise (see below)</td>
+                                        available or <code>custom</code> otherwise (see below)
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td style=text-align:left><code>manager.webhookCertificates.secretName</code></td>
@@ -624,7 +628,8 @@ Build and Install Create basic values.yaml with the following content:">
                         </div>
                         <h3 id=configuration>Configuration</h3>
                         <p>The <code>provider</code> block contains provider configurations, in order to create relevant
-                            <a href=../../reference/resources/provider>Provider Resources</a>.</p>
+                            <a href=../../reference/resources/provider>Provider Resources</a>.
+                        </p>
                         <table>
                             <thead>
                                 <tr>
@@ -680,7 +685,8 @@ Build and Install Create basic values.yaml with the following content:">
                         <h2 id=provider-rbac>Role-based access control (RBAC) for providers</h2>
                         <p>When using a provider, you should create the necessary <code>ServiceAccount</code>,
                             <code>RoleBinding</code> and <code>ClusterRoleBinding</code> resources required for the
-                            providers being used.</p>
+                            providers being used.
+                        </p>
                         <p>In order for Event Source Servers and the Controller to read the Providers you must configure
                             their service accounts
                             to have read permissions of Provider resources. e.g:</p>
