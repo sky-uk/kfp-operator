@@ -1,7 +1,6 @@
 fullnameOverride: kfp-operator
 containerRegistry: ""
 manager:
-  storedVersion: v1beta1
   argo:
     containerDefaults: {}
   monitoring:
@@ -15,6 +14,7 @@ manager:
           insecureSkipVerify: true
   multiversion:
     enabled: true
+    storedVersion: v1beta1
   webhookCertificates:
     provider: cert-manager
 statusFeedback:

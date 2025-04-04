@@ -158,9 +158,10 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: {{ eq .Values.manager.storedVersion "v1alpha5" }}
+    storage: {{ eq .Values.manager.multiversion.storedVersion "v1alpha5" }}
     subresources:
       status: {}
+  {{- end }}
   - additionalPrinterColumns:
     - jsonPath: .status.conditions[?(@.type == 'Synchronized')].reason
       name: SynchronizationState
@@ -311,10 +312,10 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: {{ eq .Values.manager.storedVersion "v1alpha6" }}
+    storage: {{ or (not .Values.manager.multiversion.enabled) (eq .Values.manager.multiversion.storedVersion "v1alpha6") }}
     subresources:
       status: {}
-  {{- end }}
+  {{- if .Values.manager.multiversion.enabled }}
   - additionalPrinterColumns:
     - jsonPath: .status.conditions[?(@.type == 'Synchronized')].reason
       name: SynchronizationState
@@ -463,6 +464,7 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: {{ eq .Values.manager.storedVersion "v1beta1" }}
+    storage: {{ eq .Values.manager.multiversion.storedVersion "v1beta1" }}
     subresources:
       status: {}
+  {{- end }}
