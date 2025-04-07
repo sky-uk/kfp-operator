@@ -1,9 +1,16 @@
 [tool.poetry]
-name = "getting_started"
-version = "0.1.0"
+name = "kfpsdk_getting_started"
+version = "0.2.0"
 description = ""
 authors = []
+packages = [
+    { include = "getting_started" },
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9"
 kfp = ">=2,<3"
+polars = "^1.17.1"
+scikit-learn = "^1.6.0"
+torch = "2.5.1"
+keras = "3.7.0"

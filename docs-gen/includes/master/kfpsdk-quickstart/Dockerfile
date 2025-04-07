@@ -1,5 +1,4 @@
 FROM python:3.9.21-slim AS python39
-ARG WHEEL_VERSION
 
-COPY dist/*-${WHEEL_VERSION}-*.whl /
-RUN pip install /*.whl && rm /*.whl
+COPY dist/kfpsdk_getting_started-*.whl .
+RUN pip --no-cache-dir install /*.whl && rm /*.whl
