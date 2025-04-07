@@ -14,7 +14,6 @@ manager:
           insecureSkipVerify: true
   multiversion:
     enabled: true
-    storedVersion: v1beta1
   webhookCertificates:
     provider: cert-manager
 statusFeedback:
