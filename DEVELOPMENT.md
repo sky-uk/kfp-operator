@@ -129,9 +129,9 @@ We use the [zap](https://github.com/uber-go/zap) implementation of [logr](https:
 
 Steps to create a new CRD version:
 
-1) Copy and paste the current `hub` into its version named directory, e.g. `v1alpha1`.
-1) Change groupversion_info.go to reflect the new version, e.g. `v1alpha2`.
-1) Change all the package names in the hub directory to be the new required version, e.g. `v1alpha2` (but leave the directory called `hub`, all Client code imports hub directory and names it, so that no changes needed on creating new version).
+1) Copy and paste the current `hub` directory into its version named directory, e.g. `v1alpha1`.
+1) Change `groupversion_info.go` to reflect the new version, e.g. `v1alpha2`.
+1) Change all the package names in the `hub` directory to be the new required version, e.g. `v1alpha2` (but leave the directory called `hub`, all Client code imports hub directory and names it, so that no changes needed on creating new version).
 1) Change all the conversion functions in the now old version (e.g. `v1alpha1`) to convert to and from the new hub version (e.g. `v1alpha2`).
 1) Make the required schema changes in `hub`. This will involve changing the conversion code in all older versions.
 1) Register the old schema (e.g. `v1alpha1`) in the controller runtime (see [here](main.go#L56)).

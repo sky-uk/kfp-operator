@@ -275,7 +275,6 @@ spec:
     storage: {{ eq .Values.manager.multiversion.storedVersion "v1alpha5" }}
     subresources:
       status: {}
-  {{- end }}
   - additionalPrinterColumns:
     - jsonPath: .status.conditions[?(@.type=="Synchronized")].reason
       name: SynchronizationState
@@ -527,10 +526,10 @@ spec:
             type: object
         type: object
     served: true
-    storage: {{ or (not .Values.manager.multiversion.enabled) (eq .Values.manager.multiversion.storedVersion "v1alpha6") }}
+    storage: {{ eq .Values.manager.multiversion.storedVersion "v1alpha6" }}
     subresources:
       status: {}
-  {{- if .Values.manager.multiversion.enabled }}
+  {{- end }}
   - additionalPrinterColumns:
     - jsonPath: .status.conditions[?(@.type=="Synchronized")].reason
       name: SynchronizationState
@@ -786,7 +785,6 @@ spec:
             type: object
         type: object
     served: true
-    storage: {{ eq .Values.manager.multiversion.storedVersion "v1beta1" }}
+    storage: {{ or (not .Values.manager.multiversion.enabled) (eq .Values.manager.multiversion.storedVersion "v1beta1") }}
     subresources:
       status: {}
-  {{- end }}
