@@ -84,9 +84,19 @@ var _ = Describe("JobBuilder", func() {
 				}
 				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
 				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
+				Expect(job.RuntimeConfig.GcsOutputDirectory).To(Equal(fmt.Sprintf("%s/%s/%s", jb.pipelineRootStorage, rsd.PipelineName.Namespace, rsd.PipelineName.Name)))
 			})
 		})
 		When("templateUri is invalid", func() {
+			It("should return error", func() {
+				rsd := testutil.RandomRunScheduleDefinition()
+				rsd.PipelineName.Name = ""
+				_, err := jb.MkRunSchedulePipelineJob(rsd)
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+		When("run schedule definition name is invalid", func() {
 			It("should return error", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				rsd.PipelineName.Name = ""

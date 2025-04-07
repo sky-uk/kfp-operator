@@ -64,15 +64,9 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 	if err != nil {
 		return nil, err
 	}
-	job := &aiplatformpb.PipelineJob{
-		Labels: labels,
-		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
-			Parameters:         params,
-			GcsOutputDirectory: fmt.Sprintf("%s/%s", jb.pipelineRootStorage, pipelineResourceName),
-		},
-		ServiceAccount: jb.serviceAccount,
-		TemplateUri:    templateUri,
-	}
+
+	job := jb.newPipelineJob(labels, params, pipelineResourceName, templateUri)
+
 	return job, nil
 }
 
@@ -107,14 +101,13 @@ func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 		return nil, err
 	}
 
-	job := &aiplatformpb.PipelineJob{
-		Labels:         labels,
-		ServiceAccount: jb.serviceAccount,
-		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
-			Parameters: params,
-		},
-		TemplateUri: templateUri,
+	pipelineResourceName, err := rsd.PipelineName.String()
+	if err != nil {
+		return nil, err
 	}
+
+	job := jb.newPipelineJob(labels, params, pipelineResourceName, templateUri)
+
 	return job, nil
 }
 
@@ -152,4 +145,17 @@ func (jb DefaultJobBuilder) MkSchedule(
 		schedule.EndTime = timestamppb.New(rsd.Schedule.EndTime.Time)
 	}
 	return schedule, nil
+}
+
+func (jb DefaultJobBuilder) newPipelineJob(labels map[string]string, params map[string]*aiplatformpb.Value, resourceName string, templateUri string) *aiplatformpb.PipelineJob {
+	pipelineJob := &aiplatformpb.PipelineJob{
+		Labels: labels,
+		RuntimeConfig: &aiplatformpb.PipelineJob_RuntimeConfig{
+			Parameters:         params,
+			GcsOutputDirectory: fmt.Sprintf("%s/%s", jb.pipelineRootStorage, resourceName),
+		},
+		ServiceAccount: jb.serviceAccount,
+		TemplateUri:    templateUri,
+	}
+	return pipelineJob
 }
