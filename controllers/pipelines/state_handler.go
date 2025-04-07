@@ -140,12 +140,12 @@ func (st *StateHandler[R]) onUnknown(
 		failureMessage := workflowconstants.ConstructionFailedError
 		logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
-		cmd := From(resource.GetStatus()).
+		status := From(resource.GetStatus()).
 			WithSyncStateCondition(apis.Failed, transitionTime, failureMessage).
 			WithVersion(newVersion)
 
 		return []Command{
-			*cmd,
+			*status,
 		}
 	}
 
