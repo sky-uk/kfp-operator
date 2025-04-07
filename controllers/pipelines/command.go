@@ -63,10 +63,12 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 				logger.Info("attempting to set status more than once in the same reconciliation, this is likely to cause inconsistencies")
 			}
 
+			message := setStatus.Status.Conditions.SynchronizationSucceeded().Message
+
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
 			setStatus.Status.Conditions.SetObservedGeneration(
-				setStatus.Message,
+				message,
 				time,
 				currentGeneration,
 			)
@@ -87,8 +89,7 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 }
 
 type SetStatus struct {
-	Message string
-	Status  pipelineshub.Status
+	Status pipelineshub.Status
 }
 
 func From(status pipelineshub.Status) *SetStatus {
@@ -101,14 +102,14 @@ func NewSetStatus() *SetStatus {
 	return &SetStatus{}
 }
 
-func (sps *SetStatus) WithSyncStateCondition(state apis.SynchronizationState, time metav1.Time) *SetStatus {
+func (sps *SetStatus) WithSyncStateCondition(state apis.SynchronizationState, time metav1.Time, message string) *SetStatus {
 	condition := metav1.Condition{
 		Type:               apis.ConditionTypes.SynchronizationSucceeded,
 		Status:             apis.ConditionStatusForSynchronizationState(state),
 		ObservedGeneration: sps.Status.ObservedGeneration,
 		LastTransitionTime: time,
 		Reason:             string(state),
-		Message:            sps.Message,
+		Message:            message,
 	}
 
 	if sps.Status.Conditions == nil {
@@ -132,17 +133,13 @@ func (sps *SetStatus) WithProvider(providerId pipelineshub.ProviderAndId) *SetSt
 	return sps
 }
 
-func (sps *SetStatus) WithMessage(message string) *SetStatus {
-	sps.Message = message
-
-	return sps
-}
-
 func eventMessage(sps SetStatus) (message string) {
 	message = fmt.Sprintf(`%s [version: "%s"]`, string(sps.Status.Conditions.GetSyncStateFromReason()), sps.Status.Version)
 
-	if sps.Message != "" {
-		message = fmt.Sprintf("%s: %s", message, sps.Message)
+	conditionMessage := sps.Status.Conditions.SynchronizationSucceeded().Message
+
+	if conditionMessage != "" {
+		message = fmt.Sprintf("%s: %s", message, conditionMessage)
 	}
 
 	return

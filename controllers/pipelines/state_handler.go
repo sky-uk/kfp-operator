@@ -38,8 +38,7 @@ func (st *StateHandler[R]) stateTransition(
 	resourceProvider := resource.GetStatus().Provider.Name
 	if !resourceProvider.Empty() && resourceProvider != provider.GetCommonNamespacedName() {
 		setStatus := From(resource.GetStatus()).
-			WithMessage(StateHandlerConstants.ProviderChangedError).
-			WithSyncStateCondition(apis.Failed, transitionTime)
+			WithSyncStateCondition(apis.Failed, transitionTime, StateHandlerConstants.ProviderChangedError)
 		commands = []Command{*setStatus}
 	} else {
 		switch resource.GetStatus().Conditions.GetSyncStateFromReason() {
@@ -121,14 +120,13 @@ func (st *StateHandler[R]) onUnknown(
 			return []Command{
 				*From(resource.GetStatus()).
 					WithVersion(newVersion).
-					WithMessage(failureMessage).
-					WithSyncStateCondition(apis.Failed, transitionTime),
+					WithSyncStateCondition(apis.Failed, transitionTime, failureMessage),
 			}
 		}
 
 		return []Command{
 			*From(resource.GetStatus()).
-				WithSyncStateCondition(apis.Updating, transitionTime).
+				WithSyncStateCondition(apis.Updating, transitionTime, "").
 				WithVersion(newVersion),
 			CreateWorkflow{Workflow: *workflow},
 		}
@@ -143,8 +141,7 @@ func (st *StateHandler[R]) onUnknown(
 		logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 
 		cmd := From(resource.GetStatus()).
-			WithMessage(failureMessage).
-			WithSyncStateCondition(apis.Failed, transitionTime).
+			WithSyncStateCondition(apis.Failed, transitionTime, failureMessage).
 			WithVersion(newVersion)
 
 		return []Command{
@@ -158,7 +155,7 @@ func (st *StateHandler[R]) onUnknown(
 		},
 	}
 
-	status.WithSyncStateCondition(apis.Creating, transitionTime)
+	status.WithSyncStateCondition(apis.Creating, transitionTime, "")
 
 	return []Command{
 		status,
@@ -179,7 +176,7 @@ func (st StateHandler[R]) onDelete(
 	if resource.GetStatus().Provider.Id == "" {
 		return []Command{
 			*From(resource.GetStatus()).
-				WithSyncStateCondition(apis.Deleted, transitionTime),
+				WithSyncStateCondition(apis.Deleted, transitionTime, ""),
 		}
 	}
 
@@ -191,14 +188,13 @@ func (st StateHandler[R]) onDelete(
 
 		return []Command{
 			*From(resource.GetStatus()).
-				WithMessage(failureMessage).
-				WithSyncStateCondition(apis.Failed, transitionTime),
+				WithSyncStateCondition(apis.Failed, transitionTime, failureMessage),
 		}
 	}
 
 	return []Command{
 		*From(resource.GetStatus()).
-			WithSyncStateCondition(apis.Deleting, transitionTime),
+			WithSyncStateCondition(apis.Deleting, transitionTime, ""),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
@@ -239,8 +235,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 			return []Command{
 				*From(resource.GetStatus()).
 					WithVersion(newResourceVersion).
-					WithMessage(failureMessage).
-					WithSyncStateCondition(apis.Failed, transitionTime),
+					WithSyncStateCondition(apis.Failed, transitionTime, failureMessage),
 			}
 		}
 
@@ -258,8 +253,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 			return []Command{
 				*From(resource.GetStatus()).
 					WithVersion(newResourceVersion).
-					WithMessage(failureMessage).
-					WithSyncStateCondition(apis.Failed, transitionTime),
+					WithSyncStateCondition(apis.Failed, transitionTime, failureMessage),
 			}
 		}
 
@@ -268,7 +262,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 
 	return []Command{
 		*From(resource.GetStatus()).
-			WithSyncStateCondition(targetState, transitionTime).
+			WithSyncStateCondition(targetState, transitionTime, "").
 			WithVersion(newResourceVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
@@ -317,8 +311,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 			return From(status).
-				WithMessage(failureMessage).
-				WithSyncStateCondition(states.FailureState, transitionTime)
+				WithSyncStateCondition(states.FailureState, transitionTime, failureMessage)
 		}
 
 		result, err := workflowutil.GetWorkflowOutput(workflow, workflowconstants.ProviderOutputParameterName)
@@ -337,9 +330,8 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 		if result.ProviderError != "" {
 			logger.Error(err, fmt.Sprintf("%s, failing resource", result.ProviderError))
 			return From(status).
-				WithMessage(result.ProviderError).
 				WithProvider(providerAndId).
-				WithSyncStateCondition(states.FailureState, transitionTime)
+				WithSyncStateCondition(states.FailureState, transitionTime, result.ProviderError)
 		}
 
 		err = states.VerifyId(result.Id)
@@ -348,12 +340,11 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 			failureMessage := err.Error()
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
 			return From(status).
-				WithMessage(failureMessage).
-				WithSyncStateCondition(states.FailureState, transitionTime)
+				WithSyncStateCondition(states.FailureState, transitionTime, failureMessage)
 		}
 
 		return From(status).
-			WithSyncStateCondition(states.SuccessState, transitionTime).
+			WithSyncStateCondition(states.SuccessState, transitionTime, "").
 			WithProvider(providerAndId)
 	}
 
@@ -380,8 +371,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 
 		logger.Info(fmt.Sprintf("%s, failing resource", failureMessage))
 		setStatusCommand = From(status).
-			WithMessage(failureMessage).
-			WithSyncStateCondition(states.FailureState, transitionTime)
+			WithSyncStateCondition(states.FailureState, transitionTime, failureMessage)
 	}
 
 	return []Command{
@@ -406,8 +396,7 @@ func (st StateHandler[R]) onCreating(
 
 		return []Command{
 			*From(resource.GetStatus()).
-				WithMessage(failureMessage).
-				WithSyncStateCondition(apis.Failed, transitionTime),
+				WithSyncStateCondition(apis.Failed, transitionTime, failureMessage),
 		}
 	}
 
@@ -428,8 +417,7 @@ func (st StateHandler[R]) onUpdating(
 
 		return []Command{
 			*From(resource.GetStatus()).
-				WithMessage(failureMessage).
-				WithSyncStateCondition(apis.Failed, transitionTime),
+				WithSyncStateCondition(apis.Failed, transitionTime, failureMessage),
 		}
 	}
 

@@ -322,7 +322,7 @@ var _ = Describe("State handler", func() {
 			From(UnknownState, emptyProviderId, "", v1, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-					WithSyncStateCondition(apis.Creating, transitionTime).
+					WithSyncStateCondition(apis.Creating, transitionTime, "").
 					WithVersion(v1)).
 				IssuesCreationWorkflow(),
 		),
@@ -332,15 +332,14 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithMessage(workflowconstants.ConstructionFailedError).
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, workflowconstants.ConstructionFailedError)),
 		),
 		Check("Empty with version",
 			From(UnknownState, emptyProviderId, v1, v1, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Creating, transitionTime)).
+					WithSyncStateCondition(apis.Creating, transitionTime, "")).
 				IssuesCreationWorkflow(),
 		),
 		Check("Empty with id",
@@ -349,7 +348,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Updating, transitionTime),
+					WithSyncStateCondition(apis.Updating, transitionTime, ""),
 				).
 				IssuesUpdateWorkflow(),
 		),
@@ -360,15 +359,14 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage(workflowconstants.ConstructionFailedError).
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, workflowconstants.ConstructionFailedError)),
 		),
 		Check("Empty with id and version",
 			From(UnknownState, providerId, v1, v2, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
-					WithSyncStateCondition(apis.Updating, transitionTime).
+					WithSyncStateCondition(apis.Updating, transitionTime, "").
 					WithVersion(v2)).
 				IssuesUpdateWorkflow(),
 		),
@@ -379,7 +377,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Succeeded, transitionTime)).
+					WithSyncStateCondition(apis.Succeeded, transitionTime, "")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating succeeds without providerId or provider error",
@@ -389,8 +387,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage("id was empty").
-					WithSyncStateCondition(apis.Failed, transitionTime)).
+					WithSyncStateCondition(apis.Failed, transitionTime, "id was empty")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating succeeds with provider error",
@@ -400,8 +397,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage(providerError).
-					WithSyncStateCondition(apis.Failed, transitionTime)).
+					WithSyncStateCondition(apis.Failed, transitionTime, providerError)).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating fails",
@@ -410,16 +406,14 @@ var _ = Describe("State handler", func() {
 				WithCreateWorkFlow(argo.WorkflowFailed).
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithMessage("operation failed").
-					WithSyncStateCondition(apis.Failed, transitionTime)).
+					WithSyncStateCondition(apis.Failed, transitionTime, "operation failed")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Creating without version",
 			From(apis.Creating, emptyProviderId, "", irrelevant, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-					WithMessage("creating resource with empty version").
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, "creating resource with empty version")),
 		),
 		Check("Succeeded no update",
 			From(apis.Succeeded, providerId, v1, v1, transitionTime).
@@ -430,7 +424,7 @@ var _ = Describe("State handler", func() {
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
-					WithSyncStateCondition(apis.Updating, transitionTime).
+					WithSyncStateCondition(apis.Updating, transitionTime, "").
 					WithVersion(v2)).
 				IssuesUpdateWorkflow(),
 		),
@@ -441,14 +435,13 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v2).
-					WithMessage(workflowconstants.ConstructionFailedError).
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, workflowconstants.ConstructionFailedError)),
 		),
 		Check("Succeeded with update but no ProviderAndId",
 			From(apis.Succeeded, emptyProviderId, v1, v2, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-					WithSyncStateCondition(apis.Creating, transitionTime).
+					WithSyncStateCondition(apis.Creating, transitionTime, "").
 					WithVersion(v2)).
 				IssuesCreationWorkflow(),
 		),
@@ -458,15 +451,14 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v2).
-					WithMessage(workflowconstants.ConstructionFailedError).
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, workflowconstants.ConstructionFailedError)),
 		),
 		Check("Succeeded with update but no ProviderAndId and no version",
 			From(apis.Succeeded, emptyProviderId, "", v1, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Creating, transitionTime)).
+					WithSyncStateCondition(apis.Creating, transitionTime, "")).
 				IssuesCreationWorkflow(),
 		),
 		Check("Failed no update",
@@ -478,7 +470,7 @@ var _ = Describe("State handler", func() {
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
-					WithSyncStateCondition(apis.Updating, transitionTime).
+					WithSyncStateCondition(apis.Updating, transitionTime, "").
 					WithVersion(v2)).
 				IssuesUpdateWorkflow(),
 		),
@@ -489,14 +481,13 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v2).
-					WithMessage(workflowconstants.ConstructionFailedError).
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, workflowconstants.ConstructionFailedError)),
 		),
 		Check("Failed with update but no ProviderAndId",
 			From(apis.Failed, emptyProviderId, v1, v2, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-					WithSyncStateCondition(apis.Creating, transitionTime).
+					WithSyncStateCondition(apis.Creating, transitionTime, "").
 					WithVersion(v2)).
 				IssuesCreationWorkflow(),
 		),
@@ -506,15 +497,14 @@ var _ = Describe("State handler", func() {
 				WorkflowConstructionFails().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v2).
-					WithMessage(workflowconstants.ConstructionFailedError).
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, workflowconstants.ConstructionFailedError)),
 		),
 		Check("Failed with update but no ProviderAndId and no version",
 			From(apis.Failed, emptyProviderId, "", v1, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Creating, transitionTime)).
+					WithSyncStateCondition(apis.Creating, transitionTime, "")).
 				IssuesCreationWorkflow(),
 		),
 		Check("Updating succeeds with providerId",
@@ -524,7 +514,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(anotherIdSameProvider).
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Succeeded, transitionTime)).
+					WithSyncStateCondition(apis.Succeeded, transitionTime, "")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Updating succeeds without providerId or provider error",
@@ -534,8 +524,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage("id was empty").
-					WithSyncStateCondition(apis.Failed, transitionTime)).
+					WithSyncStateCondition(apis.Failed, transitionTime, "id was empty")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Updating succeeds with provider error",
@@ -545,8 +534,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(anotherIdSameProvider).
 					WithVersion(v1).
-					WithMessage(providerError).
-					WithSyncStateCondition(apis.Failed, transitionTime)).
+					WithSyncStateCondition(apis.Failed, transitionTime, providerError)).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Updating fails",
@@ -556,8 +544,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage("operation failed").
-					WithSyncStateCondition(apis.Failed, transitionTime)).
+					WithSyncStateCondition(apis.Failed, transitionTime, "operation failed")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Updating without version",
@@ -565,23 +552,20 @@ var _ = Describe("State handler", func() {
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
-					WithMessage("updating resource with empty version or providerId").
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, "updating resource with empty version or providerId")),
 		),
 		Check("Updating without ProviderAndId",
 			From(apis.Updating, emptyProviderId, v1, irrelevant, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithMessage("updating resource with empty version or providerId").
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, "updating resource with empty version or providerId")),
 		),
 		Check("Updating without ProviderAndId or version",
 			From(apis.Updating, emptyProviderId, "", irrelevant, transitionTime).
 				AcquireExperiment().
 				IssuesCommand(*NewSetStatus().
-					WithMessage("updating resource with empty version or providerId").
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, "updating resource with empty version or providerId")),
 		),
 		Check("Deleting from Succeeded",
 			From(apis.Succeeded, providerId, v1, irrelevant, transitionTime).
@@ -590,7 +574,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Deleting, transitionTime)).
+					WithSyncStateCondition(apis.Deleting, transitionTime, "")).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Succeeded without providerId",
@@ -599,7 +583,7 @@ var _ = Describe("State handler", func() {
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Deleted, transitionTime)),
+					WithSyncStateCondition(apis.Deleted, transitionTime, "")),
 		),
 		Check("Deleting from Failed",
 			From(apis.Failed, providerId, v1, irrelevant, transitionTime).
@@ -608,7 +592,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Deleting, transitionTime)).
+					WithSyncStateCondition(apis.Deleting, transitionTime, "")).
 				IssuesDeletionWorkflow(),
 		),
 		Check("Deleting from Failed without providerId",
@@ -617,7 +601,7 @@ var _ = Describe("State handler", func() {
 				DeletionRequested().
 				IssuesCommand(*NewSetStatus().
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Deleted, transitionTime)),
+					WithSyncStateCondition(apis.Deleted, transitionTime, "")),
 		),
 		Check("Deletion succeeds with providerId",
 			From(apis.Deleting, providerId, v1, irrelevant, transitionTime).
@@ -627,8 +611,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage("id should be empty").
-					WithSyncStateCondition(apis.Deleting, transitionTime)).
+					WithSyncStateCondition(apis.Deleting, transitionTime, "id should be empty")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Deletion succeeds",
@@ -639,7 +622,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(emptyProviderId).
 					WithVersion(v1).
-					WithSyncStateCondition(apis.Deleted, transitionTime)).
+					WithSyncStateCondition(apis.Deleted, transitionTime, "")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Deletion succeeds with provider error",
@@ -650,8 +633,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage(providerError).
-					WithSyncStateCondition(apis.Deleting, transitionTime)).
+					WithSyncStateCondition(apis.Deleting, transitionTime, providerError)).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Deletion fails",
@@ -662,8 +644,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithProvider(providerId).
 					WithVersion(v1).
-					WithMessage("operation failed").
-					WithSyncStateCondition(apis.Deleting, transitionTime)).
+					WithSyncStateCondition(apis.Deleting, transitionTime, "operation failed")).
 				MarksAllWorkflowsAsProcessed(),
 		),
 		Check("Stay in deleted",
@@ -676,8 +657,7 @@ var _ = Describe("State handler", func() {
 				IssuesCommand(*NewSetStatus().
 					WithVersion(irrelevant).
 					WithProvider(anotherProviderId).
-					WithMessage(StateHandlerConstants.ProviderChangedError).
-					WithSyncStateCondition(apis.Failed, transitionTime)),
+					WithSyncStateCondition(apis.Failed, transitionTime, StateHandlerConstants.ProviderChangedError)),
 		),
 	)
 })
