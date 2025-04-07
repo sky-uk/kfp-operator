@@ -63,15 +63,9 @@ func alwaysSetObservedGeneration(ctx context.Context, commands []Command, resour
 				logger.Info("attempting to set status more than once in the same reconciliation, this is likely to cause inconsistencies")
 			}
 
-			message := setStatus.Status.Conditions.SynchronizationSucceeded().Message
-
 			setStatusExists = true
 			setStatus.Status.ObservedGeneration = currentGeneration
-			setStatus.Status.Conditions.SetObservedGeneration(
-				message,
-				time,
-				currentGeneration,
-			)
+			setStatus.Status.Conditions.SetObservedGeneration(apis.ConditionTypes.SynchronizationSucceeded, currentGeneration)
 
 			modifiedCommands = append(modifiedCommands, setStatus)
 		} else {
