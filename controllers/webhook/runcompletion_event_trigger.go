@@ -45,13 +45,17 @@ func NewRunCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint)
 	}
 }
 
-func (rcet RunCompletionEventTrigger) Handle(event common.RunCompletionEvent) error {
+func (rcet RunCompletionEventTrigger) Handle(event common.RunCompletionEvent) EventError {
 	runCompletionEvent, err := RunCompletionEventToProto(event)
 	if err != nil {
-		return err
+		return &InvalidEvent{err.Error()}
 	}
 	_, err = rcet.Client.ProcessEventFeed(rcet.ctx, runCompletionEvent)
-	return err
+	if err != nil {
+		return &FatalError{err.Error()}
+	}
+
+	return nil
 }
 
 func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompletionEvent, error) {
@@ -84,7 +88,7 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		Status:                statusToProto(event.Status),
 	}
 
-	return &runCompletionEvent, err
+	return &runCompletionEvent, nil
 }
 
 func artifactToProto(commonArtifacts []common.Artifact) []*pb.Artifact {

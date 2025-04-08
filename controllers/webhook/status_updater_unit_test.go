@@ -4,13 +4,13 @@ package webhook
 
 import (
 	"context"
+	"errors"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"go.uber.org/zap/zapcore"
-	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -27,7 +27,7 @@ var _ = Context("Handle", func() {
 	var client client.Client
 	var updater StatusUpdater
 
-	Context("event RunName is present", func() {
+	Context("RunName is present in event", func() {
 		var run pipelineshub.Run
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
 		rce.RunConfigurationName = nil
@@ -63,9 +63,10 @@ var _ = Context("Handle", func() {
 		})
 
 		When("Run resource is not found", func() {
-			It("should return a not found error", func() {
+			It("should return a MissingResourceError", func() {
 				err = updater.Handle(rce)
-				Expect(errors.IsNotFound(err)).To(BeTrue())
+				var expectedErr *MissingResourceError
+				Expect(errors.As(err, &expectedErr)).To(BeTrue())
 			})
 		})
 
@@ -98,7 +99,7 @@ var _ = Context("Handle", func() {
 		})
 	})
 
-	Context("event RunConfigurationName is present", func() {
+	Context("RunConfigurationName is present in event", func() {
 		var rc pipelineshub.RunConfiguration
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
 		rce.RunName = nil
@@ -141,7 +142,8 @@ var _ = Context("Handle", func() {
 				expectedArtifacts := rc.Status.LatestRuns.Succeeded.Artifacts
 
 				err = updater.Handle(rce)
-				Expect(errors.IsNotFound(err)).To(BeTrue())
+				var expectedErr *MissingResourceError
+				Expect(errors.As(err, &expectedErr)).To(BeTrue())
 
 				Expect(rc.Status.LatestRuns.Succeeded.ProviderId).
 					To(Equal(expectedProviderId))

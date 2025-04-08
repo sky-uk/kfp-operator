@@ -47,19 +47,24 @@ func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdate
 	return StatusUpdater{ctx, k8sClient}, nil
 }
 
-func (su StatusUpdater) Handle(
-	event argocommon.RunCompletionEvent,
-) error {
+func (su StatusUpdater) Handle(event argocommon.RunCompletionEvent) EventError {
 	if event.RunName != nil {
 		if err := su.completeRun(event); err != nil {
-			return err
+			if errors.IsNotFound(err) {
+				return &MissingResourceError{err.Error()}
+			}
+			return &FatalError{err.Error()}
 		}
 	}
 	if event.RunConfigurationName != nil {
 		if err := su.completeRunConfiguration(event); err != nil {
-			return err
+			if errors.IsNotFound(err) {
+				return &MissingResourceError{err.Error()}
+			}
+			return &FatalError{err.Error()}
 		}
 	}
+
 	return nil
 }
 
