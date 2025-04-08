@@ -1,5 +1,3 @@
-import os
-os.environ["KERAS_BACKEND"] = "torch"
 import keras
 
 @keras.saving.register_keras_serializable()

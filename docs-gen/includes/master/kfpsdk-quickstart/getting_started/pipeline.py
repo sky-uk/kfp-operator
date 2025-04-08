@@ -113,9 +113,7 @@ def trainer(
     model_obj.save(local_model_path)
 
 @dsl.pipeline(
-    name='kfpsdk-quickstart-pipeline',
     description='A KFP SDK quickstart pipeline which performs training on the Iris dataset.',
-
 )
 def add_pipeline():
 

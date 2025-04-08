@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "kfpsdk_getting_started"
+name = "kfpsdk-quickstart"
 version = "0.2.0"
 description = ""
 authors = []
