@@ -10,6 +10,7 @@ import (
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"go.uber.org/zap/zapcore"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -29,6 +30,7 @@ var _ = Context("Handle", func() {
 	Context("event RunName is present", func() {
 		var run pipelineshub.Run
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
+		rce.RunConfigurationName = nil
 
 		BeforeEach(func() {
 			rce.Status = common.RunCompletionStatuses.Succeeded
@@ -61,9 +63,9 @@ var _ = Context("Handle", func() {
 		})
 
 		When("Run resource is not found", func() {
-			It("should not return error", func() {
+			It("should return a not found error", func() {
 				err = updater.Handle(rce)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(errors.IsNotFound(err)).To(BeTrue())
 			})
 		})
 
@@ -88,6 +90,8 @@ var _ = Context("Handle", func() {
 			It("should return error", func() {
 				client = fake.NewClientBuilder().Build()
 				updater = StatusUpdater{ctx, client}
+				name := common.RandomNamespacedName()
+				rce.RunName = &name
 				err = updater.Handle(rce)
 				Expect(err).To(HaveOccurred())
 			})
@@ -97,6 +101,7 @@ var _ = Context("Handle", func() {
 	Context("event RunConfigurationName is present", func() {
 		var rc pipelineshub.RunConfiguration
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
+		rce.RunName = nil
 
 		BeforeEach(func() {
 			client = fake.NewClientBuilder().
@@ -131,12 +136,12 @@ var _ = Context("Handle", func() {
 		})
 
 		When("RunConfiguration resource is not found", func() {
-			It("should not error and not update the Status ProviderId and Artifacts", func() {
+			It("should return not found error and not update the Status ProviderId and Artifacts", func() {
 				expectedProviderId := rc.Status.LatestRuns.Succeeded.ProviderId
 				expectedArtifacts := rc.Status.LatestRuns.Succeeded.Artifacts
 
 				err = updater.Handle(rce)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(errors.IsNotFound(err)).To(BeTrue())
 
 				Expect(rc.Status.LatestRuns.Succeeded.ProviderId).
 					To(Equal(expectedProviderId))
@@ -187,6 +192,8 @@ var _ = Context("Handle", func() {
 			It("should return error", func() {
 				client = fake.NewClientBuilder().Build()
 				updater = StatusUpdater{ctx, client}
+				name := common.RandomNamespacedName()
+				rce.RunConfigurationName = &name
 				err = updater.Handle(rce)
 				Expect(err).To(HaveOccurred())
 			})

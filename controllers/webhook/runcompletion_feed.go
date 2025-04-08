@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -104,8 +105,13 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 				err := handler.Handle(*event)
 				if err != nil {
 					logger.Error(err, "Run completion event handler operation failed")
-					http.Error(response, err.Error(), http.StatusInternalServerError)
-					return
+					if k8sErrors.IsNotFound(err) {
+						http.Error(response, err.Error(), http.StatusGone)
+						return
+					} else {
+						http.Error(response, err.Error(), http.StatusInternalServerError)
+						return
+					}
 				}
 			}
 			return
