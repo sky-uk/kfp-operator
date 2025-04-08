@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,7 +16,6 @@ import (
 	. "github.com/onsi/gomega"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -34,15 +32,15 @@ type MockRCEHandler struct {
 	expectedBody string
 }
 
-func (m MockRCEHandler) Handle(event common.RunCompletionEvent) error {
+func (m MockRCEHandler) Handle(event common.RunCompletionEvent) EventError {
 	mockRCEHandlerHandleCounter++
 	passedBodyBytes, err := json.Marshal(event)
 	Expect(err).NotTo(HaveOccurred())
 	passedBodyStr := string(passedBodyBytes)
 	if m.expectedBody == "error" {
-		return errors.New("run completion event handler error")
+		return &FatalError{Msg: "run completion event handler error"}
 	} else if m.expectedBody == "not found" {
-		return k8sErrors.NewNotFound(schema.GroupResource{}, "run completion event handler not found")
+		return &MissingResourceError{Msg: "resource not found"}
 	} else if passedBodyStr != m.expectedBody {
 		Fail(
 			fmt.Sprintf(
@@ -74,14 +72,21 @@ func setupRequestResponse(ctx context.Context, method string, body io.Reader, co
 
 var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	ctx := logr.NewContext(context.Background(), logr.Discard())
-	fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects().Build()
+	rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
+	fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(rc).Build()
 
 	noHandlers := RunCompletionFeed{
 		ctx:           ctx,
+		client:        fakeClient,
 		eventHandlers: nil,
 	}
 
 	rced := RandomRunCompletionEventData()
+	rced.RunConfigurationName = &common.NamespacedName{
+		Name:      rc.Name,
+		Namespace: rc.Namespace,
+	}
+	rced.RunName = nil
 	requestStr, err := json.Marshal(rced)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -101,6 +106,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 	withHandlers := RunCompletionFeed{
 		ctx:            ctx,
+		client:         fakeClient,
 		eventProcessor: eventProcessor,
 		eventHandlers:  handlers,
 	}
@@ -153,6 +159,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 			}
 			withErrorHandler := RunCompletionFeed{
 				ctx:            ctx,
+				client:         fakeClient,
 				eventProcessor: eventProcessor,
 				eventHandlers:  handlers,
 			}
@@ -173,6 +180,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 			}
 			withErrorHandler := RunCompletionFeed{
 				ctx:            ctx,
+				client:         fakeClient,
 				eventProcessor: eventProcessor,
 				eventHandlers:  handlers,
 			}

@@ -3,22 +3,23 @@
 package webhook
 
 import (
-	"context"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type StubbedEventProcessor struct {
 	expectedRunCompletionEventData *common.RunCompletionEventData
 	returnedRunCompletionEvent     *common.RunCompletionEvent
-	expectedError                  error
+	expectedError                  EventError
 }
 
-func (sep StubbedEventProcessor) ToRunCompletionEvent(_ context.Context, passedData common.RunCompletionEventData) (*common.RunCompletionEvent, error) {
+func (sep StubbedEventProcessor) ToRunCompletionEvent(eventData *common.RunCompletionEventData, runConfiguration *pipelineshub.RunConfiguration, run *pipelineshub.Run) (*common.RunCompletionEvent, EventError) {
 	if sep.expectedRunCompletionEventData != nil {
-		Expect(passedData).To(Equal(*sep.expectedRunCompletionEventData))
+		Expect(eventData).To(Equal(sep.expectedRunCompletionEventData))
 	}
+
 	return sep.returnedRunCompletionEvent, sep.expectedError
 }
 
