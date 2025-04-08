@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -22,6 +23,7 @@ const (
 
 type RunCompletionFeed struct {
 	ctx            context.Context
+	client         client.Reader
 	eventProcessor EventProcessor
 	eventHandlers  []RunCompletionEventHandler
 }
@@ -31,7 +33,7 @@ func NewRunCompletionFeed(
 	client client.Reader,
 	handlers []RunCompletionEventHandler,
 ) RunCompletionFeed {
-	eventProcessor := NewResourceArtifactsEventProcessor(client)
+	eventProcessor := NewResourceArtifactsEventProcessor()
 	return RunCompletionFeed{
 		ctx:            ctx,
 		eventProcessor: eventProcessor,
@@ -65,18 +67,56 @@ func getRequestBody(ctx context.Context, request *http.Request) ([]byte, error) 
 	return body, nil
 }
 
-func (rcf RunCompletionFeed) extractRunCompletionEvent(request *http.Request) (*common.RunCompletionEvent, error) {
+func (rcf RunCompletionFeed) extractRunCompletionEventData(request *http.Request) (*common.RunCompletionEventData, error) {
 	body, err := getRequestBody(rcf.ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	rced := common.RunCompletionEventData{}
+	rced := &common.RunCompletionEventData{}
 	if err := json.Unmarshal(body, &rced); err != nil {
 		return nil, err
 	}
 
-	rce, err := rcf.eventProcessor.ToRunCompletionEvent(rcf.ctx, rced)
+	return rced, nil
+}
+
+func (rcf RunCompletionFeed) fetchRunConfiguration(ctx context.Context, name *common.NamespacedName) (*pipelineshub.RunConfiguration, error) {
+	logger := common.LoggerFromContext(ctx)
+	if name != nil {
+		rc := &pipelineshub.RunConfiguration{}
+		if err := rcf.client.Get(ctx, client.ObjectKey{
+			Namespace: name.Namespace,
+			Name:      name.Name,
+		}, rc); err != nil {
+			logger.Error(err, "failed to load RunConfiguration", "RunConfig", name)
+			return nil, err
+		}
+		return rc, nil
+	}
+
+	return nil, nil
+}
+
+func (rcf RunCompletionFeed) fetchRun(ctx context.Context, name *common.NamespacedName) (*pipelineshub.Run, error) {
+	logger := common.LoggerFromContext(ctx)
+	if name != nil {
+		run := &pipelineshub.Run{}
+		if err := rcf.client.Get(ctx, client.ObjectKey{
+			Namespace: name.Namespace,
+			Name:      name.Name,
+		}, run); err != nil {
+			logger.Error(err, "failed to load Run", "Run", name)
+			return nil, err
+		}
+		return run, nil
+	}
+
+	return nil, nil
+}
+
+func (rcf RunCompletionFeed) constructRunCompletionEvent(rced *common.RunCompletionEventData, runConfiguration *pipelineshub.RunConfiguration, run *pipelineshub.Run) (*common.RunCompletionEvent, error) {
+	rce, err := rcf.eventProcessor.ToRunCompletionEvent(rcf.ctx, *rced)
 	if err != nil {
 		return nil, err
 	} else if rce == nil {
@@ -95,7 +135,12 @@ func (rcf RunCompletionFeed) handleEvent(response http.ResponseWriter, request *
 			http.Error(response, fmt.Sprintf("invalid %s, want `%s`", HttpHeaderContentType, HttpContentTypeJSON), http.StatusUnsupportedMediaType)
 			return
 		}
-		event, err := rcf.extractRunCompletionEvent(request)
+
+		eventData, err := rcf.extractRunCompletionEventData(request)
+		runConfiguration, err := rcf.fetchRunConfiguration(rcf.ctx, eventData.RunConfigurationName)
+		run, err := rcf.fetchRun(rcf.ctx, eventData.RunName)
+		event, err := rcf.constructRunCompletionEvent(eventData, runConfiguration, run)
+
 		if err != nil || event == nil {
 			logger.Error(err, "Failed to extract body from request")
 			http.Error(response, err.Error(), http.StatusBadRequest)

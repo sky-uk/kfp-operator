@@ -3,29 +3,12 @@
 package webhook
 
 import (
-	"context"
-
-	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
-
-func schemeWithCRDs() *runtime.Scheme {
-	scheme := runtime.NewScheme()
-
-	groupVersion := schema.GroupVersion{Group: "pipelines.kubeflow.org", Version: "v1beta1"}
-	scheme.AddKnownTypes(groupVersion, &pipelineshub.RunConfiguration{}, &pipelineshub.Run{})
-
-	metav1.AddToGroupVersion(scheme, groupVersion)
-	return scheme
-}
 
 func checkOutputArtifacts(outputArtifacts []pipelineshub.OutputArtifact, expectedArtifacts []pipelineshub.OutputArtifact) {
 	if outputArtifacts == nil {
@@ -36,10 +19,8 @@ func checkOutputArtifacts(outputArtifacts []pipelineshub.OutputArtifact, expecte
 }
 
 var _ = Context("ToRunCompletionEvent", func() {
-	var ctx = logr.NewContext(context.Background(), logr.Discard())
-
-	When("given valid runCompletionEventData", func() {
-		It("converts to a runCompletionEvent with filtered artifacts", func() {
+	When("run configuration passed and no run passed", func() {
+		It("returns RunCompletionEvent with filtered run configuration artifacts", func() {
 			rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
 
 			runCompletionEventData := RandomRunCompletionEventData()
@@ -48,15 +29,14 @@ var _ = Context("ToRunCompletionEvent", func() {
 				Namespace: rc.Namespace,
 			}
 
+			// TODO: The expected artefacts should be the filtered output artifacts of the RC instead of randoms
 			expectedArtifacts := apis.RandomNonEmptyList(common.RandomArtifact)
 
 			stubbedFilterFunc := func(_ []common.PipelineComponent, _ []pipelineshub.OutputArtifact) []common.Artifact {
 				return expectedArtifacts
 			}
 
-			fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(rc).Build()
-
-			result, err := ResourceArtifactsEventProcessor{client: fakeClient, filter: stubbedFilterFunc}.ToRunCompletionEvent(ctx, runCompletionEventData)
+			result, err := ResourceArtifactsEventProcessor{filter: stubbedFilterFunc}.ToRunCompletionEvent(&runCompletionEventData, rc, nil)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(Equal(&common.RunCompletionEvent{
 				Status:                runCompletionEventData.Status,
@@ -69,6 +49,88 @@ var _ = Context("ToRunCompletionEvent", func() {
 				Provider:              runCompletionEventData.Provider,
 			}))
 
+		})
+	})
+
+	When("run passed and no run configuration passed", func() {
+		It("returns RunCompletionEvent with filtered run artifacts", func() {
+			run := pipelineshub.RandomRun(common.RandomNamespacedName())
+
+			runCompletionEventData := RandomRunCompletionEventData()
+			runCompletionEventData.RunName = &common.NamespacedName{
+				Name:      run.Name,
+				Namespace: run.Namespace,
+			}
+
+			// TODO: The expected artefacts should be the filtered output artifacts of the Run instead of randoms
+			expectedArtifacts := apis.RandomNonEmptyList(common.RandomArtifact)
+
+			stubbedFilterFunc := func(_ []common.PipelineComponent, _ []pipelineshub.OutputArtifact) []common.Artifact {
+				return expectedArtifacts
+			}
+
+			result, err := ResourceArtifactsEventProcessor{filter: stubbedFilterFunc}.ToRunCompletionEvent(&runCompletionEventData, nil, run)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(&common.RunCompletionEvent{
+				Status:                runCompletionEventData.Status,
+				PipelineName:          runCompletionEventData.PipelineName,
+				RunConfigurationName:  runCompletionEventData.RunConfigurationName,
+				RunName:               runCompletionEventData.RunName,
+				RunId:                 runCompletionEventData.RunId,
+				ServingModelArtifacts: runCompletionEventData.ServingModelArtifacts,
+				Artifacts:             expectedArtifacts,
+				Provider:              runCompletionEventData.Provider,
+			}))
+		})
+	})
+
+	When("both run configuration and run passed", func() {
+		It("returns RunCompletionEvent with filtered run configuration artifacts", func() {
+			rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
+			run := pipelineshub.RandomRun(common.RandomNamespacedName())
+
+			runCompletionEventData := RandomRunCompletionEventData()
+			runCompletionEventData.RunConfigurationName = &common.NamespacedName{
+				Name:      rc.Name,
+				Namespace: rc.Namespace,
+			}
+			runCompletionEventData.RunName = &common.NamespacedName{
+				Name:      run.Name,
+				Namespace: run.Namespace,
+			}
+
+			// TODO: The expected artefacts should be the filtered output artifacts of the RC instead of randoms
+			expectedArtifacts := apis.RandomNonEmptyList(common.RandomArtifact)
+
+			stubbedFilterFunc := func(_ []common.PipelineComponent, _ []pipelineshub.OutputArtifact) []common.Artifact {
+				return expectedArtifacts
+			}
+
+			result, err := ResourceArtifactsEventProcessor{filter: stubbedFilterFunc}.ToRunCompletionEvent(&runCompletionEventData, rc, nil)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(&common.RunCompletionEvent{
+				Status:                runCompletionEventData.Status,
+				PipelineName:          runCompletionEventData.PipelineName,
+				RunConfigurationName:  runCompletionEventData.RunConfigurationName,
+				RunName:               runCompletionEventData.RunName,
+				RunId:                 runCompletionEventData.RunId,
+				ServingModelArtifacts: runCompletionEventData.ServingModelArtifacts,
+				Artifacts:             expectedArtifacts,
+				Provider:              runCompletionEventData.Provider,
+			}))
+
+		})
+	})
+
+	When("neither run configuration nor run passed", func() {
+		It("returns an error", func() {
+			runCompletionEventData := RandomRunCompletionEventData()
+			stubbedFilterFunc := func(_ []common.PipelineComponent, _ []pipelineshub.OutputArtifact) []common.Artifact {
+				return []common.Artifact{}
+			}
+
+			_, err := ResourceArtifactsEventProcessor{filter: stubbedFilterFunc}.ToRunCompletionEvent(&runCompletionEventData, nil, nil)
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })
@@ -146,76 +208,6 @@ var _ = Context("filter", func() {
 			invalidIndex.Path.Locator.Index = 999999999
 			result := filterByResourceArtifacts([]common.PipelineComponent{basePipelineComponent}, []pipelineshub.OutputArtifact{invalidIndex})
 			Expect(result).To(BeEmpty())
-		})
-	})
-})
-
-var _ = Context("extractResourceArtifacts", func() {
-	var ctx = logr.NewContext(context.Background(), logr.Discard())
-	When("neither run configuration or run name namespace passed", func() {
-		It("should return an error", func() {
-			_, err := extractResourceArtifacts(ctx, fake.NewClientBuilder().Build(), nil, nil)
-			Expect(err).To(HaveOccurred())
-		})
-	})
-
-	When("run configuration passed but resource not available", func() {
-		It("should return an error", func() {
-			rcName := &common.NamespacedName{
-				Namespace: "rc-namespace",
-				Name:      "rc-name",
-			}
-			_, err := extractResourceArtifacts(ctx, fake.NewClientBuilder().WithScheme(schemeWithCRDs()).Build(), rcName, nil)
-			Expect(err).To(HaveOccurred())
-		})
-	})
-
-	When("run configuration passed and no run name namespace", func() {
-		It("should return run configuration artifacts", func() {
-			rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
-			rcName := &common.NamespacedName{
-				Namespace: rc.Namespace,
-				Name:      rc.Name,
-			}
-			fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(rc).Build()
-			outputArtifacts, err := extractResourceArtifacts(ctx, fakeClient, rcName, nil)
-			Expect(err).NotTo(HaveOccurred())
-			checkOutputArtifacts(outputArtifacts, rc.Spec.Run.Artifacts)
-		})
-	})
-
-	When("run passed and no run configuration", func() {
-		It("should return run artifacts", func() {
-			run := pipelineshub.RandomRun(common.RandomNamespacedName())
-			rName := &common.NamespacedName{
-				Namespace: run.Namespace,
-				Name:      run.Name,
-			}
-			fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(run).Build()
-			outputArtifacts, err := extractResourceArtifacts(ctx, fakeClient, nil, rName)
-			Expect(err).NotTo(HaveOccurred())
-			checkOutputArtifacts(outputArtifacts, run.Spec.Artifacts)
-		})
-	})
-
-	When("both run configuration and run passed", func() {
-		It("should return run configuration artifacts", func() {
-			rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
-			run := pipelineshub.RandomRun(common.RandomNamespacedName())
-			rName := &common.NamespacedName{
-				Namespace: run.Namespace,
-				Name:      run.Name,
-			}
-			rcName := &common.NamespacedName{
-				Namespace: rc.Namespace,
-				Name:      rc.Name,
-			}
-
-			fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(rc, run).Build()
-			outputArtifacts, err := extractResourceArtifacts(ctx, fakeClient, rcName, rName)
-			Expect(err).NotTo(HaveOccurred())
-
-			checkOutputArtifacts(outputArtifacts, rc.Spec.Run.Artifacts)
 		})
 	})
 })
