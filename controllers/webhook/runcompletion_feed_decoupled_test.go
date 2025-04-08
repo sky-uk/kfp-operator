@@ -8,15 +8,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"io"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"net/http"
-	"net/http/httptest"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var mockRCEHandlerHandleCounter = 0
@@ -50,6 +55,16 @@ func (m MockRCEHandler) Handle(event common.RunCompletionEvent) error {
 	return nil
 }
 
+func schemeWithCRDs() *runtime.Scheme {
+	scheme := runtime.NewScheme()
+
+	groupVersion := schema.GroupVersion{Group: "pipelines.kubeflow.org", Version: "v1beta1"}
+	scheme.AddKnownTypes(groupVersion, &pipelineshub.RunConfiguration{}, &pipelineshub.Run{})
+
+	metav1.AddToGroupVersion(scheme, groupVersion)
+	return scheme
+}
+
 func setupRequestResponse(ctx context.Context, method string, body io.Reader, contentType string) (*http.Request, *httptest.ResponseRecorder) {
 	req, err := http.NewRequestWithContext(ctx, method, "http://example.com/events", body)
 	Expect(err).NotTo(HaveOccurred())
@@ -59,6 +74,7 @@ func setupRequestResponse(ctx context.Context, method string, body io.Reader, co
 
 var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	ctx := logr.NewContext(context.Background(), logr.Discard())
+	fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects().Build()
 
 	noHandlers := RunCompletionFeed{
 		ctx:           ctx,
