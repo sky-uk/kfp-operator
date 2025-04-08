@@ -20,7 +20,7 @@ type RunCompletionEventTrigger struct {
 	ctx               context.Context
 }
 
-func NewRuntimeCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint) RunCompletionEventTrigger {
+func NewRunCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint) RunCompletionEventTrigger {
 	logger := log.FromContext(ctx)
 
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
