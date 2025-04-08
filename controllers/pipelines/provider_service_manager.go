@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"slices"
 
+	. "github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
-	. "github.com/sky-uk/kfp-operator/apis/pipelines"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
 	"golang.org/x/exp/maps"

@@ -20,7 +20,7 @@ var _ = Describe("eventMessage", func() {
 		version := apis.RandomString()
 		Expect(
 			eventMessage(*NewSetStatus().
-				WithSynchronizationState(state).
+				WithSyncStateCondition(state, metav1.Time{}, "").
 				WithVersion(version),
 			),
 		).To(Equal(fmt.Sprintf(`%s [version: "%s"]`, string(state), version)))
@@ -38,8 +38,7 @@ var _ = Describe("eventMessage", func() {
 
 		Expect(
 			eventMessage(*NewSetStatus().
-				WithSynchronizationState(state).
-				WithMessage(message),
+				WithSyncStateCondition(state, metav1.Time{}, message),
 			),
 		).To(HaveSuffix(fmt.Sprintf(": %s", message)))
 	},
@@ -55,7 +54,7 @@ var _ = Describe("eventMessage", func() {
 var _ = Describe("eventType", func() {
 	DescribeTable("is 'Normal' for all states but 'Failed'", func(state apis.SynchronizationState) {
 		Expect(
-			eventType(*NewSetStatus().WithSynchronizationState(state)),
+			eventType(*NewSetStatus().WithSyncStateCondition(state, metav1.Time{}, "")),
 		).To(Equal(EventTypes.Normal))
 	},
 		Entry("Creating", apis.Creating),
@@ -68,7 +67,7 @@ var _ = Describe("eventType", func() {
 	When("called on 'Failed'", func() {
 		It("results in 'Warning'", func() {
 			Expect(
-				eventType(*NewSetStatus().WithSynchronizationState(apis.Failed)),
+				eventType(*NewSetStatus().WithSyncStateCondition(apis.Failed, metav1.Time{}, "")),
 			).To(Equal(EventTypes.Warning))
 		})
 	})
@@ -77,7 +76,7 @@ var _ = Describe("eventType", func() {
 var _ = Describe("eventReason", func() {
 	DescribeTable("is the expected reason for any given SynchronizationState", func(state apis.SynchronizationState, expectedReason string) {
 		Expect(
-			eventReason(*NewSetStatus().WithSynchronizationState(state)),
+			eventReason(*NewSetStatus().WithSyncStateCondition(state, metav1.Time{}, "")),
 		).To(Equal(expectedReason))
 	},
 		Entry("Creating", apis.Creating, EventReasons.Syncing),
@@ -91,11 +90,15 @@ var _ = Describe("eventReason", func() {
 
 var _ = Describe("alwaysSetObservedGeneration", func() {
 	It("updates existing SetStatus", func() {
+		transitionTime := metav1.Now()
+		status := SetStatus{
+			Status: pipelineshub.Status{},
+		}
+		status.WithSyncStateCondition(apis.Succeeded, transitionTime, "")
+
 		commands := []Command{
 			AcquireResource{},
-			SetStatus{
-				Status: pipelineshub.Status{SynchronizationState: apis.Succeeded},
-			},
+			status,
 			ReleaseResource{},
 		}
 		resource := &pipelineshub.Pipeline{
@@ -104,18 +107,19 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 			},
 		}
 		resource.SetGeneration(rand.Int63())
+		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource, transitionTime)
 
-		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+		expectedSetStatus := SetStatus{
+			Status: pipelineshub.Status{
+				ObservedGeneration: resource.Generation,
+			},
+		}
+		expectedSetStatus.WithSyncStateCondition(apis.Succeeded, transitionTime, "")
 
-		Expect(modifiedCommands).To(Equal(
+		Expect(modifiedCommands).To(ContainElements(
 			[]Command{
 				AcquireResource{},
-				SetStatus{
-					Status: pipelineshub.Status{
-						SynchronizationState: apis.Succeeded,
-						ObservedGeneration:   resource.Generation,
-					},
-				},
+				expectedSetStatus,
 				ReleaseResource{},
 			}))
 	})
@@ -131,18 +135,20 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		resource.SetGeneration(rand.Int63())
 		resource.Status.ObservedGeneration = -1
 
-		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource, metav1.Time{})
 
 		expectedResource := resource.Status.DeepCopy()
 		expectedResource.ObservedGeneration = resource.GetGeneration()
 
-		Expect(modifiedCommands).To(Equal(
+		expectedSetStatus := SetStatus{
+			Status: *expectedResource,
+		}
+
+		Expect(modifiedCommands).To(ContainElements(
 			[]Command{
 				AcquireResource{},
 				ReleaseResource{},
-				SetStatus{
-					Status: *expectedResource,
-				},
+				expectedSetStatus,
 			}))
 	})
 
@@ -159,28 +165,8 @@ var _ = Describe("alwaysSetObservedGeneration", func() {
 		}
 		resource.SetGeneration(generation)
 
-		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource)
+		modifiedCommands := alwaysSetObservedGeneration(context.Background(), commands, resource, metav1.Time{})
 
 		Expect(modifiedCommands).To(Equal(commands))
 	})
-})
-
-var _ = Describe("statusWithCondition", func() {
-	DescribeTable("sets the condition of the status", func(state apis.SynchronizationState, expectedStatus metav1.ConditionStatus) {
-		setStatus := NewSetStatus().WithMessage(apis.RandomString()).WithSynchronizationState(state)
-		setStatus.Status.ObservedGeneration = rand.Int63()
-		conditions := setStatus.statusWithCondition().Conditions
-
-		Expect(conditions[0].Message).To(Equal(setStatus.Message))
-		Expect(conditions[0].Reason).To(Equal(string(setStatus.Status.SynchronizationState)))
-		Expect(conditions[0].Type).To(Equal(pipelineshub.ConditionTypes.SynchronizationSucceeded))
-		Expect(conditions[0].ObservedGeneration).To(Equal(setStatus.Status.ObservedGeneration))
-	},
-		Entry("Creating", apis.Creating, metav1.ConditionUnknown),
-		Entry("Succeeded", apis.Succeeded, metav1.ConditionTrue),
-		Entry("Updating", apis.Updating, metav1.ConditionUnknown),
-		Entry("Deleting", apis.Deleting, metav1.ConditionUnknown),
-		Entry("Deleted", apis.Deleted, metav1.ConditionTrue),
-		Entry("Failed", apis.Failed, metav1.ConditionFalse),
-	)
 })

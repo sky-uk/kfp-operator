@@ -17,15 +17,15 @@ func createSucceededRcWithSchedule() *pipelineshub.RunConfiguration {
 	}, apis.Updating)
 
 	Eventually(matchSchedules(runConfiguration, func(g Gomega, ownedSchedule *pipelineshub.RunSchedule) {
-		g.Expect(ownedSchedule.Status.SynchronizationState).To(Equal(apis.Creating))
+		g.Expect(ownedSchedule.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(string(apis.Creating)))
 	})).Should(Succeed())
 
 	Expect(updateOwnedSchedules(runConfiguration, func(ownedSchedule *pipelineshub.RunSchedule) {
-		ownedSchedule.Status.SynchronizationState = apis.Succeeded
+		ownedSchedule.Status.Conditions = ownedSchedule.Status.Conditions.SetReasonForSyncState(apis.Succeeded)
 	})).To(Succeed())
 
 	Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-		g.Expect(runConfiguration.Status.SynchronizationState).To(Equal(apis.Succeeded))
+		g.Expect(runConfiguration.Status.Conditions.SynchronizationSucceeded().Reason).To(Equal(string(apis.Succeeded)))
 	})).Should(Succeed())
 
 	return runConfiguration
@@ -55,7 +55,6 @@ func createStableRcWith(modifyRc func(runConfiguration *pipelineshub.RunConfigur
 
 	Eventually(matchRunConfiguration(modifiedRc, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 		g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(modifiedRc.Generation))
-		g.Expect(fetchedRc.Status.SynchronizationState).To(Equal(synchronizationState))
 		g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(synchronizationState))
 		modifiedRc = fetchedRc
 	})).Should(Succeed())

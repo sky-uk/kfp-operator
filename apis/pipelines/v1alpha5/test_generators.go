@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/sky-uk/kfp-operator/apis"
 	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,6 +51,7 @@ func RandomCondition() metav1.Condition {
 }
 
 func RandomRunConfiguration(provider string) *RunConfiguration {
+	state := RandomSynchronizationState()
 	return &RunConfiguration{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      RandomLowercaseString(),
@@ -57,8 +59,11 @@ func RandomRunConfiguration(provider string) *RunConfiguration {
 		},
 		Spec: RandomRunConfigurationSpec(),
 		Status: RunConfigurationStatus{
-			SynchronizationState: RandomSynchronizationState(),
+			SynchronizationState: state,
 			Provider:             provider,
+			Conditions: apis.Conditions{
+				RandomSynchronizationStateCondition(state),
+			},
 		},
 	}
 }
@@ -197,14 +202,18 @@ func RandomExperimentSpec() ExperimentSpec {
 }
 
 func RandomStatus(provider string) Status {
+	state := RandomSynchronizationState()
 	return Status{
-		SynchronizationState: RandomSynchronizationState(),
+		SynchronizationState: state,
 		Version:              RandomString(),
 		ProviderId: ProviderAndId{
 			Provider: provider,
 			Id:       RandomString(),
 		},
 		ObservedGeneration: rand.Int63(),
+		Conditions: apis.Conditions{
+			RandomSynchronizationStateCondition(state),
+		},
 	}
 }
 

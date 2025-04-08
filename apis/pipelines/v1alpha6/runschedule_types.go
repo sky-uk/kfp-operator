@@ -50,7 +50,7 @@ func (rs RunSchedule) ComputeVersion() string {
 // +kubebuilder:resource:shortName="mlrs"
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Provider",type="string",JSONPath=".status.provider.name"
-// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.synchronizationState"
+// +kubebuilder:printcolumn:name="SynchronizationState",type="string",JSONPath=".status.conditions[?(@.type==\"Synchronized\")].reason"
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".status.version"
 type RunSchedule struct {
 	metav1.TypeMeta   `json:",inline"`

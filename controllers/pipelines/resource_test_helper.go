@@ -8,6 +8,7 @@ import (
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -85,7 +86,7 @@ func (testCtx ResourceTestHelper[R]) UpdateStable(updateFunc func(resource R)) {
 	Expect(testCtx.Update(updateFunc)).To(Succeed())
 
 	Eventually(testCtx.ToMatch(func(g Gomega, resource R) {
-		g.Expect(resource.GetStatus().SynchronizationState).To(Equal(apis.Updating))
+		g.Expect(resource.GetStatus().Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Updating))
 	})).Should(Succeed())
 
 	testCtx.UpdateToSucceeded()
@@ -95,11 +96,20 @@ func (testCtx ResourceTestHelper[R]) UpdateToSucceeded() {
 	Expect(K8sClient.Get(Ctx, testCtx.Resource.GetNamespacedName(), testCtx.Resource)).To(Succeed())
 
 	testCtx.Resource.SetStatus(pipelineshub.Status{
-		SynchronizationState: apis.Succeeded,
-		Version:              testCtx.Resource.ComputeVersion(),
+		Version: testCtx.Resource.ComputeVersion(),
 		Provider: pipelineshub.ProviderAndId{
 			Name: Provider.GetCommonNamespacedName(),
 			Id:   apis.RandomString(),
+		},
+		Conditions: apis.Conditions{
+			{
+				Type:               apis.ConditionTypes.SynchronizationSucceeded,
+				Status:             apis.ConditionStatusForSynchronizationState(apis.Succeeded),
+				ObservedGeneration: 0,
+				LastTransitionTime: metav1.Now().Rfc3339Copy(),
+				Reason:             string(apis.Succeeded),
+				Message:            "",
+			},
 		},
 	})
 
@@ -120,7 +130,7 @@ func CreateSucceeded[R pipelineshub.Resource](resource R) ResourceTestHelper[R] 
 func CreateStable[R pipelineshub.Resource](resource R) ResourceTestHelper[R] {
 	testCtx := Create(resource)
 	Eventually(testCtx.ToMatch(func(g Gomega, resource R) {
-		g.Expect(resource.GetStatus().SynchronizationState).To(Equal(apis.Creating))
+		g.Expect(resource.GetStatus().Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 	})).Should(Succeed())
 
 	return testCtx
