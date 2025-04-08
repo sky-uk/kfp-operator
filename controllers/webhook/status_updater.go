@@ -95,7 +95,6 @@ func (su StatusUpdater) completeRun(event argocommon.RunCompletionEvent) error {
 				"Action",
 				"Get",
 			)
-			return nil
 		}
 		return err
 	}
@@ -156,7 +155,6 @@ func (su StatusUpdater) completeRunConfiguration(
 				"Action",
 				"Get",
 			)
-			return nil
 		}
 		return err
 	}

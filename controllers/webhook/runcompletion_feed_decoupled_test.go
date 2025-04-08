@@ -13,6 +13,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"net/http"
 	"net/http/httptest"
 )
@@ -34,6 +36,8 @@ func (m MockRCEHandler) Handle(event common.RunCompletionEvent) error {
 	passedBodyStr := string(passedBodyBytes)
 	if m.expectedBody == "error" {
 		return errors.New("run completion event handler error")
+	} else if m.expectedBody == "not found" {
+		return k8sErrors.NewNotFound(schema.GroupResource{}, "run completion event handler not found")
 	} else if passedBodyStr != m.expectedBody {
 		Fail(
 			fmt.Sprintf(
@@ -123,6 +127,25 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 			noHandlers.handleEvent(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusMethodNotAllowed))
+		})
+	})
+
+	When("a run completion event handler returns a `Not Found` error", func() {
+		It("returns `Gone` server error", func() {
+			handlers := []RunCompletionEventHandler{
+				MockRCEHandler{expectedBody: "not found"},
+			}
+			withErrorHandler := RunCompletionFeed{
+				ctx:            ctx,
+				eventProcessor: eventProcessor,
+				eventHandlers:  handlers,
+			}
+
+			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
+
+			withErrorHandler.handleEvent(resp, req)
+
+			Expect(resp.Code).To(Equal(http.StatusGone))
 		})
 	})
 
