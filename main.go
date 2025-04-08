@@ -213,7 +213,7 @@ func main() {
 	handlers := apis.Map(
 		ctrlConfig.Spec.RunCompletionFeed.Endpoints,
 		func(endpoint config.Endpoint) webhook.RunCompletionEventHandler {
-			return webhook.NewRuntimeCompletionEventTrigger(ctx, endpoint)
+			return webhook.NewRunCompletionEventTrigger(ctx, endpoint)
 		},
 	)
 	statusUpdater, err := webhook.NewStatusUpdater(ctx, scheme)
