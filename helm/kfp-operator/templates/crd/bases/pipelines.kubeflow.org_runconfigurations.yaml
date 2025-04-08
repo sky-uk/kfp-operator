@@ -712,6 +712,8 @@ spec:
                 type: array
               dependencies:
                 properties:
+                  observedPipelineVersion:
+                    type: string
                   runConfigurations:
                     additionalProperties:
                       properties:
@@ -755,11 +757,7 @@ spec:
               observedGeneration:
                 format: int64
                 type: integer
-              observedPipelineVersion:
-                type: string
               provider:
-                type: string
-              triggeredPipelineVersion:
                 type: string
               triggers:
                 properties:
@@ -775,6 +773,8 @@ spec:
                       version:
                         type: string
                     type: object
+                  triggeredPipelineVersion:
+                    type: string
                 type: object
             type: object
         type: object

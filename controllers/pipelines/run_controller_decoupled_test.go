@@ -128,7 +128,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelineshub.Run) {
 				g.Expect(run.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
-				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+				g.Expect(run.Status.Dependencies.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
 	})
@@ -145,7 +145,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelineshub.Run) {
 				g.Expect(run.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
-				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipeline.Status.Version))
+				g.Expect(run.Status.Dependencies.ObservedPipelineVersion).To(Equal(pipeline.Status.Version))
 			})).Should(Succeed())
 		})
 	})
@@ -164,7 +164,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 
 			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelineshub.Run) {
 				g.Expect(run.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
-				g.Expect(run.Status.ObservedPipelineVersion).To(Equal(pipeline.Status.Version))
+				g.Expect(run.Status.Dependencies.ObservedPipelineVersion).To(Equal(pipeline.Status.Version))
 			})).Should(Succeed())
 		})
 	})

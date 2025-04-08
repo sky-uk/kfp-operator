@@ -212,8 +212,8 @@ func RandomRun(provider common.NamespacedName) *Run {
 		},
 		Spec: RandomRunSpec(provider),
 		Status: RunStatus{
-			ObservedPipelineVersion: RandomString(),
-			Status:                  RandomStatus(provider),
+			Status:       RandomStatus(provider),
+			Dependencies: RandomDependencies(),
 		},
 	}
 }
@@ -289,6 +289,12 @@ func RandomStatus(provider common.NamespacedName) Status {
 				RandomSynchronizationState(),
 			),
 		},
+	}
+}
+
+func RandomDependencies() Dependencies {
+	return Dependencies{
+		ObservedPipelineVersion: RandomString(),
 	}
 }
 

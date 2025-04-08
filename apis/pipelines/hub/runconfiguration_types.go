@@ -40,8 +40,9 @@ type RunSpecTriggerStatus struct {
 }
 
 type TriggersStatus struct {
-	RunConfigurations map[string]TriggeredRunReference `json:"runConfigurations,omitempty"`
-	RunSpec           RunSpecTriggerStatus             `json:"runSpec,omitempty"`
+	RunConfigurations        map[string]TriggeredRunReference `json:"runConfigurations,omitempty"`
+	RunSpec                  RunSpecTriggerStatus             `json:"runSpec,omitempty"`
+	TriggeredPipelineVersion string                           `json:"triggeredPipelineVersion,omitempty"`
 }
 
 func (ts TriggersStatus) Equals(other TriggersStatus) bool {
@@ -61,14 +62,12 @@ type LatestRuns struct {
 }
 
 type RunConfigurationStatus struct {
-	Provider                 common.NamespacedName `json:"provider,omitempty"`
-	ObservedPipelineVersion  string                `json:"observedPipelineVersion,omitempty"`
-	TriggeredPipelineVersion string                `json:"triggeredPipelineVersion,omitempty"`
-	LatestRuns               LatestRuns            `json:"latestRuns,omitempty"`
-	Dependencies             Dependencies          `json:"dependencies,omitempty"`
-	Triggers                 TriggersStatus        `json:"triggers,omitempty"`
-	ObservedGeneration       int64                 `json:"observedGeneration,omitempty"`
-	Conditions               apis.Conditions       `json:"conditions,omitempty"`
+	Provider           common.NamespacedName `json:"provider,omitempty"`
+	LatestRuns         LatestRuns            `json:"latestRuns,omitempty"`
+	Dependencies       Dependencies          `json:"dependencies,omitempty"`
+	Triggers           TriggersStatus        `json:"triggers,omitempty"`
+	ObservedGeneration int64                 `json:"observedGeneration,omitempty"`
+	Conditions         apis.Conditions       `json:"conditions,omitempty"`
 }
 
 func (rcs *RunConfigurationStatus) SetSynchronizationState(state apis.SynchronizationState, message string) {
@@ -135,11 +134,11 @@ func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {
 }
 
 func (rc *RunConfiguration) GetObservedPipelineVersion() string {
-	return rc.Status.ObservedPipelineVersion
+	return rc.Status.Dependencies.ObservedPipelineVersion
 }
 
 func (rc *RunConfiguration) SetObservedPipelineVersion(observedPipelineVersion string) {
-	rc.Status.ObservedPipelineVersion = observedPipelineVersion
+	rc.Status.Dependencies.ObservedPipelineVersion = observedPipelineVersion
 }
 
 func (rc *RunConfiguration) GetNamespacedName() types.NamespacedName {

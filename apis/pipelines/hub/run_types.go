@@ -115,7 +115,7 @@ func (rs RunSpec) ComputeVersion() string {
 func (r Run) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	r.Spec.WriteRunSpec(oh)
-	oh.WriteStringField(r.Status.ObservedPipelineVersion)
+	oh.WriteStringField(r.Status.Dependencies.ObservedPipelineVersion)
 	return oh.Sum()
 }
 
@@ -141,15 +141,15 @@ type RunReference struct {
 }
 
 type Dependencies struct {
-	RunConfigurations map[string]RunReference `json:"runConfigurations,omitempty"`
+	RunConfigurations       map[string]RunReference `json:"runConfigurations,omitempty"`
+	ObservedPipelineVersion string                  `json:"observedPipelineVersion,omitempty"`
 }
 
 type RunStatus struct {
-	Status                  `json:",inline"`
-	ObservedPipelineVersion string          `json:"observedPipelineVersion,omitempty"`
-	Dependencies            Dependencies    `json:"dependencies,omitempty"`
-	CompletionState         CompletionState `json:"completionState,omitempty"`
-	MarkedCompletedAt       *metav1.Time    `json:"markedCompletedAt,omitempty"`
+	Status            `json:",inline"`
+	Dependencies      Dependencies    `json:"dependencies,omitempty"`
+	CompletionState   CompletionState `json:"completionState,omitempty"`
+	MarkedCompletedAt *metav1.Time    `json:"markedCompletedAt,omitempty"`
 }
 
 // +kubebuilder:object:root=true
@@ -204,11 +204,11 @@ func (r *Run) GetPipeline() PipelineIdentifier {
 }
 
 func (r *Run) GetObservedPipelineVersion() string {
-	return r.Status.ObservedPipelineVersion
+	return r.Status.Dependencies.ObservedPipelineVersion
 }
 
 func (r *Run) SetObservedPipelineVersion(newVersion string) {
-	r.Status.ObservedPipelineVersion = newVersion
+	r.Status.Dependencies.ObservedPipelineVersion = newVersion
 }
 
 func (r *Run) GetStatus() Status {

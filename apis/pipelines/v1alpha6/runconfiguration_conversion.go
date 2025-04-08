@@ -18,6 +18,9 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
+	dst.Status.Dependencies.ObservedPipelineVersion = src.Status.ObservedPipelineVersion
+	dst.Status.Triggers.TriggeredPipelineVersion = src.Status.TriggeredPipelineVersion
+
 	dst.Spec.Run.Provider = convertProviderTo(
 		src.Spec.Run.Provider,
 		remainder.ProviderNamespace,
@@ -39,6 +42,9 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
+
+	dst.Status.ObservedPipelineVersion = src.Status.Dependencies.ObservedPipelineVersion
+	dst.Status.TriggeredPipelineVersion = src.Status.Triggers.TriggeredPipelineVersion
 
 	dst.Spec.Run.Provider = src.Spec.Run.Provider.Name
 	dst.Status.Provider = src.Status.Provider.Name

@@ -36,7 +36,7 @@ var _ = Context("Run", func() {
 			run := Run{}
 			hash1 := run.ComputeHash()
 
-			run.Status.ObservedPipelineVersion = "notempty"
+			run.Status.Dependencies.ObservedPipelineVersion = "notempty"
 			hash2 := run.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))

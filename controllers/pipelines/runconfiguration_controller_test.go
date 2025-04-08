@@ -80,7 +80,7 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 		for i, schedule := range runSchedules {
 			Expect(schedule.Namespace).To(Equal(runConfiguration.Namespace))
 			Expect(schedule.Spec.Pipeline.Name).To(Equal(runConfiguration.Spec.Run.Pipeline.Name))
-			Expect(schedule.Spec.Pipeline.Version).To(Equal(runConfiguration.Status.ObservedPipelineVersion))
+			Expect(schedule.Spec.Pipeline.Version).To(Equal(runConfiguration.Status.Dependencies.ObservedPipelineVersion))
 			Expect(schedule.Spec.RuntimeParameters).To(Equal(resolvedParameters))
 			Expect(schedule.Spec.ExperimentName).To(Equal(runConfiguration.Spec.Run.ExperimentName))
 			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[i]))
@@ -96,9 +96,9 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 		runConfiguration.Spec.Triggers.OnChange = []pipelineshub.OnChangeType{
 			pipelineshub.OnChangeTypes.Pipeline,
 		}
-		runConfiguration.Status.ObservedPipelineVersion = apis.RandomString()
+		runConfiguration.Status.Dependencies.ObservedPipelineVersion = apis.RandomString()
 		rcr := RunConfigurationReconciler{}
-		Expect(rcr.updateRcTriggers(*runConfiguration).TriggeredPipelineVersion).To(Equal(runConfiguration.Status.ObservedPipelineVersion))
+		Expect(rcr.updateRcTriggers(*runConfiguration).Triggers.TriggeredPipelineVersion).To(Equal(runConfiguration.Status.Dependencies.ObservedPipelineVersion))
 	})
 
 	It("sets the runSpec trigger status", func() {
@@ -132,7 +132,7 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 		rcr := RunConfigurationReconciler{}
 		updatedStatus := rcr.updateRcTriggers(*runConfiguration)
 		updatedStatus.Triggers = runConfiguration.Status.Triggers
-		updatedStatus.TriggeredPipelineVersion = runConfiguration.Status.TriggeredPipelineVersion
+		updatedStatus.Triggers.TriggeredPipelineVersion = runConfiguration.Status.Triggers.TriggeredPipelineVersion
 		Expect(updatedStatus).To(Equal(runConfiguration.Status))
 	})
 })

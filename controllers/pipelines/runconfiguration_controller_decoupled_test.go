@@ -89,7 +89,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(pipelineVersion))
+				g.Expect(fetchedRc.Status.Dependencies.ObservedPipelineVersion).To(Equal(pipelineVersion))
 			})).Should(Succeed())
 		})
 	})
@@ -102,7 +102,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
-				runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
+				runConfiguration.Status.Dependencies.ObservedPipelineVersion = pipeline.ComputeVersion()
 				return runConfiguration
 			})
 
@@ -112,7 +112,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
+				g.Expect(fetchedRc.Status.Dependencies.ObservedPipelineVersion).To(Equal(pipeline.ComputeVersion()))
 			})).Should(Succeed())
 		})
 
@@ -182,7 +182,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = fixedIdentifier
-				runConfiguration.Status.ObservedPipelineVersion = pipeline.ComputeVersion()
+				runConfiguration.Status.Dependencies.ObservedPipelineVersion = pipeline.ComputeVersion()
 				return runConfiguration
 			})
 
@@ -201,7 +201,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Spec.Run.ExperimentName).To(Equal(newExperiment))
-				g.Expect(fetchedRc.Status.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
+				g.Expect(fetchedRc.Status.Dependencies.ObservedPipelineVersion).To(Equal(fixedIdentifier.Version))
 			})).Should(Succeed())
 		})
 	})
