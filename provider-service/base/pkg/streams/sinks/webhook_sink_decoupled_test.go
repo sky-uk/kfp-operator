@@ -37,7 +37,7 @@ func createContextWithLogger(logger logr.Logger) (ctx context.Context, cancel co
 type StubRCEHandler struct {
 }
 
-func (m StubRCEHandler) Handle(_ common.RunCompletionEvent) error {
+func (m StubRCEHandler) Handle(_ common.RunCompletionEvent) webhook.EventError {
 	return nil
 }
 

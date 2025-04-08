@@ -63,7 +63,7 @@ var _ = Context("Handle", func() {
 			}
 
 			err := trigger.Handle(rce)
-			Expect(err).To(Equal(testError))
+			Expect(err).To(Equal(&FatalError{testError.Error()}))
 		})
 	})
 })
