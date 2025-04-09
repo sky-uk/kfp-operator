@@ -5,8 +5,16 @@
 
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "gomod"
+    directories: 
+    - "/"
+    - "/common"
+    - "/docs-gen"
+    - "/argo/common"
+    - "/argo/providers"
+    - "/provider-service/base"
+    - "/provider-service/kfp"
+    - "/provider-service/vai"
+    - "/provider-service/stub"
     schedule:
       interval: "weekly"
-
