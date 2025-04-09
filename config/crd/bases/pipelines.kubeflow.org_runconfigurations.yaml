@@ -693,8 +693,11 @@ spec:
                 type: array
               dependencies:
                 properties:
-                  observedPipelineVersion:
-                    type: string
+                  pipeline:
+                    properties:
+                      version:
+                        type: string
+                    type: object
                   runConfigurations:
                     additionalProperties:
                       properties:
@@ -742,6 +745,11 @@ spec:
                 type: string
               triggers:
                 properties:
+                  pipeline:
+                    properties:
+                      version:
+                        type: string
+                    type: object
                   runConfigurations:
                     additionalProperties:
                       properties:
@@ -754,8 +762,6 @@ spec:
                       version:
                         type: string
                     type: object
-                  triggeredPipelineVersion:
-                    type: string
                 type: object
             type: object
         type: object

@@ -294,7 +294,9 @@ func RandomStatus(provider common.NamespacedName) Status {
 
 func RandomDependencies() Dependencies {
 	return Dependencies{
-		ObservedPipelineVersion: RandomString(),
+		Pipeline: ObservedPipeline{
+			Version: RandomString(),
+		},
 	}
 }
 

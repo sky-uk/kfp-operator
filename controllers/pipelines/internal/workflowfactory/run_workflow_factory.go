@@ -33,7 +33,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelineshub.Run) (providers.
 		}
 	}
 
-	if run.Status.Dependencies.ObservedPipelineVersion == "" {
+	if run.Status.Dependencies.Pipeline.Version == "" {
 		return providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
 	}
 
@@ -52,7 +52,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelineshub.Run) (providers.
 			Namespace: run.Namespace,
 			Name:      run.Spec.Pipeline.Name,
 		},
-		PipelineVersion:   run.Status.Dependencies.ObservedPipelineVersion,
+		PipelineVersion:   run.Status.Dependencies.Pipeline.Version,
 		ExperimentName:    experimentName,
 		RuntimeParameters: NamedValuesToMap(runtimeParameters),
 		Artifacts:         run.Spec.Artifacts,

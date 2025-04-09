@@ -39,10 +39,14 @@ type RunSpecTriggerStatus struct {
 	Version string `json:"version,omitempty"`
 }
 
+type PipelineTriggerStatus struct {
+	Version string `json:"version,omitempty"`
+}
+
 type TriggersStatus struct {
-	RunConfigurations        map[string]TriggeredRunReference `json:"runConfigurations,omitempty"`
-	RunSpec                  RunSpecTriggerStatus             `json:"runSpec,omitempty"`
-	TriggeredPipelineVersion string                           `json:"triggeredPipelineVersion,omitempty"`
+	RunConfigurations map[string]TriggeredRunReference `json:"runConfigurations,omitempty"`
+	RunSpec           RunSpecTriggerStatus             `json:"runSpec,omitempty"`
+	Pipeline          PipelineTriggerStatus            `json:"pipeline,omitempty"`
 }
 
 func (ts TriggersStatus) Equals(other TriggersStatus) bool {
@@ -134,11 +138,11 @@ func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {
 }
 
 func (rc *RunConfiguration) GetObservedPipelineVersion() string {
-	return rc.Status.Dependencies.ObservedPipelineVersion
+	return rc.Status.Dependencies.Pipeline.Version
 }
 
 func (rc *RunConfiguration) SetObservedPipelineVersion(observedPipelineVersion string) {
-	rc.Status.Dependencies.ObservedPipelineVersion = observedPipelineVersion
+	rc.Status.Dependencies.Pipeline.Version = observedPipelineVersion
 }
 
 func (rc *RunConfiguration) GetNamespacedName() types.NamespacedName {

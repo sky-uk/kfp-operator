@@ -18,7 +18,7 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Status.Dependencies.ObservedPipelineVersion = src.Status.ObservedPipelineVersion
+	dst.Status.Dependencies.Pipeline.Version = src.Status.ObservedPipelineVersion
 
 	dst.Spec.Provider = convertProviderTo(
 		src.Spec.Provider,
@@ -42,7 +42,7 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Status.ObservedPipelineVersion = src.Status.Dependencies.ObservedPipelineVersion
+	dst.Status.ObservedPipelineVersion = src.Status.Dependencies.Pipeline.Version
 	dst.Spec.Provider = src.Spec.Provider.Name
 	dst.Status.Provider.Name = src.Status.Provider.Name.Name
 	remainder.ProviderNamespace = src.Spec.Provider.Namespace

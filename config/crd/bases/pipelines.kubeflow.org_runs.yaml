@@ -577,8 +577,11 @@ spec:
                 type: array
               dependencies:
                 properties:
-                  observedPipelineVersion:
-                    type: string
+                  pipeline:
+                    properties:
+                      version:
+                        type: string
+                    type: object
                   runConfigurations:
                     additionalProperties:
                       properties:

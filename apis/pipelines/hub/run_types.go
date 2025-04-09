@@ -115,7 +115,7 @@ func (rs RunSpec) ComputeVersion() string {
 func (r Run) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	r.Spec.WriteRunSpec(oh)
-	oh.WriteStringField(r.Status.Dependencies.ObservedPipelineVersion)
+	oh.WriteStringField(r.Status.Dependencies.Pipeline.Version)
 	return oh.Sum()
 }
 
@@ -140,9 +140,13 @@ type RunReference struct {
 	Artifacts  []common.Artifact `json:"artifacts,omitempty"`
 }
 
+type ObservedPipeline struct {
+	Version string `json:"version,omitempty"`
+}
+
 type Dependencies struct {
-	RunConfigurations       map[string]RunReference `json:"runConfigurations,omitempty"`
-	ObservedPipelineVersion string                  `json:"observedPipelineVersion,omitempty"`
+	RunConfigurations map[string]RunReference `json:"runConfigurations,omitempty"`
+	Pipeline          ObservedPipeline        `json:"pipeline,omitempty"`
 }
 
 type RunStatus struct {
@@ -204,11 +208,11 @@ func (r *Run) GetPipeline() PipelineIdentifier {
 }
 
 func (r *Run) GetObservedPipelineVersion() string {
-	return r.Status.Dependencies.ObservedPipelineVersion
+	return r.Status.Dependencies.Pipeline.Version
 }
 
 func (r *Run) SetObservedPipelineVersion(newVersion string) {
-	r.Status.Dependencies.ObservedPipelineVersion = newVersion
+	r.Status.Dependencies.Pipeline.Version = newVersion
 }
 
 func (r *Run) GetStatus() Status {

@@ -18,7 +18,7 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Status.Dependencies.ObservedPipelineVersion = src.Status.ObservedPipelineVersion
+	dst.Status.Dependencies.Pipeline.Version = src.Status.ObservedPipelineVersion
 
 	dst.Spec.Provider = convertProviderTo(
 		getProviderAnnotation(src),
@@ -50,7 +50,7 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
-	dst.Status.ObservedPipelineVersion = src.Status.Dependencies.ObservedPipelineVersion
+	dst.Status.ObservedPipelineVersion = src.Status.Dependencies.Pipeline.Version
 	dst.TypeMeta.APIVersion = dstApiVersion
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
