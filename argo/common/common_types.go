@@ -21,7 +21,7 @@ func (nsn NamespacedName) SeparatedString(separator string) (string, error) {
 	}
 
 	if nsn.Name == "" {
-		return "", fmt.Errorf("namespace provided without a name")
+		return "", fmt.Errorf("namespace [%s] provided without a name", nsn.Namespace)
 	}
 
 	return strings.Join([]string{nsn.Namespace, nsn.Name}, separator), nil
@@ -41,11 +41,11 @@ func NamespacedNameFromString(namespacedName string) (NamespacedName, error) {
 	}
 
 	if len(splits) > 2 {
-		return NamespacedName{}, fmt.Errorf("NamespacedName must be separated by at most one `/`")
+		return NamespacedName{}, fmt.Errorf("NamespacedName [%s] must be separated by at most one `/`", namespacedName)
 	}
 
 	if splits[0] == "" || splits[1] == "" {
-		return NamespacedName{}, fmt.Errorf("name and namespace must not be empty when separated by `/`")
+		return NamespacedName{}, fmt.Errorf("name and namespace [%s] must not be empty when separated by `/`", namespacedName)
 	}
 
 	return NamespacedName{
