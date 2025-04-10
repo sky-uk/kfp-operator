@@ -178,7 +178,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 				for i := 0; i < 6; i++ {
 					select {
 					case msg := <-underTest.Out():
-						msg.OnFailure()
+						msg.OnRecoverableFailure()
 						counter = counter + 1
 					case <-time.After(timeout):
 						break

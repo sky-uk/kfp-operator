@@ -70,7 +70,7 @@ var _ = Context("VaiEventingServer", func() {
 			OnSuccessHandler: func() {
 				handlerCall <- "success_called"
 			},
-			OnFailureHandler: func() {
+			OnRecoverableFailureHandler: func() {
 				handlerCall <- "failure_called"
 			},
 		}
