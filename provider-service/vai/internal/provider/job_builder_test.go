@@ -96,7 +96,7 @@ var _ = Describe("JobBuilder", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
-		When("run schedule definition name is invalid", func() {
+		When("run schedule definition pipeline's name is invalid", func() {
 			It("should return error", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				rsd.PipelineName.Name = ""
