@@ -36,6 +36,7 @@ func NewRunCompletionFeed(
 	eventProcessor := NewResourceArtifactsEventProcessor()
 	return RunCompletionFeed{
 		ctx:            ctx,
+		client:         client,
 		eventProcessor: eventProcessor,
 		eventHandlers:  handlers,
 	}
