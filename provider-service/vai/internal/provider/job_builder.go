@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -111,8 +112,9 @@ func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 	return job, nil
 }
 
-// MkSchedule create a vai schedule using a vai pipeline job that can be
-// submitted to a vai schedule client.
+// MkSchedule create a vai schedule using a vai pipeline job that can be submitted to a vai schedule client.
+// Note that if the schedule has a start time in the past, the start time will be removed from the schedule,
+// and will start immediately. This is to prevent VAI from `catching up` on the schedule missed runs.
 func (jb DefaultJobBuilder) MkSchedule(
 	rsd resource.RunScheduleDefinition,
 	pipelineJob *aiplatformpb.PipelineJob,
@@ -137,13 +139,14 @@ func (jb DefaultJobBuilder) MkSchedule(
 		AllowQueueing:         true,
 	}
 
-	if rsd.Schedule.StartTime != nil {
+	if rsd.Schedule.StartTime != nil && rsd.Schedule.StartTime.Time.After(time.Now()) {
 		schedule.StartTime = timestamppb.New(rsd.Schedule.StartTime.Time)
 	}
 
 	if rsd.Schedule.EndTime != nil {
 		schedule.EndTime = timestamppb.New(rsd.Schedule.EndTime.Time)
 	}
+
 	return schedule, nil
 }
 

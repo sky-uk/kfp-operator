@@ -6,13 +6,15 @@ import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"time"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var Now = metav1.Now()
+var Start = metav1.Time{Time: time.Date(10000, 1, 1, 0, 0, 0, 0, time.UTC)}
+var End = metav1.Time{Time: time.Date(10001, 1, 1, 0, 0, 0, 0, time.UTC)}
 
 func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 	return resource.RunScheduleDefinition{
@@ -24,8 +26,8 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 		ExperimentName:       common.RandomNamespacedName(),
 		Schedule: pipelineshub.Schedule{
 			CronExpression: "1 1 0 0 0",
-			StartTime:      &Now,
-			EndTime:        &Now,
+			StartTime:      &Start,
+			EndTime:        &End,
 		},
 	}
 }
