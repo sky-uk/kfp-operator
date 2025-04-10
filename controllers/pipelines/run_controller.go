@@ -87,7 +87,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	// Never change after being set
-	if run.Status.ObservedPipelineVersion == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
+	if run.Status.Dependencies.Pipeline.Version == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
 		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}

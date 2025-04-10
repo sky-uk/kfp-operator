@@ -168,7 +168,7 @@ func (r *RunConfigurationReconciler) updateRcTriggers(
 	newStatus := runConfiguration.Status
 
 	if apis.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.Pipeline) {
-		newStatus.TriggeredPipelineVersion = runConfiguration.Status.ObservedPipelineVersion
+		newStatus.Triggers.Pipeline.Version = runConfiguration.Status.Dependencies.Pipeline.Version
 	}
 
 	if apis.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.RunSpec) {
@@ -196,7 +196,7 @@ func (r *RunConfigurationReconciler) syncWithRuns(
 	runConfiguration.Status = r.updateRcTriggers(*runConfiguration)
 
 	if runConfiguration.Status.Triggers.Equals(oldStatus.Triggers) &&
-		runConfiguration.Status.TriggeredPipelineVersion == oldStatus.TriggeredPipelineVersion {
+		runConfiguration.Status.Triggers.Pipeline.Version == oldStatus.Triggers.Pipeline.Version {
 		return false, nil
 	}
 
@@ -381,7 +381,7 @@ func (r *RunConfigurationReconciler) constructRunForRunConfiguration(
 	runConfiguration *pipelineshub.RunConfiguration,
 ) (*pipelineshub.Run, error) {
 	spec := runConfiguration.Spec.Run
-	spec.Pipeline.Version = runConfiguration.Status.ObservedPipelineVersion
+	spec.Pipeline.Version = runConfiguration.Status.Dependencies.Pipeline.Version
 
 	run := pipelineshub.Run{
 		ObjectMeta: metav1.ObjectMeta{
@@ -417,7 +417,7 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(
 				Provider: runConfiguration.Spec.Run.Provider,
 				Pipeline: pipelineshub.PipelineIdentifier{
 					Name:    runConfiguration.Spec.Run.Pipeline.Name,
-					Version: runConfiguration.Status.ObservedPipelineVersion,
+					Version: runConfiguration.Status.Dependencies.Pipeline.Version,
 				},
 				RuntimeParameters: resolvedParameters,
 				ExperimentName:    runConfiguration.Spec.Run.ExperimentName,

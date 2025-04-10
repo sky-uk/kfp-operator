@@ -693,6 +693,11 @@ spec:
                 type: array
               dependencies:
                 properties:
+                  pipeline:
+                    properties:
+                      version:
+                        type: string
+                    type: object
                   runConfigurations:
                     additionalProperties:
                       properties:
@@ -736,14 +741,15 @@ spec:
               observedGeneration:
                 format: int64
                 type: integer
-              observedPipelineVersion:
-                type: string
               provider:
-                type: string
-              triggeredPipelineVersion:
                 type: string
               triggers:
                 properties:
+                  pipeline:
+                    properties:
+                      version:
+                        type: string
+                    type: object
                   runConfigurations:
                     additionalProperties:
                       properties:

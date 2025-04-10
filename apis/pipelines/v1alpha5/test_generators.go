@@ -59,8 +59,10 @@ func RandomRunConfiguration(provider string) *RunConfiguration {
 		},
 		Spec: RandomRunConfigurationSpec(),
 		Status: RunConfigurationStatus{
-			SynchronizationState: state,
-			Provider:             provider,
+			SynchronizationState:     state,
+			Provider:                 provider,
+			ObservedPipelineVersion:  RandomString(),
+			TriggeredPipelineVersion: RandomString(),
 			Conditions: apis.Conditions{
 				RandomSynchronizationStateCondition(state),
 			},
