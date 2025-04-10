@@ -5,6 +5,9 @@ package sinks
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/go-logr/logr"
 	resty "github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
@@ -13,7 +16,6 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"go.uber.org/zap/zapcore"
-	"testing"
 )
 
 func TestSinksUnitSuite(t *testing.T) {
@@ -31,20 +33,23 @@ var _ = Context("SendEvents", func() {
 		OnSuccessHandler: func() {
 			handlerCall <- "success_called"
 		},
-		OnFailureHandler: func() {
-			handlerCall <- "failure_called"
+		OnRecoverableFailureHandler: func() {
+			handlerCall <- "recoverable_failure_called"
+		},
+		OnUnrecoverableFailureHandler: func() {
+			handlerCall <- "unrecoverable_failure_called"
 		},
 	}
 
-	When("webhook sink receives a valid StreamMessage", func() {
-		It("sends RunCompletionEventData to the webhook successfully and triggers the message OnSuccessHandler", func() {
+	When("receives an http OK response code after sending a message to the webhook server", func() {
+		It("should call the message's OnSuccessHandler", func() {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
-			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(200, ""))
+			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(http.StatusOK, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
-			webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}
+			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
 
 			go webhookSink.SendEvents()
 
@@ -59,16 +64,16 @@ var _ = Context("SendEvents", func() {
 		})
 	})
 
-	When("webhook sink receives an invalid StreamMessage", func() {
-		It("should call its `OnFailureHandler` function", func() {
+	When("receives a recoverable error response from webhook server", func() {
+		It("should call the message's OnRecoverableFailureHandler", func() {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
-			someNon200ResponseCode := 500
-			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(someNon200ResponseCode, ""))
+			recoverableResponseCode := 500
+			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(recoverableResponseCode, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
-			webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: webhookUrl, in: in}
+			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
 
 			go webhookSink.SendEvents()
 
@@ -79,7 +84,31 @@ var _ = Context("SendEvents", func() {
 			in <- streamMessage
 
 			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("POST %s", webhookUrl)] }).Should(Equal(1))
-			Eventually(handlerCall).Should(Receive(Equal("failure_called")))
+			Eventually(handlerCall).Should(Receive(Equal("recoverable_failure_called")))
+		})
+	})
+
+	When("receives an unrecoverable error response from the webhook server", func() {
+		It("should call the message's OnUnrecoverableFailureHandler", func() {
+			client := resty.New()
+			httpmock.ActivateNonDefault(client.GetClient())
+			webhookUrl := "/operator-webhook"
+			unrecoverableResponseCode := 410
+			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(unrecoverableResponseCode, ""))
+
+			in := make(chan StreamMessage[*common.RunCompletionEventData])
+			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
+
+			go webhookSink.SendEvents()
+
+			streamMessage := StreamMessage[*common.RunCompletionEventData]{
+				Message:            &runCompletionEventData,
+				OnCompleteHandlers: onCompHandlers,
+			}
+			in <- streamMessage
+
+			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("POST %s", webhookUrl)] }).Should(Equal(1))
+			Eventually(handlerCall).Should(Receive(Equal("unrecoverable_failure_called")))
 		})
 	})
 })

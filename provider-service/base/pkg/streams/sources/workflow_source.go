@@ -124,7 +124,7 @@ func (ws *WorkflowSource) start(ctx context.Context, namespace string) error {
 						return
 					}
 				},
-				OnFailureHandler: func() {},
+				OnRecoverableFailureHandler: func() {},
 			},
 		}:
 		case <-ctx.Done():

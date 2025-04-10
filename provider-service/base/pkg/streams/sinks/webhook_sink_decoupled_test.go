@@ -79,8 +79,7 @@ var _ = Context("Webhook Sink", Ordered, func() {
 
 	BeforeAll(func() {
 		handlers = append(handlers, stubHandler)
-		fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(rc).
-			Build()
+		fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(rc).Build()
 		rcf := webhook.NewRunCompletionFeed(
 			ctx,
 			fakeClient,
@@ -109,13 +108,16 @@ var _ = Context("Webhook Sink", Ordered, func() {
 		OnSuccessHandler: func() {
 			handlerCall <- "success_called"
 		},
-		OnFailureHandler: func() {
-			handlerCall <- "failure_called"
+		OnRecoverableFailureHandler: func() {
+			handlerCall <- "recoverable_failure_called"
+		},
+		OnUnrecoverableFailureHandler: func() {
+			handlerCall <- "unrecoverable_failure_called"
 		},
 	}
 
 	When("message is valid and successfully sends to the webhook", func() {
-		It("should call its `OnSuccessHandler` function", func() {
+		It("should call its OnSuccessHandler", func() {
 			inChan := make(chan StreamMessage[*common.RunCompletionEventData])
 
 			_ = NewWebhookSink(ctx, httpClient, fmt.Sprintf("http://localhost:%d/events", port), inChan)
@@ -125,6 +127,7 @@ var _ = Context("Webhook Sink", Ordered, func() {
 				Name:      rc.Name,
 				Namespace: rc.Namespace,
 			}
+			runCompletionEventData.RunName = nil
 
 			stm := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,
@@ -139,7 +142,7 @@ var _ = Context("Webhook Sink", Ordered, func() {
 	})
 
 	When("message is invalid", func() {
-		It("should call its `OnFailureHandler` function", func() {
+		It("should call its OnRecoverableFailureHandler", func() {
 			inChan := make(chan StreamMessage[*common.RunCompletionEventData])
 
 			_ = NewWebhookSink(ctx, httpClient, fmt.Sprintf("http://localhost:%d/events", port), inChan)
@@ -154,7 +157,32 @@ var _ = Context("Webhook Sink", Ordered, func() {
 			// send data to channel which should be picked up by sendEvents in webhookSink
 			inChan <- stm
 
-			Eventually(handlerCall).Should(Receive(Equal("failure_called")))
+			Eventually(handlerCall).Should(Receive(Equal("recoverable_failure_called")))
+		})
+	})
+
+	When("message contains a resource that doesn't exist", func() {
+		It("should call its OnUnrecoverableFailureHandler", func() {
+			inChan := make(chan StreamMessage[*common.RunCompletionEventData])
+
+			_ = NewWebhookSink(ctx, httpClient, fmt.Sprintf("http://localhost:%d/events", port), inChan)
+
+			runCompletionEventData := webhook.RandomRunCompletionEventData()
+			runCompletionEventData.RunConfigurationName = &common.NamespacedName{
+				Name:      "doesnt",
+				Namespace: "exist",
+			}
+			runCompletionEventData.RunName = nil
+
+			stm := StreamMessage[*common.RunCompletionEventData]{
+				Message:            &runCompletionEventData,
+				OnCompleteHandlers: onCompHandlers,
+			}
+
+			// send data to channel which should be picked up by sendEvents in webhookSink
+			inChan <- stm
+
+			Eventually(handlerCall).Should(Receive(Equal("unrecoverable_failure_called")))
 		})
 	})
 })
