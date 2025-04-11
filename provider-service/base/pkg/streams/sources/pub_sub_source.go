@@ -87,8 +87,8 @@ func (pss *PubSubSource) subscribe(ctx context.Context, runsSubscription *pubsub
 		case pss.out <- StreamMessage[string]{
 			Message: pipelineJobId,
 			OnCompleteHandlers: OnCompleteHandlers{
-				OnSuccessHandler: func() { msg.Ack() },
-				OnFailureHandler: func() { msg.Nack() },
+				OnSuccessHandler:            func() { msg.Ack() },
+				OnRecoverableFailureHandler: func() { msg.Nack() },
 			},
 		}:
 		case <-ctx.Done():
