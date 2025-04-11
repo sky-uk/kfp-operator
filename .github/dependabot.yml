@@ -19,5 +19,9 @@ updates:
     schedule:
       interval: "weekly"
     allow:
-      - dependency-type: "direct"
-        update-type: "version-update:semver-patch"
+    - dependency-type: "direct"
+    ignore:
+    - dependency-name: "*"
+      update-types:
+      - "version-update:semver-minor"
+      - "version-update:semver-major"
