@@ -5,6 +5,7 @@ package provider
 import (
 	"fmt"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
@@ -132,8 +133,8 @@ var _ = Describe("JobBuilder", func() {
 			Expect(schedule.TimeSpecification).To(Equal(&expectedCron))
 			Expect(schedule.Request).To(Equal(&expectedPipelineJobReq))
 			Expect(schedule.DisplayName).To(Equal(fmt.Sprintf("rc-%s-%s", rsd.Name.Namespace, rsd.Name.Name)))
-			Expect(schedule.StartTime).To(Equal(timestamppb.New(testutil.Now.Time)))
-			Expect(schedule.EndTime).To(Equal(timestamppb.New(testutil.Now.Time)))
+			Expect(schedule.StartTime).To(Equal(timestamppb.New(testutil.Start.Time)))
+			Expect(schedule.EndTime).To(Equal(timestamppb.New(testutil.End.Time)))
 			Expect(schedule.MaxConcurrentRunCount).To(Equal(int64(1000)))
 			Expect(schedule.AllowQueueing).To(BeTrue())
 		})
@@ -164,11 +165,28 @@ var _ = Describe("JobBuilder", func() {
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(schedule.StartTime).To(BeNil())
-				Expect(schedule.EndTime).To(Equal(timestamppb.New(testutil.Now.Time)))
+				Expect(schedule.EndTime).To(Equal(timestamppb.New(testutil.End.Time)))
 			})
 		})
+
+		When("run definition schedule start time is in the past", func() {
+			It("should create a schedule without start time", func() {
+				rsd := testutil.RandomRunScheduleDefinition()
+				rsd.Schedule.StartTime = &v1.Time{}
+				schedule, err := jb.MkSchedule(
+					rsd,
+					&aiplatformpb.PipelineJob{Name: "test"},
+					"parent",
+					1000,
+				)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(schedule.StartTime).To(BeNil())
+			})
+		})
+
 		When("run definition schedule end time is empty", func() {
-			It("should create a scheudle without end time", func() {
+			It("should create a schedule without end time", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				rsd.Schedule.EndTime = nil
 				schedule, err := jb.MkSchedule(
@@ -179,7 +197,7 @@ var _ = Describe("JobBuilder", func() {
 				)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(schedule.StartTime).To(Equal(timestamppb.New(testutil.Now.Time)))
+				Expect(schedule.StartTime).To(Equal(timestamppb.New(testutil.Start.Time)))
 				Expect(schedule.EndTime).To(BeNil())
 			})
 		})
