@@ -15,13 +15,15 @@ import (
 
 type Server struct {
 	pb.UnimplementedRunCompletionEventTriggerServer
-	Context   context.Context
 	Config    *configLoader.Config
 	Publisher publisher.PublisherHandler
 }
 
-func (s *Server) ProcessEventFeed(_ context.Context, runCompletion *pb.RunCompletionEvent) (*emptypb.Empty, error) {
-	logger := common.LoggerFromContext(s.Context)
+func (s *Server) ProcessEventFeed(
+	ctx context.Context,
+	runCompletion *pb.RunCompletionEvent,
+) (*emptypb.Empty, error) {
+	logger := common.LoggerFromContext(ctx)
 
 	commonRunCompletionEvent, err := converters.ProtoRunCompletionToCommon(runCompletion)
 	if err != nil {

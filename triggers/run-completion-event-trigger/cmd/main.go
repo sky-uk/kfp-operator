@@ -46,7 +46,7 @@ func main() {
 	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
 
 	s := grpc.NewServer()
-	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Context: ctx, Config: config, Publisher: natsPublisher})
+	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: natsPublisher})
 
 	logger.Info("Listening at", "host", config.ServerConfig.Host, "port", config.ServerConfig.Port)
 	if err := s.Serve(lis); err != nil {
