@@ -23,31 +23,36 @@ func (s *Server) ProcessEventFeed(
 	ctx context.Context,
 	runCompletion *pb.RunCompletionEvent,
 ) (*emptypb.Empty, error) {
-	logger := common.LoggerFromContext(ctx)
+	logger := common.LoggerFromContext(ctx).WithValues("runId", runCompletion.RunId)
 
 	commonRunCompletionEvent, err := converters.ProtoRunCompletionToCommon(runCompletion)
 	if err != nil {
-		err = status.Error(codes.InvalidArgument, "Proto run completion event could not be converted to a common run completion event.")
-		return nil, err
+		errMsg := "Proto run completion event could not be converted to a common run completion event."
+		logger.Error(err, errMsg)
+		return nil, status.Error(codes.InvalidArgument, errMsg)
 	}
 
 	if err = s.Publisher.Publish(commonRunCompletionEvent); err != nil {
 		var marshallingError *publisher.MarshallingError
 		var connectionError *publisher.ConnectionError
 
-		logger.Error(err, "Failed to publish event", "runId", runCompletion.RunId)
-
 		switch {
 		case errors.As(err, &marshallingError):
-			return nil, status.Error(codes.InvalidArgument, "failed to marshal event")
+			errMsg := "failed to marshal event"
+			logger.Error(err, errMsg)
+			return nil, status.Error(codes.InvalidArgument, errMsg)
 		case errors.As(err, &connectionError):
-			return nil, status.Error(codes.Internal, "publisher request to upstream failed")
+			errMsg := "publisher request to upstream failed"
+			logger.Error(err, errMsg)
+			return nil, status.Error(codes.Internal, errMsg)
 		default:
-			return nil, status.Error(codes.Internal, "unexpected error occurred")
+			errMsg := "unexpected error occurred"
+			logger.Error(err, errMsg)
+			return nil, status.Error(codes.Internal, errMsg)
 		}
 	}
 
-	logger.Info("Run Completion Event Processed", "RunId", commonRunCompletionEvent.RunId)
+	logger.Info("Run Completion Event Processed")
 
 	return &emptypb.Empty{}, nil
 }
