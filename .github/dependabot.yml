@@ -20,7 +20,8 @@ updates:
       interval: "weekly"
     allow:
     - dependency-type: "direct"
-    groups:
-      only-patches:
-        update-types:
-        - "patch"
+    ignore:
+    - dependency-name: "*"
+      update-types:
+      - "version-update:semver-minor"
+      - "version-update:semver-major"
