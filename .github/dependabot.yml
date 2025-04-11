@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "gomod"
-    directories: 
+    directories:
     - "/"
     - "/common"
     - "/docs-gen"
@@ -18,3 +18,6 @@ updates:
     - "/provider-service/stub"
     schedule:
       interval: "weekly"
+    allow:
+      - dependency-type: "direct"
+        update-type: "version-update:semver-patch"
