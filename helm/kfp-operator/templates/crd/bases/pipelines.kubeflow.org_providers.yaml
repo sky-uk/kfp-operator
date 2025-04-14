@@ -356,8 +356,6 @@ spec:
                 type: array
               executionMode:
                 type: string
-              image:
-                type: string
               parameters:
                 additionalProperties:
                   x-kubernetes-preserve-unknown-fields: true
@@ -371,7 +369,6 @@ spec:
                 type: string
             required:
             - executionMode
-            - image
             - pipelineRootStorage
             - serviceAccount
             - serviceImage

@@ -183,6 +183,10 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "RunSchedule")
 			os.Exit(1)
 		}
+		if err = (&pipelineshub.Provider{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Provider")
+			os.Exit(1)
+		}
 	}
 
 	// Resources that have a validation webhook in addition to conversion
