@@ -3,7 +3,7 @@ module github.com/sky-uk/kfp-operator
 go 1.22.11
 
 require (
-	github.com/argoproj/argo-workflows/v3 v3.3.9
+	github.com/argoproj/argo-workflows/v3 v3.3.10
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/go-logr/logr v1.4.2
 	github.com/google/go-cmp v0.7.0
