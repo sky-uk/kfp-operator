@@ -31,20 +31,6 @@ func TestSourcesIntegrationSuite(t *testing.T) {
 	RunSpecs(t, "Sources Integration Suite")
 }
 
-func sendMessage(ctx context.Context, topic *pubsub.Topic, id string, data []byte) {
-	msg := &pubsub.Message{
-		ID:   id,
-		Data: data,
-	}
-	topic.Publish(ctx, msg)
-}
-
-func createContextWithLogger(logger logr.Logger) (ctx context.Context, cancel context.CancelFunc) {
-	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(5000)*time.Millisecond)
-	ctxWithLogger := logr.NewContext(ctxWithTimeout, logger)
-	return ctxWithLogger, cancel
-}
-
 var _ = Context("Pub sub source", Ordered, func() {
 	logger, err := common.NewLogger(zapcore.InfoLevel)
 	Expect(err).ToNot(HaveOccurred())
@@ -118,7 +104,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 
 	Describe("acknowledgements", func() {
 		When("a streamed message is completed successfully", func() {
-			It("should be ack'd on the topic", func() {
+			It("should be ack'd", func() {
 				pipelineId := "valid_message_ack_check"
 
 				topic, _, _ := createClientTopicSubscription(ctx, pipelineId, pipelineId)
@@ -136,8 +122,8 @@ var _ = Context("Pub sub source", Ordered, func() {
 
 				sendMessage(ctx, topic, pipelineId, jsonMessage)
 
-				result := <-source.Out()
-				Expect(result.Message).To(Equal(pipelineId))
+				msg := <-source.Out()
+				Expect(msg.Message).To(Equal(pipelineId))
 
 				select {
 				case _ = <-source.Out():
@@ -148,18 +134,20 @@ var _ = Context("Pub sub source", Ordered, func() {
 			})
 		})
 
-		When("a streamed message is valid but fails upstream", func() {
+		When("a streamed message is valid but fails upstream with a recoverable error", func() {
 			It("should be nack'd", func() {
 				pipelineId := "valid_message_nack_check"
 
 				topic, _, deadletterSub := createClientTopicSubscription(ctx, pipelineId, pipelineId)
-				underTest := createPubSubSource(appCtx, pipelineId)
+				source := createPubSubSource(appCtx, pipelineId)
+
 				message := LogEntry{
 					Resource: Resource{
 						Labels: map[string]string{
 							PipelineJobLabel: pipelineId,
 						}},
 				}
+
 				jsonMessage, err := json.Marshal(message)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -173,12 +161,13 @@ var _ = Context("Pub sub source", Ordered, func() {
 				}()
 
 				sendMessage(ctx, topic, pipelineId, jsonMessage)
+
 				timeout := 2 * time.Second
 				counter := 0
 				for i := 0; i < 6; i++ {
 					select {
-					case msg := <-underTest.Out():
-						msg.OnFailure()
+					case msg := <-source.Out():
+						msg.OnRecoverableFailure()
 						counter = counter + 1
 					case <-time.After(timeout):
 						break
@@ -190,12 +179,13 @@ var _ = Context("Pub sub source", Ordered, func() {
 			})
 		})
 
-		When("a streamed message is malformed it", func() {
+		When("a streamed message is malformed", func() {
 			It("should be nack'd", func() {
 				pipelineId := "invalid_message_nack_check"
 
 				topic, _, deadletterSub := createClientTopicSubscription(ctx, pipelineId, pipelineId)
 				_ = createPubSubSource(appCtx, pipelineId)
+
 				message := LogEntry{
 					Resource: Resource{Labels: map[string]string{"": ""}},
 				}
@@ -221,6 +211,20 @@ var _ = Context("Pub sub source", Ordered, func() {
 		})
 	})
 })
+
+func createContextWithLogger(logger logr.Logger) (ctx context.Context, cancel context.CancelFunc) {
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(5000)*time.Millisecond)
+	ctxWithLogger := logr.NewContext(ctxWithTimeout, logger)
+	return ctxWithLogger, cancel
+}
+
+func sendMessage(ctx context.Context, topic *pubsub.Topic, id string, data []byte) {
+	msg := &pubsub.Message{
+		ID:   id,
+		Data: data,
+	}
+	topic.Publish(ctx, msg)
+}
 
 func createTopicIfNotExists(ctx context.Context, client *pubsub.Client, topicName string) *pubsub.Topic {
 	topic := client.Topic(topicName)

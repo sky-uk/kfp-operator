@@ -93,7 +93,7 @@ func (ef *EventFlow) subscribeAndConvert() {
 	for msg := range ef.in {
 		runCompletionEvent, err := ef.toRunCompletionEventData(msg)
 		if err != nil {
-			msg.OnFailureHandler()
+			msg.OnRecoverableFailureHandler()
 			ef.errorOut <- err
 		} else {
 			ef.out <- runCompletionEvent
@@ -104,7 +104,7 @@ func (ef *EventFlow) subscribeAndConvert() {
 func (ef *EventFlow) toRunCompletionEventData(message StreamMessage[*unstructured.Unstructured]) (StreamMessage[*common.RunCompletionEventData], error) {
 	runCompletionEventData, err := ef.eventForWorkflow(ef.context, message.Message)
 	if err != nil {
-		message.OnFailureHandler()
+		message.OnRecoverableFailureHandler()
 		return StreamMessage[*common.RunCompletionEventData]{}, err
 	}
 	return StreamMessage[*common.RunCompletionEventData]{

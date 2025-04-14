@@ -3,8 +3,9 @@ package pkg
 import _ "github.com/sky-uk/kfp-operator/argo/common"
 
 type OnCompleteHandlers struct {
-	OnSuccessHandler func()
-	OnFailureHandler func()
+	OnSuccessHandler              func()
+	OnRecoverableFailureHandler   func()
+	OnUnrecoverableFailureHandler func()
 }
 
 func (onc OnCompleteHandlers) OnSuccess() {
@@ -13,9 +14,15 @@ func (onc OnCompleteHandlers) OnSuccess() {
 	}
 }
 
-func (onc OnCompleteHandlers) OnFailure() {
-	if onc.OnFailureHandler != nil {
-		onc.OnFailureHandler()
+func (onc OnCompleteHandlers) OnRecoverableFailure() {
+	if onc.OnRecoverableFailureHandler != nil {
+		onc.OnRecoverableFailureHandler()
+	}
+}
+
+func (onc OnCompleteHandlers) OnUnrecoverableFailure() {
+	if onc.OnUnrecoverableFailureHandler != nil {
+		onc.OnUnrecoverableFailureHandler()
 	}
 }
 

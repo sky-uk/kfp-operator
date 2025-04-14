@@ -86,7 +86,7 @@ func (vef *EventFlow) Start() {
 		logger := common.LoggerFromContext(vef.context)
 		for msg := range vef.in {
 			logger.Info("in VAI flow - received message", "message", msg.Message)
-			runCompletionEvent, err := vef.runCompletionEventDataForRun(msg.Message)
+			runCompletionEventData, err := vef.runCompletionEventDataForRun(msg.Message)
 			if err != nil {
 				if status.Code(err) == codes.NotFound {
 					logger.Info("pipeline job not found", "run-id", msg.Message)
@@ -94,12 +94,12 @@ func (vef *EventFlow) Start() {
 					vef.errorOut <- err
 				} else {
 					logger.Info("error retrieving job", "run-id", msg.Message)
-					msg.OnFailureHandler()
+					msg.OnRecoverableFailureHandler()
 					vef.errorOut <- err
 				}
 			} else {
 				vef.out <- StreamMessage[*common.RunCompletionEventData]{
-					Message:            runCompletionEvent,
+					Message:            runCompletionEventData,
 					OnCompleteHandlers: msg.OnCompleteHandlers,
 				}
 			}

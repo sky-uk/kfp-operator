@@ -1,38 +1,37 @@
 package webhook
 
 import (
-	"context"
-	"errors"
-
 	"github.com/hashicorp/go-bexpr"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type EventProcessor interface {
-	ToRunCompletionEvent(ctx context.Context, runData common.RunCompletionEventData) (*common.RunCompletionEvent, error)
+	ToRunCompletionEvent(eventData *common.RunCompletionEventData, runConfiguration *pipelineshub.RunConfiguration, run *pipelineshub.Run) (*common.RunCompletionEvent, EventError)
 }
 
 type FilterFunc func([]common.PipelineComponent, []pipelineshub.OutputArtifact) []common.Artifact
 
 type ResourceArtifactsEventProcessor struct {
-	client client.Reader
 	filter FilterFunc
 }
 
-func NewResourceArtifactsEventProcessor(client client.Reader) EventProcessor {
-	return ResourceArtifactsEventProcessor{client: client, filter: filterByResourceArtifacts}
+func NewResourceArtifactsEventProcessor() EventProcessor {
+	return ResourceArtifactsEventProcessor{filter: filterByResourceArtifacts}
 }
 
-func (ep ResourceArtifactsEventProcessor) ToRunCompletionEvent(ctx context.Context, runData common.RunCompletionEventData) (*common.RunCompletionEvent, error) {
-	outputArtifacts, err := extractResourceArtifacts(ctx, ep.client, runData.RunConfigurationName, runData.RunName)
-	if err != nil {
-		return nil, err
+func (ep ResourceArtifactsEventProcessor) ToRunCompletionEvent(eventData *common.RunCompletionEventData, runConfiguration *pipelineshub.RunConfiguration, run *pipelineshub.Run) (*common.RunCompletionEvent, EventError) {
+	artifacts := []pipelineshub.OutputArtifact{}
+	if runConfiguration != nil {
+		artifacts = runConfiguration.Spec.Run.Artifacts
+	} else if run != nil {
+		artifacts = run.Spec.Artifacts
+	} else {
+		return nil, &InvalidEvent{Msg: "no RunConfiguration or RunName specified"}
 	}
 
-	runCompletionEvent := runData.ToRunCompletionEvent()
-	runCompletionEvent.Artifacts = ep.filter(runData.PipelineComponents, outputArtifacts)
+	runCompletionEvent := eventData.ToRunCompletionEvent()
+	runCompletionEvent.Artifacts = ep.filter(eventData.PipelineComponents, artifacts)
 
 	return &runCompletionEvent, nil
 }
@@ -80,33 +79,4 @@ func filterByResourceArtifacts(pipelineComponents []common.PipelineComponent, ou
 		}
 	}
 	return artifacts
-}
-
-func extractResourceArtifacts(ctx context.Context, reader client.Reader, runConfigurationName *common.NamespacedName, runName *common.NamespacedName) ([]pipelineshub.OutputArtifact, error) {
-	logger := common.LoggerFromContext(ctx)
-	if runConfigurationName != nil {
-		runConfigurationResource := &pipelineshub.RunConfiguration{}
-		if err := reader.Get(ctx, client.ObjectKey{
-			Namespace: runConfigurationName.Namespace,
-			Name:      runConfigurationName.Name,
-		}, runConfigurationResource); err != nil {
-			logger.Error(err, "failed to load RunConfiguration", "RunConfig", runConfigurationName)
-			return nil, err
-		}
-		return runConfigurationResource.Spec.Run.Artifacts, nil
-	} else if runName != nil {
-		runResource := &pipelineshub.Run{}
-		if err := reader.Get(ctx, client.ObjectKey{
-			Namespace: runName.Namespace,
-			Name:      runName.Name,
-		}, runResource); err != nil {
-			logger.Error(err, "failed to load Run", "Run", runName)
-			return nil, err
-		}
-		return runResource.Spec.Artifacts, nil
-	} else {
-		err := errors.New("no RunConfiguration or RunName specified")
-		logger.Error(err, "failed to retrieve resource artifacts")
-		return nil, err
-	}
 }
