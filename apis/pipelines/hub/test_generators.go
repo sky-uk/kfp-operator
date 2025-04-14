@@ -75,6 +75,8 @@ func RandomProvider() *Provider {
 	}
 }
 
+// RemoveProvider removes the provider from the status
+// This is because providers never have this field populated, nor should they.
 func RemoveProvider(status Status) Status {
 	status.Provider = ProviderAndId{}
 	return status
