@@ -96,6 +96,8 @@ func (pss *PubSubSource) subscribe(ctx context.Context, runsSubscription *pubsub
 			pss.Logger.Info("stopped reading from pubsub")
 			return
 		}
+
+		msg.Nack()
 	})
 
 	if err != nil {
