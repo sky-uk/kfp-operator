@@ -11,22 +11,20 @@ import (
 
 var _ = Context("Provider Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
-		When("Image and serviceImage are set", func() {
-			It("converts to and from the same object", func() {
-				srcProvider := RandomProvider()
+		Specify("converts to and from the same object", func() {
+			srcProvider := RandomProvider()
+			
+			intermediate := &hub.Provider{}
+			dst := &Provider{}
 
-				intermediate := &hub.Provider{}
-				dst := &Provider{}
-
-				Expect(srcProvider.ConvertTo(intermediate)).To(Succeed())
-				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-				Expect(dst).To(BeComparableTo(srcProvider, cmpopts.EquateEmpty(), syncStateComparer))
-			})
+			Expect(srcProvider.ConvertTo(intermediate)).To(Succeed())
+			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+			Expect(dst).To(BeComparableTo(srcProvider, cmpopts.EquateEmpty(), syncStateComparer))
 		})
 	})
 
 	var _ = Describe("Roundtrip backward", func() {
-		Specify("converts to and from the same object when the framework is tfx", func() {
+		Specify("converts to and from the same object", func() {
 			src := hub.RandomProvider()
 
 			intermediate := &Provider{}
