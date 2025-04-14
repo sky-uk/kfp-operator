@@ -15,7 +15,6 @@ Any referenced resources must always match the provider of the referencing resou
 | Name                       | Description                                                                                                                                                                                                                        | Example                                                |
 |----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
 | `spec.serviceImage`        | Container image of [the provider service](../../providers/#provider-service)                                                                                                                                                       | `kfp-operator-kfp-provider-service:0.0.2`              |
-| `spec.image`               | Container image of [the provider CLI](../../providers/#provider-cli)                                                                                                                                                               | `kfp-operator-kfp-provider:0.0.2`                      |
 | `spec.executionMode`       | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode)                                                                                               | `v1` (currently KFP) or `v2` (Vertex AI)               |
 | `spec.serviceAccount`      | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                     | `kfp-operator-vertex-ai`                               |
 | `spec.defaultBeamArgs`     | Default Beam arguments to which the pipeline-defined ones will be added                                                                                                                                                            | <pre>- name: project<br/>  value: my-gcp-project</pre> |
@@ -32,7 +31,6 @@ metadata:
   namespace: kfp-operator
 spec:
   serviceImage: kfp-operator-kfp-provider-service:<version>
-  image: kfp-operator-kfp-provider:<version>
   defaultBeamArgs:
   - name: project
     value: <project>
