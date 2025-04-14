@@ -9,7 +9,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/go-resty/resty/v2 v2.16.0
 	github.com/jarcoal/httpmock v1.3.1
-	github.com/onsi/ginkgo/v2 v2.9.5
+	github.com/onsi/ginkgo/v2 v2.9.7
 	github.com/onsi/gomega v1.27.7
 	github.com/prometheus/client_golang v1.20.5
 	github.com/sky-uk/kfp-operator v0.6.0
