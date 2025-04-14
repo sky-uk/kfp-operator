@@ -69,3 +69,15 @@ func (er ExperimentConversionRemainder) Empty() bool {
 func (ExperimentConversionRemainder) ConversionAnnotation() string {
 	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
 }
+
+type ProviderConversionRemainder struct {
+	Image string `json:"image"`
+}
+
+func (pcr ProviderConversionRemainder) Empty() bool {
+	return pcr.Image == ""
+}
+
+func (ProviderConversionRemainder) ConversionAnnotation() string {
+	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
+}
