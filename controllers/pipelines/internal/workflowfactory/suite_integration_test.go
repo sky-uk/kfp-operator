@@ -61,7 +61,6 @@ var provider = pipelineshub.Provider{
 	},
 	Spec: pipelineshub.ProviderSpec{
 		ServiceImage:   "kfp-operator-stub-provider-service",
-		Image:          "kfp-operator-unused-old-stub-provider-cli",
 		ExecutionMode:  "none",
 		ServiceAccount: "default",
 	},
