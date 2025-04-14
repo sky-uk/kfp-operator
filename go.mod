@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/hashicorp/go-bexpr v0.1.14
 	github.com/nats-io/nats.go v1.37.0
-	github.com/onsi/ginkgo/v2 v2.9.5
+	github.com/onsi/ginkgo/v2 v2.9.7
 	github.com/onsi/gomega v1.27.7
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65
 	github.com/sky-uk/kfp-operator/argo/providers v0.0.0-20250127163801-188c8090ec65
