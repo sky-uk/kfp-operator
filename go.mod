@@ -16,7 +16,7 @@ require (
 	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
-	github.com/thanhpk/randstr v1.0.4
+	github.com/thanhpk/randstr v1.0.6
 	go.uber.org/zap v1.24.0
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	google.golang.org/grpc v1.65.0
