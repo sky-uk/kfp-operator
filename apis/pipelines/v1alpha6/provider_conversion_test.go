@@ -13,7 +13,7 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		Specify("converts to and from the same object", func() {
 			srcProvider := RandomProvider()
-			
+
 			intermediate := &hub.Provider{}
 			dst := &Provider{}
 
