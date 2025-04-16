@@ -5,7 +5,7 @@ metadata:
 spec:
   run:
     pipeline: penguin-pipeline-training
-    runtimeParameters:
+    parameters:
     - name: examples_location
       valueFrom:
         runConfigurationRef:
