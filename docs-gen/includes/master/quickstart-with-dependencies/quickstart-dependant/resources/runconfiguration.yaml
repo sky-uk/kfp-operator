@@ -6,7 +6,7 @@ spec:
   run:
     provider: provider-namespace/kfp
     pipeline: penguin-pipeline-training
-    runtimeParameters:
+    parameters:
     - name: examples_location
       valueFrom:
         runConfigurationRef:

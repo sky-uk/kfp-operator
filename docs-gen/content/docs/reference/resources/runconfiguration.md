@@ -16,7 +16,7 @@ spec:
     provider: provider-namespace/kfp
     pipeline: penguin-pipeline:v1-abcdef
     experimentName: penguin-experiment
-    runtimeParameters:
+    parameters:
     - name: TRAINING_RUNS
       value: '100'
     artifacts:
