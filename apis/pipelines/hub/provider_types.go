@@ -29,14 +29,25 @@ type ProviderList struct {
 	Items           []Provider `json:"items"`
 }
 
+type Patch struct {
+	Type  string `json:"type,omitempty" yaml:"type,omitempty"`
+	Patch string `json:"patch,omitempty" yaml:"patch,omitempty"`
+}
+
+type Framework struct {
+	Name    string  `json:"name,omitempty" yaml:"name,omitempty"`
+	Image   string  `json:"image,omitempty" yaml:"image,omitempty"`
+	Patches []Patch `json:"patches,omitempty" yaml:"patches,omitempty"`
+}
+
 type ProviderSpec struct {
 	ServiceImage  string `json:"serviceImage" yaml:"serviceImage"`
 	ExecutionMode string `json:"executionMode" yaml:"executionMode"`
 	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	ServiceAccount      string                           `json:"serviceAccount" yaml:"serviceAccount"`
-	DefaultBeamArgs     []apis.NamedValue                `json:"defaultBeamArgs,omitempty" yaml:"defaultBeamArgs,omitempty"`
 	PipelineRootStorage string                           `json:"pipelineRootStorage" yaml:"pipelineRootStorage"`
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	Frameworks          []Framework                      `json:"frameworks,omitempty" yaml:"frameworks,omitempty"`
 }
 
 func (p *Provider) ComputeVersion() string {

@@ -205,6 +205,35 @@ func RandomRunSpec(provider string) RunSpec {
 	}
 }
 
+func RandomProvider() *Provider {
+	return &Provider{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandomLowercaseString(),
+			Namespace: "default",
+		},
+		Spec:   RandomProviderSpec(),
+		Status: RandomStatus(RandomString()),
+	}
+}
+
+func RandomProviderSpec() ProviderSpec {
+	randomParameters := make(map[string]*apiextensionsv1.JSON)
+	for key := range RandomMap() {
+		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(`{"key1": "value1", "key2": 1234}`)}
+	}
+
+	return ProviderSpec{
+		Image:               "kfp-operator-stub-provider",
+		ServiceImage:        "service-image",
+		ExecutionMode:       "none",
+		ServiceAccount:      "default",
+		DefaultBeamArgs:     RandomNamedValues(),
+		PipelineRootStorage: RandomLowercaseString(),
+		Parameters:          randomParameters,
+	}
+}
+
 func RandomExperiment(provider string) *Experiment {
 	return &Experiment{
 		ObjectMeta: metav1.ObjectMeta{

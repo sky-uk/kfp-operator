@@ -93,7 +93,6 @@ func RandomProviderSpec() ProviderSpec {
 		ServiceImage:        "service-image",
 		ExecutionMode:       "none",
 		ServiceAccount:      "default",
-		DefaultBeamArgs:     RandomNamedValues(),
 		PipelineRootStorage: RandomLowercaseString(),
 		Parameters:          randomParameters,
 	}

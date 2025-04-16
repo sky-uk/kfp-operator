@@ -70,8 +70,8 @@ func createProviderServiceUrl(svc corev1.Service, port int) string {
 type ResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any] struct {
 	Config                config.KfpControllerConfigSpec
 	TemplateNameGenerator TemplateNameGenerator
-	DefinitionCreator     func(R) (ResourceDefinition, error)
-	WorkflowParamsCreator func(R) ([]argo.Parameter, error)
+	DefinitionCreator     func(pipelineshub.Provider, R) ([]pipelineshub.Patch, ResourceDefinition, error)
+	WorkflowParamsCreator func(pipelineshub.Provider, R) ([]argo.Parameter, error)
 }
 
 func WorkflowParamsCreatorNoop[R any](_ R) ([]argo.Parameter, error) {
@@ -88,11 +88,13 @@ func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMe
 	}
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(resource R) (string, error) {
-	resourceDefinition, err := workflows.DefinitionCreator(resource)
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(provider pipelineshub.Provider, resource R) (string, error) {
+	patches, resourceDefinition, err := workflows.DefinitionCreator(provider, resource)
 	if err != nil {
 		return "", err
 	}
+
+	//TODO use patches
 
 	marshalled, err := json.Marshal(&resourceDefinition)
 	if err != nil {
@@ -107,7 +109,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionJson(resource)
+	resourceDefinition, err := workflows.resourceDefinitionJson(provider, resource)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +152,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		},
 	}
 
-	additionalParams, err := workflows.WorkflowParamsCreator(resource)
+	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +176,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionJson(resource)
+	resourceDefinition, err := workflows.resourceDefinitionJson(provider, resource)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +222,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		},
 	}
 
-	additionalParams, err := workflows.WorkflowParamsCreator(resource)
+	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
 	if err != nil {
 		return nil, err
 	}
