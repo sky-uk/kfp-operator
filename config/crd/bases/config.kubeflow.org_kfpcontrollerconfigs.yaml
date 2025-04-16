@@ -7702,10 +7702,6 @@ spec:
                 type: object
               multiversion:
                 type: boolean
-              pipelineFrameworkImages:
-                additionalProperties:
-                  type: string
-                type: object
               runCompletionFeed:
                 properties:
                   endpoints:
@@ -15195,10 +15191,6 @@ spec:
                 type: object
               multiversion:
                 type: boolean
-              pipelineFrameworkImages:
-                additionalProperties:
-                  type: string
-                type: object
               runCompletionFeed:
                 properties:
                   endpoints:
