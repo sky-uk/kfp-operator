@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type RuntimeParameter struct {
+type Parameter struct {
 	Name      string     `json:"name"`
 	Value     string     `json:"value,omitempty"`
 	ValueFrom *ValueFrom `json:"valueFrom,omitempty"`
@@ -26,15 +26,15 @@ type ValueFrom struct {
 }
 
 type RunSpec struct {
-	Provider          common.NamespacedName `json:"provider" yaml:"provider"`
-	Pipeline          PipelineIdentifier    `json:"pipeline,omitempty"`
-	ExperimentName    string                `json:"experimentName,omitempty"`
-	RuntimeParameters []RuntimeParameter    `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact      `json:"artifacts,omitempty"`
+	Provider       common.NamespacedName `json:"provider" yaml:"provider"`
+	Pipeline       PipelineIdentifier    `json:"pipeline,omitempty"`
+	ExperimentName string                `json:"experimentName,omitempty"`
+	Parameters     []Parameter           `json:"parameters,omitempty"`
+	Artifacts      []OutputArtifact      `json:"artifacts,omitempty"`
 }
 
-func (runSpec *RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
-	return apis.MapErr(runSpec.RuntimeParameters, func(r RuntimeParameter) (apis.NamedValue, error) {
+func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
+	return apis.MapErr(runSpec.Parameters, func(r Parameter) (apis.NamedValue, error) {
 		if r.ValueFrom == nil {
 			return apis.NamedValue{
 				Name:  r.Name,
@@ -60,11 +60,11 @@ func (runSpec *RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]a
 }
 
 func (runSpec *RunSpec) HasUnmetDependencies(dependencies Dependencies) bool {
-	_, err := runSpec.ResolveRuntimeParameters(dependencies)
+	_, err := runSpec.ResolveParameters(dependencies)
 	return err != nil
 }
 
-func cmpRuntimeParameters(rp1, rp2 RuntimeParameter) bool {
+func cmpParameters(rp1, rp2 Parameter) bool {
 	if rp1.Name != rp2.Name {
 		return rp1.Name < rp2.Name
 	}
@@ -84,7 +84,7 @@ func cmpRuntimeParameters(rp1, rp2 RuntimeParameter) bool {
 	return rp1.ValueFrom.RunConfigurationRef.OutputArtifact < rp2.ValueFrom.RunConfigurationRef.OutputArtifact
 }
 
-func writeRuntimeParameter(oh pipelines.ObjectHasher, rp RuntimeParameter) {
+func writeParameter(oh pipelines.ObjectHasher, rp Parameter) {
 	oh.WriteStringField(rp.Name)
 	oh.WriteStringField(rp.Value)
 	if rp.ValueFrom != nil {
@@ -93,14 +93,14 @@ func writeRuntimeParameter(oh pipelines.ObjectHasher, rp RuntimeParameter) {
 	}
 }
 
-func WriteRunTimeParameters(oh pipelines.ObjectHasher, rps []RuntimeParameter) {
-	pipelines.WriteList(oh, rps, cmpRuntimeParameters, writeRuntimeParameter)
+func WriteParameters(oh pipelines.ObjectHasher, rps []Parameter) {
+	pipelines.WriteList(oh, rps, cmpParameters, writeParameter)
 }
 
 func (rs RunSpec) WriteRunSpec(oh pipelines.ObjectHasher) {
 	oh.WriteStringField(rs.Pipeline.String())
 	oh.WriteStringField(rs.ExperimentName)
-	WriteRunTimeParameters(oh, rs.RuntimeParameters)
+	WriteParameters(oh, rs.Parameters)
 	pipelines.WriteKVListField(oh, rs.Artifacts)
 }
 
@@ -184,7 +184,7 @@ func (r *Run) GetDependencyRuns() map[string]RunReference {
 }
 
 func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return apis.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
+	return apis.Collect(r.Spec.Parameters, func(rp Parameter) (RunConfigurationRef, bool) {
 		if rp.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}
@@ -194,7 +194,7 @@ func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
 }
 
 func (r *Run) GetReferencedRCs() []string {
-	return apis.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
+	return apis.Collect(r.Spec.Parameters, func(rp Parameter) (string, bool) {
 		if rp.ValueFrom == nil {
 			return "", false
 		}

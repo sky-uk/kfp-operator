@@ -67,18 +67,18 @@ var _ = Context("RunSchedule", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("All RuntimeParameters keys should change the hash", func() {
+		Specify("All Parameters keys should change the hash", func() {
 			rs := RunSchedule{}
 			hash1 := rs.ComputeHash()
 
-			rs.Spec.RuntimeParameters = []apis.NamedValue{
+			rs.Spec.Parameters = []apis.NamedValue{
 				{Name: "a", Value: ""},
 			}
 			hash2 := rs.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			rs.Spec.RuntimeParameters = []apis.NamedValue{
+			rs.Spec.Parameters = []apis.NamedValue{
 				{Name: "b", Value: "notempty"},
 			}
 			hash3 := rs.ComputeHash()

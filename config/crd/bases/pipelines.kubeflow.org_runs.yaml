@@ -468,12 +468,7 @@ spec:
                 type: array
               experimentName:
                 type: string
-              pipeline:
-                pattern: ^[\w\-]+(?::[\w\-_.]+)?$
-                type: string
-              provider:
-                type: string
-              runtimeParameters:
+              parameters:
                 items:
                   properties:
                     name:
@@ -499,6 +494,11 @@ spec:
                   - name
                   type: object
                 type: array
+              pipeline:
+                pattern: ^[\w\-]+(?::[\w\-_.]+)?$
+                type: string
+              provider:
+                type: string
             required:
             - provider
             type: object

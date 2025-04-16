@@ -22,12 +22,12 @@ func (r *Run) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.Validator = &Run{}
 
 func (r *Run) ValidateCreate() (admission.Warnings, error) {
-	for i, rp := range r.Spec.RuntimeParameters {
+	for i, rp := range r.Spec.Parameters {
 		if rp.ValueFrom != nil && rp.Value != "" {
 			return nil, apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
 				r.Name, field.ErrorList{
 					field.Invalid(
-						field.NewPath("spec").Child("runtimeParameters").Index(i),
+						field.NewPath("spec").Child("parameters").Index(i),
 						rp,
 						"only one of value or valueFrom can be set"),
 				})

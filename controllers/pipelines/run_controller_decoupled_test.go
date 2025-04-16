@@ -70,7 +70,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("Creating an invalid run", func() {
 		It("errors", func() {
 			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
-			run.Spec.RuntimeParameters = []pipelineshub.RuntimeParameter{
+			run.Spec.Parameters = []pipelineshub.Parameter{
 				{
 					Value: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{
@@ -173,7 +173,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 		It("unsets the dependency", func() {
 			runConfigurationName := apis.RandomString()
 			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
-			run.Spec.RuntimeParameters = []pipelineshub.RuntimeParameter{
+			run.Spec.Parameters = []pipelineshub.Parameter{
 				{
 					Name: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{
@@ -205,7 +205,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			Expect(K8sClient.Create(Ctx, referencedRc)).To(Succeed())
 
 			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
-			run.Spec.RuntimeParameters = []pipelineshub.RuntimeParameter{
+			run.Spec.Parameters = []pipelineshub.Parameter{
 				{
 					Name: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{
@@ -236,7 +236,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			})
 
 			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
-			run.Spec.RuntimeParameters = []pipelineshub.RuntimeParameter{
+			run.Spec.Parameters = []pipelineshub.Parameter{
 				{
 					Name: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{
@@ -262,7 +262,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("A RunConfiguration reference has been removed", func() {
 		It("removes the dependency", func() {
 			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
-			run.Spec.RuntimeParameters = []pipelineshub.RuntimeParameter{}
+			run.Spec.Parameters = []pipelineshub.Parameter{}
 			runHelper := Create(run)
 
 			excessDependency := apis.RandomString()
@@ -293,7 +293,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 			})
 
 			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
-			run.Spec.RuntimeParameters = []pipelineshub.RuntimeParameter{
+			run.Spec.Parameters = []pipelineshub.Parameter{
 				{
 					Name: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{
