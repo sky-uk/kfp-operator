@@ -38,7 +38,7 @@ var _ = Describe("JobBuilder", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.Labels).To(Equal(map[string]string{"rd-key": "rd-value"}))
 				for k, v := range job.RuntimeConfig.Parameters {
-					Expect(v.GetStringValue).To(Equal(rd.RuntimeParameters[k]))
+					Expect(v.GetStringValue).To(Equal(rd.Parameters[k]))
 				}
 				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
 				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
@@ -81,7 +81,7 @@ var _ = Describe("JobBuilder", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(job.Labels).To(Equal(map[string]string{"rsd-key": "rsd-value"}))
 				for k, v := range job.RuntimeConfig.Parameters {
-					Expect(v.GetStringValue).To(Equal(rsd.RuntimeParameters[k]))
+					Expect(v.GetStringValue).To(Equal(rsd.Parameters[k]))
 				}
 				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
 				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
