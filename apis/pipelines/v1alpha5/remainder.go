@@ -83,3 +83,16 @@ func (pcr PipelineConversionRemainder) Empty() bool {
 func (PipelineConversionRemainder) ConversionAnnotation() string {
 	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
 }
+
+type ProviderConversionRemainder struct {
+	Image        string `json:"image"`
+	ServiceImage string `json:"serviceImage"`
+}
+
+func (pcr ProviderConversionRemainder) Empty() bool {
+	return pcr.Image == "" && pcr.ServiceImage == ""
+}
+
+func (ProviderConversionRemainder) ConversionAnnotation() string {
+	return hub.GroupVersion.Version + "." + hub.GroupVersion.Group + "/conversions.remainder"
+}
