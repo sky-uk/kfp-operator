@@ -10,18 +10,6 @@ import (
 )
 
 var _ = Context("Provider Conversion", PropertyBased, func() {
-	var _ = Describe("Roundtrip forward", func() {
-		Specify("converts to and from the same object", func() {
-			srcProvider := RandomProvider()
-
-			intermediate := &hub.Provider{}
-			dst := &Provider{}
-			Expect(srcProvider.ConvertTo(intermediate)).To(Succeed())
-			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
-			Expect(dst).To(BeComparableTo(srcProvider, cmpopts.EquateEmpty(), syncStateComparer))
-		})
-	})
-
 	var _ = Describe("Roundtrip backward", func() {
 		Specify("converts to and from the same object", func() {
 			src := hub.RandomProvider()
@@ -32,6 +20,15 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+		})
+	})
+
+	var _ = Describe("Conversion failure", func() {
+		Specify("ConvertTo fails when there is no serviceImage annotation", func() {
+			src := RandomProvider()
+			dst := &hub.Provider{}
+
+			Expect(src.ConvertTo(dst)).To(Not(Succeed()))
 		})
 	})
 })

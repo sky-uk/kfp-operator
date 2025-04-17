@@ -1,6 +1,8 @@
 package v1alpha5
 
 import (
+	"errors"
+
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
@@ -16,9 +18,14 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
+	if remainder.ServiceImage == "" {
+		return errors.New("ServiceImage not set in remainder when converting to hub from v1alpha5")
+	}
+
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
+
 	dst.Spec.ServiceImage = remainder.ServiceImage
 	remainder.ServiceImage = ""
 	remainder.Image = src.Spec.Image
