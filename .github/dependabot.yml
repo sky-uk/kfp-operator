@@ -18,6 +18,7 @@ updates:
     - "/provider-service/stub"
     schedule:
       interval: "weekly"
+    rebase-strategy: "disabled"
     allow:
     - dependency-type: "direct"
     ignore:
