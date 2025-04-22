@@ -10,7 +10,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/go-resty/resty/v2 v2.16.0
 	github.com/googleapis/gax-go/v2 v2.12.3
-	github.com/onsi/ginkgo/v2 v2.9.5
+	github.com/onsi/ginkgo/v2 v2.9.7
 	github.com/onsi/gomega v1.27.7
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65
 	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-00010101000000-000000000000
