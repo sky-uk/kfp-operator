@@ -63,6 +63,7 @@ func RandomPipelineSpec(provider common.NamespacedName) PipelineSpec {
 }
 
 func RandomProvider() *Provider {
+
 	return &Provider{
 		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
@@ -70,8 +71,16 @@ func RandomProvider() *Provider {
 			Namespace: "default",
 		},
 		Spec:   RandomProviderSpec(),
-		Status: RandomStatus(common.NamespacedName{}),
+		Status: RemoveProvider(RandomStatus(common.NamespacedName{})),
 	}
+}
+
+// RemoveProvider removes the provider from the status
+// This is because providers never have this field populated, nor should they,
+// but they share the Status type with other resources that do use this field.
+func RemoveProvider(status Status) Status {
+	status.Provider = ProviderAndId{}
+	return status
 }
 
 func RandomProviderSpec() ProviderSpec {
@@ -81,7 +90,6 @@ func RandomProviderSpec() ProviderSpec {
 	}
 
 	return ProviderSpec{
-		Image:               "kfp-operator-stub-provider",
 		ServiceImage:        "service-image",
 		ExecutionMode:       "none",
 		ServiceAccount:      "default",

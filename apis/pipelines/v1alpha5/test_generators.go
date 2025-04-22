@@ -10,6 +10,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -216,6 +217,39 @@ func RandomStatus(provider string) Status {
 		Conditions: apis.Conditions{
 			RandomSynchronizationStateCondition(state),
 		},
+	}
+}
+
+func RandomProvider() *Provider {
+	return &Provider{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      RandomLowercaseString(),
+			Namespace: "default",
+		},
+		Spec:   RandomProviderSpec(),
+		Status: RemoveProvider(RandomStatus(RandomString())),
+	}
+}
+
+func RemoveProvider(status Status) Status {
+	status.ProviderId = ProviderAndId{}
+	return status
+}
+
+func RandomProviderSpec() ProviderSpec {
+	randomParameters := make(map[string]*apiextensionsv1.JSON)
+	for key := range RandomMap() {
+		randomParameters[key] = &apiextensionsv1.JSON{Raw: []byte(`{"key1":"value1","key2":1234}`)}
+	}
+
+	return ProviderSpec{
+		Image:               "kfp-operator-stub-provider",
+		ExecutionMode:       "none",
+		ServiceAccount:      "default",
+		DefaultBeamArgs:     RandomNamedValues(),
+		PipelineRootStorage: RandomLowercaseString(),
+		Parameters:          randomParameters,
 	}
 }
 
