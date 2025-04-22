@@ -24,6 +24,8 @@ const (
 	pubsubSubscriptionName = "some_subscription"
 	pubsubProject          = "some_project"
 	pubsubHost             = "localhost:8085"
+	maxDeliveryAttempts    = 5
+	retryTimeout           = time.Second
 )
 
 func TestSourcesIntegrationSuite(t *testing.T) {
@@ -123,7 +125,44 @@ var _ = Context("Pub sub source", Ordered, func() {
 				sendMessage(ctx, topic, pipelineId, jsonMessage)
 
 				msg := <-source.Out()
+				msg.OnSuccess()
 				Expect(msg.Message).To(Equal(pipelineId))
+
+				time.Sleep(retryTimeout * 2)
+
+				select {
+				case _ = <-source.Out():
+					Fail("second message received")
+				default:
+					Succeed()
+				}
+			})
+		})
+
+		When("a streamed message is valid but fails upstream with a unrecoverable error", func() {
+			It("should be ack'd", func() {
+				pipelineId := "valid_message_unrecoverable_error_ack_check"
+
+				topic, _, _ := createClientTopicSubscription(ctx, pipelineId, pipelineId)
+				source := createPubSubSource(ctx, pipelineId)
+
+				message := LogEntry{
+					Resource: Resource{
+						Labels: map[string]string{
+							PipelineJobLabel: pipelineId,
+						}},
+				}
+
+				jsonMessage, err := json.Marshal(message)
+				Expect(err).NotTo(HaveOccurred())
+
+				sendMessage(ctx, topic, pipelineId, jsonMessage)
+
+				msg := <-source.Out()
+				msg.OnUnrecoverableFailureHandler()
+				Expect(msg.Message).To(Equal(pipelineId))
+
+				time.Sleep(retryTimeout)
 
 				select {
 				case _ = <-source.Out():
@@ -136,7 +175,7 @@ var _ = Context("Pub sub source", Ordered, func() {
 
 		When("a streamed message is valid but fails upstream with a recoverable error", func() {
 			It("should be nack'd", func() {
-				pipelineId := "valid_message_nack_check"
+				pipelineId := "valid_message_recoverable_error_nack_check"
 
 				topic, _, deadletterSub := createClientTopicSubscription(ctx, pipelineId, pipelineId)
 				source := createPubSubSource(appCtx, pipelineId)
@@ -151,31 +190,36 @@ var _ = Context("Pub sub source", Ordered, func() {
 				jsonMessage, err := json.Marshal(message)
 				Expect(err).NotTo(HaveOccurred())
 
-				deadMessages := false
+				deadletterOut := make(chan *pubsub.Message, 1)
 				go func() {
 					_ = deadletterSub.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
 						Expect(message.Data).To(Equal(jsonMessage))
-						deadMessages = true
+						deadletterOut <- message
 						return
 					})
 				}()
 
 				sendMessage(ctx, topic, pipelineId, jsonMessage)
 
-				timeout := 2 * time.Second
 				counter := 0
-				for i := 0; i < 6; i++ {
+				for i := 0; i <= maxDeliveryAttempts; i++ {
 					select {
 					case msg := <-source.Out():
+						counter++
 						msg.OnRecoverableFailure()
-						counter = counter + 1
-					case <-time.After(timeout):
+					case <-time.After(retryTimeout * (maxDeliveryAttempts + 1)):
 						break
 					}
 				}
 
-				Expect(counter).To(Equal(5))
-				Expect(deadMessages).To(BeTrue())
+				Expect(counter).To(Equal(maxDeliveryAttempts))
+
+				select {
+				case msg := <-deadletterOut:
+					Expect(msg.Data).To(Equal(jsonMessage))
+				case <-time.After(10 * time.Second):
+					Fail("dead letter message not received")
+				}
 			})
 		})
 
@@ -192,28 +236,29 @@ var _ = Context("Pub sub source", Ordered, func() {
 				jsonMessage, err := json.Marshal(message)
 				Expect(err).NotTo(HaveOccurred())
 
-				deadMessages := false
+				deadletterOut := make(chan *pubsub.Message, 1)
 				go func() {
 					_ = deadletterSub.Receive(ctx, func(ctx context.Context, message *pubsub.Message) {
-						deadMessages = true
-						Expect(message.Data).To(Equal(jsonMessage))
+						deadletterOut <- message
 						return
 					})
 				}()
 
 				sendMessage(ctx, topic, pipelineId, jsonMessage)
 
-				time.Sleep(2 * time.Second)
-				appCancel()
-
-				Expect(deadMessages).To(BeTrue())
+				select {
+				case msg := <-deadletterOut:
+					Expect(msg.Data).To(Equal(jsonMessage))
+				case <-time.After(10 * time.Second):
+					Fail("dead letter message not received")
+				}
 			})
 		})
 	})
 })
 
 func createContextWithLogger(logger logr.Logger) (ctx context.Context, cancel context.CancelFunc) {
-	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(5000)*time.Millisecond)
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), time.Duration(10000)*time.Millisecond)
 	ctxWithLogger := logr.NewContext(ctxWithTimeout, logger)
 	return ctxWithLogger, cancel
 }
@@ -237,7 +282,14 @@ func createTopicIfNotExists(ctx context.Context, client *pubsub.Client, topicNam
 	return topic
 }
 
-func createSubIfNotExists(ctx context.Context, client *pubsub.Client, subscriptionName string, topic *pubsub.Topic, deadLetterPol *pubsub.DeadLetterPolicy) *pubsub.Subscription {
+func createSubIfNotExists(
+	ctx context.Context,
+	client *pubsub.Client,
+	subscriptionName string,
+	topic *pubsub.Topic,
+	deadLetterPol *pubsub.DeadLetterPolicy,
+	retryPolicy *pubsub.RetryPolicy,
+) *pubsub.Subscription {
 	subscription := client.Subscription(subscriptionName)
 	subscriptionExists, err := subscription.Exists(ctx)
 
@@ -245,6 +297,7 @@ func createSubIfNotExists(ctx context.Context, client *pubsub.Client, subscripti
 		subscription, err = client.CreateSubscription(ctx, subscriptionName, pubsub.SubscriptionConfig{
 			DeadLetterPolicy: deadLetterPol,
 			Topic:            topic,
+			RetryPolicy:      retryPolicy,
 		})
 		Expect(err).ToNot(HaveOccurred())
 	}
@@ -261,10 +314,14 @@ func createClientTopicSubscription(ctx context.Context, topicName string, subscr
 
 	subscription := createSubIfNotExists(ctx, client, subscriptionName, topic, &pubsub.DeadLetterPolicy{
 		DeadLetterTopic:     deadLetterTopic.String(),
-		MaxDeliveryAttempts: 5,
-	})
+		MaxDeliveryAttempts: maxDeliveryAttempts,
+	},
+		&pubsub.RetryPolicy{
+			MinimumBackoff: retryTimeout,
+			MaximumBackoff: retryTimeout,
+		})
 
-	deadSubscription := createSubIfNotExists(ctx, client, subscriptionName+"-deadletter", deadLetterTopic, nil)
+	deadSubscription := createSubIfNotExists(ctx, client, subscriptionName+"-deadletter", deadLetterTopic, nil, nil)
 	Expect(err).ToNot(HaveOccurred())
 
 	topics = append(topics, topic, deadLetterTopic)
