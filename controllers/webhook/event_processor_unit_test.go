@@ -104,7 +104,7 @@ var _ = Context("ToRunCompletionEvent", func() {
 		})
 	})
 
-	When("neither run configuration nor run passed", func() {
+	When("neither run configuration or run passed", func() {
 		It("returns an error", func() {
 			runCompletionEventData := RandomRunCompletionEventData()
 			stubbedFilterFunc := func(_ []common.PipelineComponent, _ []pipelineshub.OutputArtifact) []common.Artifact {
@@ -112,7 +112,7 @@ var _ = Context("ToRunCompletionEvent", func() {
 			}
 
 			_, err := ResourceArtifactsEventProcessor{filter: stubbedFilterFunc}.ToRunCompletionEvent(&runCompletionEventData, nil, nil)
-			Expect(err).To(HaveOccurred())
+			Expect(err).To(Equal(&InvalidEvent{err.Error()}))
 		})
 	})
 })
