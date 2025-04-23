@@ -44,7 +44,7 @@ var _ = Context("Handle", func() {
 				WithScheme(scheme).
 				WithStatusSubresource(&pipelineshub.Run{}).
 				Build()
-			updater = StatusUpdater{ctx, client}
+			updater = StatusUpdater{client}
 		})
 
 		When("Run resource is found", func() {
@@ -52,7 +52,7 @@ var _ = Context("Handle", func() {
 				err = client.Create(context.Background(), &run)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = client.Get(ctx, run.GetNamespacedName(), &run)
@@ -64,7 +64,7 @@ var _ = Context("Handle", func() {
 
 		When("Run resource is not found", func() {
 			It("should return a MissingResourceError", func() {
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				var expectedErr *MissingResourceError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
 			})
@@ -77,7 +77,7 @@ var _ = Context("Handle", func() {
 
 				expectedState := run.Status.CompletionState
 				rce.RunName.Namespace = ""
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = client.Get(ctx, run.GetNamespacedName(), &run)
@@ -90,10 +90,10 @@ var _ = Context("Handle", func() {
 		When("k8s client operation fails", func() {
 			It("should return error", func() {
 				client = fake.NewClientBuilder().Build()
-				updater = StatusUpdater{ctx, client}
+				updater = StatusUpdater{client}
 				name := common.RandomNamespacedName()
 				rce.RunName = &name
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -109,7 +109,7 @@ var _ = Context("Handle", func() {
 				WithScheme(scheme).
 				WithStatusSubresource(&pipelineshub.RunConfiguration{}).
 				Build()
-			updater = StatusUpdater{ctx, client}
+			updater = StatusUpdater{client}
 
 			rce.Status = common.RunCompletionStatuses.Succeeded
 
@@ -124,7 +124,7 @@ var _ = Context("Handle", func() {
 				err = client.Create(context.Background(), &rc)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = client.Get(ctx, rc.GetNamespacedName(), &rc)
@@ -141,7 +141,7 @@ var _ = Context("Handle", func() {
 				expectedProviderId := rc.Status.LatestRuns.Succeeded.ProviderId
 				expectedArtifacts := rc.Status.LatestRuns.Succeeded.Artifacts
 
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				var expectedErr *MissingResourceError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
 
@@ -159,7 +159,7 @@ var _ = Context("Handle", func() {
 				expectedArtifacts := rc.Status.LatestRuns.Succeeded.Artifacts
 
 				rce.Status = common.RunCompletionStatuses.Failed
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(rc.Status.LatestRuns.Succeeded.ProviderId).
@@ -179,7 +179,7 @@ var _ = Context("Handle", func() {
 				rce.Status = common.RunCompletionStatuses.Failed
 				err = client.Create(context.Background(), &rc)
 
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(rc.Status.LatestRuns.Succeeded.ProviderId).
@@ -193,10 +193,10 @@ var _ = Context("Handle", func() {
 		When("k8s client operation fails", func() {
 			It("should return error", func() {
 				client = fake.NewClientBuilder().Build()
-				updater = StatusUpdater{ctx, client}
+				updater = StatusUpdater{client}
 				name := common.RandomNamespacedName()
 				rce.RunConfigurationName = &name
-				err = updater.Handle(rce)
+				err = updater.Handle(ctx, rce)
 				Expect(err).To(HaveOccurred())
 			})
 		})

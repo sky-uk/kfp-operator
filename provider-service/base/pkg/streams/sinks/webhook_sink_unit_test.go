@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
-	resty "github.com/go-resty/resty/v2"
+	"github.com/go-resty/resty/v2"
 	"github.com/jarcoal/httpmock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -69,7 +69,7 @@ var _ = Context("SendEvents", func() {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
-			recoverableResponseCode := 500
+			recoverableResponseCode := http.StatusInternalServerError
 			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(recoverableResponseCode, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
@@ -93,7 +93,7 @@ var _ = Context("SendEvents", func() {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
-			unrecoverableResponseCode := 410
+			unrecoverableResponseCode := http.StatusGone
 			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(unrecoverableResponseCode, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])

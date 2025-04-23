@@ -34,18 +34,23 @@ func (hws WebhookSink) SendEvents() {
 	logger := common.LoggerFromContext(hws.ctx)
 	for message := range hws.in {
 		if message.Message != nil {
-			err, httpCode := hws.send(*message.Message)
-			if err != nil {
+			err, response := hws.send(*message.Message)
+
+			if err != nil || response == nil {
 				logger.Error(err, "failed to send event", "event", fmt.Sprintf("%+v", message.Message))
-				switch httpCode {
-				case http.StatusGone:
-					message.OnUnrecoverableFailure()
-				default:
-					message.OnRecoverableFailure()
-				}
+				message.OnRecoverableFailure()
 			} else {
-				logger.Info("successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
-				message.OnSuccess()
+				switch response.StatusCode() {
+				case http.StatusOK:
+					logger.Info("successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
+					message.OnSuccess()
+				case http.StatusGone:
+					logger.Info("resource tied to event is gone", "event", fmt.Sprintf("%+v", message.Message))
+					message.OnUnrecoverableFailureHandler()
+				default:
+					logger.Error(fmt.Errorf("unexpected status code %d", response.StatusCode()), "unexpected response from webhook", "event", fmt.Sprintf("%+v", message.Message))
+					message.OnRecoverableFailureHandler()
+				}
 			}
 		} else {
 			logger.Info("discarding empty message")
@@ -53,22 +58,16 @@ func (hws WebhookSink) SendEvents() {
 	}
 }
 
-func (hws WebhookSink) send(rced common.RunCompletionEventData) (error, int) {
+func (hws WebhookSink) send(rced common.RunCompletionEventData) (error, *resty.Response) {
 	rcedBytes, err := json.Marshal(rced)
 	if err != nil {
-		return err, 0
+		return err, nil
 	}
 
 	response, err := hws.client.R().SetHeader("Content-Type", "application/json").SetBody(rcedBytes).Post(hws.operatorWebhook)
 	if err != nil {
-		return err, 0
+		return err, nil
 	}
 
-	if response.StatusCode() != http.StatusOK {
-		logger := common.LoggerFromContext(hws.ctx)
-		logger.Info("error returned from Webhook", "status", response.Status(), "body", response.Body(), "event", rced)
-		return fmt.Errorf("webhook error response received with http status code: [%s]", response.Status()), response.StatusCode()
-	}
-
-	return nil, http.StatusOK
+	return nil, response
 }

@@ -18,7 +18,6 @@ type EventFlow struct {
 	MetadataStore  client.MetadataStore
 	KfpApi         client.KfpApi
 	Logger         logr.Logger
-	context        context.Context
 	in             chan StreamMessage[*unstructured.Unstructured]
 	out            chan StreamMessage[*common.RunCompletionEventData]
 	errorOut       chan error
@@ -78,20 +77,19 @@ func NewEventFlow(ctx context.Context, config config.KfpProviderConfig, kfpApi c
 		MetadataStore:  metadataStore,
 		KfpApi:         kfpApi,
 		Logger:         logger,
-		context:        ctx,
 		in:             make(chan StreamMessage[*unstructured.Unstructured]),
 		out:            make(chan StreamMessage[*common.RunCompletionEventData]),
 		errorOut:       make(chan error),
 	}
 
-	go flow.subscribeAndConvert()
+	go flow.subscribeAndConvert(ctx)
 
 	return flow, nil
 }
 
-func (ef *EventFlow) subscribeAndConvert() {
+func (ef *EventFlow) subscribeAndConvert(ctx context.Context) {
 	for msg := range ef.in {
-		runCompletionEvent, err := ef.toRunCompletionEventData(msg)
+		runCompletionEvent, err := ef.toRunCompletionEventData(ctx, msg)
 		if err != nil {
 			msg.OnRecoverableFailureHandler()
 			ef.errorOut <- err
@@ -101,8 +99,8 @@ func (ef *EventFlow) subscribeAndConvert() {
 	}
 }
 
-func (ef *EventFlow) toRunCompletionEventData(message StreamMessage[*unstructured.Unstructured]) (StreamMessage[*common.RunCompletionEventData], error) {
-	runCompletionEventData, err := ef.eventForWorkflow(ef.context, message.Message)
+func (ef *EventFlow) toRunCompletionEventData(ctx context.Context, message StreamMessage[*unstructured.Unstructured]) (StreamMessage[*common.RunCompletionEventData], error) {
+	runCompletionEventData, err := ef.eventForWorkflow(ctx, message.Message)
 	if err != nil {
 		message.OnRecoverableFailureHandler()
 		return StreamMessage[*common.RunCompletionEventData]{}, err
