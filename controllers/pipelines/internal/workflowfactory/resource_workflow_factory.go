@@ -3,10 +3,10 @@ package workflowfactory
 import (
 	"encoding/json"
 	"fmt"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/jsonutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,7 +74,7 @@ type ResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any] st
 	WorkflowParamsCreator func(pipelineshub.Provider, R) ([]argo.Parameter, error)
 }
 
-func WorkflowParamsCreatorNoop[R any](_ R) ([]argo.Parameter, error) {
+func WorkflowParamsCreatorNoop[R any](provider pipelineshub.Provider, _ R) ([]argo.Parameter, error) {
 	return []argo.Parameter{}, nil
 }
 
@@ -94,14 +94,17 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 		return "", err
 	}
 
-	//TODO use patches
-
 	marshalled, err := json.Marshal(&resourceDefinition)
 	if err != nil {
 		return "", err
 	}
 
-	return string(marshalled), nil
+	patchedJsonString, err := PatchJson(patches, marshalled)
+	if err != nil {
+		return "", err
+	}
+
+	return patchedJsonString, nil
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(

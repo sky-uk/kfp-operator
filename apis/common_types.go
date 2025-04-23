@@ -15,3 +15,10 @@ func (nv NamedValue) GetKey() string {
 func (nv NamedValue) GetValue() string {
 	return nv.Value
 }
+
+// +kubebuilder:object:generate=false
+type PatchOperation struct {
+	Op    string `json:"op"`
+	Path  string `json:"path"`
+	Value any    `json:"value"`
+}

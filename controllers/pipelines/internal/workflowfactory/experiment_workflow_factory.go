@@ -12,9 +12,10 @@ type ExperimentDefinitionCreator struct {
 }
 
 func (edc ExperimentDefinitionCreator) experimentDefinition(
+	_ pipelineshub.Provider,
 	experiment *pipelineshub.Experiment,
-) (providers.ExperimentDefinition, error) {
-	return providers.ExperimentDefinition{
+) ([]pipelineshub.Patch, providers.ExperimentDefinition, error) {
+	return nil, providers.ExperimentDefinition{
 		Name: common.NamespacedName{
 			Namespace: experiment.ObjectMeta.Namespace,
 			Name:      experiment.ObjectMeta.Name,

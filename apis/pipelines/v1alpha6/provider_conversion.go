@@ -3,6 +3,7 @@ package v1alpha6
 import (
 	"encoding/json"
 	"errors"
+	common "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
@@ -12,18 +13,12 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Provider)
 	dstApiVersion := dst.APIVersion
 
-	type patchOperation struct {
-		Op    string            `json:"op"`
-		Path  string            `json:"path"`
-		Value map[string]string `json:"value"`
-	}
-
 	var patches []hub.Patch
 
 	for _, nv := range src.Spec.DefaultBeamArgs {
-		patchOp := patchOperation{
+		patchOp := common.PatchOperation{
 			Op:   "add",
-			Path: "/Framework/parameters/beamArgs/-",
+			Path: "/framework/parameters/beamArgs/-",
 			Value: map[string]string{
 				"name":  nv.Name,
 				"value": nv.Value,

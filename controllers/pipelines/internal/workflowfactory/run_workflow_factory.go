@@ -20,7 +20,7 @@ type RunDefinitionCreator struct {
 	Config config.KfpControllerConfigSpec
 }
 
-func (rdc RunDefinitionCreator) runDefinition(run *pipelineshub.Run) (providers.RunDefinition, error) {
+func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipelineshub.Run) ([]pipelineshub.Patch, providers.RunDefinition, error) {
 	var experimentName common.NamespacedName
 	if run.Spec.ExperimentName == "" {
 		experimentName = common.NamespacedName{
@@ -34,12 +34,12 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelineshub.Run) (providers.
 	}
 
 	if run.Status.Dependencies.Pipeline.Version == "" {
-		return providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
+		return nil, providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
 	}
 
 	runtimeParameters, err := run.Spec.ResolveRuntimeParameters(run.Status.Dependencies)
 	if err != nil {
-		return providers.RunDefinition{}, err
+		return nil, providers.RunDefinition{}, err
 	}
 
 	runDefinition := providers.RunDefinition{
@@ -65,7 +65,7 @@ func (rdc RunDefinitionCreator) runDefinition(run *pipelineshub.Run) (providers.
 		}
 	}
 
-	return runDefinition, nil
+	return nil, runDefinition, nil
 }
 
 func RunWorkflowFactory(
