@@ -32,7 +32,7 @@ type MockRCEHandler struct {
 	expectedBody string
 }
 
-func (m MockRCEHandler) Handle(event common.RunCompletionEvent) EventError {
+func (m MockRCEHandler) Handle(_ context.Context, event common.RunCompletionEvent) EventError {
 	mockRCEHandlerHandleCounter++
 	passedBodyBytes, err := json.Marshal(event)
 	Expect(err).NotTo(HaveOccurred())
@@ -76,7 +76,6 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(rc).Build()
 
 	noHandlers := RunCompletionFeed{
-		ctx:           ctx,
 		client:        fakeClient,
 		eventHandlers: nil,
 	}
@@ -105,7 +104,6 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	}
 
 	withHandlers := RunCompletionFeed{
-		ctx:            ctx,
 		client:         fakeClient,
 		eventProcessor: eventProcessor,
 		eventHandlers:  handlers,
@@ -115,7 +113,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("calls out to configured run completion event handlers passing expected data", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withHandlers.handleEvent(resp, req)
+			withHandlers.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusOK))
 			Expect(mockRCEHandlerHandleCounter).To(Equal(len(handlers)))
@@ -126,7 +124,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns bad request", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, nil, HttpContentTypeJSON)
 
-			noHandlers.handleEvent(resp, req)
+			noHandlers.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusBadRequest))
 		})
@@ -136,7 +134,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns unsupported mediatype", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), "application/xml")
 
-			noHandlers.handleEvent(resp, req)
+			noHandlers.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusUnsupportedMediaType))
 		})
@@ -146,7 +144,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns method not allowed error", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodGet, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			noHandlers.handleEvent(resp, req)
+			noHandlers.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusMethodNotAllowed))
 		})
@@ -158,7 +156,6 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 				MockRCEHandler{expectedBody: "not found"},
 			}
 			withErrorHandler := RunCompletionFeed{
-				ctx:            ctx,
 				client:         fakeClient,
 				eventProcessor: eventProcessor,
 				eventHandlers:  handlers,
@@ -166,7 +163,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withErrorHandler.handleEvent(resp, req)
+			withErrorHandler.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusGone))
 		})
@@ -179,7 +176,6 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 				MockRCEHandler{expectedBody: string(expectedRCEHStr)},
 			}
 			withErrorHandler := RunCompletionFeed{
-				ctx:            ctx,
 				client:         fakeClient,
 				eventProcessor: eventProcessor,
 				eventHandlers:  handlers,
@@ -187,7 +183,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withErrorHandler.handleEvent(resp, req)
+			withErrorHandler.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusInternalServerError))
 			Expect(resp.Body.String()).To(Equal("run completion event handler error\n"))

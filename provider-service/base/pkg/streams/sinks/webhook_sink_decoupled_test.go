@@ -37,7 +37,7 @@ func createContextWithLogger(logger logr.Logger) (ctx context.Context, cancel co
 type StubRCEHandler struct {
 }
 
-func (m StubRCEHandler) Handle(_ common.RunCompletionEvent) webhook.EventError {
+func (m StubRCEHandler) Handle(_ context.Context, _ common.RunCompletionEvent) webhook.EventError {
 	return nil
 }
 
@@ -81,12 +81,11 @@ var _ = Context("Webhook Sink", Ordered, func() {
 		handlers = append(handlers, stubHandler)
 		fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(rc).Build()
 		rcf := webhook.NewRunCompletionFeed(
-			ctx,
 			fakeClient,
 			handlers,
 		)
 		go func() {
-			err = rcf.Start(port)
+			err = rcf.Start(ctx, port)
 			if err != nil {
 				logger.Error(err, "problem starting run completion feed")
 				panic(err)

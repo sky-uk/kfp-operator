@@ -223,12 +223,11 @@ func main() {
 	}
 	handlers = append(handlers, statusUpdater)
 	rcf := webhook.NewRunCompletionFeed(
-		ctx,
 		client.NonCached,
 		handlers,
 	)
 	go func() {
-		err = rcf.Start(ctrlConfig.Spec.RunCompletionFeed.Port)
+		err = rcf.Start(ctx, ctrlConfig.Spec.RunCompletionFeed.Port)
 		if err != nil {
 			setupLog.Error(err, "problem starting run completion feed")
 			os.Exit(1)

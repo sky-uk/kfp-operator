@@ -24,7 +24,6 @@ func completionStateForRunCompletionStatus(rcs argocommon.RunCompletionStatus) *
 }
 
 type StatusUpdater struct {
-	ctx       context.Context
 	K8sClient client.Client
 }
 
@@ -43,22 +42,43 @@ func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdate
 		logger.Error(err, "Error creating k8s client")
 		return StatusUpdater{}, err
 	}
+
 	logger.Info("StatusUpdater created")
-	return StatusUpdater{ctx, k8sClient}, nil
+	return StatusUpdater{k8sClient}, nil
 }
 
-func (su StatusUpdater) Handle(event argocommon.RunCompletionEvent) EventError {
+func (su StatusUpdater) Handle(ctx context.Context, event argocommon.RunCompletionEvent) EventError {
+	logger := log.FromContext(ctx)
+
 	if event.RunName != nil {
-		if err := su.completeRun(event); err != nil {
+		if err := su.completeRun(ctx, event); err != nil {
 			if errors.IsNotFound(err) {
+				logger.Info(
+					"RunCompletionEvent's Run was not found. Skipping.",
+					"RunId",
+					event.RunId,
+					"RunName",
+					event.RunName,
+					"Action",
+					"Get",
+				)
 				return &MissingResourceError{err.Error()}
 			}
 			return &FatalError{err.Error()}
 		}
 	}
 	if event.RunConfigurationName != nil {
-		if err := su.completeRunConfiguration(event); err != nil {
+		if err := su.completeRunConfiguration(ctx, event); err != nil {
 			if errors.IsNotFound(err) {
+				logger.Info(
+					"RunCompletionEvent's RunConfiguration was not found. Skipping.",
+					"RunId",
+					event.RunId,
+					"RunConfigurationName",
+					event.RunConfigurationName,
+					"Action",
+					"Get",
+				)
 				return &MissingResourceError{err.Error()}
 			}
 			return &FatalError{err.Error()}
@@ -68,8 +88,8 @@ func (su StatusUpdater) Handle(event argocommon.RunCompletionEvent) EventError {
 	return nil
 }
 
-func (su StatusUpdater) completeRun(event argocommon.RunCompletionEvent) error {
-	logger := log.FromContext(su.ctx)
+func (su StatusUpdater) completeRun(ctx context.Context, event argocommon.RunCompletionEvent) error {
+	logger := log.FromContext(ctx)
 
 	if event.RunName.Namespace == "" {
 		logger.Info(
@@ -83,42 +103,19 @@ func (su StatusUpdater) completeRun(event argocommon.RunCompletionEvent) error {
 	run := pipelineshub.Run{}
 
 	if err := su.K8sClient.Get(
-		su.ctx,
+		ctx,
 		types.NamespacedName{
 			Namespace: event.RunName.Namespace,
 			Name:      event.RunName.Name,
 		},
 		&run,
 	); err != nil {
-		if errors.IsNotFound(err) {
-			logger.Info(
-				"RunCompletionEvent's Run was not found. Skipping.",
-				"RunId",
-				event.RunId,
-				"RunName",
-				event.RunName,
-				"Action",
-				"Get",
-			)
-		}
 		return err
 	}
 
 	if completionState := completionStateForRunCompletionStatus(event.Status); completionState != nil {
 		run.Status.CompletionState = *completionState
-		if err := su.K8sClient.Status().Update(su.ctx, &run); err != nil {
-			if errors.IsNotFound(err) {
-				logger.Info(
-					"RunCompletionEvent's Run was not found. Skipping.",
-					"RunId",
-					event.RunId,
-					"RunName",
-					event.RunName,
-					"Action",
-					"Update",
-				)
-				return nil
-			}
+		if err := su.K8sClient.Status().Update(ctx, &run); err != nil {
 			return err
 		}
 	}
@@ -126,9 +123,10 @@ func (su StatusUpdater) completeRun(event argocommon.RunCompletionEvent) error {
 }
 
 func (su StatusUpdater) completeRunConfiguration(
+	ctx context.Context,
 	event argocommon.RunCompletionEvent,
 ) error {
-	logger := log.FromContext(su.ctx)
+	logger := log.FromContext(ctx)
 
 	if event.Status != argocommon.RunCompletionStatuses.Succeeded ||
 		event.RunConfigurationName.Namespace == "" {
@@ -143,44 +141,22 @@ func (su StatusUpdater) completeRunConfiguration(
 	rc := pipelineshub.RunConfiguration{}
 
 	if err := su.K8sClient.Get(
-		su.ctx,
+		ctx,
 		types.NamespacedName{
 			Namespace: event.RunConfigurationName.Namespace,
 			Name:      event.RunConfigurationName.Name,
 		},
 		&rc,
 	); err != nil {
-		if errors.IsNotFound(err) {
-			logger.Info(
-				"RunCompletionEvent's RunConfiguration was not found. Skipping.",
-				"RunId",
-				event.RunId,
-				"RunConfigurationName",
-				event.RunConfigurationName,
-				"Action",
-				"Get",
-			)
-		}
 		return err
 	}
 
 	rc.Status.LatestRuns.Succeeded.ProviderId = event.RunId
 	rc.Status.LatestRuns.Succeeded.Artifacts = event.Artifacts
 
-	if err := su.K8sClient.Status().Update(su.ctx, &rc); err != nil {
-		if errors.IsNotFound(err) {
-			logger.Info(
-				"RunCompletionEvent's RunConfiguration was not found. Skipping.",
-				"RunId",
-				event.RunId,
-				"RunConfigurationName",
-				event.RunConfigurationName,
-				"Action",
-				"Update",
-			)
-			return nil
-		}
+	if err := su.K8sClient.Status().Update(ctx, &rc); err != nil {
 		return err
 	}
+
 	return nil
 }

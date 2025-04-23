@@ -90,7 +90,7 @@ func (vef *EventFlow) Start() {
 			if err != nil {
 				if status.Code(err) == codes.NotFound {
 					logger.Info("pipeline job not found", "run-id", msg.Message)
-					msg.OnSuccessHandler()
+					msg.OnUnrecoverableFailureHandler()
 					vef.errorOut <- err
 				} else {
 					logger.Info("error retrieving job", "run-id", msg.Message)

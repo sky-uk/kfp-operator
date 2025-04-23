@@ -70,8 +70,11 @@ var _ = Context("VaiEventingServer", func() {
 			OnSuccessHandler: func() {
 				handlerCall <- "success_called"
 			},
+			OnUnrecoverableFailureHandler: func() {
+				handlerCall <- "unrecoverable_failure_called"
+			},
 			OnRecoverableFailureHandler: func() {
-				handlerCall <- "failure_called"
+				handlerCall <- "recoverable_failure_called"
 			},
 		}
 	})
@@ -505,7 +508,7 @@ var _ = Context("VaiEventingServer", func() {
 
 				eventingFlow.in <- StreamMessage[string]{Message: runId, OnCompleteHandlers: onCompHandlers}
 
-				Eventually(handlerCall).Should(Receive(Equal("success_called")))
+				Eventually(handlerCall).Should(Receive(Equal("unrecoverable_failure_called")))
 				Eventually(errChan).Should(Receive(Equal(expectedErr)))
 			})
 		})
@@ -525,7 +528,7 @@ var _ = Context("VaiEventingServer", func() {
 
 				eventingFlow.in <- StreamMessage[string]{Message: runId, OnCompleteHandlers: onCompHandlers}
 
-				Eventually(handlerCall).Should(Receive(Equal("failure_called")))
+				Eventually(handlerCall).Should(Receive(Equal("recoverable_failure_called")))
 				Eventually(errChan).Should(Receive(Equal(expectedErr)))
 			})
 		})

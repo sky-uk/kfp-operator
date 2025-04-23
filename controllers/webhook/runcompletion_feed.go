@@ -22,20 +22,17 @@ const (
 )
 
 type RunCompletionFeed struct {
-	ctx            context.Context
 	client         client.Reader
 	eventProcessor EventProcessor
 	eventHandlers  []RunCompletionEventHandler
 }
 
 func NewRunCompletionFeed(
-	ctx context.Context,
 	client client.Reader,
 	handlers []RunCompletionEventHandler,
 ) RunCompletionFeed {
 	eventProcessor := NewResourceArtifactsEventProcessor()
 	return RunCompletionFeed{
-		ctx:            ctx,
 		client:         client,
 		eventProcessor: eventProcessor,
 		eventHandlers:  handlers,
@@ -68,8 +65,8 @@ func getRequestBody(ctx context.Context, request *http.Request) ([]byte, error) 
 	return body, nil
 }
 
-func (rcf RunCompletionFeed) extractRunCompletionEventData(request *http.Request) (*common.RunCompletionEventData, EventError) {
-	body, err := getRequestBody(rcf.ctx, request)
+func (rcf RunCompletionFeed) extractRunCompletionEventData(ctx context.Context, request *http.Request) (*common.RunCompletionEventData, EventError) {
+	body, err := getRequestBody(ctx, request)
 	if err != nil {
 		return nil, &InvalidEvent{err.Error()}
 	}
@@ -122,64 +119,67 @@ func (rcf RunCompletionFeed) fetchRun(ctx context.Context, name *common.Namespac
 	return nil, nil
 }
 
-func (rcf RunCompletionFeed) handleEvent(responseWriter http.ResponseWriter, request *http.Request) {
-	logger := log.FromContext(rcf.ctx)
-	switch request.Method {
-	case http.MethodPost:
+func (rcf RunCompletionFeed) handleEvent(ctx context.Context) func(responseWriter http.ResponseWriter, request *http.Request) {
+	logger := log.FromContext(ctx)
 
-		if request.Header.Get(HttpHeaderContentType) != HttpContentTypeJSON {
-			logger.Error(errors.New("RunCompletionFeed call failed"), fmt.Sprintf("invalid %s [%s], want `%s`", HttpHeaderContentType, request.Header.Get(HttpHeaderContentType), HttpContentTypeJSON))
-			http.Error(responseWriter, fmt.Sprintf("invalid %s, want `%s`", HttpHeaderContentType, HttpContentTypeJSON), http.StatusUnsupportedMediaType)
-			return
-		}
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		switch request.Method {
+		case http.MethodPost:
 
-		eventData, err := rcf.extractRunCompletionEventData(request)
-		if err != nil {
-			err.SendHttpError(responseWriter)
-			return
-		}
+			if request.Header.Get(HttpHeaderContentType) != HttpContentTypeJSON {
+				logger.Error(errors.New("RunCompletionFeed call failed"), fmt.Sprintf("invalid %s [%s], want `%s`", HttpHeaderContentType, request.Header.Get(HttpHeaderContentType), HttpContentTypeJSON))
+				http.Error(responseWriter, fmt.Sprintf("invalid %s, want `%s`", HttpHeaderContentType, HttpContentTypeJSON), http.StatusUnsupportedMediaType)
+				return
+			}
 
-		var runConfiguration *pipelineshub.RunConfiguration
-		if eventData.RunConfigurationName != nil && eventData.RunConfigurationName.Name != "" {
-			runConfiguration, err = rcf.fetchRunConfiguration(rcf.ctx, eventData.RunConfigurationName)
+			eventData, err := rcf.extractRunCompletionEventData(ctx, request)
 			if err != nil {
 				err.SendHttpError(responseWriter)
 				return
 			}
-		}
 
-		var run *pipelineshub.Run
-		if eventData.RunName != nil && eventData.RunName.Name != "" {
-			run, err = rcf.fetchRun(rcf.ctx, eventData.RunName)
+			var runConfiguration *pipelineshub.RunConfiguration
+			if eventData.RunConfigurationName != nil && eventData.RunConfigurationName.Name != "" {
+				runConfiguration, err = rcf.fetchRunConfiguration(ctx, eventData.RunConfigurationName)
+				if err != nil {
+					err.SendHttpError(responseWriter)
+					return
+				}
+			}
+
+			var run *pipelineshub.Run
+			if eventData.RunName != nil && eventData.RunName.Name != "" {
+				run, err = rcf.fetchRun(ctx, eventData.RunName)
+				if err != nil {
+					err.SendHttpError(responseWriter)
+					return
+				}
+			}
+
+			event, err := rcf.eventProcessor.ToRunCompletionEvent(eventData, runConfiguration, run)
 			if err != nil {
 				err.SendHttpError(responseWriter)
 				return
 			}
-		}
 
-		event, err := rcf.eventProcessor.ToRunCompletionEvent(eventData, runConfiguration, run)
-		if err != nil {
-			err.SendHttpError(responseWriter)
+			for _, handler := range rcf.eventHandlers {
+				err := handler.Handle(ctx, *event)
+				if err != nil {
+					logger.Error(err, "Run completion event handler operation failed")
+					err.SendHttpError(responseWriter)
+					return
+				}
+			}
 			return
+		default:
+			logger.Error(errors.New("RunCompletionFeed call failed"), "Invalid http method used [%s], only POST supported", request.Method)
+			http.Error(responseWriter, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-
-		for _, handler := range rcf.eventHandlers {
-			err := handler.Handle(*event)
-			if err != nil {
-				logger.Error(err, "Run completion event handler operation failed")
-				err.SendHttpError(responseWriter)
-				return
-			}
-		}
-		return
-	default:
-		logger.Error(errors.New("RunCompletionFeed call failed"), "Invalid http method used [%s], only POST supported", request.Method)
-		http.Error(responseWriter, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func (rcf RunCompletionFeed) Start(port int) error {
-	http.HandleFunc("/events", rcf.handleEvent)
+func (rcf RunCompletionFeed) Start(ctx context.Context, port int) error {
+	http.HandleFunc("/events", rcf.handleEvent(ctx))
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
