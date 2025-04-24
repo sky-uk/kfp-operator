@@ -6,8 +6,10 @@ build: clean install-npm-dependencies ## Build the site
 quickstart: ## Build quickstart docker image
 	$(MAKE) -C includes/master/quickstart docker-build
 
-docker-push-quickstart: ## Push quickstart docker image
+docker-push-quickstart: ## Push quickstart docker images
 	$(MAKE) -C includes/master/quickstart docker-push
+	$(MAKE) -C includes/master/quickstart-with-dependencies/penguin_examples docker-push
+	$(MAKE) -C includes/master/quickstart-with-dependencies/penguin_training docker-push
 	$(MAKE) -C includes/master/kfpsdk-quickstart docker-push
 
 clean: ## Clean the site
