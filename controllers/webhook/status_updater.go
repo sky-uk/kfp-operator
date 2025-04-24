@@ -48,15 +48,13 @@ func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdate
 }
 
 func (su StatusUpdater) Handle(ctx context.Context, event argocommon.RunCompletionEvent) EventError {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("RunId", event.RunId)
 
 	if event.RunName != nil {
 		if err := su.completeRun(ctx, event); err != nil {
 			if errors.IsNotFound(err) {
 				logger.Info(
 					"RunCompletionEvent's Run was not found. Skipping.",
-					"RunId",
-					event.RunId,
 					"RunName",
 					event.RunName,
 					"Action",
@@ -72,8 +70,6 @@ func (su StatusUpdater) Handle(ctx context.Context, event argocommon.RunCompleti
 			if errors.IsNotFound(err) {
 				logger.Info(
 					"RunCompletionEvent's RunConfiguration was not found. Skipping.",
-					"RunId",
-					event.RunId,
 					"RunConfigurationName",
 					event.RunConfigurationName,
 					"Action",
