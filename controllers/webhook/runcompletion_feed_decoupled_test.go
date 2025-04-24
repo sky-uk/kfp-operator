@@ -56,10 +56,9 @@ func (m MockRCEHandler) Handle(_ context.Context, event common.RunCompletionEven
 func schemeWithCRDs() *runtime.Scheme {
 	scheme := runtime.NewScheme()
 
-	groupVersion := schema.GroupVersion{Group: "pipelines.kubeflow.org", Version: "v1beta1"}
-	scheme.AddKnownTypes(groupVersion, &pipelineshub.RunConfiguration{}, &pipelineshub.Run{})
+	scheme.AddKnownTypes(pipelineshub.GroupVersion, &pipelineshub.RunConfiguration{}, &pipelineshub.Run{})
 
-	metav1.AddToGroupVersion(scheme, groupVersion)
+	metav1.AddToGroupVersion(scheme, pipelineshub.GroupVersion)
 	return scheme
 }
 
