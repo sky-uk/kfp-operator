@@ -46,7 +46,7 @@ var _ = Context("SendEvents", func() {
 			client := resty.New()
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
-			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(http.StatusOK, ""))
+			httpmock.RegisterResponder(http.MethodPost, webhookUrl, httpmock.NewStringResponder(http.StatusOK, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
@@ -70,7 +70,7 @@ var _ = Context("SendEvents", func() {
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
 			recoverableResponseCode := http.StatusInternalServerError
-			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(recoverableResponseCode, ""))
+			httpmock.RegisterResponder(http.MethodPost, webhookUrl, httpmock.NewStringResponder(recoverableResponseCode, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
@@ -83,7 +83,7 @@ var _ = Context("SendEvents", func() {
 			}
 			in <- streamMessage
 
-			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("POST %s", webhookUrl)] }).Should(Equal(1))
+			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("%s %s", http.MethodPost, webhookUrl)] }).Should(Equal(1))
 			Eventually(handlerCall).Should(Receive(Equal("recoverable_failure_called")))
 		})
 	})
@@ -94,7 +94,7 @@ var _ = Context("SendEvents", func() {
 			httpmock.ActivateNonDefault(client.GetClient())
 			webhookUrl := "/operator-webhook"
 			unrecoverableResponseCode := http.StatusGone
-			httpmock.RegisterResponder("POST", webhookUrl, httpmock.NewStringResponder(unrecoverableResponseCode, ""))
+			httpmock.RegisterResponder(http.MethodPost, webhookUrl, httpmock.NewStringResponder(unrecoverableResponseCode, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
@@ -107,7 +107,7 @@ var _ = Context("SendEvents", func() {
 			}
 			in <- streamMessage
 
-			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("POST %s", webhookUrl)] }).Should(Equal(1))
+			Eventually(func() int { return httpmock.GetCallCountInfo()[fmt.Sprintf("%s %s", http.MethodPost, webhookUrl)] }).Should(Equal(1))
 			Eventually(handlerCall).Should(Receive(Equal("unrecoverable_failure_called")))
 		})
 	})
