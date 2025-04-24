@@ -21,6 +21,7 @@ type DefaultLabelGen struct {
 // which run configuration it originated from.
 func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 	var labels map[string]string
+
 	switch v := value.(type) {
 	case resource.RunDefinition:
 		labels = lg.runLabelsFromRunDefinition(v)
@@ -34,9 +35,9 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 			resource.RunScheduleDefinition{},
 		)
 	}
+
 	labels[label.ProviderName] = lg.providerName.Name
 	labels[label.ProviderNamespace] = lg.providerName.Namespace
-
 	return labels, nil
 }
 
