@@ -30,6 +30,7 @@ type VAIProvider struct {
 func NewVAIProvider(
 	ctx context.Context,
 	config *config.VAIProviderConfig,
+	namespace string,
 ) (*VAIProvider, error) {
 	fh, err := NewGcsFileHandler(ctx, config.Parameters.GcsEndpoint)
 	if err != nil {
@@ -61,7 +62,7 @@ func NewVAIProvider(
 			serviceAccount:      config.Parameters.VaiJobServiceAccount,
 			pipelineRootStorage: config.PipelineRootStorage,
 			pipelineBucket:      config.Parameters.PipelineBucket,
-			labelGen:            DefaultLabelGen{},
+			labelGen:            DefaultLabelGen{providerName: common.NamespacedName{Name: config.Name, Namespace: namespace}},
 		},
 		jobEnricher: DefaultJobEnricher{pipelineSchemaHandler: DefaultPipelineSchemaHandler{
 			schema2Handler:   Schema2Handler{},
