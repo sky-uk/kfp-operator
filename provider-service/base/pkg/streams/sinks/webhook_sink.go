@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -11,16 +12,15 @@ import (
 )
 
 type WebhookSink struct {
-	context         context.Context
 	client          *resty.Client
 	operatorWebhook string
 	in              chan StreamMessage[*common.RunCompletionEventData]
 }
 
 func NewWebhookSink(ctx context.Context, client *resty.Client, operatorWebhook string, inChan chan StreamMessage[*common.RunCompletionEventData]) *WebhookSink {
-	webhookSink := &WebhookSink{context: ctx, client: client, operatorWebhook: operatorWebhook, in: inChan}
+	webhookSink := &WebhookSink{client: client, operatorWebhook: operatorWebhook, in: inChan}
 
-	go webhookSink.SendEvents()
+	go webhookSink.SendEvents(ctx)
 
 	return webhookSink
 }
@@ -29,17 +29,27 @@ func (hws WebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData]
 	return hws.in
 }
 
-func (hws WebhookSink) SendEvents() {
-	logger := common.LoggerFromContext(hws.context)
+func (hws WebhookSink) SendEvents(ctx context.Context) {
+	logger := common.LoggerFromContext(ctx)
 	for message := range hws.in {
 		if message.Message != nil {
-			err := hws.send(*message.Message)
-			if err != nil {
+			err, response := hws.send(*message.Message)
+
+			if err != nil || response == nil {
 				logger.Error(err, "failed to send event", "event", fmt.Sprintf("%+v", message.Message))
-				message.OnFailure()
+				message.OnRecoverableFailure()
 			} else {
-				logger.Info("successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
-				message.OnSuccess()
+				switch response.StatusCode() {
+				case http.StatusOK:
+					logger.Info("successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
+					message.OnSuccess()
+				case http.StatusGone:
+					logger.Info("resource tied to event is gone", "event", fmt.Sprintf("%+v", message.Message))
+					message.OnUnrecoverableFailureHandler()
+				default:
+					logger.Error(fmt.Errorf("unexpected status code %d", response.StatusCode()), "unexpected response from webhook", "event", fmt.Sprintf("%+v", message.Message))
+					message.OnRecoverableFailureHandler()
+				}
 			}
 		} else {
 			logger.Info("discarding empty message")
@@ -47,22 +57,16 @@ func (hws WebhookSink) SendEvents() {
 	}
 }
 
-func (hws WebhookSink) send(rced common.RunCompletionEventData) error {
+func (hws WebhookSink) send(rced common.RunCompletionEventData) (error, *resty.Response) {
 	rcedBytes, err := json.Marshal(rced)
 	if err != nil {
-		return err
+		return err, nil
 	}
 
 	response, err := hws.client.R().SetHeader("Content-Type", "application/json").SetBody(rcedBytes).Post(hws.operatorWebhook)
 	if err != nil {
-		return err
+		return err, nil
 	}
 
-	if response.StatusCode() != 200 {
-		logger := common.LoggerFromContext(hws.context)
-		logger.Info("error returned from Webhook", "status", response.Status(), "body", response.Body(), "event", rced)
-		return fmt.Errorf("webhook error response received with http status code: [%s]", response.Status())
-	}
-
-	return nil
+	return nil, response
 }

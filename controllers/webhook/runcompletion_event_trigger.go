@@ -17,10 +17,9 @@ type RunCompletionEventTrigger struct {
 	EndPoint          config.Endpoint
 	Client            pb.RunCompletionEventTriggerClient
 	ConnectionHandler func() error
-	ctx               context.Context
 }
 
-func NewRuntimeCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint) RunCompletionEventTrigger {
+func NewRunCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint) RunCompletionEventTrigger {
 	logger := log.FromContext(ctx)
 
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -41,17 +40,20 @@ func NewRuntimeCompletionEventTrigger(ctx context.Context, endpoint config.Endpo
 			}
 			return nil
 		},
-		ctx: ctx,
 	}
 }
 
-func (rcet RunCompletionEventTrigger) Handle(event common.RunCompletionEvent) error {
+func (rcet RunCompletionEventTrigger) Handle(ctx context.Context, event common.RunCompletionEvent) EventError {
 	runCompletionEvent, err := RunCompletionEventToProto(event)
 	if err != nil {
-		return err
+		return &InvalidEvent{err.Error()}
 	}
-	_, err = rcet.Client.ProcessEventFeed(rcet.ctx, runCompletionEvent)
-	return err
+	_, err = rcet.Client.ProcessEventFeed(ctx, runCompletionEvent)
+	if err != nil {
+		return &FatalError{err.Error()}
+	}
+
+	return nil
 }
 
 func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompletionEvent, error) {
@@ -84,7 +86,7 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		Status:                statusToProto(event.Status),
 	}
 
-	return &runCompletionEvent, err
+	return &runCompletionEvent, nil
 }
 
 func artifactToProto(commonArtifacts []common.Artifact) []*pb.Artifact {

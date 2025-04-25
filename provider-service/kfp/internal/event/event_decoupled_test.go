@@ -104,7 +104,7 @@ func WithTestContext(fun func(context.Context)) {
 	client := resty.New()
 	httpmock.ActivateNonDefault(client.GetClient())
 	httpmock.RegisterResponder(
-		"POST",
+		http.MethodPost,
 		webhookUrl,
 		func(req *http.Request) (*http.Response, error) {
 			numberOfEvents++

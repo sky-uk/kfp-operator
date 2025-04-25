@@ -5,6 +5,8 @@ package webhook
 import (
 	"context"
 	"errors"
+	"github.com/go-logr/logr"
+	"go.uber.org/zap/zapcore"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -23,6 +25,9 @@ func (pef ProcessEventFeedFunc) ProcessEventFeed(ctx context.Context, in *pb.Run
 
 var _ = Context("Handle", func() {
 	When("called", func() {
+		logger, _ := common.NewLogger(zapcore.DebugLevel)
+		ctx := logr.NewContext(context.Background(), logger)
+
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
 		protoRce, _ := RunCompletionEventToProto(rce)
 
@@ -42,7 +47,7 @@ var _ = Context("Handle", func() {
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := trigger.Handle(rce)
+			err := trigger.Handle(ctx, rce)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -62,8 +67,8 @@ var _ = Context("Handle", func() {
 				ConnectionHandler: func() error { return nil },
 			}
 
-			err := trigger.Handle(rce)
-			Expect(err).To(Equal(testError))
+			err := trigger.Handle(ctx, rce)
+			Expect(err).To(Equal(&FatalError{testError.Error()}))
 		})
 	})
 })

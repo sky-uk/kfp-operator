@@ -6,15 +6,19 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/go-logr/logr"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"io"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/go-logr/logr"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 var mockRCEHandlerHandleCounter = 0
@@ -27,13 +31,15 @@ type MockRCEHandler struct {
 	expectedBody string
 }
 
-func (m MockRCEHandler) Handle(event common.RunCompletionEvent) error {
+func (m MockRCEHandler) Handle(_ context.Context, event common.RunCompletionEvent) EventError {
 	mockRCEHandlerHandleCounter++
 	passedBodyBytes, err := json.Marshal(event)
 	Expect(err).NotTo(HaveOccurred())
 	passedBodyStr := string(passedBodyBytes)
 	if m.expectedBody == "error" {
-		return errors.New("run completion event handler error")
+		return &FatalError{Msg: "run completion event handler error"}
+	} else if m.expectedBody == "not found" {
+		return &MissingResourceError{Msg: "resource not found"}
 	} else if passedBodyStr != m.expectedBody {
 		Fail(
 			fmt.Sprintf(
@@ -46,6 +52,15 @@ func (m MockRCEHandler) Handle(event common.RunCompletionEvent) error {
 	return nil
 }
 
+func schemeWithCRDs() *runtime.Scheme {
+	scheme := runtime.NewScheme()
+
+	scheme.AddKnownTypes(pipelineshub.GroupVersion, &pipelineshub.RunConfiguration{}, &pipelineshub.Run{})
+
+	metav1.AddToGroupVersion(scheme, pipelineshub.GroupVersion)
+	return scheme
+}
+
 func setupRequestResponse(ctx context.Context, method string, body io.Reader, contentType string) (*http.Request, *httptest.ResponseRecorder) {
 	req, err := http.NewRequestWithContext(ctx, method, "http://example.com/events", body)
 	Expect(err).NotTo(HaveOccurred())
@@ -55,13 +70,20 @@ func setupRequestResponse(ctx context.Context, method string, body io.Reader, co
 
 var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	ctx := logr.NewContext(context.Background(), logr.Discard())
+	rc := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
+	fakeClient := fake.NewClientBuilder().WithScheme(schemeWithCRDs()).WithObjects(rc).Build()
 
 	noHandlers := RunCompletionFeed{
-		ctx:           ctx,
+		client:        fakeClient,
 		eventHandlers: nil,
 	}
 
 	rced := RandomRunCompletionEventData()
+	rced.RunConfigurationName = &common.NamespacedName{
+		Name:      rc.Name,
+		Namespace: rc.Namespace,
+	}
+	rced.RunName = nil
 	requestStr, err := json.Marshal(rced)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -80,7 +102,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	}
 
 	withHandlers := RunCompletionFeed{
-		ctx:            ctx,
+		client:         fakeClient,
 		eventProcessor: eventProcessor,
 		eventHandlers:  handlers,
 	}
@@ -89,7 +111,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("calls out to configured run completion event handlers passing expected data", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withHandlers.handleEvent(resp, req)
+			withHandlers.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusOK))
 			Expect(mockRCEHandlerHandleCounter).To(Equal(len(handlers)))
@@ -100,7 +122,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns bad request", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, nil, HttpContentTypeJSON)
 
-			noHandlers.handleEvent(resp, req)
+			noHandlers.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusBadRequest))
 		})
@@ -110,7 +132,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns unsupported mediatype", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), "application/xml")
 
-			noHandlers.handleEvent(resp, req)
+			noHandlers.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusUnsupportedMediaType))
 		})
@@ -120,9 +142,28 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns method not allowed error", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodGet, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			noHandlers.handleEvent(resp, req)
+			noHandlers.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusMethodNotAllowed))
+		})
+	})
+
+	When("a run completion event handler returns a `Not Found` error", func() {
+		It("returns `Gone` server error", func() {
+			handlers := []RunCompletionEventHandler{
+				MockRCEHandler{expectedBody: "not found"},
+			}
+			withErrorHandler := RunCompletionFeed{
+				client:         fakeClient,
+				eventProcessor: eventProcessor,
+				eventHandlers:  handlers,
+			}
+
+			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
+
+			withErrorHandler.handleEvent(ctx)(resp, req)
+
+			Expect(resp.Code).To(Equal(http.StatusGone))
 		})
 	})
 
@@ -133,14 +174,14 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 				MockRCEHandler{expectedBody: string(expectedRCEHStr)},
 			}
 			withErrorHandler := RunCompletionFeed{
-				ctx:            ctx,
+				client:         fakeClient,
 				eventProcessor: eventProcessor,
 				eventHandlers:  handlers,
 			}
 
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withErrorHandler.handleEvent(resp, req)
+			withErrorHandler.handleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusInternalServerError))
 			Expect(resp.Body.String()).To(Equal("run completion event handler error\n"))
