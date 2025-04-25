@@ -49,9 +49,9 @@ var _ = Context("SendEvents", func() {
 			httpmock.RegisterResponder(http.MethodPost, webhookUrl, httpmock.NewStringResponder(http.StatusOK, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
-			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
+			webhookSink := &WebhookSink{client: client, operatorWebhook: webhookUrl, in: in}
 
-			go webhookSink.SendEvents()
+			go webhookSink.SendEvents(ctx)
 
 			streamMessage := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,
@@ -73,9 +73,9 @@ var _ = Context("SendEvents", func() {
 			httpmock.RegisterResponder(http.MethodPost, webhookUrl, httpmock.NewStringResponder(recoverableResponseCode, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
-			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
+			webhookSink := &WebhookSink{client: client, operatorWebhook: webhookUrl, in: in}
 
-			go webhookSink.SendEvents()
+			go webhookSink.SendEvents(ctx)
 
 			streamMessage := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,
@@ -97,9 +97,9 @@ var _ = Context("SendEvents", func() {
 			httpmock.RegisterResponder(http.MethodPost, webhookUrl, httpmock.NewStringResponder(unrecoverableResponseCode, ""))
 
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
-			webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: webhookUrl, in: in}
+			webhookSink := &WebhookSink{client: client, operatorWebhook: webhookUrl, in: in}
 
-			go webhookSink.SendEvents()
+			go webhookSink.SendEvents(ctx)
 
 			streamMessage := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,

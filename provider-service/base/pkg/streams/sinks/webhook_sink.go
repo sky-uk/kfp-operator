@@ -12,16 +12,15 @@ import (
 )
 
 type WebhookSink struct {
-	ctx             context.Context
 	client          *resty.Client
 	operatorWebhook string
 	in              chan StreamMessage[*common.RunCompletionEventData]
 }
 
 func NewWebhookSink(ctx context.Context, client *resty.Client, operatorWebhook string, inChan chan StreamMessage[*common.RunCompletionEventData]) *WebhookSink {
-	webhookSink := &WebhookSink{ctx: ctx, client: client, operatorWebhook: operatorWebhook, in: inChan}
+	webhookSink := &WebhookSink{client: client, operatorWebhook: operatorWebhook, in: inChan}
 
-	go webhookSink.SendEvents()
+	go webhookSink.SendEvents(ctx)
 
 	return webhookSink
 }
@@ -30,8 +29,8 @@ func (hws WebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData]
 	return hws.in
 }
 
-func (hws WebhookSink) SendEvents() {
-	logger := common.LoggerFromContext(hws.ctx)
+func (hws WebhookSink) SendEvents(ctx context.Context) {
+	logger := common.LoggerFromContext(ctx)
 	for message := range hws.in {
 		if message.Message != nil {
 			err, response := hws.send(*message.Message)
