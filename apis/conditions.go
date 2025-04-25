@@ -68,7 +68,6 @@ func (conditions Conditions) MergeIntoConditions(condition metav1.Condition) Con
 	if existingCondition.Reason != condition.Reason ||
 		existingCondition.Status != condition.Status ||
 		existingCondition.ObservedGeneration != condition.ObservedGeneration ||
-		existingCondition.LastTransitionTime != condition.LastTransitionTime ||
 		existingCondition.Message != condition.Message {
 		conditionsAsMap[condition.Type] = condition
 	}
