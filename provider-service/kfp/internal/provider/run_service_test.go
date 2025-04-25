@@ -26,6 +26,7 @@ var _ = Describe("RunService", func() {
 		mockRunServiceClient mocks.MockRunServiceClient
 		runService           RunService
 		rd                   = testutil.RandomRunDefinition()
+		ctx                  = context.Background()
 	)
 
 	rd.Name.Name = "runName"
@@ -95,7 +96,6 @@ var _ = Describe("RunService", func() {
 		func() {
 			mockRunServiceClient = mocks.MockRunServiceClient{}
 			runService = DefaultRunService{
-				ctx:    context.Background(),
 				client: &mockRunServiceClient,
 			}
 		},
@@ -109,6 +109,7 @@ var _ = Describe("RunService", func() {
 				nil,
 			)
 			runId, err := runService.CreateRun(
+				ctx,
 				rd,
 				pipelineId,
 				pipelineVersionId,
@@ -124,6 +125,7 @@ var _ = Describe("RunService", func() {
 				rdCopy := rd
 				rdCopy.Name.Name = ""
 				runId, err := runService.CreateRun(
+					ctx,
 					rdCopy,
 					pipelineId,
 					pipelineVersionId,
@@ -140,6 +142,7 @@ var _ = Describe("RunService", func() {
 				expectedErr := errors.New("error")
 				mockRunServiceClient.On("CreateRun", expectedReq).Return(nil, expectedErr)
 				runId, err := runService.CreateRun(
+					ctx,
 					rd,
 					pipelineId,
 					pipelineVersionId,

@@ -27,7 +27,6 @@ const (
 type EventFlow struct {
 	ProviderConfig    config.VAIProviderConfig
 	PipelineJobClient client.PipelineJobClient
-	context           context.Context
 	in                chan StreamMessage[string]
 	out               chan StreamMessage[*common.RunCompletionEventData]
 	errorOut          chan error
@@ -68,11 +67,10 @@ func (vef *EventFlow) Error(inlet streams.Inlet[error]) {
 	}
 }
 
-func NewEventFlow(ctx context.Context, config *config.VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *EventFlow {
+func NewEventFlow(config *config.VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *EventFlow {
 	vaiEventFlow := EventFlow{
 		ProviderConfig:    *config,
 		PipelineJobClient: pipelineJobClient,
-		context:           ctx,
 		in:                make(chan StreamMessage[string]),
 		out:               make(chan StreamMessage[*common.RunCompletionEventData]),
 		errorOut:          make(chan error),
@@ -81,12 +79,12 @@ func NewEventFlow(ctx context.Context, config *config.VAIProviderConfig, pipelin
 	return &vaiEventFlow
 }
 
-func (vef *EventFlow) Start() {
+func (vef *EventFlow) Start(ctx context.Context) {
 	go func() {
-		logger := common.LoggerFromContext(vef.context)
+		logger := common.LoggerFromContext(ctx)
 		for msg := range vef.in {
 			logger.Info("in VAI flow - received message", "message", msg.Message)
-			runCompletionEventData, err := vef.runCompletionEventDataForRun(msg.Message)
+			runCompletionEventData, err := vef.runCompletionEventDataForRun(ctx, msg.Message)
 			if err != nil {
 				if status.Code(err) == codes.NotFound {
 					logger.Info("pipeline job not found", "run-id", msg.Message)
@@ -107,15 +105,15 @@ func (vef *EventFlow) Start() {
 	}()
 }
 
-func (vef *EventFlow) runCompletionEventDataForRun(runId string) (*common.RunCompletionEventData, error) {
-	job, err := vef.PipelineJobClient.GetPipelineJob(vef.context, &aiplatformpb.GetPipelineJobRequest{
+func (vef *EventFlow) runCompletionEventDataForRun(ctx context.Context, runId string) (*common.RunCompletionEventData, error) {
+	job, err := vef.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
 		Name: vef.ProviderConfig.PipelineJobName(runId),
 	})
 	if err != nil {
-		common.LoggerFromContext(vef.context).Error(err, "failed to fetch pipeline job")
+		common.LoggerFromContext(ctx).Error(err, "failed to fetch pipeline job")
 		return nil, err
 	}
-	return vef.toRunCompletionEventData(job, runId)
+	return vef.toRunCompletionEventData(ctx, job, runId)
 }
 
 func runCompletionStatus(job *aiplatformpb.PipelineJob) (common.RunCompletionStatus, bool) {
@@ -191,12 +189,12 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifac
 	return servingModelArtifacts
 }
 
-func (vef *EventFlow) toRunCompletionEventData(job *aiplatformpb.PipelineJob, runId string) (*common.RunCompletionEventData, error) {
+func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatformpb.PipelineJob, runId string) (*common.RunCompletionEventData, error) {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
 	if !completed {
 		err := errors.New(PipelineJobNotFinishedErr)
-		common.LoggerFromContext(vef.context).Error(err, "run-id", runId)
+		common.LoggerFromContext(ctx).Error(err, "run-id", runId)
 		return nil, err
 	}
 

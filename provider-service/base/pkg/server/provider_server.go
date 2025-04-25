@@ -26,7 +26,7 @@ func livenessHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte("Application is live."))
 }
 
-func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
+func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -35,7 +35,7 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Create(body)
+		resp, err := hr.Create(ctx, body)
 
 		switch {
 		case err == nil:
@@ -57,7 +57,7 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
+func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
@@ -72,7 +72,7 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Update(decodedId, body)
+		resp, err := hr.Update(ctx, decodedId, body)
 
 		switch {
 		case err == nil:
@@ -94,7 +94,7 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
+func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
@@ -103,7 +103,7 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 			return
 		}
 
-		err = a.Delete(decodedId)
+		err = a.Delete(ctx, decodedId)
 
 		switch {
 		case err == nil:
@@ -125,7 +125,7 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func newHandler(resources []resource.HttpHandledResource) http.Handler {
+func newHandler(ctx context.Context, resources []resource.HttpHandledResource) http.Handler {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
@@ -135,9 +135,9 @@ func newHandler(resources []resource.HttpHandledResource) http.Handler {
 
 	for _, resource := range resources {
 		mux.Route("/resource/"+resource.Type(), func(r chi.Router) {
-			r.Post("/", createHandler(resource))
-			r.Put("/{id}", updateHandler(resource))
-			r.Delete("/{id}", deleteHandler(resource))
+			r.Post("/", createHandler(ctx, resource))
+			r.Put("/{id}", updateHandler(ctx, resource))
+			r.Delete("/{id}", deleteHandler(ctx, resource))
 		})
 	}
 
@@ -151,15 +151,15 @@ func (ps ProviderServer) Start(ctx context.Context, cfg config.Server, provider 
 	logger := common.LoggerFromContext(ctx)
 
 	httpResources := []resource.HttpHandledResource{
-		&resource.Pipeline{Ctx: ctx, Provider: provider},
-		&resource.Run{Ctx: ctx, Provider: provider},
-		&resource.RunSchedule{Ctx: ctx, Provider: provider},
-		&resource.Experiment{Ctx: ctx, Provider: provider},
+		&resource.Pipeline{Provider: provider},
+		&resource.Run{Provider: provider},
+		&resource.RunSchedule{Provider: provider},
+		&resource.Experiment{Provider: provider},
 	}
 
 	srv := &http.Server{
 		Addr:    addr,
-		Handler: newHandler(httpResources),
+		Handler: newHandler(ctx, httpResources),
 	}
 
 	go func() {

@@ -1,10 +1,12 @@
 package resource
 
+import "context"
+
 type HttpHandledResource interface {
 	Type() string
-	Create(body []byte) (ResponseBody, error)
-	Update(id string, body []byte) (ResponseBody, error)
-	Delete(id string) error
+	Create(ctx context.Context, body []byte) (ResponseBody, error)
+	Update(ctx context.Context, id string, body []byte) (ResponseBody, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type ResponseBody struct {

@@ -23,12 +23,12 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 		content      = []byte{86}
 		pipelineName = "pipeline-name"
 		uploadFile   = runtime.NamedReader(uploadPipelineFilePath, bytes.NewReader(content))
+		ctx          = context.Background()
 	)
 
 	BeforeEach(func() {
 		mockPipelineUploadServiceClient = mocks.MockPipelineUploadServiceClient{}
 		pipelineUploadService = DefaultPipelineUploadService{
-			context.Background(),
 			&mockPipelineUploadServiceClient,
 		}
 	})
@@ -39,7 +39,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 				expectedReq := &pipeline_upload_service.UploadPipelineParams{
 					Name:       &pipelineName,
 					Uploadfile: uploadFile,
-					Context:    pipelineUploadService.ctx,
+					Context:    ctx,
 				}
 				expectedId := "expected-id"
 				mockPipelineUploadServiceClient.On(
@@ -54,6 +54,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					nil,
 				)
 				result, err := pipelineUploadService.UploadPipeline(
+					ctx,
 					content,
 					pipelineName,
 				)
@@ -68,13 +69,14 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 				expectedReq := &pipeline_upload_service.UploadPipelineParams{
 					Name:       &pipelineName,
 					Uploadfile: uploadFile,
-					Context:    pipelineUploadService.ctx,
+					Context:    ctx,
 				}
 				mockPipelineUploadServiceClient.On(
 					"UploadPipeline",
 					expectedReq,
 				).Return(nil, errors.New("failed"))
 				result, err := pipelineUploadService.UploadPipeline(
+					ctx,
 					content,
 					pipelineName,
 				)
@@ -96,7 +98,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					Name:       &version,
 					Pipelineid: &id,
 					Uploadfile: uploadFile,
-					Context:    pipelineUploadService.ctx,
+					Context:    ctx,
 				}
 				mockPipelineUploadServiceClient.On(
 					"UploadPipelineVersion",
@@ -108,6 +110,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					nil,
 				)
 				err := pipelineUploadService.UploadPipelineVersion(
+					ctx,
 					id,
 					content,
 					version,
@@ -123,13 +126,14 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					Name:       &version,
 					Pipelineid: &id,
 					Uploadfile: uploadFile,
-					Context:    pipelineUploadService.ctx,
+					Context:    ctx,
 				}
 				mockPipelineUploadServiceClient.On(
 					"UploadPipelineVersion",
 					expectedReq,
 				).Return(nil, errors.New("failed"))
 				err := pipelineUploadService.UploadPipelineVersion(
+					ctx,
 					id,
 					content,
 					version,

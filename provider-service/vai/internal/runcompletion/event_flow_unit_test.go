@@ -48,6 +48,7 @@ var _ = Context("VaiEventingServer", func() {
 		errChan               chan error
 		handlerCall           chan any
 		onCompHandlers        OnCompleteHandlers
+		ctx                   = context.Background()
 	)
 
 	BeforeEach(func() {
@@ -60,7 +61,6 @@ var _ = Context("VaiEventingServer", func() {
 				Name: common.RandomString(),
 			},
 			PipelineJobClient: mockPipelineJobClient,
-			context:           context.Background(),
 			in:                inChan,
 			out:               outChan,
 			errorOut:          errChan,
@@ -80,7 +80,7 @@ var _ = Context("VaiEventingServer", func() {
 	})
 
 	DescribeTable("toRunCompletionEventData for job that has not completed", func(state aiplatformpb.PipelineState) {
-		event, err := eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{State: state}, common.RandomString())
+		event, err := eventingFlow.toRunCompletionEventData(ctx, &aiplatformpb.PipelineJob{State: state}, common.RandomString())
 		Expect(event).To(BeNil())
 		Expect(err).To(HaveOccurred())
 	},
@@ -97,7 +97,7 @@ var _ = Context("VaiEventingServer", func() {
 		pipelineName := common.RandomNamespacedName()
 		pipelineRunName := common.RandomNamespacedName()
 
-		Expect(eventingFlow.toRunCompletionEventData(&aiplatformpb.PipelineJob{
+		Expect(eventingFlow.toRunCompletionEventData(ctx, &aiplatformpb.PipelineJob{
 			Name: pipelineRunName.Name,
 			Labels: map[string]string{
 				label.RunConfigurationName:      runConfigurationName.Name,
@@ -464,7 +464,7 @@ var _ = Context("VaiEventingServer", func() {
 					"GetPipelineJob",
 					&expectedReq,
 				).Return(nil, expectedErr)
-				event, err := eventingFlow.runCompletionEventDataForRun(runId)
+				event, err := eventingFlow.runCompletionEventDataForRun(ctx, runId)
 				Expect(event).To(BeNil())
 				Expect(err).To(Equal(expectedErr))
 			})
@@ -485,7 +485,7 @@ var _ = Context("VaiEventingServer", func() {
 					},
 					nil,
 				)
-				event, err := eventingFlow.runCompletionEventDataForRun(runId)
+				event, err := eventingFlow.runCompletionEventDataForRun(ctx, runId)
 				Expect(event).NotTo(BeNil())
 				Expect(err).To(BeNil())
 			})
@@ -504,7 +504,7 @@ var _ = Context("VaiEventingServer", func() {
 					"GetPipelineJob",
 					&expectedReq,
 				).Return(nil, expectedErr)
-				eventingFlow.Start()
+				eventingFlow.Start(ctx)
 
 				eventingFlow.in <- StreamMessage[string]{Message: runId, OnCompleteHandlers: onCompHandlers}
 
@@ -524,7 +524,7 @@ var _ = Context("VaiEventingServer", func() {
 					"GetPipelineJob",
 					&expectedReq,
 				).Return(nil, expectedErr)
-				eventingFlow.Start()
+				eventingFlow.Start(ctx)
 
 				eventingFlow.in <- StreamMessage[string]{Message: runId, OnCompleteHandlers: onCompHandlers}
 
@@ -549,7 +549,7 @@ var _ = Context("VaiEventingServer", func() {
 					nil,
 				)
 
-				eventingFlow.Start()
+				eventingFlow.Start(ctx)
 				eventingFlow.in <- StreamMessage[string]{Message: runId, OnCompleteHandlers: onCompHandlers}
 
 				expectedRunCompletionEventData := &common.RunCompletionEventData{

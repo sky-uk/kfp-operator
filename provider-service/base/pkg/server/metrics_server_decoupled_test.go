@@ -17,7 +17,6 @@ import (
 )
 
 type MetricsTestContext struct {
-	ctx      context.Context
 	Addr     net.Addr
 	shutdown func()
 }
@@ -33,7 +32,7 @@ func NewMetricsTestContext() *MetricsTestContext {
 
 	metricsAddr := listener.Addr()
 
-	return &MetricsTestContext{ctx: ctx, Addr: metricsAddr, shutdown: shutdown}
+	return &MetricsTestContext{Addr: metricsAddr, shutdown: shutdown}
 }
 
 func TestMetricsServerDecoupledSuite(t *testing.T) {

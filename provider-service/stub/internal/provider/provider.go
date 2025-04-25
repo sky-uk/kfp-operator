@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"context"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -17,6 +18,7 @@ func New(logger logr.Logger) resource.Provider {
 }
 
 func (p *StubProvider) CreatePipeline(
+	_ context.Context,
 	pdw resource.PipelineDefinitionWrapper,
 ) (string, error) {
 	if strings.EqualFold(pdw.PipelineDefinition.Name.Name, CreatePipelineFail) {
@@ -27,7 +29,8 @@ func (p *StubProvider) CreatePipeline(
 }
 
 func (p *StubProvider) UpdatePipeline(
-	pdw resource.PipelineDefinitionWrapper,
+	_ context.Context,
+	_ resource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
 	if strings.EqualFold(id, UpdatePipelineFail) {
@@ -37,7 +40,7 @@ func (p *StubProvider) UpdatePipeline(
 	}
 }
 
-func (p *StubProvider) DeletePipeline(id string) error {
+func (p *StubProvider) DeletePipeline(_ context.Context, id string) error {
 	if strings.EqualFold(id, DeletePipelineFail) {
 		return &DeletePipelineError{}
 	} else {
@@ -46,6 +49,7 @@ func (p *StubProvider) DeletePipeline(id string) error {
 }
 
 func (p *StubProvider) CreateRun(
+	_ context.Context,
 	rd resource.RunDefinition,
 ) (string, error) {
 	if strings.EqualFold(rd.Name.Name, CreateRunFail) {
@@ -55,7 +59,7 @@ func (p *StubProvider) CreateRun(
 	}
 }
 
-func (p *StubProvider) DeleteRun(id string) error {
+func (p *StubProvider) DeleteRun(_ context.Context, id string) error {
 	if strings.EqualFold(id, DeleteRunFail) {
 		return &DeleteRunError{}
 	} else {
@@ -64,6 +68,7 @@ func (p *StubProvider) DeleteRun(id string) error {
 }
 
 func (p *StubProvider) CreateRunSchedule(
+	_ context.Context,
 	rsd resource.RunScheduleDefinition,
 ) (string, error) {
 	if strings.EqualFold(rsd.Name.Name, CreateRunScheduleFail) {
@@ -74,8 +79,9 @@ func (p *StubProvider) CreateRunSchedule(
 }
 
 func (p *StubProvider) UpdateRunSchedule(
+	_ context.Context,
 	rsd resource.RunScheduleDefinition,
-	id string,
+	_ string,
 ) (string, error) {
 	if strings.EqualFold(rsd.Name.Name, UpdateRunScheduleFail) {
 		return "", &UpdateRunScheduleError{}
@@ -84,7 +90,7 @@ func (p *StubProvider) UpdateRunSchedule(
 	}
 }
 
-func (p *StubProvider) DeleteRunSchedule(id string) error {
+func (p *StubProvider) DeleteRunSchedule(_ context.Context, id string) error {
 	if strings.EqualFold(id, DeleteRunScheduledFail) {
 		return &DeleteRunScheduleError{}
 	} else {
@@ -93,6 +99,7 @@ func (p *StubProvider) DeleteRunSchedule(id string) error {
 }
 
 func (p *StubProvider) CreateExperiment(
+	_ context.Context,
 	ed resource.ExperimentDefinition,
 ) (string, error) {
 	if strings.EqualFold(ed.Name.Name, CreateExperimentFail) {
@@ -103,8 +110,9 @@ func (p *StubProvider) CreateExperiment(
 }
 
 func (p *StubProvider) UpdateExperiment(
+	_ context.Context,
 	ed resource.ExperimentDefinition,
-	id string,
+	_ string,
 ) (string, error) {
 	if strings.EqualFold(ed.Name.Name, UpdateExperimentFail) {
 		return "", &UpdateExperimentError{}
@@ -113,7 +121,7 @@ func (p *StubProvider) UpdateExperiment(
 	}
 }
 
-func (p *StubProvider) DeleteExperiment(id string) error {
+func (p *StubProvider) DeleteExperiment(_ context.Context, id string) error {
 	if strings.EqualFold(id, DeleteExperimentFail) {
 		return &DeleteExperimentError{}
 	} else {

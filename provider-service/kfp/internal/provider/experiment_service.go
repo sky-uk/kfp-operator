@@ -14,22 +14,21 @@ import (
 
 type ExperimentService interface {
 	CreateExperiment(
+		ctx context.Context,
 		experiment common.NamespacedName,
 		description string,
 	) (string, error)
 
-	DeleteExperiment(id string) error
+	DeleteExperiment(ctx context.Context, id string) error
 
-	ExperimentIdByName(experiment common.NamespacedName) (string, error)
+	ExperimentIdByName(ctx context.Context, experiment common.NamespacedName) (string, error)
 }
 
 type DefaultExperimentService struct {
-	ctx    context.Context
 	client client.ExperimentServiceClient
 }
 
 func NewExperimentService(
-	ctx context.Context,
 	conn *grpc.ClientConn,
 ) (ExperimentService, error) {
 	if conn == nil {
@@ -39,13 +38,13 @@ func NewExperimentService(
 	}
 
 	return &DefaultExperimentService{
-		ctx:    ctx,
 		client: go_client.NewExperimentServiceClient(conn),
 	}, nil
 }
 
 // CreateExperiment creates an experiment and returns an experiment id
 func (es *DefaultExperimentService) CreateExperiment(
+	ctx context.Context,
 	experiment common.NamespacedName,
 	description string,
 ) (string, error) {
@@ -55,7 +54,7 @@ func (es *DefaultExperimentService) CreateExperiment(
 	}
 
 	result, err := es.client.CreateExperiment(
-		es.ctx,
+		ctx,
 		&go_client.CreateExperimentRequest{
 			Experiment: &go_client.Experiment{
 				Name:        experimentName,
@@ -71,9 +70,9 @@ func (es *DefaultExperimentService) CreateExperiment(
 }
 
 // Delete Experiment deletes an experiment by experiment id
-func (es *DefaultExperimentService) DeleteExperiment(id string) error {
+func (es *DefaultExperimentService) DeleteExperiment(ctx context.Context, id string) error {
 	_, err := es.client.DeleteExperiment(
-		es.ctx,
+		ctx,
 		&go_client.DeleteExperimentRequest{Id: id},
 	)
 	if err != nil {
@@ -86,6 +85,7 @@ func (es *DefaultExperimentService) DeleteExperiment(id string) error {
 // ExperimentIdByName gets the experiment id corresponding to the experiment name.
 // Expects to find exactly one such experiment.
 func (es *DefaultExperimentService) ExperimentIdByName(
+	ctx context.Context,
 	experiment common.NamespacedName,
 ) (string, error) {
 	experimentName, err := util.ResourceNameFromNamespacedName(experiment)
@@ -94,7 +94,7 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 	}
 
 	experimentResult, err := es.client.ListExperiment(
-		es.ctx,
+		ctx,
 		&go_client.ListExperimentsRequest{
 			Filter: *kfpUtil.ByNameFilter(experimentName),
 		},

@@ -16,11 +16,14 @@ var _ = Describe("Run", Ordered, func() {
 	var (
 		mockProvider MockRunProvider
 		r            Run
+		ctx          = context.Background()
 	)
+
+	ignoreCtx := mock.Anything
 
 	BeforeEach(func() {
 		mockProvider = MockRunProvider{}
-		r = Run{Ctx: context.Background(), Provider: &mockProvider}
+		r = Run{Provider: &mockProvider}
 	})
 
 	Context("Create", func() {
@@ -32,8 +35,8 @@ var _ = Describe("Run", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
-				mockProvider.On("CreateRun", rd).Return(id, nil)
-				response, err := r.Create(jsonRun)
+				mockProvider.On("CreateRun", ignoreCtx, rd).Return(id, nil)
+				response, err := r.Create(ctx, jsonRun)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(response).To(Equal(ResponseBody{Id: id}))
@@ -43,7 +46,7 @@ var _ = Describe("Run", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-				response, err := r.Create(invalidJson)
+				response, err := r.Create(ctx, invalidJson)
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
@@ -59,8 +62,8 @@ var _ = Describe("Run", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
-				mockProvider.On("CreateRun", rd).Return("", expectedErr)
-				response, err := r.Create(jsonRun)
+				mockProvider.On("CreateRun", ignoreCtx, rd).Return("", expectedErr)
+				response, err := r.Create(ctx, jsonRun)
 
 				Expect(err).To(Equal(expectedErr))
 				Expect(response).To(Equal(ResponseBody{}))
@@ -71,7 +74,7 @@ var _ = Describe("Run", Ordered, func() {
 	Context("Update", func() {
 		It("returns an Unimplemented error", func() {
 			id := "some-id"
-			response, err := r.Update(id, []byte("foo"))
+			response, err := r.Update(ctx, id, []byte("foo"))
 
 			var expectedErr *UnimplementedError
 			Expect(errors.As(err, &expectedErr)).To(BeTrue())
@@ -83,8 +86,8 @@ var _ = Describe("Run", Ordered, func() {
 		When("valid id is passed and provider operations succeed", func() {
 			It("return no error", func() {
 				id := "some-id"
-				mockProvider.On("DeleteRun", id).Return(nil)
-				err := r.Delete(id)
+				mockProvider.On("DeleteRun", ignoreCtx, id).Return(nil)
+				err := r.Delete(ctx, id)
 
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -94,8 +97,8 @@ var _ = Describe("Run", Ordered, func() {
 			It("errors", func() {
 				id := "some-id"
 				expectedErr := errors.New("some-error")
-				mockProvider.On("DeleteRun", id).Return(expectedErr)
-				err := r.Delete(id)
+				mockProvider.On("DeleteRun", ignoreCtx, id).Return(expectedErr)
+				err := r.Delete(ctx, id)
 
 				Expect(err).To(Equal(expectedErr))
 			})
@@ -107,12 +110,12 @@ type MockRunProvider struct {
 	mock.Mock
 }
 
-func (m *MockRunProvider) CreateRun(rd RunDefinition) (string, error) {
-	args := m.Called(rd)
+func (m *MockRunProvider) CreateRun(ctx context.Context, rd RunDefinition) (string, error) {
+	args := m.Called(ctx, rd)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockRunProvider) DeleteRun(id string) error {
-	args := m.Called(id)
+func (m *MockRunProvider) DeleteRun(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
 	return args.Error(0)
 }

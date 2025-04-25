@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("GcsFileHandler", Ordered, func() {
 	var (
-		ctx       context.Context
+		ctx       = context.Background()
 		server    *fakestorage.Server
 		handler   GcsFileHandler
 		bucket    string
@@ -32,7 +32,7 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 		// fake GCS server doesn't share data between different clients
 		// (required for a round-trip test), so the same client must be used
 		// throughout.
-		handler = GcsFileHandler{ctx, *server.Client()}
+		handler = GcsFileHandler{*server.Client()}
 		Expect(err).ShouldNot(HaveOccurred())
 
 		bucket = "test-bucket"
@@ -51,8 +51,8 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 	Context("Write, Read And Delete round trip", func() {
 		When("Write", func() {
 			It("should write data to the specified bucket and file path", func() {
-				err := handler.Write(testBytes, bucket, filePath)
-				err = handler.Write(testBytes, bucket, "test-folder/test-file2.json")
+				err := handler.Write(ctx, testBytes, bucket, filePath)
+				err = handler.Write(ctx, testBytes, bucket, "test-folder/test-file2.json")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				obj, err := server.Client().Bucket(bucket).Object(filePath).Attrs(ctx)
@@ -62,21 +62,21 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 		})
 		When("Read", func() {
 			It("should extract the written data from the bucket", func() {
-				readData, err := handler.Read(bucket, filePath)
+				readData, err := handler.Read(ctx, bucket, filePath)
 				Expect(err).ShouldNot(HaveOccurred())
 				Expect(readData).To(Equal(testData))
 			})
 		})
 		When("Delete", func() {
 			It("should delete the file in the bucket", func() {
-				err := handler.Delete("test-folder", bucket)
+				err := handler.Delete(ctx, "test-folder", bucket)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				readData, err := handler.Read(bucket, filePath)
+				readData, err := handler.Read(ctx, bucket, filePath)
 				Expect(err).Should(HaveOccurred())
 				Expect(readData).Should(BeNil())
 
-				readData, err = handler.Read(bucket, "test-folder/test-file2.json")
+				readData, err = handler.Read(ctx, bucket, "test-folder/test-file2.json")
 				Expect(err).Should(HaveOccurred())
 				Expect(readData).Should(BeNil())
 			})

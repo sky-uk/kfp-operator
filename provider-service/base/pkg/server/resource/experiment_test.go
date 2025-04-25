@@ -16,11 +16,14 @@ var _ = Describe("Experiment", Ordered, func() {
 	var (
 		mockProvider MockExperimentProvider
 		exp          Experiment
+		ctx          = context.Background()
 	)
+
+	ignoreCtx := mock.Anything
 
 	BeforeEach(func() {
 		mockProvider = MockExperimentProvider{}
-		exp = Experiment{Ctx: context.Background(), Provider: &mockProvider}
+		exp = Experiment{Provider: &mockProvider}
 	})
 
 	Context("Create", func() {
@@ -32,8 +35,8 @@ var _ = Describe("Experiment", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				id := "some-id"
-				mockProvider.On("CreateExperiment", ed).Return(id, nil)
-				response, err := exp.Create(jsonExperiment)
+				mockProvider.On("CreateExperiment", ignoreCtx, ed).Return(id, nil)
+				response, err := exp.Create(ctx, jsonExperiment)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(response).To(Equal(ResponseBody{Id: id}))
@@ -43,7 +46,7 @@ var _ = Describe("Experiment", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-				response, err := exp.Create(invalidJson)
+				response, err := exp.Create(ctx, invalidJson)
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
@@ -59,8 +62,8 @@ var _ = Describe("Experiment", Ordered, func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				expectedErr := errors.New("some-error")
-				mockProvider.On("CreateExperiment", ed).Return("", expectedErr)
-				response, err := exp.Create(jsonExperiment)
+				mockProvider.On("CreateExperiment", ignoreCtx, ed).Return("", expectedErr)
+				response, err := exp.Create(ctx, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
 				Expect(response).To(Equal(ResponseBody{}))
@@ -78,8 +81,8 @@ var _ = Describe("Experiment", Ordered, func() {
 
 				id := "some-id"
 				updatedId := "some-update-id"
-				mockProvider.On("UpdateExperiment", ed, id).Return(updatedId, nil)
-				resp, err := exp.Update(id, jsonExperiment)
+				mockProvider.On("UpdateExperiment", ignoreCtx, ed, id).Return(updatedId, nil)
+				resp, err := exp.Update(ctx, id, jsonExperiment)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(resp).To(Equal(ResponseBody{Id: updatedId}))
@@ -89,7 +92,7 @@ var _ = Describe("Experiment", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-				resp, err := exp.Update("some-id", invalidJson)
+				resp, err := exp.Update(ctx, "some-id", invalidJson)
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
@@ -106,8 +109,8 @@ var _ = Describe("Experiment", Ordered, func() {
 
 				expectedErr := errors.New("some-error")
 				id := "some-id"
-				mockProvider.On("UpdateExperiment", ed, id).Return("", expectedErr)
-				resp, err := exp.Update(id, jsonExperiment)
+				mockProvider.On("UpdateExperiment", ignoreCtx, ed, id).Return("", expectedErr)
+				resp, err := exp.Update(ctx, id, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
 				Expect(resp).To(Equal(ResponseBody{}))
@@ -119,8 +122,8 @@ var _ = Describe("Experiment", Ordered, func() {
 		When("valid id is passed and provider operations succeed", func() {
 			It("return no error", func() {
 				id := "some-id"
-				mockProvider.On("DeleteExperiment", id).Return(nil)
-				err := exp.Delete(id)
+				mockProvider.On("DeleteExperiment", ignoreCtx, id).Return(nil)
+				err := exp.Delete(ctx, id)
 
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -130,8 +133,8 @@ var _ = Describe("Experiment", Ordered, func() {
 			It("errors", func() {
 				id := "some-id"
 				expectedErr := errors.New("some-error")
-				mockProvider.On("DeleteExperiment", id).Return(expectedErr)
-				err := exp.Delete(id)
+				mockProvider.On("DeleteExperiment", ignoreCtx, id).Return(expectedErr)
+				err := exp.Delete(ctx, id)
 
 				Expect(err).To(Equal(expectedErr))
 			})
@@ -144,21 +147,23 @@ type MockExperimentProvider struct {
 }
 
 func (m *MockExperimentProvider) CreateExperiment(
+	ctx context.Context,
 	ed ExperimentDefinition,
 ) (string, error) {
-	args := m.Called(ed)
+	args := m.Called(ctx, ed)
 	return args.String(0), args.Error(1)
 }
 
 func (m *MockExperimentProvider) UpdateExperiment(
+	ctx context.Context,
 	ed ExperimentDefinition,
 	id string,
 ) (string, error) {
-	args := m.Called(ed, id)
+	args := m.Called(ctx, ed, id)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockExperimentProvider) DeleteExperiment(id string) error {
-	args := m.Called(id)
+func (m *MockExperimentProvider) DeleteExperiment(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
 	return args.Error(0)
 }

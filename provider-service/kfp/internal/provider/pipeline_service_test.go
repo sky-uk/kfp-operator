@@ -25,12 +25,12 @@ var _ = Describe("PipelineService", func() {
 	var (
 		mockPipelineServiceClient mocks.MockPipelineServiceClient
 		pipelineService           PipelineService
+		ctx                       = context.Background()
 	)
 
 	BeforeEach(func() {
 		mockPipelineServiceClient = mocks.MockPipelineServiceClient{}
 		pipelineService = &DefaultPipelineService{
-			context.Background(),
 			&mockPipelineServiceClient,
 		}
 	})
@@ -44,7 +44,7 @@ var _ = Describe("PipelineService", func() {
 				},
 			).Return(nil)
 
-			err := pipelineService.DeletePipeline(pipelineId)
+			err := pipelineService.DeletePipeline(ctx, pipelineId)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -57,7 +57,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(status.Errorf(codes.NotFound, "resource not found"))
 
-				err := pipelineService.DeletePipeline(pipelineId)
+				err := pipelineService.DeletePipeline(ctx, pipelineId)
 				Expect(err).ToNot(HaveOccurred())
 			})
 		})
@@ -71,7 +71,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(status.Errorf(codes.Canceled, "resource not found"))
 
-				err := pipelineService.DeletePipeline(pipelineId)
+				err := pipelineService.DeletePipeline(ctx, pipelineId)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -85,7 +85,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(errors.New("failed"))
 
-				err := pipelineService.DeletePipeline(pipelineId)
+				err := pipelineService.DeletePipeline(ctx, pipelineId)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -105,7 +105,7 @@ var _ = Describe("PipelineService", func() {
 				},
 			).Return(&expectedResult, nil)
 
-			res, err := pipelineService.PipelineIdForName(pipelineId)
+			res, err := pipelineService.PipelineIdForName(ctx, pipelineId)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(pipelineId))
@@ -120,7 +120,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(nil, errors.New("failed"))
 
-				res, err := pipelineService.PipelineIdForName(pipelineId)
+				res, err := pipelineService.PipelineIdForName(ctx, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -139,7 +139,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(&expectedResult, nil)
 
-				res, err := pipelineService.PipelineIdForName(pipelineId)
+				res, err := pipelineService.PipelineIdForName(ctx, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -161,7 +161,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(&expectedResult, nil)
 
-				res, err := pipelineService.PipelineIdForName(pipelineId)
+				res, err := pipelineService.PipelineIdForName(ctx, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -186,7 +186,7 @@ var _ = Describe("PipelineService", func() {
 				},
 			).Return(&expectedResult, nil)
 
-			res, err := pipelineService.PipelineVersionIdForName(versionName, pipelineId)
+			res, err := pipelineService.PipelineVersionIdForName(ctx, versionName, pipelineId)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(versionId))
@@ -204,7 +204,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(nil, errors.New("failed"))
 
-				res, err := pipelineService.PipelineVersionIdForName(versionName, pipelineId)
+				res, err := pipelineService.PipelineVersionIdForName(ctx, versionName, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -226,7 +226,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(&expectedResult, nil)
 
-				res, err := pipelineService.PipelineVersionIdForName(versionName, pipelineId)
+				res, err := pipelineService.PipelineVersionIdForName(ctx, versionName, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -251,7 +251,7 @@ var _ = Describe("PipelineService", func() {
 					},
 				).Return(&expectedResult, nil)
 
-				res, err := pipelineService.PipelineVersionIdForName(versionName, pipelineId)
+				res, err := pipelineService.PipelineVersionIdForName(ctx, versionName, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())

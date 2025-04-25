@@ -59,7 +59,7 @@ func main() {
 }
 
 func runServer(ctx context.Context, kfpConfig *kfpConfig.KfpProviderConfig, baseConfig *baseConfig.Config) {
-	provider, err := kfp.NewKfpProvider(ctx, kfpConfig)
+	provider, err := kfp.NewKfpProvider(kfpConfig)
 	if err != nil {
 		panic(err)
 	}

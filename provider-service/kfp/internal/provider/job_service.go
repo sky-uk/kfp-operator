@@ -20,21 +20,21 @@ import (
 
 type JobService interface {
 	CreateJob(
+		ctx context.Context,
 		rsd baseResource.RunScheduleDefinition,
 		pipelineId string,
 		pipelineVersionId string,
 		experimentId string,
 	) (string, error)
-	GetJob(id string) (string, error)
-	DeleteJob(id string) error
+	GetJob(ctx context.Context, id string) (string, error)
+	DeleteJob(ctx context.Context, id string) error
 }
 
 type DefaultJobService struct {
-	ctx    context.Context
 	client client.JobServiceClient
 }
 
-func NewJobService(ctx context.Context, conn *grpc.ClientConn) (JobService, error) {
+func NewJobService(conn *grpc.ClientConn) (JobService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
 			"no gRPC connection was provided to start job service",
@@ -42,13 +42,13 @@ func NewJobService(ctx context.Context, conn *grpc.ClientConn) (JobService, erro
 	}
 
 	return &DefaultJobService{
-		ctx:    ctx,
 		client: go_client.NewJobServiceClient(conn),
 	}, nil
 }
 
 // CreateJob creates a job and returns the job result id.
 func (js *DefaultJobService) CreateJob(
+	ctx context.Context,
 	rsd baseResource.RunScheduleDefinition,
 	pipelineId string,
 	pipelineVersionId string,
@@ -84,7 +84,7 @@ func (js *DefaultJobService) CreateJob(
 		return "", err
 	}
 
-	job, err := js.client.CreateJob(js.ctx, &go_client.CreateJobRequest{
+	job, err := js.client.CreateJob(ctx, &go_client.CreateJobRequest{
 		Job: &go_client.Job{
 			Id:          "",
 			Name:        jobName,
@@ -125,8 +125,8 @@ func (js *DefaultJobService) CreateJob(
 }
 
 // GetJob takes a job id and returns a job description.
-func (js *DefaultJobService) GetJob(id string) (string, error) {
-	job, err := js.client.GetJob(js.ctx, &go_client.GetJobRequest{Id: id})
+func (js *DefaultJobService) GetJob(ctx context.Context, id string) (string, error) {
+	job, err := js.client.GetJob(ctx, &go_client.GetJobRequest{Id: id})
 	if err != nil {
 		return "", err
 	}
@@ -135,8 +135,8 @@ func (js *DefaultJobService) GetJob(id string) (string, error) {
 }
 
 // DeleteJob deletes a job by job id. Does not error if there is no such job id.
-func (js *DefaultJobService) DeleteJob(id string) error {
-	_, err := js.client.DeleteJob(js.ctx, &go_client.DeleteJobRequest{Id: id})
+func (js *DefaultJobService) DeleteJob(ctx context.Context, id string) error {
+	_, err := js.client.DeleteJob(ctx, &go_client.DeleteJobRequest{Id: id})
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok {
