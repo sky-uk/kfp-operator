@@ -14,7 +14,9 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -309,7 +311,10 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	runConfiguration := &pipelineshub.RunConfiguration{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(runConfiguration)
+		For(
+			runConfiguration,
+			builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		)
 
 	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(
 		mgr,
