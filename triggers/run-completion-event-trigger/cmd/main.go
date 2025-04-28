@@ -66,8 +66,7 @@ func unaryLoggerInterceptor(baseLogger logr.Logger) grpc.UnaryServerInterceptor 
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (resp any, err error) {
-		logger := baseLogger.WithValues("grpc_method", info.FullMethod)
-		ctx = logr.NewContext(ctx, logger)
+		ctx = logr.NewContext(ctx, baseLogger)
 
 		return handler(ctx, req)
 	}
