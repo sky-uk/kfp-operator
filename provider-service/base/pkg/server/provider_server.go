@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -27,7 +28,11 @@ func livenessHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
+	logger := common.LoggerFromContext(ctx)
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		requestCtx := logr.NewContext(r.Context(), logger)
+
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			writeErrorResponse(w, "", errors.New("failed to read request body"), http.StatusInternalServerError)
@@ -35,7 +40,7 @@ func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Create(ctx, body)
+		resp, err := hr.Create(requestCtx, body)
 
 		switch {
 		case err == nil:
@@ -58,7 +63,11 @@ func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 }
 
 func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
+	logger := common.LoggerFromContext(ctx)
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		requestCtx := logr.NewContext(r.Context(), logger)
+
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
 		if err != nil {
@@ -72,7 +81,7 @@ func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Update(ctx, decodedId, body)
+		resp, err := hr.Update(requestCtx, decodedId, body)
 
 		switch {
 		case err == nil:
@@ -95,7 +104,11 @@ func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 }
 
 func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.HandlerFunc {
+	logger := common.LoggerFromContext(ctx)
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		requestCtx := logr.NewContext(r.Context(), logger)
+
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
 		if err != nil {
@@ -103,7 +116,7 @@ func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.Han
 			return
 		}
 
-		err = a.Delete(ctx, decodedId)
+		err = a.Delete(requestCtx, decodedId)
 
 		switch {
 		case err == nil:
