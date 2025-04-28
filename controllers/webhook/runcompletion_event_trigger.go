@@ -23,11 +23,11 @@ func NewRunCompletionEventTrigger(ctx context.Context, endpoint config.Endpoint)
 	logger := log.FromContext(ctx)
 
 	conn, err := grpc.NewClient(endpoint.URL(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-
-	logger.Info("RunCompletionEventTrigger client connected to", "endpoint", endpoint.URL())
 	if err != nil {
 		logger.Error(err, "Error creating grpc client")
 	}
+
+	logger.Info("RunCompletionEventTrigger client connected to", "endpoint", endpoint.URL())
 
 	client := pb.NewRunCompletionEventTriggerClient(conn)
 
