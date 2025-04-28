@@ -11,23 +11,26 @@ type MockExperimentService struct {
 }
 
 func (m *MockExperimentService) CreateExperiment(
-	ctx context.Context,
+	_ context.Context,
 	experiment common.NamespacedName,
 	description string,
 ) (string, error) {
-	args := m.Called(ctx, experiment, description)
+	args := m.Called(experiment, description)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockExperimentService) DeleteExperiment(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockExperimentService) DeleteExperiment(
+	_ context.Context,
+	id string,
+) error {
+	args := m.Called(id)
 	return args.Error(0)
 }
 
 func (m *MockExperimentService) ExperimentIdByName(
-	ctx context.Context,
+	_ context.Context,
 	experiment common.NamespacedName,
 ) (string, error) {
-	args := m.Called(ctx, experiment)
+	args := m.Called(experiment)
 	return args.String(0), args.Error(1)
 }

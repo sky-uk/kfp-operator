@@ -9,24 +9,27 @@ type MockPipelineService struct {
 	mock.Mock
 }
 
-func (m *MockPipelineService) DeletePipeline(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockPipelineService) DeletePipeline(
+	_ context.Context,
+	id string,
+) error {
+	args := m.Called(id)
 	return args.Error(0)
 }
 
 func (m *MockPipelineService) PipelineIdForName(
-	ctx context.Context,
+	_ context.Context,
 	pipelineName string,
 ) (string, error) {
-	args := m.Called(ctx, pipelineName)
+	args := m.Called(pipelineName)
 	return args.String(0), args.Error(1)
 }
 
 func (m *MockPipelineService) PipelineVersionIdForName(
-	ctx context.Context,
+	_ context.Context,
 	versionName string,
 	pipelineId string,
 ) (string, error) {
-	args := m.Called(ctx, versionName, pipelineId)
+	args := m.Called(versionName, pipelineId)
 	return args.String(0), args.Error(1)
 }

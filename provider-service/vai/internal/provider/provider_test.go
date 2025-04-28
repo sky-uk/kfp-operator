@@ -30,8 +30,6 @@ var _ = Describe("Provider", func() {
 		ctx                = context.Background()
 	)
 
-	ignoreCtx := mock.Anything
-
 	BeforeEach(func() {
 		mockFileHandler = mocks.MockFileHandler{}
 		mockPipelineClient = mocks.MockPipelineJobClient{}
@@ -53,7 +51,6 @@ var _ = Describe("Provider", func() {
 			It("should return the pipeline ID", func() {
 				mockFileHandler.On(
 					"Write",
-					ignoreCtx,
 					mock.Anything,
 					mock.Anything,
 					mock.Anything,
@@ -73,7 +70,6 @@ var _ = Describe("Provider", func() {
 			It("return an error when the file handler write fails", func() {
 				mockFileHandler.On(
 					"Write",
-					ignoreCtx,
 					mock.Anything,
 					mock.Anything,
 					mock.Anything,
@@ -94,7 +90,6 @@ var _ = Describe("Provider", func() {
 				pdw := testutil.RandomPipelineDefinitionWrapper()
 				mockFileHandler.On(
 					"Write",
-					ignoreCtx,
 					mock.MatchedBy(func(j json.RawMessage) bool {
 						return bytes.Equal(j, pdw.CompiledPipeline)
 					}),
@@ -119,7 +114,6 @@ var _ = Describe("Provider", func() {
 				pdw := testutil.RandomPipelineDefinitionWrapper()
 				mockFileHandler.On(
 					"Write",
-					ignoreCtx,
 					mock.Anything,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
@@ -139,7 +133,6 @@ var _ = Describe("Provider", func() {
 				id := "id"
 				mockFileHandler.On(
 					"Delete",
-					ignoreCtx,
 					id,
 					vaiProvider.config.Parameters.PipelineBucket,
 				).Return(nil)
@@ -150,7 +143,6 @@ var _ = Describe("Provider", func() {
 			It("return an error when the file handler delete fails", func() {
 				mockFileHandler.On(
 					"Delete",
-					ignoreCtx,
 					"pipelineId",
 					vaiProvider.config.Parameters.PipelineBucket,
 				).Return(errors.New("failed"))
@@ -168,7 +160,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					fmt.Sprintf(
 						"%s/%s/%s",
@@ -197,7 +188,6 @@ var _ = Describe("Provider", func() {
 				rd := testutil.RandomRunDefinition()
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, errors.New("failed"))
@@ -211,7 +201,6 @@ var _ = Describe("Provider", func() {
 				rd := testutil.RandomRunDefinition()
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -227,7 +216,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -244,7 +232,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -267,7 +254,6 @@ var _ = Describe("Provider", func() {
 				schedule := aiplatformpb.Schedule{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					fmt.Sprintf(
 						"%s/%s/%s",
@@ -302,7 +288,6 @@ var _ = Describe("Provider", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, errors.New("failed"))
@@ -316,7 +301,6 @@ var _ = Describe("Provider", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -332,7 +316,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -349,7 +332,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -373,7 +355,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -402,7 +383,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					fmt.Sprintf(
 						"%s/%s/%s",
@@ -442,7 +422,6 @@ var _ = Describe("Provider", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, errors.New("failed"))
@@ -456,7 +435,6 @@ var _ = Describe("Provider", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -472,7 +450,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -489,7 +466,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
@@ -513,7 +489,6 @@ var _ = Describe("Provider", func() {
 				pj := aiplatformpb.PipelineJob{}
 				mockFileHandler.On(
 					"Read",
-					ignoreCtx,
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)

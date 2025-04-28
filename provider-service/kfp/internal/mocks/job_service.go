@@ -11,22 +11,22 @@ type MockJobService struct {
 }
 
 func (m *MockJobService) CreateJob(
-	ctx context.Context,
+	_ context.Context,
 	rsd resource.RunScheduleDefinition,
 	pipelineId string,
 	pipelineVersionId string,
 	experimentId string,
 ) (string, error) {
-	args := m.Called(ctx, rsd, pipelineId, pipelineVersionId, experimentId)
+	args := m.Called(rsd, pipelineId, pipelineVersionId, experimentId)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockJobService) GetJob(ctx context.Context, id string) (string, error) {
-	args := m.Called(ctx, id)
+func (m *MockJobService) GetJob(_ context.Context, id string) (string, error) {
+	args := m.Called(id)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockJobService) DeleteJob(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *MockJobService) DeleteJob(_ context.Context, id string) error {
+	args := m.Called(id)
 	return args.Error(0)
 }

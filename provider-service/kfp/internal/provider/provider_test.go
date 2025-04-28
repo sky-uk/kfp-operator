@@ -10,7 +10,6 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
-	"github.com/stretchr/testify/mock"
 )
 
 var _ = Describe("Provider", func() {
@@ -23,8 +22,6 @@ var _ = Describe("Provider", func() {
 		mockJobService            mocks.MockJobService
 		ctx                       = context.Background()
 	)
-
-	const ignoreCtx = mock.Anything
 
 	BeforeEach(func() {
 		mockPipelineService = mocks.MockPipelineService{}
@@ -57,10 +54,10 @@ var _ = Describe("Provider", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			It("should return run id if run is created", func() {
-				mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-				mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				mockExperimentService.On("ExperimentIdByName", ignoreCtx, rd.ExperimentName).Return(experimentId, nil)
-				mockRunService.On("CreateRun", ignoreCtx, rd, pipelineId, pipelineVersionId, experimentId).Return(runId, nil)
+				mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+				mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+				mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return(experimentId, nil)
+				mockRunService.On("CreateRun", rd, pipelineId, pipelineVersionId, experimentId).Return(runId, nil)
 				result, err := provider.CreateRun(ctx, rd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -81,7 +78,7 @@ var _ = Describe("Provider", func() {
 			When("pipeline service PipelineIdForName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -92,8 +89,8 @@ var _ = Describe("Provider", func() {
 			When("pipeline service PipelineVersionIdForName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rd.PipelineVersion, pipelineId).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -104,9 +101,9 @@ var _ = Describe("Provider", func() {
 			When("experiment service ExperimentIdByName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					mockExperimentService.On("ExperimentIdByName", ignoreCtx, rd.ExperimentName).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
 					Expect(err).To(HaveOccurred())
@@ -117,10 +114,10 @@ var _ = Describe("Provider", func() {
 			When("run service CreateRun errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					mockExperimentService.On("ExperimentIdByName", ignoreCtx, rd.ExperimentName).Return(experimentId, nil)
-					mockRunService.On("CreateRun", ignoreCtx, rd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return(experimentId, nil)
+					mockRunService.On("CreateRun", rd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -140,8 +137,8 @@ var _ = Describe("Provider", func() {
 
 		Context("CreatePipeline", func() {
 			It("should return id if pipeline is created", func() {
-				mockPipelineUploadService.On("UploadPipeline", ignoreCtx, []byte{}, nsnStr).Return(id, nil)
-				mockPipelineUploadService.On("UploadPipelineVersion", ignoreCtx, id, []byte{}, version).Return(nil)
+				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return(id, nil)
+				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(nil)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -159,7 +156,7 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if UploadPipeline fails", func() {
 				expectedErr := errors.New("failed")
-				mockPipelineUploadService.On("UploadPipeline", ignoreCtx, []byte{}, nsnStr).Return("", expectedErr)
+				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return("", expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
 				Expect(err).To(Equal(expectedErr))
@@ -168,8 +165,8 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if UpdatePipelineVersion fails", func() {
 				expectedErr := errors.New("failed")
-				mockPipelineUploadService.On("UploadPipeline", ignoreCtx, []byte{}, nsnStr).Return(id, nil)
-				mockPipelineUploadService.On("UploadPipelineVersion", ignoreCtx, id, []byte{}, version).Return(expectedErr)
+				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return(id, nil)
+				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
 				Expect(err).To(Equal(expectedErr))
@@ -179,7 +176,7 @@ var _ = Describe("Provider", func() {
 
 		Context("UpdatePipeline", func() {
 			It("should return id if pipeline is updated", func() {
-				mockPipelineUploadService.On("UploadPipelineVersion", ignoreCtx, id, []byte{}, version).Return(nil)
+				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(nil)
 				result, err := provider.UpdatePipeline(ctx, pdw, id)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -189,7 +186,7 @@ var _ = Describe("Provider", func() {
 			When("pipeline upload service errors", func() {
 				It("should return empty id and err", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineUploadService.On("UploadPipelineVersion", ignoreCtx, id, []byte{}, version).Return(expectedErr)
+					mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(expectedErr)
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
 					Expect(err).To(Equal(expectedErr))
@@ -201,7 +198,7 @@ var _ = Describe("Provider", func() {
 
 		Context("DeletePipeline", func() {
 			It("should not error", func() {
-				mockPipelineService.On("DeletePipeline", ignoreCtx, id).Return(nil)
+				mockPipelineService.On("DeletePipeline", id).Return(nil)
 
 				Expect(provider.DeletePipeline(ctx, id)).To(Succeed())
 			})
@@ -209,7 +206,7 @@ var _ = Describe("Provider", func() {
 			When("pipeline service errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("DeletePipeline", ignoreCtx, id).Return(expectedErr)
+					mockPipelineService.On("DeletePipeline", id).Return(expectedErr)
 					err := provider.DeletePipeline(ctx, id)
 
 					Expect(err).To(Equal(expectedErr))
@@ -232,10 +229,10 @@ var _ = Describe("Provider", func() {
 
 		Context("CreateRunSchedule", func() {
 			It("should return job id if run schedule is created", func() {
-				mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-				mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				mockExperimentService.On("ExperimentIdByName", ignoreCtx, rsd.ExperimentName).Return(experimentId, nil)
-				mockJobService.On("CreateJob", ignoreCtx, rsd, pipelineId, pipelineVersionId, experimentId).Return(jobId, nil)
+				mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+				mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+				mockExperimentService.On("ExperimentIdByName", rsd.ExperimentName).Return(experimentId, nil)
+				mockJobService.On("CreateJob", rsd, pipelineId, pipelineVersionId, experimentId).Return(jobId, nil)
 				result, err := provider.CreateRunSchedule(ctx, rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -256,7 +253,7 @@ var _ = Describe("Provider", func() {
 			When("pipeline service PipelineIdForName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -267,8 +264,8 @@ var _ = Describe("Provider", func() {
 			When("pipeline service PipelineVersionIdForName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rsd.PipelineVersion, pipelineId).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -279,9 +276,9 @@ var _ = Describe("Provider", func() {
 			When("experiment service ExperimentIdByName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					mockExperimentService.On("ExperimentIdByName", ignoreCtx, rsd.ExperimentName).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByName", rsd.ExperimentName).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -292,10 +289,10 @@ var _ = Describe("Provider", func() {
 			When("job service CreateJob errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					mockExperimentService.On("ExperimentIdByName", ignoreCtx, rsd.ExperimentName).Return(experimentId, nil)
-					mockJobService.On("CreateJob", ignoreCtx, rsd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByName", rsd.ExperimentName).Return(experimentId, nil)
+					mockJobService.On("CreateJob", rsd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -306,11 +303,11 @@ var _ = Describe("Provider", func() {
 
 		Context("UpdateRunSchedule", func() {
 			It("should return job id if run schedule is updated", func() {
-				mockJobService.On("DeleteJob", ignoreCtx, jobId).Return(nil)
-				mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return(pipelineId, nil)
-				mockPipelineService.On("PipelineVersionIdForName", ignoreCtx, rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				mockExperimentService.On("ExperimentIdByName", ignoreCtx, rsd.ExperimentName).Return(experimentId, nil)
-				mockJobService.On("CreateJob", ignoreCtx, rsd, pipelineId, pipelineVersionId, experimentId).Return(jobId, nil)
+				mockJobService.On("DeleteJob", jobId).Return(nil)
+				mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
+				mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+				mockExperimentService.On("ExperimentIdByName", rsd.ExperimentName).Return(experimentId, nil)
+				mockJobService.On("CreateJob", rsd, pipelineId, pipelineVersionId, experimentId).Return(jobId, nil)
 				result, err := provider.UpdateRunSchedule(ctx, rsd, jobId)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -320,7 +317,7 @@ var _ = Describe("Provider", func() {
 			When("DeleteRunSchedule errors", func() {
 				It("should return error and retain the id", func() {
 					expectedErr := errors.New("failed")
-					mockJobService.On("DeleteJob", ignoreCtx, jobId).Return(expectedErr)
+					mockJobService.On("DeleteJob", jobId).Return(expectedErr)
 					result, err := provider.UpdateRunSchedule(ctx, rsd, jobId)
 
 					Expect(err).To(Equal(expectedErr))
@@ -331,8 +328,8 @@ var _ = Describe("Provider", func() {
 			When("CreateRunSchedule errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockJobService.On("DeleteJob", ignoreCtx, jobId).Return(nil)
-					mockPipelineService.On("PipelineIdForName", ignoreCtx, nsnStr).Return("", expectedErr)
+					mockJobService.On("DeleteJob", jobId).Return(nil)
+					mockPipelineService.On("PipelineIdForName", nsnStr).Return("", expectedErr)
 					result, err := provider.UpdateRunSchedule(ctx, rsd, jobId)
 
 					Expect(err).To(Equal(expectedErr))
@@ -343,7 +340,7 @@ var _ = Describe("Provider", func() {
 
 		Context("DeleteRunSchedule", func() {
 			It("should not error", func() {
-				mockJobService.On("DeleteJob", ignoreCtx, jobId).Return(nil)
+				mockJobService.On("DeleteJob", jobId).Return(nil)
 
 				Expect(provider.DeleteRunSchedule(ctx, jobId)).To(Succeed())
 			})
@@ -351,7 +348,7 @@ var _ = Describe("Provider", func() {
 			When("job service errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockJobService.On("DeleteJob", ignoreCtx, jobId).Return(expectedErr)
+					mockJobService.On("DeleteJob", jobId).Return(expectedErr)
 					err := provider.DeleteRunSchedule(ctx, jobId)
 
 					Expect(err).To(Equal(expectedErr))
@@ -366,7 +363,7 @@ var _ = Describe("Provider", func() {
 
 		Context("CreateExperiment", func() {
 			It("should return id if experiment is created", func() {
-				mockExperimentService.On("CreateExperiment", ignoreCtx, experiment.Name, experiment.Description).Return(id, nil)
+				mockExperimentService.On("CreateExperiment", experiment.Name, experiment.Description).Return(id, nil)
 				result, err := provider.CreateExperiment(ctx, experiment)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -376,7 +373,7 @@ var _ = Describe("Provider", func() {
 			When("experiment service CreateExperiment errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockExperimentService.On("CreateExperiment", ignoreCtx, experiment.Name, experiment.Description).Return("", expectedErr)
+					mockExperimentService.On("CreateExperiment", experiment.Name, experiment.Description).Return("", expectedErr)
 					result, err := provider.CreateExperiment(ctx, experiment)
 
 					Expect(err).To(Equal(expectedErr))
@@ -387,8 +384,8 @@ var _ = Describe("Provider", func() {
 
 		Context("UpdateExperiment", func() {
 			It("should return id if experiment is updated", func() {
-				mockExperimentService.On("DeleteExperiment", ignoreCtx, id).Return(nil)
-				mockExperimentService.On("CreateExperiment", ignoreCtx, experiment.Name, experiment.Description).Return(id, nil)
+				mockExperimentService.On("DeleteExperiment", id).Return(nil)
+				mockExperimentService.On("CreateExperiment", experiment.Name, experiment.Description).Return(id, nil)
 				result, err := provider.UpdateExperiment(ctx, experiment, id)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -398,7 +395,7 @@ var _ = Describe("Provider", func() {
 			When("DeleteExperiment errors", func() {
 				It("should return error and retain the id", func() {
 					expectedErr := errors.New("failed")
-					mockExperimentService.On("DeleteExperiment", ignoreCtx, id).Return(expectedErr)
+					mockExperimentService.On("DeleteExperiment", id).Return(expectedErr)
 					result, err := provider.UpdateExperiment(ctx, experiment, id)
 
 					Expect(err).To(Equal(expectedErr))
@@ -409,8 +406,8 @@ var _ = Describe("Provider", func() {
 			When("CreateExperiment errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockExperimentService.On("DeleteExperiment", ignoreCtx, id).Return(nil)
-					mockExperimentService.On("CreateExperiment", ignoreCtx, experiment.Name, experiment.Description).Return("", expectedErr)
+					mockExperimentService.On("DeleteExperiment", id).Return(nil)
+					mockExperimentService.On("CreateExperiment", experiment.Name, experiment.Description).Return("", expectedErr)
 					result, err := provider.UpdateExperiment(ctx, experiment, id)
 
 					Expect(err).To(Equal(expectedErr))
@@ -421,7 +418,7 @@ var _ = Describe("Provider", func() {
 
 		Context("DeleteExperiment", func() {
 			It("should not error", func() {
-				mockExperimentService.On("DeleteExperiment", ignoreCtx, id).Return(nil)
+				mockExperimentService.On("DeleteExperiment", id).Return(nil)
 
 				Expect(provider.DeleteExperiment(ctx, id)).To(Succeed())
 			})
@@ -429,7 +426,7 @@ var _ = Describe("Provider", func() {
 			When("experiment service errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockExperimentService.On("DeleteExperiment", ignoreCtx, id).Return(expectedErr)
+					mockExperimentService.On("DeleteExperiment", id).Return(expectedErr)
 					err := provider.DeleteExperiment(ctx, id)
 
 					Expect(err).To(Equal(expectedErr))
