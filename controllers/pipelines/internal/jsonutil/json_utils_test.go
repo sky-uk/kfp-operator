@@ -18,16 +18,16 @@ func TestJsonUtilUnitSuite(t *testing.T) {
 
 var _ = Describe("PatchJson", func() {
 	When("a json patch is applied", func() {
-		It("adding a new field", func() {
+		It("adds a new field", func() {
 			jsonString := "{\"foo\":\"a\",\"bar\":\"b\"}"
 			jsonBytes := []byte(jsonString)
 
-			patchOp := common.PatchOperation{
+			patchOp := common.JsonPatchOperation{
 				Op:    "add",
 				Path:  "/baz",
 				Value: "c",
 			}
-			patchOpJson, err := json.Marshal([]common.PatchOperation{patchOp})
+			patchOpJson, err := json.Marshal([]common.JsonPatchOperation{patchOp})
 			Expect(err).To(Not(HaveOccurred()))
 
 			patches := []pipelineshub.Patch{
@@ -43,16 +43,16 @@ var _ = Describe("PatchJson", func() {
 			Expect(data["baz"].(string)).To(Equal("c"))
 		})
 
-		It("adding to the start of an array field", func() {
+		It("adds to the start of an array field", func() {
 			jsonString := "{\"foo\":\"a\",\"bar\":[\"b\"]}"
 			jsonBytes := []byte(jsonString)
 
-			patchOp := common.PatchOperation{
+			patchOp := common.JsonPatchOperation{
 				Op:    "add",
 				Path:  "/bar/0",
 				Value: "newValue",
 			}
-			patchOpJson, err := json.Marshal([]common.PatchOperation{patchOp})
+			patchOpJson, err := json.Marshal([]common.JsonPatchOperation{patchOp})
 			Expect(err).To(Not(HaveOccurred()))
 
 			patches := []pipelineshub.Patch{
@@ -69,16 +69,16 @@ var _ = Describe("PatchJson", func() {
 			Expect(data["bar"].([]interface{})[1].(string)).To(Equal("b"))
 		})
 
-		It("create a new array field and add one element", func() {
+		It("creates a new array field and adds one element", func() {
 			jsonString := "{\"foo\":\"a\"}"
 			jsonBytes := []byte(jsonString)
 
-			patchOp := common.PatchOperation{
+			patchOp := common.JsonPatchOperation{
 				Op:    "add",
 				Path:  "/baz/0",
 				Value: "hello",
 			}
-			patchOpJson, err := json.Marshal([]common.PatchOperation{patchOp})
+			patchOpJson, err := json.Marshal([]common.JsonPatchOperation{patchOp})
 			Expect(err).To(Not(HaveOccurred()))
 
 			patches := []pipelineshub.Patch{
@@ -93,16 +93,37 @@ var _ = Describe("PatchJson", func() {
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(data["baz"].([]interface{})[0].(string)).To(Equal("hello"))
 		})
+	})
 
-		It("fails when using an invalid patch type", func() {
+	When("a merge patch is applied", func() {
+		It("merges original json with target json", func() {
+			jsonString := "{\"foo\":\"a\",\"bar\":\"b\"}"
+			mergeString := "{\"foo\":\"z\",\"baz\":\"c\"}"
+			jsonBytes := []byte(jsonString)
+
 			patches := []pipelineshub.Patch{
-				{Type: "invalid", Patch: ""},
+				{Type: MergePatch, Patch: mergeString},
 			}
 
-			_, err := PatchJson(patches, []byte(""))
-			Expect(err).To(HaveOccurred())
+			result, err := PatchJson(patches, jsonBytes)
+			Expect(err).To(Not(HaveOccurred()))
+
+			println(result)
+			var data map[string]interface{}
+			err = json.Unmarshal([]byte(result), &data)
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(data["foo"].(string)).To(Equal("z"))
+			Expect(data["bar"].(string)).To(Equal("b"))
+			Expect(data["baz"].(string)).To(Equal("c"))
 		})
 	})
-})
 
-// add tests for MergePatch
+	It("fails when using an invalid patch type", func() {
+		patches := []pipelineshub.Patch{
+			{Type: "invalid", Patch: ""},
+		}
+
+		_, err := PatchJson(patches, []byte(""))
+		Expect(err).To(HaveOccurred())
+	})
+})

@@ -94,7 +94,16 @@ func RandomProviderSpec() ProviderSpec {
 		ExecutionMode:       "none",
 		ServiceAccount:      "default",
 		PipelineRootStorage: RandomLowercaseString(),
+		Frameworks:          RandomList(RandomFramework),
 		Parameters:          randomParameters,
+	}
+}
+
+func RandomFramework() Framework {
+	return Framework{
+		Name:    RandomString(),
+		Image:   RandomString(),
+		Patches: []Patch{},
 	}
 }
 

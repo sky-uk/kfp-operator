@@ -17,7 +17,7 @@ func (nv NamedValue) GetValue() string {
 }
 
 // +kubebuilder:object:generate=false
-type PatchOperation struct {
+type JsonPatchOperation struct {
 	Op    string `json:"op"`
 	Path  string `json:"path"`
 	Value any    `json:"value"`

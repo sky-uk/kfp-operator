@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
@@ -55,4 +56,27 @@ func BeamArgsFromFramework(framework *PipelineFramework) ([]apis.NamedValue, err
 	}
 
 	return []apis.NamedValue{}, nil
+}
+
+func BeamArgsFromJsonPatches(patches []Patch) ([]apis.NamedValue, error) {
+	var namedValues []apis.NamedValue
+	for _, p := range patches {
+		var patchOps []apis.JsonPatchOperation
+		err := json.Unmarshal([]byte(p.Patch), &patchOps)
+		if err != nil {
+			return nil, err
+		}
+		for _, po := range patchOps {
+			nv, isMap := po.Value.(map[string]interface{})
+			if isMap {
+				namedValues = append(namedValues, apis.NamedValue{
+					Name:  nv["name"].(string),
+					Value: nv["value"].(string),
+				})
+			} else {
+				return nil, fmt.Errorf("expected map[string]string, got %v", po.Value)
+			}
+		}
+	}
+	return namedValues, nil
 }
