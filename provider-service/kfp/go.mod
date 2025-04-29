@@ -3,7 +3,7 @@ module github.com/sky-uk/kfp-operator/provider-service/kfp
 go 1.22.11
 
 require (
-	github.com/argoproj/argo-workflows/v3 v3.3.9
+	github.com/argoproj/argo-workflows/v3 v3.3.10
 	github.com/go-logr/logr v1.4.2
 	github.com/go-openapi/runtime v0.25.0
 	github.com/go-openapi/strfmt v0.21.3
