@@ -132,4 +132,87 @@ var _ = Context("Conversions", func() {
 			Expect(beamArgs).To(BeEmpty())
 		})
 	})
+
+	var _ = Describe("BeamArgsFromJsonPatches", func() {
+		Specify("returns empty list for empty patches", func() {
+			var patches []Patch
+
+			beamArgs, err := BeamArgsFromJsonPatches(patches)
+
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(beamArgs).To(BeEmpty())
+		})
+
+		Specify("returns beamArgs for populated patches", func() {
+			beamArgs := []apis.NamedValue{
+				{Name: "name1", Value: "value1"},
+				{Name: "name2", Value: "value2"},
+			}
+
+			addOp := apis.JsonPatchOperation{
+				Op:    "add",
+				Path:  "foo",
+				Value: map[string]string{"name": "name1", "value": "value1"},
+			}
+
+			addOp2 := addOp
+			addOp2.Value = map[string]string{"name": "name2", "value": "value2"}
+
+			patchOps := []apis.JsonPatchOperation{addOp, addOp2}
+			bytes, err := json.Marshal(patchOps)
+			Expect(err).To(Not(HaveOccurred()))
+			patches := []Patch{
+				{Type: "json", Patch: string(bytes)},
+			}
+
+			beamArgsFromPatches, err := BeamArgsFromJsonPatches(patches)
+
+			Expect(err).To(Not(HaveOccurred()))
+			Expect(beamArgsFromPatches).To(Equal(beamArgs))
+		})
+
+		Specify("fail if a patch contains a value that isn't a map[string]interface{}", func() {
+			addOp := apis.JsonPatchOperation{
+				Op:    "add",
+				Path:  "foo",
+				Value: "fail",
+			}
+
+			addOp2 := addOp
+			addOp2.Value = map[string]string{"name": "name2", "value": "value2"}
+
+			patchOps := []apis.JsonPatchOperation{addOp, addOp2}
+			bytes, err := json.Marshal(patchOps)
+			Expect(err).To(Not(HaveOccurred()))
+			patches := []Patch{
+				{Type: "json", Patch: string(bytes)},
+			}
+
+			_, err = BeamArgsFromJsonPatches(patches)
+
+			Expect(err).To(HaveOccurred())
+		})
+
+		Specify("fail if a patch contains a value that isn't a map[string]string{}", func() {
+			addOp := apis.JsonPatchOperation{
+				Op:    "add",
+				Path:  "foo",
+				Value: map[string]int{"name": 1, "value": 2},
+			}
+
+			addOp2 := addOp
+			addOp2.Value = map[string]string{"name": "name2", "value": "value2"}
+
+			patchOps := []apis.JsonPatchOperation{addOp, addOp2}
+			bytes, err := json.Marshal(patchOps)
+			Expect(err).To(Not(HaveOccurred()))
+			patches := []Patch{
+				{Type: "json", Patch: string(bytes)},
+			}
+
+			_, err = BeamArgsFromJsonPatches(patches)
+
+			Expect(err).To(HaveOccurred())
+		})
+	})
 })

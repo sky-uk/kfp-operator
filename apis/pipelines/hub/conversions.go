@@ -67,15 +67,25 @@ func BeamArgsFromJsonPatches(patches []Patch) ([]apis.NamedValue, error) {
 			return nil, err
 		}
 		for _, po := range patchOps {
-			nv, isMap := po.Value.(map[string]interface{})
-			if isMap {
-				namedValues = append(namedValues, apis.NamedValue{
-					Name:  nv["name"].(string),
-					Value: nv["value"].(string),
-				})
-			} else {
-				return nil, fmt.Errorf("expected map[string]string, got %v", po.Value)
+			nv, ok := po.Value.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("expected map[string]interface{}, got %v", po.Value)
 			}
+
+			name, ok := nv["name"].(string)
+			if !ok {
+				return nil, fmt.Errorf("expected string for 'name', got %v", nv["name"])
+			}
+
+			value, ok := nv["value"].(string)
+			if !ok {
+				return nil, fmt.Errorf("expected string for 'value', got %v", nv["value"])
+			}
+
+			namedValues = append(namedValues, apis.NamedValue{
+				Name:  name,
+				Value: value,
+			})
 		}
 	}
 	return namedValues, nil
