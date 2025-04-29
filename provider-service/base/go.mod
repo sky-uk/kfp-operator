@@ -4,7 +4,7 @@ go 1.22.11
 
 require (
 	cloud.google.com/go/pubsub v1.36.1
-	github.com/argoproj/argo-workflows/v3 v3.3.9
+	github.com/argoproj/argo-workflows/v3 v3.3.10
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/go-logr/logr v1.4.2
 	github.com/go-resty/resty/v2 v2.16.0
