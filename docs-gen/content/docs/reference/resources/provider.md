@@ -12,14 +12,19 @@ Any referenced resources must always match the provider of the referencing resou
 
 ### Common Fields
 
-| Name                       | Description                                                                                                                                                                                                                        | Example                                                |
-|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| `spec.serviceImage`        | Container image of [the provider service](../../providers/#provider-service)                                                                                                                                                       | `kfp-operator-kfp-provider-service:0.0.2`              |
-| `spec.executionMode`       | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode)                                                                                               | `v1` (currently KFP) or `v2` (Vertex AI)               |
-| `spec.serviceAccount`      | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                     | `kfp-operator-vertex-ai`                               |
-| `spec.defaultBeamArgs`     | Default Beam arguments to which the pipeline-defined ones will be added                                                                                                                                                            | <pre>- name: project<br/>  value: my-gcp-project</pre> |
-| `spec.pipelineRootStorage` | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline | `gcs://kubeflow-pipelines-bucket`                      |
-| `spec.parameters`          | Parameters specific to each provider, i.e. [KFP](#kubeflow-specific-parameters) and [VAI](#vertex-ai-specific-parameters)                                                                                                          | `gcs://kubeflow-pipelines-bucket`                      |
+| Name                                    | Description                                                                                                                                                                                                                        | Example                                                                                                             |
+|:----------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------|
+| `spec.serviceImage`                     | Container image of [the provider service](../../providers/#provider-service)                                                                                                                                                       | `kfp-operator-kfp-provider-service:0.0.2`                                                                           |
+| `spec.executionMode`                    | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode)                                                                                               | `v1` (currently KFP) or `v2` (Vertex AI)                                                                            |
+| `spec.serviceAccount`                   | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                     | `kfp-operator-vertex-ai`                                                                                            |
+| `spec.pipelineRootStorage`              | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline | `gcs://kubeflow-pipelines-bucket`                                                                                   |
+| `spec.parameters`                       | Parameters specific to each provider, i.e. [KFP](#kubeflow-specific-parameters) and [VAI](#vertex-ai-specific-parameters)                                                                                                          | `gcs://kubeflow-pipelines-bucket`                                                                                   |
+| `spec.frameworks`                       | Frameworks supported by the provider. Currently only `tfx` is supported.                                                                                                                                                           |                                                                                                                     |
+| `spec.frameworks[0].name`               | Name of the framework.                                                                                                                                                                                                             | `tfx`                                                                                                               |
+| `spec.frameworks[0].image`              | Framework image.                                                                                                                                                                                                                   | `ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag`                                                        |
+| `spec.frameworks[0].patches`            | Patches to be applied to pipeline resource definition JSON.                                                                                                                                                                        |                                                                                                                     |
+| `spec.frameworks[0].patches[0].type`    | The type of patch to be applied to the pipeline resource definition JSON. Can be either `json` ([RFC6902](https://datatracker.ietf.org/doc/html/rfc6902)) or `merge` ([RFC7396](https://datatracker.ietf.org/doc/html/rfc7396)).   | `json`                                                                                                              |
+| `spec.frameworks[0].patches[0].patch`   | The patch to be applied to the pipeline resource definition JSON.                                                                                                                                                                  | `[{ "op": "add", "path": "/framework/parameters/beamArgs/0", "value": { "name": "newArg", "value": "newValue" } }]` |
 
 ### Kubeflow:
 
@@ -31,9 +36,6 @@ metadata:
   namespace: kfp-operator
 spec:
   serviceImage: kfp-operator-kfp-provider-service:<version>
-  defaultBeamArgs:
-  - name: project
-    value: <project>
   executionMode: v1
   pipelineRootStorage: gs://<storage_location>
   serviceAccount: kfp-operator-kfp
@@ -42,6 +44,22 @@ spec:
     grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080
     kfpNamespace: kubeflow
     restKfpApiUrl: http://ml-pipeline.kubeflow:8888
+  frameworks:
+  - name: tfx
+    image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
+    patches:
+    - type: json
+      patch: |
+        [
+          {
+            "op": "add",
+            "path": "/framework/parameters/beamArgs/0",
+            "value": {
+              "name": "project",
+              "Value": "<project>"
+            }
+          }
+        ]
 ```
 
 #### Kubeflow Specific Parameters
@@ -63,10 +81,6 @@ metadata:
   namespace: kfp-operator
 spec:
   serviceImage: kfp-operator-vai-provider-service:<version>
-  image: kfp-operator-vai-provider:<version>
-  defaultBeamArgs:
-  - name: project
-    value: <project>
   executionMode: v2
   pipelineRootStorage: gs://<storage_location>
   serviceAccount: kfp-operator-vai
@@ -77,6 +91,22 @@ spec:
     vaiJobServiceAccount: kfp-operator-vai@<project>.iam.gserviceaccount.com
     vaiLocation: europe-west2
     vaiProject: <project>
+  frameworks:
+  - name: tfx
+    image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
+    patches:
+    - type: json
+      patch: |
+        [
+          {
+            "op": "add",
+            "path": "/framework/parameters/beamArgs/0",
+            "value": {
+              "name": "project",
+              "Value": "<project>"
+            }
+          }
+        ]
 ```
 
 #### Vertex AI Specific Parameters
