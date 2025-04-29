@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -8,12 +9,16 @@ type MockPipelineService struct {
 	mock.Mock
 }
 
-func (m *MockPipelineService) DeletePipeline(id string) error {
+func (m *MockPipelineService) DeletePipeline(
+	_ context.Context,
+	id string,
+) error {
 	args := m.Called(id)
 	return args.Error(0)
 }
 
 func (m *MockPipelineService) PipelineIdForName(
+	_ context.Context,
 	pipelineName string,
 ) (string, error) {
 	args := m.Called(pipelineName)
@@ -21,6 +26,7 @@ func (m *MockPipelineService) PipelineIdForName(
 }
 
 func (m *MockPipelineService) PipelineVersionIdForName(
+	_ context.Context,
 	versionName string,
 	pipelineId string,
 ) (string, error) {

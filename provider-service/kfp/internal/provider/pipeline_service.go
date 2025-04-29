@@ -13,18 +13,16 @@ import (
 )
 
 type PipelineService interface {
-	DeletePipeline(id string) error
-	PipelineIdForName(pipelineName string) (string, error)
-	PipelineVersionIdForName(versionName string, pipelineId string) (string, error)
+	DeletePipeline(ctx context.Context, id string) error
+	PipelineIdForName(ctx context.Context, pipelineName string) (string, error)
+	PipelineVersionIdForName(ctx context.Context, versionName string, pipelineId string) (string, error)
 }
 
 type DefaultPipelineService struct {
-	ctx    context.Context
 	client client.PipelineServiceClient
 }
 
 func NewPipelineService(
-	ctx context.Context,
 	conn *grpc.ClientConn,
 ) (PipelineService, error) {
 	if conn == nil {
@@ -34,16 +32,15 @@ func NewPipelineService(
 	}
 
 	return &DefaultPipelineService{
-		ctx:    ctx,
 		client: go_client.NewPipelineServiceClient(conn),
 	}, nil
 }
 
 // DeletePipeline delete a pipline by pipeline id. Does no error if there is no
 // such pipeline id.
-func (ps *DefaultPipelineService) DeletePipeline(id string) error {
+func (ps *DefaultPipelineService) DeletePipeline(ctx context.Context, id string) error {
 	_, err := ps.client.DeletePipeline(
-		ps.ctx,
+		ctx,
 		&go_client.DeletePipelineRequest{
 			Id: id,
 		},
@@ -68,10 +65,11 @@ func (ps *DefaultPipelineService) DeletePipeline(id string) error {
 // PipelineIdForName gets the pipeline id corresponding to the pipeline name.
 // Expects to find exactly one such pipeline.
 func (ps *DefaultPipelineService) PipelineIdForName(
+	ctx context.Context,
 	pipelineName string,
 ) (string, error) {
 	res, err := ps.client.ListPipelines(
-		ps.ctx,
+		ctx,
 		&go_client.ListPipelinesRequest{
 			Filter: *util.ByNameFilter(pipelineName),
 		},
@@ -90,11 +88,12 @@ func (ps *DefaultPipelineService) PipelineIdForName(
 // PipelineVersionIdForName gets the pipeline version corresponding to the
 // pipeline id. Expects to find exactly one such pipeline.
 func (ps *DefaultPipelineService) PipelineVersionIdForName(
+	ctx context.Context,
 	versionName string,
 	pipelineId string,
 ) (string, error) {
 	res, err := ps.client.ListPipelineVersions(
-		ps.ctx,
+		ctx,
 		&go_client.ListPipelineVersionsRequest{
 			ResourceKey: &go_client.ResourceKey{
 				Id: pipelineId,

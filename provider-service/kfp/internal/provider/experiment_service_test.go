@@ -22,12 +22,12 @@ var _ = Describe("ExperimentService", func() {
 			Name:      "name",
 			Namespace: "namespace",
 		}
+		ctx = context.Background()
 	)
 
 	BeforeEach(func() {
 		mockExperimentServiceClient = mocks.MockExperimentServiceClient{}
 		experimentService = &DefaultExperimentService{
-			context.Background(),
 			&mockExperimentServiceClient,
 		}
 	})
@@ -44,7 +44,7 @@ var _ = Describe("ExperimentService", func() {
 					},
 				},
 			).Return(&go_client.Experiment{Id: expectedId}, nil)
-			res, err := experimentService.CreateExperiment(nsn, "description")
+			res, err := experimentService.CreateExperiment(ctx, nsn, "description")
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(expectedId))
@@ -55,7 +55,7 @@ var _ = Describe("ExperimentService", func() {
 				invalidNsn := common.NamespacedName{
 					Namespace: "namespace",
 				}
-				res, err := experimentService.CreateExperiment(invalidNsn, "foo")
+				res, err := experimentService.CreateExperiment(ctx, invalidNsn, "foo")
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -73,7 +73,7 @@ var _ = Describe("ExperimentService", func() {
 						},
 					},
 				).Return(nil, errors.New("failed"))
-				res, err := experimentService.CreateExperiment(nsn, "description")
+				res, err := experimentService.CreateExperiment(ctx, nsn, "description")
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -90,7 +90,7 @@ var _ = Describe("ExperimentService", func() {
 					Id: id,
 				},
 			).Return(nil)
-			err := experimentService.DeleteExperiment(id)
+			err := experimentService.DeleteExperiment(ctx, id)
 
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -104,7 +104,7 @@ var _ = Describe("ExperimentService", func() {
 						Id: id,
 					},
 				).Return(errors.New("failed"))
-				err := experimentService.DeleteExperiment(id)
+				err := experimentService.DeleteExperiment(ctx, id)
 
 				Expect(err).To(HaveOccurred())
 			})
@@ -124,7 +124,7 @@ var _ = Describe("ExperimentService", func() {
 					Filter: *util.ByNameFilter("namespace-name"),
 				},
 			).Return(&expectedResult, nil)
-			res, err := experimentService.ExperimentIdByName(nsn)
+			res, err := experimentService.ExperimentIdByName(ctx, nsn)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal("one"))
@@ -135,7 +135,7 @@ var _ = Describe("ExperimentService", func() {
 				invalidNsn := common.NamespacedName{
 					Namespace: "namespace",
 				}
-				res, err := experimentService.ExperimentIdByName(invalidNsn)
+				res, err := experimentService.ExperimentIdByName(ctx, invalidNsn)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -150,7 +150,7 @@ var _ = Describe("ExperimentService", func() {
 						Filter: *util.ByNameFilter("namespace-name"),
 					},
 				).Return(nil, errors.New("failed"))
-				res, err := experimentService.ExperimentIdByName(nsn)
+				res, err := experimentService.ExperimentIdByName(ctx, nsn)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -168,7 +168,7 @@ var _ = Describe("ExperimentService", func() {
 						Filter: *util.ByNameFilter("namespace-name"),
 					},
 				).Return(&expectedResult, nil)
-				res, err := experimentService.ExperimentIdByName(nsn)
+				res, err := experimentService.ExperimentIdByName(ctx, nsn)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -189,7 +189,7 @@ var _ = Describe("ExperimentService", func() {
 						Filter: *util.ByNameFilter("namespace-name"),
 					},
 				).Return(&expectedResult, nil)
-				res, err := experimentService.ExperimentIdByName(nsn)
+				res, err := experimentService.ExperimentIdByName(ctx, nsn)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())

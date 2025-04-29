@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -26,8 +27,12 @@ func livenessHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte("Application is live."))
 }
 
-func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
+func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
+	logger := common.LoggerFromContext(ctx)
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		requestCtx := logr.NewContext(r.Context(), logger)
+
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			writeErrorResponse(w, "", errors.New("failed to read request body"), http.StatusInternalServerError)
@@ -35,7 +40,7 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Create(body)
+		resp, err := hr.Create(requestCtx, body)
 
 		switch {
 		case err == nil:
@@ -57,8 +62,12 @@ func createHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
+func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
+	logger := common.LoggerFromContext(ctx)
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		requestCtx := logr.NewContext(r.Context(), logger)
+
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
 		if err != nil {
@@ -72,7 +81,7 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Update(decodedId, body)
+		resp, err := hr.Update(requestCtx, decodedId, body)
 
 		switch {
 		case err == nil:
@@ -94,8 +103,12 @@ func updateHandler(hr resource.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
+func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.HandlerFunc {
+	logger := common.LoggerFromContext(ctx)
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		requestCtx := logr.NewContext(r.Context(), logger)
+
 		id := chi.URLParam(r, "id")
 		decodedId, err := url.PathUnescape(id)
 		if err != nil {
@@ -103,7 +116,7 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 			return
 		}
 
-		err = a.Delete(decodedId)
+		err = a.Delete(requestCtx, decodedId)
 
 		switch {
 		case err == nil:
@@ -125,7 +138,7 @@ func deleteHandler(a resource.HttpHandledResource) http.HandlerFunc {
 	}
 }
 
-func newHandler(resources []resource.HttpHandledResource) http.Handler {
+func newHandler(ctx context.Context, resources []resource.HttpHandledResource) http.Handler {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
@@ -135,9 +148,9 @@ func newHandler(resources []resource.HttpHandledResource) http.Handler {
 
 	for _, resource := range resources {
 		mux.Route("/resource/"+resource.Type(), func(r chi.Router) {
-			r.Post("/", createHandler(resource))
-			r.Put("/{id}", updateHandler(resource))
-			r.Delete("/{id}", deleteHandler(resource))
+			r.Post("/", createHandler(ctx, resource))
+			r.Put("/{id}", updateHandler(ctx, resource))
+			r.Delete("/{id}", deleteHandler(ctx, resource))
 		})
 	}
 
@@ -151,15 +164,15 @@ func (ps ProviderServer) Start(ctx context.Context, cfg config.Server, provider 
 	logger := common.LoggerFromContext(ctx)
 
 	httpResources := []resource.HttpHandledResource{
-		&resource.Pipeline{Ctx: ctx, Provider: provider},
-		&resource.Run{Ctx: ctx, Provider: provider},
-		&resource.RunSchedule{Ctx: ctx, Provider: provider},
-		&resource.Experiment{Ctx: ctx, Provider: provider},
+		&resource.Pipeline{Provider: provider},
+		&resource.Run{Provider: provider},
+		&resource.RunSchedule{Provider: provider},
+		&resource.Experiment{Provider: provider},
 	}
 
 	srv := &http.Server{
 		Addr:    addr,
-		Handler: newHandler(httpResources),
+		Handler: newHandler(ctx, httpResources),
 	}
 
 	go func() {

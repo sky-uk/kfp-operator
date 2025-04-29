@@ -8,7 +8,6 @@ import (
 )
 
 type RunSchedule struct {
-	Ctx      context.Context
 	Provider RunScheduleProvider
 }
 
@@ -16,15 +15,15 @@ func (*RunSchedule) Type() string {
 	return "runschedule"
 }
 
-func (rs *RunSchedule) Create(body []byte) (ResponseBody, error) {
-	logger := common.LoggerFromContext(rs.Ctx)
+func (rs *RunSchedule) Create(ctx context.Context, body []byte) (ResponseBody, error) {
+	logger := common.LoggerFromContext(ctx)
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while creating RunSchedule")
 		return ResponseBody{}, &UserError{err}
 	}
 
-	id, err := rs.Provider.CreateRunSchedule(rsd)
+	id, err := rs.Provider.CreateRunSchedule(ctx, rsd)
 	if err != nil {
 		logger.Error(err, "CreateRunSchedule failed")
 		return ResponseBody{}, err
@@ -36,15 +35,15 @@ func (rs *RunSchedule) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (rs *RunSchedule) Update(id string, body []byte) (ResponseBody, error) {
-	logger := common.LoggerFromContext(rs.Ctx)
+func (rs *RunSchedule) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
+	logger := common.LoggerFromContext(ctx)
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while updating RunSchedule")
 		return ResponseBody{}, &UserError{err}
 	}
 
-	respId, err := rs.Provider.UpdateRunSchedule(rsd, id)
+	respId, err := rs.Provider.UpdateRunSchedule(ctx, rsd, id)
 	if err != nil {
 		logger.Error(err, "UpdateRunSchedule failed", "id", id)
 		return ResponseBody{}, err
@@ -56,9 +55,9 @@ func (rs *RunSchedule) Update(id string, body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (rs *RunSchedule) Delete(id string) error {
-	logger := common.LoggerFromContext(rs.Ctx)
-	if err := rs.Provider.DeleteRunSchedule(id); err != nil {
+func (rs *RunSchedule) Delete(ctx context.Context, id string) error {
+	logger := common.LoggerFromContext(ctx)
+	if err := rs.Provider.DeleteRunSchedule(ctx, id); err != nil {
 		logger.Error(err, "DeleteRunSchedule failed", "id", id)
 		return err
 	}

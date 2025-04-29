@@ -8,7 +8,6 @@ import (
 )
 
 type Run struct {
-	Ctx      context.Context
 	Provider RunProvider
 }
 
@@ -16,8 +15,8 @@ func (*Run) Type() string {
 	return "run"
 }
 
-func (r *Run) Create(body []byte) (ResponseBody, error) {
-	logger := common.LoggerFromContext(r.Ctx)
+func (r *Run) Create(ctx context.Context, body []byte) (ResponseBody, error) {
+	logger := common.LoggerFromContext(ctx)
 	rd := RunDefinition{}
 
 	if err := json.Unmarshal(body, &rd); err != nil {
@@ -25,7 +24,7 @@ func (r *Run) Create(body []byte) (ResponseBody, error) {
 		return ResponseBody{}, &UserError{err}
 	}
 
-	id, err := r.Provider.CreateRun(rd)
+	id, err := r.Provider.CreateRun(ctx, rd)
 	if err != nil {
 		logger.Error(err, "CreateRun failed")
 		return ResponseBody{}, err
@@ -37,13 +36,13 @@ func (r *Run) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (r *Run) Update(_ string, _ []byte) (ResponseBody, error) {
+func (r *Run) Update(_ context.Context, _ string, _ []byte) (ResponseBody, error) {
 	return ResponseBody{}, &UnimplementedError{Method: "Update", ResourceType: r.Type()}
 }
 
-func (r *Run) Delete(id string) error {
-	logger := common.LoggerFromContext(r.Ctx)
-	if err := r.Provider.DeleteRun(id); err != nil {
+func (r *Run) Delete(ctx context.Context, id string) error {
+	logger := common.LoggerFromContext(ctx)
+	if err := r.Provider.DeleteRun(ctx, id); err != nil {
 		logger.Error(err, "DeleteRun failed", "id", id)
 		return err
 	}

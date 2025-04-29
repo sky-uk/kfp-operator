@@ -17,6 +17,7 @@ import (
 
 type RunService interface {
 	CreateRun(
+		ctx context.Context,
 		rd baseResource.RunDefinition,
 		pipelineId string,
 		pipelineVersionId string,
@@ -25,12 +26,10 @@ type RunService interface {
 }
 
 type DefaultRunService struct {
-	ctx    context.Context
 	client client.RunServiceClient
 }
 
 func NewRunService(
-	ctx context.Context,
 	conn *grpc.ClientConn,
 ) (RunService, error) {
 	if conn == nil {
@@ -40,13 +39,13 @@ func NewRunService(
 	}
 
 	return &DefaultRunService{
-		ctx:    ctx,
 		client: go_client.NewRunServiceClient(conn),
 	}, nil
 }
 
 // CreateRun creates a run and returns the generated run id.
 func (drs DefaultRunService) CreateRun(
+	ctx context.Context,
 	rd baseResource.RunDefinition,
 	pipelineId string,
 	pipelineVersionId string,
@@ -77,7 +76,7 @@ func (drs DefaultRunService) CreateRun(
 		return "", err
 	}
 
-	run, err := drs.client.CreateRun(drs.ctx, &go_client.CreateRunRequest{
+	run, err := drs.client.CreateRun(ctx, &go_client.CreateRunRequest{
 		Run: &go_client.Run{
 			Name:        name,
 			Description: string(runAsDescription),

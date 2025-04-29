@@ -25,6 +25,7 @@ var _ = Describe("DefaultJobService", func() {
 		mockJobServiceClient mocks.MockJobServiceClient
 		jobService           DefaultJobService
 		rsd                  baseResource.RunScheduleDefinition
+		ctx                  = context.Background()
 	)
 
 	const (
@@ -37,7 +38,6 @@ var _ = Describe("DefaultJobService", func() {
 	BeforeEach(func() {
 		mockJobServiceClient = mocks.MockJobServiceClient{}
 		jobService = DefaultJobService{
-			context.Background(),
 			&mockJobServiceClient,
 		}
 		rsd = testutil.RandomRunScheduleDefinition()
@@ -108,6 +108,7 @@ var _ = Describe("DefaultJobService", func() {
 				},
 			).Return(&go_client.Job{Id: expectedId}, nil)
 			res, err := jobService.CreateJob(
+				ctx,
 				rsd,
 				pipelineId,
 				pipelineVersionId,
@@ -122,6 +123,7 @@ var _ = Describe("DefaultJobService", func() {
 			It("should return error", func() {
 				rsd.Name.Name = ""
 				res, err := jobService.CreateJob(
+					ctx,
 					rsd,
 					pipelineId,
 					pipelineVersionId,
@@ -137,6 +139,7 @@ var _ = Describe("DefaultJobService", func() {
 			It("should return error", func() {
 				rsd.Schedule.CronExpression = "invalid-cron"
 				res, err := jobService.CreateJob(
+					ctx,
 					rsd,
 					pipelineId,
 					pipelineVersionId,
@@ -155,6 +158,7 @@ var _ = Describe("DefaultJobService", func() {
 					mock.Anything,
 				).Return(nil, errors.New("failed"))
 				res, err := jobService.CreateJob(
+					ctx,
 					rsd,
 					pipelineId,
 					pipelineVersionId,
@@ -175,7 +179,7 @@ var _ = Describe("DefaultJobService", func() {
 				&go_client.Job{Description: desc},
 				nil,
 			)
-			res, err := jobService.GetJob(jobId)
+			res, err := jobService.GetJob(ctx, jobId)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(desc))
@@ -188,7 +192,7 @@ var _ = Describe("DefaultJobService", func() {
 					nil,
 					errors.New("failed"),
 				)
-				res, err := jobService.GetJob(jobId)
+				res, err := jobService.GetJob(ctx, jobId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -200,7 +204,7 @@ var _ = Describe("DefaultJobService", func() {
 		It("should not error if job is deleted", func() {
 			expectedReq := &go_client.DeleteJobRequest{Id: jobId}
 			mockJobServiceClient.On("DeleteJob", expectedReq).Return(nil)
-			err := jobService.DeleteJob(jobId)
+			err := jobService.DeleteJob(ctx, jobId)
 
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -211,7 +215,7 @@ var _ = Describe("DefaultJobService", func() {
 				mockJobServiceClient.On("DeleteJob", expectedReq).Return(
 					status.Error(codes.NotFound, "not found"),
 				)
-				err := jobService.DeleteJob(jobId)
+				err := jobService.DeleteJob(ctx, jobId)
 
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -223,7 +227,7 @@ var _ = Describe("DefaultJobService", func() {
 				mockJobServiceClient.On("DeleteJob", expectedReq).Return(
 					status.Error(codes.Canceled, "not found"),
 				)
-				err := jobService.DeleteJob(jobId)
+				err := jobService.DeleteJob(ctx, jobId)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -234,7 +238,7 @@ var _ = Describe("DefaultJobService", func() {
 				mockJobServiceClient.On("DeleteJob", expectedReq).Return(
 					errors.New("failed"),
 				)
-				err := jobService.DeleteJob(jobId)
+				err := jobService.DeleteJob(ctx, jobId)
 
 				Expect(err).To(HaveOccurred())
 			})

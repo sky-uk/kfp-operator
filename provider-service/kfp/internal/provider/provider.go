@@ -10,7 +10,6 @@ import (
 )
 
 type KfpProvider struct {
-	ctx                   context.Context
 	config                *config.KfpProviderConfig
 	pipelineUploadService PipelineUploadService
 	pipelineService       PipelineService
@@ -20,11 +19,9 @@ type KfpProvider struct {
 }
 
 func NewKfpProvider(
-	ctx context.Context,
 	providerConfig *config.KfpProviderConfig,
 ) (*KfpProvider, error) {
 	pipelineUploadService, err := NewPipelineUploadService(
-		ctx,
 		providerConfig.Parameters.RestKfpApiUrl,
 	)
 	if err != nil {
@@ -39,28 +36,27 @@ func NewKfpProvider(
 		return nil, err
 	}
 
-	pipelineService, err := NewPipelineService(ctx, conn)
+	pipelineService, err := NewPipelineService(conn)
 	if err != nil {
 		return nil, err
 	}
 
-	runService, err := NewRunService(ctx, conn)
+	runService, err := NewRunService(conn)
 	if err != nil {
 		return nil, err
 	}
 
-	experimentService, err := NewExperimentService(ctx, conn)
+	experimentService, err := NewExperimentService(conn)
 	if err != nil {
 		return nil, err
 	}
 
-	jobService, err := NewJobService(ctx, conn)
+	jobService, err := NewJobService(conn)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KfpProvider{
-		ctx:                   ctx,
 		config:                providerConfig,
 		pipelineUploadService: pipelineUploadService,
 		pipelineService:       pipelineService,
@@ -71,6 +67,7 @@ func NewKfpProvider(
 }
 
 func (kfpp *KfpProvider) CreatePipeline(
+	ctx context.Context,
 	pdw baseResource.PipelineDefinitionWrapper,
 ) (string, error) {
 	pipelineName, err := pdw.PipelineDefinition.Name.String()
@@ -79,6 +76,7 @@ func (kfpp *KfpProvider) CreatePipeline(
 	}
 
 	pipelineId, err := kfpp.pipelineUploadService.UploadPipeline(
+		ctx,
 		pdw.CompiledPipeline,
 		pipelineName,
 	)
@@ -86,14 +84,16 @@ func (kfpp *KfpProvider) CreatePipeline(
 		return "", err
 	}
 
-	return kfpp.UpdatePipeline(pdw, pipelineId)
+	return kfpp.UpdatePipeline(ctx, pdw, pipelineId)
 }
 
 func (kfpp *KfpProvider) UpdatePipeline(
+	ctx context.Context,
 	pdw baseResource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
 	if err := kfpp.pipelineUploadService.UploadPipelineVersion(
+		ctx,
 		id,
 		pdw.CompiledPipeline,
 		pdw.PipelineDefinition.Version,
@@ -104,22 +104,23 @@ func (kfpp *KfpProvider) UpdatePipeline(
 	return id, nil
 }
 
-func (kfpp *KfpProvider) DeletePipeline(id string) error {
-	return kfpp.pipelineService.DeletePipeline(id)
+func (kfpp *KfpProvider) DeletePipeline(ctx context.Context, id string) error {
+	return kfpp.pipelineService.DeletePipeline(ctx, id)
 }
 
-func (kfpp *KfpProvider) CreateRun(rd baseResource.RunDefinition) (string, error) {
+func (kfpp *KfpProvider) CreateRun(ctx context.Context, rd baseResource.RunDefinition) (string, error) {
 	pipelineName, err := util.ResourceNameFromNamespacedName(rd.PipelineName)
 	if err != nil {
 		return "", err
 	}
 
-	pipelineId, err := kfpp.pipelineService.PipelineIdForName(pipelineName)
+	pipelineId, err := kfpp.pipelineService.PipelineIdForName(ctx, pipelineName)
 	if err != nil {
 		return "", err
 	}
 
 	pipelineVersionId, err := kfpp.pipelineService.PipelineVersionIdForName(
+		ctx,
 		rd.PipelineVersion,
 		pipelineId,
 	)
@@ -127,12 +128,13 @@ func (kfpp *KfpProvider) CreateRun(rd baseResource.RunDefinition) (string, error
 		return "", err
 	}
 
-	experimentId, err := kfpp.experimentService.ExperimentIdByName(rd.ExperimentName)
+	experimentId, err := kfpp.experimentService.ExperimentIdByName(ctx, rd.ExperimentName)
 	if err != nil {
 		return "", err
 	}
 
 	runId, err := kfpp.runService.CreateRun(
+		ctx,
 		rd,
 		pipelineId,
 		pipelineVersionId,
@@ -145,13 +147,14 @@ func (kfpp *KfpProvider) CreateRun(rd baseResource.RunDefinition) (string, error
 	return runId, nil
 }
 
-func (kfpp *KfpProvider) DeleteRun(_ string) error {
+func (kfpp *KfpProvider) DeleteRun(_ context.Context, _ string) error {
 	// Not implemented for KFP provider
 	// Required to satisfy the `Provider` interface
 	return nil
 }
 
 func (kfpp *KfpProvider) CreateRunSchedule(
+	ctx context.Context,
 	rsd baseResource.RunScheduleDefinition,
 ) (string, error) {
 	pipelineName, err := util.ResourceNameFromNamespacedName(rsd.PipelineName)
@@ -159,12 +162,13 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	pipelineId, err := kfpp.pipelineService.PipelineIdForName(pipelineName)
+	pipelineId, err := kfpp.pipelineService.PipelineIdForName(ctx, pipelineName)
 	if err != nil {
 		return "", err
 	}
 
 	pipelineVersionId, err := kfpp.pipelineService.PipelineVersionIdForName(
+		ctx,
 		rsd.PipelineVersion,
 		pipelineId,
 	)
@@ -172,12 +176,13 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	experimentId, err := kfpp.experimentService.ExperimentIdByName(rsd.ExperimentName)
+	experimentId, err := kfpp.experimentService.ExperimentIdByName(ctx, rsd.ExperimentName)
 	if err != nil {
 		return "", err
 	}
 
 	jobId, err := kfpp.jobService.CreateJob(
+		ctx,
 		rsd,
 		pipelineId,
 		pipelineVersionId,
@@ -191,24 +196,27 @@ func (kfpp *KfpProvider) CreateRunSchedule(
 }
 
 func (kfpp *KfpProvider) UpdateRunSchedule(
+	ctx context.Context,
 	rsd baseResource.RunScheduleDefinition,
 	id string,
 ) (string, error) {
-	if err := kfpp.DeleteRunSchedule(id); err != nil {
+	if err := kfpp.DeleteRunSchedule(ctx, id); err != nil {
 		return id, err
 	}
 
-	return kfpp.CreateRunSchedule(rsd)
+	return kfpp.CreateRunSchedule(ctx, rsd)
 }
 
-func (kfpp *KfpProvider) DeleteRunSchedule(id string) error {
-	return kfpp.jobService.DeleteJob(id)
+func (kfpp *KfpProvider) DeleteRunSchedule(ctx context.Context, id string) error {
+	return kfpp.jobService.DeleteJob(ctx, id)
 }
 
 func (kfpp *KfpProvider) CreateExperiment(
+	ctx context.Context,
 	ed baseResource.ExperimentDefinition,
 ) (string, error) {
 	expId, err := kfpp.experimentService.CreateExperiment(
+		ctx,
 		ed.Name,
 		ed.Description,
 	)
@@ -220,16 +228,17 @@ func (kfpp *KfpProvider) CreateExperiment(
 }
 
 func (kfpp *KfpProvider) UpdateExperiment(
+	ctx context.Context,
 	ed baseResource.ExperimentDefinition,
 	id string,
 ) (string, error) {
-	if err := kfpp.DeleteExperiment(id); err != nil {
+	if err := kfpp.DeleteExperiment(ctx, id); err != nil {
 		return id, err
 	}
 
-	return kfpp.CreateExperiment(ed)
+	return kfpp.CreateExperiment(ctx, ed)
 }
 
-func (kfpp *KfpProvider) DeleteExperiment(id string) error {
-	return kfpp.experimentService.DeleteExperiment(id)
+func (kfpp *KfpProvider) DeleteExperiment(ctx context.Context, id string) error {
+	return kfpp.experimentService.DeleteExperiment(ctx, id)
 }

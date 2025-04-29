@@ -6,14 +6,13 @@ import (
 )
 
 type ErrorSink struct {
-	context context.Context
-	in      chan error
+	in chan error
 }
 
 func NewErrorSink(ctx context.Context, inChan chan error) *ErrorSink {
-	errorSink := &ErrorSink{context: ctx, in: inChan}
+	errorSink := &ErrorSink{in: inChan}
 
-	go errorSink.Log()
+	go errorSink.Log(ctx)
 
 	return errorSink
 }
@@ -22,8 +21,8 @@ func (es ErrorSink) In() chan<- error {
 	return es.in
 }
 
-func (es ErrorSink) Log() {
-	logger := common.LoggerFromContext(es.context)
+func (es ErrorSink) Log(ctx context.Context) {
+	logger := common.LoggerFromContext(ctx)
 	for err := range es.in {
 		logger.Error(err, "failed to handle event")
 	}

@@ -14,11 +14,13 @@ import (
 
 type PipelineUploadService interface {
 	UploadPipeline(
+		ctx context.Context,
 		content []byte,
 		pipelineName string,
 	) (string, error)
 
 	UploadPipelineVersion(
+		ctx context.Context,
 		id string,
 		content []byte,
 		version string,
@@ -26,7 +28,6 @@ type PipelineUploadService interface {
 }
 
 type DefaultPipelineUploadService struct {
-	ctx context.Context
 	// There is no gRPC client equivalent to the http client. The gRPC pipeline
 	// service has similar methods (CreatePipeline, CreatePipelineVersion), but
 	// require a URL to an already uploaded file rather than actually uploading
@@ -37,7 +38,6 @@ type DefaultPipelineUploadService struct {
 const uploadPipelineFilePath string = "resource.json"
 
 func NewPipelineUploadService(
-	ctx context.Context,
 	restKfpApiUrl string,
 ) (*DefaultPipelineUploadService, error) {
 	apiUrl, err := url.Parse(restKfpApiUrl)
@@ -55,7 +55,6 @@ func NewPipelineUploadService(
 	).PipelineUploadService
 
 	return &DefaultPipelineUploadService{
-		ctx:                   ctx,
 		pipelineUploadService: pipelineUploadService,
 	}, nil
 }
@@ -65,6 +64,7 @@ func NewPipelineUploadService(
 // pipelineFilePath file extension and content data time must align and be
 // recognized by pipeline_upload_service.
 func (us *DefaultPipelineUploadService) UploadPipeline(
+	ctx context.Context,
 	content []byte,
 	pipelineName string,
 ) (string, error) {
@@ -74,7 +74,7 @@ func (us *DefaultPipelineUploadService) UploadPipeline(
 		&pipeline_upload_service.UploadPipelineParams{
 			Name:       &pipelineName,
 			Uploadfile: uploadFile,
-			Context:    us.ctx,
+			Context:    ctx,
 		},
 		nil,
 	)
@@ -90,6 +90,7 @@ func (us *DefaultPipelineUploadService) UploadPipeline(
 // pipelineFilePath file extension and content data time must align and be
 // recognized by pipeline_upload_service.
 func (us *DefaultPipelineUploadService) UploadPipelineVersion(
+	ctx context.Context,
 	id string,
 	content []byte,
 	version string,
@@ -101,7 +102,7 @@ func (us *DefaultPipelineUploadService) UploadPipelineVersion(
 			Name:       &version,
 			Pipelineid: &id,
 			Uploadfile: uploadFile,
-			Context:    us.ctx,
+			Context:    ctx,
 		},
 		nil,
 	)

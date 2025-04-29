@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -9,6 +10,7 @@ type MockPipelineUploadService struct {
 }
 
 func (m *MockPipelineUploadService) UploadPipeline(
+	_ context.Context,
 	content []byte,
 	pipelineName string,
 ) (string, error) {
@@ -17,6 +19,7 @@ func (m *MockPipelineUploadService) UploadPipeline(
 }
 
 func (m *MockPipelineUploadService) UploadPipelineVersion(
+	_ context.Context,
 	id string,
 	content []byte,
 	version string,

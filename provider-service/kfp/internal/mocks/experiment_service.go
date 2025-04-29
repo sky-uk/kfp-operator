@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"context"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/stretchr/testify/mock"
 )
@@ -10,6 +11,7 @@ type MockExperimentService struct {
 }
 
 func (m *MockExperimentService) CreateExperiment(
+	_ context.Context,
 	experiment common.NamespacedName,
 	description string,
 ) (string, error) {
@@ -17,12 +19,16 @@ func (m *MockExperimentService) CreateExperiment(
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockExperimentService) DeleteExperiment(id string) error {
+func (m *MockExperimentService) DeleteExperiment(
+	_ context.Context,
+	id string,
+) error {
 	args := m.Called(id)
 	return args.Error(0)
 }
 
 func (m *MockExperimentService) ExperimentIdByName(
+	_ context.Context,
 	experiment common.NamespacedName,
 ) (string, error) {
 	args := m.Called(experiment)

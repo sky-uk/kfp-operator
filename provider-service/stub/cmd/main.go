@@ -18,7 +18,7 @@ func main() {
 	}
 
 	ctx := logr.NewContext(context.Background(), logger)
-	provider := provider.New(logger)
+	stubProvider := provider.New(logger)
 	cfg, err := baseConfig.LoadConfig(
 		baseConfig.Config{
 			Server: baseConfig.Server{
@@ -34,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	if err = server.Start(ctx, *cfg, provider); err != nil {
+	if err = server.Start(ctx, *cfg, stubProvider); err != nil {
 		panic(err)
 	}
 

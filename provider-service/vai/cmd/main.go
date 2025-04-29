@@ -81,10 +81,10 @@ func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig
 	}
 	go handleErrorInSourceOperations(source)
 
-	flow := runcompletion.NewEventFlow(ctx, providerConfig, pipelineJobClient)
+	flow := runcompletion.NewEventFlow(providerConfig, pipelineJobClient)
 
 	go func() {
-		flow.Start()
+		flow.Start(ctx)
 	}()
 
 	sink := sinks.NewWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))

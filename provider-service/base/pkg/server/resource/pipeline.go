@@ -8,7 +8,6 @@ import (
 )
 
 type Pipeline struct {
-	Ctx      context.Context
 	Provider PipelineProvider
 }
 
@@ -16,15 +15,15 @@ func (*Pipeline) Type() string {
 	return "pipeline"
 }
 
-func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
-	logger := common.LoggerFromContext(p.Ctx)
+func (p *Pipeline) Create(ctx context.Context, body []byte) (ResponseBody, error) {
+	logger := common.LoggerFromContext(ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
 		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while creating Pipeline")
 		return ResponseBody{}, &UserError{err}
 	}
 
-	id, err := p.Provider.CreatePipeline(pdw)
+	id, err := p.Provider.CreatePipeline(ctx, pdw)
 	if err != nil {
 		logger.Error(err, "CreatePipeline failed")
 		return ResponseBody{}, err
@@ -36,15 +35,15 @@ func (p *Pipeline) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (p *Pipeline) Update(id string, body []byte) (ResponseBody, error) {
-	logger := common.LoggerFromContext(p.Ctx)
+func (p *Pipeline) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
+	logger := common.LoggerFromContext(ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
 		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while updating Pipeline")
 		return ResponseBody{}, &UserError{err}
 	}
 
-	respId, err := p.Provider.UpdatePipeline(pdw, id)
+	respId, err := p.Provider.UpdatePipeline(ctx, pdw, id)
 	if err != nil {
 		logger.Error(err, "UpdatePipeline failed", "id", id)
 		return ResponseBody{}, err
@@ -56,9 +55,9 @@ func (p *Pipeline) Update(id string, body []byte) (ResponseBody, error) {
 	}, err
 }
 
-func (p *Pipeline) Delete(id string) error {
-	logger := common.LoggerFromContext(p.Ctx)
-	if err := p.Provider.DeletePipeline(id); err != nil {
+func (p *Pipeline) Delete(ctx context.Context, id string) error {
+	logger := common.LoggerFromContext(ctx)
+	if err := p.Provider.DeletePipeline(ctx, id); err != nil {
 		logger.Error(err, "DeletePipeline failed", "id", id)
 		return err
 	}

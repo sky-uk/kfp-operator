@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -67,26 +68,26 @@ type Provider interface {
 }
 
 type PipelineProvider interface {
-	CreatePipeline(pd PipelineDefinitionWrapper) (string, error)
-	UpdatePipeline(pd PipelineDefinitionWrapper, id string) (string, error)
-	DeletePipeline(id string) error
+	CreatePipeline(ctx context.Context, ppd PipelineDefinitionWrapper) (string, error)
+	UpdatePipeline(ctx context.Context, ppd PipelineDefinitionWrapper, id string) (string, error)
+	DeletePipeline(ctx context.Context, id string) error
 }
 
 type RunProvider interface {
-	CreateRun(rd RunDefinition) (string, error)
-	DeleteRun(id string) error
+	CreateRun(ctx context.Context, rd RunDefinition) (string, error)
+	DeleteRun(ctx context.Context, id string) error
 }
 
 type RunScheduleProvider interface {
-	CreateRunSchedule(rsd RunScheduleDefinition) (string, error)
-	UpdateRunSchedule(rsd RunScheduleDefinition, id string) (string, error)
-	DeleteRunSchedule(id string) error
+	CreateRunSchedule(ctx context.Context, rsd RunScheduleDefinition) (string, error)
+	UpdateRunSchedule(ctx context.Context, rsd RunScheduleDefinition, id string) (string, error)
+	DeleteRunSchedule(ctx context.Context, id string) error
 }
 
 type ExperimentProvider interface {
-	CreateExperiment(ed ExperimentDefinition) (string, error)
-	UpdateExperiment(ed ExperimentDefinition, id string) (string, error)
-	DeleteExperiment(id string) error
+	CreateExperiment(ctx context.Context, ed ExperimentDefinition) (string, error)
+	UpdateExperiment(ctx context.Context, ed ExperimentDefinition, id string) (string, error)
+	DeleteExperiment(ctx context.Context, id string) error
 }
 
 type UserError struct {

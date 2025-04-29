@@ -19,7 +19,6 @@ import (
 )
 
 type VAIProvider struct {
-	ctx            context.Context
 	config         *config.VAIProviderConfig
 	fileHandler    FileHandler
 	pipelineClient client.PipelineJobClient
@@ -54,7 +53,6 @@ func NewVAIProvider(
 	}
 
 	return &VAIProvider{
-		ctx:            ctx,
 		config:         config,
 		fileHandler:    &fh,
 		pipelineClient: pc,
@@ -73,9 +71,10 @@ func NewVAIProvider(
 }
 
 func (vaip *VAIProvider) CreatePipeline(
+	ctx context.Context,
 	pdw resource.PipelineDefinitionWrapper,
 ) (string, error) {
-	pipelineId, err := vaip.UpdatePipeline(pdw, "")
+	pipelineId, err := vaip.UpdatePipeline(ctx, pdw, "")
 	if err != nil {
 		return "", err
 	}
@@ -83,6 +82,7 @@ func (vaip *VAIProvider) CreatePipeline(
 }
 
 func (vaip *VAIProvider) UpdatePipeline(
+	ctx context.Context,
 	pdw resource.PipelineDefinitionWrapper,
 	_ string,
 ) (string, error) {
@@ -100,6 +100,7 @@ func (vaip *VAIProvider) UpdatePipeline(
 	}
 
 	if err = vaip.fileHandler.Write(
+		ctx,
 		pdw.CompiledPipeline,
 		vaip.config.Parameters.PipelineBucket,
 		storageObject,
@@ -109,8 +110,9 @@ func (vaip *VAIProvider) UpdatePipeline(
 	return pipelineId, nil
 }
 
-func (vaip *VAIProvider) DeletePipeline(id string) error {
+func (vaip *VAIProvider) DeletePipeline(ctx context.Context, id string) error {
 	if err := vaip.fileHandler.Delete(
+		ctx,
 		id,
 		vaip.config.Parameters.PipelineBucket,
 	); err != nil {
@@ -119,8 +121,8 @@ func (vaip *VAIProvider) DeletePipeline(id string) error {
 	return nil
 }
 
-func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
-	logger := common.LoggerFromContext(vaip.ctx)
+func (vaip *VAIProvider) CreateRun(ctx context.Context, rd resource.RunDefinition) (string, error) {
+	logger := common.LoggerFromContext(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(
 		rd.PipelineName,
@@ -131,6 +133,7 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 	}
 
 	raw, err := vaip.fileHandler.Read(
+		ctx,
 		vaip.config.Parameters.PipelineBucket,
 		pipelinePath,
 	)
@@ -157,7 +160,7 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 		PipelineJob:   enrichedJob,
 	}
 
-	_, err = vaip.pipelineClient.CreatePipelineJob(vaip.ctx, req)
+	_, err = vaip.pipelineClient.CreatePipelineJob(ctx, req)
 	if err != nil {
 		logger.Error(err, "CreatePipelineJob failed", "pipelineJobId", pipelineJobId)
 		return "", err
@@ -166,14 +169,15 @@ func (vaip *VAIProvider) CreateRun(rd resource.RunDefinition) (string, error) {
 	return runId, nil
 }
 
-func (vaip *VAIProvider) DeleteRun(_ string) error {
+func (vaip *VAIProvider) DeleteRun(_ context.Context, _ string) error {
 	return nil
 }
 
 func (vaip *VAIProvider) CreateRunSchedule(
+	ctx context.Context,
 	rsd resource.RunScheduleDefinition,
 ) (string, error) {
-	logger := common.LoggerFromContext(vaip.ctx)
+	logger := common.LoggerFromContext(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(
 		rsd.PipelineName,
@@ -184,6 +188,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 	}
 
 	raw, err := vaip.fileHandler.Read(
+		ctx,
 		vaip.config.Parameters.PipelineBucket,
 		pipelinePath,
 	)
@@ -212,7 +217,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 	}
 
 	createdSchedule, err := vaip.scheduleClient.CreateSchedule(
-		vaip.ctx,
+		ctx,
 		&aiplatformpb.CreateScheduleRequest{
 			Parent:   vaip.config.Parent(),
 			Schedule: schedule,
@@ -228,10 +233,11 @@ func (vaip *VAIProvider) CreateRunSchedule(
 }
 
 func (vaip *VAIProvider) UpdateRunSchedule(
+	ctx context.Context,
 	rsd resource.RunScheduleDefinition,
 	_ string,
 ) (string, error) {
-	logger := common.LoggerFromContext(vaip.ctx)
+	logger := common.LoggerFromContext(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(
 		rsd.PipelineName,
@@ -242,6 +248,7 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 	}
 
 	raw, err := vaip.fileHandler.Read(
+		ctx,
 		vaip.config.Parameters.PipelineBucket,
 		pipelinePath,
 	)
@@ -270,7 +277,7 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 	}
 
 	updateSchedule, err := vaip.scheduleClient.UpdateSchedule(
-		vaip.ctx,
+		ctx,
 		&aiplatformpb.UpdateScheduleRequest{
 			Schedule: schedule,
 			UpdateMask: &fieldmaskpb.FieldMask{
@@ -288,9 +295,9 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 	return updateSchedule.Name, nil
 }
 
-func (vaip *VAIProvider) DeleteRunSchedule(id string) error {
+func (vaip *VAIProvider) DeleteRunSchedule(ctx context.Context, id string) error {
 	schedule, err := vaip.scheduleClient.DeleteSchedule(
-		vaip.ctx,
+		ctx,
 		&aiplatformpb.DeleteScheduleRequest{
 			Name: id,
 		},
@@ -298,7 +305,7 @@ func (vaip *VAIProvider) DeleteRunSchedule(id string) error {
 	if err != nil {
 		return ignoreNotFound(err)
 	}
-	return ignoreNotFound(schedule.Wait(vaip.ctx))
+	return ignoreNotFound(schedule.Wait(ctx))
 }
 
 func ignoreNotFound(err error) error {
@@ -309,18 +316,23 @@ func ignoreNotFound(err error) error {
 }
 
 func (vaip *VAIProvider) CreateExperiment(
+	_ context.Context,
 	_ resource.ExperimentDefinition,
 ) (string, error) {
 	return "", errors.New("not implemented")
 }
 
 func (vaip *VAIProvider) UpdateExperiment(
+	_ context.Context,
 	_ resource.ExperimentDefinition,
 	_ string,
 ) (string, error) {
 	return "", errors.New("not implemented")
 }
 
-func (vaip *VAIProvider) DeleteExperiment(_ string) error {
+func (vaip *VAIProvider) DeleteExperiment(
+	_ context.Context,
+	_ string,
+) error {
 	return errors.New("not implemented")
 }

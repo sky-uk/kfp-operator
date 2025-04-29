@@ -27,6 +27,7 @@ var _ = Describe("Provider", func() {
 		mockJobBuilder     mocks.MockJobBuilder
 		mockJobEnricher    mocks.MockJobEnricher
 		vaiProvider        VAIProvider
+		ctx                = context.Background()
 	)
 
 	BeforeEach(func() {
@@ -36,7 +37,6 @@ var _ = Describe("Provider", func() {
 		mockJobBuilder = mocks.MockJobBuilder{}
 		mockJobEnricher = mocks.MockJobEnricher{}
 		vaiProvider = VAIProvider{
-			ctx:            context.Background(),
 			config:         &config.VAIProviderConfig{},
 			fileHandler:    &mockFileHandler,
 			pipelineClient: &mockPipelineClient,
@@ -57,7 +57,7 @@ var _ = Describe("Provider", func() {
 				).Return(nil)
 
 				pdw := testutil.RandomPipelineDefinitionWrapper()
-				pid, err := vaiProvider.CreatePipeline(pdw)
+				pid, err := vaiProvider.CreatePipeline(ctx, pdw)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(pid).To(Equal(fmt.Sprintf(
@@ -76,7 +76,7 @@ var _ = Describe("Provider", func() {
 				).Return(errors.New("failed"))
 
 				pdw := testutil.RandomPipelineDefinitionWrapper()
-				_, err := vaiProvider.CreatePipeline(pdw)
+				_, err := vaiProvider.CreatePipeline(ctx, pdw)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -102,7 +102,7 @@ var _ = Describe("Provider", func() {
 					),
 				).Return(nil)
 
-				pid, err := vaiProvider.UpdatePipeline(pdw, "")
+				pid, err := vaiProvider.UpdatePipeline(ctx, pdw, "")
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(pid).To(Equal(fmt.Sprintf(
@@ -119,7 +119,7 @@ var _ = Describe("Provider", func() {
 					mock.Anything,
 				).Return(errors.New("failed"))
 
-				_, err := vaiProvider.CreatePipeline(pdw)
+				_, err := vaiProvider.CreatePipeline(ctx, pdw)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -136,7 +136,7 @@ var _ = Describe("Provider", func() {
 					id,
 					vaiProvider.config.Parameters.PipelineBucket,
 				).Return(nil)
-				err := vaiProvider.DeletePipeline(id)
+				err := vaiProvider.DeletePipeline(ctx, id)
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -146,7 +146,7 @@ var _ = Describe("Provider", func() {
 					"pipelineId",
 					vaiProvider.config.Parameters.PipelineBucket,
 				).Return(errors.New("failed"))
-				err := vaiProvider.DeletePipeline("pipelineId")
+				err := vaiProvider.DeletePipeline(ctx, "pipelineId")
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
 			})
@@ -178,7 +178,7 @@ var _ = Describe("Provider", func() {
 						PipelineJob:   &pj,
 					},
 				).Return(&pj, nil)
-				runId, err := vaiProvider.CreateRun(rd)
+				runId, err := vaiProvider.CreateRun(ctx, rd)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(runId).To(Equal(fmt.Sprintf("%s-%s", rd.Name.Namespace, rd.Name.Name)))
@@ -191,7 +191,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, errors.New("failed"))
-				_, err := vaiProvider.CreateRun(rd)
+				_, err := vaiProvider.CreateRun(ctx, rd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -205,7 +205,7 @@ var _ = Describe("Provider", func() {
 					mock.Anything,
 				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunPipelineJob", rd).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRun(rd)
+				_, err := vaiProvider.CreateRun(ctx, rd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -221,7 +221,7 @@ var _ = Describe("Provider", func() {
 				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunPipelineJob", rd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRun(rd)
+				_, err := vaiProvider.CreateRun(ctx, rd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -238,7 +238,7 @@ var _ = Describe("Provider", func() {
 				mockJobBuilder.On("MkRunPipelineJob", rd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockPipelineClient.On("CreatePipelineJob", mock.Anything).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRun(rd)
+				_, err := vaiProvider.CreateRun(ctx, rd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -278,7 +278,7 @@ var _ = Describe("Provider", func() {
 						Schedule: &schedule,
 					},
 				).Return(&schedule, nil)
-				scheduleName, err := vaiProvider.CreateRunSchedule(rsd)
+				scheduleName, err := vaiProvider.CreateRunSchedule(ctx, rsd)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(scheduleName).To(Equal(schedule.Name))
@@ -291,7 +291,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, errors.New("failed"))
-				_, err := vaiProvider.CreateRunSchedule(rsd)
+				_, err := vaiProvider.CreateRunSchedule(ctx, rsd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -305,7 +305,7 @@ var _ = Describe("Provider", func() {
 					mock.Anything,
 				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRunSchedule(rsd)
+				_, err := vaiProvider.CreateRunSchedule(ctx, rsd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -321,7 +321,7 @@ var _ = Describe("Provider", func() {
 				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRunSchedule(rsd)
+				_, err := vaiProvider.CreateRunSchedule(ctx, rsd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -344,7 +344,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parent(),
 					vaiProvider.config.GetMaxConcurrentRunCountOrDefault(),
 				).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRunSchedule(rsd)
+				_, err := vaiProvider.CreateRunSchedule(ctx, rsd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -368,7 +368,7 @@ var _ = Describe("Provider", func() {
 					mock.Anything,
 				).Return(&aiplatformpb.Schedule{}, nil)
 				mockScheduleClient.On("CreateSchedule", mock.Anything).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRunSchedule(rsd)
+				_, err := vaiProvider.CreateRunSchedule(ctx, rsd)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -412,7 +412,7 @@ var _ = Describe("Provider", func() {
 						},
 					},
 				).Return(&schedule, nil)
-				scheduleName, err := vaiProvider.UpdateRunSchedule(rsd, "")
+				scheduleName, err := vaiProvider.UpdateRunSchedule(ctx, rsd, "")
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(scheduleName).To(Equal(schedule.Name))
@@ -425,7 +425,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, errors.New("failed"))
-				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+				_, err := vaiProvider.UpdateRunSchedule(ctx, rsd, "")
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -439,7 +439,7 @@ var _ = Describe("Provider", func() {
 					mock.Anything,
 				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+				_, err := vaiProvider.UpdateRunSchedule(ctx, rsd, "")
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -455,7 +455,7 @@ var _ = Describe("Provider", func() {
 				).Return(map[string]any{}, nil)
 				mockJobBuilder.On("MkRunSchedulePipelineJob", rsd).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+				_, err := vaiProvider.UpdateRunSchedule(ctx, rsd, "")
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -478,7 +478,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parent(),
 					mock.Anything,
 				).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+				_, err := vaiProvider.UpdateRunSchedule(ctx, rsd, "")
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -502,7 +502,7 @@ var _ = Describe("Provider", func() {
 					mock.Anything,
 				).Return(nil, errors.New("failed"))
 				mockScheduleClient.On("UpdateSchedule", mock.Anything).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.UpdateRunSchedule(rsd, "")
+				_, err := vaiProvider.UpdateRunSchedule(ctx, rsd, "")
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))

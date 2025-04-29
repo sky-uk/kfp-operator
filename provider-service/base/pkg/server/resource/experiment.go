@@ -8,7 +8,6 @@ import (
 )
 
 type Experiment struct {
-	Ctx      context.Context
 	Provider ExperimentProvider
 }
 
@@ -16,15 +15,15 @@ func (*Experiment) Type() string {
 	return "experiment"
 }
 
-func (e *Experiment) Create(body []byte) (ResponseBody, error) {
-	logger := common.LoggerFromContext(e.Ctx)
+func (e *Experiment) Create(ctx context.Context, body []byte) (ResponseBody, error) {
+	logger := common.LoggerFromContext(ctx)
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while creating Experiment")
 		return ResponseBody{}, &UserError{err}
 	}
 
-	id, err := e.Provider.CreateExperiment(ed)
+	id, err := e.Provider.CreateExperiment(ctx, ed)
 	if err != nil {
 		logger.Error(err, "CreateExperiment failed")
 		return ResponseBody{}, err
@@ -36,15 +35,15 @@ func (e *Experiment) Create(body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (e *Experiment) Update(id string, body []byte) (ResponseBody, error) {
-	logger := common.LoggerFromContext(e.Ctx)
+func (e *Experiment) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
+	logger := common.LoggerFromContext(ctx)
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while updating Experiment")
 		return ResponseBody{}, &UserError{err}
 	}
 
-	respId, err := e.Provider.UpdateExperiment(ed, id)
+	respId, err := e.Provider.UpdateExperiment(ctx, ed, id)
 	if err != nil {
 		logger.Error(err, "UpdateExperiment failed", "id", id)
 		return ResponseBody{}, err
@@ -56,9 +55,9 @@ func (e *Experiment) Update(id string, body []byte) (ResponseBody, error) {
 	}, nil
 }
 
-func (e *Experiment) Delete(id string) error {
-	logger := common.LoggerFromContext(e.Ctx)
-	if err := e.Provider.DeleteExperiment(id); err != nil {
+func (e *Experiment) Delete(ctx context.Context, id string) error {
+	logger := common.LoggerFromContext(ctx)
+	if err := e.Provider.DeleteExperiment(ctx, id); err != nil {
 		logger.Error(err, "DeleteExperiment failed", "id", id)
 		return err
 	}
