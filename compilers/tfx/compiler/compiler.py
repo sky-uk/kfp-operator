@@ -27,11 +27,8 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
                                                                                         provider_config_contents)
 
         framework_parameters = pipeline_config_contents['framework']['parameters']
-        beam_args = provider_config_contents.get('defaultBeamArgs', [])
         pipeline_beam_args = framework_parameters.get('beamArgs', [])
-
-        beam_args.extend(pipeline_beam_args)
-        beam_cli_args = name_values_to_cli_args(beam_args)
+        beam_cli_args = name_values_to_cli_args(pipeline_beam_args)
         beam_cli_args.append(f"--temp_location={temp_location}")
 
         components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
