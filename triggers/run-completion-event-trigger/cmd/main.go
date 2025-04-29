@@ -45,7 +45,10 @@ func main() {
 
 	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(unaryLoggerInterceptor(logger)),
+	)
+
 	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: natsPublisher})
 
 	logger.Info("Listening at", "host", config.ServerConfig.Host, "port", config.ServerConfig.Port)
@@ -54,4 +57,17 @@ func main() {
 		panic(err)
 	}
 
+}
+
+func unaryLoggerInterceptor(baseLogger logr.Logger) grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (resp any, err error) {
+		ctx = logr.NewContext(ctx, baseLogger)
+
+		return handler(ctx, req)
+	}
 }
