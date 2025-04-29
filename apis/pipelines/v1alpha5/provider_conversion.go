@@ -1,7 +1,10 @@
 package v1alpha5
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	common "github.com/sky-uk/kfp-operator/apis"
 
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -11,6 +14,42 @@ import (
 func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Provider)
 	dstApiVersion := dst.APIVersion
+
+	var beamArgsPatchOps []common.JsonPatchOperation
+
+	for _, nv := range src.Spec.DefaultBeamArgs {
+		patchOp := common.JsonPatchOperation{
+			Op:   "add",
+			Path: "/framework/parameters/beamArgs/-",
+			Value: map[string]string{
+				"name":  nv.Name,
+				"value": nv.Value,
+			},
+		}
+
+		beamArgsPatchOps = append(beamArgsPatchOps, patchOp)
+	}
+
+	tfxFramework := hub.Framework{
+		Name:  "tfx",
+		Image: src.Spec.Image,
+	}
+
+	if len(beamArgsPatchOps) > 0 {
+		patchOpsBytes, err := json.Marshal(beamArgsPatchOps)
+		if err != nil {
+			return errors.New("failed to marshal patch operations to JSON")
+		}
+
+		patch := hub.Patch{
+			Type:  "json",
+			Patch: string(patchOpsBytes),
+		}
+
+		tfxFramework.Patches = []hub.Patch{patch}
+	}
+
+	dst.Spec.Frameworks = []hub.Framework{tfxFramework}
 
 	remainder := ProviderConversionRemainder{}
 
@@ -28,7 +67,6 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.Spec.ServiceImage = remainder.ServiceImage
 	remainder.ServiceImage = ""
-	remainder.Image = src.Spec.Image
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Spec.Parameters = src.Spec.Parameters
@@ -48,14 +86,27 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
+	tfxFramework, found := common.Find(src.Spec.Frameworks, func(framework hub.Framework) bool {
+		return framework.Name == "tfx"
+	})
+
+	if found {
+		beamArgs, err := hub.BeamArgsFromJsonPatches(tfxFramework.Patches)
+		if err != nil {
+			return err
+		}
+		dst.Spec.DefaultBeamArgs = beamArgs
+		dst.Spec.Image = tfxFramework.Image
+	} else {
+		return fmt.Errorf("tfx framework not in provider frameworks: %v", src.Spec.Frameworks)
+	}
+
 	status := src.Status.Conditions.GetSyncStateFromReason()
 
 	dst.Status.SynchronizationState = status
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Spec.Image = remainder.Image
 	dst.Spec.Parameters = src.Spec.Parameters
 
-	remainder.Image = ""
 	remainder.ServiceImage = src.Spec.ServiceImage
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
