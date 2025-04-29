@@ -29,6 +29,8 @@ func (e *ConnectionError) Error() string {
 
 type natsConn interface {
 	Publish(subject string, data []byte) error
+	IsClosed() bool
+	IsConnected() bool
 }
 
 type NatsPublisher struct {
@@ -60,4 +62,8 @@ func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) er
 		return &ConnectionError{err.Error()}
 	}
 	return nil
+}
+
+func (nc NatsPublisher) IsHealthy() bool {
+	return nc.NatsConn.IsConnected() && !nc.NatsConn.IsClosed()
 }

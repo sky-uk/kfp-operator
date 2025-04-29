@@ -12,6 +12,7 @@ import (
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"net"
 )
 
@@ -50,6 +51,8 @@ func main() {
 	)
 
 	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: natsPublisher})
+
+	healthpb.RegisterHealthServer(s, &server.HealthServer{HealthCheck: natsPublisher})
 
 	logger.Info("Listening at", "host", config.ServerConfig.Host, "port", config.ServerConfig.Port)
 	if err := s.Serve(lis); err != nil {

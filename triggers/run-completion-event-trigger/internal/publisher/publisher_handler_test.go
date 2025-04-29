@@ -28,6 +28,16 @@ func (m *MockNatsConn) Publish(subject string, data []byte) error {
 	return args.Error(0)
 }
 
+func (m *MockNatsConn) IsConnected() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
+func (m *MockNatsConn) IsClosed() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
 var _ = Describe("PublisherHandler", func() {
 	var (
 		mockNatsConn *MockNatsConn
