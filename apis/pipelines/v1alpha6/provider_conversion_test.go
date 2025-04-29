@@ -3,6 +3,7 @@
 package v1alpha6
 
 import (
+	"encoding/json"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -43,6 +44,21 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 			src := hub.RandomProvider()
 			framework := hub.RandomFramework()
 			framework.Name = "tfx"
+			patchOps := []apis.JsonPatchOperation{
+				{
+					Op:   "add",
+					Path: "/framework/parameters/beamArgs/-",
+					Value: map[string]string{
+						"name":  "foo",
+						"value": "bar",
+					},
+				},
+			}
+			bytes, err := json.Marshal(patchOps)
+			Expect(err).To(Not(HaveOccurred()))
+			framework.Patches = []hub.Patch{
+				{Type: "json", Patch: string(bytes)},
+			}
 
 			src.Spec.Frameworks = []hub.Framework{framework}
 
