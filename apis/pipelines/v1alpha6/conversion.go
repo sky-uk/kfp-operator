@@ -22,3 +22,15 @@ func convertProviderTo(
 		Namespace: namespace,
 	}
 }
+
+type LastConvertedVersion struct {
+	Version string
+}
+
+func (lcv LastConvertedVersion) Empty() bool {
+	return lcv.Version == ""
+}
+
+func (lcv LastConvertedVersion) ConversionAnnotation() string {
+	return "lastConvertedVersion"
+}

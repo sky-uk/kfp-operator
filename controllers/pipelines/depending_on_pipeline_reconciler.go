@@ -5,11 +5,13 @@ import (
 
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -90,7 +92,23 @@ func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, co
 	return controllerBuilder.Watches(
 		&pipelineshub.Pipeline{},
 		handler.EnqueueRequestsFromMapFunc(reconciliationRequestsForPipeline),
-		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
+		builder.WithPredicates(
+			predicate.ResourceVersionChangedPredicate{},
+			predicate.Funcs{
+				UpdateFunc: func(e event.UpdateEvent) bool {
+					oldLastConvertedVer, ok := e.ObjectOld.(*pipelineshub.Pipeline).GetAnnotations()[v1alpha6.LastConvertedVersion{}.ConversionAnnotation()]
+					if !ok {
+						return true
+					}
+					newLastConvertedVer, ok := e.ObjectNew.(*pipelineshub.Pipeline).GetAnnotations()[v1alpha6.LastConvertedVersion{}.ConversionAnnotation()]
+					if !ok {
+						return true
+					}
+
+					return oldLastConvertedVer != newLastConvertedVer
+				},
+			},
+		),
 	), nil
 }
 

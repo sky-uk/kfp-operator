@@ -31,6 +31,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 				Expect(src.ConvertTo(intermediate)).To(Succeed())
 				Expect(intermediate.Spec.Provider.Namespace).To(Equal(DefaultProviderNamespace))
 				Expect(intermediate.Status.Provider.Name.Namespace).To(BeEmpty())
+				// Expect(intermediate.GetAnnotations()).To(BeEmpty())
 				Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 				delete(
 					dst.GetAnnotations(),
@@ -71,6 +72,10 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
+			delete(
+				dst.GetAnnotations(),
+				LastConvertedVersion{}.ConversionAnnotation(),
+			)
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
 
@@ -83,6 +88,10 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
+			delete(
+				dst.GetAnnotations(),
+				LastConvertedVersion{}.ConversionAnnotation(),
+			)
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
 	})

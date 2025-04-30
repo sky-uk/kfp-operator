@@ -13,6 +13,11 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	dstApiVersion := dst.APIVersion
 	remainder := PipelineConversionRemainder{}
 
+	if err := pipelines.SetConversionAnnotations(dst,
+		LastConvertedVersion{src.ComputeVersion()},
+	); err != nil {
+		return err
+	}
 	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
 		return err
 	}
@@ -56,6 +61,13 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	remainder := PipelineConversionRemainder{}
 
 	if err := pipelines.TransformInto(src, &dst); err != nil {
+		return err
+	}
+
+	if err := pipelines.GetAndUnsetConversionAnnotations(
+		dst,
+		&LastConvertedVersion{},
+	); err != nil {
 		return err
 	}
 

@@ -2,8 +2,9 @@ package pipelines
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/apis"
 	"reflect"
+
+	"github.com/sky-uk/kfp-operator/apis"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -14,7 +15,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 const (
@@ -119,6 +119,5 @@ func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Man
 	return controllerBuilder.Watches(
 		&pipelineshub.RunConfiguration{},
 		handler.EnqueueRequestsFromMapFunc(reconciliationRequestsForPipeline),
-		builder.WithPredicates(predicate.ResourceVersionChangedPredicate{}),
 	), nil
 }
