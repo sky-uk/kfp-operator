@@ -105,9 +105,6 @@ var _ = BeforeSuite(func() {
 		WorkflowNamespace: "default",
 		DefaultProvider:   apis.RandomLowercaseString(),
 		RunCompletionTTL:  &metav1.Duration{Duration: time.Minute},
-		PipelineFrameworkImages: map[string]string{
-			TestFramework: "default-compiler",
-		},
 	}
 
 	Expect(NewPipelineReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
@@ -121,6 +118,12 @@ var _ = BeforeSuite(func() {
 	Provider = pipelineshub.RandomProvider()
 	Provider.Name = apis.RandomLowercaseString()
 	Provider.Namespace = TestConfig.WorkflowNamespace
+	Provider.Spec.Frameworks = []pipelineshub.Framework{
+		{
+			Name:  TestFramework,
+			Image: "dummy-image",
+		},
+	}
 	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
 
 	providerSvc := corev1.Service{}

@@ -19,7 +19,7 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	for _, nv := range src.Spec.DefaultBeamArgs {
 		patchOp := common.JsonPatchOperation{
 			Op:   "add",
-			Path: "/framework/parameters/beamArgs/-",
+			Path: "/framework/parameters/beamArgs/0",
 			Value: map[string]string{
 				"name":  nv.Name,
 				"value": nv.Value,
@@ -31,7 +31,7 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 
 	tfxFramework := hub.Framework{
 		Name:  "tfx",
-		Image: src.Spec.Image,
+		Image: DefaultTfxImage,
 	}
 
 	if len(beamArgsPatchOps) > 0 {
@@ -55,6 +55,7 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	remainder := ProviderConversionRemainder{}
+	remainder.Image = src.Spec.Image
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Spec.Parameters = src.Spec.Parameters
@@ -86,7 +87,7 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 			return err
 		}
 		dst.Spec.DefaultBeamArgs = beamArgs
-		dst.Spec.Image = tfxFramework.Image
+		dst.Spec.Image = remainder.Image
 	} else {
 		return fmt.Errorf("tfx framework not in provider frameworks: %v", src.Spec.Frameworks)
 	}

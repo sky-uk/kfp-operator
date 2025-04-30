@@ -15,6 +15,7 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 	var _ = Describe("Roundtrip forward", func() {
 		Specify("converts to and from the same object", func() {
 			srcProvider := RandomProvider()
+
 			srcProvider.Spec.DefaultBeamArgs = apis.RandomNonEmptyList(apis.RandomNamedValue)
 
 			intermediate := &hub.Provider{}
@@ -43,11 +44,12 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 		Specify("converts to and from the same object when tfx is supported", func() {
 			src := hub.RandomProvider()
 			framework := hub.RandomFramework()
+			DefaultTfxImage = framework.Image
 			framework.Name = "tfx"
 			patchOps := []apis.JsonPatchOperation{
 				{
 					Op:   "add",
-					Path: "/framework/parameters/beamArgs/-",
+					Path: "/framework/parameters/beamArgs/0",
 					Value: map[string]string{
 						"name":  "foo",
 						"value": "bar",

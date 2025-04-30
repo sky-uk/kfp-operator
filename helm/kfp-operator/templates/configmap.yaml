@@ -21,6 +21,7 @@ data:
         resourceName: kfp-operator-lock
     spec:
       {{- include "kfp-operator.configuration" . | nindent 6 }}
+      defaultTfxImage: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-tfx-compiler:{{ .Chart.AppVersion }}
       runCompletionFeed:
         port: {{ .Values.manager.runcompletionWebhook.servicePort }}
         endpoints: {{- if gt (len .Values.manager.runcompletionWebhook.endpoints) 0 }}{{- .Values.manager.runcompletionWebhook.endpoints | toYaml | nindent 8 }}{{ else }} []{{ end }}

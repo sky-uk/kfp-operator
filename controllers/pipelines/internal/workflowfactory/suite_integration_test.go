@@ -63,6 +63,12 @@ var provider = pipelineshub.Provider{
 		ServiceImage:   "kfp-operator-stub-provider-service",
 		ExecutionMode:  "none",
 		ServiceAccount: "default",
+		Frameworks: []pipelineshub.Framework{
+			{
+				Name:  "stub",
+				Image: "kfp-operator-stub-compiler",
+			},
+		},
 	},
 	Status: pipelineshub.Status{},
 }

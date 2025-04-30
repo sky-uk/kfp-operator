@@ -20,9 +20,6 @@ var _ = Context("Pipeline Resource Workflows", Serial, func() {
 			DefaultExperiment:      "Default",
 			WorkflowTemplatePrefix: "kfp-operator-integration-tests-", // Needs to match integration-test-values.yaml
 			WorkflowNamespace:      "argo",
-			PipelineFrameworkImages: map[string]string{
-				"stub": "kfp-operator-stub-compiler",
-			},
 		},
 	)
 

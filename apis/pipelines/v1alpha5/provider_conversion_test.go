@@ -8,6 +8,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
@@ -17,10 +18,12 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 			src := hub.RandomProvider()
 			framework := hub.RandomFramework()
 			framework.Name = "tfx"
+			DefaultTfxImage = framework.Image
+
 			patchOps := []apis.JsonPatchOperation{
 				{
 					Op:   "add",
-					Path: "/framework/parameters/beamArgs/-",
+					Path: "/framework/parameters/beamArgs/0",
 					Value: map[string]string{
 						"name":  "foo",
 						"value": "bar",
@@ -58,6 +61,29 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 			dst := Provider{}
 
 			Expect(dst.ConvertFrom(src)).To(Not(Succeed()))
+		})
+	})
+
+	var _ = Describe("Roundtrip backward", func() {
+		Specify("converts to and from the same object when the framework is tfx", func() {
+			src := RandomProvider()
+			remainder := ProviderConversionRemainder{
+				ServiceImage: "foo",
+			}
+			Expect(pipelines.SetConversionAnnotations(src, &remainder)).To(Succeed())
+
+			intermediate := &hub.Provider{}
+			dst := &Provider{}
+
+			Expect(src.ConvertTo(intermediate)).To(Succeed())
+			intRemainderStr := intermediate.Annotations[remainder.ConversionAnnotation()]
+			intRemainder := ProviderConversionRemainder{}
+			Expect(json.Unmarshal([]byte(intRemainderStr), &intRemainder)).To(Succeed())
+			Expect(intRemainder.Image).To(Equal(src.Spec.Image))
+			Expect(intRemainder.ServiceImage).To(Equal(""))
+			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
+			Expect(pipelines.SetConversionAnnotations(src, &remainder)).To(Succeed())
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
 		})
 	})
 })

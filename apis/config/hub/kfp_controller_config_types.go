@@ -21,6 +21,7 @@ type KfpControllerConfig struct {
 type KfpControllerConfigSpec struct {
 	DefaultProvider        string                `json:"defaultProvider,omitempty"`
 	DefaultProviderValues  DefaultProviderValues `json:"defaultProviderValues,omitempty"`
+	DefaultTfxImage        string                `json:"defaultTfxImage,omitempty"`
 	WorkflowTemplatePrefix string                `json:"workflowTemplatePrefix,omitempty"`
 	WorkflowNamespace      string                `json:"workflowNamespace,omitempty"`
 	Multiversion           bool                  `json:"multiversion,omitempty"`

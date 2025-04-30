@@ -31,6 +31,8 @@ spec:
           value: "8081"
         - name: PROVIDERNAME
           value: test
+        - name: PIPELINE_ROOT_STORAGE
+          value: gs://mlops-mlops-provider-test-pipelinestorage
         image: kfp-operator-stub-provider-service
         imagePullPolicy: Never
         ports:

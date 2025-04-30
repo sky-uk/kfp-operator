@@ -1,7 +1,6 @@
 package v1alpha6
 
 import (
-	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 )
 
@@ -72,8 +71,7 @@ func (ExperimentConversionRemainder) ConversionAnnotation() string {
 }
 
 type ProviderConversionRemainder struct {
-	Image           string            `json:"image"`
-	DefaultBeamArgs []apis.NamedValue `json:"defaultBeamArgs"`
+	Image string `json:"image"`
 }
 
 func (pcr ProviderConversionRemainder) Empty() bool {

@@ -5,6 +5,7 @@ import (
 )
 
 var DefaultProviderNamespace string
+var DefaultTfxImage string
 
 func convertProviderTo(
 	provider string,

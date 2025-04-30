@@ -94,6 +94,8 @@ func main() {
 	pipelineshubalpha5.DefaultProvider = ctrlConfig.Spec.DefaultProvider
 	pipelineshubalpha5.DefaultProviderNamespace = ctrlConfig.Spec.WorkflowNamespace
 	pipelineshubalpha6.DefaultProviderNamespace = ctrlConfig.Spec.WorkflowNamespace
+	pipelineshubalpha5.DefaultTfxImage = ctrlConfig.Spec.DefaultTfxImage
+	pipelineshubalpha6.DefaultTfxImage = ctrlConfig.Spec.DefaultTfxImage
 
 	var mgr ctrl.Manager
 

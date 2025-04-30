@@ -20,7 +20,7 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	for _, nv := range src.Spec.DefaultBeamArgs {
 		patchOp := common.JsonPatchOperation{
 			Op:   "add",
-			Path: "/framework/parameters/beamArgs/-",
+			Path: "/framework/parameters/beamArgs/0",
 			Value: map[string]string{
 				"name":  nv.Name,
 				"value": nv.Value,
@@ -32,7 +32,7 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 
 	tfxFramework := hub.Framework{
 		Name:  "tfx",
-		Image: src.Spec.Image,
+		Image: DefaultTfxImage,
 	}
 
 	if len(beamArgsPatchOps) > 0 {
@@ -67,6 +67,7 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.Spec.ServiceImage = remainder.ServiceImage
 	remainder.ServiceImage = ""
+	remainder.Image = src.Spec.Image
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Spec.Parameters = src.Spec.Parameters
@@ -106,8 +107,10 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.SynchronizationState = status
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Spec.Parameters = src.Spec.Parameters
+	dst.Spec.Image = remainder.Image
 
 	remainder.ServiceImage = src.Spec.ServiceImage
+	remainder.Image = ""
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }
