@@ -2,6 +2,7 @@ package label
 
 const (
 	ProviderName              = "provider-name"
+	ProviderNamespace         = "provider-namespace"
 	PipelineName              = "pipeline-name"
 	PipelineNamespace         = "pipeline-namespace"
 	PipelineVersion           = "pipeline-version"

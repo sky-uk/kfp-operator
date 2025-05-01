@@ -20,10 +20,6 @@ type DefaultLabelGen struct {
 // GenerateLabels generates labels for vertex ai runs and schedules to show
 // which run configuration it originated from.
 func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
-	pNameStr, err := lg.providerName.String()
-	if err != nil {
-		return nil, err
-	}
 	var labels map[string]string
 	switch v := value.(type) {
 	case resource.RunDefinition:
@@ -38,7 +34,9 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 			resource.RunScheduleDefinition{},
 		)
 	}
-	labels[label.ProviderName] = pNameStr
+	labels[label.ProviderName] = lg.providerName.Name
+	labels[label.ProviderNamespace] = lg.providerName.Namespace
+
 	return labels, nil
 }
 

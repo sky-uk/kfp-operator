@@ -15,9 +15,6 @@ var _ = Describe("DefaultLabelGen", func() {
 		providerName: common.NamespacedName{Name: "test-provider", Namespace: "test-namespace"},
 	}
 
-	testProviderNameStr, err := lg.providerName.String()
-	Expect(err).ToNot(HaveOccurred())
-
 	Context("GenerateLabels", func() {
 		When("value is not RunDefinition or RunScheduleDefinition", func() {
 			It("should return error", func() {
@@ -35,7 +32,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[label.ProviderName]).To(Equal(testProviderNameStr))
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
 				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
 				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
 				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
@@ -52,7 +50,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[label.ProviderName]).To(Equal(testProviderNameStr))
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
 				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
 				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
 				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
@@ -69,7 +68,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[label.ProviderName]).To(Equal(testProviderNameStr))
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
 				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
 				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
 				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
@@ -98,7 +98,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rsd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[label.ProviderName]).To(Equal(testProviderNameStr))
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
 				Expect(rl[label.PipelineName]).To(Equal(rsd.PipelineName.Name))
 				Expect(rl[label.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
 				Expect(rl[label.PipelineVersion]).To(Equal(rsd.PipelineVersion))
@@ -113,7 +114,8 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rsd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[label.ProviderName]).To(Equal(testProviderNameStr))
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
 				Expect(rl[label.PipelineName]).To(Equal(rsd.PipelineName.Name))
 				Expect(rl[label.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
 				Expect(rl[label.PipelineVersion]).To(Equal(rsd.PipelineVersion))
