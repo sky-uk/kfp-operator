@@ -57,7 +57,7 @@ func main() {
 }
 
 func runServer(ctx context.Context, vaiConfig *vaiConfig.VAIProviderConfig, baseConfig *baseConfig.Config) {
-	provider, err := vai.NewVAIProvider(ctx, vaiConfig)
+	provider, err := vai.NewVAIProvider(ctx, vaiConfig, baseConfig.Pod.Namespace)
 	if err != nil {
 		panic(err)
 	}

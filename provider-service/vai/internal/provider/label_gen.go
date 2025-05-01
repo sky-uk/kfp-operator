@@ -13,16 +13,20 @@ type LabelGen interface {
 	GenerateLabels(value any) (map[string]string, error)
 }
 
-type DefaultLabelGen struct{}
+type DefaultLabelGen struct {
+	providerName common.NamespacedName
+}
 
 // GenerateLabels generates labels for vertex ai runs and schedules to show
 // which run configuration it originated from.
 func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
+	var labels map[string]string
+
 	switch v := value.(type) {
 	case resource.RunDefinition:
-		return lg.runLabelsFromRunDefinition(v), nil
+		labels = lg.runLabelsFromRunDefinition(v)
 	case resource.RunScheduleDefinition:
-		return lg.runLabelsFromSchedule(v), nil
+		labels = lg.runLabelsFromSchedule(v)
 	default:
 		return nil, fmt.Errorf(
 			"Unexpected definition received [%T], expected %T or %T",
@@ -31,6 +35,10 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 			resource.RunScheduleDefinition{},
 		)
 	}
+
+	labels[label.ProviderName] = lg.providerName.Name
+	labels[label.ProviderNamespace] = lg.providerName.Namespace
+	return labels, nil
 }
 
 func (lg DefaultLabelGen) runLabelsFromPipeline(
