@@ -45,14 +45,14 @@ var _ = Context("Pipeline", func() {
 			pipeline := Pipeline{}
 			hash1 := pipeline.ComputeHash()
 
-			pipeline.Spec.Env = []apis.NamedValue{
+			pipeline.Spec.Foo = []apis.NamedValue{
 				{Name: "a", Value: ""},
 			}
 			hash2 := pipeline.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			pipeline.Spec.Env = []apis.NamedValue{
+			pipeline.Spec.Foo = []apis.NamedValue{
 				{Name: "b", Value: "NotEmpty"},
 			}
 			hash3 := pipeline.ComputeHash()

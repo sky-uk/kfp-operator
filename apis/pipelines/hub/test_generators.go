@@ -54,7 +54,7 @@ func RandomPipelineSpec(provider common.NamespacedName) PipelineSpec {
 	return PipelineSpec{
 		Provider: provider,
 		Image:    fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
-		Env:      RandomNamedValues(),
+		Foo:      RandomNamedValues(),
 		Framework: PipelineFramework{
 			Type:       RandomString(),
 			Parameters: randomParameters,

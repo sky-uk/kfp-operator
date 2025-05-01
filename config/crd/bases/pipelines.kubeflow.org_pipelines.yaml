@@ -359,7 +359,7 @@ spec:
             type: object
           spec:
             properties:
-              env:
+              foo:
                 items:
                   properties:
                     name:

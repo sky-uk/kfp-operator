@@ -36,7 +36,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 		},
 		Spec: pipelineshub.PipelineSpec{
 			Image:     "pipelineImage",
-			Env:       expectedEnv,
+			Foo:       expectedEnv,
 			Framework: expectedFramework,
 		},
 	}

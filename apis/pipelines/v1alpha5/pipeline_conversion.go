@@ -28,6 +28,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		remainder.ProviderStatusNamespace,
 	)
 	removeProviderAnnotation(dst)
+	dst.Spec.Foo = src.Spec.Env
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 
@@ -60,6 +61,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
+	dst.Spec.Env = src.Spec.Foo
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 

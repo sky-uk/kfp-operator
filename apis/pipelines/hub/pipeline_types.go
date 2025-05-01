@@ -17,7 +17,7 @@ import (
 type PipelineSpec struct {
 	Provider  common.NamespacedName `json:"provider" yaml:"provider"`
 	Image     string                `json:"image" yaml:"image"`
-	Env       []apis.NamedValue     `json:"env,omitempty" yaml:"env"`
+	Foo       []apis.NamedValue     `json:"foo,omitempty" yaml:"foo"`
 	Framework PipelineFramework     `json:"framework" yaml:"framework"`
 }
 
@@ -44,7 +44,7 @@ func (ps Pipeline) ComputeHash() []byte {
 	}
 	oh.WriteMapField(output)
 	oh.WriteStringField(ps.Spec.Image)
-	pipelines.WriteKVListField(oh, ps.Spec.Env)
+	pipelines.WriteKVListField(oh, ps.Spec.Foo)
 	return oh.Sum()
 }
 

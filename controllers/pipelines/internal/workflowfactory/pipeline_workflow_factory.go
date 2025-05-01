@@ -29,7 +29,7 @@ func (ppc PipelineParamsCreator) pipelineDefinition(
 		Version:   pipeline.ComputeVersion(),
 		Image:     pipeline.Spec.Image,
 		Framework: pipeline.Spec.Framework,
-		Env:       pipeline.Spec.Env,
+		Env:       pipeline.Spec.Foo,
 	}, nil
 }
 

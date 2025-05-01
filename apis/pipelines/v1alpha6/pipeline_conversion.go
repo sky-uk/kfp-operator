@@ -19,6 +19,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
+	dst.Spec.Foo = src.Spec.Env
 
 	dst.Spec.Provider = convertProviderTo(
 		src.Spec.Provider,
@@ -58,6 +59,8 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src, &dst); err != nil {
 		return err
 	}
+
+	dst.Spec.Env = src.Spec.Foo
 
 	dst.Spec.Provider = src.Spec.Provider.Name
 	dst.Status.Provider.Name = src.Status.Provider.Name.Name

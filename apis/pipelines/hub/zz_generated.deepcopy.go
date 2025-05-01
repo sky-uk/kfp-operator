@@ -296,8 +296,8 @@ func (in *PipelineList) DeepCopyObject() runtime.Object {
 func (in *PipelineSpec) DeepCopyInto(out *PipelineSpec) {
 	*out = *in
 	out.Provider = in.Provider
-	if in.Env != nil {
-		in, out := &in.Env, &out.Env
+	if in.Foo != nil {
+		in, out := &in.Foo, &out.Foo
 		*out = make([]apis.NamedValue, len(*in))
 		copy(*out, *in)
 	}
