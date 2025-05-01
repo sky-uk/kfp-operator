@@ -171,7 +171,7 @@ var _ = Context("Conversions", func() {
 			Expect(beamArgsFromPatches).To(Equal(beamArgs))
 		})
 
-		Specify("fail if a patch contains a value that isn't a map[string]interface{}", func() {
+		Specify("fail if a patch contains a value that isn't a map[string]any", func() {
 			addOp := apis.JsonPatchOperation{
 				Op:    "add",
 				Path:  "foo",

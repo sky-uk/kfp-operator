@@ -1,4 +1,4 @@
-//go:build skip
+//go:build unit
 
 package workflowfactory
 
@@ -8,12 +8,12 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 var _ = Describe("PipelineParamsCreator", func() {
@@ -29,6 +29,29 @@ var _ = Describe("PipelineParamsCreator", func() {
 		},
 	}
 
+	expectedPatches := []pipelineshub.Patch{
+		{
+			Type:  "json",
+			Patch: `{"op": "add", "path": "/spec/parameters", "value": {"a": "b"}}`,
+		},
+	}
+
+	provider := pipelineshub.Provider{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "providerName",
+			Namespace: "providerNamespace",
+		},
+		Spec: pipelineshub.ProviderSpec{
+			Frameworks: []pipelineshub.Framework{
+				{
+					Name:    strings.ToLower(expectedFramework.Type),
+					Image:   "registry/pipelineFramework",
+					Patches: expectedPatches,
+				},
+			},
+		},
+	}
+
 	pipeline := &pipelineshub.Pipeline{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "pipelineName",
@@ -40,11 +63,23 @@ var _ = Describe("PipelineParamsCreator", func() {
 			Framework: expectedFramework,
 		},
 	}
+
+	pipelineIncorrectFramework := pipeline.DeepCopy()
+	pipelineIncorrectFramework.Spec.Framework.Type = "invalidFramework"
+
 	Context("pipelineDefinition", func() {
 		creator := PipelineParamsCreator{}
 
-		compilerConfig, _ := creator.pipelineDefinition(pipeline)
-		When("given a Pipeline resource", func() {
+		When("given a Pipeline resource with invalid framework", func() {
+			_, _, err := creator.pipelineDefinition(provider, pipelineIncorrectFramework)
+			It("returns an error", func() {
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("error in workflow: [invalidFramework] framework not support by provider"))
+			})
+		})
+
+		When("given a Pipeline resource with valid framework", func() {
+			patches, compilerConfig, _ := creator.pipelineDefinition(provider, pipeline)
 			It("creates a valid PipelineDefinition", func() {
 				Expect(compilerConfig.Name).To(Equal(common.NamespacedName{
 					Name:      "pipelineName",
@@ -53,6 +88,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 				Expect(compilerConfig.Image).To(Equal("pipelineImage"))
 				Expect(compilerConfig.Framework).To(Equal(expectedFramework))
 				Expect(compilerConfig.Env).To(Equal(expectedEnv))
+				Expect(patches).To(Equal(expectedPatches))
 			})
 
 			It("creates valid JSON", func() {
@@ -92,13 +128,8 @@ var _ = Describe("PipelineParamsCreator", func() {
 		When("the Pipeline resource specifies a framework", func() {
 			It("returns additional pipeline framework image parameter for the framework requested", func() {
 				expectedImage := "registry/pipelineFramework"
-				config := config.KfpControllerConfigSpec{
-					PipelineFrameworkImages: map[string]string{
-						"pipelineframework": expectedImage,
-					},
-				}
-				creator := PipelineParamsCreator{Config: config}
-				params, err := creator.additionalParams(pipeline)
+				creator := PipelineParamsCreator{}
+				params, err := creator.additionalParams(provider, pipeline)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(params).To(Equal([]argo.Parameter{
 					{
@@ -109,15 +140,11 @@ var _ = Describe("PipelineParamsCreator", func() {
 			})
 
 			It("returns an error if the requested framework is not found", func() {
-				config := config.KfpControllerConfigSpec{
-					PipelineFrameworkImages: map[string]string{
-						"somethingelse": "something/else",
-					},
-				}
-				creator := PipelineParamsCreator{Config: config}
-				_, err := creator.additionalParams(pipeline)
+				creator := PipelineParamsCreator{}
+				_, err := creator.additionalParams(provider, pipelineIncorrectFramework)
 
-				Expect(err.Error()).To(Equal("error in workflow: [pipelineframework] framework not found"))
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("error in workflow: [invalidFramework] framework not support by provider"))
 			})
 		})
 

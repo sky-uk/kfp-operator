@@ -57,9 +57,9 @@ func Filter[T any](ts []T, filter func(T) bool) (filtered []T) {
 }
 
 func Find[T any](ts []T, predicate func(T) bool) (*T, bool) {
-	for _, v := range ts {
-		if predicate(v) {
-			return &v, true
+	for _, t := range ts {
+		if predicate(t) {
+			return &t, true
 		}
 	}
 	return nil, false

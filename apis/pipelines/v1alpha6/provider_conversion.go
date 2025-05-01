@@ -16,13 +16,13 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 
 	var beamArgsPatchOps []common.JsonPatchOperation
 
-	for _, nv := range src.Spec.DefaultBeamArgs {
+	for _, namedValue := range src.Spec.DefaultBeamArgs {
 		patchOp := common.JsonPatchOperation{
 			Op:   "add",
 			Path: "/framework/parameters/beamArgs/0",
 			Value: map[string]string{
-				"name":  nv.Name,
-				"value": nv.Value,
+				"name":  namedValue.Name,
+				"value": namedValue.Value,
 			},
 		}
 
@@ -81,16 +81,16 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 		return framework.Name == "tfx"
 	})
 
-	if found {
-		beamArgs, err := hub.BeamArgsFromJsonPatches(tfxFramework.Patches)
-		if err != nil {
-			return err
-		}
-		dst.Spec.DefaultBeamArgs = beamArgs
-		dst.Spec.Image = remainder.Image
-	} else {
-		return fmt.Errorf("tfx framework not in provider frameworks: %v", src.Spec.Frameworks)
+	if !found {
+		return fmt.Errorf("tfx framework not in provider frameworks: %+v", src.Spec.Frameworks)
 	}
+
+	beamArgs, err := hub.BeamArgsFromJsonPatches(tfxFramework.Patches)
+	if err != nil {
+		return err
+	}
+	dst.Spec.DefaultBeamArgs = beamArgs
+	dst.Spec.Image = remainder.Image
 
 	status := src.Status.Conditions.GetSyncStateFromReason()
 

@@ -4,6 +4,7 @@ package v1alpha5
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -81,9 +82,15 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 			Expect(json.Unmarshal([]byte(intRemainderStr), &intRemainder)).To(Succeed())
 			Expect(intRemainder.Image).To(Equal(src.Spec.Image))
 			Expect(intRemainder.ServiceImage).To(Equal(""))
+
 			Expect(dst.ConvertFrom(intermediate)).To(Succeed())
 			Expect(pipelines.SetConversionAnnotations(src, &remainder)).To(Succeed())
-			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty()))
+
+			println(fmt.Sprintf("src: %+v", src))
+			println(fmt.Sprintf("intermediate: %+v", intermediate))
+			println(fmt.Sprintf("dst: %+v", dst))
+
+			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), syncStateComparer))
 		})
 	})
 })

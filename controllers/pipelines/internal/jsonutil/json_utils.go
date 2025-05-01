@@ -12,11 +12,11 @@ const (
 )
 
 func PatchJson(patches []pipelineshub.Patch, json []byte) (string, error) {
-	for _, p := range patches {
-		switch p.Type {
+	for _, patch := range patches {
+		switch patch.Type {
 		case JsonPatch:
 			{
-				patch, err := jsonpatch.DecodePatch([]byte(p.Patch))
+				patch, err := jsonpatch.DecodePatch([]byte(patch.Patch))
 				if err != nil {
 					return "", err
 				}
@@ -28,14 +28,14 @@ func PatchJson(patches []pipelineshub.Patch, json []byte) (string, error) {
 			}
 		case MergePatch:
 			{
-				patchedJson, err := jsonpatch.MergePatch(json, []byte(p.Patch))
+				patchedJson, err := jsonpatch.MergePatch(json, []byte(patch.Patch))
 				if err != nil {
 					return "", err
 				}
 				json = patchedJson
 			}
 		default:
-			return "", fmt.Errorf("invalid patch type: %s", p.Type)
+			return "", fmt.Errorf("invalid patch type: %s", patch.Type)
 		}
 
 	}

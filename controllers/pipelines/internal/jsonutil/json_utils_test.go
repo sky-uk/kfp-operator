@@ -37,7 +37,7 @@ var _ = Describe("PatchJson", func() {
 			result, err := PatchJson(patches, jsonBytes)
 			Expect(err).To(Not(HaveOccurred()))
 
-			var data map[string]interface{}
+			var data map[string]any
 			err = json.Unmarshal([]byte(result), &data)
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(data["baz"].(string)).To(Equal("c"))
@@ -62,11 +62,11 @@ var _ = Describe("PatchJson", func() {
 			result, err := PatchJson(patches, jsonBytes)
 			Expect(err).To(Not(HaveOccurred()))
 
-			var data map[string]interface{}
+			var data map[string]any
 			err = json.Unmarshal([]byte(result), &data)
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(data["bar"].([]interface{})[0].(string)).To(Equal("newValue"))
-			Expect(data["bar"].([]interface{})[1].(string)).To(Equal("b"))
+			Expect(data["bar"].([]any)[0].(string)).To(Equal("newValue"))
+			Expect(data["bar"].([]any)[1].(string)).To(Equal("b"))
 		})
 
 		It("creates a new array field and adds one element", func() {
@@ -88,10 +88,10 @@ var _ = Describe("PatchJson", func() {
 			result, err := PatchJson(patches, jsonBytes)
 			Expect(err).To(Not(HaveOccurred()))
 
-			var data map[string]interface{}
+			var data map[string]any
 			err = json.Unmarshal([]byte(result), &data)
 			Expect(err).To(Not(HaveOccurred()))
-			Expect(data["baz"].([]interface{})[0].(string)).To(Equal("hello"))
+			Expect(data["baz"].([]any)[0].(string)).To(Equal("hello"))
 		})
 	})
 
@@ -109,7 +109,7 @@ var _ = Describe("PatchJson", func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			println(result)
-			var data map[string]interface{}
+			var data map[string]any
 			err = json.Unmarshal([]byte(result), &data)
 			Expect(err).To(Not(HaveOccurred()))
 			Expect(data["foo"].(string)).To(Equal("z"))

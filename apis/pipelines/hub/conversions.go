@@ -60,26 +60,25 @@ func BeamArgsFromFramework(framework *PipelineFramework) ([]apis.NamedValue, err
 
 func BeamArgsFromJsonPatches(patches []Patch) ([]apis.NamedValue, error) {
 	var namedValues []apis.NamedValue
-	for _, p := range patches {
+	for _, patch := range patches {
 		var patchOps []apis.JsonPatchOperation
-		err := json.Unmarshal([]byte(p.Patch), &patchOps)
-		if err != nil {
+		if err := json.Unmarshal([]byte(patch.Patch), &patchOps); err != nil {
 			return nil, err
 		}
-		for _, po := range patchOps {
-			nv, ok := po.Value.(map[string]interface{})
+		for _, patchOp := range patchOps {
+			nameValue, ok := patchOp.Value.(map[string]any)
 			if !ok {
-				return nil, fmt.Errorf("expected map[string]interface{}, got %v", po.Value)
+				return nil, fmt.Errorf("expected map[string]any, got %v", patchOp.Value)
 			}
 
-			name, ok := nv["name"].(string)
+			name, ok := nameValue["name"].(string)
 			if !ok {
-				return nil, fmt.Errorf("expected string for 'name', got %v", nv["name"])
+				return nil, fmt.Errorf("expected string for 'name', got %v", nameValue["name"])
 			}
 
-			value, ok := nv["value"].(string)
+			value, ok := nameValue["value"].(string)
 			if !ok {
-				return nil, fmt.Errorf("expected string for 'value', got %v", nv["value"])
+				return nil, fmt.Errorf("expected string for 'value', got %v", nameValue["value"])
 			}
 
 			namedValues = append(namedValues, apis.NamedValue{
