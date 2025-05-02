@@ -97,14 +97,13 @@ func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, co
 			predicate.ResourceVersionChangedPredicate{},
 			predicate.Funcs{
 				UpdateFunc: func(e event.UpdateEvent) bool {
-					fmt.Printf("Old annotations: %+v\n", e.ObjectOld.GetAnnotations())
-					fmt.Printf("New annotations: %+v\n", e.ObjectNew.GetAnnotations())
-
-					oldLastConvertedVer, ok := e.ObjectOld.(*pipelineshub.Pipeline).GetAnnotations()[v1alpha6.LastConvertedVersion{}.ConversionAnnotation()]
+					oldLastConvertedVer, ok := e.ObjectOld.DeepCopyObject().(*pipelineshub.Pipeline).GetAnnotations()[v1alpha6.LastConvertedVersion{}.ConversionAnnotation()]
+					fmt.Printf("Old annotations: %+v\n", oldLastConvertedVer)
 					if !ok {
 						return true
 					}
-					newLastConvertedVer, ok := e.ObjectNew.(*pipelineshub.Pipeline).GetAnnotations()[v1alpha6.LastConvertedVersion{}.ConversionAnnotation()]
+					newLastConvertedVer, ok := e.ObjectNew.DeepCopyObject().(*pipelineshub.Pipeline).GetAnnotations()[v1alpha6.LastConvertedVersion{}.ConversionAnnotation()]
+					fmt.Printf("New annotations: %+v\n", newLastConvertedVer)
 					if !ok {
 						return true
 					}
