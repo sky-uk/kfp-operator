@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -96,6 +97,9 @@ func (dr DependingOnPipelineReconciler[R]) setupWithManager(mgr ctrl.Manager, co
 			predicate.ResourceVersionChangedPredicate{},
 			predicate.Funcs{
 				UpdateFunc: func(e event.UpdateEvent) bool {
+					fmt.Printf("Old annotations: %+v\n", e.ObjectOld.GetAnnotations())
+					fmt.Printf("New annotations: %+v\n", e.ObjectNew.GetAnnotations())
+
 					oldLastConvertedVer, ok := e.ObjectOld.(*pipelineshub.Pipeline).GetAnnotations()[v1alpha6.LastConvertedVersion{}.ConversionAnnotation()]
 					if !ok {
 						return true
