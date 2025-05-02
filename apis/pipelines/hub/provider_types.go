@@ -46,8 +46,8 @@ type Framework struct {
 }
 
 type Patch struct {
-	Type  string `json:"type,omitempty" yaml:"type,omitempty"`
-	Patch string `json:"patch,omitempty" yaml:"patch,omitempty"`
+	Type    string `json:"type,omitempty" yaml:"type,omitempty"`
+	Payload string `json:"payload,omitempty" yaml:"payload,omitempty"`
 }
 
 func (p *Provider) ComputeVersion() string {

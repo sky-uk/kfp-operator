@@ -62,7 +62,7 @@ func BeamArgsFromJsonPatches(patches []Patch) ([]apis.NamedValue, error) {
 	var namedValues []apis.NamedValue
 	for _, patch := range patches {
 		var patchOps []apis.JsonPatchOperation
-		if err := json.Unmarshal([]byte(patch.Patch), &patchOps); err != nil {
+		if err := json.Unmarshal([]byte(patch.Payload), &patchOps); err != nil {
 			return nil, err
 		}
 		for _, patchOp := range patchOps {

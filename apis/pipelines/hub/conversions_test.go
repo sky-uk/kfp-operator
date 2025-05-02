@@ -162,7 +162,7 @@ var _ = Context("Conversions", func() {
 			bytes, err := json.Marshal(patchOps)
 			Expect(err).To(Not(HaveOccurred()))
 			patches := []Patch{
-				{Type: "json", Patch: string(bytes)},
+				{Type: "json", Payload: string(bytes)},
 			}
 
 			beamArgsFromPatches, err := BeamArgsFromJsonPatches(patches)
@@ -185,7 +185,7 @@ var _ = Context("Conversions", func() {
 			bytes, err := json.Marshal(patchOps)
 			Expect(err).To(Not(HaveOccurred()))
 			patches := []Patch{
-				{Type: "json", Patch: string(bytes)},
+				{Type: "json", Payload: string(bytes)},
 			}
 
 			_, err = BeamArgsFromJsonPatches(patches)
@@ -207,7 +207,7 @@ var _ = Context("Conversions", func() {
 			bytes, err := json.Marshal(patchOps)
 			Expect(err).To(Not(HaveOccurred()))
 			patches := []Patch{
-				{Type: "json", Patch: string(bytes)},
+				{Type: "json", Payload: string(bytes)},
 			}
 
 			_, err = BeamArgsFromJsonPatches(patches)

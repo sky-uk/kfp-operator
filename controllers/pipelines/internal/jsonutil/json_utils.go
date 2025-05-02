@@ -16,7 +16,7 @@ func PatchJson(patches []pipelineshub.Patch, json []byte) (string, error) {
 		switch patch.Type {
 		case JsonPatch:
 			{
-				patch, err := jsonpatch.DecodePatch([]byte(patch.Patch))
+				patch, err := jsonpatch.DecodePatch([]byte(patch.Payload))
 				if err != nil {
 					return "", err
 				}
@@ -28,7 +28,7 @@ func PatchJson(patches []pipelineshub.Patch, json []byte) (string, error) {
 			}
 		case MergePatch:
 			{
-				patchedJson, err := jsonpatch.MergePatch(json, []byte(patch.Patch))
+				patchedJson, err := jsonpatch.MergePatch(json, []byte(patch.Payload))
 				if err != nil {
 					return "", err
 				}

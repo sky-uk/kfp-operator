@@ -38,12 +38,12 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	if len(beamArgsPatchOps) > 0 {
 		patchOpsBytes, err := json.Marshal(beamArgsPatchOps)
 		if err != nil {
-			return errors.New("failed to marshal patch operations to JSON")
+			return fmt.Errorf("failed to marshal patch operations: %w", err)
 		}
 
 		patch := hub.Patch{
-			Type:  "json",
-			Patch: string(patchOpsBytes),
+			Type:    "json",
+			Payload: string(patchOpsBytes),
 		}
 
 		tfxFramework.Patches = []hub.Patch{patch}

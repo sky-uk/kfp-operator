@@ -31,7 +31,7 @@ var _ = Describe("PatchJson", func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			patches := []pipelineshub.Patch{
-				{Type: JsonPatch, Patch: string(patchOpJson)},
+				{Type: JsonPatch, Payload: string(patchOpJson)},
 			}
 
 			result, err := PatchJson(patches, jsonBytes)
@@ -56,7 +56,7 @@ var _ = Describe("PatchJson", func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			patches := []pipelineshub.Patch{
-				{Type: JsonPatch, Patch: string(patchOpJson)},
+				{Type: JsonPatch, Payload: string(patchOpJson)},
 			}
 
 			result, err := PatchJson(patches, jsonBytes)
@@ -82,7 +82,7 @@ var _ = Describe("PatchJson", func() {
 			Expect(err).To(Not(HaveOccurred()))
 
 			patches := []pipelineshub.Patch{
-				{Type: JsonPatch, Patch: string(patchOpJson)},
+				{Type: JsonPatch, Payload: string(patchOpJson)},
 			}
 
 			result, err := PatchJson(patches, jsonBytes)
@@ -102,7 +102,7 @@ var _ = Describe("PatchJson", func() {
 			jsonBytes := []byte(jsonString)
 
 			patches := []pipelineshub.Patch{
-				{Type: MergePatch, Patch: mergeString},
+				{Type: MergePatch, Payload: mergeString},
 			}
 
 			result, err := PatchJson(patches, jsonBytes)
@@ -120,7 +120,7 @@ var _ = Describe("PatchJson", func() {
 
 	It("fails when using an invalid patch type", func() {
 		patches := []pipelineshub.Patch{
-			{Type: "invalid", Patch: ""},
+			{Type: "invalid", Payload: ""},
 		}
 
 		_, err := PatchJson(patches, []byte(""))

@@ -31,8 +31,8 @@ var _ = Describe("PipelineParamsCreator", func() {
 
 	expectedPatches := []pipelineshub.Patch{
 		{
-			Type:  "json",
-			Patch: `{"op": "add", "path": "/spec/parameters", "value": {"a": "b"}}`,
+			Type:    "json",
+			Payload: `{"op": "add", "path": "/spec/parameters", "value": {"a": "b"}}`,
 		},
 	}
 

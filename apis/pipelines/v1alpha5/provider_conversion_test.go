@@ -34,7 +34,7 @@ var _ = Context("Provider Conversion", PropertyBased, func() {
 			bytes, err := json.Marshal(patchOps)
 			Expect(err).To(Not(HaveOccurred()))
 			framework.Patches = []hub.Patch{
-				{Type: "json", Patch: string(bytes)},
+				{Type: "json", Payload: string(bytes)},
 			}
 
 			src.Spec.Frameworks = []hub.Framework{framework}

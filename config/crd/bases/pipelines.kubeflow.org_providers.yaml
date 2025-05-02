@@ -353,7 +353,7 @@ spec:
                     patches:
                       items:
                         properties:
-                          patch:
+                          payload:
                             type: string
                           type:
                             type: string
