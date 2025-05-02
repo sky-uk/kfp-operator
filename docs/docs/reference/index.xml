@@ -19,6 +19,11 @@
  &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
+ &lt;td style="text-align: left">&lt;code>defaultTfxImage&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td>
+ &lt;td style="text-align: left">&lt;code>gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code>&lt;/td>
+ &lt;/tr>
+ &lt;tr>
  &lt;td style="text-align: left">&lt;code>multiversion&lt;/code>&lt;/td>
  &lt;td style="text-align: left">If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
  &lt;td style="text-align: left">&lt;code>true&lt;/code>&lt;/td>
@@ -37,11 +42,6 @@
  &lt;td style="text-align: left">&lt;code>runCompletionFeed&lt;/code>&lt;/td>
  &lt;td style="text-align: left">&lt;a href="#run-completion-feed-configuration">Configuration of the service&lt;/a> for the run completion feed back to KFP Operator&lt;/td>
  &lt;td style="text-align: left">&lt;/td>
- &lt;/tr>
- &lt;tr>
- &lt;td style="text-align: left">&lt;code>frameworks&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Map of pipeline framework to docker image. Pipeline framework to match value in &lt;a href="../resources/pipeline">Pipeline resource&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;code>default: kfp-operator-tfx-compiler:latest&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>defaultProviderValues&lt;/code>&lt;/td>

@@ -31,7 +31,7 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	if remainder.Framework.Type != "" {
+	if remainder.Framework.Name != "" {
 		dst.Spec.Framework = remainder.Framework
 	} else if src.Spec.TfxComponents != "" {
 		framework := hub.NewPipelineFramework("tfx")
@@ -69,7 +69,7 @@ func (dst *Pipeline) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 	dst.Status.SynchronizationState = status
 
-	if src.Spec.Framework.Type != "tfx" {
+	if src.Spec.Framework.Name != "tfx" {
 		remainder.Framework = src.Spec.Framework
 	}
 

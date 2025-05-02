@@ -22,7 +22,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 	}
 
 	expectedFramework := pipelineshub.PipelineFramework{
-		Type: "pipelineFramework",
+		Name: "pipelineFramework",
 		Parameters: map[string]*apiextensionsv1.JSON{
 			"a": {Raw: []byte(`"b"`)},
 			"c": {Raw: []byte(`"d"`)},
@@ -44,7 +44,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 		Spec: pipelineshub.ProviderSpec{
 			Frameworks: []pipelineshub.Framework{
 				{
-					Name:    strings.ToLower(expectedFramework.Type),
+					Name:    strings.ToLower(expectedFramework.Name),
 					Image:   "registry/pipelineFramework",
 					Patches: expectedPatches,
 				},
@@ -65,7 +65,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 	}
 
 	pipelineIncorrectFramework := pipeline.DeepCopy()
-	pipelineIncorrectFramework.Spec.Framework.Type = "invalidFramework"
+	pipelineIncorrectFramework.Spec.Framework.Name = "invalidFramework"
 
 	Context("pipelineDefinition", func() {
 		creator := PipelineParamsCreator{}
@@ -109,7 +109,7 @@ var _ = Describe("PipelineParamsCreator", func() {
 				framework, ok := resultMap["framework"].(map[string]interface{})
 				Expect(ok).To(BeTrue())
 
-				Expect(framework["type"]).To(Equal(expectedFramework.Type))
+				Expect(framework["name"]).To(Equal(expectedFramework.Name))
 
 				parameters := framework["parameters"].(map[string]interface{})
 				Expect(parameters["a"]).To(Equal("b"))

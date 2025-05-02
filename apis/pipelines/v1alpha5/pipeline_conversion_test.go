@@ -84,7 +84,7 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 		Specify("converts to and from the same object when the framework is not tfx", func() {
 			provider := common.RandomNamespacedName()
 			src := hub.RandomPipeline(provider)
-			src.Spec.Framework.Type = "some-other-framework"
+			src.Spec.Framework.Name = "some-other-framework"
 			intermediate := &Pipeline{}
 			dst := &hub.Pipeline{}
 

@@ -16,7 +16,7 @@ import (
 type PipelineParamsCreator struct{}
 
 func findFramework(provider pipelineshub.Provider, pipeline *pipelineshub.Pipeline) (*pipelineshub.Framework, bool) {
-	requestedFramework := strings.ToLower(pipeline.Spec.Framework.Type)
+	requestedFramework := strings.ToLower(pipeline.Spec.Framework.Name)
 
 	return apis.Find(provider.Spec.Frameworks, func(framework pipelineshub.Framework) bool {
 		return framework.Name == requestedFramework
@@ -29,7 +29,7 @@ func (ppc PipelineParamsCreator) pipelineDefinition(
 	framework, found := findFramework(provider, pipeline)
 
 	if !found {
-		return nil, providers.PipelineDefinition{}, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not support by provider", pipeline.Spec.Framework.Type)}
+		return nil, providers.PipelineDefinition{}, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not support by provider", pipeline.Spec.Framework.Name)}
 	}
 
 	return framework.Patches, providers.PipelineDefinition{
@@ -48,7 +48,7 @@ func (ppc PipelineParamsCreator) additionalParams(provider pipelineshub.Provider
 	framework, found := findFramework(provider, pipeline)
 
 	if !found {
-		return nil, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not support by provider", pipeline.Spec.Framework.Type)}
+		return nil, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not support by provider", pipeline.Spec.Framework.Name)}
 	}
 
 	return []argo.Parameter{

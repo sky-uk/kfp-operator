@@ -232,7 +232,7 @@ components:
             framework:
               type: object
               properties:
-                type:
+                name:
                   type: string
                 parameters:
                   type: object

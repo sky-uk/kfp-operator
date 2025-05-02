@@ -136,7 +136,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("The pipeline version is not fixed and the pipeline has succeeded", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
 			pipeline := pipelineshub.RandomPipeline(Provider.GetCommonNamespacedName())
-			pipeline.Spec.Framework.Type = TestFramework
+			pipeline.Spec.Framework.Name = TestFramework
 			CreateSucceeded(pipeline)
 
 			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
@@ -153,7 +153,7 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 	When("The pipeline version is not fixed and the pipeline succeeds", func() {
 		It("triggers a create with an ObservedPipelineVersion that matches the current pipeline version", func() {
 			pipeline := pipelineshub.RandomPipeline(Provider.GetCommonNamespacedName())
-			pipeline.Spec.Framework.Type = TestFramework
+			pipeline.Spec.Framework.Name = TestFramework
 			pipelineHelper := CreateStable(pipeline)
 
 			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
