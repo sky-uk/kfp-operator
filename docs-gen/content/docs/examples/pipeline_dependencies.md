@@ -20,72 +20,75 @@ The code for this tutorial can be found on [GitHub]({{< param "github_repo" >}}/
 
 ## 1. Build and deploy the Penguin Examples Pipeline
 
-The penguin examples pipeline loads the CSV data and makes it available as an output artifact.
+The `penguin_examples` pipeline loads the CSV data and makes it available as an output artifact. The code for this pipeline can be found under [quickstart-base]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/master/quickstart-with-dependencies/quickstart-base).
 
 First, create the pipeline code in `penguin_examples/pipeline.py`:
 
-{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_examples/pipeline.py" code="true" lang="python" %}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/quickstart-base/penguin_examples/pipeline.py" code="true" lang="python" %}}
 
-Next, create `penguin_examples/Dockerfile`, then build and push the pipeline image:
+Next, create the following `Dockerfile`, then build and push the pipeline image:
 
-{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_examples/Dockerfile" code="true" lang="Dockerfile" %}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/quickstart-base/Dockerfile" code="true" lang="Dockerfile" %}}
 
 ```bash
-docker build penguin_examples -t kfp-dependent-examples:v1
-docker push kfp-dependent-examples:v1
+docker build quickstart-base -t kfp-quickstart-base:v1
+docker push kfp-quickstart-base:v1
 ```
 
 Now create and apply the resources needed to compile and train the penguin examples pipeline:
 
-Create `penguin_examples/resources/pipeline.yaml`. The specification has not changed from the original example.
+Create `quickstart-base/resources/pipeline.yaml`. The specification has not changed from the original example.
 
-{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_examples/resources/pipeline.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/quickstart-base/resources/pipeline.yaml" code="true" lang="yaml"%}}
 
-Create `penguin_examples/resources/runconfiguration.yaml` which schedules the pipeline to be trained at regular intervals and specifies the output artifacts that it exposes.
+Create `quickstart-base/resources/runconfiguration.yaml` which schedules the pipeline to be trained at regular intervals and specifies the output artifacts that it exposes.
 
-{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_examples/resources/runconfiguration.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/quickstart-base/resources/runconfiguration.yaml" code="true" lang="yaml"%}}
 
 Finally, apply the resources:
 
 ```bash
-kubectl apply -f penguin_examples/resources/pipeline.yaml
-kubectl apply -f penguin_examples/resources/runconfiguration.yaml
+kubectl apply -f quickstart-base/resources/pipeline.yaml
+kubectl apply -f quickstart-base/resources/runconfiguration.yaml
 ```
 
 ## 2. Build and deploy the Penguin Training Pipeline
 
+The `penguin_training` pipeline imports the artifact exposed by the `penguin_examples` pipeline and trains a model in the same way as [the original pipeline](../pipeline_training/).
+The code for this pipeline can be found under [quickstart-dependant]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/master/quickstart-with-dependencies/quickstart-dependant).
+
 Create `penguin_training/pipeline.py` which imports the artifact as referenced by its runtime parameters. Note that the `CsvExampleGen` has been replaced by a `ImportExampleGen`:
 
-{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_training/pipeline.py" code="true" lang="python"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/quickstart-dependant/penguin_training/pipeline.py" code="true" lang="python"%}}
 
 Next create `penguin_training/trainer.py`, which has not changed from [the original pipeline](../pipeline_training/).
 
-Create `penguin_training/Dockerfile`. In contrast to the above, this Dockerfile does not include the examples CSV.
+Create the following `Dockerfile`. In contrast to the above, this Dockerfile does not include the examples CSV.
 
 
-{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_training/Dockerfile" code="true" lang="Dockerfile"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/quickstart-dependant/Dockerfile" code="true" lang="Dockerfile"%}}
 
 
 Next, build the pipeline as a Docker container and push it:
 
 ```bash
-docker build penguin_training -t kfp-dependent-training:v1
-docker push kfp-dependent-training:v1
+docker build quickstart-dependant -t kfp-quickstart-dependant:v1
+docker push kfp-quickstart-dependant:v1
 ```
 
 Now create and apply the resources needed to compile and train the penguin training pipeline.
-`penguin_training/resources/pipeline.yaml` has not changed from the original example:
+`quickstart-dependant/resources/pipeline.yaml` has not changed from the original example:
 
-{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_training/resources/pipeline.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/quickstart-dependant/resources/pipeline.yaml" code="true" lang="yaml"%}}
 
 
-`penguin_training/resources/runconfiguration.yaml` has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:
+`quickstart-dependant/resources/runconfiguration.yaml` has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:
 
-{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_training/resources/runconfiguration.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/quickstart-dependant/resources/runconfiguration.yaml" code="true" lang="yaml"%}}
 
 Apply the resources as follows:
 
 ```bash
-kubectl apply -f penguin_training/resources/pipeline.yaml
-kubectl apply -f penguin_training/resources/runconfiguration.yaml
+kubectl apply -f quickstart-dependant/resources/pipeline.yaml
+kubectl apply -f quickstart-dependant/resources/runconfiguration.yaml
 ```
