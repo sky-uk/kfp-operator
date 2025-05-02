@@ -1,0 +1,12 @@
+[tool.poetry]
+name = "penguin-examples"
+version = "0.1.0"
+description = ""
+authors = []
+
+[tool.poetry.dependencies]
+python = "3.10.12"
+tfx = "1.15.1"
+shapely = "<2"
+kfp = "1.8.22"
+setuptools = "~=70.0"

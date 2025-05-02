@@ -16,7 +16,7 @@ In this example, we break up the penguin example pipeline into two pipelines:
 
 This example might not be of practical use but it demonstrates the approach to managing pipeline dependencies.
 
-The code for this tutorial can be found on [GitHub]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/master/dependent).
+The code for this tutorial can be found on [GitHub]({{< param "github_repo" >}}/blob/{{< param "github_branch" >}}/{{< param "github_subdir" >}}/includes/master/quickstart-with-dependencies).
 
 ## 1. Build and deploy the Penguin Examples Pipeline
 
@@ -24,11 +24,11 @@ The penguin examples pipeline loads the CSV data and makes it available as an ou
 
 First, create the pipeline code in `penguin_examples/pipeline.py`:
 
-{{% readfile file="/includes/master/dependent/penguin_examples/pipeline.py" code="true" lang="python" %}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_examples/pipeline.py" code="true" lang="python" %}}
 
 Next, create `penguin_examples/Dockerfile`, then build and push the pipeline image:
 
-{{% readfile file="/includes/master/dependent/penguin_examples/Dockerfile" code="true" lang="Dockerfile" %}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_examples/Dockerfile" code="true" lang="Dockerfile" %}}
 
 ```bash
 docker build penguin_examples -t kfp-dependent-examples:v1
@@ -37,33 +37,33 @@ docker push kfp-dependent-examples:v1
 
 Now create and apply the resources needed to compile and train the penguin examples pipeline:
 
-Create `pipeline_examples.yaml`. The specification has not changed from the original example.
+Create `penguin_examples/resources/pipeline.yaml`. The specification has not changed from the original example.
 
-{{% readfile file="/includes/master/dependent/resources/pipeline_examples.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_examples/resources/pipeline.yaml" code="true" lang="yaml"%}}
 
-Create `runconfiguration_examples.yaml` which schedules the pipeline to be trained at regular intervals and specifies the output artifacts that it exposes.
+Create `penguin_examples/resources/runconfiguration.yaml` which schedules the pipeline to be trained at regular intervals and specifies the output artifacts that it exposes.
 
-{{% readfile file="/includes/master/dependent/resources/runconfiguration_examples.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_examples/resources/runconfiguration.yaml" code="true" lang="yaml"%}}
 
 Finally, apply the resources:
 
 ```bash
-kubectl apply -f resources/pipeline_examples.yaml
-kubectl apply -f resources/runconfiguration_examples.yaml
+kubectl apply -f penguin_examples/resources/pipeline.yaml
+kubectl apply -f penguin_examples/resources/runconfiguration.yaml
 ```
 
 ## 2. Build and deploy the Penguin Training Pipeline
 
 Create `penguin_training/pipeline.py` which imports the artifact as referenced by its runtime parameters. Note that the `CsvExampleGen` has been replaced by a `ImportExampleGen`:
 
-{{% readfile file="/includes/master/dependent/penguin_training/pipeline.py" code="true" lang="python"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_training/pipeline.py" code="true" lang="python"%}}
 
 Next create `penguin_training/trainer.py`, which has not changed from [the original pipeline](../pipeline_training/).
 
 Create `penguin_training/Dockerfile`. In contrast to the above, this Dockerfile does not include the examples CSV.
 
 
-{{% readfile file="/includes/master/dependent/penguin_training/Dockerfile" code="true" lang="Dockerfile"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_training/Dockerfile" code="true" lang="Dockerfile"%}}
 
 
 Next, build the pipeline as a Docker container and push it:
@@ -74,18 +74,18 @@ docker push kfp-dependent-training:v1
 ```
 
 Now create and apply the resources needed to compile and train the penguin training pipeline.
-`pipeline_training.yaml` has not changed from the original example:
+`penguin_training/resources/pipeline.yaml` has not changed from the original example:
 
-{{% readfile file="/includes/master/dependent/resources/pipeline_training.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_training/resources/pipeline.yaml" code="true" lang="yaml"%}}
 
 
-`runconfiguration_training.yaml` has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:
+`penguin_training/resources/runconfiguration.yaml` has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:
 
-{{% readfile file="/includes/master/dependent/resources/runconfiguration_training.yaml" code="true" lang="yaml"%}}
+{{% readfile file="/includes/master/quickstart-with-dependencies/penguin_training/resources/runconfiguration.yaml" code="true" lang="yaml"%}}
 
 Apply the resources as follows:
 
 ```bash
-kubectl apply -f resources/pipeline_training.yaml
-kubectl apply -f resources/runconfiguration_training.yaml
+kubectl apply -f penguin_training/resources/pipeline.yaml
+kubectl apply -f penguin_training/resources/runconfiguration.yaml
 ```
