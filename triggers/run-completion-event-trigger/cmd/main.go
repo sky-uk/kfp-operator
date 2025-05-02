@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
+
 	"github.com/go-logr/logr"
 	"github.com/nats-io/nats.go"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -13,7 +15,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
-	"net"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -53,6 +55,8 @@ func main() {
 	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: natsPublisher})
 
 	healthpb.RegisterHealthServer(s, &server.HealthServer{HealthCheck: natsPublisher})
+
+	reflection.Register(s)
 
 	logger.Info("Listening at", "host", config.ServerConfig.Host, "port", config.ServerConfig.Port)
 	if err := s.Serve(lis); err != nil {
