@@ -36,12 +36,16 @@ func NewPipelineFramework(compilerType string) PipelineFramework {
 }
 
 func (ps Pipeline) ComputeHash() []byte {
+	pipeline := ps.DeepCopy()
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(ps.Spec.Image)
 
-	if ps.Spec.Framework.Parameters["tfxComponents"] != nil {
+	isDefaultFramework := pipeline.Spec.Framework.Name == DefaultFallbackFramework
+
+	tfxComponentString := ""
+	if isDefaultFramework && pipeline.Spec.Framework.Parameters["components"] != nil {
 		tfxComponents := map[string]string{}
-		err := json.Unmarshal(ps.Spec.Framework.Parameters["tfxComponents"].Raw, &tfxComponents)
+		err := json.Unmarshal(pipeline.Spec.Framework.Parameters["components"].Raw, &tfxComponents)
 		if err != nil {
 			return nil
 		}
@@ -49,37 +53,44 @@ func (ps Pipeline) ComputeHash() []byte {
 		for _, v := range tfxComponents {
 			tfxComponentsList = append(tfxComponentsList, v)
 		}
-		oh.WriteStringField(strings.Join(tfxComponentsList, ""))
-		delete(ps.Spec.Framework.Parameters, "tfxComponents")
+
+		tfxComponentString = strings.Join(tfxComponentsList, "")
+
+		delete(pipeline.Spec.Framework.Parameters, "components")
 	}
 
-	pipelines.WriteKVListField(oh, ps.Spec.Env)
+	oh.WriteStringField(tfxComponentString)
 
-	if ps.Spec.Framework.Parameters["beamArgs"] != nil {
+	pipelines.WriteKVListField(oh, pipeline.Spec.Env)
+
+	beamArgsList := []apis.NamedValue{}
+	if isDefaultFramework && pipeline.Spec.Framework.Parameters["beamArgs"] != nil {
 		beamArgs := map[string]string{}
-		err := json.Unmarshal(ps.Spec.Framework.Parameters["beamArgs"].Raw, &beamArgs)
+		err := json.Unmarshal(pipeline.Spec.Framework.Parameters["beamArgs"].Raw, &beamArgs)
 		if err != nil {
 			return nil
 		}
-		beamArgsList := []apis.NamedValue{}
+
 		for k, v := range beamArgs {
 			beamArgsList = append(beamArgsList, apis.NamedValue{Name: k, Value: v})
 		}
-		pipelines.WriteKVListField(oh, beamArgsList)
-		delete(ps.Spec.Framework.Parameters, "beamArgs")
-	}
 
-	if len(ps.Spec.Framework.Parameters) > 0 {
+		delete(pipeline.Spec.Framework.Parameters, "beamArgs")
+	}
+	pipelines.WriteKVListField(oh, beamArgsList)
+
+	if len(pipeline.Spec.Framework.Parameters) > 0 {
 		output := make(map[string]string)
 		for key, value := range ps.Spec.Framework.Parameters {
 			raw, _ := json.Marshal(value.Raw)
 			output[key] = string(raw)
 		}
+
 		oh.WriteMapField(output)
 	}
 
-	if ps.Spec.Framework.Name != DefaultFallbackFramework {
-		oh.WriteStringField(ps.Spec.Framework.Name)
+	if !isDefaultFramework {
+		oh.WriteStringField(pipeline.Spec.Framework.Name)
 	}
 
 	return oh.Sum()
