@@ -4,6 +4,7 @@ metadata:
   name: penguin-pipeline-training-rc
 spec:
   run:
+    provider: provider-namespace/kfp
     pipeline: penguin-pipeline-training
     runtimeParameters:
     - name: examples_location

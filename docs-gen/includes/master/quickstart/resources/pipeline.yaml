@@ -3,7 +3,9 @@ kind: Pipeline
 metadata:
   name: penguin-pipeline
 spec:
-  provider: kfp
+  provider: provider-namespace/kfp
   image: kfp-quickstart:v1
-  tfxComponents: pipeline.create_components
-  framework: tfx
+  framework:
+    type: tfx
+    parameters:
+      pipeline: penguin_pipeline.pipeline.create_components

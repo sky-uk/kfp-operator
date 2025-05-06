@@ -4,6 +4,7 @@ metadata:
     name: penguin-pipeline-recurring-run
 spec:
     run:
+      provider: provider-namespace/kfp
       pipeline: penguin-pipeline
       experimentName: penguin-experiment
     triggers:

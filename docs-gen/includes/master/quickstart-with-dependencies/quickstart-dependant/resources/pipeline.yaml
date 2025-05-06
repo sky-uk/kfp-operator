@@ -3,5 +3,9 @@ kind: Pipeline
 metadata:
   name: penguin-pipeline-training
 spec:
+  provider: provider-namespace/kfp
   image: kfp-quickstart-base:v1
-  tfxComponents: pipeline.create_components
+  framework:
+    type: tfx
+    parameters:
+      pipeline: penguin_training.pipeline.create_components
