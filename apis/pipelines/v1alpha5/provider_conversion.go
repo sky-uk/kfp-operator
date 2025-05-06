@@ -1,7 +1,10 @@
 package v1alpha5
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	common "github.com/sky-uk/kfp-operator/apis"
 
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -11,6 +14,42 @@ import (
 func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Provider)
 	dstApiVersion := dst.APIVersion
+
+	var beamArgsPatchOps []common.JsonPatchOperation
+
+	for _, namedValue := range src.Spec.DefaultBeamArgs {
+		patchOp := common.JsonPatchOperation{
+			Op:   "add",
+			Path: "/framework/parameters/beamArgs/0",
+			Value: map[string]string{
+				"name":  namedValue.Name,
+				"value": namedValue.Value,
+			},
+		}
+
+		beamArgsPatchOps = append(beamArgsPatchOps, patchOp)
+	}
+
+	tfxFramework := hub.Framework{
+		Name:  "tfx",
+		Image: DefaultTfxImage,
+	}
+
+	if len(beamArgsPatchOps) > 0 {
+		patchOpsBytes, err := json.Marshal(beamArgsPatchOps)
+		if err != nil {
+			return fmt.Errorf("failed to marshal patch operations: %w", err)
+		}
+
+		patch := hub.Patch{
+			Type:    "json",
+			Payload: string(patchOpsBytes),
+		}
+
+		tfxFramework.Patches = []hub.Patch{patch}
+	}
+
+	dst.Spec.Frameworks = []hub.Framework{tfxFramework}
 
 	remainder := ProviderConversionRemainder{}
 
@@ -48,15 +87,29 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
-	status := src.Status.Conditions.GetSyncStateFromReason()
+	tfxFramework, found := common.Find(src.Spec.Frameworks, func(framework hub.Framework) bool {
+		return framework.Name == "tfx"
+	})
 
-	dst.Status.SynchronizationState = status
+	if !found {
+		return fmt.Errorf("tfx framework not in provider frameworks: %+v", src.Spec.Frameworks)
+	}
+
+	beamArgs, err := hub.BeamArgsFromJsonPatches(tfxFramework.Patches)
+	if err != nil {
+		return err
+	}
+
+	dst.Spec.DefaultBeamArgs = beamArgs
+	dst.Spec.Image = tfxFramework.Image
+
+	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Spec.Image = remainder.Image
 	dst.Spec.Parameters = src.Spec.Parameters
+	dst.Spec.Image = remainder.Image
 
-	remainder.Image = ""
 	remainder.ServiceImage = src.Spec.ServiceImage
+	remainder.Image = ""
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

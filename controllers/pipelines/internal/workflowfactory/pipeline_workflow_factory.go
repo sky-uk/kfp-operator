@@ -2,6 +2,7 @@ package workflowfactory
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/apis"
 	"strings"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -12,16 +13,26 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 )
 
-type PipelineParamsCreator struct {
-	Config config.KfpControllerConfigSpec
+type PipelineParamsCreator struct{}
+
+func findFramework(provider pipelineshub.Provider, pipeline *pipelineshub.Pipeline) (*pipelineshub.Framework, bool) {
+	requestedFramework := strings.ToLower(pipeline.Spec.Framework.Name)
+
+	return apis.Find(provider.Spec.Frameworks, func(framework pipelineshub.Framework) bool {
+		return framework.Name == requestedFramework
+	})
 }
 
-const defaultFramework = "default"
-
 func (ppc PipelineParamsCreator) pipelineDefinition(
-	pipeline *pipelineshub.Pipeline,
-) (providers.PipelineDefinition, error) {
-	return providers.PipelineDefinition{
+	provider pipelineshub.Provider, pipeline *pipelineshub.Pipeline,
+) ([]pipelineshub.Patch, providers.PipelineDefinition, error) {
+	framework, found := findFramework(provider, pipeline)
+
+	if !found {
+		return nil, providers.PipelineDefinition{}, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not support by provider", pipeline.Spec.Framework.Name)}
+	}
+
+	return framework.Patches, providers.PipelineDefinition{
 		Name: common.NamespacedName{
 			Namespace: pipeline.ObjectMeta.Namespace,
 			Name:      pipeline.ObjectMeta.Name,
@@ -33,17 +44,17 @@ func (ppc PipelineParamsCreator) pipelineDefinition(
 	}, nil
 }
 
-func (ppc PipelineParamsCreator) additionalParams(pipeline *pipelineshub.Pipeline) ([]argo.Parameter, error) {
-	requestedFramework := strings.ToLower(pipeline.Spec.Framework.Type)
-	frameworkImage, found := ppc.Config.PipelineFrameworkImages[requestedFramework]
+func (ppc PipelineParamsCreator) additionalParams(provider pipelineshub.Provider, pipeline *pipelineshub.Pipeline) ([]argo.Parameter, error) {
+	framework, found := findFramework(provider, pipeline)
+
 	if !found {
-		return nil, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not found", requestedFramework)}
+		return nil, &workflowconstants.WorkflowParameterError{SubError: fmt.Sprintf("[%s] framework not support by provider", pipeline.Spec.Framework.Name)}
 	}
 
 	return []argo.Parameter{
 		{
 			Name:  workflowconstants.PipelineFrameworkImageParameterName,
-			Value: argo.AnyStringPtr(frameworkImage),
+			Value: argo.AnyStringPtr(framework.Image),
 		},
 	}, nil
 }
@@ -51,9 +62,7 @@ func (ppc PipelineParamsCreator) additionalParams(pipeline *pipelineshub.Pipelin
 func PipelineWorkflowFactory(
 	config config.KfpControllerConfigSpec,
 ) *ResourceWorkflowFactory[*pipelineshub.Pipeline, providers.PipelineDefinition] {
-	creator := PipelineParamsCreator{
-		Config: config,
-	}
+	creator := PipelineParamsCreator{}
 	return &ResourceWorkflowFactory[*pipelineshub.Pipeline, providers.PipelineDefinition]{
 		DefinitionCreator:     creator.pipelineDefinition,
 		WorkflowParamsCreator: creator.additionalParams,

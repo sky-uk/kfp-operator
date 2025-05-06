@@ -97,7 +97,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating the referenced pipeline with no version specified on the RC", func() {
 		It("triggers an update of the run configuration", func() {
 			pipeline := pipelineshub.RandomPipeline(Provider.GetCommonNamespacedName())
-			pipeline.Spec.Framework.Type = TestFramework
+			pipeline.Spec.Framework.Name = TestFramework
 			pipelineHelper := CreateSucceeded(pipeline)
 
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
@@ -108,7 +108,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			pipelineHelper.UpdateStable(func(pipeline *pipelineshub.Pipeline) {
 				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.GetCommonNamespacedName())
-				pipeline.Spec.Framework.Type = TestFramework
+				pipeline.Spec.Framework.Name = TestFramework
 			})
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
@@ -118,7 +118,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		It("change trigger creates a run when the pipeline is updated", func() {
 			pipeline := pipelineshub.RandomPipeline(Provider.GetCommonNamespacedName())
-			pipeline.Spec.Framework.Type = TestFramework
+			pipeline.Spec.Framework.Name = TestFramework
 			pipelineHelper := CreateSucceeded(pipeline)
 			firstPipelineVersion := pipeline.ComputeVersion()
 
@@ -136,7 +136,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			pipelineHelper.UpdateStable(func(pipeline *pipelineshub.Pipeline) {
 				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.GetCommonNamespacedName())
-				pipeline.Spec.Framework.Type = TestFramework
+				pipeline.Spec.Framework.Name = TestFramework
 			})
 
 			Eventually(func(g Gomega) {
@@ -148,7 +148,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		It("change trigger creates a run when the pipeline is created", func() {
 			pipeline := pipelineshub.RandomPipeline(Provider.GetCommonNamespacedName())
-			pipeline.Spec.Framework.Type = TestFramework
+			pipeline.Spec.Framework.Name = TestFramework
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Run.Pipeline = pipeline.UnversionedIdentifier()
 				runConfiguration.Spec.Triggers = pipelineshub.RandomOnChangeTrigger()
@@ -175,7 +175,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating the referenced pipeline with a fixed version specified on the RC", func() {
 		It("does not trigger an update of the run configuration", func() {
 			pipeline := pipelineshub.RandomPipeline(Provider.GetCommonNamespacedName())
-			pipeline.Spec.Framework.Type = TestFramework
+			pipeline.Spec.Framework.Name = TestFramework
 			fixedIdentifier := pipeline.VersionedIdentifier()
 
 			pipelineHelper := CreateSucceeded(pipeline)
@@ -188,7 +188,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			pipelineHelper.UpdateStable(func(pipeline *pipelineshub.Pipeline) {
 				pipeline.Spec = pipelineshub.RandomPipelineSpec(Provider.GetCommonNamespacedName())
-				pipeline.Spec.Framework.Type = TestFramework
+				pipeline.Spec.Framework.Name = TestFramework
 			})
 
 			// To verify the absence of additional RC updates, force another update of the resource.

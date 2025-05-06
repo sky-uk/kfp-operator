@@ -1,4 +1,4 @@
-package pipelines
+package apis
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestAPIs(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Pipelines Suite")
+	RunSpecs(t, "Api Suite")
 }

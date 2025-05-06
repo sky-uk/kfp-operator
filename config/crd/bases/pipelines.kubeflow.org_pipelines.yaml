@@ -373,15 +373,15 @@ spec:
                 type: array
               framework:
                 properties:
+                  name:
+                    type: string
                   parameters:
                     additionalProperties:
                       x-kubernetes-preserve-unknown-fields: true
                     type: object
-                  type:
-                    type: string
                 required:
+                - name
                 - parameters
-                - type
                 type: object
               image:
                 type: string

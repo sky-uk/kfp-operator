@@ -56,6 +56,15 @@ func Filter[T any](ts []T, filter func(T) bool) (filtered []T) {
 	return
 }
 
+func Find[T any](ts []T, predicate func(T) bool) (*T, bool) {
+	for _, t := range ts {
+		if predicate(t) {
+			return &t, true
+		}
+	}
+	return nil, false
+}
+
 func Map[R, S any](rs []R, mapFn func(R) S) []S {
 	ss := make([]S, len(rs))
 

@@ -50,7 +50,7 @@ type PipelineConversionRemainder struct {
 }
 
 func (pcr PipelineConversionRemainder) Empty() bool {
-	return pcr.ProviderNamespace == "" && pcr.Framework.Type == "" && pcr.ProviderStatusNamespace == ""
+	return pcr.ProviderNamespace == "" && pcr.Framework.Name == "" && pcr.ProviderStatusNamespace == ""
 }
 
 func (PipelineConversionRemainder) ConversionAnnotation() string {

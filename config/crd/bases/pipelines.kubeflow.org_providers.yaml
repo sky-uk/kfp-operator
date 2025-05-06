@@ -341,20 +341,29 @@ spec:
             type: object
           spec:
             properties:
-              defaultBeamArgs:
-                items:
-                  properties:
-                    name:
-                      type: string
-                    value:
-                      type: string
-                  required:
-                  - name
-                  - value
-                  type: object
-                type: array
               executionMode:
                 type: string
+              frameworks:
+                items:
+                  properties:
+                    image:
+                      type: string
+                    name:
+                      type: string
+                    patches:
+                      items:
+                        properties:
+                          payload:
+                            type: string
+                          type:
+                            enum:
+                            - json
+                            - merge
+                            type: string
+                        type: object
+                      type: array
+                  type: object
+                type: array
               parameters:
                 additionalProperties:
                   x-kubernetes-preserve-unknown-fields: true

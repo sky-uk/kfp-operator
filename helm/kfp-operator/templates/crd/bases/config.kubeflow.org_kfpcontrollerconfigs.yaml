@@ -15194,12 +15194,10 @@ spec:
                   servicePort:
                     type: integer
                 type: object
+              defaultTfxImage:
+                type: string
               multiversion:
                 type: boolean
-              pipelineFrameworkImages:
-                additionalProperties:
-                  type: string
-                type: object
               runCompletionFeed:
                 properties:
                   endpoints:

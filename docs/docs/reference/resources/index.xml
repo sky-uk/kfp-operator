@@ -39,8 +39,8 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;td style="text-align: left">List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.framework.type&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use. The pipeline framework image to use is looked up &lt;a href="../../configuration">here&lt;/a>.&lt;/td>
+ &lt;td style="text-align: left">&lt;code>spec.framework.name&lt;/code>&lt;/td>
+ &lt;td style="text-align: left">Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use.&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.framework.parameters&lt;/code>&lt;/td>

@@ -9,6 +9,7 @@ import (
 
 var DefaultProvider string
 var DefaultProviderNamespace string
+var DefaultTfxImage string
 
 var ResourceAnnotations = struct {
 	Provider string

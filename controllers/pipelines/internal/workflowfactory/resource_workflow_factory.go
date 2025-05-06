@@ -3,10 +3,10 @@ package workflowfactory
 import (
 	"encoding/json"
 	"fmt"
-
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/jsonutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -70,11 +70,11 @@ func createProviderServiceUrl(svc corev1.Service, port int) string {
 type ResourceWorkflowFactory[R pipelineshub.Resource, ResourceDefinition any] struct {
 	Config                config.KfpControllerConfigSpec
 	TemplateNameGenerator TemplateNameGenerator
-	DefinitionCreator     func(R) (ResourceDefinition, error)
-	WorkflowParamsCreator func(R) ([]argo.Parameter, error)
+	DefinitionCreator     func(pipelineshub.Provider, R) ([]pipelineshub.Patch, ResourceDefinition, error)
+	WorkflowParamsCreator func(pipelineshub.Provider, R) ([]argo.Parameter, error)
 }
 
-func WorkflowParamsCreatorNoop[R any](_ R) ([]argo.Parameter, error) {
+func WorkflowParamsCreatorNoop[R any](provider pipelineshub.Provider, _ R) ([]argo.Parameter, error) {
 	return []argo.Parameter{}, nil
 }
 
@@ -88,8 +88,8 @@ func (workflows ResourceWorkflowFactory[R, ResourceDefinition]) CommonWorkflowMe
 	}
 }
 
-func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(resource R) (string, error) {
-	resourceDefinition, err := workflows.DefinitionCreator(resource)
+func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinitionJson(provider pipelineshub.Provider, resource R) (string, error) {
+	patches, resourceDefinition, err := workflows.DefinitionCreator(provider, resource)
 	if err != nil {
 		return "", err
 	}
@@ -99,7 +99,12 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 		return "", err
 	}
 
-	return string(marshalled), nil
+	patchedJsonString, err := PatchJson(patches, marshalled)
+	if err != nil {
+		return "", err
+	}
+
+	return patchedJsonString, nil
 }
 
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
@@ -107,7 +112,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionJson(resource)
+	resourceDefinition, err := workflows.resourceDefinitionJson(provider, resource)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +155,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		},
 	}
 
-	additionalParams, err := workflows.WorkflowParamsCreator(resource)
+	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +179,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	resourceDefinition, err := workflows.resourceDefinitionJson(resource)
+	resourceDefinition, err := workflows.resourceDefinitionJson(provider, resource)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +225,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		},
 	}
 
-	additionalParams, err := workflows.WorkflowParamsCreator(resource)
+	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
 	if err != nil {
 		return nil, err
 	}

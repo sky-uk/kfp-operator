@@ -22,20 +22,20 @@ type PipelineSpec struct {
 }
 
 type PipelineFramework struct {
-	Type       string                           `json:"type" yaml:"type"`
+	Name       string                           `json:"name" yaml:"name"`
 	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
 }
 
 func NewPipelineFramework(compilerType string) PipelineFramework {
 	return PipelineFramework{
-		Type:       compilerType,
+		Name:       compilerType,
 		Parameters: make(map[string]*apiextensionsv1.JSON),
 	}
 }
 
 func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
-	oh.WriteStringField(ps.Spec.Framework.Type)
+	oh.WriteStringField(ps.Spec.Framework.Name)
 
 	output := make(map[string]string)
 	for key, value := range ps.Spec.Framework.Parameters {

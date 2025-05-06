@@ -31,14 +31,7 @@ e.g. `ghcr.io/kfp-operator/kfp-operator-custom-compiler:version-tag`
 
 The Docker image needs to conform to the correct structure for the KFP Operator to be able to use it. See [readme](https://github.com/sky-uk/kfp-operator/blob/master/compilers/README.md) for more information.
 
-As seen in [configurations](../configuration), available frameworks to the KFP Operator installation are defined in the `frameworks` field of the operator configuration.
-So for example:
-```yaml
-    framworks:
-      - name: tfx
-        image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
-      - name: custom
-        image: ghcr.io/kfp-operator/kfp-operator-custom-compiler:version-tag
-```
+Once the docker image is correctly published to an accessible repository it needs to be configured as an available frameworks for the provider it is to be used in.
+This is done by creating or adding to the `frameworks` element in the [provider custom resource](../resources/provider/#common-fields).
 
 Then to use the custom framework in a pipeline simply configure the framework attribute in the [pipeline resource](../resources/pipeline/#fields).

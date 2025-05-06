@@ -17,8 +17,9 @@ type RunScheduleDefinitionCreator struct {
 }
 
 func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
+	_ pipelineshub.Provider,
 	rs *pipelineshub.RunSchedule,
-) (providers.RunScheduleDefinition, error) {
+) ([]pipelineshub.Patch, providers.RunScheduleDefinition, error) {
 	var experimentName common.NamespacedName
 	if rs.Spec.ExperimentName == "" {
 		experimentName = common.NamespacedName{
@@ -31,7 +32,7 @@ func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
 		}
 	}
 
-	return providers.RunScheduleDefinition{
+	return nil, providers.RunScheduleDefinition{
 		Name: common.NamespacedName{
 			Name:      rs.ObjectMeta.Name,
 			Namespace: rs.Namespace,

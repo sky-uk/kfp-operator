@@ -14,8 +14,7 @@ spec:
   multiversion: true
   workflowNamespace: kfp-operator-system
   workflowTemplatePrefix: kfp-operator-
-  pipelineFrameworkImages:
-    tfx: kfp-operator-tfx-compiler:latest
+  defaultTfxImage: kfp-operator-tfx-compiler:latest
   runCompletionFeed:
     port: 8082
     endpoints: []

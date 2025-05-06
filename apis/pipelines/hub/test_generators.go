@@ -28,7 +28,7 @@ func RandomPipeline(provider common.NamespacedName) *Pipeline {
 }
 
 func AddTfxValues(pipelineSpec *PipelineSpec) {
-	pipelineSpec.Framework.Type = "tfx"
+	pipelineSpec.Framework.Name = "tfx"
 	pipelineSpec.Framework.Parameters = make(map[string]*apiextensionsv1.JSON)
 	component, _ := json.Marshal(RandomString())
 	pipelineSpec.Framework.Parameters["components"] = &apiextensionsv1.JSON{Raw: component}
@@ -56,7 +56,7 @@ func RandomPipelineSpec(provider common.NamespacedName) PipelineSpec {
 		Image:    fmt.Sprintf("%s:%s", RandomLowercaseString(), RandomShortHash()),
 		Env:      RandomNamedValues(),
 		Framework: PipelineFramework{
-			Type:       RandomString(),
+			Name:       RandomString(),
 			Parameters: randomParameters,
 		},
 	}
@@ -93,9 +93,17 @@ func RandomProviderSpec() ProviderSpec {
 		ServiceImage:        "service-image",
 		ExecutionMode:       "none",
 		ServiceAccount:      "default",
-		DefaultBeamArgs:     RandomNamedValues(),
 		PipelineRootStorage: RandomLowercaseString(),
+		Frameworks:          RandomList(RandomFramework),
 		Parameters:          randomParameters,
+	}
+}
+
+func RandomFramework() Framework {
+	return Framework{
+		Name:    RandomString(),
+		Image:   RandomString(),
+		Patches: []Patch{},
 	}
 }
 

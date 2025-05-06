@@ -72,6 +72,26 @@ var _ = Context("Utils", func() {
 		Entry("", []int{}, []int{}),
 	)
 
+	DescribeTable("Find",
+		func(input []int, expected *int, expectedFound bool) {
+			value, found := Find(input, func(i int) bool {
+				return i == 2
+			})
+			Expect(found).To(Equal(expectedFound))
+			if expected != nil {
+				Expect(value).ToNot(BeNil())
+				Expect(*value).To(Equal(*expected))
+			} else {
+				Expect(value).To(BeNil())
+			}
+		},
+		Entry("", []int{1, 2, 3}, ptr(2), true),
+		Entry("", []int{2, 1, 3}, ptr(2), true),
+		Entry("", []int{1, 2, 3, 2}, ptr(2), true),
+		Entry("", []int{1, 3, 5}, nil, false),
+		Entry("", []int{}, nil, false),
+	)
+
 	DescribeTable("Map", func(as []int, expected []string) {
 		Expect(Map(as, func(a int) string {
 			return strconv.Itoa(a)
@@ -221,3 +241,7 @@ var _ = Context("Utils", func() {
 		Entry("", map[string]int{"1": 1, "2": 1}, []int{1, 1}),
 	)
 })
+
+func ptr[T any](t T) *T {
+	return &t
+}
