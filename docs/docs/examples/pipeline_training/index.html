@@ -42,7 +42,7 @@ Note that the pipeline definition itself is simpler because all infrastructure r
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e># Uses user-provided Python function that trains a model.</span>
 </span></span><span style=display:flex><span>    trainer <span style=color:#f92672>=</span> Trainer(
-</span></span><span style=display:flex><span>        run_fn<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;trainer.run_fn&#39;</span>,
+</span></span><span style=display:flex><span>        run_fn<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;penguin_pipeline.trainer.run_fn&#39;</span>,
 </span></span><span style=display:flex><span>        examples<span style=color:#f92672>=</span>example_gen<span style=color:#f92672>.</span>outputs[<span style=color:#e6db74>&#39;examples&#39;</span>],
 </span></span><span style=display:flex><span>        train_args<span style=color:#f92672>=</span>trainer_pb2<span style=color:#f92672>.</span>TrainArgs(num_steps<span style=color:#f92672>=</span><span style=color:#ae81ff>100</span>),
 </span></span><span style=display:flex><span>        eval_args<span style=color:#f92672>=</span>trainer_pb2<span style=color:#f92672>.</span>EvalArgs(num_steps<span style=color:#f92672>=</span><span style=color:#ae81ff>5</span>))
@@ -51,7 +51,7 @@ Note that the pipeline definition itself is simpler because all infrastructure r
 </span></span><span style=display:flex><span>    <span style=color:#75715e>#</span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>## Pushes the model to a filesystem destination.</span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>#pusher = tfx.components.Pusher(</span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>#  model=trainer.outputs[&#39;model&#39;],</span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>#  model=penguin_pipeline.trainer.outputs[&#39;model&#39;],</span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>#  push_destination=tfx.proto.PushDestination(</span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>#      filesystem=tfx.proto.PushDestination.Filesystem(</span>
 </span></span><span style=display:flex><span>    <span style=color:#75715e>#          base_directory=serving_model_dir)))</span>

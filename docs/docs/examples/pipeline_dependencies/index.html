@@ -101,7 +101,7 @@ The code for this pipeline can be found under <a href=https://github.com/sky-uk/
 </span></span><span style=display:flex><span>    )
 </span></span><span style=display:flex><span>
 </span></span><span style=display:flex><span>    trainer <span style=color:#f92672>=</span> Trainer(
-</span></span><span style=display:flex><span>        run_fn<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;trainer.run_fn&#39;</span>,
+</span></span><span style=display:flex><span>        run_fn<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;penguin_training.trainer.run_fn&#39;</span>,
 </span></span><span style=display:flex><span>        examples<span style=color:#f92672>=</span>examples<span style=color:#f92672>.</span>outputs[<span style=color:#e6db74>&#39;examples&#39;</span>],
 </span></span><span style=display:flex><span>        train_args<span style=color:#f92672>=</span>trainer_pb2<span style=color:#f92672>.</span>TrainArgs(num_steps<span style=color:#f92672>=</span><span style=color:#ae81ff>100</span>),
 </span></span><span style=display:flex><span>        eval_args<span style=color:#f92672>=</span>trainer_pb2<span style=color:#f92672>.</span>EvalArgs(num_steps<span style=color:#f92672>=</span><span style=color:#ae81ff>5</span>))

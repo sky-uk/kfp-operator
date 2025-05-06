@@ -17,7 +17,7 @@ def create_components() -> List[BaseNode]:
 
     # Uses user-provided Python function that trains a model.
     trainer = Trainer(
-        run_fn='trainer.run_fn',
+        run_fn='penguin_pipeline.trainer.run_fn',
         examples=example_gen.outputs['examples'],
         train_args=trainer_pb2.TrainArgs(num_steps=100),
         eval_args=trainer_pb2.EvalArgs(num_steps=5))
@@ -26,7 +26,7 @@ def create_components() -> List[BaseNode]:
     #
     ## Pushes the model to a filesystem destination.
     #pusher = tfx.components.Pusher(
-    #  model=trainer.outputs['model'],
+    #  model=penguin_pipeline.trainer.outputs['model'],
     #  push_destination=tfx.proto.PushDestination(
     #      filesystem=tfx.proto.PushDestination.Filesystem(
     #          base_directory=serving_model_dir)))
