@@ -46,6 +46,7 @@ type Framework struct {
 }
 
 type Patch struct {
+	// +kubebuilder:validation:Enum=json;merge
 	Type    string `json:"type,omitempty" yaml:"type,omitempty"`
 	Payload string `json:"payload,omitempty" yaml:"payload,omitempty"`
 }

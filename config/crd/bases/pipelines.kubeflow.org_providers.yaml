@@ -356,6 +356,9 @@ spec:
                           payload:
                             type: string
                           type:
+                            enum:
+                            - json
+                            - merge
                             type: string
                         type: object
                       type: array
