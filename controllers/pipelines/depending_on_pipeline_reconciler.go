@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	pipelineRefField = ".spec.pipeline"
+	pipelineRefField            = ".spec.pipeline"
+	storedVersionHashAnnotation = "pipelines.kfp-operator.io/stored-version-hash"
 )
 
 type DependingOnPipelineResource interface {
@@ -101,7 +102,11 @@ func dependentPipelineVersionIfSucceeded(pipeline *pipelineshub.Pipeline) (strin
 
 	switch pipeline.Status.Conditions.GetSyncStateFromReason() {
 	case apis.Succeeded:
-		return pipeline.Status.Version, true
+		if pipeline.Annotations[storedVersionHashAnnotation] != "" {
+			return pipeline.Annotations[storedVersionHashAnnotation], true
+		} else {
+			return pipeline.Status.Version, true
+		}
 	case apis.Deleted:
 		return "", true
 	default:

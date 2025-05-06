@@ -7,6 +7,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/conversion"
 )
 
+const storedVersionHashAnnotation = "pipelines.kubeflow.org/stored-version-hash"
+
 func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*hub.Pipeline)
 	dstApiVersion := dst.APIVersion
@@ -46,6 +48,8 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 	} else {
 		return errors.New("missing tfx components in framework parameters")
 	}
+
+	dst.Annotations[storedVersionHashAnnotation] = src.Status.Version
 
 	return nil
 }
