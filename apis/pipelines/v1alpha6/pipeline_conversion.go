@@ -49,6 +49,9 @@ func (src *Pipeline) ConvertTo(dstRaw conversion.Hub) error {
 		return errors.New("missing tfx components in framework parameters")
 	}
 
+	if dst.Annotations == nil {
+		dst.Annotations = map[string]string{}
+	}
 	dst.Annotations[storedVersionHashAnnotation] = src.Status.Version
 
 	return nil
