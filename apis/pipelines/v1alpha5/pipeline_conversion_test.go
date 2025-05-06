@@ -40,6 +40,11 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					PipelineConversionRemainder{}.ConversionAnnotation(),
 				)
+				delete(
+					dst.GetAnnotations(),
+					"pipelines.kubeflow.org/stored-version-hash",
+				)
+
 				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort), syncStateComparer))
 			})
 		})
@@ -61,6 +66,11 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 					dst.GetAnnotations(),
 					PipelineConversionRemainder{}.ConversionAnnotation(),
 				)
+				delete(
+					dst.GetAnnotations(),
+					"pipelines.kubeflow.org/stored-version-hash",
+				)
+
 				Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort), syncStateComparer))
 			})
 		})
@@ -78,6 +88,11 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 			Expect(intermediate.Status.ProviderId.Provider).To(Equal(provider.Name))
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
 
+			delete(
+				dst.GetAnnotations(),
+				"pipelines.kubeflow.org/stored-version-hash",
+			)
+
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
 
@@ -91,6 +106,11 @@ var _ = Context("Pipeline Conversion", PropertyBased, func() {
 			Expect(intermediate.ConvertFrom(src)).To(Succeed())
 			Expect(intermediate.Status.ProviderId.Provider).To(Equal(provider.Name))
 			Expect(intermediate.ConvertTo(dst)).To(Succeed())
+
+			delete(
+				dst.GetAnnotations(),
+				"pipelines.kubeflow.org/stored-version-hash",
+			)
 
 			Expect(dst).To(BeComparableTo(src, cmpopts.EquateEmpty(), cmpopts.SortSlices(namedValueSort)))
 		})
