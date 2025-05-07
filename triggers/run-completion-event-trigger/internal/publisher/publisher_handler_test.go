@@ -33,11 +33,6 @@ func (m *MockNatsConn) IsConnected() bool {
 	return args.Bool(0)
 }
 
-func (m *MockNatsConn) IsClosed() bool {
-	args := m.Called()
-	return args.Bool(0)
-}
-
 var _ = Describe("PublisherHandler", func() {
 	var (
 		mockNatsConn *MockNatsConn
@@ -83,6 +78,28 @@ var _ = Describe("PublisherHandler", func() {
 
 				Expect(err).To(BeAssignableToTypeOf(&ConnectionError{}))
 				Expect(err.Error()).To(ContainSubstring("Connection failed"))
+			})
+		})
+	})
+
+	Context("IsHealthy", func() {
+		When("nats connection is connected", func() {
+			It("should return true", func() {
+				mockNatsConn.On("IsConnected").Return(true)
+
+				result := publisher.IsHealthy()
+
+				Expect(result).To(BeTrue())
+			})
+		})
+
+		When("nats connection is disconnected", func() {
+			It("should return false", func() {
+				mockNatsConn.On("IsConnected").Return(false)
+
+				result := publisher.IsHealthy()
+
+				Expect(result).To(BeFalse())
 			})
 		})
 	})
