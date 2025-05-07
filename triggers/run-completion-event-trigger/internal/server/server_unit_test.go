@@ -13,13 +13,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"testing"
 )
-
-func TestServerUnit(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Server Unit Suite")
-}
 
 type PublishFunc func(runCompletionEvent common.RunCompletionEvent) error
 
