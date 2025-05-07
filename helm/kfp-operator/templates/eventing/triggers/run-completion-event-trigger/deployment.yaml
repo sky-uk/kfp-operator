@@ -30,7 +30,7 @@ spec:
             subPath: config.yaml
         livenessProve:
           grpc:
-            port: grpc-server
+            port: {{ .Values.runcompletionEventTrigger.server.port }}
             service: grpc.health.v1.Health
             method: Check
           initialDelaySeconds: 5
@@ -38,7 +38,7 @@ spec:
           failureThreshold: 3
         readinessProbe:
           grpc:
-            port: grpc-server
+            port: {{ .Values.runcompletionEventTrigger.server.port }}
             service: grpc.health.v1.Health
             method: Check
           initialDelaySeconds: 2
