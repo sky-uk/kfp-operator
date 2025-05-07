@@ -28,6 +28,22 @@ spec:
           - name: config
             mountPath: /etc/run-completion-event-trigger/config.yaml
             subPath: config.yaml
+        livenessProve:
+          grpc:
+            port: grpc-server
+            service: grpc.health.v1.Health
+            method: Check
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          grpc:
+            port: grpc-server
+            service: grpc.health.v1.Health
+            method: Check
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          failureThreshold: 1
       volumes:
         - name: config
           configMap:
