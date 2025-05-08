@@ -78,7 +78,7 @@ Please refer to your chosen provider instructions before proceeding. Supported p
 - [Kubeflow Pipelines](../../reference/providers/kfp/#deployment-and-usage)
 - [Vertex AI](../../reference/providers/vai/#deployment-and-usage)
 
-To install your chosen provider, create a [Provider resource](../../reference/resources/provider) in a namespace that the operator can access (see the [rbac setup below]({{< ref "#provider-rbac" >}}) for reference).
+To install your chosen provider, create a [Provider resource](../../reference/resources/provider) in a namespace that the operator can access (see the [rbac setup below]({{< ref "#provider-rbac" >}}) for reference). Once it is applied the Provider controller will reconcile and create the Provider Deployment and Provider Service within the same namespace that the Provider resource was applied.
 
 ## Role-based access control (RBAC) for providers {#provider-rbac}
 When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used.
