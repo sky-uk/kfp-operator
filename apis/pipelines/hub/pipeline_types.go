@@ -42,7 +42,7 @@ func (ps Pipeline) ComputeHash() []byte {
 
 	isDefaultFramework := pipeline.Spec.Framework.Name == DefaultFallbackFramework
 
-	tfxComponentString := ""
+	tfxComponentsString := ""
 	if isDefaultFramework && pipeline.Spec.Framework.Parameters["components"] != nil {
 		tfxComponents := map[string]string{}
 		err := json.Unmarshal(pipeline.Spec.Framework.Parameters["components"].Raw, &tfxComponents)
@@ -54,12 +54,12 @@ func (ps Pipeline) ComputeHash() []byte {
 			tfxComponentsList = append(tfxComponentsList, v)
 		}
 
-		tfxComponentString = strings.Join(tfxComponentsList, "")
+		tfxComponentsString = strings.Join(tfxComponentsList, " ")
 
 		delete(pipeline.Spec.Framework.Parameters, "components")
 	}
 
-	oh.WriteStringField(tfxComponentString)
+	oh.WriteStringField(tfxComponentsString)
 
 	pipelines.WriteKVListField(oh, pipeline.Spec.Env)
 
