@@ -1,7 +1,0 @@
-apiVersion: pipelines.kubeflow.org/v1beta1
-kind: Pipeline
-metadata:
-  name: penguin-pipeline-training
-spec:
-  image: kfp-dependent-training:v1
-  tfxComponents: pipeline.create_components

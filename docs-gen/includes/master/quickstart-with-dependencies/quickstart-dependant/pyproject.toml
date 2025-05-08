@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "penguin-examples"
+name = "penguin_training"
 version = "0.1.0"
 description = ""
 authors = []

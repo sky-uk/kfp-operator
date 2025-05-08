@@ -33,7 +33,7 @@ def create_components() -> List[BaseNode]:
     )
 
     trainer = Trainer(
-        run_fn='trainer.run_fn',
+        run_fn='penguin_training.trainer.run_fn',
         examples=examples.outputs['examples'],
         train_args=trainer_pb2.TrainArgs(num_steps=100),
         eval_args=trainer_pb2.EvalArgs(num_steps=5))

@@ -35,7 +35,7 @@ You will need to configure service accounts and roles required by your chosen `P
 Valid configuration options to override the [Default `values.yaml`]({{< ghblob "/helm/kfp-operator/values.yaml" >}}) are:
 
 | Parameter name                                            | Description                                                                                                                                                                                                         |
-|-----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `containerRegistry`                                       | Container Registry base path for all container images                                                                                                                                                               |
 | `namespace.create`                                        | Create the namespace for the operator                                                                                                                                                                               |
 | `namespace.name`                                          | Operator namespace name                                                                                                                                                                                             |
@@ -75,46 +75,10 @@ Examples for these values can be found in the [test configuration]({{< ghblob "/
 ## Providers
 
 Please refer to your chosen provider instructions before proceeding. Supported providers are:
-- [Kubeflow](../../reference/providers/kfp/#deployment-and-usage)
+- [Kubeflow Pipelines](../../reference/providers/kfp/#deployment-and-usage)
 - [Vertex AI](../../reference/providers/vai/#deployment-and-usage)
 
-### Build and Install
-
-Create basic `kfp.yaml` value file with the following content:
-
-{{% readfile file="/includes/master/quickstart/resources/kfp.yaml" code="true" lang="yaml"%}}
-
-Install the latest version of the provider
-
-```sh
-helm install oci://ghcr.io/kfp-operator/provider -f kfp.yaml
-```
-
-### Configuration
-
-The `provider` block contains provider configurations, in order to create relevant [Provider Resources](../../reference/resources/provider).
-
-| Parameter name            | Description                                                                                                                                                 |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`                    | Name given to this provider                                                                                                                                 |
-| `type`                    | Provider type (`kfp` or `vai`)                                                                                                                              |
-| `serviceAccount.name`     | Name of the service account to run provider-specific operations                                                                                             |
-| `serviceAccount.create`   | Create the service account (or assume it has been created externally)                                                                                       |
-| `serviceAccount.metadata` | Optional service account default metadata                                                                                                                   |
-| `configuration`           | See [Provider Configuration](../../reference/configuration/#provider-configurations) for all available providers and their respective configuration options |
-
-Example:
-
-```yaml
-provider:
-  name: kfp-provider
-  type: kfp
-  executionMode: v1
-  serviceAccount:
-    name: kfp-operator-kfp
-    create: false
-      ...
-```
+To install your chosen provider, create a [Provider resource](../../reference/resources/provider) in a namespace that the operator can access (see the [rbac setup below]({{< ref "#provider-rbac" >}}) for reference). Once it is applied the Provider controller will reconcile and create the Provider Deployment and Provider Service within the same namespace that the Provider resource was applied.
 
 ## Role-based access control (RBAC) for providers {#provider-rbac}
 When using a provider, you should create the necessary `ServiceAccount`, `RoleBinding` and `ClusterRoleBinding` resources required for the providers being used.

@@ -1,7 +1,0 @@
-apiVersion: pipelines.kubeflow.org/v1beta1
-kind: Pipeline
-metadata:
-  name: penguin-pipeline-examples
-spec:
-  image: kfp-dependent-examples:v1
-  tfxComponents: pipeline.create_components

@@ -1,11 +1,11 @@
 apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Pipeline
 metadata:
-  name: penguin-pipeline
+  name: penguin-pipeline-training
 spec:
   provider: provider-namespace/kfp
-  image: kfp-quickstart:v1
+  image: kfp-quickstart-base:v1
   framework:
     type: tfx
     parameters:
-      pipeline: penguin_pipeline.pipeline.create_components
+      pipeline: penguin_training.pipeline.create_components
