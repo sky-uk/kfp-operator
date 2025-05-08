@@ -44,17 +44,10 @@ func (ps Pipeline) ComputeHash() []byte {
 
 	tfxComponentsString := ""
 	if isDefaultFramework && pipeline.Spec.Framework.Parameters["components"] != nil {
-		tfxComponents := map[string]string{}
-		err := json.Unmarshal(pipeline.Spec.Framework.Parameters["components"].Raw, &tfxComponents)
+		err := json.Unmarshal(pipeline.Spec.Framework.Parameters["components"].Raw, &tfxComponentsString)
 		if err != nil {
 			return nil
 		}
-		tfxComponentsList := []string{}
-		for _, v := range tfxComponents {
-			tfxComponentsList = append(tfxComponentsList, v)
-		}
-
-		tfxComponentsString = strings.Join(tfxComponentsList, " ")
 
 		delete(pipeline.Spec.Framework.Parameters, "components")
 	}
@@ -82,8 +75,7 @@ func (ps Pipeline) ComputeHash() []byte {
 	if len(pipeline.Spec.Framework.Parameters) > 0 {
 		output := make(map[string]string)
 		for key, value := range ps.Spec.Framework.Parameters {
-			raw, _ := json.Marshal(value.Raw)
-			output[key] = string(raw)
+			output[key] = string(value.Raw)
 		}
 
 		oh.WriteMapField(output)

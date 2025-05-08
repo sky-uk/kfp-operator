@@ -20,7 +20,6 @@ const (
 	name               = "testPipeline"
 	providerName       = "providerName"
 	image              = "testImage"
-	tfxComponentsKey   = "tfxComponentKey"
 	tfxComponentsValue = "tfxComponentValue"
 	beamArgsKey        = "beamArgsKey"
 	beamArgsValue      = "beamArgsValue"
@@ -49,7 +48,7 @@ var _ = Context("Pipeline Hash", func() {
 					Name: v1beta1.DefaultFallbackFramework,
 					Parameters: map[string]*apiextensionsv1.JSON{
 						"components": {
-							Raw: []byte(fmt.Sprintf(`{"%s":"%s"}`, tfxComponentsKey, tfxComponentsValue)),
+							Raw: []byte(fmt.Sprintf(`"%s"`, tfxComponentsValue)),
 						},
 						"beamArgs": {
 							Raw: []byte(fmt.Sprintf(`{"%s":"%s"}`, beamArgsKey, beamArgsValue)),
@@ -97,6 +96,7 @@ var _ = Context("Pipeline Hash", func() {
 
 	var _ = Describe("ComputeVersion", func() {
 		Specify("Should compute the same version for identical pipelines in different api specs", func() {
+
 			beta1PipelineVersion := beta1Pipeline.ComputeVersion()
 			alpha5pipelineVersion := alpha5Pipeline.ComputeVersion()
 			alpha6PipelineVersion := alpha6Pipeline.ComputeVersion()
