@@ -27,76 +27,83 @@ const (
 	envVarValue        = "envVarValue"
 )
 
-var _ = Context("Pipeline Hash", func() {
+var _ = Context("Pipeline Hash", Ordered, func() {
 
 	var (
-		beta1Pipeline = v1beta1.Pipeline{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: name,
-			},
-			Spec: v1beta1.PipelineSpec{
-				Provider: common.NamespacedName{
-					Name:      providerName,
-					Namespace: "providerName",
+		beta1Pipeline  v1beta1.Pipeline
+		alpha5Pipeline v1alpha5.Pipeline
+		alpha6Pipeline v1alpha6.Pipeline
+	)
+
+	BeforeEach(
+		func() {
+			beta1Pipeline = v1beta1.Pipeline{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: name,
 				},
-				Image: image,
-				Env: []apis.NamedValue{
-					{Name: envVarKey, Value: envVarValue},
-				},
-				Framework: v1beta1.PipelineFramework{
-					Name: v1beta1.DefaultFallbackFramework,
-					Parameters: map[string]*apiextensionsv1.JSON{
-						"components": {
-							Raw: []byte(fmt.Sprintf(`"%s"`, tfxComponentsValue)),
-						},
-						"beamArgs": {
-							Raw: []byte(fmt.Sprintf(`{"%s":"%s"}`, beamArgsKey, beamArgsValue)),
+				Spec: v1beta1.PipelineSpec{
+					Provider: common.NamespacedName{
+						Name:      providerName,
+						Namespace: "providerName",
+					},
+					Image: image,
+					Env: []apis.NamedValue{
+						{Name: envVarKey, Value: envVarValue},
+					},
+					Framework: v1beta1.PipelineFramework{
+						Name: v1beta1.DefaultFallbackFramework,
+						Parameters: map[string]*apiextensionsv1.JSON{
+							"components": {
+								Raw: []byte(fmt.Sprintf(`"%s"`, tfxComponentsValue)),
+							},
+							"beamArgs": {
+								Raw: []byte(fmt.Sprintf(`{"%s":"%s"}`, beamArgsKey, beamArgsValue)),
+							},
 						},
 					},
 				},
-			},
-		}
+			}
 
-		alpha6Pipeline = v1alpha6.Pipeline{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: name,
-			},
-			Spec: v1alpha6.PipelineSpec{
-				Provider: providerName,
-				Image:    image,
-				Env: []apis.NamedValue{
-					{Name: envVarKey, Value: envVarValue},
+			alpha6Pipeline = v1alpha6.Pipeline{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: name,
 				},
-				TfxComponents: tfxComponentsValue,
-				BeamArgs: []apis.NamedValue{
-					{Name: beamArgsKey, Value: beamArgsValue},
+				Spec: v1alpha6.PipelineSpec{
+					Provider: providerName,
+					Image:    image,
+					Env: []apis.NamedValue{
+						{Name: envVarKey, Value: envVarValue},
+					},
+					TfxComponents: tfxComponentsValue,
+					BeamArgs: []apis.NamedValue{
+						{Name: beamArgsKey, Value: beamArgsValue},
+					},
 				},
-			},
-		}
+			}
 
-		alpha5Pipeline = v1alpha5.Pipeline{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: name,
-			},
-			Spec: v1alpha5.PipelineSpec{
-				Image: image,
-				Env: []apis.NamedValue{
-					{Name: envVarKey, Value: envVarValue},
+			alpha5Pipeline = v1alpha5.Pipeline{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: name,
 				},
-				TfxComponents: tfxComponentsValue,
-				BeamArgs: []apis.NamedValue{
-					{Name: beamArgsKey, Value: beamArgsValue},
+				Spec: v1alpha5.PipelineSpec{
+					Image: image,
+					Env: []apis.NamedValue{
+						{Name: envVarKey, Value: envVarValue},
+					},
+					TfxComponents: tfxComponentsValue,
+					BeamArgs: []apis.NamedValue{
+						{Name: beamArgsKey, Value: beamArgsValue},
+					},
 				},
-			},
-		}
-	)
+			}
+
+		})
 
 	var _ = Describe("ComputeVersion", func() {
 		Specify("Should compute the same version for identical pipelines in different api specs", func() {
-
 			beta1PipelineVersion := beta1Pipeline.ComputeVersion()
 			alpha5pipelineVersion := alpha5Pipeline.ComputeVersion()
 			alpha6PipelineVersion := alpha6Pipeline.ComputeVersion()

@@ -35,6 +35,17 @@ func NewPipelineFramework(compilerType string) PipelineFramework {
 	}
 }
 
+/*
+ComputeHash returns a hash of the pipeline spec, ensuring consistency across versions.
+
+To maintain compatibility, certain fields are deliberately excluded from the hash calculation, or are normalized to match
+the behavior of previous versions when using default fields as determined by conversion to the hub version.
+
+The order in which data is written to the hash is critical and must remain unchanged across versions to ensure consistency.
+
+This consistency across versions is preferable as it will prevent runs being triggered for pipelines that have only changed
+semantically without any spec changes, such as during an api version upgrade.
+*/
 func (ps Pipeline) ComputeHash() []byte {
 	pipeline := ps.DeepCopy()
 	oh := pipelines.NewObjectHasher()
@@ -42,10 +53,10 @@ func (ps Pipeline) ComputeHash() []byte {
 
 	isDefaultFramework := pipeline.Spec.Framework.Name == DefaultFallbackFramework
 
+	// For the default framework, include components in the hash using the same format as spoke versions to ensure consistency.
 	tfxComponentsString := ""
 	if isDefaultFramework && pipeline.Spec.Framework.Parameters["components"] != nil {
-		err := json.Unmarshal(pipeline.Spec.Framework.Parameters["components"].Raw, &tfxComponentsString)
-		if err != nil {
+		if err := json.Unmarshal(pipeline.Spec.Framework.Parameters["components"].Raw, &tfxComponentsString); err != nil {
 			return nil
 		}
 
@@ -56,16 +67,16 @@ func (ps Pipeline) ComputeHash() []byte {
 
 	pipelines.WriteKVListField(oh, pipeline.Spec.Env)
 
+	// For the default framework, include beamArgs in the hash using the same format as spoke versions to ensure consistency.
 	beamArgsList := []apis.NamedValue{}
 	if isDefaultFramework && pipeline.Spec.Framework.Parameters["beamArgs"] != nil {
 		beamArgs := map[string]string{}
-		err := json.Unmarshal(pipeline.Spec.Framework.Parameters["beamArgs"].Raw, &beamArgs)
-		if err != nil {
+		if err := json.Unmarshal(pipeline.Spec.Framework.Parameters["beamArgs"].Raw, &beamArgs); err != nil {
 			return nil
 		}
 
-		for k, v := range beamArgs {
-			beamArgsList = append(beamArgsList, apis.NamedValue{Name: k, Value: v})
+		for key, value := range beamArgs {
+			beamArgsList = append(beamArgsList, apis.NamedValue{Name: key, Value: value})
 		}
 
 		delete(pipeline.Spec.Framework.Parameters, "beamArgs")
