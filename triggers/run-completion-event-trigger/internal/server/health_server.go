@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/sky-uk/kfp-operator/argo/common"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
@@ -16,6 +17,8 @@ func (hs *HealthServer) Check(
 	ctx context.Context,
 	req *healthpb.HealthCheckRequest,
 ) (*healthpb.HealthCheckResponse, error) {
+	log := common.LoggerFromContext(ctx)
+
 	switch req.GetService() {
 	case "liveness":
 		return &healthpb.HealthCheckResponse{
@@ -27,6 +30,13 @@ func (hs *HealthServer) Check(
 				Status: healthpb.HealthCheckResponse_SERVING,
 			}, nil
 		}
+		log.Error(
+			fmt.Errorf("service is not ready"),
+			"dependency",
+			"name",
+			hs.HealthCheck.Name(),
+		)
+
 		return &healthpb.HealthCheckResponse{
 			Status: healthpb.HealthCheckResponse_NOT_SERVING,
 		}, nil

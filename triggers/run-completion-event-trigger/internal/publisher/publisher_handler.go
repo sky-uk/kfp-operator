@@ -51,7 +51,7 @@ func NewNatsPublisher(ctx context.Context, nc *nats.Conn, subject string) *NatsP
 	}
 }
 
-func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) error {
+func (nc *NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) error {
 	dataWrapper := DataWrapper{Data: runCompletionEvent}
 	eventData, err := json.Marshal(dataWrapper)
 	if err != nil {
@@ -63,6 +63,10 @@ func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) er
 	return nil
 }
 
-func (nc NatsPublisher) IsHealthy() bool {
+func (nc *NatsPublisher) Name() string {
+	return "nats-publisher"
+}
+
+func (nc *NatsPublisher) IsHealthy() bool {
 	return nc.NatsConn.IsConnected()
 }

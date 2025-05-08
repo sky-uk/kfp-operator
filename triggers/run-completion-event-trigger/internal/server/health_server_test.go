@@ -50,6 +50,7 @@ var _ = Context("Check", func() {
 
 		When("HealthCheck dependency returns false", func() {
 			It("returns a NOT_SERVING response", func() {
+				mockHealthCheck.On("Name").Return("for logging purposes")
 				mockHealthCheck.On("IsHealthy").Return(false)
 				result, err := healthServer.Check(
 					ctx,
