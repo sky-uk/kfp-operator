@@ -31,8 +31,8 @@ func (hs *HealthServer) Check(
 			}, nil
 		}
 		log.Error(
-			fmt.Errorf("service is not ready"),
-			"dependency",
+			fmt.Errorf("dependency is not healthy"),
+			"service is not ready",
 			"name",
 			hs.HealthCheck.Name(),
 		)
