@@ -28,6 +28,20 @@ spec:
           - name: config
             mountPath: /etc/run-completion-event-trigger/config.yaml
             subPath: config.yaml
+        livenessProbe:
+          grpc:
+            port: {{ .Values.runcompletionEventTrigger.server.port }}
+            service: liveness
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          grpc:
+            port: {{ .Values.runcompletionEventTrigger.server.port }}
+            service: readiness
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          failureThreshold: 2
       volumes:
         - name: config
           configMap:

@@ -21,6 +21,7 @@ import (
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/converters"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/nats-io/nats.go"
 )
@@ -33,6 +34,7 @@ func TestRunCompletionEventTriggerFunctional(t *testing.T) {
 var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 
 	var grpcConn *grpc.ClientConn
+	var healthClient healthpb.HealthClient
 	var grpcClient pb.RunCompletionEventTriggerClient
 
 	var natsConn *nats.Conn
@@ -47,6 +49,21 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 			if err != nil {
 				log.Fatalf("Failed to connect to gRPC server: %v", err)
 			}
+
+			healthClient = healthpb.NewHealthClient(grpcConn)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
+
+			Eventually(
+				func() (healthpb.HealthCheckResponse_ServingStatus, error) {
+					healthResponse, err := healthClient.Check(
+						ctx,
+						&healthpb.HealthCheckRequest{Service: "liveness"},
+					)
+					return healthResponse.GetStatus(), err
+				},
+			).Should(Equal(healthpb.HealthCheckResponse_SERVING))
+
 			grpcClient = pb.NewRunCompletionEventTriggerClient(grpcConn)
 
 			natsConn, err = nats.Connect(nats.DefaultURL)

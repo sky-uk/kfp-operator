@@ -29,6 +29,7 @@ func (e *ConnectionError) Error() string {
 
 type natsConn interface {
 	Publish(subject string, data []byte) error
+	IsConnected() bool
 }
 
 type NatsPublisher struct {
@@ -50,7 +51,7 @@ func NewNatsPublisher(ctx context.Context, nc *nats.Conn, subject string) *NatsP
 	}
 }
 
-func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) error {
+func (nc *NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) error {
 	dataWrapper := DataWrapper{Data: runCompletionEvent}
 	eventData, err := json.Marshal(dataWrapper)
 	if err != nil {
@@ -60,4 +61,12 @@ func (nc NatsPublisher) Publish(runCompletionEvent common.RunCompletionEvent) er
 		return &ConnectionError{err.Error()}
 	}
 	return nil
+}
+
+func (nc *NatsPublisher) Name() string {
+	return "nats-publisher"
+}
+
+func (nc *NatsPublisher) IsHealthy() bool {
+	return nc.NatsConn.IsConnected()
 }
