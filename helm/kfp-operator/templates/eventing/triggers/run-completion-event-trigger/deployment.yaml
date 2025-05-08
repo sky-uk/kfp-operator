@@ -31,17 +31,17 @@ spec:
         livenessProbe:
           grpc:
             port: {{ .Values.runcompletionEventTrigger.server.port }}
-            service: grpc.health.v1.Health
+            service: liveness
           initialDelaySeconds: 5
           periodSeconds: 10
           failureThreshold: 3
         readinessProbe:
           grpc:
             port: {{ .Values.runcompletionEventTrigger.server.port }}
-            service: grpc.health.v1.Health
+            service: readiness
           initialDelaySeconds: 2
           periodSeconds: 5
-          failureThreshold: 1
+          failureThreshold: 2
       volumes:
         - name: config
           configMap:

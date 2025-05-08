@@ -53,9 +53,16 @@ var _ = Context("RunCompletionEventTriggerService", Ordered, func() {
 			healthClient = healthpb.NewHealthClient(grpcConn)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 			defer cancel()
-			healthResponse, err := healthClient.Check(ctx, &healthpb.HealthCheckRequest{})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(healthResponse.GetStatus()).To(Equal(healthpb.HealthCheckResponse_SERVING))
+
+			Eventually(
+				func() (healthpb.HealthCheckResponse_ServingStatus, error) {
+					healthResponse, err := healthClient.Check(
+						ctx,
+						&healthpb.HealthCheckRequest{Service: "liveness"},
+					)
+					return healthResponse.GetStatus(), err
+				},
+			).Should(Equal(healthpb.HealthCheckResponse_SERVING))
 
 			grpcClient = pb.NewRunCompletionEventTriggerClient(grpcConn)
 
