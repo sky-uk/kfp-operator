@@ -18,8 +18,9 @@ type NATSConfig struct {
 }
 
 type ServerConfig struct {
-	Host string `mapstructure:"host"`
-	Port string `mapstructure:"port"`
+	Host        string `mapstructure:"host"`
+	Port        string `mapstructure:"port"`
+	MetricsPort string `mapstructure:"metricsPort"`
 }
 
 func (sc ServerConfig) ToUrl() string {

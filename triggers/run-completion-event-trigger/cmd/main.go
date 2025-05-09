@@ -58,6 +58,8 @@ func main() {
 
 	reflection.Register(s)
 
+	server.MetricsServer{}.Start(ctx, 8081, "runcompletioneventtrigger")
+
 	logger.Info("Listening at", "host", config.ServerConfig.Host, "port", config.ServerConfig.Port)
 	if err := s.Serve(lis); err != nil {
 		logger.Error(err, "failed to serve grpc service")
