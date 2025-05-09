@@ -26,7 +26,7 @@ type PipelineFramework struct {
 	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
 }
 
-const DefaultFallbackFramework = "tfx"
+const FallbackFramework = "tfx"
 
 func NewPipelineFramework(compilerType string) PipelineFramework {
 	return PipelineFramework{
@@ -39,7 +39,7 @@ func NewPipelineFramework(compilerType string) PipelineFramework {
 ComputeHash returns a hash of the pipeline spec, ensuring consistency across versions.
 
 To maintain compatibility, certain fields are deliberately excluded from the hash calculation, or are normalized to match
-the behavior of previous versions when using default fields as determined by conversion to the hub version.
+the behaviour of previous versions when using default fields as determined by conversion to the hub version.
 
 The order in which data is written to the hash is critical and must remain unchanged across versions to ensure consistency.
 
@@ -51,11 +51,11 @@ func (ps Pipeline) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(ps.Spec.Image)
 
-	isDefaultFramework := pipeline.Spec.Framework.Name == DefaultFallbackFramework
+	isFallbackFramework := pipeline.Spec.Framework.Name == FallbackFramework
 
 	// For the default framework, include components in the hash using the same format as spoke versions to ensure consistency.
 	tfxComponentsString := ""
-	if isDefaultFramework && pipeline.Spec.Framework.Parameters["components"] != nil {
+	if isFallbackFramework && pipeline.Spec.Framework.Parameters["components"] != nil {
 		if err := json.Unmarshal(pipeline.Spec.Framework.Parameters["components"].Raw, &tfxComponentsString); err != nil {
 			return nil
 		}
@@ -69,7 +69,7 @@ func (ps Pipeline) ComputeHash() []byte {
 
 	// For the default framework, include beamArgs in the hash using the same format as spoke versions to ensure consistency.
 	beamArgsList := []apis.NamedValue{}
-	if isDefaultFramework && pipeline.Spec.Framework.Parameters["beamArgs"] != nil {
+	if isFallbackFramework && pipeline.Spec.Framework.Parameters["beamArgs"] != nil {
 		beamArgs := map[string]string{}
 		if err := json.Unmarshal(pipeline.Spec.Framework.Parameters["beamArgs"].Raw, &beamArgs); err != nil {
 			return nil
@@ -92,7 +92,7 @@ func (ps Pipeline) ComputeHash() []byte {
 		oh.WriteMapField(output)
 	}
 
-	if !isDefaultFramework {
+	if !isFallbackFramework {
 		oh.WriteStringField(pipeline.Spec.Framework.Name)
 	}
 

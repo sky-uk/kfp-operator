@@ -12,6 +12,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -26,6 +27,11 @@ const (
 	envVarKey          = "envVarKey"
 	envVarValue        = "envVarValue"
 )
+
+func TestAPIs(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Cross version api test suite")
+}
 
 var _ = Context("Pipeline Hash", Ordered, func() {
 
@@ -52,7 +58,7 @@ var _ = Context("Pipeline Hash", Ordered, func() {
 						{Name: envVarKey, Value: envVarValue},
 					},
 					Framework: v1beta1.PipelineFramework{
-						Name: v1beta1.DefaultFallbackFramework,
+						Name: v1beta1.FallbackFramework,
 						Parameters: map[string]*apiextensionsv1.JSON{
 							"components": {
 								Raw: []byte(fmt.Sprintf(`"%s"`, tfxComponentsValue)),
