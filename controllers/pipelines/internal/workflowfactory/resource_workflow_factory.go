@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	common "github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/jsonutil"
@@ -107,6 +108,18 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 	return patchedJsonString, nil
 }
 
+func checkResourceNamespaceAllowed(
+	resourceNamespace string,
+	provider pipelineshub.Provider,
+) error {
+	if len(provider.Spec.AllowedNamespaces) > 0 {
+		if !common.Contains(provider.Spec.AllowedNamespaces, resourceNamespace) {
+			return fmt.Errorf("resource namespace %s is not allowed by provider %s", resourceNamespace, provider.Name)
+		}
+	}
+	return nil
+}
+
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
@@ -123,6 +136,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 	}
 
 	namespacedProvider, err := provider.GetCommonNamespacedName().String()
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkResourceNamespaceAllowed(resource.GetNamespacedName().Namespace, provider)
 	if err != nil {
 		return nil, err
 	}
@@ -193,6 +211,12 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	if err != nil {
 		return nil, err
 	}
+
+	err = checkResourceNamespaceAllowed(resource.GetNamespacedName().Namespace, provider)
+	if err != nil {
+		return nil, err
+	}
+
 	params := []argo.Parameter{
 		{
 			Name:  workflowconstants.ResourceKindParameterName,
@@ -257,6 +281,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 	namespacedProvider, err := provider.GetCommonNamespacedName().String()
 	if err != nil {
 		fmt.Println("ResourceWorkflowFactory: err: ", err)
+		return nil, err
+	}
+
+	err = checkResourceNamespaceAllowed(resource.GetNamespacedName().Namespace, provider)
+	if err != nil {
 		return nil, err
 	}
 

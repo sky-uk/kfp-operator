@@ -341,6 +341,10 @@ spec:
             type: object
           spec:
             properties:
+              allowedNamespaces:
+                items:
+                  type: string
+                type: array
               executionMode:
                 type: string
               frameworks:
