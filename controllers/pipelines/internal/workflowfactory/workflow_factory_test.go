@@ -43,3 +43,28 @@ var _ = Describe("CommonWorkflowMeta", func() {
 		Expect(meta.Namespace).To(Equal(configuredNamespace))
 	})
 })
+
+var _ = Describe("checkResourceNamespaceAllowed", func() {
+	It("fails when the resource namespace is not in the provider allowed namespaces", func() {
+		provider := pipelineshub.RandomProvider()
+		provider.Spec.AllowedNamespaces = []string{"bar"}
+		provider.Name = "test"
+		err := checkResourceNamespaceAllowed("foo", *provider)
+		Expect(err).To(HaveOccurred())
+		Expect(err.Error()).To(Equal("resource namespace foo is not allowed by provider test"))
+	})
+
+	It("succeeds when the provider allowed namespaces is empty", func() {
+		provider := pipelineshub.RandomProvider()
+		provider.Spec.AllowedNamespaces = []string{}
+		err := checkResourceNamespaceAllowed("foo", *provider)
+		Expect(err).To(Not(HaveOccurred()))
+	})
+
+	It("succeeds when the resource namespace is in the provider allowed namespaces", func() {
+		provider := pipelineshub.RandomProvider()
+		provider.Spec.AllowedNamespaces = []string{"foo"}
+		err := checkResourceNamespaceAllowed("foo", *provider)
+		Expect(err).To(Not(HaveOccurred()))
+	})
+})
