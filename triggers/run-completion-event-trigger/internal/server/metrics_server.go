@@ -13,14 +13,13 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
-	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
 type MetricsServer struct{}
 
-func (ms MetricsServer) Start(ctx context.Context, port int, serviceName string, reg prom.Gatherer) error {
+func (ms MetricsServer) Start(ctx context.Context, port int, serviceName string) error {
 	if port == 0 {
 		return errors.New("metrics.Port must be specified")
 	}
@@ -30,7 +29,7 @@ func (ms MetricsServer) Start(ctx context.Context, port int, serviceName string,
 		return err
 	}
 
-	onShutdown, err := initialiseMetricsServerFromListener(ctx, listener, serviceName, reg)
+	onShutdown, err := initialiseMetricsServerFromListener(ctx, listener, serviceName)
 	if err != nil {
 		return err
 	}
@@ -38,7 +37,7 @@ func (ms MetricsServer) Start(ctx context.Context, port int, serviceName string,
 	return nil
 }
 
-func initialiseMetricsServerFromListener(ctx context.Context, listener net.Listener, serviceName string, reg prom.Gatherer) (func(), error) {
+func initialiseMetricsServerFromListener(ctx context.Context, listener net.Listener, serviceName string) (func(), error) {
 	logger := common.LoggerFromContext(ctx)
 
 	meterProvider, err := newMeterProvider(serviceName)
@@ -47,7 +46,7 @@ func initialiseMetricsServerFromListener(ctx context.Context, listener net.Liste
 	}
 	otel.SetMeterProvider(meterProvider)
 
-	go serveMetrics(ctx, listener, reg)
+	go serveMetrics(ctx, listener)
 
 	return func() {
 		if err := meterProvider.Shutdown(ctx); err != nil {
@@ -72,19 +71,11 @@ func newMeterProvider(serviceName string) (*metric.MeterProvider, error) {
 	return meterProvider, nil
 }
 
-func serveMetrics(ctx context.Context, listener net.Listener, reg prom.Gatherer) {
+func serveMetrics(ctx context.Context, listener net.Listener) {
 	logger := common.LoggerFromContext(ctx)
 	route := "/metrics"
 
-	http.Handle(
-		route,
-		promhttp.HandlerFor(
-			reg,
-			promhttp.HandlerOpts{
-				EnableOpenMetrics: true,
-			},
-		),
-	)
+	http.Handle(route, promhttp.Handler())
 	if err := http.Serve(listener, nil); err != nil {
 		logger.Error(err, "Metrics serving failed")
 	}
