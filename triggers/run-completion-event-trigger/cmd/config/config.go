@@ -2,14 +2,16 @@ package run_completion_event_trigger
 
 import (
 	"fmt"
+	"net"
 	"strings"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	NATSConfig   NATSConfig   `mapstructure:"natsConfig"`
-	ServerConfig ServerConfig `mapstructure:"serverConfig"`
+	NATSConfig    NATSConfig   `mapstructure:"natsConfig"`
+	ServerConfig  ServerConfig `mapstructure:"serverConfig"`
+	MetricsConfig ServerConfig `mapstructure:"metricsConfig"`
 }
 
 type NATSConfig struct {
@@ -18,13 +20,12 @@ type NATSConfig struct {
 }
 
 type ServerConfig struct {
-	Host        string `mapstructure:"host"`
-	Port        string `mapstructure:"port"`
-	MetricsPort string `mapstructure:"metricsPort"`
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
 }
 
-func (sc ServerConfig) ToUrl() string {
-	return sc.Host + ":" + sc.Port
+func (sc ServerConfig) ToAddr() string {
+	return net.JoinHostPort(sc.Host, sc.Port)
 }
 
 func LoadConfig() (*Config, error) {

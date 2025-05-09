@@ -34,6 +34,10 @@ var _ = Context("LoadConfig", func() {
 					Host: "localhost",
 					Port: "50051",
 				},
+				MetricsConfig: ServerConfig{
+					Host: "localhost",
+					Port: "8081",
+				},
 			}
 			config, err := LoadConfig()
 			Expect(err).NotTo(HaveOccurred())
@@ -55,6 +59,10 @@ var _ = Context("LoadConfig", func() {
 				ServerConfig: ServerConfig{
 					Host: "localhost",
 					Port: "50051",
+				},
+				MetricsConfig: ServerConfig{
+					Host: "localhost",
+					Port: "8081",
 				},
 			}
 			config, err := LoadConfig()

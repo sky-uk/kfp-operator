@@ -24,8 +24,8 @@ spec:
         ports:
         - name: grpc-server
           containerPort: {{ .Values.runcompletionEventTrigger.server.port }}
-        - name: metrics
-          containerPort: 8081
+        - name: metrics-server
+          containerPort: {{ .Values.runcompletionEventTrigger.metrics.port }}
         volumeMounts:
           - name: config
             mountPath: /etc/run-completion-event-trigger/config.yaml

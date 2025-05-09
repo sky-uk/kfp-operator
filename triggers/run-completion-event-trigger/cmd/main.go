@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net"
 
 	"github.com/go-logr/logr"
@@ -33,23 +32,29 @@ func main() {
 		panic(err)
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%s", config.ServerConfig.Host, config.ServerConfig.Port))
+	lis, err := net.Listen("tcp", config.ServerConfig.ToAddr())
 	if err != nil {
 		logger.Error(err, "Failed to listen", "port", config.ServerConfig.Port)
 		panic(err)
 	}
 
-	nc, err := nats.Connect(config.NATSConfig.ServerConfig.ToUrl())
+	nc, err := nats.Connect(config.NATSConfig.ServerConfig.ToAddr())
 	if err != nil {
-		logger.Error(err, "failed to connect to NATS server", "url", config.NATSConfig.ServerConfig.ToUrl())
+		logger.Error(err, "failed to connect to NATS server", "addr", config.NATSConfig.ServerConfig.ToAddr())
 		panic(err)
 	}
 	defer nc.Close()
 
 	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
 
+	f := server.ServerMetricz{}
+	reg, srvMetrics := f.NewServerMetricz("runcompletioneventtrigger", "fuckknows")
+
 	s := grpc.NewServer(
-		grpc.UnaryInterceptor(unaryLoggerInterceptor(logger)),
+		grpc.ChainUnaryInterceptor(
+			srvMetrics.UnaryServerInterceptor(),
+			unaryLoggerInterceptor(logger),
+		),
 	)
 
 	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: natsPublisher})
@@ -58,9 +63,14 @@ func main() {
 
 	reflection.Register(s)
 
-	server.MetricsServer{}.Start(ctx, 8081, "runcompletioneventtrigger")
+	server.MetricsServer{}.Start(
+		ctx,
+		config.MetricsConfig.Host,
+		config.MetricsConfig.Port,
+		reg,
+	)
 
-	logger.Info("Listening at", "host", config.ServerConfig.Host, "port", config.ServerConfig.Port)
+	logger.Info("Listening at", "addr", config.ServerConfig.ToAddr())
 	if err := s.Serve(lis); err != nil {
 		logger.Error(err, "failed to serve grpc service")
 		panic(err)
