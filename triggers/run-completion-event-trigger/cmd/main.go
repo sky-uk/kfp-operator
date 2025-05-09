@@ -6,7 +6,9 @@ import (
 	"net"
 
 	"github.com/go-logr/logr"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/nats-io/nats.go"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/cmd/config"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
@@ -48,9 +50,20 @@ func main() {
 
 	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
 
-	s := grpc.NewServer(
-		grpc.UnaryInterceptor(unaryLoggerInterceptor(logger)),
+	srvMetrics := grpcprom.NewServerMetrics(
+		grpcprom.WithServerHandlingTimeHistogram(
+			grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+		),
 	)
+	reg := prometheus.NewRegistry()
+
+	s := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			srvMetrics.UnaryServerInterceptor(),
+			unaryLoggerInterceptor(logger),
+		),
+	)
+	srvMetrics.InitializeMetrics(s)
 
 	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: natsPublisher})
 
@@ -58,7 +71,7 @@ func main() {
 
 	reflection.Register(s)
 
-	server.MetricsServer{}.Start(ctx, 8081, "runcompletioneventtrigger")
+	server.MetricsServer{}.Start(ctx, 8081, "runcompletioneventtrigger", reg)
 
 	logger.Info("Listening at", "host", config.ServerConfig.Host, "port", config.ServerConfig.Port)
 	if err := s.Serve(lis); err != nil {
