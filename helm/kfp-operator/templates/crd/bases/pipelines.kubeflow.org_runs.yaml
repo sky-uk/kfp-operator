@@ -492,7 +492,7 @@ spec:
                 type: string
               provider:
                 type: string
-              runtimeParameters:
+              parameters:
                 items:
                   properties:
                     name:

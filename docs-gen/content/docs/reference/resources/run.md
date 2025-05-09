@@ -15,7 +15,7 @@ spec:
   provider: provider-namespace/kfp
   pipeline: penguin-pipeline:v1-abcdef
   experimentName: penguin-experiment
-  runtimeParameters:
+  parameters:
   - name: TRAINING_RUNS
     value: '100'
   - name: EXAMPLES
@@ -37,12 +37,12 @@ Note the usage of `metadata.generateName` which tells Kubernetes to generate a n
 | `spec.provider`            | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`.                                                                                                           |
 | `spec.pipeline`            | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.                                             |
 | `spec.experimentName`      | The name of the corresponding experiment resource (optional - the `Default` Experiment as defined in the [Installation and Configuration section of the documentation](README.md#configuration) will be used if no `experimentName` is provided). |
-| `spec.runtimeParameters[]` | Runtime parameters for the pipeline training run. See below for more information.                                                                                                                                                                 |
+| `spec.parameters[]`        | Parameters for the pipeline training run. See below for more information.                                                                                                                                                                         |
 | `spec.run.artifacts[]`     | Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.                                                                                                               |
 
 ### Runtime Parameter Definition
 
-A pipeline run can be parameterised using RunTimeParameters.
+A pipeline run can be parameterised using parameters.
 
 | Name                                           | Description                                                                                                                                      |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
