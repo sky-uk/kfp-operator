@@ -17,6 +17,11 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 
 	var beamArgsPatchOps []common.JsonPatchOperation
 
+	remainderFromConvertFrom := ProviderConversionRemainder{}
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainderFromConvertFrom); err != nil {
+		return err
+	}
+
 	for _, namedValue := range src.Spec.DefaultBeamArgs {
 		patchOp := common.JsonPatchOperation{
 			Op:   "add",
@@ -50,14 +55,9 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.Spec.Frameworks = []hub.Framework{tfxFramework}
+	dst.Spec.AllowedNamespaces = remainderFromConvertFrom.AllowedNamespaces
 
-	remainder := ProviderConversionRemainder{}
-
-	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
-		return err
-	}
-
-	if remainder.ServiceImage == "" {
+	if remainderFromConvertFrom.ServiceImage == "" {
 		return errors.New("ServiceImage not set in remainder when converting to hub from v1alpha5")
 	}
 
@@ -65,7 +65,9 @@ func (src *Provider) ConvertTo(dstRaw conversion.Hub) error {
 		return err
 	}
 
-	dst.Spec.ServiceImage = remainder.ServiceImage
+	dst.Spec.ServiceImage = remainderFromConvertFrom.ServiceImage
+
+	remainder := ProviderConversionRemainder{}
 	remainder.ServiceImage = ""
 	remainder.Image = src.Spec.Image
 
@@ -78,8 +80,8 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 	src := srcRaw.(*hub.Provider)
 	dstApiVersion := dst.APIVersion
 
-	remainder := ProviderConversionRemainder{}
-	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainder); err != nil {
+	remainderFromConvertTo := ProviderConversionRemainder{}
+	if err := pipelines.GetAndUnsetConversionAnnotations(src, &remainderFromConvertTo); err != nil {
 		return err
 	}
 
@@ -106,10 +108,12 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Spec.Parameters = src.Spec.Parameters
-	dst.Spec.Image = remainder.Image
+	dst.Spec.Image = remainderFromConvertTo.Image
 
+	remainder := ProviderConversionRemainder{}
 	remainder.ServiceImage = src.Spec.ServiceImage
 	remainder.Image = ""
+	remainder.AllowedNamespaces = src.Spec.AllowedNamespaces
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

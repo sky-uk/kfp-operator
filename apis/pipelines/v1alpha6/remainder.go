@@ -71,11 +71,12 @@ func (ExperimentConversionRemainder) ConversionAnnotation() string {
 }
 
 type ProviderConversionRemainder struct {
-	Image string `json:"image"`
+	Image             string   `json:"image"`
+	AllowedNamespaces []string `json:"allowedNamespaces"`
 }
 
 func (pcr ProviderConversionRemainder) Empty() bool {
-	return pcr.Image == ""
+	return pcr.Image == "" && len(pcr.AllowedNamespaces) == 0
 }
 
 func (ProviderConversionRemainder) ConversionAnnotation() string {
