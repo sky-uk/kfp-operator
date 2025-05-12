@@ -3,7 +3,7 @@
 package test
 
 import (
-	"fmt"
+	"encoding/json"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -43,6 +43,13 @@ var _ = Context("Pipeline Hash", Ordered, func() {
 
 	BeforeEach(
 		func() {
+			tfxComponentsJson, err := json.Marshal(tfxComponentsValue)
+			Expect(err).To(Not(HaveOccurred()))
+
+			beamArgs := []apis.NamedValue{{Name: beamArgsKey, Value: beamArgsValue}}
+			beamArgsJson, err := json.Marshal(beamArgs)
+			Expect(err).To(Not(HaveOccurred()))
+
 			beta1Pipeline = v1beta1.Pipeline{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      name,
@@ -61,10 +68,10 @@ var _ = Context("Pipeline Hash", Ordered, func() {
 						Name: v1beta1.FallbackFramework,
 						Parameters: map[string]*apiextensionsv1.JSON{
 							"components": {
-								Raw: []byte(fmt.Sprintf(`"%s"`, tfxComponentsValue)),
+								Raw: tfxComponentsJson,
 							},
 							"beamArgs": {
-								Raw: []byte(fmt.Sprintf(`{"%s":"%s"}`, beamArgsKey, beamArgsValue)),
+								Raw: beamArgsJson,
 							},
 						},
 					},

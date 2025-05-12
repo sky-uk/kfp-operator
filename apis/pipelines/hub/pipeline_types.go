@@ -70,13 +70,8 @@ func (ps Pipeline) ComputeHash() []byte {
 	// For the default framework, include beamArgs in the hash using the same format as spoke versions to ensure consistency.
 	beamArgsList := []apis.NamedValue{}
 	if isFallbackFramework && pipeline.Spec.Framework.Parameters["beamArgs"] != nil {
-		beamArgs := map[string]string{}
-		if err := json.Unmarshal(pipeline.Spec.Framework.Parameters["beamArgs"].Raw, &beamArgs); err != nil {
+		if err := json.Unmarshal(pipeline.Spec.Framework.Parameters["beamArgs"].Raw, &beamArgsList); err != nil {
 			return nil
-		}
-
-		for key, value := range beamArgs {
-			beamArgsList = append(beamArgsList, apis.NamedValue{Name: key, Value: value})
 		}
 
 		delete(pipeline.Spec.Framework.Parameters, "beamArgs")
@@ -100,7 +95,11 @@ func (ps Pipeline) ComputeHash() []byte {
 }
 
 func (ps Pipeline) ComputeVersion() string {
-	hash := ps.ComputeHash()[0:3]
+	computeHash := ps.ComputeHash()
+	if computeHash == nil {
+		return ""
+	}
+	hash := computeHash[0:3]
 	ref, err := ParseNormalizedNamed(ps.Spec.Image)
 
 	if err == nil {
