@@ -3,6 +3,12 @@ package main
 import (
 	"context"
 	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/nats-io/nats.go"
@@ -25,16 +31,20 @@ func main() {
 	}
 
 	ctx := logr.NewContext(context.Background(), logger)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		<-c
+		logger.Info("Received shutdown signal")
+		cancel()
+	}()
 
 	config, err := configLoader.LoadConfig()
 	if err != nil {
 		logger.Error(err, "Failed to load config file on startup")
-		panic(err)
-	}
-
-	lis, err := net.Listen("tcp", config.ServerConfig.ToAddr())
-	if err != nil {
-		logger.Error(err, "Failed to listen", "port", config.ServerConfig.Port)
 		panic(err)
 	}
 
@@ -47,30 +57,69 @@ func main() {
 
 	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
 
-	f := server.ServerMetricz{}
-	reg, srvMetrics := f.NewServerMetricz("runcompletioneventtrigger", "fuckknows")
+	reg, srvMetrics := server.NewPrometheusRegistryAndServerMetrics(
+		"runcompletioneventtrigger",
+		"fuckknows",
+	)
 
-	s := grpc.NewServer(
+	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			srvMetrics.UnaryServerInterceptor(),
 			unaryLoggerInterceptor(logger),
 		),
 	)
 
-	pb.RegisterRunCompletionEventTriggerServer(s, &server.Server{Config: config, Publisher: natsPublisher})
+	pb.RegisterRunCompletionEventTriggerServer(
+		grpcServer,
+		&server.Server{Config: config, Publisher: natsPublisher},
+	)
+	healthpb.RegisterHealthServer(
+		grpcServer,
+		&server.HealthServer{HealthCheck: natsPublisher},
+	)
+	reflection.Register(grpcServer)
 
-	healthpb.RegisterHealthServer(s, &server.HealthServer{HealthCheck: natsPublisher})
-
-	reflection.Register(s)
-
-	server.MetricsServer{}.Start(ctx, config.MetricsConfig.ToAddr(), reg)
-
-	logger.Info("Listening at", "addr", config.ServerConfig.ToAddr())
-	if err := s.Serve(lis); err != nil {
-		logger.Error(err, "failed to serve grpc service")
+	lis, err := net.Listen("tcp", config.ServerConfig.ToAddr())
+	if err != nil {
+		logger.Error(err, "Failed to listen", "port", config.ServerConfig.Port)
 		panic(err)
 	}
 
+	metricsSrv := server.NewMetricsServer(config.MetricsConfig.ToAddr(), reg)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		logger.Info("Starting gRPC server", "addr", config.ServerConfig.ToAddr())
+		if err := grpcServer.Serve(lis); err != nil {
+			logger.Error(err, "gRPC server exited unexpectedly")
+			cancel()
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		logger.Info("Starting metrics server", "addr", metricsSrv.Addr)
+		if err := metricsSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error(err, "Metrics server exited unexpectedly")
+			cancel()
+		}
+	}()
+
+	<-ctx.Done()
+	logger.Info("Context canceled, shutting down servers...")
+
+	grpcServer.GracefulStop()
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+	if err := metricsSrv.Shutdown(shutdownCtx); err != nil {
+		logger.Error(err, "Failed to shutdown metrics server cleanly")
+	}
+
+	wg.Wait()
+	logger.Info("Shutdown complete")
 }
 
 func unaryLoggerInterceptor(baseLogger logr.Logger) grpc.UnaryServerInterceptor {

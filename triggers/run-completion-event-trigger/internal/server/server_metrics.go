@@ -5,9 +5,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type ServerMetricz struct{}
-
-func (sm *ServerMetricz) NewServerMetricz(
+// NewPrometheusRegistryAndServerMetrics creates new ServerMetrics using
+// go-grpc-middleware, which has various counters on gRPC in-flight and handled
+// requests. The service name and namespace are injected as labels to all the
+// counters, and the ServerMetrics are registerd to a prometheus registry.
+func NewPrometheusRegistryAndServerMetrics(
 	namespace string,
 	name string,
 ) (*prometheus.Registry, *grpcprom.ServerMetrics) {
