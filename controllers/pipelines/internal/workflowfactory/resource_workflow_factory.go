@@ -113,7 +113,7 @@ func checkResourceNamespaceAllowed(
 	resourceNamespacedName types.NamespacedName,
 	provider pipelineshub.Provider,
 ) error {
-	if len(provider.Spec.AllowedNamespaces) > 0 && !common.Contains(provider.Spec.AllowedNamespaces, resourceNamespacedName.Namespace)  {
+	if len(provider.Spec.AllowedNamespaces) > 0 && !common.Contains(provider.Spec.AllowedNamespaces, resourceNamespacedName.Namespace) {
 		return fmt.Errorf("resource %s in namespace %s is not allowed by provider %s", resourceNamespacedName.Name, resourceNamespacedName.Namespace, provider.Name)
 	}
 	return nil
