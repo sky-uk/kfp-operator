@@ -63,12 +63,7 @@ func main() {
 
 	reflection.Register(s)
 
-	server.MetricsServer{}.Start(
-		ctx,
-		config.MetricsConfig.Host,
-		config.MetricsConfig.Port,
-		reg,
-	)
+	server.MetricsServer{}.Start(ctx, config.MetricsConfig.ToAddr(), reg)
 
 	logger.Info("Listening at", "addr", config.ServerConfig.ToAddr())
 	if err := s.Serve(lis); err != nil {

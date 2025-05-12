@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
-	"net"
 	"net/http"
 
 	prom "github.com/prometheus/client_golang/prometheus"
@@ -15,30 +13,21 @@ type MetricsServer struct{}
 
 func (ms MetricsServer) Start(
 	ctx context.Context,
-	host string,
-	port string,
+	addr string,
 	reg prom.Gatherer,
 ) error {
-
-	if port == "" {
-		return errors.New("metrics.Port must be specified")
-	}
-
-	go serveMetrics(ctx, host, port, reg)
+	go serveMetrics(ctx, addr, reg)
 
 	return nil
 }
 
 func serveMetrics(
 	ctx context.Context,
-	host string,
-	port string,
+	addr string,
 	reg prom.Gatherer,
 ) {
 	logger := common.LoggerFromContext(ctx)
 	route := "/metrics"
-
-	addr := net.JoinHostPort(host, port)
 
 	logger.Info("Starting metrics server", "addr", addr, "route", route)
 
