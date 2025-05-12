@@ -3,6 +3,7 @@
 package v1beta1
 
 import (
+	"encoding/json"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -34,7 +35,44 @@ var _ = Context("Pipeline", func() {
 				},
 			}
 
-			Expect(pipeline.Spec.Framework.Name).To(Equal("some-framework"))
+			hash2 := pipeline.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
+		Specify("TFX Framework with components should change the hash", func() {
+			pipeline := Pipeline{}
+			hash1 := pipeline.ComputeHash()
+
+			tfxComponentsJson, err := json.Marshal("someTfxComponentsValue")
+			Expect(err).To(Not(HaveOccurred()))
+
+			pipeline.Spec.Framework = PipelineFramework{
+				Name: "tfx",
+				Parameters: map[string]*apiextensionsv1.JSON{
+					"components": {Raw: tfxComponentsJson},
+				},
+			}
+
+			hash2 := pipeline.ComputeHash()
+
+			Expect(hash1).NotTo(Equal(hash2))
+		})
+
+		Specify("TFX Framework with beamArgs should change the hash", func() {
+			pipeline := Pipeline{}
+			hash1 := pipeline.ComputeHash()
+
+			beamArgs := []apis.NamedValue{{Name: "key", Value: "value"}}
+			beamArgsJson, err := json.Marshal(beamArgs)
+			Expect(err).To(Not(HaveOccurred()))
+
+			pipeline.Spec.Framework = PipelineFramework{
+				Name: "tfx",
+				Parameters: map[string]*apiextensionsv1.JSON{
+					"beamArgs": {Raw: beamArgsJson},
+				},
+			}
 
 			hash2 := pipeline.ComputeHash()
 
@@ -70,6 +108,16 @@ var _ = Context("Pipeline", func() {
 	})
 
 	var _ = Describe("ComputeVersion", func() {
+		Specify("Malformed spec should return empty hash", func() {
+			pipeline := Pipeline{}
+			pipeline.Spec.Framework = PipelineFramework{
+				Name: "tfx",
+				Parameters: map[string]*apiextensionsv1.JSON{
+					"beamArgs": {Raw: []byte(`"thisisinvalid"`)},
+				},
+			}
+			Expect(pipeline.ComputeVersion()).To(Equal(""))
+		})
 
 		Specify("Contains the tag if present", func() {
 			Expect(Pipeline{Spec: PipelineSpec{
