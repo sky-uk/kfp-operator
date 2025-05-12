@@ -11,6 +11,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type WorkflowFactory[R pipelineshub.Resource] interface {
@@ -109,12 +110,12 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 }
 
 func checkResourceNamespaceAllowed(
-	resourceNamespace string,
+	resourceNamespacedName types.NamespacedName,
 	provider pipelineshub.Provider,
 ) error {
 	if len(provider.Spec.AllowedNamespaces) > 0 {
-		if !common.Contains(provider.Spec.AllowedNamespaces, resourceNamespace) {
-			return fmt.Errorf("resource namespace %s is not allowed by provider %s", resourceNamespace, provider.Name)
+		if !common.Contains(provider.Spec.AllowedNamespaces, resourceNamespacedName.Namespace) {
+			return fmt.Errorf("resource %s in namespace %s is not allowed by provider %s", resourceNamespacedName.Name, resourceNamespacedName.Namespace, provider.Name)
 		}
 	}
 	return nil
@@ -140,8 +141,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
-	err = checkResourceNamespaceAllowed(resource.GetNamespacedName().Namespace, provider)
-	if err != nil {
+	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
 		return nil, err
 	}
 
@@ -212,8 +212,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		return nil, err
 	}
 
-	err = checkResourceNamespaceAllowed(resource.GetNamespacedName().Namespace, provider)
-	if err != nil {
+	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
 		return nil, err
 	}
 
@@ -284,8 +283,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 		return nil, err
 	}
 
-	err = checkResourceNamespaceAllowed(resource.GetNamespacedName().Namespace, provider)
-	if err != nil {
+	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
 		return nil, err
 	}
 

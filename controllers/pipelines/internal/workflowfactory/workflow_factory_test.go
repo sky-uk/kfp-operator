@@ -9,6 +9,7 @@ import (
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var _ = Describe("CommonWorkflowMeta", func() {
@@ -49,22 +50,31 @@ var _ = Describe("checkResourceNamespaceAllowed", func() {
 		provider := pipelineshub.RandomProvider()
 		provider.Spec.AllowedNamespaces = []string{"bar"}
 		provider.Name = "test"
-		err := checkResourceNamespaceAllowed("foo", *provider)
+		err := checkResourceNamespaceAllowed(types.NamespacedName{
+			Namespace: "foo",
+			Name:      "test-resource",
+		}, *provider)
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal("resource namespace foo is not allowed by provider test"))
+		Expect(err.Error()).To(Equal("resource test-resource in namespace foo is not allowed by provider test"))
 	})
 
 	It("succeeds when the provider allowed namespaces is empty", func() {
 		provider := pipelineshub.RandomProvider()
 		provider.Spec.AllowedNamespaces = []string{}
-		err := checkResourceNamespaceAllowed("foo", *provider)
+		err := checkResourceNamespaceAllowed(types.NamespacedName{
+			Namespace: "foo",
+			Name:      "test-resource",
+		}, *provider)
 		Expect(err).To(Not(HaveOccurred()))
 	})
 
 	It("succeeds when the resource namespace is in the provider allowed namespaces", func() {
 		provider := pipelineshub.RandomProvider()
 		provider.Spec.AllowedNamespaces = []string{"foo"}
-		err := checkResourceNamespaceAllowed("foo", *provider)
+		err := checkResourceNamespaceAllowed(types.NamespacedName{
+			Namespace: "foo",
+			Name:      "test-resource",
+		}, *provider)
 		Expect(err).To(Not(HaveOccurred()))
 	})
 })
