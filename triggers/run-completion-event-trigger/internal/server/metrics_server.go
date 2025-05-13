@@ -28,29 +28,12 @@ func NewMetricsServer(
 }
 
 // NewPrometheusRegistryAndServerMetrics creates new ServerMetrics using
-// go-grpc-middleware, which has various counters on gRPC in-flight and handled
-// requests. The service name and namespace are injected as labels to all the
-// counters, and the ServerMetrics are registerd to a prometheus registry.
-func NewPrometheusRegistryAndServerMetrics(
-	namespace string,
-	name string,
-) (*prometheus.Registry, *grpcprom.ServerMetrics) {
-	labels := mkLabels(name, namespace)
-	srvMetrics := grpcprom.NewServerMetrics(
-		grpcprom.WithServerCounterOptions(
-			grpcprom.WithConstLabels(labels),
-		),
-	)
+// go-grpc-middleware and registers it to a prometheus registry.
+func NewPrometheusRegistryAndServerMetrics() (*prometheus.Registry, *grpcprom.ServerMetrics) {
+	srvMetrics := grpcprom.NewServerMetrics()
 
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(srvMetrics)
 
 	return reg, srvMetrics
-}
-
-func mkLabels(namespace string, name string) prometheus.Labels {
-	return prometheus.Labels{
-		"service.name":      name,
-		"service.namespace": namespace,
-	}
 }
