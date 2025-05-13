@@ -88,8 +88,8 @@ func main() {
 	metricsSrv := server.NewMetricsServer(config.MetricsConfig.ToAddr(), reg)
 
 	var wg sync.WaitGroup
-	wg.Add(2)
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		logger.Info("Starting gRPC server", "addr", config.ServerConfig.ToAddr())
@@ -99,6 +99,7 @@ func main() {
 		}
 	}()
 
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		logger.Info("Starting metrics server", "addr", metricsSrv.Addr)
