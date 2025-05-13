@@ -17,7 +17,7 @@ func NewMetricsServer(
 			mux := http.NewServeMux()
 			mux.Handle(
 				"/metrics",
-				promhttp.HandlerFor(reg, promhttp.HandlerOpts{EnableOpenMetrics: true}),
+				promhttp.HandlerFor(reg, promhttp.HandlerOpts{}),
 			)
 			return mux
 		}(),
