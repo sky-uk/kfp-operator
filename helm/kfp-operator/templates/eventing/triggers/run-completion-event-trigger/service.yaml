@@ -4,6 +4,8 @@ kind: Service
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
   namespace: {{ .Values.namespace.name }}
+  labels:
+    app: run-completion-event-trigger
 spec:
   selector:
     app: run-completion-event-trigger
