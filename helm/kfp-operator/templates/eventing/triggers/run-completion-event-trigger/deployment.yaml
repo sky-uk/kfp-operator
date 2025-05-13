@@ -22,9 +22,9 @@ spec:
       - name: run-completion-event-trigger
         image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-run-completion-event-trigger:{{ .Chart.AppVersion }}
         ports:
-        - name: grpc-server
+        - name: grpc
           containerPort: {{ .Values.runcompletionEventTrigger.server.port }}
-        - name: metrics-server
+        - name: http-metrics
           containerPort: {{ .Values.runcompletionEventTrigger.metrics.port }}
         volumeMounts:
           - name: config

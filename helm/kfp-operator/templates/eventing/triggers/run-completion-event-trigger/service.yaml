@@ -11,9 +11,9 @@ spec:
   - name: grpc
     protocol: TCP
     port: {{ .Values.runcompletionEventTrigger.server.port }}
-    targetPort: grpc-server
-  - name: metrics
+    targetPort: grpc
+  - name: http-metrics
     protocol: TCP
     port: {{ .Values.runcompletionEventTrigger.metrics.port }}
-    targetPort: metrics-server
+    targetPort: http-metrics
 {{- end -}}
