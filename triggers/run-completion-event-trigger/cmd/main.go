@@ -35,9 +35,9 @@ func main() {
 	defer cancel()
 
 	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		<-c
+		channel := make(chan os.Signal, 1)
+		signal.Notify(channel, syscall.SIGINT, syscall.SIGTERM)
+		<-channel
 		logger.Info("Received shutdown signal")
 		cancel()
 	}()
@@ -84,11 +84,11 @@ func main() {
 
 	metricsSrv := server.NewMetricsServer(config.MetricsConfig.ToAddr(), reg)
 
-	var wg sync.WaitGroup
+	var waitGroup sync.WaitGroup
 
-	wg.Add(1)
+	waitGroup.Add(1)
 	go func() {
-		defer wg.Done()
+		defer waitGroup.Done()
 		logger.Info("Starting gRPC server", "addr", config.ServerConfig.ToAddr())
 		if err := grpcServer.Serve(lis); err != nil {
 			logger.Error(err, "gRPC server exited unexpectedly")
@@ -96,9 +96,9 @@ func main() {
 		}
 	}()
 
-	wg.Add(1)
+	waitGroup.Add(1)
 	go func() {
-		defer wg.Done()
+		defer waitGroup.Done()
 		logger.Info("Starting metrics server", "addr", metricsSrv.Addr)
 		if err := metricsSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error(err, "Metrics server exited unexpectedly")
@@ -116,7 +116,7 @@ func main() {
 		logger.Error(err, "Failed to shutdown metrics server cleanly")
 	}
 
-	wg.Wait()
+	waitGroup.Wait()
 	logger.Info("Shutdown complete")
 }
 
