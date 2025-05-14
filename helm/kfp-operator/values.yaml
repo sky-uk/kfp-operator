@@ -55,6 +55,7 @@ manager:
     endpoints: []
 
 runcompletionEventTrigger:
+  metadata: {}
   enabled: false
   monitoring: false
 

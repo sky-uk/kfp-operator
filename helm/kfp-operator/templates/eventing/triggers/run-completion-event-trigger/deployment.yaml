@@ -14,7 +14,12 @@ spec:
   template:
     metadata:
       labels:
-        app: run-completion-event-trigger
+{{- $baseLabels := dict "app" "run-completion-event-trigger" }}
+{{- with .Values.runcompletionEventTrigger.metadata.labels }}
+{{ toYaml (merge $baseLabels .) | indent 8 }}
+{{- else }}
+{{ toYaml $baseLabels | indent 8 }}
+{{- end }}
     spec:
       securityContext:
         runAsNonRoot: true
