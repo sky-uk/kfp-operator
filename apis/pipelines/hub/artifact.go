@@ -13,7 +13,11 @@ type ArtifactLocator struct {
 }
 
 func (ap *ArtifactLocator) String() string {
-	return fmt.Sprintf("%s:%s:%d", ap.Component, ap.Artifact, ap.Index)
+	if ap.Index == 0 {
+		return fmt.Sprintf("%s:%s", ap.Component, ap.Artifact)
+	} else {
+		return fmt.Sprintf("%s:%s:%d", ap.Component, ap.Artifact, ap.Index)
+	}
 }
 
 const ArtifactPathPattern = `^([^\[\]:]+):([^\[\]:]+)(?::(\d*))?(?:\[([^\[\]:]+)\])?$`
