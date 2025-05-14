@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	common "github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/jsonutil"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type WorkflowFactory[R pipelineshub.Resource] interface {
@@ -107,6 +109,16 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) resourceDefinit
 	return patchedJsonString, nil
 }
 
+func checkResourceNamespaceAllowed(
+	resourceNamespacedName types.NamespacedName,
+	provider pipelineshub.Provider,
+) error {
+	if len(provider.Spec.AllowedNamespaces) > 0 && !common.Contains(provider.Spec.AllowedNamespaces, resourceNamespacedName.Namespace) {
+		return fmt.Errorf("resource %s in namespace %s is not allowed by provider %s", resourceNamespacedName.Name, resourceNamespacedName.Namespace, provider.Name)
+	}
+	return nil
+}
+
 func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreationWorkflow(
 	provider pipelineshub.Provider,
 	providerSvc corev1.Service,
@@ -124,6 +136,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 
 	namespacedProvider, err := provider.GetCommonNamespacedName().String()
 	if err != nil {
+		return nil, err
+	}
+
+	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
 		return nil, err
 	}
 
@@ -193,6 +209,11 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 	if err != nil {
 		return nil, err
 	}
+
+	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
+		return nil, err
+	}
+
 	params := []argo.Parameter{
 		{
 			Name:  workflowconstants.ResourceKindParameterName,
@@ -257,6 +278,10 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 	namespacedProvider, err := provider.GetCommonNamespacedName().String()
 	if err != nil {
 		fmt.Println("ResourceWorkflowFactory: err: ", err)
+		return nil, err
+	}
+
+	if err = checkResourceNamespaceAllowed(resource.GetNamespacedName(), provider); err != nil {
 		return nil, err
 	}
 

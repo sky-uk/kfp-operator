@@ -85,12 +85,13 @@ func (PipelineConversionRemainder) ConversionAnnotation() string {
 }
 
 type ProviderConversionRemainder struct {
-	Image        string `json:"image"`
-	ServiceImage string `json:"serviceImage"`
+	Image             string   `json:"image"`
+	ServiceImage      string   `json:"serviceImage"`
+	AllowedNamespaces []string `json:"allowedNamespaces"`
 }
 
 func (pcr ProviderConversionRemainder) Empty() bool {
-	return pcr.Image == "" && pcr.ServiceImage == ""
+	return pcr.Image == "" && pcr.ServiceImage == "" && len(pcr.AllowedNamespaces) == 0
 }
 
 func (ProviderConversionRemainder) ConversionAnnotation() string {

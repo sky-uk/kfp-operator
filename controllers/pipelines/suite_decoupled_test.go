@@ -124,6 +124,7 @@ var _ = BeforeSuite(func() {
 			Image: "dummy-image",
 		},
 	}
+	Provider.Spec.AllowedNamespaces = []string{"default"}
 	Expect(K8sClient.Create(Ctx, Provider)).To(Succeed())
 
 	providerSvc := corev1.Service{}

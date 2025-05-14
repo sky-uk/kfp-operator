@@ -37,6 +37,7 @@ type ProviderSpec struct {
 	PipelineRootStorage string                           `json:"pipelineRootStorage" yaml:"pipelineRootStorage"`
 	Parameters          map[string]*apiextensionsv1.JSON `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Frameworks          []Framework                      `json:"frameworks,omitempty" yaml:"frameworks,omitempty"`
+	AllowedNamespaces   []string                         `json:"allowedNamespaces,omitempty" yaml:"allowedNamespaces,omitempty"`
 }
 
 type Framework struct {

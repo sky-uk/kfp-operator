@@ -96,6 +96,7 @@ func RandomProviderSpec() ProviderSpec {
 		PipelineRootStorage: RandomLowercaseString(),
 		Frameworks:          RandomList(RandomFramework),
 		Parameters:          randomParameters,
+		AllowedNamespaces:   RandomList(RandomString),
 	}
 }
 
