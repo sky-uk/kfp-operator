@@ -80,7 +80,7 @@ var _ = Describe("Http Server Endpoints", func() {
 		handledResource.On("Type").Return(resourceType)
 		server = httptest.NewServer(newHandler(ctx, []resource.HttpHandledResource{
 			handledResource,
-		}))
+		}, nil))
 	})
 
 	AfterEach(func() {
@@ -98,7 +98,7 @@ var _ = Describe("Http Server Endpoints", func() {
 				body, err := io.ReadAll(resp.Body)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(string(body)).To(Equal("Application is ready."))
+				Expect(string(body)).To(Equal("SERVING"))
 			})
 		})
 	})

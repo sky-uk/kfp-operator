@@ -17,14 +17,30 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 
-func readinessHandler(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Application is ready."))
-}
-
 func livenessHandler(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Application is live."))
+
+}
+
+func createReadinessCheckHandler(ctx context.Context, healthChecks []HealthCheck) http.HandlerFunc {
+	logger := common.LoggerFromContext(ctx)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		requestCtx := logr.NewContext(r.Context(), logger)
+
+		for _, healthCheck := range healthChecks {
+			if !healthCheck.IsHealthy(requestCtx) {
+				logger.Error(nil, "Health check failed", "Name", healthCheck.Name())
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("NOT_SERVING"))
+				return
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("SERVING"))
+	}
 }
 
 func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
@@ -138,13 +154,13 @@ func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.Han
 	}
 }
 
-func newHandler(ctx context.Context, resources []resource.HttpHandledResource) http.Handler {
+func newHandler(ctx context.Context, resources []resource.HttpHandledResource, healthChecks []HealthCheck) http.Handler {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
 	mux.Use(middleware.Recoverer)
 
 	mux.Get("/livez", livenessHandler)
-	mux.Get("/readyz", readinessHandler)
+	mux.Get("/readyz", createReadinessCheckHandler(ctx, healthChecks))
 
 	for _, resource := range resources {
 		mux.Route("/resource/"+resource.Type(), func(r chi.Router) {
@@ -159,7 +175,7 @@ func newHandler(ctx context.Context, resources []resource.HttpHandledResource) h
 
 type ProviderServer struct{}
 
-func (ps ProviderServer) Start(ctx context.Context, cfg config.Server, provider resource.Provider) error {
+func (ps ProviderServer) Start(ctx context.Context, cfg config.Server, provider resource.Provider, healthChecks []HealthCheck) error {
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	logger := common.LoggerFromContext(ctx)
 
@@ -172,7 +188,7 @@ func (ps ProviderServer) Start(ctx context.Context, cfg config.Server, provider 
 
 	srv := &http.Server{
 		Addr:    addr,
-		Handler: newHandler(ctx, httpResources),
+		Handler: newHandler(ctx, httpResources, healthChecks),
 	}
 
 	go func() {

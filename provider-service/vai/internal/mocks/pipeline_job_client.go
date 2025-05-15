@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"context"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -37,4 +38,17 @@ func (m *MockPipelineJobClient) CreatePipelineJob(
 		pipelineJob = arg1.(*aiplatformpb.PipelineJob)
 	}
 	return pipelineJob, args.Error(1)
+}
+
+func (m *MockPipelineJobClient) ListPipelineJobs(
+	_ context.Context,
+	req *aiplatformpb.ListPipelineJobsRequest,
+	_ ...gax.CallOption,
+) *aiplatform.PipelineJobIterator {
+	args := m.Called(req)
+	var pipelineJobIterator *aiplatform.PipelineJobIterator
+	if arg1 := args.Get(0); arg1 != nil {
+		pipelineJobIterator = arg1.(*aiplatform.PipelineJobIterator)
+	}
+	return pipelineJobIterator
 }

@@ -71,7 +71,7 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 	return job, nil
 }
 
-// MkRunScheudlePipelineJob creates a vai pipeline job for a run schedule that
+// MkRunSchedulePipelineJob creates a vai pipeline job for a run schedule that
 // can be used to create a vai schedule.
 func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 	rsd resource.RunScheduleDefinition,

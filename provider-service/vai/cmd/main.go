@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"github.com/go-logr/logr"
@@ -48,37 +49,49 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 
-	go runServer(ctx, vaiProviderConfig, serviceConfig)
+	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(vaiProviderConfig.VaiEndpoint()))
+	if err != nil {
+		logger.Error(err, "failed to create VAI pipeline client", "endpoint", vaiProviderConfig.VaiEndpoint())
+		panic(err)
+	}
 
-	runEventing(ctx, logger, serviceConfig, vaiProviderConfig)
+	scheduleClient, err := aiplatform.NewScheduleClient(
+		ctx,
+		option.WithEndpoint(vaiProviderConfig.VaiEndpoint()),
+	)
+	if err != nil {
+		logger.Error(err, "failed to create VAI schedule client", "endpoint", vaiProviderConfig.VaiEndpoint())
+		panic(err)
+	}
+
+	provider, err := vai.NewVAIProvider(ctx, vaiProviderConfig, serviceConfig.Pod.Namespace, pipelineJobClient, scheduleClient)
+	if err != nil {
+		logger.Error(err, "failed to create VAI Provider", "endpoint", vaiProviderConfig.VaiEndpoint())
+		panic(err)
+	}
+
+	eventSource, err := sources.NewPubSubSource(ctx, vaiProviderConfig.Parameters.VaiProject, vaiProviderConfig.Parameters.EventsourcePipelineEventsSubscription)
+	if err != nil {
+		logger.Error(err, "failed to create VAI event data source")
+		panic(err)
+	}
+
+	go func() {
+		if err = server.Start(ctx, *serviceConfig, provider, []server.HealthCheck{
+			provider,
+			eventSource,
+		}); err != nil {
+			panic(err)
+		}
+	}()
+
+	runEventing(ctx, logger, serviceConfig, vaiProviderConfig, eventSource, pipelineJobClient)
 
 	<-ctx.Done()
 	logger.Info("vai event flow is terminating")
 }
 
-func runServer(ctx context.Context, vaiConfig *vaiConfig.VAIProviderConfig, baseConfig *baseConfig.Config) {
-	provider, err := vai.NewVAIProvider(ctx, vaiConfig, baseConfig.Pod.Namespace)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = server.Start(ctx, *baseConfig, provider); err != nil {
-		panic(err)
-	}
-}
-
-func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig.Config, providerConfig *vaiConfig.VAIProviderConfig) {
-	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.VaiEndpoint()))
-	if err != nil {
-		logger.Error(err, "failed to create VAI pipeline client", "endpoint", providerConfig.VaiEndpoint())
-		panic(err)
-	}
-
-	source, err := sources.NewPubSubSource(ctx, providerConfig.Parameters.VaiProject, providerConfig.Parameters.EventsourcePipelineEventsSubscription)
-	if err != nil {
-		logger.Error(err, "failed to create VAI event data source")
-		panic(err)
-	}
+func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig.Config, providerConfig *vaiConfig.VAIProviderConfig, source *sources.PubSubSource, pipelineJobClient client.PipelineJobClient) {
 	go handleErrorInSourceOperations(source)
 
 	flow := runcompletion.NewEventFlow(providerConfig, pipelineJobClient)

@@ -1,6 +1,7 @@
 package client
 
 import (
+	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"context"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -19,4 +20,10 @@ type PipelineJobClient interface {
 		req *aiplatformpb.CreatePipelineJobRequest,
 		opts ...gax.CallOption,
 	) (*aiplatformpb.PipelineJob, error)
+
+	ListPipelineJobs(
+		ctx context.Context,
+		req *aiplatformpb.ListPipelineJobsRequest,
+		opts ...gax.CallOption,
+	) *aiplatform.PipelineJobIterator
 }

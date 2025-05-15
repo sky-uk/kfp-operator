@@ -48,3 +48,16 @@ func (m *MockScheduleClient) UpdateSchedule(
 	}
 	return schedule, args.Error(1)
 }
+
+func (m *MockScheduleClient) ListSchedules(
+	_ context.Context,
+	req *aiplatformpb.ListSchedulesRequest,
+	_ ...gax.CallOption,
+) *aiplatform.ScheduleIterator {
+	args := m.Called(req)
+	var scheduleIterator *aiplatform.ScheduleIterator
+	if arg1 := args.Get(0); arg1 != nil {
+		scheduleIterator = arg1.(*aiplatform.ScheduleIterator)
+	}
+	return scheduleIterator
+}

@@ -28,6 +28,7 @@ func NewGcsFileHandler(
 	gcsEndpoint string,
 ) (GcsFileHandler, error) {
 	var client *storage.Client
+
 	var err error
 	if gcsEndpoint != "" {
 		client, err = storage.NewClient(
