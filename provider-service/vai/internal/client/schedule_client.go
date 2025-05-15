@@ -26,4 +26,10 @@ type ScheduleClient interface {
 		req *aiplatformpb.UpdateScheduleRequest,
 		opts ...gax.CallOption,
 	) (*aiplatformpb.Schedule, error)
+
+	ListSchedules(
+		ctx context.Context,
+		req *aiplatformpb.ListSchedulesRequest,
+		opts ...gax.CallOption,
+	) *aiplatform.ScheduleIterator
 }

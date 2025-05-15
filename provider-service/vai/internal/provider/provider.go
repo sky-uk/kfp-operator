@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 
-	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
-	"google.golang.org/api/option"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -27,28 +26,45 @@ type VAIProvider struct {
 	jobEnricher    JobEnricher
 }
 
+func (vaip *VAIProvider) Name() string {
+	return "VaiProvider"
+}
+
+func (vaip VAIProvider) IsHealthy(ctx context.Context) bool {
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		_, err := vaip.pipelineClient.ListPipelineJobs(ctx, &aiplatformpb.ListPipelineJobsRequest{
+			Parent:   vaip.config.Parent(),
+			PageSize: 1,
+		}).Next()
+		return err
+	})
+
+	g.Go(func() error {
+		_, err := vaip.scheduleClient.ListSchedules(ctx, &aiplatformpb.ListSchedulesRequest{
+			Parent:   vaip.config.Parent(),
+			PageSize: 1,
+		}).Next()
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return false
+	}
+
+	return true
+
+}
+
 func NewVAIProvider(
 	ctx context.Context,
 	config *config.VAIProviderConfig,
 	namespace string,
+	pipelineClient client.PipelineJobClient,
+	scheduleClient client.ScheduleClient,
 ) (*VAIProvider, error) {
 	fh, err := NewGcsFileHandler(ctx, config.Parameters.GcsEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	pc, err := aiplatform.NewPipelineClient(
-		ctx,
-		option.WithEndpoint(config.VaiEndpoint()),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	sc, err := aiplatform.NewScheduleClient(
-		ctx,
-		option.WithEndpoint(config.VaiEndpoint()),
-	)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +72,8 @@ func NewVAIProvider(
 	return &VAIProvider{
 		config:         config,
 		fileHandler:    &fh,
-		pipelineClient: pc,
-		scheduleClient: sc,
+		pipelineClient: pipelineClient,
+		scheduleClient: scheduleClient,
 		jobBuilder: DefaultJobBuilder{
 			serviceAccount:      config.Parameters.VaiJobServiceAccount,
 			pipelineRootStorage: config.PipelineRootStorage,

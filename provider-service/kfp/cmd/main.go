@@ -46,7 +46,7 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 
-	go runServer(ctx, kfpProviderConfig, serviceConfig)
+	go runServer(ctx, kfpProviderConfig, serviceConfig, []server.HealthCheck{})
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {
@@ -58,13 +58,13 @@ func main() {
 	<-ctx.Done()
 }
 
-func runServer(ctx context.Context, kfpConfig *kfpConfig.KfpProviderConfig, baseConfig *baseConfig.Config) {
+func runServer(ctx context.Context, kfpConfig *kfpConfig.KfpProviderConfig, baseConfig *baseConfig.Config, healthChecks []server.HealthCheck) {
 	provider, err := kfp.NewKfpProvider(kfpConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	if err = server.Start(ctx, *baseConfig, provider); err != nil {
+	if err = server.Start(ctx, *baseConfig, provider, healthChecks); err != nil {
 		panic(err)
 	}
 }

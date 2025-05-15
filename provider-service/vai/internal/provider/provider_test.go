@@ -4,6 +4,7 @@ package provider
 
 import (
 	"bytes"
+	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"context"
 	"encoding/json"
 	"errors"
@@ -509,4 +510,18 @@ var _ = Describe("Provider", func() {
 			})
 		})
 	})
+
+	Context("IsHealthy", func() {
+		It("returns true if the provider is healthy", func() {
+			mockPipelineClient.On("ListPipelineJobs", mock.Anything, mock.Anything).Return()
+			healthy := vaiProvider.IsHealthy(ctx)
+			Expect(healthy).To(BeTrue())
+		})
+
+		It("returns false if the provider is not healthy", func() {
+			mockPipelineClient.On("ListPipelineJobs", mock.Anything, mock.Anything).Return(errors.New("failed"))
+			healthy := vaiProvider.IsHealthy(ctx)
+			Expect(healthy).To(BeFalse())
+		})
+	}
 })

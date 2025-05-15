@@ -34,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	if err = server.Start(ctx, *cfg, stubProvider); err != nil {
+	if err = server.Start(ctx, *cfg, stubProvider, []server.HealthCheck{}); err != nil {
 		panic(err)
 	}
 
