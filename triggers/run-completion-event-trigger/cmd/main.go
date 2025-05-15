@@ -107,7 +107,7 @@ func main() {
 	}()
 
 	<-ctx.Done()
-	logger.Info("Context canceled, shutting down servers...")
+	logger.Info("Context cancelled, shutting down servers...")
 
 	grpcServer.GracefulStop()
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
