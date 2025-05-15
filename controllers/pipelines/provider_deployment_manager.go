@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
+	"sort"
+	"strings"
+
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -19,8 +23,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sort"
-	"strings"
 )
 
 type DeploymentResourceManager interface {
@@ -135,7 +137,7 @@ func (dm DeploymentManager) Construct(provider *pipelineshub.Provider) (*appsv1.
 }
 
 func populateServiceContainer(serviceContainerName string, podTemplate corev1.PodTemplateSpec, provider *pipelineshub.Provider) (*corev1.PodTemplateSpec, error) {
-	if !apis.Exists(podTemplate.Spec.Containers, func(c corev1.Container) bool {
+	if !slices.ContainsFunc(podTemplate.Spec.Containers, func(c corev1.Container) bool {
 		return c.Name == serviceContainerName
 	}) {
 		return nil, fmt.Errorf("unable to populate service container: container with name %s not found on deployment", serviceContainerName)

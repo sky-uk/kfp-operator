@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
@@ -151,7 +152,7 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		return err
 	}
 
-	runExists := apis.Exists(runs, func(run pipelineshub.Run) bool {
+	runExists := slices.ContainsFunc(runs, func(run pipelineshub.Run) bool {
 		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
 	})
 

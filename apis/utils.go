@@ -24,10 +24,6 @@ func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	return diff
 }
 
-func Exists[T any](ts []T, predicate func(T) bool) bool {
-	return slices.ContainsFunc(ts, predicate)
-}
-
 func Contains[T comparable](ts []T, elem T) bool {
 	return slices.Contains(ts, elem)
 }
