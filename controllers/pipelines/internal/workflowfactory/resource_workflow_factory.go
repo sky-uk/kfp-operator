@@ -3,8 +3,9 @@ package workflowfactory
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
+
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	common "github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/jsonutil"
@@ -113,7 +114,7 @@ func checkResourceNamespaceAllowed(
 	resourceNamespacedName types.NamespacedName,
 	provider pipelineshub.Provider,
 ) error {
-	if len(provider.Spec.AllowedNamespaces) > 0 && !common.Contains(provider.Spec.AllowedNamespaces, resourceNamespacedName.Namespace) {
+	if len(provider.Spec.AllowedNamespaces) > 0 && !slices.Contains(provider.Spec.AllowedNamespaces, resourceNamespacedName.Namespace) {
 		return fmt.Errorf("resource %s in namespace %s is not allowed by provider %s", resourceNamespacedName.Name, resourceNamespacedName.Namespace, provider.Name)
 	}
 	return nil

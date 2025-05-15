@@ -168,11 +168,11 @@ func (r *RunConfigurationReconciler) updateRcTriggers(
 ) pipelineshub.RunConfigurationStatus {
 	newStatus := runConfiguration.Status
 
-	if apis.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.Pipeline) {
+	if slices.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.Pipeline) {
 		newStatus.Triggers.Pipeline.Version = runConfiguration.Status.Dependencies.Pipeline.Version
 	}
 
-	if apis.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.RunSpec) {
+	if slices.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.RunSpec) {
 		newStatus.Triggers.RunSpec.Version = runConfiguration.Spec.Run.ComputeVersion()
 	}
 
