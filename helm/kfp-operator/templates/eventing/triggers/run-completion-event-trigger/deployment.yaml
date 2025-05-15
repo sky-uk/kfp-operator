@@ -14,7 +14,12 @@ spec:
   template:
     metadata:
       labels:
-        app: run-completion-event-trigger
+{{- $baseLabels := dict "app" "run-completion-event-trigger" }}
+{{- with .Values.runcompletionEventTrigger.metadata.labels }}
+{{ toYaml (merge $baseLabels .) | indent 8 }}
+{{- else }}
+{{ toYaml $baseLabels | indent 8 }}
+{{- end }}
     spec:
       securityContext:
         runAsNonRoot: true
@@ -22,8 +27,10 @@ spec:
       - name: run-completion-event-trigger
         image: {{ include "kfp-operator.trimmedContainerRegistry" .  }}kfp-operator-run-completion-event-trigger:{{ .Chart.AppVersion }}
         ports:
-        -  name: grpc-server
-           containerPort: {{ .Values.runcompletionEventTrigger.server.port }}
+        - name: grpc
+          containerPort: {{ .Values.runcompletionEventTrigger.server.port }}
+        - name: http-metrics
+          containerPort: {{ .Values.runcompletionEventTrigger.metrics.port }}
         volumeMounts:
           - name: config
             mountPath: /etc/run-completion-event-trigger/config.yaml

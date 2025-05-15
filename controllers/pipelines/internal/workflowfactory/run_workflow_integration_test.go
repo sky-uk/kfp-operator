@@ -83,7 +83,7 @@ var _ = Context("Run Resource Workflows", Serial, func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			workflow, err := workflowFactory.ConstructUpdateWorkflow(
-				*TestProviderConfig,
+				provider,
 				providerSvc,
 				testCtx.Resource,
 			)

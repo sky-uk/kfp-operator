@@ -6,3 +6,6 @@ natsConfig:
 serverConfig:
   host: localhost
   port: 50051
+metricsConfig:
+  host: localhost
+  port: 8081

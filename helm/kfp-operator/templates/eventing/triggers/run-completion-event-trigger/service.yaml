@@ -4,11 +4,18 @@ kind: Service
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger
   namespace: {{ .Values.namespace.name }}
+  labels:
+    app: run-completion-event-trigger
 spec:
   selector:
     app: run-completion-event-trigger
   ports:
-  - protocol: TCP
+  - name: grpc
+    protocol: TCP
     port: {{ .Values.runcompletionEventTrigger.server.port }}
-    targetPort: grpc-server
+    targetPort: grpc
+  - name: http-metrics
+    protocol: TCP
+    port: {{ .Values.runcompletionEventTrigger.metrics.port }}
+    targetPort: http-metrics
 {{- end -}}

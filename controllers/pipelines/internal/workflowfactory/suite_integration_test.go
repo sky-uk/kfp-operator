@@ -34,8 +34,7 @@ var (
 		Host:    "http://localhost:8080",
 		APIPath: "/api",
 	}
-	TestProviderConfig = pipelineshub.RandomProvider()
-	TestProvider       = common.NamespacedName{
+	TestProvider = common.NamespacedName{
 		Name:      "stub",
 		Namespace: "default",
 	}

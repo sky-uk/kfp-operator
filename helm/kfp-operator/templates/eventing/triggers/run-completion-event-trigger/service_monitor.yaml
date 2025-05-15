@@ -1,0 +1,17 @@
+{{- if .Values.runcompletionEventTrigger.monitoring -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: run-completion-event-trigger
+  name: {{ include "kfp-operator.fullname" . }}-run-completion-event-trigger-monitor
+  namespace: {{ .Values.namespace.name }}
+spec:
+  endpoints:
+    - path: /metrics
+      port: http-metrics
+      scheme: http
+  selector:
+    matchLabels:
+      app: run-completion-event-trigger
+{{- end }}
