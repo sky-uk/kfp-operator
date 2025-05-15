@@ -3,7 +3,9 @@ package sources
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/go-logr/logr"
@@ -27,6 +29,21 @@ type LogEntry struct {
 }
 
 const PipelineJobLabel = "pipeline_job_id"
+
+const consumerPermissions = "pubsub.subscriptions.consume"
+
+func (ps *PubSubSource) Name() string {
+	return "pubsub source"
+}
+
+func (ps *PubSubSource) IsHealthy(ctx context.Context) bool {
+	ctxWithTimeout, _ := context.WithTimeoutCause(ctx, 1*time.Second, errors.New("timeout while checking pubsub health status"))
+	permissions, err := ps.RunsSubscription.IAM().TestPermissions(ctxWithTimeout, []string{consumerPermissions})
+	if err != nil || len(permissions) == 0 {
+		return false
+	}
+	return true
+}
 
 func (ps *PubSubSource) ErrorOut() <-chan error {
 	return ps.errOut

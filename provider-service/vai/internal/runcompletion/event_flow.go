@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
@@ -67,7 +66,7 @@ func (vef *EventFlow) Error(inlet streams.Inlet[error]) {
 	}
 }
 
-func NewEventFlow(config *config.VAIProviderConfig, pipelineJobClient *aiplatform.PipelineClient) *EventFlow {
+func NewEventFlow(config *config.VAIProviderConfig, pipelineJobClient client.PipelineJobClient) *EventFlow {
 	vaiEventFlow := EventFlow{
 		ProviderConfig:    *config,
 		PipelineJobClient: pipelineJobClient,
