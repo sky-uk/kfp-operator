@@ -7,6 +7,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -177,7 +178,7 @@ func (r *RunConfigurationReconciler) updateRcTriggers(
 		newStatus.Triggers.RunSpec.Version = runConfiguration.Spec.Run.ComputeVersion()
 	}
 
-	newStatus.Triggers.RunConfigurations = apis.ToMap(
+	newStatus.Triggers.RunConfigurations = lo.Associate(
 		runConfiguration.Spec.Triggers.RunConfigurations,
 		func(rcName common.NamespacedName) (string, pipelineshub.TriggeredRunReference) {
 			rcNamespacedName, err := rcName.String()
