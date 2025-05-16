@@ -1,6 +1,7 @@
 package v1beta1
 
 import (
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -23,13 +24,13 @@ var _ webhook.Validator = &RunConfiguration{}
 func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) {
 	duplicateSchedules := apis.Duplicates(rc.Spec.Triggers.Schedules)
 	schedulePath := field.NewPath("spec").Key("triggers").Key("schedules")
-	errors = append(errors, apis.Map(duplicateSchedules, func(schedule Schedule) *field.Error {
+	errors = append(errors, lo.Map(duplicateSchedules, func(schedule Schedule, _ int) *field.Error {
 		return field.Duplicate(schedulePath, schedule)
 	})...)
 
 	duplicateOnChangeTriggers := apis.Duplicates(rc.Spec.Triggers.OnChange)
 	onChangePath := field.NewPath("spec").Key("triggers").Key("onChange")
-	errors = append(errors, apis.Map(duplicateOnChangeTriggers, func(onChange OnChangeType) *field.Error {
+	errors = append(errors, lo.Map(duplicateOnChangeTriggers, func(onChange OnChangeType, _ int) *field.Error {
 		return field.Duplicate(onChangePath, onChange)
 	})...)
 

@@ -120,11 +120,11 @@ func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
 }
 
 func (rc *RunConfiguration) GetReferencedRCs() []string {
-	triggeringRcs := apis.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string) string {
+	triggeringRcs := lo.Map(rc.Spec.Triggers.RunConfigurations, func(rcName string, _ int) string {
 		return rcName
 	})
 
-	parameterRcs := apis.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef) string {
+	parameterRcs := lo.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef, _ int) string {
 		return r.Name
 	})
 
