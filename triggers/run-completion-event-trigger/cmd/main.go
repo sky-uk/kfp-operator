@@ -57,7 +57,7 @@ func main() {
 
 	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
 
-	reg, srvMetrics := server.NewPrometheusRegistryAndServerMetrics()
+	srvMetrics := server.NewServerMetrics()
 
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
@@ -82,7 +82,7 @@ func main() {
 		panic(err)
 	}
 
-	metricsSrv := server.NewMetricsServer(config.MetricsConfig.ToAddr(), reg)
+	metricsSrv := server.NewMetricsServer(config.MetricsConfig.ToAddr())
 
 	var waitGroup sync.WaitGroup
 
