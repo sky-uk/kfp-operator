@@ -89,17 +89,6 @@ var _ = Context("Utils", func() {
 		Entry("", []int{}, []string{}),
 	)
 
-	DescribeTable("GroupMap", func(as []int, expected map[string][]int) {
-		Expect(GroupMap(as, func(a int) (string, int) {
-			return strconv.Itoa(a / 10), a % 10
-		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", []int{11, 12, 23}, map[string][]int{"1": {1, 2}, "2": {3}}),
-		Entry("", []int{23, 11, 12}, map[string][]int{"1": {1, 2}, "2": {3}}),
-		Entry("", []int{11, 12}, map[string][]int{"1": {1, 2}}),
-		Entry("", []int{}, map[string][]int{}),
-	)
-
 	DescribeTable("Duplicates", func(as []int, expected []int) {
 		Expect(Duplicates(as)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
 	},

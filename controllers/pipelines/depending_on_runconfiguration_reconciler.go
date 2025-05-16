@@ -2,7 +2,7 @@ package pipelines
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/samber/lo"
 	"reflect"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -36,7 +36,7 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
-	artifactReferencesByDependency := apis.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelineshub.RunConfigurationRef) (string, string) {
+	artifactReferencesByDependency := lo.GroupByMap(resource.GetReferencedRCArtifacts(), func(r pipelineshub.RunConfigurationRef) (string, string) {
 		return r.Name, r.OutputArtifact
 	})
 	for _, rc := range resource.GetReferencedRCs() {
