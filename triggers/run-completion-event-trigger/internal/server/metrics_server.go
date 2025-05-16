@@ -26,9 +26,9 @@ func NewMetricsServer(
 	}
 }
 
-// NewPrometheusRegistryAndServerMetrics creates new ServerMetrics using
-// go-grpc-middleware and registers it to a prometheus registry.
-func NewPrometheusRegistryAndServerMetrics() *grpcprom.ServerMetrics {
+// NewServerMetrics creates new ServerMetrics using
+// go-grpc-middleware and registers it to the default prometheus registry.
+func NewServerMetrics() *grpcprom.ServerMetrics {
 	srvMetrics := grpcprom.NewServerMetrics()
 
 	prometheus.MustRegister(srvMetrics)

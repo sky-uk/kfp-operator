@@ -57,7 +57,7 @@ func main() {
 
 	natsPublisher := publisher.NewNatsPublisher(ctx, nc, config.NATSConfig.Subject)
 
-	srvMetrics := server.NewPrometheusRegistryAndServerMetrics()
+	srvMetrics := server.NewServerMetrics()
 
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
