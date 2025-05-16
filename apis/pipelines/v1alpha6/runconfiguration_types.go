@@ -3,6 +3,7 @@ package v1alpha6
 import (
 	"reflect"
 
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -128,7 +129,7 @@ func (rc *RunConfiguration) GetReferencedRCs() []common.NamespacedName {
 		return r.Name
 	})
 
-	return apis.Unique(append(parameterRcs, triggeringRcs...))
+	return lo.Uniq(append(parameterRcs, triggeringRcs...))
 }
 
 func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {

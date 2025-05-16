@@ -158,16 +158,6 @@ var _ = Context("Utils", func() {
 		Entry("", []int{}, []int{}),
 	)
 
-	DescribeTable("Unique", func(as []int, expected []int) {
-		Expect(Unique(as)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", []int{}, []int{}),
-		Entry("", []int{1, 1, 2}, []int{1, 2}),
-		Entry("", []int{1, 2, 2}, []int{1, 2}),
-		Entry("", []int{1, 1, 1}, []int{1}),
-		Entry("", []int{1, 2, 3}, []int{1, 2, 3}),
-	)
-
 	type TestMapping struct {
 		Key   string
 		Value int

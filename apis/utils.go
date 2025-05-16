@@ -128,20 +128,6 @@ func Duplicates[R comparable](in []R) (out []R) {
 	return
 }
 
-func Unique[R comparable](in []R) (out []R) {
-	unique := make(map[R]bool)
-
-	for _, i := range in {
-		if _, ok := unique[i]; ok {
-			continue
-		}
-		out = append(out, i)
-		unique[i] = true
-	}
-
-	return
-}
-
 func ToMap[K comparable, V, W any](vs []V, mapFn func(V) (K, W)) map[K]W {
 	kws := make(map[K]W)
 
