@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
@@ -151,7 +152,7 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		return err
 	}
 
-	runExists := apis.Exists(runs, func(run pipelineshub.Run) bool {
+	runExists := slices.ContainsFunc(runs, func(run pipelineshub.Run) bool {
 		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
 	})
 
@@ -167,11 +168,11 @@ func (r *RunConfigurationReconciler) updateRcTriggers(
 ) pipelineshub.RunConfigurationStatus {
 	newStatus := runConfiguration.Status
 
-	if apis.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.Pipeline) {
+	if slices.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.Pipeline) {
 		newStatus.Triggers.Pipeline.Version = runConfiguration.Status.Dependencies.Pipeline.Version
 	}
 
-	if apis.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.RunSpec) {
+	if slices.Contains(runConfiguration.Spec.Triggers.OnChange, pipelineshub.OnChangeTypes.RunSpec) {
 		newStatus.Triggers.RunSpec.Version = runConfiguration.Spec.Run.ComputeVersion()
 	}
 

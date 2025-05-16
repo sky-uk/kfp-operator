@@ -25,29 +25,6 @@ var _ = Context("Utils", func() {
 		Entry("", []int{}, []int{1}, []int{}),
 	)
 
-	DescribeTable("Exists", func(as []int, expected bool) {
-		Expect(Exists(as, func(a int) bool {
-			return a%2 == 0
-		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", []int{}, false),
-		Entry("", []int{2}, true),
-		Entry("", []int{1}, false),
-		Entry("", []int{1, 2}, true),
-		Entry("", []int{2, 1}, true),
-		Entry("", []int{1, 3}, false),
-	)
-
-	DescribeTable("Contains", func(as []int, expected bool) {
-		Expect(Contains(as, 2)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", []int{}, false),
-		Entry("", []int{2}, true),
-		Entry("", []int{1}, false),
-		Entry("", []int{1, 2}, true),
-		Entry("", []int{2, 1}, true),
-	)
-
 	DescribeTable("Forall", func(as []int, expected bool) {
 		Expect(Forall(as, func(a int) bool {
 			return a%2 == 0
@@ -231,14 +208,6 @@ var _ = Context("Utils", func() {
 		Entry("", map[string]int{}, map[string]string{}),
 		Entry("", nil, map[string]string{}),
 		Entry("", map[string]int{"key1": 1, "key2": 2, "key3": 3}, map[string]string{"key1": "output-1", "key2": "output-2", "key3": "output-3"}),
-	)
-
-	DescribeTable("Values", func(kvs map[string]int, expected []int) {
-		Expect(Values(kvs)).To(ConsistOf(expected))
-	},
-		Entry("", map[string]int{}, []int{}),
-		Entry("", map[string]int{"1": 1, "2": 2}, []int{1, 2}),
-		Entry("", map[string]int{"1": 1, "2": 1}, []int{1, 1}),
 	)
 })
 

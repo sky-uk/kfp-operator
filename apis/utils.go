@@ -1,6 +1,6 @@
 package apis
 
-import "golang.org/x/exp/maps"
+import "maps"
 
 func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	var diff []T
@@ -18,22 +18,6 @@ func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	}
 
 	return diff
-}
-
-func Exists[T any](ts []T, predicate func(T) bool) bool {
-	for _, t := range ts {
-		if predicate(t) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func Contains[T comparable](ts []T, elem T) bool {
-	return Exists(ts, func(t T) bool {
-		return t == elem
-	})
 }
 
 func Forall[T any](ts []T, predicate func(T) bool) bool {
@@ -186,16 +170,6 @@ func MapValues[K comparable, V, W any](vs map[K]V, mapValueFn func(V) W) map[K]W
 	}
 
 	return kws
-}
-
-func Values[K comparable, V any](kvs map[K]V) []V {
-	vs := make([]V, 0, len(kvs))
-
-	for _, v := range kvs {
-		vs = append(vs, v)
-	}
-
-	return vs
 }
 
 func MapConcat[K comparable, V any](m1, m2 map[K]V) map[K]V {
