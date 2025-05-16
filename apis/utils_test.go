@@ -43,16 +43,6 @@ var _ = Context("Utils", func() {
 		Entry("", []int{}, nil, false),
 	)
 
-	DescribeTable("Map", func(as []int, expected []string) {
-		Expect(Map(as, func(a int) string {
-			return strconv.Itoa(a)
-		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", []int{1, 2}, []string{"1", "2"}),
-		Entry("", []int{2, 1}, []string{"2", "1"}),
-		Entry("", []int{}, []string{}),
-	)
-
 	DescribeTable("MapErr", func(as []int, expected []string, expectSuccess bool) {
 		actual, err := MapErr(as, func(a int) (string, error) {
 			if a%2 == 0 {

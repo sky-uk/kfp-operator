@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"github.com/samber/lo"
 	"maps"
 )
 
@@ -30,16 +29,6 @@ func Find[T any](ts []T, predicate func(T) bool) (*T, bool) {
 		}
 	}
 	return nil, false
-}
-
-func Map[R, S any](rs []R, mapFn func(R) S) []S {
-	ss := make([]S, len(rs))
-
-	for i, r := range rs {
-		ss[i] = mapFn(r)
-	}
-
-	return ss
 }
 
 func MapErr[R, S any](rs []R, mapFn func(R) (S, error)) (ss []S, err error) {

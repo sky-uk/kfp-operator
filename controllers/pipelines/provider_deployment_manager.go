@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -158,7 +159,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 		return envVars[a].Name < envVars[b].Name
 	})
 
-	podTemplate.Spec.Containers = apis.Map(podTemplate.Spec.Containers, func(c corev1.Container) corev1.Container {
+	podTemplate.Spec.Containers = lo.Map(podTemplate.Spec.Containers, func(c corev1.Container, _ int) corev1.Container {
 		if c.Name == serviceContainerName {
 			c.Image = provider.Spec.ServiceImage
 			c.Env = append(c.Env, envVars...)

@@ -121,11 +121,11 @@ func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
 }
 
 func (rc *RunConfiguration) GetReferencedRCs() []common.NamespacedName {
-	triggeringRcs := apis.Map(rc.Spec.Triggers.RunConfigurations, func(rcName common.NamespacedName) common.NamespacedName {
+	triggeringRcs := lo.Map(rc.Spec.Triggers.RunConfigurations, func(rcName common.NamespacedName, _ int) common.NamespacedName {
 		return rcName
 	})
 
-	parameterRcs := apis.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef) common.NamespacedName {
+	parameterRcs := lo.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef, _ int) common.NamespacedName {
 		return r.Name
 	})
 
