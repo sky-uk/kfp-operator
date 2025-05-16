@@ -33,16 +33,6 @@ func Forall[T any](ts []T, predicate func(T) bool) bool {
 	return true
 }
 
-func Filter[T any](ts []T, filter func(T) bool) (filtered []T) {
-	for _, t := range ts {
-		if filter(t) {
-			filtered = append(filtered, t)
-		}
-	}
-
-	return
-}
-
 func Find[T any](ts []T, predicate func(T) bool) (*T, bool) {
 	for _, t := range ts {
 		if predicate(t) {

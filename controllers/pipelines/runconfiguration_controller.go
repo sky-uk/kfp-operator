@@ -232,8 +232,8 @@ func (r *RunConfigurationReconciler) syncStatus(
 
 	missingSchedules := apis.SliceDiff(desiredSchedules, dependentSchedules, compareRunSchedules)
 	excessSchedules := apis.SliceDiff(dependentSchedules, desiredSchedules, compareRunSchedules)
-	excessSchedulesNotMarkedForDeletion := apis.Filter(
-		excessSchedules, func(schedule pipelineshub.RunSchedule) bool {
+	excessSchedulesNotMarkedForDeletion := lo.Filter(
+		excessSchedules, func(schedule pipelineshub.RunSchedule, _ int) bool {
 			return schedule.DeletionTimestamp == nil
 		},
 	)
