@@ -15,22 +15,19 @@ import (
 var _ = Context("MetricsServer", func() {
 	var (
 		counter prometheus.Counter
-		reg     *prometheus.Registry
 		s       *httptest.Server
 	)
 
 	BeforeEach(func() {
-		reg = prometheus.NewRegistry()
-
 		counter = prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Name: "test_metric_total",
 				Help: "A test metric",
 			},
 		)
-		Expect(reg.Register(counter)).To(Succeed())
+		prometheus.MustRegister(counter)
 
-		handler := NewMetricsServer(":0", reg).Handler
+		handler := NewMetricsServer(":0").Handler
 		s = httptest.NewServer(handler)
 	})
 
