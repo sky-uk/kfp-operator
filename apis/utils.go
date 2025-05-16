@@ -118,16 +118,6 @@ func Duplicates[R comparable](in []R) (out []R) {
 	return
 }
 
-func MapValues[K comparable, V, W any](vs map[K]V, mapValueFn func(V) W) map[K]W {
-	kws := make(map[K]W)
-
-	for name, value := range vs {
-		kws[name] = mapValueFn(value)
-	}
-
-	return kws
-}
-
 func MapConcat[K comparable, V any](m1, m2 map[K]V) map[K]V {
 	m3 := make(map[K]V)
 

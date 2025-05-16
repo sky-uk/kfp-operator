@@ -4,7 +4,6 @@ package apis
 
 import (
 	"errors"
-	"fmt"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -151,16 +150,6 @@ var _ = Context("Utils", func() {
 		Key   string
 		Value int
 	}
-
-	DescribeTable("MapValues", func(imv map[string]int, expected map[string]string) {
-		Expect(MapValues(imv, func(a int) string {
-			return fmt.Sprintf("output-%d", a)
-		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", map[string]int{}, map[string]string{}),
-		Entry("", nil, map[string]string{}),
-		Entry("", map[string]int{"key1": 1, "key2": 2, "key3": 3}, map[string]string{"key1": "output-1", "key2": "output-2", "key3": "output-3"}),
-	)
 })
 
 func ptr[T any](t T) *T {
