@@ -3,6 +3,7 @@ package v1alpha5
 import (
 	"reflect"
 
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -130,7 +131,7 @@ func (rc *RunConfiguration) GetReferencedRCs() []string {
 		rc.GetReferencedRCArtifacts(),
 		func(r RunConfigurationRef) string { return r.Name },
 	)
-	return apis.Unique(append(parameterRcs, triggeringRcs...))
+	return lo.Uniq(append(parameterRcs, triggeringRcs...))
 }
 
 func (rc *RunConfiguration) GetProvider() string {
