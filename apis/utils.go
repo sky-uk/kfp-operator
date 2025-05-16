@@ -1,6 +1,9 @@
 package apis
 
-import "maps"
+import (
+	"github.com/samber/lo"
+	"maps"
+)
 
 func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	var diff []T
@@ -73,11 +76,7 @@ func MapErr[R, S any](rs []R, mapFn func(R) (S, error)) (ss []S, err error) {
 }
 
 func Flatten[R any](rrs ...[]R) (out []R) {
-	for _, rs := range rrs {
-		out = append(out, rs...)
-	}
-
-	return
+	return lo.Flatten(rrs)
 }
 
 func FlatMap[R, S any](rs []R, mapFn func(R) []S) []S {
