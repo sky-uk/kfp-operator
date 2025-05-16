@@ -50,7 +50,7 @@ func (rc *RunConfiguration) validateRunParameters() (errors field.ErrorList) {
 }
 
 func (rc *RunConfiguration) validate() (admission.Warnings, error) {
-	errors := apis.Flatten(rc.validateRunParameters(), rc.validateUniqueStructures())
+	errors := append(rc.validateRunParameters(), rc.validateUniqueStructures()...)
 
 	if len(errors) > 0 {
 		return nil, apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(), rc.Name, errors)

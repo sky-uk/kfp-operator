@@ -100,14 +100,6 @@ var _ = Context("Utils", func() {
 		Entry("", []int{2, 1}, nil, false),
 	)
 
-	DescribeTable("Flatten", func(as [][]int, expected []int) {
-		Expect(Flatten(as...)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", [][]int{}, []int{}),
-		Entry("", [][]int{{}, {}}, []int{}),
-		Entry("", [][]int{{1, 2}, {3, 4}}, []int{1, 2, 3, 4}),
-	)
-
 	DescribeTable("FlatMapErr", func(as []string, expected []string, expectSuccess bool) {
 		actual, err := FlatMapErr(as, func(a string) ([]string, error) {
 			if a == "err" {
