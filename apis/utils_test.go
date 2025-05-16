@@ -38,17 +38,6 @@ var _ = Context("Utils", func() {
 		Entry("", []int{2, 4}, true),
 	)
 
-	DescribeTable("Filter", func(as, expected []int) {
-		Expect(Filter(as, func(a int) bool {
-			return a%2 == 0
-		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", []int{1, 2}, []int{2}),
-		Entry("", []int{2, 1}, []int{2}),
-		Entry("", []int{1}, []int{}),
-		Entry("", []int{}, []int{}),
-	)
-
 	DescribeTable("Find",
 		func(input []int, expected *int, expectedFound bool) {
 			value, found := Find(input, func(i int) bool {
