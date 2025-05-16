@@ -79,10 +79,6 @@ func Flatten[R any](rrs ...[]R) (out []R) {
 	return lo.Flatten(rrs)
 }
 
-func FlatMap[R, S any](rs []R, mapFn func(R) []S) []S {
-	return Flatten(Map(rs, mapFn)...)
-}
-
 func FlatMapErr[R, S any](rs []R, mapFn func(R) ([]S, error)) ([]S, error) {
 	ss, err := MapErr(rs, mapFn)
 	if err != nil {

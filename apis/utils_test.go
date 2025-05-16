@@ -108,16 +108,6 @@ var _ = Context("Utils", func() {
 		Entry("", [][]int{{1, 2}, {3, 4}}, []int{1, 2, 3, 4}),
 	)
 
-	DescribeTable("FlatMap", func(as []string, expected []string) {
-		Expect(FlatMap(as, func(a string) []string {
-			return strings.Split(a, " ")
-		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", []string{}, []string{}),
-		Entry("", []string{"1 2", "3 4"}, []string{"1", "2", "3", "4"}),
-		Entry("", []string{"3 4", "1 2"}, []string{"3", "4", "1", "2"}),
-	)
-
 	DescribeTable("FlatMapErr", func(as []string, expected []string, expectSuccess bool) {
 		actual, err := FlatMapErr(as, func(a string) ([]string, error) {
 			if a == "err" {
