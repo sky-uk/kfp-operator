@@ -23,16 +23,6 @@ func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	return diff
 }
 
-func Forall[T any](ts []T, predicate func(T) bool) bool {
-	for _, t := range ts {
-		if !predicate(t) {
-			return false
-		}
-	}
-
-	return true
-}
-
 func Find[T any](ts []T, predicate func(T) bool) (*T, bool) {
 	for _, t := range ts {
 		if predicate(t) {
