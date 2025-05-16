@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"github.com/samber/lo"
 	"maps"
 )
 
@@ -53,15 +52,6 @@ func MapErr[R, S any](rs []R, mapFn func(R) (S, error)) (ss []S, err error) {
 	}
 
 	return
-}
-
-func FlatMapErr[R, S any](rs []R, mapFn func(R) ([]S, error)) ([]S, error) {
-	ss, err := MapErr(rs, mapFn)
-	if err != nil {
-		return nil, err
-	}
-
-	return lo.Flatten(ss), nil
 }
 
 func Collect[R, S any](rs []R, mapFn func(R) (S, bool)) []S {
