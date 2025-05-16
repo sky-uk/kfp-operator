@@ -12,7 +12,6 @@ import (
 // Gatherer and serves it on the /metrics endpoint
 func NewMetricsServer(
 	addr string,
-	reg prometheus.Gatherer,
 ) *http.Server {
 	return &http.Server{
 		Addr: addr,
@@ -20,7 +19,7 @@ func NewMetricsServer(
 			mux := http.NewServeMux()
 			mux.Handle(
 				"/metrics",
-				promhttp.HandlerFor(reg, promhttp.HandlerOpts{}),
+				promhttp.Handler(),
 			)
 			return mux
 		}(),
@@ -29,11 +28,10 @@ func NewMetricsServer(
 
 // NewPrometheusRegistryAndServerMetrics creates new ServerMetrics using
 // go-grpc-middleware and registers it to a prometheus registry.
-func NewPrometheusRegistryAndServerMetrics() (*prometheus.Registry, *grpcprom.ServerMetrics) {
+func NewPrometheusRegistryAndServerMetrics() *grpcprom.ServerMetrics {
 	srvMetrics := grpcprom.NewServerMetrics()
 
-	reg := prometheus.NewRegistry()
-	reg.MustRegister(srvMetrics)
+	prometheus.MustRegister(srvMetrics)
 
-	return reg, srvMetrics
+	return srvMetrics
 }
