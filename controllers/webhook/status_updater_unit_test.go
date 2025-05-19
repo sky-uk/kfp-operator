@@ -201,4 +201,71 @@ var _ = Context("Handle", func() {
 			})
 		})
 	})
+
+	Context("Both RunName and RunConfigurationName are present in event", func() {
+		var rc pipelineshub.RunConfiguration
+		var run pipelineshub.Run
+		rce := RandomRunCompletionEventData().ToRunCompletionEvent()
+
+		BeforeEach(func() {
+			run = pipelineshub.Run{}
+			run.Status = pipelineshub.RunStatus{}
+			run.Name = rce.RunName.Name
+			run.Namespace = rce.RunName.Namespace
+
+			rc = pipelineshub.RunConfiguration{}
+			rc.Status = pipelineshub.RunConfigurationStatus{}
+			rc.Name = rce.RunConfigurationName.Name
+			rc.Namespace = rce.RunConfigurationName.Namespace
+
+			rce.Status = common.RunCompletionStatuses.Succeeded
+			rce.RunName = &common.NamespacedName{Name: run.Name, Namespace: run.Namespace}
+
+			client = fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithStatusSubresource(&pipelineshub.Run{}, &pipelineshub.RunConfiguration{}).
+				Build()
+			updater = StatusUpdater{client}
+		})
+
+		When("RunConfiguration resource is found", func() {
+			It("updates the RunConfiguration ProviderId and Artifacts", func() {
+				err = client.Create(context.Background(), &rc)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = updater.Handle(ctx, rce)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = client.Get(ctx, rc.GetNamespacedName(), &rc)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(rc.Status.LatestRuns.Succeeded.ProviderId).
+					To(Equal(rce.RunId))
+				Expect(rc.Status.LatestRuns.Succeeded.Artifacts).
+					To(Equal(rce.Artifacts))
+			})
+		})
+
+		When("Run resource is found", func() {
+			It("updates the Run", func() {
+				err = client.Create(context.Background(), &run)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = updater.Handle(ctx, rce)
+				Expect(err).ToNot(HaveOccurred())
+
+				err = client.Get(ctx, run.GetNamespacedName(), &run)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(run.Status.CompletionState).
+					To(Equal(pipelineshub.CompletionStates.Succeeded))
+			})
+		})
+
+		When("No resource is found", func() {
+			It("returns an error", func() {
+				err = updater.Handle(ctx, rce)
+				var expectedErr *MissingResourceError
+				Expect(errors.As(err, &expectedErr)).To(BeTrue())
+			})
+		})
+	})
 })
