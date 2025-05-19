@@ -2,8 +2,9 @@ package workflowfactory
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/apis"
 	"strings"
+
+	"github.com/samber/lo"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -18,9 +19,15 @@ type PipelineParamsCreator struct{}
 func findFramework(provider pipelineshub.Provider, pipeline *pipelineshub.Pipeline) (*pipelineshub.Framework, bool) {
 	requestedFramework := strings.ToLower(pipeline.Spec.Framework.Name)
 
-	return apis.Find(provider.Spec.Frameworks, func(framework pipelineshub.Framework) bool {
+	framework, ok := lo.Find(provider.Spec.Frameworks, func(framework pipelineshub.Framework) bool {
 		return framework.Name == requestedFramework
 	})
+
+	if !ok {
+		return nil, false
+	}
+
+	return &framework, true
 }
 
 func (ppc PipelineParamsCreator) pipelineDefinition(
