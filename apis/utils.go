@@ -1,9 +1,5 @@
 package apis
 
-import (
-	"maps"
-)
-
 func SliceDiff[T any](as, bs []T, cmp func(T, T) bool) []T {
 	var diff []T
 	for _, a := range as {
@@ -62,13 +58,4 @@ func Duplicates[R comparable](in []R) (out []R) {
 	}
 
 	return
-}
-
-func MapConcat[K comparable, V any](m1, m2 map[K]V) map[K]V {
-	m3 := make(map[K]V)
-
-	maps.Copy(m3, m1)
-	maps.Copy(m3, m2)
-
-	return m3
 }
