@@ -39,23 +39,3 @@ func MapErr[R, S any](rs []R, mapFn func(R) (S, error)) (ss []S, err error) {
 
 	return
 }
-
-func Duplicates[R comparable](in []R) (out []R) {
-	duplicatesInOutput := make(map[R]bool)
-
-	for _, i := range in {
-		inOutput, duplicate := duplicatesInOutput[i]
-		if inOutput {
-			continue
-		}
-
-		if duplicate {
-			out = append(out, i)
-			duplicatesInOutput[i] = true
-		} else {
-			duplicatesInOutput[i] = false
-		}
-	}
-
-	return
-}
