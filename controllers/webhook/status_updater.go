@@ -50,22 +50,9 @@ func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdate
 func (su StatusUpdater) Handle(ctx context.Context, event argocommon.RunCompletionEvent) EventError {
 	logger := log.FromContext(ctx).WithValues("RunId", event.RunId)
 
-	if event.RunName != nil {
-		if err := su.completeRun(ctx, event); err != nil {
-			if errors.IsNotFound(err) {
-				logger.Info(
-					"RunCompletionEvent's Run was not found. Skipping.",
-					"RunName",
-					event.RunName,
-					"Action",
-					"Get",
-				)
-				return &MissingResourceError{err.Error()}
-			}
-			return &FatalError{err.Error()}
-		}
-	}
-	if event.RunConfigurationName != nil {
+	runConfigurationIsSpecified := event.RunConfigurationName != nil
+	runConfigurationNotFound := false
+	if runConfigurationIsSpecified {
 		if err := su.completeRunConfiguration(ctx, event); err != nil {
 			if errors.IsNotFound(err) {
 				logger.Info(
@@ -75,10 +62,41 @@ func (su StatusUpdater) Handle(ctx context.Context, event argocommon.RunCompleti
 					"Action",
 					"Get",
 				)
-				return &MissingResourceError{err.Error()}
+				runConfigurationNotFound = true
+			} else {
+				return &FatalError{err.Error()}
 			}
-			return &FatalError{err.Error()}
 		}
+	}
+
+	runIsSpecified := event.RunName != nil
+	runNotFound := false
+	if runIsSpecified {
+		if err := su.completeRun(ctx, event); err != nil {
+			if errors.IsNotFound(err) {
+				logger.Info(
+					"RunCompletionEvent's Run was not found. Skipping.",
+					"RunName",
+					event.RunName,
+					"Action",
+					"Get",
+				)
+				runNotFound = true
+			} else {
+				return &FatalError{err.Error()}
+			}
+		}
+	}
+
+	if runIsSpecified && runConfigurationIsSpecified {
+		// if both specified as long as one is found it is ok
+		if runNotFound && runConfigurationNotFound {
+			return &MissingResourceError{"Run / RunConfiguration not found"}
+		}
+	} else if runConfigurationIsSpecified && runConfigurationNotFound {
+		return &MissingResourceError{"RunConfiguration not found"}
+	} else if runIsSpecified && runNotFound {
+		return &MissingResourceError{"Run not found"}
 	}
 
 	return nil
