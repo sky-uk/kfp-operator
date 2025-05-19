@@ -139,19 +139,25 @@ func (rcf RunCompletionFeed) handleEvent(ctx context.Context) func(responseWrite
 			}
 
 			var runConfiguration *pipelineshub.RunConfiguration
+			var runConfigurationErr EventError
 			if eventData.RunConfigurationName != nil && eventData.RunConfigurationName.Name != "" {
-				runConfiguration, err = rcf.fetchRunConfiguration(ctx, eventData.RunConfigurationName)
-				if err != nil {
-					err.SendHttpError(responseWriter)
-					return
-				}
+				runConfiguration, runConfigurationErr = rcf.fetchRunConfiguration(ctx, eventData.RunConfigurationName)
 			}
 
 			var run *pipelineshub.Run
+			var runErr EventError
 			if eventData.RunName != nil && eventData.RunName.Name != "" {
-				run, err = rcf.fetchRun(ctx, eventData.RunName)
-				if err != nil {
-					err.SendHttpError(responseWriter)
+				run, runErr = rcf.fetchRun(ctx, eventData.RunName)
+			}
+
+			// If none are found then return error
+			if run == nil && runConfiguration == nil {
+				if runConfigurationErr != nil {
+					runConfigurationErr.SendHttpError(responseWriter)
+					return
+				}
+				if runErr != nil {
+					runErr.SendHttpError(responseWriter)
 					return
 				}
 			}
