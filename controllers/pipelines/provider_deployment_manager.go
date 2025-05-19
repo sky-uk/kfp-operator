@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
-	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
@@ -103,7 +102,7 @@ func (dm DeploymentManager) Construct(provider *pipelineshub.Provider) (*appsv1.
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 
 	matchLabels := map[string]string{AppLabel: prefixedProviderName}
-	deploymentLabels := apis.MapConcat(dm.config.DefaultProviderValues.Labels, matchLabels)
+	deploymentLabels := lo.Assign(dm.config.DefaultProviderValues.Labels, matchLabels)
 	replicas := int32(dm.config.DefaultProviderValues.Replicas)
 
 	podTemplate := dm.config.DefaultProviderValues.PodTemplateSpec
@@ -113,7 +112,7 @@ func (dm DeploymentManager) Construct(provider *pipelineshub.Provider) (*appsv1.
 	}
 	podTemplate = *populatedPodTemplate
 	podTemplate.Spec.ServiceAccountName = provider.Spec.ServiceAccount
-	podTemplate.ObjectMeta.Labels = apis.MapConcat(podTemplate.ObjectMeta.Labels, matchLabels)
+	podTemplate.ObjectMeta.Labels = lo.Assign(podTemplate.ObjectMeta.Labels, matchLabels)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
