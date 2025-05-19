@@ -113,7 +113,7 @@ func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
 }
 
 func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return apis.Collect(rc.Spec.Run.Parameters, func(p Parameter) (RunConfigurationRef, bool) {
+	return lo.FilterMap(rc.Spec.Run.Parameters, func(p Parameter, _ int) (RunConfigurationRef, bool) {
 		if p.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}

@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"fmt"
 
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -184,7 +185,7 @@ func (r *Run) GetDependencyRuns() map[string]RunReference {
 }
 
 func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return apis.Collect(r.Spec.Parameters, func(p Parameter) (RunConfigurationRef, bool) {
+	return lo.FilterMap(r.Spec.Parameters, func(p Parameter, _ int) (RunConfigurationRef, bool) {
 		if p.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}
@@ -194,7 +195,7 @@ func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
 }
 
 func (r *Run) GetReferencedRCs() []string {
-	return apis.Collect(r.Spec.Parameters, func(p Parameter) (string, bool) {
+	return lo.FilterMap(r.Spec.Parameters, func(p Parameter, _ int) (string, bool) {
 		if p.ValueFrom == nil {
 			return "", false
 		}

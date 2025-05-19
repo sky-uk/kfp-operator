@@ -64,21 +64,6 @@ var _ = Context("Utils", func() {
 		Entry("", []int{2, 1}, nil, false),
 	)
 
-	DescribeTable("Collect", func(as []int, expected []string) {
-		Expect(Collect(as, func(a int) (string, bool) {
-			if a%2 == 0 {
-				return strconv.Itoa(a), true
-			}
-
-			return "", false
-		})).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
-	},
-		Entry("", []int{1, 2}, []string{"2"}),
-		Entry("", []int{2, 1}, []string{"2"}),
-		Entry("", []int{1}, []string{}),
-		Entry("", []int{}, []string{}),
-	)
-
 	DescribeTable("Duplicates", func(as []int, expected []int) {
 		Expect(Duplicates(as)).To(BeComparableTo(expected, cmpopts.EquateEmpty()))
 	},

@@ -44,19 +44,6 @@ func MapErr[R, S any](rs []R, mapFn func(R) (S, error)) (ss []S, err error) {
 	return
 }
 
-func Collect[R, S any](rs []R, mapFn func(R) (S, bool)) []S {
-	var ss []S
-
-	for _, r := range rs {
-		mapped, canMap := mapFn(r)
-		if canMap {
-			ss = append(ss, mapped)
-		}
-	}
-
-	return ss
-}
-
 func Duplicates[R comparable](in []R) (out []R) {
 	duplicatesInOutput := make(map[R]bool)
 
