@@ -447,9 +447,10 @@ func aggregateState(dependencies []pipelineshub.RunSchedule) (aggState apis.Sync
 		if state == apis.Failed {
 			aggState = apis.Failed
 			message = dependency.Status.Conditions.SynchronizationSucceeded().Message
+			return
 		} else if state != apis.Succeeded {
 			aggState = apis.Updating
-			message = ""
+			message = "Waiting for all dependant runschedules to be succeeded"
 			return
 		}
 	}
