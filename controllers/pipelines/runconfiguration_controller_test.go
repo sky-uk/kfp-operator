@@ -14,6 +14,7 @@ import (
 )
 
 var _ = Context("aggregateState", func() {
+	const updatingMessage = "Waiting for all dependant runschedules to be in a state of Succeeded"
 	DescribeTable("calculates based on sub states", func(subStates []apis.SynchronizationState, expectedState apis.SynchronizationState, expectedMessage string) {
 		runSchedules := make([]pipelineshub.RunSchedule, len(subStates))
 		for i, state := range subStates {
@@ -36,10 +37,10 @@ var _ = Context("aggregateState", func() {
 	},
 		Entry(nil, []apis.SynchronizationState{}, apis.Succeeded, ""),
 		Entry(nil, []apis.SynchronizationState{apis.Failed, apis.Succeeded}, apis.Failed, "Failed"),
-		Entry(nil, []apis.SynchronizationState{apis.Updating, apis.Failed}, apis.Updating, ""),
-		Entry(nil, []apis.SynchronizationState{apis.Deleting, apis.Failed}, apis.Updating, ""),
-		Entry(nil, []apis.SynchronizationState{apis.Deleted, apis.Failed}, apis.Updating, ""),
-		Entry(nil, []apis.SynchronizationState{"", apis.Failed}, apis.Updating, ""),
+		Entry(nil, []apis.SynchronizationState{apis.Updating, apis.Failed}, apis.Updating, updatingMessage),
+		Entry(nil, []apis.SynchronizationState{apis.Deleting, apis.Failed}, apis.Updating, updatingMessage),
+		Entry(nil, []apis.SynchronizationState{apis.Deleted, apis.Failed}, apis.Updating, updatingMessage),
+		Entry(nil, []apis.SynchronizationState{"", apis.Failed}, apis.Updating, updatingMessage),
 		Entry(nil, []apis.SynchronizationState{apis.Succeeded}, apis.Succeeded, ""),
 	)
 })
