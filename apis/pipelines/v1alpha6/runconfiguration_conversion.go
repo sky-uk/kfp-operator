@@ -31,8 +31,10 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	dst.Spec.Run.Parameters = dst.Spec.Run.RuntimeParameters
-	dst.Spec.Run.RuntimeParameters = nil
+	if len(dst.Spec.Run.RuntimeParameters) > 0 {
+		dst.Spec.Run.Parameters = dst.Spec.Run.RuntimeParameters
+		dst.Spec.Run.RuntimeParameters = nil
+	}
 
 	return nil
 }
@@ -53,8 +55,11 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.Provider = src.Status.Provider.Name
 	remainder.ProviderNamespace = src.Spec.Run.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Namespace
-	dst.Spec.Run.RuntimeParameters = dst.Spec.Run.Parameters
-	dst.Spec.Run.Parameters = nil
+
+	if len(dst.Spec.Run.Parameters) > 0 {
+		dst.Spec.Run.RuntimeParameters = dst.Spec.Run.Parameters
+		dst.Spec.Run.Parameters = nil
+	}
 
 	dst.TypeMeta.APIVersion = dstApiVersion
 	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()

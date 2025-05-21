@@ -29,7 +29,7 @@ type RunSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []RuntimeParameter `json:"runtimeParameters,omitempty"`
-	// Needed for conversion *only*
+	// Needed for conversion only
 	// +kubebuilder:validation:-
 	// +optional
 	Parameters []RuntimeParameter `json:"parameters,omitempty"`

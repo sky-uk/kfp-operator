@@ -68,7 +68,7 @@ spec:
               experimentName:
                 type: string
               parameters:
-                description: Needed for conversion *only*
+                description: Needed for conversion only
                 items:
                   properties:
                     name:
@@ -291,7 +291,7 @@ spec:
               experimentName:
                 type: string
               parameters:
-                description: Needed for conversion *only*
+                description: Needed for conversion only
                 items:
                   properties:
                     name:
@@ -554,7 +554,7 @@ spec:
               provider:
                 type: string
               runtimeParameters:
-                description: 'Deprecated: Needed for conversion *only*'
+                description: 'Deprecated: Needed for conversion only'
                 items:
                   properties:
                     name:

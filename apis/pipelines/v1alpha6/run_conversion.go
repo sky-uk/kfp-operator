@@ -30,8 +30,10 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	dst.Spec.Parameters = dst.Spec.RuntimeParameters
-	dst.Spec.RuntimeParameters = nil
+	if len(dst.Spec.RuntimeParameters) > 0 {
+		dst.Spec.Parameters = dst.Spec.RuntimeParameters
+		dst.Spec.RuntimeParameters = nil
+	}
 
 	return nil
 }
@@ -52,8 +54,11 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Spec.RuntimeParameters = dst.Spec.Parameters
-	dst.Spec.Parameters = nil
+
+	if len(dst.Spec.Parameters) > 0 {
+		dst.Spec.RuntimeParameters = dst.Spec.Parameters
+		dst.Spec.Parameters = nil
+	}
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

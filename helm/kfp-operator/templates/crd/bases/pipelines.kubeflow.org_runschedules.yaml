@@ -82,6 +82,19 @@ spec:
                 type: array
               experimentName:
                 type: string
+              parameters:
+                description: Needed for conversion only
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
               pipeline:
                 pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                 type: string
@@ -234,6 +247,19 @@ spec:
                 type: array
               experimentName:
                 type: string
+              parameters:
+                description: Needed for conversion only
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
               pipeline:
                 pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                 type: string
@@ -405,12 +431,25 @@ spec:
                 type: array
               experimentName:
                 type: string
+              parameters:
+                items:
+                  properties:
+                    name:
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - name
+                  - value
+                  type: object
+                type: array
               pipeline:
                 pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                 type: string
               provider:
                 type: string
-              parameters:
+              runtimeParameters:
+                description: 'Deprecated: Needed for conversion only'
                 items:
                   properties:
                     name:

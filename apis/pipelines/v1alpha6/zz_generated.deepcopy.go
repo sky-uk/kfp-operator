@@ -738,6 +738,11 @@ func (in *RunScheduleSpec) DeepCopyInto(out *RunScheduleSpec) {
 		*out = make([]apis.NamedValue, len(*in))
 		copy(*out, *in)
 	}
+	if in.Parameters != nil {
+		in, out := &in.Parameters, &out.Parameters
+		*out = make([]apis.NamedValue, len(*in))
+		copy(*out, *in)
+	}
 	if in.Artifacts != nil {
 		in, out := &in.Artifacts, &out.Artifacts
 		*out = make([]OutputArtifact, len(*in))
