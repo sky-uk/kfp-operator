@@ -29,8 +29,6 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
-	dst.Spec.Parameters = src.Spec.RuntimeParameters
-
 	return nil
 }
 
@@ -44,7 +42,6 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 
 	dst.Spec.Provider = src.Spec.Provider.Name
-	dst.Spec.RuntimeParameters = src.Spec.Parameters
 	dst.Status.Provider.Name = src.Status.Provider.Name.Name
 	remainder.ProviderNamespace = src.Spec.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace

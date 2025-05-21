@@ -27,7 +27,7 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	}
 
 	dst.Spec.Run.ExperimentName = src.Spec.Run.ExperimentName
-	dst.Spec.Run.Parameters = convertRuntimeParametersTo(
+	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersTo(
 		src.Spec.Run.RuntimeParameters,
 	)
 	dst.Spec.Run.Artifacts = convertArtifactsTo(src.Spec.Run.Artifacts)
@@ -59,7 +59,7 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 		Version: src.Spec.Run.Pipeline.Version,
 	}
 	dst.Spec.Run.ExperimentName = src.Spec.Run.ExperimentName
-	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.Run.Parameters)
+	dst.Spec.Run.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.Run.RuntimeParameters)
 	dst.Spec.Run.Artifacts = convertArtifactsFrom(src.Spec.Run.Artifacts)
 	dst.Spec.Triggers = convertTriggersFrom(src.Spec.Triggers, &remainder)
 	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
@@ -196,21 +196,21 @@ func convertFromHubValueFrom(v *hub.ValueFrom) *ValueFrom {
 	return nil
 }
 
-func convertRuntimeParametersTo(rtp []RuntimeParameter) []hub.Parameter {
-	var hubParams []hub.Parameter
+func convertRuntimeParametersTo(rtp []RuntimeParameter) []hub.RuntimeParameter {
+	var hubRtp []hub.RuntimeParameter
 	for _, namedValue := range rtp {
-		hubParams = append(hubParams, hub.Parameter{
+		hubRtp = append(hubRtp, hub.RuntimeParameter{
 			Name:      namedValue.Name,
 			Value:     namedValue.Value,
 			ValueFrom: namedValue.ValueFrom.convertToHub(),
 		})
 	}
-	return hubParams
+	return hubRtp
 }
 
-func convertRuntimeParametersFrom(hubParams []hub.Parameter) []RuntimeParameter {
+func convertRuntimeParametersFrom(hubRtp []hub.RuntimeParameter) []RuntimeParameter {
 	var rtp []RuntimeParameter
-	for _, namedValue := range hubParams {
+	for _, namedValue := range hubRtp {
 		rtp = append(rtp, RuntimeParameter{
 			Name:      namedValue.Name,
 			Value:     namedValue.Value,

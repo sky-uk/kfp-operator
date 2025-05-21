@@ -58,8 +58,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 			runConfiguration.Spec.Triggers = pipelineshub.RandomScheduleTrigger()
 			runConfiguration.Spec.Triggers.OnChange = []pipelineshub.OnChangeType{pipelineshub.OnChangeTypes.RunSpec}
-			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
-				pipelineshub.RandomRunConfigurationRefParameter(),
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
+				pipelineshub.RandomRunConfigurationRefRuntimeParameter(),
 			}
 			return runConfiguration
 		})
@@ -211,7 +211,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			runConfigurationName := apis.RandomString()
 
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
-				runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
+				runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 					{
 						ValueFrom: &pipelineshub.ValueFrom{
 							RunConfigurationRef: pipelineshub.RunConfigurationRef{
@@ -248,7 +248,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})
 
 			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.GetCommonNamespacedName())
-			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 				{
 					ValueFrom: &pipelineshub.ValueFrom{
 						RunConfigurationRef: pipelineshub.RunConfigurationRef{
@@ -295,7 +295,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			})
 
 			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.GetCommonNamespacedName())
-			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 				{
 					ValueFrom: &pipelineshub.ValueFrom{
 						RunConfigurationRef: pipelineshub.RunConfigurationRef{
@@ -444,7 +444,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Creating an invalid run configuration", func() {
 		It("errors", func() {
 			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.GetCommonNamespacedName())
-			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 				{
 					Value: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{
@@ -463,7 +463,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 	When("Updating an invalid run configuration", func() {
 		It("errors", func() {
 			runConfiguration := createSucceededRc()
-			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
+			runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{
 				{
 					Value: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{

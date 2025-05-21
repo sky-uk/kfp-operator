@@ -265,7 +265,7 @@ components:
           type: string
         schedule:
           type: string
-        parameters:
+        runtimeParameters:
           type: object
           additionalProperties:
             type: string
@@ -293,7 +293,7 @@ components:
           type: string
         experimentName:
           type: string
-        parameters:
+        runtimeParameters:
           type: object
           additionalProperties:
             type: string

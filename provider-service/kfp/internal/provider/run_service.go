@@ -51,8 +51,8 @@ func (drs DefaultRunService) CreateRun(
 	pipelineVersionId string,
 	experimentId string,
 ) (string, error) {
-	jobParameters := make([]*go_client.Parameter, 0, len(rd.Parameters))
-	for name, value := range rd.Parameters {
+	jobParameters := make([]*go_client.Parameter, 0, len(rd.RuntimeParameters))
+	for name, value := range rd.RuntimeParameters {
 		jobParameters = append(jobParameters, &go_client.Parameter{Name: name, Value: value})
 	}
 	// Sort the parameters by name for consistent ordering

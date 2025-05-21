@@ -71,8 +71,8 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 	It("sets all spec fields", func() {
 		runConfiguration := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
 		runConfiguration.Spec.Triggers = pipelineshub.Triggers{Schedules: apis.RandomList(pipelineshub.RandomSchedule)}
-		resolvedParameters := apis.Map(runConfiguration.Spec.Run.Parameters, func(p pipelineshub.Parameter) apis.NamedValue {
-			return apis.NamedValue{Name: p.Name, Value: p.Value}
+		resolvedParameters := apis.Map(runConfiguration.Spec.Run.RuntimeParameters, func(rp pipelineshub.RuntimeParameter) apis.NamedValue {
+			return apis.NamedValue{Name: rp.Name, Value: rp.Value}
 		})
 
 		runSchedules, err := rcr.constructRunSchedulesForTriggers(runConfiguration, resolvedParameters)
@@ -82,7 +82,7 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 			Expect(schedule.Namespace).To(Equal(runConfiguration.Namespace))
 			Expect(schedule.Spec.Pipeline.Name).To(Equal(runConfiguration.Spec.Run.Pipeline.Name))
 			Expect(schedule.Spec.Pipeline.Version).To(Equal(runConfiguration.Status.Dependencies.Pipeline.Version))
-			Expect(schedule.Spec.Parameters).To(Equal(resolvedParameters))
+			Expect(schedule.Spec.RuntimeParameters).To(Equal(resolvedParameters))
 			Expect(schedule.Spec.ExperimentName).To(Equal(runConfiguration.Spec.Run.ExperimentName))
 			Expect(schedule.Spec.Schedule).To(Equal(runConfiguration.Spec.Triggers.Schedules[i]))
 			Expect(metav1.IsControlledBy(&schedule, runConfiguration)).To(BeTrue())

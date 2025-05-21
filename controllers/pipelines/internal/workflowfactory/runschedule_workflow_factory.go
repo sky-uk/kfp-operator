@@ -43,11 +43,11 @@ func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
 			Name:      rs.Spec.Pipeline.Name,
 			Namespace: rs.Namespace,
 		},
-		PipelineVersion: rs.Spec.Pipeline.Version,
-		ExperimentName:  experimentName,
-		Schedule:        rs.Spec.Schedule,
-		Parameters:      NamedValuesToMap(rs.Spec.Parameters),
-		Artifacts:       rs.Spec.Artifacts,
+		PipelineVersion:   rs.Spec.Pipeline.Version,
+		ExperimentName:    experimentName,
+		Schedule:          rs.Spec.Schedule,
+		RuntimeParameters: NamedValuesToMap(rs.Spec.RuntimeParameters),
+		Artifacts:         rs.Spec.Artifacts,
 	}, nil
 }
 

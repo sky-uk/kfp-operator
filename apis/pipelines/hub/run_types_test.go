@@ -42,18 +42,18 @@ var _ = Context("Run", func() {
 			Expect(hash1).NotTo(Equal(hash2))
 		})
 
-		Specify("All Parameters keys should change the hash", func() {
+		Specify("All RuntimeParameters keys should change the hash", func() {
 			run := Run{}
 			hash1 := run.ComputeHash()
 
-			run.Spec.Parameters = []Parameter{
+			run.Spec.RuntimeParameters = []RuntimeParameter{
 				{Name: "a", Value: ""},
 			}
 			hash2 := run.ComputeHash()
 
 			Expect(hash1).NotTo(Equal(hash2))
 
-			run.Spec.Parameters = []Parameter{
+			run.Spec.RuntimeParameters = []RuntimeParameter{
 				{Name: "b", Value: "notempty"},
 			}
 			hash3 := run.ComputeHash()
@@ -76,116 +76,116 @@ var _ = Context("Run", func() {
 		})
 	})
 
-	Context("cmpParameters", func() {
+	Context("cmpRuntimeParameters", func() {
 		unchanged := apis.RandomString()
 
-		DescribeTable("cmpParameters",
-			func(p1, p2 Parameter, expected bool) {
-				Expect(cmpParameters(p1, p2)).To(Equal(expected))
+		DescribeTable("cmpRuntimeParameters",
+			func(rp1, rp2 RuntimeParameter, expected bool) {
+				Expect(cmpRuntimeParameters(rp1, rp2)).To(Equal(expected))
 			},
 			Entry("first name less than",
-				Parameter{Name: "A", Value: unchanged},
-				Parameter{Name: "B", Value: unchanged},
+				RuntimeParameter{Name: "A", Value: unchanged},
+				RuntimeParameter{Name: "B", Value: unchanged},
 				true),
 			Entry("first name greater than",
-				Parameter{Name: "B", Value: unchanged},
-				Parameter{Name: "A", Value: unchanged},
+				RuntimeParameter{Name: "B", Value: unchanged},
+				RuntimeParameter{Name: "A", Value: unchanged},
 				false),
 			Entry("first value less than",
-				Parameter{Name: unchanged, Value: "A"},
-				Parameter{Name: unchanged, Value: "B"},
+				RuntimeParameter{Name: unchanged, Value: "A"},
+				RuntimeParameter{Name: unchanged, Value: "B"},
 				true),
 			Entry("first value greater than",
-				Parameter{Name: unchanged, Value: "B"},
-				Parameter{Name: unchanged, Value: "A"},
+				RuntimeParameter{Name: unchanged, Value: "B"},
+				RuntimeParameter{Name: unchanged, Value: "A"},
 				false),
 			Entry("same value",
-				Parameter{Name: unchanged, Value: unchanged},
-				Parameter{Name: unchanged, Value: unchanged},
+				RuntimeParameter{Name: unchanged, Value: unchanged},
+				RuntimeParameter{Name: unchanged, Value: unchanged},
 				false),
 			Entry("first runconfiguration name less than",
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "A", OutputArtifact: unchanged}}},
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "B", OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "A", OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "B", OutputArtifact: unchanged}}},
 				true),
 			Entry("first runconfiguration name greater than",
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "B", OutputArtifact: unchanged}}},
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "A", OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "B", OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "A", OutputArtifact: unchanged}}},
 				false),
 			Entry("first runconfiguration outputArtifact less than",
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "A"}}},
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "B"}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "A"}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "B"}}},
 				true),
 			Entry("first runconfiguration outputArtifact greater than",
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "B"}}},
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "A"}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "B"}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "A"}}},
 				false),
 			Entry("same valueFrom",
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: unchanged}}},
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: unchanged}}},
 				false),
 		)
 	})
 
-	Context("writeParameter", func() {
+	Context("writeRuntimeParameter", func() {
 		Specify("name should change the hash", func() {
 			oh1 := pipelines.NewObjectHasher()
-			p := Parameter{}
-			writeParameter(oh1, p)
+			rp := RuntimeParameter{}
+			writeRuntimeParameter(oh1, rp)
 
 			oh2 := pipelines.NewObjectHasher()
-			p.Name = apis.RandomString()
-			writeParameter(oh2, p)
+			rp.Name = apis.RandomString()
+			writeRuntimeParameter(oh2, rp)
 
 			Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
 		})
 
 		Specify("value should change the hash", func() {
 			oh1 := pipelines.NewObjectHasher()
-			p := Parameter{}
-			writeParameter(oh1, p)
+			rp := RuntimeParameter{}
+			writeRuntimeParameter(oh1, rp)
 
 			oh2 := pipelines.NewObjectHasher()
-			p.Value = apis.RandomString()
-			writeParameter(oh2, p)
+			rp.Value = apis.RandomString()
+			writeRuntimeParameter(oh2, rp)
 
 			Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
 		})
 
 		Specify("name in valueFrom should change the hash", func() {
 			oh1 := pipelines.NewObjectHasher()
-			p := Parameter{}
-			writeParameter(oh1, p)
+			rp := RuntimeParameter{}
+			writeRuntimeParameter(oh1, rp)
 
 			oh2 := pipelines.NewObjectHasher()
-			p.ValueFrom = &ValueFrom{
+			rp.ValueFrom = &ValueFrom{
 				RunConfigurationRef: RunConfigurationRef{
 					Name: apis.RandomString(),
 				},
 			}
-			writeParameter(oh2, p)
+			writeRuntimeParameter(oh2, rp)
 
 			Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
 		})
 
 		Specify("artifact in valueFrom should change the hash", func() {
 			oh1 := pipelines.NewObjectHasher()
-			p := Parameter{}
-			writeParameter(oh1, p)
+			rp := RuntimeParameter{}
+			writeRuntimeParameter(oh1, rp)
 
 			oh2 := pipelines.NewObjectHasher()
-			p.ValueFrom = &ValueFrom{
+			rp.ValueFrom = &ValueFrom{
 				RunConfigurationRef: RunConfigurationRef{
 					OutputArtifact: apis.RandomString(),
 				},
 			}
-			writeParameter(oh2, p)
+			writeRuntimeParameter(oh2, rp)
 
 			Expect(oh1.Sum()).NotTo(Equal(oh2.Sum()))
 		})
 
 		Specify("the same object should result in the same hash", func() {
 			oh1 := pipelines.NewObjectHasher()
-			p := Parameter{
+			rp := RuntimeParameter{
 				Name:  apis.RandomString(),
 				Value: apis.RandomString(),
 				ValueFrom: &ValueFrom{
@@ -195,22 +195,22 @@ var _ = Context("Run", func() {
 					},
 				},
 			}
-			writeParameter(oh1, p)
+			writeRuntimeParameter(oh1, rp)
 
 			oh2 := pipelines.NewObjectHasher()
-			writeParameter(oh2, p)
+			writeRuntimeParameter(oh2, rp)
 
 			Expect(oh1.Sum()).To(Equal(oh2.Sum()))
 		})
 	})
 })
 var _ = Context("RunSpec", func() {
-	Describe("ResolveParameters", func() {
+	Describe("ResolveRuntimeParameters", func() {
 
 		Specify("no ValueFrom", func() {
 			expectedNamedValue := apis.RandomNamedValue()
 			rs := RunSpec{
-				Parameters: []Parameter{
+				RuntimeParameters: []RuntimeParameter{
 					{
 						Name:  expectedNamedValue.Name,
 						Value: expectedNamedValue.Value,
@@ -218,7 +218,7 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
-			namedValues, err := rs.ResolveParameters(Dependencies{})
+			namedValues, err := rs.ResolveRuntimeParameters(Dependencies{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(namedValues).To(ConsistOf(expectedNamedValue))
 		})
@@ -226,7 +226,7 @@ var _ = Context("RunSpec", func() {
 		Specify("artifact not found in dependency", func() {
 			runConfigurationName := apis.RandomString()
 			rs := RunSpec{
-				Parameters: []Parameter{
+				RuntimeParameters: []RuntimeParameter{
 					{
 						Name: apis.RandomString(),
 						ValueFrom: &ValueFrom{
@@ -239,7 +239,7 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
-			_, err := rs.ResolveParameters(Dependencies{
+			_, err := rs.ResolveRuntimeParameters(Dependencies{
 				RunConfigurations: map[string]RunReference{
 					runConfigurationName: {},
 				},
@@ -250,7 +250,7 @@ var _ = Context("RunSpec", func() {
 
 		Specify("dependency not found", func() {
 			rs := RunSpec{
-				Parameters: []Parameter{
+				RuntimeParameters: []RuntimeParameter{
 					{
 						Name: apis.RandomString(),
 						ValueFrom: &ValueFrom{
@@ -262,7 +262,7 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
-			_, err := rs.ResolveParameters(Dependencies{})
+			_, err := rs.ResolveRuntimeParameters(Dependencies{})
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -272,7 +272,7 @@ var _ = Context("RunSpec", func() {
 			artifact := apis.RandomString()
 
 			rs := RunSpec{
-				Parameters: []Parameter{
+				RuntimeParameters: []RuntimeParameter{
 					{
 						Name: expectedNamedValue.Name,
 						ValueFrom: &ValueFrom{
@@ -285,7 +285,7 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
-			namedValues, err := rs.ResolveParameters(Dependencies{
+			namedValues, err := rs.ResolveRuntimeParameters(Dependencies{
 				RunConfigurations: map[string]RunReference{
 					runConfigurationName: {
 						Artifacts: []common.Artifact{

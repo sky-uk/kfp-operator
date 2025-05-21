@@ -45,7 +45,7 @@ var _ = Describe("DefaultJobService", func() {
 
 	Context("CreateJob", func() {
 		It("should return a job id", func() {
-			rsd.Parameters = map[string]string{
+			rsd.RuntimeParameters = map[string]string{
 				"key-1": "value-1",
 				"key-2": "value-2",
 			}
