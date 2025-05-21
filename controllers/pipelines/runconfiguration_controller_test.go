@@ -14,7 +14,7 @@ import (
 )
 
 var _ = Context("aggregateState", func() {
-	const updatingMessage = "Waiting for all dependant runschedules to be succeeded"
+	const updatingMessage = "Waiting for all dependant runschedules to be in a state of Succeeded"
 	DescribeTable("calculates based on sub states", func(subStates []apis.SynchronizationState, expectedState apis.SynchronizationState, expectedMessage string) {
 		runSchedules := make([]pipelineshub.RunSchedule, len(subStates))
 		for i, state := range subStates {
