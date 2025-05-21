@@ -797,6 +797,13 @@ func (in *RunSpec) DeepCopyInto(out *RunSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.RuntimeParameters != nil {
+		in, out := &in.RuntimeParameters, &out.RuntimeParameters
+		*out = make([]Parameter, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.Artifacts != nil {
 		in, out := &in.Artifacts, &out.Artifacts
 		*out = make([]OutputArtifact, len(*in))

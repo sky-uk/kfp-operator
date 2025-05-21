@@ -29,7 +29,8 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 		remainder.ProviderStatusNamespace,
 	)
 
-	dst.Spec.Parameters = convertRuntimeParametersTo(src.Spec.RuntimeParameters)
+	dst.Spec.Parameters = dst.Spec.RuntimeParameters
+	dst.Spec.RuntimeParameters = nil
 
 	removeProviderAnnotation(dst)
 
@@ -54,7 +55,9 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 	dst.Status.ObservedPipelineVersion = src.Status.Dependencies.Pipeline.Version
 	dst.TypeMeta.APIVersion = dstApiVersion
-	dst.Spec.RuntimeParameters = convertRuntimeParametersFrom(src.Spec.Parameters)
+
+	dst.Spec.RuntimeParameters = dst.Spec.Parameters
+	dst.Spec.Parameters = nil
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }
