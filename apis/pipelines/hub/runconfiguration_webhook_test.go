@@ -46,7 +46,7 @@ var _ = Context("RunConfiguration Webhook", func() {
 		runConfiguration := RunConfiguration{
 			Spec: RunConfigurationSpec{
 				Run: RunSpec{
-					Parameters: []Parameter{
+					RuntimeParameters: []RuntimeParameter{
 						{
 							Name:  apis.RandomString(),
 							Value: apis.RandomString(),
@@ -73,7 +73,7 @@ var _ = Context("RunConfiguration Webhook", func() {
 		runConfiguration := RunConfiguration{
 			Spec: RunConfigurationSpec{
 				Run: RunSpec{
-					Parameters: []Parameter{
+					RuntimeParameters: []RuntimeParameter{
 						{
 							Name:  apis.RandomString(),
 							Value: apis.RandomString(),

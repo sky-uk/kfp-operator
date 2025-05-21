@@ -69,8 +69,8 @@ func (js *DefaultJobService) CreateJob(
 		return "", err
 	}
 
-	jobParameters := make([]*go_client.Parameter, 0, len(rsd.Parameters))
-	for name, value := range rsd.Parameters {
+	jobParameters := make([]*go_client.Parameter, 0, len(rsd.RuntimeParameters))
+	for name, value := range rsd.RuntimeParameters {
 		jobParameters = append(jobParameters, &go_client.Parameter{Name: name, Value: value})
 	}
 	// Sort the parameters by name for consistent ordering

@@ -36,12 +36,12 @@ func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) 
 	return
 }
 
-func (rc *RunConfiguration) validateRunParameters() (errors field.ErrorList) {
-	runParametersPath := field.NewPath("spec").Child("run").Child("parameters")
-	for i, p := range rc.Spec.Run.Parameters {
-		if p.ValueFrom != nil && p.Value != "" {
+func (rc *RunConfiguration) validateRuntimeParameters() (errors field.ErrorList) {
+	runtimeParametersPath := field.NewPath("spec").Child("run").Child("runtimeParameters")
+	for i, rp := range rc.Spec.Run.RuntimeParameters {
+		if rp.ValueFrom != nil && rp.Value != "" {
 			errors = append(errors,
-				field.Invalid(runParametersPath.Index(i), p, "only one of value or valueFrom can be set"),
+				field.Invalid(runtimeParametersPath.Index(i), rp, "only one of value or valueFrom can be set"),
 			)
 		}
 	}
@@ -50,7 +50,7 @@ func (rc *RunConfiguration) validateRunParameters() (errors field.ErrorList) {
 }
 
 func (rc *RunConfiguration) validate() (admission.Warnings, error) {
-	errors := apis.Flatten(rc.validateRunParameters(), rc.validateUniqueStructures())
+	errors := apis.Flatten(rc.validateRuntimeParameters(), rc.validateUniqueStructures())
 
 	if len(errors) > 0 {
 		return nil, apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(), rc.Name, errors)

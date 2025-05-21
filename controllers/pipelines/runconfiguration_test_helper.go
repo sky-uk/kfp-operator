@@ -48,7 +48,7 @@ func createStableRcWith(modifyRc func(runConfiguration *pipelineshub.RunConfigur
 			Namespace: Provider.Namespace,
 		},
 	)
-	runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{}
+	runConfiguration.Spec.Run.RuntimeParameters = []pipelineshub.RuntimeParameter{}
 	runConfiguration.Spec.Triggers = pipelineshub.Triggers{}
 	modifiedRc := modifyRc(runConfiguration)
 	Expect(K8sClient.Create(Ctx, modifiedRc)).To(Succeed())

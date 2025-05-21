@@ -40,7 +40,7 @@ var _ = Describe("RunService", func() {
 		{Name: "artifact-name-2"},
 	}
 
-	rd.Parameters = map[string]string{
+	rd.RuntimeParameters = map[string]string{
 		"key-1": "value-1",
 		"key-2": "value-2",
 	}

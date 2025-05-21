@@ -28,7 +28,7 @@ type RunScheduleDefinition struct {
 	RunConfigurationName common.NamespacedName         `json:"runConfigurationName" yaml:"runConfigurationName"`
 	ExperimentName       common.NamespacedName         `json:"experimentName" yaml:"experimentName"`
 	Schedule             pipelineshub.Schedule         `json:"schedule" yaml:"schedule"`
-	Parameters           map[string]string             `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	RuntimeParameters    map[string]string             `json:"runtimeParameters,omitempty" yaml:"runtimeParameters,omitempty"`
 	Artifacts            []pipelineshub.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
 }
 
@@ -39,7 +39,7 @@ type RunDefinition struct {
 	PipelineVersion      string                        `json:"pipelineVersion" yaml:"pipelineVersion"`
 	RunConfigurationName common.NamespacedName         `json:"runConfigurationName" yaml:"runConfigurationName"`
 	ExperimentName       common.NamespacedName         `json:"experimentName" yaml:"experimentName"`
-	Parameters           map[string]string             `json:"parameters,omitempty" yaml:"parameters,omitempty"`
+	RuntimeParameters    map[string]string             `json:"runtimeParameters,omitempty" yaml:"runtimeParameters,omitempty"`
 	Artifacts            []pipelineshub.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
 }
 

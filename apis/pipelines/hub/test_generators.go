@@ -211,12 +211,12 @@ func RandomOutputArtifact() OutputArtifact {
 
 func RandomRunScheduleSpec(provider common.NamespacedName) RunScheduleSpec {
 	return RunScheduleSpec{
-		Provider:       provider,
-		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},
-		ExperimentName: RandomString(),
-		Parameters:     RandomNamedValues(),
-		Artifacts:      RandomList(RandomOutputArtifact),
-		Schedule:       RandomSchedule(),
+		Provider:          provider,
+		Pipeline:          PipelineIdentifier{Name: RandomString(), Version: RandomString()},
+		ExperimentName:    RandomString(),
+		RuntimeParameters: RandomNamedValues(),
+		Artifacts:         RandomList(RandomOutputArtifact),
+		Schedule:          RandomSchedule(),
 	}
 }
 
@@ -235,8 +235,8 @@ func RandomRun(provider common.NamespacedName) *Run {
 	}
 }
 
-func RandomRunConfigurationRefParameter() Parameter {
-	return Parameter{
+func RandomRunConfigurationRefRuntimeParameter() RuntimeParameter {
+	return RuntimeParameter{
 		Name: RandomString(),
 		ValueFrom: &ValueFrom{
 			RunConfigurationRef: RunConfigurationRef{
@@ -248,7 +248,7 @@ func RandomRunConfigurationRefParameter() Parameter {
 }
 
 func WithValueFrom(runSpec *RunSpec) {
-	runSpec.Parameters = append(runSpec.Parameters, RandomList(RandomRunConfigurationRefParameter)...)
+	runSpec.RuntimeParameters = append(runSpec.RuntimeParameters, RandomList(RandomRunConfigurationRefRuntimeParameter)...)
 }
 
 func RandomRunSpec(provider common.NamespacedName) RunSpec {
@@ -256,8 +256,8 @@ func RandomRunSpec(provider common.NamespacedName) RunSpec {
 		Provider:       provider,
 		Pipeline:       PipelineIdentifier{Name: RandomString(), Version: RandomString()},
 		ExperimentName: RandomString(),
-		Parameters: RandomList(func() Parameter {
-			return Parameter{
+		RuntimeParameters: RandomList(func() RuntimeParameter {
+			return RuntimeParameter{
 				Name:  RandomString(),
 				Value: RandomString(),
 			}

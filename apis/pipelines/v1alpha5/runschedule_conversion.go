@@ -20,7 +20,7 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 		Version: src.Spec.Pipeline.Version,
 	}
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
-	dst.Spec.Parameters = src.Spec.RuntimeParameters
+	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Artifacts = convertArtifactsTo(src.Spec.Artifacts)
 	dst.Spec.Schedule = convertScheduleTo(
 		src.Spec.Schedule,
@@ -52,7 +52,7 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 		Version: src.Spec.Pipeline.Version,
 	}
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
-	dst.Spec.RuntimeParameters = src.Spec.Parameters
+	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Artifacts = convertArtifactsFrom(src.Spec.Artifacts)
 
 	schedule, err := convertCronExpressionFrom(src.Spec.Schedule, &remainder)

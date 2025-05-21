@@ -106,7 +106,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	state := apis.Succeeded
 	message := ""
 
-	if resolvedParameters, err := runConfiguration.Spec.Run.ResolveParameters(
+	if resolvedParameters, err := runConfiguration.Spec.Run.ResolveRuntimeParameters(
 		runConfiguration.Status.Dependencies,
 	); err == nil {
 		if hasChanged, err := r.syncWithRuns(ctx, runConfiguration); hasChanged || err != nil {
@@ -420,10 +420,10 @@ func (r *RunConfigurationReconciler) constructRunSchedulesForTriggers(
 					Name:    runConfiguration.Spec.Run.Pipeline.Name,
 					Version: runConfiguration.Status.Dependencies.Pipeline.Version,
 				},
-				Parameters:     resolvedParameters,
-				ExperimentName: runConfiguration.Spec.Run.ExperimentName,
-				Artifacts:      runConfiguration.Spec.Run.Artifacts,
-				Schedule:       schedule,
+				RuntimeParameters: resolvedParameters,
+				ExperimentName:    runConfiguration.Spec.Run.ExperimentName,
+				Artifacts:         runConfiguration.Spec.Run.Artifacts,
+				Schedule:          schedule,
 			},
 		}
 		if err := controllerutil.SetControllerReference(
