@@ -20,7 +20,6 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 		Version: src.Spec.Pipeline.Version,
 	}
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
-	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
 	dst.Spec.Artifacts = convertArtifactsTo(src.Spec.Artifacts)
 	dst.Spec.Schedule = convertScheduleTo(
 		src.Spec.Schedule,
@@ -37,6 +36,18 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 		src.Status.ProviderId,
 		remainder.ProviderStatusNamespace,
 	)
+
+	if err := pipelines.TransformInto(src.Spec.RuntimeParameters, &dst.Spec.RuntimeParameters); err != nil {
+		return err
+	}
+	if err := pipelines.TransformInto(src.Spec.Parameters, &dst.Spec.Parameters); err != nil {
+		return err
+	}
+	if len(dst.Spec.RuntimeParameters) > 0 {
+		dst.Spec.Parameters = dst.Spec.RuntimeParameters
+		dst.Spec.RuntimeParameters = nil
+	}
+
 	removeProviderAnnotation(dst)
 
 	return nil
@@ -52,7 +63,18 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 		Version: src.Spec.Pipeline.Version,
 	}
 	dst.Spec.ExperimentName = src.Spec.ExperimentName
-	dst.Spec.RuntimeParameters = src.Spec.RuntimeParameters
+
+	if err := pipelines.TransformInto(src.Spec.RuntimeParameters, &dst.Spec.RuntimeParameters); err != nil {
+		return err
+	}
+	if err := pipelines.TransformInto(src.Spec.Parameters, &dst.Spec.Parameters); err != nil {
+		return err
+	}
+	if len(dst.Spec.Parameters) > 0 {
+		dst.Spec.RuntimeParameters = dst.Spec.Parameters
+		dst.Spec.Parameters = nil
+	}
+
 	dst.Spec.Artifacts = convertArtifactsFrom(src.Spec.Artifacts)
 
 	schedule, err := convertCronExpressionFrom(src.Spec.Schedule, &remainder)

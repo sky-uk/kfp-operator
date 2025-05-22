@@ -11,12 +11,16 @@ import (
 )
 
 type RunScheduleSpec struct {
-	Provider          common.NamespacedName `json:"provider" yaml:"provider"`
-	Pipeline          PipelineIdentifier    `json:"pipeline,omitempty"`
-	ExperimentName    string                `json:"experimentName,omitempty"`
-	RuntimeParameters []apis.NamedValue     `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact      `json:"artifacts,omitempty"`
-	Schedule          Schedule              `json:"schedule,omitempty"`
+	Provider       common.NamespacedName `json:"provider" yaml:"provider"`
+	Pipeline       PipelineIdentifier    `json:"pipeline,omitempty"`
+	ExperimentName string                `json:"experimentName,omitempty"`
+	Parameters     []apis.NamedValue     `json:"parameters,omitempty"`
+	// Deprecated: Needed for conversion only
+	// +kubebuilder:validation:-
+	// +optional
+	RuntimeParameters []apis.NamedValue `json:"runtimeParameters,omitempty"`
+	Artifacts         []OutputArtifact  `json:"artifacts,omitempty"`
+	Schedule          Schedule          `json:"schedule,omitempty"`
 }
 
 type Schedule struct {
@@ -33,7 +37,7 @@ func (rs RunSchedule) ComputeHash() []byte {
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(rs.Spec.Pipeline.String())
 	oh.WriteStringField(rs.Spec.ExperimentName)
-	pipelines.WriteKVListField(oh, rs.Spec.RuntimeParameters)
+	pipelines.WriteKVListField(oh, rs.Spec.Parameters)
 	pipelines.WriteKVListField(oh, rs.Spec.Artifacts)
 	oh.WriteStringField(rs.Spec.Schedule.CronExpression)
 	if rs.Spec.Schedule.StartTime != nil {

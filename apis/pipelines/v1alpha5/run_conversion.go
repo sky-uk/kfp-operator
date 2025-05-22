@@ -29,6 +29,11 @@ func (src *Run) ConvertTo(dstRaw conversion.Hub) error {
 		remainder.ProviderStatusNamespace,
 	)
 
+	if len(dst.Spec.RuntimeParameters) > 0 {
+		dst.Spec.Parameters = dst.Spec.RuntimeParameters
+		dst.Spec.RuntimeParameters = nil
+	}
+
 	removeProviderAnnotation(dst)
 
 	dst.TypeMeta.APIVersion = dstApiVersion
@@ -52,6 +57,11 @@ func (dst *Run) ConvertFrom(srcRaw conversion.Hub) error {
 	dst.Status.ProviderId = convertProviderAndIdFrom(src.Status.Provider)
 	dst.Status.ObservedPipelineVersion = src.Status.Dependencies.Pipeline.Version
 	dst.TypeMeta.APIVersion = dstApiVersion
+
+	if len(dst.Spec.Parameters) > 0 {
+		dst.Spec.RuntimeParameters = dst.Spec.Parameters
+		dst.Spec.Parameters = nil
+	}
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

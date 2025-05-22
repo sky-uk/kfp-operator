@@ -38,8 +38,8 @@ type DefaultJobBuilder struct {
 func (jb DefaultJobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
-	params := make(map[string]*aiplatformpb.Value, len(rd.RuntimeParameters))
-	for name, value := range rd.RuntimeParameters {
+	params := make(map[string]*aiplatformpb.Value, len(rd.Parameters))
+	for name, value := range rd.Parameters {
 		params[name] = &aiplatformpb.Value{
 			Value: &aiplatformpb.Value_StringValue{
 				StringValue: value,
@@ -76,8 +76,8 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 	rsd resource.RunScheduleDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
-	params := make(map[string]*aiplatformpb.Value, len(rsd.RuntimeParameters))
-	for name, value := range rsd.RuntimeParameters {
+	params := make(map[string]*aiplatformpb.Value, len(rsd.Parameters))
+	for name, value := range rsd.Parameters {
 		params[name] = &aiplatformpb.Value{
 			Value: &aiplatformpb.Value_StringValue{
 				StringValue: value,

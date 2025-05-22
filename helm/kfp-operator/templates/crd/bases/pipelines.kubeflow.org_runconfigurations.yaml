@@ -81,6 +81,33 @@ spec:
                     type: array
                   experimentName:
                     type: string
+                  parameters:
+                    description: Needed for conversion only
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        value:
+                          type: string
+                        valueFrom:
+                          properties:
+                            runConfigurationRef:
+                              properties:
+                                name:
+                                  type: string
+                                outputArtifact:
+                                  type: string
+                              required:
+                              - name
+                              - outputArtifact
+                              type: object
+                          required:
+                          - runConfigurationRef
+                          type: object
+                      required:
+                      - name
+                      type: object
+                    type: array
                   pipeline:
                     pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                     type: string
@@ -322,6 +349,33 @@ spec:
                     type: array
                   experimentName:
                     type: string
+                  parameters:
+                    description: Needed for conversion only
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        value:
+                          type: string
+                        valueFrom:
+                          properties:
+                            runConfigurationRef:
+                              properties:
+                                name:
+                                  type: string
+                                outputArtifact:
+                                  type: string
+                              required:
+                              - name
+                              - outputArtifact
+                              type: object
+                          required:
+                          - runConfigurationRef
+                          type: object
+                      required:
+                      - name
+                      type: object
+                    type: array
                   pipeline:
                     pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                     type: string
@@ -577,12 +631,39 @@ spec:
                     type: array
                   experimentName:
                     type: string
+                  parameters:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        value:
+                          type: string
+                        valueFrom:
+                          properties:
+                            runConfigurationRef:
+                              properties:
+                                name:
+                                  type: string
+                                outputArtifact:
+                                  type: string
+                              required:
+                              - name
+                              - outputArtifact
+                              type: object
+                          required:
+                          - runConfigurationRef
+                          type: object
+                      required:
+                      - name
+                      type: object
+                    type: array
                   pipeline:
                     pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                     type: string
                   provider:
                     type: string
                   runtimeParameters:
+                    description: 'Deprecated: Needed for conversion only'
                     items:
                       properties:
                         name:

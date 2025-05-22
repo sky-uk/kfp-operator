@@ -14,8 +14,12 @@ type RunScheduleSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
-	Schedule          Schedule           `json:"schedule,omitempty"`
+	// Needed for conversion only
+	// +kubebuilder:validation:-
+	// +optional
+	Parameters []apis.NamedValue `json:"parameters,omitempty"`
+	Artifacts  []OutputArtifact  `json:"artifacts,omitempty"`
+	Schedule   Schedule          `json:"schedule,omitempty"`
 }
 
 type Schedule struct {

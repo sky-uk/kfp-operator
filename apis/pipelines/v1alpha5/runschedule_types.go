@@ -13,8 +13,12 @@ type RunScheduleSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []apis.NamedValue  `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
-	Schedule          string             `json:"schedule,omitempty"`
+	// Needed for conversion only
+	// +kubebuilder:validation:-
+	// +optional
+	Parameters []apis.NamedValue `json:"parameters,omitempty"`
+	Artifacts  []OutputArtifact  `json:"artifacts,omitempty"`
+	Schedule   string            `json:"schedule,omitempty"`
 }
 
 func (rs RunSchedule) ComputeHash() []byte {

@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type RuntimeParameter struct {
+type Parameter struct {
 	Name      string     `json:"name"`
 	Value     string     `json:"value,omitempty"`
 	ValueFrom *ValueFrom `json:"valueFrom,omitempty"`
@@ -26,81 +26,85 @@ type ValueFrom struct {
 }
 
 type RunSpec struct {
-	Provider          common.NamespacedName `json:"provider" yaml:"provider"`
-	Pipeline          PipelineIdentifier    `json:"pipeline,omitempty"`
-	ExperimentName    string                `json:"experimentName,omitempty"`
-	RuntimeParameters []RuntimeParameter    `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact      `json:"artifacts,omitempty"`
+	Provider       common.NamespacedName `json:"provider" yaml:"provider"`
+	Pipeline       PipelineIdentifier    `json:"pipeline,omitempty"`
+	ExperimentName string                `json:"experimentName,omitempty"`
+	Parameters     []Parameter           `json:"parameters,omitempty"`
+	// Deprecated: Needed for conversion only
+	// +kubebuilder:validation:-
+	// +optional
+	RuntimeParameters []Parameter      `json:"runtimeParameters,omitempty"`
+	Artifacts         []OutputArtifact `json:"artifacts,omitempty"`
 }
 
-func (runSpec *RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
-	return apis.MapErr(runSpec.RuntimeParameters, func(r RuntimeParameter) (apis.NamedValue, error) {
-		if r.ValueFrom == nil {
+func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
+	return apis.MapErr(runSpec.Parameters, func(p Parameter) (apis.NamedValue, error) {
+		if p.ValueFrom == nil {
 			return apis.NamedValue{
-				Name:  r.Name,
-				Value: r.Value,
+				Name:  p.Name,
+				Value: p.Value,
 			}, nil
 		}
 
-		if dependency, ok := dependencies.RunConfigurations[r.ValueFrom.RunConfigurationRef.Name]; ok {
+		if dependency, ok := dependencies.RunConfigurations[p.ValueFrom.RunConfigurationRef.Name]; ok {
 			for _, artifact := range dependency.Artifacts {
-				if artifact.Name == r.ValueFrom.RunConfigurationRef.OutputArtifact {
+				if artifact.Name == p.ValueFrom.RunConfigurationRef.OutputArtifact {
 					return apis.NamedValue{
-						Name:  r.Name,
+						Name:  p.Name,
 						Value: artifact.Location,
 					}, nil
 				}
 			}
 
-			return apis.NamedValue{}, fmt.Errorf("artifact '%s' not found in dependency '%s'", r.ValueFrom.RunConfigurationRef.OutputArtifact, r.ValueFrom.RunConfigurationRef.Name)
+			return apis.NamedValue{}, fmt.Errorf("artifact '%s' not found in dependency '%s'", p.ValueFrom.RunConfigurationRef.OutputArtifact, p.ValueFrom.RunConfigurationRef.Name)
 		}
 
-		return apis.NamedValue{}, fmt.Errorf("dependency '%s' not found", r.ValueFrom.RunConfigurationRef.Name)
+		return apis.NamedValue{}, fmt.Errorf("dependency '%s' not found", p.ValueFrom.RunConfigurationRef.Name)
 	})
 }
 
 func (runSpec *RunSpec) HasUnmetDependencies(dependencies Dependencies) bool {
-	_, err := runSpec.ResolveRuntimeParameters(dependencies)
+	_, err := runSpec.ResolveParameters(dependencies)
 	return err != nil
 }
 
-func cmpRuntimeParameters(rp1, rp2 RuntimeParameter) bool {
-	if rp1.Name != rp2.Name {
-		return rp1.Name < rp2.Name
+func cmpParameters(p1, p2 Parameter) bool {
+	if p1.Name != p2.Name {
+		return p1.Name < p2.Name
 	}
 
-	if rp1.Value != rp2.Value {
-		return rp1.Value < rp2.Value
+	if p1.Value != p2.Value {
+		return p1.Value < p2.Value
 	}
 
-	if rp1.ValueFrom == nil {
-		return rp2.ValueFrom != nil
+	if p1.ValueFrom == nil {
+		return p2.ValueFrom != nil
 	}
 
-	if rp1.ValueFrom.RunConfigurationRef.Name != rp2.ValueFrom.RunConfigurationRef.Name {
-		return rp1.ValueFrom.RunConfigurationRef.Name < rp2.ValueFrom.RunConfigurationRef.Name
+	if p1.ValueFrom.RunConfigurationRef.Name != p2.ValueFrom.RunConfigurationRef.Name {
+		return p1.ValueFrom.RunConfigurationRef.Name < p2.ValueFrom.RunConfigurationRef.Name
 	}
 
-	return rp1.ValueFrom.RunConfigurationRef.OutputArtifact < rp2.ValueFrom.RunConfigurationRef.OutputArtifact
+	return p1.ValueFrom.RunConfigurationRef.OutputArtifact < p2.ValueFrom.RunConfigurationRef.OutputArtifact
 }
 
-func writeRuntimeParameter(oh pipelines.ObjectHasher, rp RuntimeParameter) {
-	oh.WriteStringField(rp.Name)
-	oh.WriteStringField(rp.Value)
-	if rp.ValueFrom != nil {
-		oh.WriteStringField(rp.ValueFrom.RunConfigurationRef.Name)
-		oh.WriteStringField(rp.ValueFrom.RunConfigurationRef.OutputArtifact)
+func writeParameter(oh pipelines.ObjectHasher, p Parameter) {
+	oh.WriteStringField(p.Name)
+	oh.WriteStringField(p.Value)
+	if p.ValueFrom != nil {
+		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.Name)
+		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.OutputArtifact)
 	}
 }
 
-func WriteRunTimeParameters(oh pipelines.ObjectHasher, rps []RuntimeParameter) {
-	pipelines.WriteList(oh, rps, cmpRuntimeParameters, writeRuntimeParameter)
+func WriteParameters(oh pipelines.ObjectHasher, ps []Parameter) {
+	pipelines.WriteList(oh, ps, cmpParameters, writeParameter)
 }
 
 func (rs RunSpec) WriteRunSpec(oh pipelines.ObjectHasher) {
 	oh.WriteStringField(rs.Pipeline.String())
 	oh.WriteStringField(rs.ExperimentName)
-	WriteRunTimeParameters(oh, rs.RuntimeParameters)
+	WriteParameters(oh, rs.Parameters)
 	pipelines.WriteKVListField(oh, rs.Artifacts)
 }
 
@@ -184,22 +188,22 @@ func (r *Run) GetDependencyRuns() map[string]RunReference {
 }
 
 func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return apis.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (RunConfigurationRef, bool) {
-		if rp.ValueFrom == nil {
+	return apis.Collect(r.Spec.Parameters, func(p Parameter) (RunConfigurationRef, bool) {
+		if p.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}
 
-		return rp.ValueFrom.RunConfigurationRef, true
+		return p.ValueFrom.RunConfigurationRef, true
 	})
 }
 
 func (r *Run) GetReferencedRCs() []string {
-	return apis.Collect(r.Spec.RuntimeParameters, func(rp RuntimeParameter) (string, bool) {
-		if rp.ValueFrom == nil {
+	return apis.Collect(r.Spec.Parameters, func(p Parameter) (string, bool) {
+		if p.ValueFrom == nil {
 			return "", false
 		}
 
-		return rp.ValueFrom.RunConfigurationRef.Name, true
+		return p.ValueFrom.RunConfigurationRef.Name, true
 	})
 }
 

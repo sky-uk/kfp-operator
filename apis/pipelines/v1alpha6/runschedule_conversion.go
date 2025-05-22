@@ -29,6 +29,11 @@ func (src *RunSchedule) ConvertTo(dstRaw conversion.Hub) error {
 	)
 	dst.TypeMeta.APIVersion = dstApiVersion
 
+	if len(dst.Spec.RuntimeParameters) > 0 {
+		dst.Spec.Parameters = dst.Spec.RuntimeParameters
+		dst.Spec.RuntimeParameters = nil
+	}
+
 	return nil
 }
 
@@ -42,11 +47,17 @@ func (dst *RunSchedule) ConvertFrom(srcRaw conversion.Hub) error {
 	}
 
 	dst.Spec.Provider = src.Spec.Provider.Name
+	dst.Spec.RuntimeParameters = src.Spec.Parameters
 	dst.Status.Provider.Name = src.Status.Provider.Name.Name
 	remainder.ProviderNamespace = src.Spec.Provider.Namespace
 	remainder.ProviderStatusNamespace = src.Status.Provider.Name.Namespace
 	dst.Status.SynchronizationState = src.Status.Conditions.GetSyncStateFromReason()
 	dst.TypeMeta.APIVersion = dstApiVersion
+
+	if len(dst.Spec.Parameters) > 0 {
+		dst.Spec.RuntimeParameters = dst.Spec.Parameters
+		dst.Spec.Parameters = nil
+	}
 
 	return pipelines.SetConversionAnnotations(dst, &remainder)
 }

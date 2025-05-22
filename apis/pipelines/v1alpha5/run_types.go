@@ -29,7 +29,11 @@ type RunSpec struct {
 	Pipeline          PipelineIdentifier `json:"pipeline,omitempty"`
 	ExperimentName    string             `json:"experimentName,omitempty"`
 	RuntimeParameters []RuntimeParameter `json:"runtimeParameters,omitempty"`
-	Artifacts         []OutputArtifact   `json:"artifacts,omitempty"`
+	// Needed for conversion only
+	// +kubebuilder:validation:-
+	// +optional
+	Parameters []RuntimeParameter `json:"parameters,omitempty"`
+	Artifacts  []OutputArtifact   `json:"artifacts,omitempty"`
 }
 
 func (runSpec *RunSpec) ResolveRuntimeParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
