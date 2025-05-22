@@ -34,12 +34,16 @@ func (src *RunConfiguration) ConvertTo(dstRaw conversion.Hub) error {
 	if err := pipelines.TransformInto(src.Status, &dst.Status); err != nil {
 		return err
 	}
-
 	if err := pipelines.TransformInto(src.Spec.Run.RuntimeParameters, &dst.Spec.Run.RuntimeParameters); err != nil {
 		return err
 	}
-	dst.Spec.Run.Parameters = dst.Spec.Run.RuntimeParameters
-	dst.Spec.Run.RuntimeParameters = nil
+	if err := pipelines.TransformInto(src.Spec.Run.Parameters, &dst.Spec.Run.Parameters); err != nil {
+		return err
+	}
+	if len(dst.Spec.Run.RuntimeParameters) > 0 {
+		dst.Spec.Run.Parameters = dst.Spec.Run.RuntimeParameters
+		dst.Spec.Run.RuntimeParameters = nil
+	}
 
 	dst.Status.Dependencies.Pipeline.Version = src.Status.ObservedPipelineVersion
 	dst.Status.Triggers.Pipeline.Version = src.Status.TriggeredPipelineVersion
@@ -71,11 +75,16 @@ func (dst *RunConfiguration) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
+	if err := pipelines.TransformInto(src.Spec.Run.RuntimeParameters, &dst.Spec.Run.RuntimeParameters); err != nil {
+		return err
+	}
 	if err := pipelines.TransformInto(src.Spec.Run.Parameters, &dst.Spec.Run.Parameters); err != nil {
 		return err
 	}
-	dst.Spec.Run.RuntimeParameters = dst.Spec.Run.Parameters
-	dst.Spec.Run.Parameters = nil
+	if len(dst.Spec.Run.Parameters) > 0 {
+		dst.Spec.Run.RuntimeParameters = dst.Spec.Run.Parameters
+		dst.Spec.Run.Parameters = nil
+	}
 
 	dst.Status.Provider = src.Status.Provider.Name
 	setProviderAnnotation(src.Spec.Run.Provider.Name, &dst.ObjectMeta)
