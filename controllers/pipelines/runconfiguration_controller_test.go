@@ -113,17 +113,21 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 
 	It("sets the runConfigurations trigger status", func() {
 		runConfiguration := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
-		runConfiguration.Spec.Triggers.RunConfigurations = apis.RandomList(apis.RandomString)
+		runConfiguration.Spec.Triggers.RunConfigurations = apis.RandomList(common.RandomNamespacedName)
 		runConfiguration.Status.Dependencies.RunConfigurations = make(map[string]pipelineshub.RunReference)
 		for _, rc := range runConfiguration.Spec.Triggers.RunConfigurations {
-			runConfiguration.Status.Dependencies.RunConfigurations[rc] = pipelineshub.RunReference{
+			rcNamespacedName, err := rc.String()
+			Expect(err).NotTo(HaveOccurred())
+			runConfiguration.Status.Dependencies.RunConfigurations[rcNamespacedName] = pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 			}
 		}
 		rcr := RunConfigurationReconciler{}
 		updatedStatus := rcr.updateRcTriggers(*runConfiguration)
 		for _, rc := range runConfiguration.Spec.Triggers.RunConfigurations {
-			Expect(updatedStatus.Triggers.RunConfigurations[rc].ProviderId).To(Equal(runConfiguration.Status.Dependencies.RunConfigurations[rc].ProviderId))
+			rcNamespacedName, err := rc.String()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(updatedStatus.Triggers.RunConfigurations[rcNamespacedName].ProviderId).To(Equal(runConfiguration.Status.Dependencies.RunConfigurations[rcNamespacedName].ProviderId))
 		}
 		Expect(updatedStatus.Triggers.RunConfigurations).To(HaveLen(len(runConfiguration.Spec.Triggers.RunConfigurations)))
 	})

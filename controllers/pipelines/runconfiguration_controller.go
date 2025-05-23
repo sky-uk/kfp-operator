@@ -9,6 +9,7 @@ import (
 
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -178,11 +179,16 @@ func (r *RunConfigurationReconciler) updateRcTriggers(
 
 	newStatus.Triggers.RunConfigurations = apis.ToMap(
 		runConfiguration.Spec.Triggers.RunConfigurations,
-		func(rcName string) (string, pipelineshub.TriggeredRunReference) {
-			triggeredRun := pipelineshub.TriggeredRunReference{
-				ProviderId: runConfiguration.Status.Dependencies.RunConfigurations[rcName].ProviderId,
+		func(rcName common.NamespacedName) (string, pipelineshub.TriggeredRunReference) {
+			rcNamespacedName, err := rcName.String()
+			if err != nil {
+				return "", pipelineshub.TriggeredRunReference{}
 			}
-			return rcName, triggeredRun
+
+			triggeredRun := pipelineshub.TriggeredRunReference{
+				ProviderId: runConfiguration.Status.Dependencies.RunConfigurations[rcNamespacedName].ProviderId,
+			}
+			return rcNamespacedName, triggeredRun
 		},
 	)
 

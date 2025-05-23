@@ -104,24 +104,24 @@ var _ = Context("Run", func() {
 				RuntimeParameter{Name: unchanged, Value: unchanged},
 				false),
 			Entry("first runconfiguration name less than",
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "A", OutputArtifact: unchanged}}},
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "B", OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: "A"}, OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: "B"}, OutputArtifact: unchanged}}},
 				true),
 			Entry("first runconfiguration name greater than",
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "B", OutputArtifact: unchanged}}},
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: "A", OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: "B"}, OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: "A"}, OutputArtifact: unchanged}}},
 				false),
 			Entry("first runconfiguration outputArtifact less than",
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "A"}}},
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "B"}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: "A"}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: "B"}}},
 				true),
 			Entry("first runconfiguration outputArtifact greater than",
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "B"}}},
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: "A"}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: "B"}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: "A"}}},
 				false),
 			Entry("same valueFrom",
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: unchanged}}},
-				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: unchanged, OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged}}},
+				RuntimeParameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged}}},
 				false),
 		)
 	})
@@ -159,7 +159,7 @@ var _ = Context("Run", func() {
 			oh2 := pipelines.NewObjectHasher()
 			rp.ValueFrom = &ValueFrom{
 				RunConfigurationRef: RunConfigurationRef{
-					Name: apis.RandomString(),
+					Name: common.RandomNamespacedName(),
 				},
 			}
 			writeRuntimeParameter(oh2, rp)
@@ -190,7 +190,7 @@ var _ = Context("Run", func() {
 				Value: apis.RandomString(),
 				ValueFrom: &ValueFrom{
 					RunConfigurationRef: RunConfigurationRef{
-						Name:           apis.RandomString(),
+						Name:           common.RandomNamespacedName(),
 						OutputArtifact: apis.RandomString(),
 					},
 				},
@@ -224,7 +224,7 @@ var _ = Context("RunSpec", func() {
 		})
 
 		Specify("artifact not found in dependency", func() {
-			runConfigurationName := apis.RandomString()
+			runConfigurationName := common.RandomNamespacedName()
 			rs := RunSpec{
 				RuntimeParameters: []RuntimeParameter{
 					{
@@ -240,9 +240,7 @@ var _ = Context("RunSpec", func() {
 			}
 
 			_, err := rs.ResolveRuntimeParameters(Dependencies{
-				RunConfigurations: map[string]RunReference{
-					runConfigurationName: {},
-				},
+				RunConfigurations: map[string]RunReference{},
 			})
 
 			Expect(err).To(HaveOccurred())
@@ -255,7 +253,7 @@ var _ = Context("RunSpec", func() {
 						Name: apis.RandomString(),
 						ValueFrom: &ValueFrom{
 							RunConfigurationRef: RunConfigurationRef{
-								Name: apis.RandomString(),
+								Name: common.RandomNamespacedName(),
 							},
 						},
 					},
@@ -268,7 +266,7 @@ var _ = Context("RunSpec", func() {
 
 		Specify("ValueFrom", func() {
 			expectedNamedValue := apis.RandomNamedValue()
-			runConfigurationName := apis.RandomString()
+			runConfigurationName := common.RandomNamespacedName()
 			artifact := apis.RandomString()
 
 			rs := RunSpec{
@@ -285,9 +283,12 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
+			rcNamespacedName, err := runConfigurationName.String()
+			Expect(err).NotTo(HaveOccurred())
+
 			namedValues, err := rs.ResolveRuntimeParameters(Dependencies{
 				RunConfigurations: map[string]RunReference{
-					runConfigurationName: {
+					rcNamespacedName: {
 						Artifacts: []common.Artifact{
 							{
 								Name:     artifact,

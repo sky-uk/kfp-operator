@@ -17,8 +17,8 @@ type Parameter struct {
 }
 
 type RunConfigurationRef struct {
-	Name           string `json:"name"`
-	OutputArtifact string `json:"outputArtifact"`
+	Name           common.NamespacedName `json:"name"`
+	OutputArtifact string                `json:"outputArtifact"`
 }
 
 type ValueFrom struct {
@@ -45,8 +45,12 @@ func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.Nam
 				Value: p.Value,
 			}, nil
 		}
+		rcNamespacedName, err := p.ValueFrom.RunConfigurationRef.Name.String()
+		if err != nil {
+			return apis.NamedValue{}, err
+		}
 
-		if dependency, ok := dependencies.RunConfigurations[p.ValueFrom.RunConfigurationRef.Name]; ok {
+		if dependency, ok := dependencies.RunConfigurations[rcNamespacedName]; ok {
 			for _, artifact := range dependency.Artifacts {
 				if artifact.Name == p.ValueFrom.RunConfigurationRef.OutputArtifact {
 					return apis.NamedValue{
@@ -82,7 +86,7 @@ func cmpParameters(p1, p2 Parameter) bool {
 	}
 
 	if p1.ValueFrom.RunConfigurationRef.Name != p2.ValueFrom.RunConfigurationRef.Name {
-		return p1.ValueFrom.RunConfigurationRef.Name < p2.ValueFrom.RunConfigurationRef.Name
+		return p1.ValueFrom.RunConfigurationRef.Name.Name < p2.ValueFrom.RunConfigurationRef.Name.Name
 	}
 
 	return p1.ValueFrom.RunConfigurationRef.OutputArtifact < p2.ValueFrom.RunConfigurationRef.OutputArtifact
@@ -92,7 +96,8 @@ func writeParameter(oh pipelines.ObjectHasher, p Parameter) {
 	oh.WriteStringField(p.Name)
 	oh.WriteStringField(p.Value)
 	if p.ValueFrom != nil {
-		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.Name)
+		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.Name.Name)
+		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.Name.Namespace)
 		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.OutputArtifact)
 	}
 }
@@ -197,10 +202,10 @@ func (r *Run) GetReferencedRCArtifacts() []RunConfigurationRef {
 	})
 }
 
-func (r *Run) GetReferencedRCs() []string {
-	return apis.Collect(r.Spec.Parameters, func(p Parameter) (string, bool) {
+func (r *Run) GetReferencedRCs() []common.NamespacedName {
+	return apis.Collect(r.Spec.Parameters, func(p Parameter) (common.NamespacedName, bool) {
 		if p.ValueFrom == nil {
-			return "", false
+			return common.NamespacedName{}, false
 		}
 
 		return p.ValueFrom.RunConfigurationRef.Name, true
