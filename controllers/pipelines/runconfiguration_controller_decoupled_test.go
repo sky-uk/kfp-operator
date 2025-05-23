@@ -208,7 +208,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 	When("A referenced RunConfiguration does not exist", func() {
 		It("unsets the dependency", func() {
-			runConfigurationName := apis.RandomString()
+			runConfigurationName := common.RandomNamespacedName()
 
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
@@ -223,9 +223,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				}
 				return runConfiguration
 			})
+			rcNamespacedName, err := runConfigurationName.String()
+			Expect(err).NotTo(HaveOccurred())
 
 			runConfiguration.Status.Dependencies.RunConfigurations = map[string]pipelineshub.RunReference{
-				runConfigurationName: {
+				rcNamespacedName: {
 					ProviderId: apis.RandomString(),
 					Artifacts:  []common.Artifact{common.RandomArtifact()},
 				},
@@ -235,8 +237,8 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.ObservedGeneration).To(Equal(fetchedRc.Generation))
-				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].ProviderId).To(BeEmpty())
-				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[runConfigurationName].Artifacts).To(BeEmpty())
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[rcNamespacedName].ProviderId).To(BeEmpty())
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[rcNamespacedName].Artifacts).To(BeEmpty())
 			})).Should(Succeed())
 		})
 	})
@@ -246,26 +248,29 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 			})
+			referencedRcNamespacedName := common.NamespacedName{Name: referencedRc.Name, Namespace: referencedRc.Namespace}
 
 			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.GetCommonNamespacedName())
 			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
 				{
 					ValueFrom: &pipelineshub.ValueFrom{
 						RunConfigurationRef: pipelineshub.RunConfigurationRef{
-							Name:           referencedRc.Name,
+							Name:           referencedRcNamespacedName,
 							OutputArtifact: apis.RandomString(),
 						},
 					},
 				},
 			}
+			rcNamespacedName, err := referencedRcNamespacedName.String()
+			Expect(err).NotTo(HaveOccurred())
 
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
 			oldState := runConfiguration.Status.Conditions.SynchronizationSucceeded()
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
 				g.Expect(fetchedRc.Status.Conditions.SynchronizationSucceeded()).To(Equal(oldState))
-				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(BeEmpty())
-				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name].Artifacts).To(BeEmpty())
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[rcNamespacedName].ProviderId).To(BeEmpty())
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[rcNamespacedName].Artifacts).To(BeEmpty())
 			})).Should(Succeed())
 		})
 	})
@@ -293,13 +298,13 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 				ProviderId: apis.RandomString(),
 				Artifacts:  []common.Artifact{common.RandomArtifact()},
 			})
-
+			referencedRcNamespacedName := common.NamespacedName{Name: referencedRc.Name, Namespace: referencedRc.Namespace}
 			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.GetCommonNamespacedName())
 			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
 				{
 					ValueFrom: &pipelineshub.ValueFrom{
 						RunConfigurationRef: pipelineshub.RunConfigurationRef{
-							Name:           referencedRc.Name,
+							Name:           referencedRcNamespacedName,
 							OutputArtifact: referencedRc.Status.LatestRuns.Succeeded.Artifacts[0].Name,
 						},
 					},
@@ -308,9 +313,12 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
+			rcNamespacedName, err := referencedRcNamespacedName.String()
+			Expect(err).NotTo(HaveOccurred())
+
 			Expect(K8sClient.Get(Ctx, referencedRc.GetNamespacedName(), referencedRc)).To(Succeed())
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[referencedRc.Name]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
+				g.Expect(fetchedRc.Status.Dependencies.RunConfigurations[rcNamespacedName]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
 			})).Should(Succeed())
 		})
 
@@ -318,22 +326,26 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 			})
+			referencedRcNamespacedName := common.NamespacedName{Name: referencedRc.Name, Namespace: referencedRc.Namespace}
 
 			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.GetCommonNamespacedName())
 			runConfiguration.Spec.Triggers = pipelineshub.Triggers{
-				RunConfigurations: []string{
-					referencedRc.Name,
+				RunConfigurations: []common.NamespacedName{
+					referencedRcNamespacedName,
 				},
 			}
 
 			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
 
+			rcNamespacedName, err := referencedRcNamespacedName.String()
+			Expect(err).NotTo(HaveOccurred())
+
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(runConfiguration.Status.Dependencies.RunConfigurations[referencedRc.Name].ProviderId).To(Equal(referencedRc.Status.LatestRuns.Succeeded.ProviderId))
+				g.Expect(runConfiguration.Status.Dependencies.RunConfigurations[rcNamespacedName].ProviderId).To(Equal(referencedRc.Status.LatestRuns.Succeeded.ProviderId))
 			})).Should(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.Triggers.RunConfigurations[referencedRc.Name].ProviderId).To(Equal(referencedRc.Status.LatestRuns.Succeeded.ProviderId))
+				g.Expect(fetchedRc.Status.Triggers.RunConfigurations[rcNamespacedName].ProviderId).To(Equal(referencedRc.Status.LatestRuns.Succeeded.ProviderId))
 			})).Should(Succeed())
 
 			Eventually(func(g Gomega) {
@@ -349,11 +361,11 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
 				ProviderId: apis.RandomString(),
 			})
-
+			referencedRcNamespacedName := common.NamespacedName{Name: referencedRc.Name, Namespace: referencedRc.Namespace}
 			runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 				runConfiguration.Spec.Triggers = pipelineshub.Triggers{
-					RunConfigurations: []string{
-						referencedRc.Name,
+					RunConfigurations: []common.NamespacedName{
+						referencedRcNamespacedName,
 					},
 				}
 				return runConfiguration
@@ -363,7 +375,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			Expect(K8sClient.Update(Ctx, runConfiguration)).To(Succeed())
 
 			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, fetchedRc *pipelineshub.RunConfiguration) {
-				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).NotTo(HaveKey(referencedRc.Name))
+				g.Expect(fetchedRc.Status.Triggers.RunConfigurations).NotTo(HaveKey(referencedRcNamespacedName))
 			})).Should(Succeed())
 		})
 	})
@@ -449,7 +461,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 					Value: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{
 						RunConfigurationRef: pipelineshub.RunConfigurationRef{
-							Name:           apis.RandomString(),
+							Name:           common.RandomNamespacedName(),
 							OutputArtifact: apis.RandomString(),
 						},
 					},
@@ -468,7 +480,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 					Value: apis.RandomString(),
 					ValueFrom: &pipelineshub.ValueFrom{
 						RunConfigurationRef: pipelineshub.RunConfigurationRef{
-							Name:           apis.RandomString(),
+							Name:           common.RandomNamespacedName(),
 							OutputArtifact: apis.RandomString(),
 						},
 					},

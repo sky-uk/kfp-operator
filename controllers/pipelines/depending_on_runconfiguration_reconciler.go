@@ -2,8 +2,9 @@ package pipelines
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/apis"
 	"reflect"
+
+	"github.com/sky-uk/kfp-operator/apis"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -23,7 +24,7 @@ const (
 
 type DependingOnRunConfigurationResource interface {
 	client.Object
-	GetReferencedRCs() []string
+	GetReferencedRCs() []common.NamespacedName
 	GetReferencedRCArtifacts() []pipelineshub.RunConfigurationRef
 	GetDependencyRuns() map[string]pipelineshub.RunReference
 	SetDependencyRuns(map[string]pipelineshub.RunReference)
@@ -36,7 +37,7 @@ type DependingOnRunConfigurationReconciler[R DependingOnRunConfigurationResource
 func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx context.Context, resource R) (bool, error) {
 	logger := log.FromContext(ctx)
 
-	artifactReferencesByDependency := apis.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelineshub.RunConfigurationRef) (string, string) {
+	artifactReferencesByDependency := apis.GroupMap(resource.GetReferencedRCArtifacts(), func(r pipelineshub.RunConfigurationRef) (common.NamespacedName, string) {
 		return r.Name, r.OutputArtifact
 	})
 	for _, rc := range resource.GetReferencedRCs() {
@@ -48,16 +49,26 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 	dependencies := make(map[string]pipelineshub.RunReference)
 
 	for dependencyName, artifactReferences := range artifactReferencesByDependency {
+		namespace := dependencyName.Namespace
+		if dependencyName.Namespace == "" {
+			namespace = resource.GetNamespace()
+		}
+
 		runConfiguration, err := dr.getIgnoreNotFound(ctx, types.NamespacedName{
-			Namespace: resource.GetNamespace(),
-			Name:      dependencyName,
+			Namespace: namespace,
+			Name:      dependencyName.Name,
 		})
 		if err != nil {
 			return false, err
 		}
 
+		dependencyNamespacedName, err := dependencyName.String()
+		if err != nil {
+			return false, err
+		}
+
 		if runConfiguration == nil {
-			dependencies[dependencyName] = pipelineshub.RunReference{}
+			dependencies[dependencyNamespacedName] = pipelineshub.RunReference{}
 			continue
 		}
 
@@ -72,7 +83,7 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 			}
 		}
 
-		dependencies[dependencyName] = pipelineshub.RunReference{
+		dependencies[dependencyNamespacedName] = pipelineshub.RunReference{
 			ProviderId: runConfiguration.Status.LatestRuns.Succeeded.ProviderId,
 			Artifacts:  dependencyArtifacts,
 		}
@@ -111,7 +122,10 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 
 func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, resource client.Object, reconciliationRequestsForPipeline handler.MapFunc) (*builder.Builder, error) {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, rcRefField, func(rawObj client.Object) []string {
-		return rawObj.(R).GetReferencedRCs()
+		rc, _ := apis.MapErr(rawObj.(R).GetReferencedRCs(), func(rc common.NamespacedName) (string, error) {
+			return rc.String()
+		})
+		return rc
 	}); err != nil {
 		return nil, err
 	}
