@@ -4,14 +4,15 @@ import (
 	"reflect"
 
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type Triggers struct {
-	Schedules         []string       `json:"schedules,omitempty"`
-	OnChange          []OnChangeType `json:"onChange,omitempty"`
-	RunConfigurations []string       `json:"runConfigurations,omitempty"`
+	Schedules         []string                `json:"schedules,omitempty"`
+	OnChange          []OnChangeType          `json:"onChange,omitempty"`
+	RunConfigurations []common.NamespacedName `json:"runConfigurations,omitempty"`
 }
 
 // +kubebuilder:validation:Enum=pipeline;runSpec
@@ -121,14 +122,14 @@ func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
 	)
 }
 
-func (rc *RunConfiguration) GetReferencedRCs() []string {
+func (rc *RunConfiguration) GetReferencedRCs() []common.NamespacedName {
 	triggeringRcs := apis.Map(
 		rc.Spec.Triggers.RunConfigurations,
-		func(rcName string) string { return rcName },
+		func(rcName common.NamespacedName) common.NamespacedName { return rcName },
 	)
 	parameterRcs := apis.Map(
 		rc.GetReferencedRCArtifacts(),
-		func(r RunConfigurationRef) string { return r.Name },
+		func(r RunConfigurationRef) common.NamespacedName { return r.Name },
 	)
 	return apis.Unique(append(parameterRcs, triggeringRcs...))
 }
