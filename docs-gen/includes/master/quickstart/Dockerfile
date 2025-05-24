@@ -1,4 +1,4 @@
-FROM python:3.10.12
+FROM python:3.12.10
 ARG WHEEL_VERSION
 
 RUN mkdir /data
