@@ -11,8 +11,8 @@ require (
 	github.com/hashicorp/go-bexpr v0.1.14
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/kubeflow/pipelines v0.0.0-20220721222832-061905b6df39
-	github.com/onsi/ginkgo/v2 v2.9.7
-	github.com/onsi/gomega v1.27.7
+	github.com/onsi/ginkgo/v2 v2.11.0
+	github.com/onsi/gomega v1.27.10
 	github.com/sky-uk/kfp-operator v0.6.0
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65
 	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-20250103114820-8f4b70f756df
