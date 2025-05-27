@@ -42,17 +42,16 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 	oh.WriteFieldSeparator()
 }
 
-func canonicalJSON(raw []byte) string {
+func canonicalJSON(raw []byte) (string, error) {
 	var v any
 	if err := json.Unmarshal(raw, &v); err != nil {
-		return string(raw)
+		return "", err
 	}
-	// Marshal reorders map keys lexicographically
 	canonical, err := json.Marshal(v)
 	if err != nil {
-		return string(raw)
+		return "", err
 	}
-	return string(canonical)
+	return string(canonical), nil
 }
 
 func (oh ObjectHasher) WriteJSONMapField(m map[string]*apiextensionsv1.JSON) {
@@ -62,10 +61,31 @@ func (oh ObjectHasher) WriteJSONMapField(m map[string]*apiextensionsv1.JSON) {
 	}
 	sort.Strings(keys)
 
+	// Validate all JSON before writing anything
+	type pair struct {
+		key       string
+		canonical string
+	}
+	pairs := make([]pair, 0, len(m))
+
 	for _, k := range keys {
-		oh.WriteStringField(k)
-		if val := m[k]; val != nil {
-			oh.WriteStringField(canonicalJSON(val.Raw))
+		val := m[k]
+		if val == nil {
+			pairs = append(pairs, pair{key: k})
+			continue
+		}
+		canonical, err := canonicalJSON(val.Raw)
+		if err != nil {
+			return // early exit, nothing written
+		}
+		pairs = append(pairs, pair{key: k, canonical: canonical})
+	}
+
+	// Only write to the hasher once all validation passes
+	for _, p := range pairs {
+		oh.WriteStringField(p.key)
+		if p.canonical != "" {
+			oh.WriteStringField(p.canonical)
 		}
 	}
 }

@@ -221,6 +221,20 @@ var _ = Context("ObjectHasher", func() {
 
 			Expect(oh1.Sum()).To(Equal(oh2.Sum()))
 		})
+
+		Specify("Any malformed JSON values will cause entire hash to be empty", func() {
+			oh := NewObjectHasher()
+			validRaw := []byte(`{ "a": "b" }`)
+			invalidRaw := []byte(`thisisinvalid`)
+			oh.WriteJSONMapField(
+				map[string]*apiextensionsv1.JSON{
+					"foo": {Raw: validRaw},
+					"bar": {Raw: invalidRaw},
+				},
+			)
+
+			Expect(oh.Sum()).To(BeEmpty())
+		})
 	})
 
 	var _ = Describe("WriteObject", func() {

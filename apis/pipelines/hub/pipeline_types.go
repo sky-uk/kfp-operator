@@ -40,7 +40,7 @@ func (ps Pipeline) ComputeHash() []byte {
 	oh.WriteStringField(ps.Spec.Image)
 	pipelines.WriteKVListField(oh, ps.Spec.Env)
 	oh.WriteStringField(ps.Spec.Framework.Name)
-	// oh.WriteMapField(ps.Spec.Framework.Parameters) // TODO
+	oh.WriteJSONMapField(ps.Spec.Framework.Parameters)
 
 	return oh.Sum()
 }
