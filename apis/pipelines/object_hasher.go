@@ -4,8 +4,10 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"hash"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sort"
+
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var hashFieldSeparator = []byte{0}
@@ -38,6 +40,34 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 	}
 
 	oh.WriteFieldSeparator()
+}
+
+func canonicalJSON(raw []byte) string {
+	var v any
+	if err := json.Unmarshal(raw, &v); err != nil {
+		return string(raw)
+	}
+	// Marshal reorders map keys lexicographically
+	canonical, err := json.Marshal(v)
+	if err != nil {
+		return string(raw)
+	}
+	return string(canonical)
+}
+
+func (oh ObjectHasher) WriteJSONMapField(m map[string]*apiextensionsv1.JSON) {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		oh.WriteStringField(k)
+		if val := m[k]; val != nil {
+			oh.WriteStringField(canonicalJSON(val.Raw))
+		}
+	}
 }
 
 func (oh ObjectHasher) WriteObject(obj metav1.Object) error {

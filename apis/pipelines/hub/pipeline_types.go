@@ -16,13 +16,13 @@ import (
 
 type PipelineSpec struct {
 	Provider  common.NamespacedName `json:"provider" yaml:"provider"`
-	Image     string                `json:"image" yaml:"image"`
-	Env       []apis.NamedValue     `json:"env,omitempty" yaml:"env"`
+	Image     string                `json:"image" yaml:"image"`       // hashed
+	Env       []apis.NamedValue     `json:"env,omitempty" yaml:"env"` // hashed
 	Framework PipelineFramework     `json:"framework" yaml:"framework"`
 }
 
 type PipelineFramework struct {
-	Name       string                           `json:"name" yaml:"name"`
+	Name       string                           `json:"name" yaml:"name"` // hashed
 	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
 }
 
@@ -35,61 +35,12 @@ func NewPipelineFramework(compilerType string) PipelineFramework {
 	}
 }
 
-/*
-ComputeHash returns a hash of the pipeline spec, ensuring consistency across versions.
-
-To maintain compatibility, certain fields are deliberately excluded from the hash calculation, or are normalized to match
-the behaviour of previous versions when using default fields as determined by conversion to the hub version.
-
-The order in which data is written to the hash is critical and must remain unchanged across versions to ensure consistency.
-
-This consistency across versions is preferable as it will prevent runs being triggered for pipelines that have only changed
-semantically without any spec changes, such as during an api version upgrade.
-*/
 func (ps Pipeline) ComputeHash() []byte {
-	pipeline := ps.DeepCopy()
 	oh := pipelines.NewObjectHasher()
 	oh.WriteStringField(ps.Spec.Image)
-
-	isFallbackFramework := pipeline.Spec.Framework.Name == FallbackFramework
-
-	// For the default framework, include components in the hash using the same format as spoke versions to ensure consistency.
-	tfxComponentsString := ""
-	if isFallbackFramework && pipeline.Spec.Framework.Parameters["components"] != nil {
-		if err := json.Unmarshal(pipeline.Spec.Framework.Parameters["components"].Raw, &tfxComponentsString); err != nil {
-			return nil
-		}
-
-		delete(pipeline.Spec.Framework.Parameters, "components")
-	}
-
-	oh.WriteStringField(tfxComponentsString)
-
-	pipelines.WriteKVListField(oh, pipeline.Spec.Env)
-
-	// For the default framework, include beamArgs in the hash using the same format as spoke versions to ensure consistency.
-	beamArgsList := []apis.NamedValue{}
-	if isFallbackFramework && pipeline.Spec.Framework.Parameters["beamArgs"] != nil {
-		if err := json.Unmarshal(pipeline.Spec.Framework.Parameters["beamArgs"].Raw, &beamArgsList); err != nil {
-			return nil
-		}
-
-		delete(pipeline.Spec.Framework.Parameters, "beamArgs")
-	}
-	pipelines.WriteKVListField(oh, beamArgsList)
-
-	if len(pipeline.Spec.Framework.Parameters) > 0 {
-		output := make(map[string]string)
-		for key, value := range ps.Spec.Framework.Parameters {
-			output[key] = string(value.Raw)
-		}
-
-		oh.WriteMapField(output)
-	}
-
-	if !isFallbackFramework {
-		oh.WriteStringField(pipeline.Spec.Framework.Name)
-	}
+	pipelines.WriteKVListField(oh, ps.Spec.Env)
+	oh.WriteStringField(ps.Spec.Framework.Name)
+	// oh.WriteMapField(ps.Spec.Framework.Parameters) // TODO
 
 	return oh.Sum()
 }
