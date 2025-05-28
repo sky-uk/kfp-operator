@@ -62,6 +62,8 @@ func canonicalJSONOrRaw(raw []byte) string {
 // WriteJSONMapField hashes a map of string to raw bytes.
 // If raw bytes is valid JSON then it will hash the canonical JSON form
 // If raw bytes is invalid JSON then it will hash the value directly
+// In practice this is redundant because K8s API server will guarantee fields
+// defined as Raw bytes are valid JSON.
 func (oh ObjectHasher) WriteJSONMapField(m map[string]*apiextensionsv1.JSON) {
 	keys := make([]string, 0, len(m))
 	for k := range m {
