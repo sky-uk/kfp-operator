@@ -292,12 +292,20 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(
 	runConfiguration client.Object,
 ) []reconcile.Request {
 	referencingRunConfigurations := &pipelineshub.RunConfigurationList{}
+	rcNamespacedName, err := common.NamespacedName{
+		Name:      runConfiguration.GetName(),
+		Namespace: runConfiguration.GetNamespace(),
+	}.String()
+	if err != nil {
+		return []reconcile.Request{}
+	}
+
 	rcRefListOps := &client.ListOptions{
-		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
+		FieldSelector: fields.OneTermEqualSelector(rcRefField, rcNamespacedName),
 		Namespace:     runConfiguration.GetNamespace(),
 	}
 
-	err := r.EC.Client.Cached.List(ctx, referencingRunConfigurations, rcRefListOps)
+	err = r.EC.Client.Cached.List(ctx, referencingRunConfigurations, rcRefListOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
