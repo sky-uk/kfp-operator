@@ -16,13 +16,13 @@ import (
 
 type PipelineSpec struct {
 	Provider  common.NamespacedName `json:"provider" yaml:"provider"`
-	Image     string                `json:"image" yaml:"image"`       // hashed
-	Env       []apis.NamedValue     `json:"env,omitempty" yaml:"env"` // hashed
+	Image     string                `json:"image" yaml:"image"`
+	Env       []apis.NamedValue     `json:"env,omitempty" yaml:"env"`
 	Framework PipelineFramework     `json:"framework" yaml:"framework"`
 }
 
 type PipelineFramework struct {
-	Name       string                           `json:"name" yaml:"name"` // hashed
+	Name       string                           `json:"name" yaml:"name"`
 	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
 }
 
