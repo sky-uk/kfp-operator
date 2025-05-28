@@ -123,6 +123,9 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, resource client.Object, reconciliationRequestsForPipeline handler.MapFunc) (*builder.Builder, error) {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, rcRefField, func(rawObj client.Object) []string {
 		rc, _ := apis.MapErr(rawObj.(R).GetReferencedRCs(), func(rc common.NamespacedName) (string, error) {
+			if rc.Namespace == "" {
+				rc.Namespace = rawObj.GetNamespace()
+			}
 			return rc.String()
 		})
 		return rc
