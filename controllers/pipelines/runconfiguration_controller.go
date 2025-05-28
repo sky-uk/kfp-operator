@@ -302,7 +302,6 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(
 
 	rcRefListOps := &client.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(rcRefField, rcNamespacedName),
-		Namespace:     runConfiguration.GetNamespace(),
 	}
 
 	err = r.EC.Client.Cached.List(ctx, referencingRunConfigurations, rcRefListOps)
