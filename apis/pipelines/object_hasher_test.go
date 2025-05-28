@@ -192,7 +192,7 @@ var _ = Context("ObjectHasher", func() {
 				"b": "2",
 			}
 
-			for i := 0; i < iterations; i++ {
+			for range iterations {
 				oh1 := NewObjectHasher()
 				oh1.WriteMapField(sameMap)
 
@@ -205,7 +205,7 @@ var _ = Context("ObjectHasher", func() {
 	})
 
 	var _ = Describe("WriteJSONMapField", func() {
-		Specify("structurally identical JSON values should be hashed the same", func() {
+		Specify("Semantically equivalent JSON values should be hashed the same", func() {
 			oh1 := NewObjectHasher()
 			raw1 := []byte(`{ "a": "1", "b": "2" }`)
 
@@ -214,7 +214,7 @@ var _ = Context("ObjectHasher", func() {
 			)
 
 			oh2 := NewObjectHasher()
-			raw2 := []byte(`{"b":"2","a":"1"}`)
+			raw2 := []byte(`{ "b": "2", "a": "1" }`)
 			oh2.WriteJSONMapField(
 				map[string]*apiextensionsv1.JSON{"foo": {Raw: raw2}},
 			)
@@ -222,18 +222,16 @@ var _ = Context("ObjectHasher", func() {
 			Expect(oh1.Sum()).To(Equal(oh2.Sum()))
 		})
 
-		Specify("Any malformed JSON values will cause entire hash to be empty", func() {
+		Specify("Invalid JSON should be hashed directly", func() {
 			oh := NewObjectHasher()
-			validRaw := []byte(`{ "a": "b" }`)
 			invalidRaw := []byte(`thisisinvalid`)
 			oh.WriteJSONMapField(
 				map[string]*apiextensionsv1.JSON{
-					"foo": {Raw: validRaw},
-					"bar": {Raw: invalidRaw},
+					"foo": {Raw: invalidRaw},
 				},
 			)
 
-			Expect(oh.Sum()).To(BeEmpty())
+			Expect(oh.Sum()).ToNot(BeEmpty())
 		})
 	})
 

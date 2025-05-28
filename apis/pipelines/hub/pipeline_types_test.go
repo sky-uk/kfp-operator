@@ -108,17 +108,6 @@ var _ = Context("Pipeline", func() {
 	})
 
 	var _ = Describe("ComputeVersion", func() {
-		Specify("Malformed spec should return empty hash", func() {
-			pipeline := Pipeline{}
-			pipeline.Spec.Framework = PipelineFramework{
-				Name: "tfx",
-				Parameters: map[string]*apiextensionsv1.JSON{
-					"beamArgs": {Raw: []byte(`"thisisinvalid"`)},
-				},
-			}
-			Expect(pipeline.ComputeVersion()).To(Equal(""))
-		})
-
 		Specify("Contains the tag if present", func() {
 			Expect(Pipeline{Spec: PipelineSpec{
 				Image: "image:42",

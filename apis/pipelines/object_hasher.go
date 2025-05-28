@@ -42,18 +42,26 @@ func (oh ObjectHasher) WriteMapField(value map[string]string) {
 	oh.WriteFieldSeparator()
 }
 
-func canonicalJSON(raw []byte) (string, error) {
+// canonicalJSONOrRaw checks if the input raw bytes is valid JSON.
+// If it is NOT valid JSON then return the stringified bytes
+// If it IS valid JSON then return the canonical stringified bytes
+func canonicalJSONOrRaw(raw []byte) string {
 	var v any
 	if err := json.Unmarshal(raw, &v); err != nil {
-		return "", err
+		return string(raw)
 	}
+
 	canonical, err := json.Marshal(v)
 	if err != nil {
-		return "", err
+		return string(raw)
 	}
-	return string(canonical), nil
+
+	return string(canonical)
 }
 
+// WriteJSONMapField hashes a map of string to raw bytes.
+// If raw bytes is valid JSON then it will hash the canonical JSON form
+// If raw bytes is invalid JSON then it will hash the value directly
 func (oh ObjectHasher) WriteJSONMapField(m map[string]*apiextensionsv1.JSON) {
 	keys := make([]string, 0, len(m))
 	for k := range m {
@@ -61,32 +69,16 @@ func (oh ObjectHasher) WriteJSONMapField(m map[string]*apiextensionsv1.JSON) {
 	}
 	sort.Strings(keys)
 
-	// Validate all JSON before writing anything
-	type pair struct {
-		key       string
-		canonical string
-	}
-	pairs := make([]pair, 0, len(m))
-
 	for _, k := range keys {
-		val := m[k]
-		if val == nil {
-			pairs = append(pairs, pair{key: k})
+		value := m[k]
+		oh.WriteStringField(k)
+
+		if value == nil {
 			continue
 		}
-		canonical, err := canonicalJSON(val.Raw)
-		if err != nil {
-			return // early exit, nothing written
-		}
-		pairs = append(pairs, pair{key: k, canonical: canonical})
-	}
 
-	// Only write to the hasher once all validation passes
-	for _, p := range pairs {
-		oh.WriteStringField(p.key)
-		if p.canonical != "" {
-			oh.WriteStringField(p.canonical)
-		}
+		canonicalOrRaw := canonicalJSONOrRaw(value.Raw)
+		oh.WriteStringField(canonicalOrRaw)
 	}
 }
 
