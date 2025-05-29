@@ -4,10 +4,12 @@ package pipelines
 
 import (
 	"fmt"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/sky-uk/kfp-operator/apis"
 	v1 "k8s.io/api/apps/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -190,7 +192,7 @@ var _ = Context("ObjectHasher", func() {
 				"b": "2",
 			}
 
-			for i := 0; i < iterations; i++ {
+			for range iterations {
 				oh1 := NewObjectHasher()
 				oh1.WriteMapField(sameMap)
 
@@ -199,6 +201,37 @@ var _ = Context("ObjectHasher", func() {
 
 				Expect(oh1.Sum()).To(Equal(oh2.Sum()))
 			}
+		})
+	})
+
+	var _ = Describe("WriteJSONMapField", func() {
+		Specify("Semantically equivalent JSON values should be hashed the same", func() {
+			oh1 := NewObjectHasher()
+			raw1 := []byte(`{ "a": "1", "b": "2" }`)
+
+			oh1.WriteJSONMapField(
+				map[string]*apiextensionsv1.JSON{"foo": {Raw: raw1}},
+			)
+
+			oh2 := NewObjectHasher()
+			raw2 := []byte(`{ "b": "2", "a": "1" }`)
+			oh2.WriteJSONMapField(
+				map[string]*apiextensionsv1.JSON{"foo": {Raw: raw2}},
+			)
+
+			Expect(oh1.Sum()).To(Equal(oh2.Sum()))
+		})
+
+		Specify("Invalid JSON should be hashed directly", func() {
+			oh := NewObjectHasher()
+			invalidRaw := []byte(`thisisinvalid`)
+			oh.WriteJSONMapField(
+				map[string]*apiextensionsv1.JSON{
+					"foo": {Raw: invalidRaw},
+				},
+			)
+
+			Expect(oh.Sum()).ToNot(BeEmpty())
 		})
 	})
 
