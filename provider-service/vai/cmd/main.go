@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"github.com/go-logr/logr"
@@ -16,6 +19,7 @@ import (
 	vai "github.com/sky-uk/kfp-operator/provider-service/vai/internal/provider"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/runcompletion"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/sync/errgroup"
 
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 
@@ -28,7 +32,16 @@ func main() {
 		panic(err)
 	}
 
-	ctx := logr.NewContext(context.Background(), logger)
+	rootCtx, stop := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer stop()
+	// rootCtx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
+
+	ctx := logr.NewContext(rootCtx, logger)
 
 	serviceConfig, err := baseConfig.LoadConfig(baseConfig.Config{
 		Server: baseConfig.Server{
@@ -48,24 +61,49 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 
-	go runServer(ctx, vaiProviderConfig, serviceConfig)
 
-	runEventing(ctx, logger, serviceConfig, vaiProviderConfig)
+	g, ctx := errgroup.WithContext(ctx)
 
-	<-ctx.Done()
-	logger.Info("vai event flow is terminating")
-}
+	g.Go(
+		func() error {
+			provider, err := vai.NewVAIProvider(ctx, vaiProviderConfig, serviceConfig.Pod.Namespace)
+			if err != nil {
+				return fmt.Errorf("failed to create provider: %w", err)
+			}
+			return server.Start(ctx, *serviceConfig, provider)
+		},
+	)
 
-func runServer(ctx context.Context, vaiConfig *vaiConfig.VAIProviderConfig, baseConfig *baseConfig.Config) {
-	provider, err := vai.NewVAIProvider(ctx, vaiConfig, baseConfig.Pod.Namespace)
-	if err != nil {
-		panic(err)
+	g.Go(
+		func() error {
+			runEventing(ctx, logger, serviceConfig, vaiProviderConfig)
+			return nil
+		},
+	)
+
+	go func() {
+		<-ctx.Done()
+		logger.Info("context canceled; shutting down...")
+	}()
+
+	if err := g.Wait(); err != nil {
+		logger.Error(err, "vai service crashed")
+		os.Exit(1)
 	}
 
-	if err = server.Start(ctx, *baseConfig, provider); err != nil {
-		panic(err)
-	}
+	logger.Info("vai service terminated cleanly")
 }
+
+// func runServer(ctx context.Context, vaiConfig *vaiConfig.VAIProviderConfig, baseConfig *baseConfig.Config) {
+// 	provider, err := vai.NewVAIProvider(ctx, vaiConfig, baseConfig.Pod.Namespace)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+//
+// 	if err = server.Start(ctx, *baseConfig, provider); err != nil {
+// 		panic(err)
+// 	}
+// }
 
 func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig.Config, providerConfig *vaiConfig.VAIProviderConfig) {
 	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.VaiEndpoint()))

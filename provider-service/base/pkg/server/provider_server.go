@@ -157,6 +157,26 @@ func newHandler(ctx context.Context, resources []resource.HttpHandledResource) h
 	return mux
 }
 
+func NewProviderServer(
+	ctx context.Context,
+	cfg config.Server,
+	provider resource.Provider,
+) *http.Server {
+	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+
+	httpResources := []resource.HttpHandledResource{
+		&resource.Pipeline{Provider: provider},
+		&resource.Run{Provider: provider},
+		&resource.RunSchedule{Provider: provider},
+		&resource.Experiment{Provider: provider},
+	}
+
+	return &http.Server{
+		Addr:    addr,
+		Handler: newHandler(ctx, httpResources),
+	}
+}
+
 type ProviderServer struct{}
 
 func (ps ProviderServer) Start(ctx context.Context, cfg config.Server, provider resource.Provider) error {
