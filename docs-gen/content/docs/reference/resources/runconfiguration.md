@@ -30,19 +30,19 @@ spec:
     onChange:
     - pipeline
     runConfigurations:
-    - dependency-rc
+    - base-namespace/dependency-rc
 ```
 
 A Run Configuration can have one of more triggers that determine when the next training run will be started.
 
 ## Fields
 
-| Name                                | Description                                                                                                                                                                   |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `spec.run`                          | Definition of any runs created under this run configuration. See [Runs](../run/#fields) for more details.                                                                     |
-| `spec.triggers.schedules[]`         | List of schedules for when the runs should be created. See [Schedule Definition](#schedule-definition) for more information.                                                  |
-| `spec.triggers.onChange[]`          | Resource attributes that execute training runs. `pipeline` triggers when the referenced pipeline changes. `runSpec` triggers when this resource's spec.run field has changed. |
-| `spec.triggers.runConfigurations[]` | RunConfigurations to watch for completion - a run for this RunConfiguration will start every time any of the listed dependencies has finished a run successfully.             |
+| Name                                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `spec.run`                          | Definition of any runs created under this run configuration. See [Runs](../run/#fields) for more details.                                                                                                                                                                                                                                                                                                                                           |
+| `spec.triggers.schedules[]`         | List of schedules for when the runs should be created. See [Schedule Definition](#schedule-definition) for more information.                                                                                                                                                                                                                                                                                                                        |
+| `spec.triggers.onChange[]`          | Resource attributes that execute training runs. `pipeline` triggers when the referenced pipeline changes. `runSpec` triggers when this resource's spec.run field has changed.                                                                                                                                                                                                                                                                       |
+| `spec.triggers.runConfigurations[]` | RunConfigurations to watch for completion - a run for this RunConfiguration will start every time any of the listed dependencies has finished a run successfully. RunConfigurations in other namespaces can trigger this RunConfiguration by using the format `namespace/runConfigurationName`. If no namespace is set, the operator will assume the RunConfiguration being watched is in the same namespace as the RunConfiguration being applied. |
 
 ### Schedule Definition
 | Name             | Description                                                                                                                                                                                                                                                                                                                                                                                                                   |

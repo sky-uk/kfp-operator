@@ -4,9 +4,10 @@ package v1alpha6
 
 import (
 	"fmt"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"math/rand"
 	"time"
+
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	. "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -170,7 +171,7 @@ func RandomRunConfigurationRefRuntimeParameter() RuntimeParameter {
 		Name: RandomString(),
 		ValueFrom: &ValueFrom{
 			RunConfigurationRef: RunConfigurationRef{
-				Name:           RandomString(),
+				Name:           common.RandomNamespacedName(),
 				OutputArtifact: RandomString(),
 			},
 		},

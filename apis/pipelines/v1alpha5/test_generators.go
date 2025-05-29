@@ -153,7 +153,7 @@ func RandomRunConfigurationRefRuntimeParameter() RuntimeParameter {
 		Name: RandomString(),
 		ValueFrom: &ValueFrom{
 			RunConfigurationRef: RunConfigurationRef{
-				Name:           RandomString(),
+				Name:           common.RandomNamespacedName(),
 				OutputArtifact: RandomString(),
 			},
 		},

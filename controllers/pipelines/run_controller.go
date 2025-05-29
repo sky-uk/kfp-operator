@@ -5,6 +5,7 @@ import (
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -180,12 +181,19 @@ func (r *RunReconciler) reconciliationRequestsForRunconfigurations(
 	runConfiguration client.Object,
 ) []reconcile.Request {
 	referencingRuns := &pipelineshub.RunList{}
-	listOps := &client.ListOptions{
-		FieldSelector: fields.OneTermEqualSelector(rcRefField, runConfiguration.GetName()),
-		Namespace:     runConfiguration.GetNamespace(),
+	rcNamespacedName, err := common.NamespacedName{
+		Name:      runConfiguration.GetName(),
+		Namespace: runConfiguration.GetNamespace(),
+	}.String()
+	if err != nil {
+		return []reconcile.Request{}
 	}
 
-	err := r.EC.Client.Cached.List(ctx, referencingRuns, listOps)
+	listOps := &client.ListOptions{
+		FieldSelector: fields.OneTermEqualSelector(rcRefField, rcNamespacedName),
+	}
+
+	err = r.EC.Client.Cached.List(ctx, referencingRuns, listOps)
 	if err != nil {
 		return []reconcile.Request{}
 	}
