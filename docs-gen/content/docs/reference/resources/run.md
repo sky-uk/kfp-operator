@@ -21,7 +21,7 @@ spec:
   - name: EXAMPLES
     valueFrom:
       runConfigurationRef:
-        name: penguin-pipeline-example-generator-runconfiguration
+        name: base-namespace/penguin-pipeline-example-generator-runconfiguration
         outputArtifact: examples
   artifacts:
   - name: serving-model
@@ -32,25 +32,25 @@ Note the usage of `metadata.generateName` which tells Kubernetes to generate a n
 
 ## Fields
 
-| Name                       | Description                                                                                                                                                                                                                                       |
-| -------------------------- |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `spec.provider`            | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`.                                                                                                           |
-| `spec.pipeline`            | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.                                             |
-| `spec.experimentName`      | The name of the corresponding experiment resource (optional - the `Default` Experiment as defined in the [Installation and Configuration section of the documentation](README.md#configuration) will be used if no `experimentName` is provided). |
-| `spec.parameters[]`        | Parameters for the pipeline training run. [See Run Parameters](#run-parameters-definition).                                                                                                                                                       |
-| `spec.run.artifacts[]`     | Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.                                                                                                               |
+| Name                   | Description                                                                                                                                                                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `spec.provider`        | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`.                                                                                                           |
+| `spec.pipeline`        | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.                                             |
+| `spec.experimentName`  | The name of the corresponding experiment resource (optional - the `Default` Experiment as defined in the [Installation and Configuration section of the documentation](README.md#configuration) will be used if no `experimentName` is provided). |
+| `spec.parameters[]`    | Parameters for the pipeline training run. [See Run Parameters](#run-parameters-definition).                                                                                                                                                       |
+| `spec.run.artifacts[]` | Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.                                                                                                               |
 
 ### Run Parameters Definition
 
 A pipeline run can be parameterised using parameters.
 
-| Name                                           | Description                                                                                                                                      |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `name`                                         | The name of the runtime parameter as referenced by the pipeline.                                                                                 |
-| `value`                                        | The value of the runtime parameter.                                                                                                              |
-| `valueFrom.runConfigurationRef`                | If set, the value of this runtime parameter will be resolved from the output artifacts of the referenced runconfiguration and updated on change. |
-| `valueFrom.runConfigurationRef.name`           | The name of the runconfiguration to resolve.                                                                                                     |
-| `valueFrom.runConfigurationRef.outputArtifact` | The name of the outputArtifact to resolve.                                                                                                       |
+| Name                                           | Description                                                                                                                                                                                                                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `name`                                         | The name of the runtime parameter as referenced by the pipeline.                                                                                                                                                                                       |
+| `value`                                        | The value of the runtime parameter.                                                                                                                                                                                                                    |
+| `valueFrom.runConfigurationRef`                | If set, the value of this runtime parameter will be resolved from the output artifacts of the referenced runconfiguration and updated on change.                                                                                                       |
+| `valueFrom.runConfigurationRef.name`           | The namespace and name of the RunConfiguration to resolve in the format `namespace/runConfigurationName`. If no namespace is set, the operator assumes the RunConfiguration to resolve is in the same namespace as the RunConfiguration being applied. |
+| `valueFrom.runConfigurationRef.outputArtifact` | The name of the outputArtifact to resolve.                                                                                                                                                                                                             |
 
 Note: either `value` or `valueFrom` must be defined.
 

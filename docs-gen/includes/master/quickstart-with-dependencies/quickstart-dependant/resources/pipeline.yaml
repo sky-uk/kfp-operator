@@ -2,6 +2,7 @@ apiVersion: pipelines.kubeflow.org/v1beta1
 kind: Pipeline
 metadata:
   name: penguin-pipeline-training
+  namespace: dependant-namespace
 spec:
   provider: provider-namespace/kfp
   image: kfp-quickstart-base:v1
