@@ -49,6 +49,10 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 	dependencies := make(map[string]pipelineshub.RunReference)
 
 	for dependencyName, artifactReferences := range artifactReferencesByDependency {
+		dependencyNamespacedName, err := dependencyName.String()
+		if err != nil {
+			return false, err
+		}
 		namespace := dependencyName.Namespace
 		if dependencyName.Namespace == "" {
 			namespace = resource.GetNamespace()
@@ -58,11 +62,6 @@ func (dr DependingOnRunConfigurationReconciler[R]) handleDependentRuns(ctx conte
 			Namespace: namespace,
 			Name:      dependencyName.Name,
 		})
-		if err != nil {
-			return false, err
-		}
-
-		dependencyNamespacedName, err := dependencyName.String()
 		if err != nil {
 			return false, err
 		}
@@ -122,13 +121,13 @@ func (dr DependingOnRunConfigurationReconciler[R]) getIgnoreNotFound(ctx context
 
 func (dr DependingOnRunConfigurationReconciler[R]) setupWithManager(mgr ctrl.Manager, controllerBuilder *builder.Builder, resource client.Object, reconciliationRequestsForPipeline handler.MapFunc) (*builder.Builder, error) {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), resource, rcRefField, func(rawObj client.Object) []string {
-		rc, _ := apis.MapErr(rawObj.(R).GetReferencedRCs(), func(rc common.NamespacedName) (string, error) {
-			if rc.Namespace == "" {
-				rc.Namespace = rawObj.GetNamespace()
+		rcNamespacedNames, _ := apis.MapErr(rawObj.(R).GetReferencedRCs(), func(nsn common.NamespacedName) (string, error) {
+			if nsn.Namespace == "" {
+				nsn.Namespace = rawObj.GetNamespace()
 			}
-			return rc.String()
+			return nsn.String()
 		})
-		return rc
+		return rcNamespacedNames
 	}); err != nil {
 		return nil, err
 	}
