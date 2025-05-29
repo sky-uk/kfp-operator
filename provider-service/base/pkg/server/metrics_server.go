@@ -46,8 +46,6 @@ func initMeterProvider(serviceName string) (*metric.MeterProvider, error) {
 	return meterProvider, nil
 }
 
-type MetricsServer struct{}
-
 func newResource(serviceName string) *resource.Resource {
 	return resource.NewWithAttributes(
 		semconv.SchemaURL,

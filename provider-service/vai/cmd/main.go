@@ -38,8 +38,6 @@ func main() {
 		syscall.SIGTERM,
 	)
 	defer stop()
-	// rootCtx, cancel := context.WithCancel(context.Background())
-	// defer cancel()
 
 	ctx := logr.NewContext(rootCtx, logger)
 
@@ -87,23 +85,12 @@ func main() {
 	}()
 
 	if err := g.Wait(); err != nil {
-		logger.Error(err, "vai service crashed")
+		logger.Error(err, "vai provider crashed")
 		os.Exit(1)
 	}
 
-	logger.Info("vai service terminated cleanly")
+	logger.Info("vai provider terminated cleanly")
 }
-
-// func runServer(ctx context.Context, vaiConfig *vaiConfig.VAIProviderConfig, baseConfig *baseConfig.Config) {
-// 	provider, err := vai.NewVAIProvider(ctx, vaiConfig, baseConfig.Pod.Namespace)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	if err = server.Start(ctx, *baseConfig, provider); err != nil {
-// 		panic(err)
-// 	}
-// }
 
 func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig.Config, providerConfig *vaiConfig.VAIProviderConfig) {
 	pipelineJobClient, err := aiplatform.NewPipelineClient(ctx, option.WithEndpoint(providerConfig.VaiEndpoint()))

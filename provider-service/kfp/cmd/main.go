@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
@@ -17,6 +20,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/event"
 	kfp "github.com/sky-uk/kfp-operator/provider-service/kfp/internal/provider"
 	"go.uber.org/zap/zapcore"
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -25,7 +29,14 @@ func main() {
 		panic(err)
 	}
 
-	ctx := logr.NewContext(context.Background(), logger)
+	rootCtx, stop := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer stop()
+
+	ctx := logr.NewContext(rootCtx, logger)
 
 	serviceConfig, err := baseConfig.LoadConfig(baseConfig.Config{
 		Server: baseConfig.Server{
@@ -46,27 +57,41 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded provider config: %+v", kfpProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 
-	go runServer(ctx, kfpProviderConfig, serviceConfig)
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(
+		func() error {
+			provider, err := kfp.NewKfpProvider(kfpProviderConfig)
+			if err != nil {
+				return fmt.Errorf("failed to create provider: %w", err)
+			}
+			return server.Start(ctx, *serviceConfig, provider)
+		},
+	)
 
 	k8sClient, err := NewK8sClient()
 	if err != nil {
 		panic(err)
 	}
 
-	go runEventing(ctx, *k8sClient, serviceConfig, kfpProviderConfig)
+	g.Go(
+		func() error {
+			runEventing(ctx, *k8sClient, serviceConfig, kfpProviderConfig)
+			return nil
+		},
+	)
 
-	<-ctx.Done()
-}
+	go func() {
+		<-ctx.Done()
+		logger.Info("context canceled; shutting down...")
+	}()
 
-func runServer(ctx context.Context, kfpConfig *kfpConfig.KfpProviderConfig, baseConfig *baseConfig.Config) {
-	provider, err := kfp.NewKfpProvider(kfpConfig)
-	if err != nil {
-		panic(err)
+	if err := g.Wait(); err != nil {
+		logger.Error(err, "kfp provider crashed")
+		os.Exit(1)
 	}
 
-	if err = server.Start(ctx, *baseConfig, provider); err != nil {
-		panic(err)
-	}
+	logger.Info("kfp provider terminated cleanly")
 }
 
 func runEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfig.Config, providerConfig *kfpConfig.KfpProviderConfig) {
