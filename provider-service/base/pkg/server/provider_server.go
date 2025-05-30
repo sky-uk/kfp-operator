@@ -15,6 +15,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func readinessHandler(w http.ResponseWriter, _ *http.Request) {
@@ -138,6 +139,17 @@ func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.Han
 	}
 }
 
+func newHandlerFunc(
+	resource resource.HttpHandledResource,
+	handler http.Handler,
+	method string,
+) http.HandlerFunc {
+	return otelhttp.NewHandler(
+		otelhttp.WithRouteTag("resource/"+resource.Type(), handler),
+		"http-"+method+"-resource-"+resource.Type(),
+	).ServeHTTP
+}
+
 func newHandler(ctx context.Context, resources []resource.HttpHandledResource) http.Handler {
 	mux := chi.NewRouter()
 	mux.Use(middleware.Logger)
@@ -148,9 +160,9 @@ func newHandler(ctx context.Context, resources []resource.HttpHandledResource) h
 
 	for _, resource := range resources {
 		mux.Route("/resource/"+resource.Type(), func(r chi.Router) {
-			r.Post("/", createHandler(ctx, resource))
-			r.Put("/{id}", updateHandler(ctx, resource))
-			r.Delete("/{id}", deleteHandler(ctx, resource))
+			r.Post("/", newHandlerFunc(resource, createHandler(ctx, resource), http.MethodPost))
+			r.Put("/{id}", newHandlerFunc(resource, updateHandler(ctx, resource), http.MethodPut))
+			r.Delete("/{id}", newHandlerFunc(resource, deleteHandler(ctx, resource), http.MethodDelete))
 		})
 	}
 
