@@ -22,6 +22,19 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		return common.RunCompletionEvent{}, err
 	}
 
+	var training *common.Training
+	if protoRunCompletion.Training != nil {
+		training = &common.Training{}
+		if protoRunCompletion.Training.StartTime != nil {
+			st := protoRunCompletion.Training.StartTime.AsTime()
+			training.StartTime = &st
+		}
+		if protoRunCompletion.Training.EndTime != nil {
+			et := protoRunCompletion.Training.EndTime.AsTime()
+			training.EndTime = &et
+		}
+	}
+
 	return common.RunCompletionEvent{
 		Status:                statusConverter(protoRunCompletion.Status),
 		PipelineName:          pipelineName,
@@ -31,6 +44,7 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		ServingModelArtifacts: protoToArtifacts(protoRunCompletion.ServingModelArtifacts),
 		Artifacts:             protoToArtifacts(protoRunCompletion.Artifacts),
 		Provider:              protoRunCompletion.Provider,
+		Training:              training,
 	}, nil
 }
 

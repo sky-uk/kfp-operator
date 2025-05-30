@@ -1,8 +1,9 @@
 package common
 
-import "fmt"
-
-const RunCompletionEventName = "run-completion"
+import (
+	"fmt"
+	"time"
+)
 
 type Artifact struct {
 	Name     string `json:"name"`
@@ -19,6 +20,15 @@ var RunCompletionStatuses = struct {
 	Failed:    "failed",
 }
 
+type Training struct {
+	StartTime *time.Time `json:"startTime,omitempty"`
+	EndTime   *time.Time `json:"endTime,omitempty"`
+}
+
+func (t *Training) IsEmpty() bool {
+	return t.StartTime == nil && t.EndTime == nil
+}
+
 type RunCompletionEvent struct {
 	Status       RunCompletionStatus `json:"status"`
 	PipelineName NamespacedName      `json:"pipelineName"`
@@ -29,6 +39,7 @@ type RunCompletionEvent struct {
 	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
 	Artifacts             []Artifact      `json:"artifacts"`
 	Provider              string          `json:"provider"`
+	Training              *Training       `json:"training,omitempty"`
 }
 
 func (sre RunCompletionEvent) String() string {
@@ -61,6 +72,7 @@ type RunCompletionEventData struct {
 	ServingModelArtifacts []Artifact          `json:"servingModelArtifacts"`
 	PipelineComponents    []PipelineComponent `json:"pipelineComponents"`
 	Provider              string              `json:"provider"`
+	Training              *Training           `json:"training,omitempty"`
 }
 
 func (rced RunCompletionEventData) ToRunCompletionEvent() RunCompletionEvent {
@@ -73,5 +85,6 @@ func (rced RunCompletionEventData) ToRunCompletionEvent() RunCompletionEvent {
 		ServingModelArtifacts: rced.ServingModelArtifacts,
 		Artifacts:             nil,
 		Provider:              rced.Provider,
+		Training:              rced.Training,
 	}
 }

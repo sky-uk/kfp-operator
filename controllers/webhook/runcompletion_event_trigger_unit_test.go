@@ -7,6 +7,8 @@ import (
 	"errors"
 	"github.com/go-logr/logr"
 	"go.uber.org/zap/zapcore"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -87,6 +89,7 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			},
 		}
 
+		timeNow := time.Now()
 		rce := common.RunCompletionEvent{
 			Status:                common.RunCompletionStatuses.Succeeded,
 			PipelineName:          namespacedName,
@@ -96,6 +99,10 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			ServingModelArtifacts: artifacts,
 			Artifacts:             artifacts,
 			Provider:              "some-provider",
+			Training: &common.Training{
+				StartTime: &timeNow,
+				EndTime:   &timeNow,
+			},
 		}
 
 		It("returns no error when event data is converted to proto runcompletion event", func() {
@@ -117,6 +124,10 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
 				Provider:              "some-provider",
+				Training: &pb.Training{
+					StartTime: timestamppb.New(timeNow),
+					EndTime:   timestamppb.New(timeNow),
+				},
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})
@@ -155,6 +166,10 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
 				Provider:              "some-provider",
+				Training: &pb.Training{
+					StartTime: timestamppb.New(timeNow),
+					EndTime:   timestamppb.New(timeNow),
+				},
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})
