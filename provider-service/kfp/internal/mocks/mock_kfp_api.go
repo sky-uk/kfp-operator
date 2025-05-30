@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var StaticTime = time.Now().Round(0)
+var StaticTime = time.Now().UTC().Round(0)
 
 type MockKfpApi struct {
 	resourceReferences resource.References
