@@ -31,8 +31,7 @@ func Start(ctx context.Context, cfg config.Config, provider resource.Provider) e
 			addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 			log.Info("Provider Server starting", "addr", addr)
 
-			err := providerServer.ListenAndServe()
-			if errors.Is(err, http.ErrServerClosed) {
+			if err := providerServer.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
 				return nil
 			}
 
@@ -46,8 +45,7 @@ func Start(ctx context.Context, cfg config.Config, provider resource.Provider) e
 			addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Metrics.Port)
 			log.Info("Metrics Server starting", "addr", addr)
 
-			err := metricsServer.ListenAndServe()
-			if errors.Is(err, http.ErrServerClosed) {
+			if err := metricsServer.ListenAndServe(); errors.Is(err, http.ErrServerClosed) {
 				return nil
 			}
 
