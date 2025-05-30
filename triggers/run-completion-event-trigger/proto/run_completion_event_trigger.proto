@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package run_completion_event_trigger;
 
@@ -19,6 +20,7 @@ message RunCompletionEvent {
   Status status = 6;
   repeated Artifact artifacts = 7;
   repeated Artifact serving_model_artifacts = 8;
+  Training training = 9;
 }
 
 enum Status {
@@ -29,5 +31,10 @@ enum Status {
 message Artifact {
   string location = 1;
   string name = 2;
+}
+
+message Training {
+  google.protobuf.Timestamp start_time = 1;
+  google.protobuf.Timestamp end_time = 2;
 }
 

@@ -215,6 +215,19 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		Namespace: job.Labels[label.RunConfigurationNamespace],
 	}
 
+	training := &common.Training{}
+	if startTime := job.StartTime; startTime != nil && !startTime.AsTime().IsZero() {
+		st := startTime.AsTime()
+		training.StartTime = &st
+	}
+	if endTime := job.EndTime; endTime != nil && !endTime.AsTime().IsZero() {
+		et := endTime.AsTime()
+		training.EndTime = &et
+	}
+	if training.IsEmpty() {
+		training = nil
+	}
+
 	return &common.RunCompletionEventData{
 		Status:                runCompletionStatus,
 		PipelineName:          pipelineName,
@@ -224,5 +237,6 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 		PipelineComponents:    artifactsFilterData(job),
 		Provider:              vef.ProviderConfig.Name,
+		Training:              training,
 	}, nil
 }

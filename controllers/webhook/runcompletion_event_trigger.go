@@ -3,6 +3,7 @@ package webhook
 import (
 	"context"
 	"fmt"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"google.golang.org/grpc/credentials/insecure"
@@ -84,9 +85,27 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		ServingModelArtifacts: artifactToProto(event.ServingModelArtifacts),
 		Artifacts:             artifactToProto(event.Artifacts),
 		Status:                statusToProto(event.Status),
+		Training:              trainingToProto(event.Training),
 	}
 
 	return &runCompletionEvent, nil
+}
+
+func trainingToProto(training *common.Training) *pb.Training {
+	if training == nil || training.IsEmpty() {
+		return nil
+	}
+
+	pbTraining := pb.Training{}
+	if training.StartTime != nil {
+		pbTraining.StartTime = timestamppb.New(*training.StartTime)
+	}
+	if training.EndTime != nil {
+		pbTraining.EndTime = timestamppb.New(*training.EndTime)
+	}
+
+	return &pbTraining
+
 }
 
 func artifactToProto(commonArtifacts []common.Artifact) []*pb.Artifact {

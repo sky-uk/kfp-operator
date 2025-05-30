@@ -5,6 +5,7 @@ package runcompletion
 import (
 	"context"
 	"errors"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"testing"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -539,12 +540,18 @@ var _ = Context("VaiEventingServer", func() {
 				expectedReq := aiplatformpb.GetPipelineJobRequest{
 					Name: eventingFlow.ProviderConfig.PipelineJobName(runId),
 				}
+
+				timestampNow := timestamppb.Now()
+				timeNow := timestampNow.AsTime()
+
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
 					&expectedReq,
 				).Return(
 					&aiplatformpb.PipelineJob{
-						State: aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
+						State:     aiplatformpb.PipelineState_PIPELINE_STATE_SUCCEEDED,
+						StartTime: timestampNow,
+						EndTime:   timestampNow,
 					},
 					nil,
 				)
@@ -561,6 +568,10 @@ var _ = Context("VaiEventingServer", func() {
 					ServingModelArtifacts: []common.Artifact{},
 					PipelineComponents:    []common.PipelineComponent{},
 					Provider:              eventingFlow.ProviderConfig.Name,
+					Training: &common.Training{
+						StartTime: &timeNow,
+						EndTime:   &timeNow,
+					},
 				}
 
 				Eventually(outChan).Should(Receive(WithTransform(func(msg StreamMessage[*common.RunCompletionEventData]) interface{} {
