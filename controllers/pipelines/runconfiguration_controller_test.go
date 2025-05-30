@@ -5,6 +5,7 @@ package pipelines
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -71,7 +72,7 @@ var _ = Context("constructRunSchedulesForTriggers", PropertyBased, func() {
 	It("sets all spec fields", func() {
 		runConfiguration := pipelineshub.RandomRunConfiguration(common.RandomNamespacedName())
 		runConfiguration.Spec.Triggers = pipelineshub.Triggers{Schedules: apis.RandomList(pipelineshub.RandomSchedule)}
-		resolvedParameters := apis.Map(runConfiguration.Spec.Run.Parameters, func(p pipelineshub.Parameter) apis.NamedValue {
+		resolvedParameters := lo.Map(runConfiguration.Spec.Run.Parameters, func(p pipelineshub.Parameter, _ int) apis.NamedValue {
 			return apis.NamedValue{Name: p.Name, Value: p.Value}
 		})
 

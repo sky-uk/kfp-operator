@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"github.com/samber/lo"
 	"golang.org/x/exp/maps"
 	"strings"
 
@@ -56,7 +57,7 @@ func (conditions Conditions) SetObservedGeneration(
 }
 
 func (conditions Conditions) ToMap() map[string]metav1.Condition {
-	return ToMap(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
+	return lo.Associate(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
 		return condition.Type, condition
 	})
 }

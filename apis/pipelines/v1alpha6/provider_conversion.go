@@ -3,6 +3,8 @@ package v1alpha6
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/samber/lo"
 	common "github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -81,7 +83,7 @@ func (dst *Provider) ConvertFrom(srcRaw conversion.Hub) error {
 		return err
 	}
 
-	tfxFramework, found := common.Find(src.Spec.Frameworks, func(framework hub.Framework) bool {
+	tfxFramework, found := lo.Find(src.Spec.Frameworks, func(framework hub.Framework) bool {
 		return framework.Name == "tfx"
 	})
 
