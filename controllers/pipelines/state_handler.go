@@ -91,7 +91,7 @@ func (st *StateHandler[R]) StateTransition(
 	resource R,
 ) []Command {
 	logger := log.FromContext(ctx)
-	logger.Info("state transition start")
+	logger.V(2).Info("state transition start")
 
 	time := metav1.Now()
 	stateTransitionCommands := st.stateTransition(ctx, provider, providerSvc, resource, time)
@@ -132,7 +132,7 @@ func (st *StateHandler[R]) onUnknown(
 		}
 	}
 
-	logger.Info("empty state, creating resource")
+	logger.V(2).Info("empty state, creating resource")
 
 	workflow, err := st.WorkflowFactory.ConstructCreationWorkflow(provider, providerSvc, resource)
 
@@ -171,7 +171,7 @@ func (st StateHandler[R]) onDelete(
 	transitionTime metav1.Time,
 ) []Command {
 	logger := log.FromContext(ctx)
-	logger.Info("deletion requested, deleting")
+	logger.V(2).Info("deletion requested, deleting")
 
 	if resource.GetStatus().Provider.Id == "" {
 		return []Command{
@@ -219,7 +219,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 	var targetState apis.SynchronizationState
 
 	if resource.GetStatus().Provider.Id == "" {
-		logger.Info("no providerId exists, creating")
+		logger.V(2).Info("no providerId exists, creating")
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(
 			provider,
 			providerSvc,
@@ -241,7 +241,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 
 		targetState = apis.Creating
 	} else {
-		logger.Info("providerId exists, updating")
+		logger.V(2).Info("providerId exists, updating")
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(provider, providerSvc, resource)
 
 		if err != nil {
@@ -358,7 +358,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 	var setStatusCommand *SetStatus
 
 	if succeeded != nil {
-		logger.Info("operation succeeded")
+		logger.V(2).Info("operation succeeded")
 		setStatusCommand = statusFromProviderOutput(succeeded)
 	} else {
 		var failureMessage string

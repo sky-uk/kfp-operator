@@ -68,7 +68,7 @@ func (dr DependingOnPipelineReconciler[R]) getIgnoreNotFound(ctx context.Context
 
 	if err := dr.EC.Client.NonCached.Get(ctx, key, pipeline); err != nil {
 		if errors.IsNotFound(err) {
-			logger.Info("object not found")
+			logger.V(2).Info("object not found")
 			return nil, nil
 		}
 
