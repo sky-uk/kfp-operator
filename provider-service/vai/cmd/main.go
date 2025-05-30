@@ -89,7 +89,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("vai provider terminated cleanly")
+	logger.Info("vai provider terminated gracefully")
 }
 
 func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig.Config, providerConfig *vaiConfig.VAIProviderConfig) {

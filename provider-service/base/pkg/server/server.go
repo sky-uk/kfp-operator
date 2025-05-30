@@ -77,7 +77,7 @@ func Start(ctx context.Context, cfg config.Config, provider resource.Provider) e
 		return fmt.Errorf("server error: %w", err)
 	}
 
-	log.Info("Servers shutdown cleanly")
+	log.Info("Servers shutdown gracefully")
 
 	return nil
 }

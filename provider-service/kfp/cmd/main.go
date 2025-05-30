@@ -91,7 +91,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info("kfp provider terminated cleanly")
+	logger.Info("kfp provider terminated gracefully")
 }
 
 func runEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfig.Config, providerConfig *kfpConfig.KfpProviderConfig) {
