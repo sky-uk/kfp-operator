@@ -1,10 +1,7 @@
 package server
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"net"
 	"net/http"
 
 	"go.opentelemetry.io/otel"
@@ -13,72 +10,45 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 )
 
-type MetricsServer struct{}
-
-func (ms MetricsServer) Start(ctx context.Context, cfg config.MetricsConfig, serviceName string) error {
-	if cfg.Port == 0 {
-		return errors.New("metrics.Port must be specified")
+func NewMetricsServer(host string, port int) *http.Server {
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", host, port),
+		Handler: newMetricsHandler(),
 	}
 
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
-	if err != nil {
-		return err
-	}
-
-	onShutdown, err := initialiseMetricsServerFromListener(ctx, listener, serviceName)
-	if err != nil {
-		return err
-	}
-	defer onShutdown()
-	return nil
+	return server
 }
 
-func initialiseMetricsServerFromListener(ctx context.Context, listener net.Listener, serviceName string) (func(), error) {
-	logger := common.LoggerFromContext(ctx)
+func newMetricsHandler() http.Handler {
+	mux := chi.NewRouter()
+	mux.Handle("/metrics", promhttp.Handler())
 
-	meterProvider, err := newMeterProvider(serviceName)
+	return mux
+}
+
+func initMeterProvider(serviceName string) (*metric.MeterProvider, error) {
+	exporter, err := prometheus.New()
 	if err != nil {
 		return nil, err
 	}
+
+	meterProvider := metric.NewMeterProvider(
+		metric.WithResource(newResource(serviceName)),
+		metric.WithReader(exporter),
+	)
+
 	otel.SetMeterProvider(meterProvider)
 
-	go serveMetrics(ctx, listener)
-
-	return func() {
-		if err := meterProvider.Shutdown(ctx); err != nil {
-			logger.Error(err, "Error shutting down metrics server")
-		}
-	}, nil
-}
-
-func newResource(serviceName string) *resource.Resource {
-	return resource.NewWithAttributes(semconv.SchemaURL,
-		semconv.ServiceName(fmt.Sprintf("provider-service-%s", serviceName)),
-	)
-}
-
-func newMeterProvider(serviceName string) (*metric.MeterProvider, error) {
-	metricExporter, err := prometheus.New()
-	if err != nil {
-		return nil, err
-	}
-
-	meterProvider := metric.NewMeterProvider(metric.WithResource(newResource(serviceName)), metric.WithReader(metricExporter))
 	return meterProvider, nil
 }
 
-func serveMetrics(ctx context.Context, listener net.Listener) {
-	logger := common.LoggerFromContext(ctx)
-	route := "/metrics"
-
-	http.Handle(route, promhttp.Handler())
-	if err := http.Serve(listener, nil); err != nil {
-		logger.Error(err, "Metrics serving failed")
-	}
-	logger.Info(fmt.Sprintf("Serving metrics from %s at %s", listener.Addr().String(), route))
+func newResource(serviceName string) *resource.Resource {
+	return resource.NewWithAttributes(
+		semconv.SchemaURL,
+		semconv.ServiceName(fmt.Sprintf("provider-service-%s", serviceName)),
+	)
 }

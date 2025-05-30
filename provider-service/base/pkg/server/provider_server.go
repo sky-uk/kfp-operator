@@ -157,11 +157,12 @@ func newHandler(ctx context.Context, resources []resource.HttpHandledResource) h
 	return mux
 }
 
-type ProviderServer struct{}
-
-func (ps ProviderServer) Start(ctx context.Context, cfg config.Server, provider resource.Provider) error {
+func NewProviderServer(
+	ctx context.Context,
+	cfg config.Server,
+	provider resource.Provider,
+) *http.Server {
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
-	logger := common.LoggerFromContext(ctx)
 
 	httpResources := []resource.HttpHandledResource{
 		&resource.Pipeline{Provider: provider},
@@ -170,19 +171,10 @@ func (ps ProviderServer) Start(ctx context.Context, cfg config.Server, provider 
 		&resource.Experiment{Provider: provider},
 	}
 
-	srv := &http.Server{
+	return &http.Server{
 		Addr:    addr,
 		Handler: newHandler(ctx, httpResources),
 	}
-
-	go func() {
-		logger.Info(fmt.Sprintf("Starting HTTP server on %s", addr))
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error(err, "ListenAndServe", "failed")
-		}
-	}()
-
-	return nil
 }
 
 func writeErrorResponse(w http.ResponseWriter, id string, providerError error, statusCode int) {
