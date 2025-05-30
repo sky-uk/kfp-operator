@@ -34,7 +34,7 @@ func (br ResourceReconciler[R]) LoadProvider(
 	desiredProvider common.NamespacedName,
 ) (pipelineshub.Provider, error) {
 	logger := log.FromContext(ctx)
-	logger.Info("loading provider:", "provider", desiredProvider)
+	logger.V(2).Info("loading provider:", "provider", desiredProvider)
 
 	providerNamespacedName := types.NamespacedName{
 		Name:      desiredProvider.Name,

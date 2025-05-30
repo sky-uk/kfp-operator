@@ -34,7 +34,11 @@ The specification of the events follows [CloudEvents](https://github.com/cloudev
         "name":"serving-model",
         "location":"gs://{{ ARTIFACT_LOCATION }}"
       }
-    ]
+    ],
+    "training" : {
+      "startTime": "{{ START_TIME }}",
+      "endTime": "{{ END_TIME }}"
+    }
   }
 }
 ```
