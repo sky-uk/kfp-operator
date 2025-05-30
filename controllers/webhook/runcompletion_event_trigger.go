@@ -98,10 +98,12 @@ func trainingToProto(training *common.Training) *pb.Training {
 
 	pbTraining := pb.Training{}
 	if training.StartTime != nil {
-		pbTraining.StartTime = timestamppb.New(*training.StartTime)
+		st := *training.StartTime
+		pbTraining.StartTime = timestamppb.New(st.UTC())
 	}
 	if training.EndTime != nil {
-		pbTraining.EndTime = timestamppb.New(*training.EndTime)
+		et := *training.EndTime
+		pbTraining.EndTime = timestamppb.New(et.UTC())
 	}
 
 	return &pbTraining

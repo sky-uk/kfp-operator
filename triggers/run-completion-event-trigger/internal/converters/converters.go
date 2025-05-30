@@ -26,11 +26,11 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 	if protoRunCompletion.Training != nil {
 		training = &common.Training{}
 		if protoRunCompletion.Training.StartTime != nil {
-			st := protoRunCompletion.Training.StartTime.AsTime()
+			st := protoRunCompletion.Training.StartTime.AsTime().UTC()
 			training.StartTime = &st
 		}
 		if protoRunCompletion.Training.EndTime != nil {
-			et := protoRunCompletion.Training.EndTime.AsTime()
+			et := protoRunCompletion.Training.EndTime.AsTime().UTC()
 			training.EndTime = &et
 		}
 	}
