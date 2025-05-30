@@ -217,11 +217,11 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 
 	training := &common.Training{}
 	if startTime := job.StartTime; startTime != nil && !startTime.AsTime().IsZero() {
-		st := startTime.AsTime()
+		st := startTime.AsTime().UTC()
 		training.StartTime = &st
 	}
 	if endTime := job.EndTime; endTime != nil && !endTime.AsTime().IsZero() {
-		et := endTime.AsTime()
+		et := endTime.AsTime().UTC()
 		training.EndTime = &et
 	}
 	if training.IsEmpty() {
