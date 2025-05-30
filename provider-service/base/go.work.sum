@@ -1,4 +1,5 @@
 bazil.org/fuse v0.0.0-20180421153158-65cc252bf669/go.mod h1:Xbm+BRKSBEpa4q4hTSxohYNQpsxXPbPry4JJWOB3LB8=
+buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20230802163732-1c33ebd9ecfa.1 h1:tdpHgTbmbvEIARu+bixzmleMi14+3imnpoFXz+Qzjp4=
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20230802163732-1c33ebd9ecfa.1/go.mod h1:xafc+XIsTxTy76GJQ1TKgvJWsSugFBqMaN27WhUblew=
 cel.dev/expr v0.15.0 h1:O1jzfJCQBfL5BFoYktaxwIhuttaQPsVWerH9/EEKx0w=
 cel.dev/expr v0.15.0/go.mod h1:TRSuuV7DlVCE/uwv5QbAiW/v8l5O8C4eEPHeu7gf7Sg=
@@ -509,6 +510,7 @@ github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20210826220005-b48c857c3a0e/go.m
 github.com/antlr/antlr4/runtime/Go/antlr v1.4.10 h1:yL7+Jz0jTC6yykIK/Wh74gnTJnrGr5AyrNMXuA0gves=
 github.com/antlr/antlr4/runtime/Go/antlr v1.4.10/go.mod h1:F7bn7fEU90QkQ3tnmaTx3LTKLEDqnwWODIYppRQ5hnY=
 github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df/go.mod h1:pSwJ0fSY5KhvocuWSx4fz3BA8OrA1bQn+K1Eli3BRwM=
+github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 h1:goHVqTbFX3AIo0tzGr14pgfAW2ZfPChKO21Z9MGf/gk=
 github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9/go.mod h1:pSwJ0fSY5KhvocuWSx4fz3BA8OrA1bQn+K1Eli3BRwM=
 github.com/antonmedv/expr v1.9.0 h1:j4HI3NHEdgDnN9p6oI6Ndr0G5QryMY0FNxT4ONrFDGU=
 github.com/antonmedv/expr v1.9.0/go.mod h1:5qsM3oLGDND7sDmQGDXHkYfkjYMUX14qsgqmHhwGEk8=
@@ -603,6 +605,7 @@ github.com/boynton/repl v0.0.0-20170116235056-348863958e3e/go.mod h1:Crc/GCZ3NXD
 github.com/bradleyfalzon/ghinstallation/v2 v2.0.4/go.mod h1:B40qPqJxWE0jDZgOR1JmaMy+4AY1eBP+IByOvqyAKp0=
 github.com/bradleyfalzon/ghinstallation/v2 v2.4.0 h1:zYSzkoIwekCQAr6GT6KxISLt4YRS6kd4/ixfzMN+7yc=
 github.com/bradleyfalzon/ghinstallation/v2 v2.4.0/go.mod h1:4MwZLSgBJJgg4i3nJwZJ95AMooSqN8fJDmegLVn9Q2U=
+github.com/bufbuild/protovalidate-go v0.2.1 h1:pJr07sYhliyfj/STAM7hU4J3FKpVeLVKvOBmOTN8j+s=
 github.com/bufbuild/protovalidate-go v0.2.1/go.mod h1:e7XXDtlxj5vlEyAgsrxpzayp4cEMKCSSb8ZCkin+MVA=
 github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/cenkalti/backoff/v4 v4.1.3 h1:cFAlzYUlVYDysBEH2T5hyJZMh3+5+WCBvSnK6Q8UtC4=
@@ -1079,6 +1082,7 @@ github.com/google/cel-go v0.9.0/go.mod h1:U7ayypeSkw23szu4GaQTPJGx66c20mx8JklMSx
 github.com/google/cel-go v0.12.6 h1:kjeKudqV0OygrAqA9fX6J55S8gj+Jre2tckIm5RoG4M=
 github.com/google/cel-go v0.12.6/go.mod h1:Jk7ljRzLBhkmiAwBoUxB1sZSCVBAzkqPF25olK/iRDw=
 github.com/google/cel-go v0.12.7/go.mod h1:Jk7ljRzLBhkmiAwBoUxB1sZSCVBAzkqPF25olK/iRDw=
+github.com/google/cel-go v0.17.1 h1:s2151PDGy/eqpCI80/8dl4VL3xTkqI/YubXLXCFw0mw=
 github.com/google/cel-go v0.17.1/go.mod h1:HXZKzB0LXqer5lHHgfWAnlYwJaQBDKMjxjulNQzhwhY=
 github.com/google/cel-spec v0.6.0 h1:xuthJSiJGoSzq+lVEBIW1MTpaaZXknMCYC4WzVAWOsE=
 github.com/google/cel-spec v0.6.0/go.mod h1:Nwjgxy5CbjlPrtCWjeDjUyKMl8w41YBYGjsyDdqk0xA=
@@ -1760,6 +1764,7 @@ github.com/spf13/viper v1.8.1/go.mod h1:o0Pch8wJ9BVSWGQMbra6iw0oQ5oktSIBaujf1rJH
 github.com/spf13/viper v1.10.0/go.mod h1:SoyBPwAtKDzypXNDFKN5kzH7ppppbGZtls1UpIy5AsM=
 github.com/spf13/viper v1.10.1/go.mod h1:IGlFPqhNAPKRxohIzWpI5QEy4kuI7tcl5WvR+8qy1rU=
 github.com/stoewer/go-strcase v1.2.0 h1:Z2iHWqGXH00XYgqDmNgQbIBxf3wrNq0F3feEy0ainaU=
+github.com/stoewer/go-strcase v1.3.0 h1:g0eASXYtp+yvN9fK8sH94oCIk0fau9uV1/ZdJ0AVEzs=
 github.com/stoewer/go-strcase v1.3.0/go.mod h1:fAH5hQ5pehh+j3nZfvwdk2RgEgQjAoM8wodgtPmh1xo=
 github.com/streadway/amqp v1.0.0/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
@@ -2744,6 +2749,7 @@ k8s.io/apiserver v0.23.3/go.mod h1:3HhsTmC+Pn+Jctw+Ow0LHA4dQ4oXrQ4XJDzrVDG64T4=
 k8s.io/apiserver v0.23.5/go.mod h1:7wvMtGJ42VRxzgVI7jkbKvMbuCbVbgsWFT7RyXiRNTw=
 k8s.io/apiserver v0.27.2 h1:p+tjwrcQEZDrEorCZV2/qE8osGTINPuS5ZNqWAvKm5E=
 k8s.io/apiserver v0.27.2/go.mod h1:EsOf39d75rMivgvvwjJ3OW/u9n1/BmUMK5otEOJrb1Y=
+k8s.io/apiserver v0.27.7 h1:E8sDHwfUug82YC1++qvE73QxihaXDqT4tr8XYBOEtc4=
 k8s.io/apiserver v0.27.7/go.mod h1:OrLG9RwCOerutAlo8QJW5EHzUG9Dad7k6rgcDUNSO/w=
 k8s.io/client-go v0.17.8/go.mod h1:SJsDS64AAtt9VZyeaQMb4Ck5etCitZ/FwajWdzua5eY=
 k8s.io/client-go v0.23.0/go.mod h1:hrDnpnK1mSr65lHHcUuIZIXDgEbzc7/683c6hyG4jTA=
@@ -2756,6 +2762,7 @@ k8s.io/code-generator v0.23.3/go.mod h1:S0Q1JVA+kSzTI1oUvbKAxZY/DYbA/ZUb4Uknog12
 k8s.io/code-generator v0.23.5/go.mod h1:S0Q1JVA+kSzTI1oUvbKAxZY/DYbA/ZUb4Uknog12ETk=
 k8s.io/code-generator v0.27.2 h1:RmK0CnU5qRaK6WRtSyWNODmfTZNoJbrizpVcsgbtrvI=
 k8s.io/code-generator v0.27.2/go.mod h1:DPung1sI5vBgn4AGKtlPRQAyagj/ir/4jI55ipZHVww=
+k8s.io/code-generator v0.27.7 h1:cbMN3+QxMHrQG1rYQOiNEqoLTRnqBW50pjPHgFCFe94=
 k8s.io/code-generator v0.27.7/go.mod h1:w1YF/xQcTg+d9Ag+04xuRqER+q8rDnJ70ynLql8/RLA=
 k8s.io/component-base v0.23.0/go.mod h1:DHH5uiFvLC1edCpvcTDV++NKULdYYU6pR9Tt3HIKMKI=
 k8s.io/component-base v0.23.3/go.mod h1:1Smc4C60rWG7d3HjSYpIwEbySQ3YWg0uzH5a2AtaTLg=
@@ -2780,6 +2787,7 @@ k8s.io/klog/v2 v2.70.1/go.mod h1:y1WjHnz7Dj687irZUWR/WLkLc5N1YHtjLdmgWjndZn0=
 k8s.io/klog/v2 v2.80.1/go.mod h1:y1WjHnz7Dj687irZUWR/WLkLc5N1YHtjLdmgWjndZn0=
 k8s.io/kms v0.27.2 h1:wCdmPCa3kubcVd3AssOeaVjLQSu45k5g/vruJ3iqwDU=
 k8s.io/kms v0.27.2/go.mod h1:dahSqjI05J55Fo5qipzvHSRbm20d7llrSeQjjl86A7c=
+k8s.io/kms v0.27.7 h1:3iB92lQIH4uEz0V+wQAXvAsgIDhmXg/8lCu01FCjtqI=
 k8s.io/kms v0.27.7/go.mod h1:JspOc8g6+cDlZfgW5GqnHS+OV6tAVyg4iXytCrqfNPw=
 k8s.io/kube-openapi v0.0.0-20200410145947-bcb3869e6f29/go.mod h1:F+5wygcW0wmRTnM3cOgIqGivxkwSWIWT5YdsDbeAOaU=
 k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65/go.mod h1:sX9MT8g7NVZM5lVL/j8QyCCJe8YSMW30QvGZWaCIDIk=
