@@ -6,7 +6,7 @@ require (
 	github.com/argoproj/argo-workflows/v3 v3.3.10
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/evanphx/json-patch/v5 v5.9.11
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.3
 	github.com/google/go-cmp v0.7.0
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
 	github.com/hashicorp/go-bexpr v0.1.14
