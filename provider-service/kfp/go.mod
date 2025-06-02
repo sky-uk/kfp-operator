@@ -4,7 +4,7 @@ go 1.22.11
 
 require (
 	github.com/argoproj/argo-workflows/v3 v3.3.10
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.3
 	github.com/go-openapi/runtime v0.25.0
 	github.com/go-openapi/strfmt v0.21.3
 	github.com/go-resty/resty/v2 v2.16.0
