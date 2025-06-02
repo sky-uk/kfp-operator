@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/pubsub v1.36.1
 	github.com/argoproj/argo-workflows/v3 v3.3.10
 	github.com/go-chi/chi/v5 v5.2.0
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.3
 	github.com/go-resty/resty/v2 v2.16.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/onsi/ginkgo/v2 v2.11.0
