@@ -218,7 +218,8 @@ func (st StateHandler[R]) onSucceededOrFailed(
 	var err error
 	var targetState apis.SynchronizationState
 
-	if resource.GetStatus().Provider.Id == "" {
+	providerId := resource.GetStatus().Provider.Id
+	if providerId == "" {
 		logger.V(2).Info("no providerId exists, creating")
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(
 			provider,
@@ -241,7 +242,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 
 		targetState = apis.Creating
 	} else {
-		logger.V(2).Info("providerId exists, updating")
+		logger.V(2).Info("providerId exists, updating", "providerId", providerId)
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(provider, providerSvc, resource)
 
 		if err != nil {
