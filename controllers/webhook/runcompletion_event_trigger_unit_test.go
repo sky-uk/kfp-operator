@@ -89,7 +89,7 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			},
 		}
 
-		timeNow := time.Now()
+		timeNow := time.Now().UTC()
 		rce := common.RunCompletionEvent{
 			Status:                common.RunCompletionStatuses.Succeeded,
 			PipelineName:          namespacedName,

@@ -29,7 +29,7 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 				},
 			}
 
-			timeNow := time.Now().Round(0)
+			timeNow := time.Now().UTC()
 			timestampNow := timestamppb.New(timeNow)
 
 			protoRunCompletionEvent := pb.RunCompletionEvent{
