@@ -18,7 +18,7 @@ type StubbedEventProcessor struct {
 	expectedError                  EventError
 }
 
-func (sep StubbedEventProcessor) ToRunCompletionEvent(eventData *common.RunCompletionEventData, runConfiguration *pipelineshub.RunConfiguration, run *pipelineshub.Run) (*common.RunCompletionEvent, EventError) {
+func (sep StubbedEventProcessor) ToRunCompletionEvent(eventData *common.RunCompletionEventData, _ *pipelineshub.RunConfiguration, _ *pipelineshub.Run) (*common.RunCompletionEvent, EventError) {
 	if sep.expectedRunCompletionEventData != nil {
 		Expect(eventData).To(Equal(sep.expectedRunCompletionEventData))
 	}
