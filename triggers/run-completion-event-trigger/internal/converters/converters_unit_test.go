@@ -41,10 +41,8 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 				ServingModelArtifacts: artifacts,
 				Artifacts:             artifacts,
 				Status:                pb.Status_SUCCEEDED,
-				Training: &pb.Training{
-					StartTime: timestampNow,
-					EndTime:   timestampNow,
-				},
+				RunStartTime:          timestampNow,
+				RunEndTime:            timestampNow,
 			}
 
 			expectedArtifacts := []common.Artifact{
@@ -71,10 +69,8 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
 				Provider:              "some-provider",
-				Training: &common.Training{
-					StartTime: &timeNow,
-					EndTime:   &timeNow,
-				},
+				RunStartTime:          &timeNow,
+				RunEndTime:            &timeNow,
 			}
 
 			Expect(ProtoRunCompletionToCommon(&protoRunCompletionEvent)).To(Equal(expectedCommonRunCompletionEvent))

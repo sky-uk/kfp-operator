@@ -568,10 +568,8 @@ var _ = Context("VaiEventingServer", func() {
 					ServingModelArtifacts: []common.Artifact{},
 					PipelineComponents:    []common.PipelineComponent{},
 					Provider:              eventingFlow.ProviderConfig.Name,
-					Training: &common.Training{
-						StartTime: &timeNow,
-						EndTime:   &timeNow,
-					},
+					RunStartTime:          &timeNow,
+					RunEndTime:            &timeNow,
 				}
 
 				Eventually(outChan).Should(Receive(WithTransform(func(msg StreamMessage[*common.RunCompletionEventData]) interface{} {

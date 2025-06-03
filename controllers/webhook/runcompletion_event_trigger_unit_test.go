@@ -99,10 +99,8 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			ServingModelArtifacts: artifacts,
 			Artifacts:             artifacts,
 			Provider:              "some-provider",
-			Training: &common.Training{
-				StartTime: &timeNow,
-				EndTime:   &timeNow,
-			},
+			RunStartTime:          &timeNow,
+			RunEndTime:            &timeNow,
 		}
 
 		It("returns no error when event data is converted to proto runcompletion event", func() {
@@ -124,10 +122,8 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
 				Provider:              "some-provider",
-				Training: &pb.Training{
-					StartTime: timestamppb.New(timeNow),
-					EndTime:   timestamppb.New(timeNow),
-				},
+				RunStartTime:          timestamppb.New(timeNow),
+				RunEndTime:            timestamppb.New(timeNow),
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})
@@ -166,10 +162,8 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
 				Provider:              "some-provider",
-				Training: &pb.Training{
-					StartTime: timestamppb.New(timeNow),
-					EndTime:   timestamppb.New(timeNow),
-				},
+				RunStartTime:          timestamppb.New(timeNow),
+				RunEndTime:            timestamppb.New(timeNow),
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})

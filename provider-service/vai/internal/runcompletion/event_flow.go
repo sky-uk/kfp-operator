@@ -3,6 +3,7 @@ package runcompletion
 import (
 	"context"
 	"errors"
+	"time"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -214,18 +215,17 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		Name:      job.Labels[label.RunConfigurationName],
 		Namespace: job.Labels[label.RunConfigurationNamespace],
 	}
+	
+	var runStartTime *time.Time
+	if job.StartTime != nil && !job.StartTime.AsTime().IsZero() {
+		startTime := job.StartTime.AsTime().UTC()
+		runStartTime = &startTime
+	}
 
-	training := &common.Training{}
-	if startTime := job.StartTime; startTime != nil && !startTime.AsTime().IsZero() {
-		st := startTime.AsTime().UTC()
-		training.StartTime = &st
-	}
-	if endTime := job.EndTime; endTime != nil && !endTime.AsTime().IsZero() {
-		et := endTime.AsTime().UTC()
-		training.EndTime = &et
-	}
-	if training.IsEmpty() {
-		training = nil
+	var runEndTime *time.Time
+	if job.EndTime != nil && !job.EndTime.AsTime().IsZero() {
+		endTime := job.EndTime.AsTime().UTC()
+		runEndTime = &endTime
 	}
 
 	return &common.RunCompletionEventData{
@@ -237,6 +237,7 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 		PipelineComponents:    artifactsFilterData(job),
 		Provider:              vef.ProviderConfig.Name,
-		Training:              training,
+		RunStartTime:          runStartTime,
+		RunEndTime:            runEndTime,
 	}, nil
 }

@@ -3,6 +3,7 @@ package converters
 import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
+	"time"
 )
 
 func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (common.RunCompletionEvent, error) {
@@ -22,17 +23,16 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		return common.RunCompletionEvent{}, err
 	}
 
-	var training *common.Training
-	if protoRunCompletion.Training != nil {
-		training = &common.Training{}
-		if protoRunCompletion.Training.StartTime != nil {
-			st := protoRunCompletion.Training.StartTime.AsTime().UTC()
-			training.StartTime = &st
-		}
-		if protoRunCompletion.Training.EndTime != nil {
-			et := protoRunCompletion.Training.EndTime.AsTime().UTC()
-			training.EndTime = &et
-		}
+	var startTime *time.Time
+	if protoRunCompletion.RunStartTime != nil {
+		st := protoRunCompletion.RunStartTime.AsTime()
+		startTime = &st
+	}
+
+	var endTime *time.Time
+	if protoRunCompletion.RunEndTime != nil {
+		et := protoRunCompletion.RunEndTime.AsTime()
+		endTime = &et
 	}
 
 	return common.RunCompletionEvent{
@@ -44,7 +44,8 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		ServingModelArtifacts: protoToArtifacts(protoRunCompletion.ServingModelArtifacts),
 		Artifacts:             protoToArtifacts(protoRunCompletion.Artifacts),
 		Provider:              protoRunCompletion.Provider,
-		Training:              training,
+		RunStartTime:          startTime,
+		RunEndTime:            endTime,
 	}, nil
 }
 

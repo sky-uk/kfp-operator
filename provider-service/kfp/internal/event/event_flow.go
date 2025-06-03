@@ -144,14 +144,6 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		resourceReferences.PipelineName.Name = pipelineName
 	}
 
-	var training *common.Training
-	if resourceReferences.CreatedAt != nil || resourceReferences.FinishedAt != nil {
-		training = &common.Training{
-			StartTime: resourceReferences.CreatedAt,
-			EndTime:   resourceReferences.FinishedAt,
-		}
-	}
-
 	return &common.RunCompletionEventData{
 		Status:                status,
 		PipelineName:          resourceReferences.PipelineName,
@@ -161,7 +153,8 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		ServingModelArtifacts: modelArtifacts,
 		PipelineComponents:    nil,
 		Provider:              ef.ProviderConfig.Name,
-		Training:              training,
+		RunStartTime:          resourceReferences.CreatedAt,
+		RunEndTime:            resourceReferences.FinishedAt,
 	}, nil
 }
 

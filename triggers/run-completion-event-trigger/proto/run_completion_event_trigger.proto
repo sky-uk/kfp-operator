@@ -20,7 +20,8 @@ message RunCompletionEvent {
   Status status = 6;
   repeated Artifact artifacts = 7;
   repeated Artifact serving_model_artifacts = 8;
-  Training training = 9;
+  google.protobuf.Timestamp run_start_time = 9;
+  google.protobuf.Timestamp run_end_time = 10;
 }
 
 enum Status {
@@ -32,9 +33,3 @@ message Artifact {
   string location = 1;
   string name = 2;
 }
-
-message Training {
-  google.protobuf.Timestamp start_time = 1;
-  google.protobuf.Timestamp end_time = 2;
-}
-

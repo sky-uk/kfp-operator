@@ -76,6 +76,16 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		}
 	}
 
+	var runStartTime *timestamppb.Timestamp
+	if event.RunStartTime != nil {
+		runStartTime = timestamppb.New(*event.RunStartTime)
+	}
+
+	var runEndTime *timestamppb.Timestamp
+	if event.RunEndTime != nil {
+		runEndTime = timestamppb.New(*event.RunEndTime)
+	}
+
 	runCompletionEvent := pb.RunCompletionEvent{
 		PipelineName:          pipelineName,
 		Provider:              event.Provider,
@@ -85,29 +95,11 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		ServingModelArtifacts: artifactToProto(event.ServingModelArtifacts),
 		Artifacts:             artifactToProto(event.Artifacts),
 		Status:                statusToProto(event.Status),
-		Training:              trainingToProto(event.Training),
+		RunStartTime:          runStartTime,
+		RunEndTime:            runEndTime,
 	}
 
 	return &runCompletionEvent, nil
-}
-
-func trainingToProto(training *common.Training) *pb.Training {
-	if training == nil || training.IsEmpty() {
-		return nil
-	}
-
-	pbTraining := pb.Training{}
-	if training.StartTime != nil {
-		st := *training.StartTime
-		pbTraining.StartTime = timestamppb.New(st.UTC())
-	}
-	if training.EndTime != nil {
-		et := *training.EndTime
-		pbTraining.EndTime = timestamppb.New(et.UTC())
-	}
-
-	return &pbTraining
-
 }
 
 func artifactToProto(commonArtifacts []common.Artifact) []*pb.Artifact {

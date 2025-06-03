@@ -20,26 +20,19 @@ var RunCompletionStatuses = struct {
 	Failed:    "failed",
 }
 
-type Training struct {
-	StartTime *time.Time `json:"startTime,omitempty"`
-	EndTime   *time.Time `json:"endTime,omitempty"`
-}
-
-func (t *Training) IsEmpty() bool {
-	return t.StartTime == nil && t.EndTime == nil
-}
-
 type RunCompletionEvent struct {
 	Status       RunCompletionStatus `json:"status"`
 	PipelineName NamespacedName      `json:"pipelineName"`
 	// Optionally render structs until https://github.com/golang/go/issues/11939 is addressed
-	RunConfigurationName  *NamespacedName `json:"runConfigurationName,omitempty"`
-	RunName               *NamespacedName `json:"runName,omitempty"`
-	RunId                 string          `json:"runId"`
-	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
-	Artifacts             []Artifact      `json:"artifacts"`
-	Provider              string          `json:"provider"`
-	Training              *Training       `json:"training,omitempty"`
+	RunConfigurationName *NamespacedName `json:"runConfigurationName,omitempty"`
+	RunName              *NamespacedName `json:"runName,omitempty"`
+	RunId                string          `json:"runId"`
+	RunStartTime         *time.Time      `json:"runStartTime,omitempty"`
+	RunEndTime           *time.Time      `json:"runEndTime,omitempty"`
+
+	ServingModelArtifacts []Artifact `json:"servingModelArtifacts"`
+	Artifacts             []Artifact `json:"artifacts"`
+	Provider              string     `json:"provider"`
 }
 
 func (sre RunCompletionEvent) String() string {
@@ -69,10 +62,11 @@ type RunCompletionEventData struct {
 	RunConfigurationName  *NamespacedName     `json:"runConfigurationName,omitempty"`
 	RunName               *NamespacedName     `json:"runName,omitempty"`
 	RunId                 string              `json:"runId"`
+	RunStartTime          *time.Time          `json:"runStartTime,omitempty"`
+	RunEndTime            *time.Time          `json:"runEndTime,omitempty"`
 	ServingModelArtifacts []Artifact          `json:"servingModelArtifacts"`
 	PipelineComponents    []PipelineComponent `json:"pipelineComponents"`
 	Provider              string              `json:"provider"`
-	Training              *Training           `json:"training,omitempty"`
 }
 
 func (rced RunCompletionEventData) ToRunCompletionEvent() RunCompletionEvent {
@@ -82,9 +76,10 @@ func (rced RunCompletionEventData) ToRunCompletionEvent() RunCompletionEvent {
 		RunConfigurationName:  rced.RunConfigurationName,
 		RunName:               rced.RunName,
 		RunId:                 rced.RunId,
+		RunStartTime:          rced.RunStartTime,
+		RunEndTime:            rced.RunEndTime,
 		ServingModelArtifacts: rced.ServingModelArtifacts,
 		Artifacts:             nil,
 		Provider:              rced.Provider,
-		Training:              rced.Training,
 	}
 }
