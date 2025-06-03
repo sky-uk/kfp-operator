@@ -61,11 +61,11 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 
 	if run := runDetail.GetRun(); run != nil {
 		if run.CreatedAt != nil {
-			t := run.CreatedAt.AsTime().UTC()
+			t := run.CreatedAt.AsTime()
 			resourceReferences.CreatedAt = &t
 		}
 		if run.FinishedAt != nil {
-			t := run.FinishedAt.AsTime().UTC()
+			t := run.FinishedAt.AsTime()
 			resourceReferences.FinishedAt = &t
 		}
 	}

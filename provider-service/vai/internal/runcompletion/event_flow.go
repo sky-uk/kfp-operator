@@ -215,16 +215,16 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		Name:      job.Labels[label.RunConfigurationName],
 		Namespace: job.Labels[label.RunConfigurationNamespace],
 	}
-	
+
 	var runStartTime *time.Time
 	if job.StartTime != nil && !job.StartTime.AsTime().IsZero() {
-		startTime := job.StartTime.AsTime().UTC()
+		startTime := job.StartTime.AsTime()
 		runStartTime = &startTime
 	}
 
 	var runEndTime *time.Time
 	if job.EndTime != nil && !job.EndTime.AsTime().IsZero() {
-		endTime := job.EndTime.AsTime().UTC()
+		endTime := job.EndTime.AsTime()
 		runEndTime = &endTime
 	}
 

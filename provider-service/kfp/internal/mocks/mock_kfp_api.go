@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-var StaticTime = time.Now().UTC().Round(0)
+// StaticTime Round is used to remove monotonic clock from time.Now() to ensure that the time is compatible with equality checks
+var StaticTime = time.Now().Round(0)
 
 type MockKfpApi struct {
 	resourceReferences resource.References

@@ -542,7 +542,7 @@ var _ = Context("VaiEventingServer", func() {
 				}
 
 				timestampNow := timestamppb.Now()
-				timeNow := timestampNow.AsTime().UTC()
+				timeNow := timestampNow.AsTime()
 
 				mockPipelineJobClient.On(
 					"GetPipelineJob",
