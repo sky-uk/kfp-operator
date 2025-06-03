@@ -24,15 +24,14 @@ type RunCompletionEvent struct {
 	Status       RunCompletionStatus `json:"status"`
 	PipelineName NamespacedName      `json:"pipelineName"`
 	// Optionally render structs until https://github.com/golang/go/issues/11939 is addressed
-	RunConfigurationName *NamespacedName `json:"runConfigurationName,omitempty"`
-	RunName              *NamespacedName `json:"runName,omitempty"`
-	RunId                string          `json:"runId"`
-	RunStartTime         *time.Time      `json:"runStartTime,omitempty"`
-	RunEndTime           *time.Time      `json:"runEndTime,omitempty"`
-
-	ServingModelArtifacts []Artifact `json:"servingModelArtifacts"`
-	Artifacts             []Artifact `json:"artifacts"`
-	Provider              string     `json:"provider"`
+	RunConfigurationName  *NamespacedName `json:"runConfigurationName,omitempty"`
+	RunName               *NamespacedName `json:"runName,omitempty"`
+	RunId                 string          `json:"runId"`
+	RunStartTime          *time.Time      `json:"runStartTime,omitempty"`
+	RunEndTime            *time.Time      `json:"runEndTime,omitempty"`
+	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
+	Artifacts             []Artifact      `json:"artifacts"`
+	Provider              string          `json:"provider"`
 }
 
 func (sre RunCompletionEvent) String() string {
