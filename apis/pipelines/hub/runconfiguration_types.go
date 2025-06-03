@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"reflect"
 
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -112,7 +113,7 @@ func (rc *RunConfiguration) GetDependencyRuns() map[string]RunReference {
 }
 
 func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
-	return apis.Collect(rc.Spec.Run.Parameters, func(p Parameter) (RunConfigurationRef, bool) {
+	return lo.FilterMap(rc.Spec.Run.Parameters, func(p Parameter, _ int) (RunConfigurationRef, bool) {
 		if p.ValueFrom == nil {
 			return RunConfigurationRef{}, false
 		}
@@ -122,15 +123,15 @@ func (rc *RunConfiguration) GetReferencedRCArtifacts() []RunConfigurationRef {
 }
 
 func (rc *RunConfiguration) GetReferencedRCs() []common.NamespacedName {
-	triggeringRcs := apis.Map(rc.Spec.Triggers.RunConfigurations, func(rcName common.NamespacedName) common.NamespacedName {
+	triggeringRcs := lo.Map(rc.Spec.Triggers.RunConfigurations, func(rcName common.NamespacedName, _ int) common.NamespacedName {
 		return rcName
 	})
 
-	parameterRcs := apis.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef) common.NamespacedName {
+	parameterRcs := lo.Map(rc.GetReferencedRCArtifacts(), func(r RunConfigurationRef, _ int) common.NamespacedName {
 		return r.Name
 	})
 
-	return apis.Unique(append(parameterRcs, triggeringRcs...))
+	return lo.Uniq(append(parameterRcs, triggeringRcs...))
 }
 
 func (rc *RunConfiguration) GetPipeline() PipelineIdentifier {

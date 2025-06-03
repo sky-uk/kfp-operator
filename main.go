@@ -18,7 +18,7 @@ package main
 
 import (
 	"flag"
-	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/samber/lo"
 	"os"
 
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
@@ -212,9 +212,9 @@ func main() {
 
 	setupLog.Info("starting run completion feed")
 
-	handlers := apis.Map(
+	handlers := lo.Map(
 		ctrlConfig.Spec.RunCompletionFeed.Endpoints,
-		func(endpoint config.Endpoint) webhook.RunCompletionEventHandler {
+		func(endpoint config.Endpoint, _ int) webhook.RunCompletionEventHandler {
 			return webhook.NewRunCompletionEventTrigger(ctx, endpoint)
 		},
 	)

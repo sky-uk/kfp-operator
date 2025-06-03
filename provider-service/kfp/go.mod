@@ -18,7 +18,7 @@ require (
 	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-20250103114820-8f4b70f756df
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.24.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.11.0
 	google.golang.org/grpc v1.65.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v2 v2.4.0
@@ -96,6 +96,7 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/samber/lo v1.50.0 // indirect
 	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
@@ -124,7 +125,7 @@ require (
 	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect

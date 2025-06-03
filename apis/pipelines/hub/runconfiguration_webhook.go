@@ -1,7 +1,7 @@
 package v1beta1
 
 import (
-	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/samber/lo"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -21,15 +21,15 @@ func (rc *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
 var _ webhook.Validator = &RunConfiguration{}
 
 func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) {
-	duplicateSchedules := apis.Duplicates(rc.Spec.Triggers.Schedules)
+	duplicateSchedules := lo.FindDuplicates(rc.Spec.Triggers.Schedules)
 	schedulePath := field.NewPath("spec").Key("triggers").Key("schedules")
-	errors = append(errors, apis.Map(duplicateSchedules, func(schedule Schedule) *field.Error {
+	errors = append(errors, lo.Map(duplicateSchedules, func(schedule Schedule, _ int) *field.Error {
 		return field.Duplicate(schedulePath, schedule)
 	})...)
 
-	duplicateOnChangeTriggers := apis.Duplicates(rc.Spec.Triggers.OnChange)
+	duplicateOnChangeTriggers := lo.FindDuplicates(rc.Spec.Triggers.OnChange)
 	onChangePath := field.NewPath("spec").Key("triggers").Key("onChange")
-	errors = append(errors, apis.Map(duplicateOnChangeTriggers, func(onChange OnChangeType) *field.Error {
+	errors = append(errors, lo.Map(duplicateOnChangeTriggers, func(onChange OnChangeType, _ int) *field.Error {
 		return field.Duplicate(onChangePath, onChange)
 	})...)
 
@@ -50,7 +50,7 @@ func (rc *RunConfiguration) validateRunParameters() (errors field.ErrorList) {
 }
 
 func (rc *RunConfiguration) validate() (admission.Warnings, error) {
-	errors := apis.Flatten(rc.validateRunParameters(), rc.validateUniqueStructures())
+	errors := append(rc.validateRunParameters(), rc.validateUniqueStructures()...)
 
 	if len(errors) > 0 {
 		return nil, apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(), rc.Name, errors)

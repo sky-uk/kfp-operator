@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/samber/lo"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
@@ -102,7 +102,7 @@ func (dm DeploymentManager) Construct(provider *pipelineshub.Provider) (*appsv1.
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 
 	matchLabels := map[string]string{AppLabel: prefixedProviderName}
-	deploymentLabels := apis.MapConcat(dm.config.DefaultProviderValues.Labels, matchLabels)
+	deploymentLabels := lo.Assign(dm.config.DefaultProviderValues.Labels, matchLabels)
 	replicas := int32(dm.config.DefaultProviderValues.Replicas)
 
 	podTemplate := dm.config.DefaultProviderValues.PodTemplateSpec
@@ -112,7 +112,7 @@ func (dm DeploymentManager) Construct(provider *pipelineshub.Provider) (*appsv1.
 	}
 	podTemplate = *populatedPodTemplate
 	podTemplate.Spec.ServiceAccountName = provider.Spec.ServiceAccount
-	podTemplate.ObjectMeta.Labels = apis.MapConcat(podTemplate.ObjectMeta.Labels, matchLabels)
+	podTemplate.ObjectMeta.Labels = lo.Assign(podTemplate.ObjectMeta.Labels, matchLabels)
 
 	deployment := &appsv1.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -158,7 +158,7 @@ func populateServiceContainer(serviceContainerName string, podTemplate corev1.Po
 		return envVars[a].Name < envVars[b].Name
 	})
 
-	podTemplate.Spec.Containers = apis.Map(podTemplate.Spec.Containers, func(c corev1.Container) corev1.Container {
+	podTemplate.Spec.Containers = lo.Map(podTemplate.Spec.Containers, func(c corev1.Container, _ int) corev1.Container {
 		if c.Name == serviceContainerName {
 			c.Image = provider.Spec.ServiceImage
 			c.Env = append(c.Env, envVars...)

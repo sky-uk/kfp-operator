@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"github.com/samber/lo"
 	"golang.org/x/exp/maps"
 	"strings"
 
@@ -27,7 +28,10 @@ func ConditionStatusForSynchronizationState(state SynchronizationState) metav1.C
 type Conditions []metav1.Condition
 
 func (conditions Conditions) SynchronizationSucceeded() metav1.Condition {
-	return conditions.ToMap()[ConditionTypes.SynchronizationSucceeded]
+	typeToCondition := lo.Associate(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
+		return condition.Type, condition
+	})
+	return typeToCondition[ConditionTypes.SynchronizationSucceeded]
 }
 
 func (conditions Conditions) GetSyncStateFromReason() SynchronizationState {
@@ -36,7 +40,9 @@ func (conditions Conditions) GetSyncStateFromReason() SynchronizationState {
 }
 
 func (conditions Conditions) SetReasonForSyncState(state SynchronizationState) Conditions {
-	conditionsAsMap := conditions.ToMap()
+	conditionsAsMap := lo.Associate(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
+		return condition.Type, condition
+	})
 	condition := conditionsAsMap[ConditionTypes.SynchronizationSucceeded]
 	condition.Reason = string(state)
 	conditionsAsMap[ConditionTypes.SynchronizationSucceeded] = condition
@@ -55,14 +61,10 @@ func (conditions Conditions) SetObservedGeneration(
 	}
 }
 
-func (conditions Conditions) ToMap() map[string]metav1.Condition {
-	return ToMap(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
+func (conditions Conditions) MergeIntoConditions(condition metav1.Condition) Conditions {
+	conditionsAsMap := lo.Associate(conditions, func(condition metav1.Condition) (string, metav1.Condition) {
 		return condition.Type, condition
 	})
-}
-
-func (conditions Conditions) MergeIntoConditions(condition metav1.Condition) Conditions {
-	conditionsAsMap := conditions.ToMap()
 
 	existingCondition := conditionsAsMap[condition.Type]
 

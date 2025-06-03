@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	. "github.com/sky-uk/kfp-operator/apis"
+	"github.com/samber/lo"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers"
@@ -80,7 +80,7 @@ func (sm ServiceManager) Get(ctx context.Context, owner *pipelineshub.Provider) 
 func (sm ServiceManager) Construct(provider *pipelineshub.Provider) *corev1.Service {
 	prefixedProviderName := fmt.Sprintf("provider-%s", provider.Name)
 	matchLabels := map[string]string{AppLabel: prefixedProviderName}
-	labels := MapConcat(sm.config.DefaultProviderValues.Labels, matchLabels)
+	labels := lo.Assign(sm.config.DefaultProviderValues.Labels, matchLabels)
 	ports := []corev1.ServicePort{
 		tcpServicePort("http", sm.config.DefaultProviderValues.ServicePort),
 		tcpServicePort("metrics", sm.config.DefaultProviderValues.MetricsPort),
