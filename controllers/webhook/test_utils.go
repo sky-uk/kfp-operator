@@ -7,10 +7,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"time"
 )
-
-var StaticTime = time.Now().Round(0)
 
 type StubbedEventProcessor struct {
 	expectedRunCompletionEventData *common.RunCompletionEventData
@@ -63,8 +60,6 @@ func RandomRunCompletionEventData() common.RunCompletionEventData {
 		RunConfigurationName:  &runConfigurationName,
 		RunName:               &runName,
 		RunId:                 common.RandomString(),
-		RunStartTime:          &StaticTime,
-		RunEndTime:            &StaticTime,
 		ServingModelArtifacts: apis.RandomNonEmptyList(common.RandomArtifact),
 		PipelineComponents:    apis.RandomNonEmptyList(randomPipelineComponent),
 		Provider:              common.RandomString(),

@@ -87,9 +87,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 	requestStr, err := json.Marshal(rced)
 	Expect(err).NotTo(HaveOccurred())
 
-	rce := RandomRunCompletionEventData().ToRunCompletionEvent()
-	rce.RunStartTime = &StaticTime
-	rce.RunEndTime = &StaticTime
+	rce := rced.ToRunCompletionEvent()
 	expectedRCEHStr, err := json.Marshal(rce)
 	Expect(err).NotTo(HaveOccurred())
 
