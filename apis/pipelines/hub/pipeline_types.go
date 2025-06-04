@@ -15,6 +15,8 @@ import (
 )
 
 type PipelineSpec struct {
+	// +kubebuilder:validation:Type=string
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?/[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	Provider  common.NamespacedName `json:"provider" yaml:"provider"`
 	Image     string                `json:"image" yaml:"image"`
 	Env       []apis.NamedValue     `json:"env,omitempty" yaml:"env"`
