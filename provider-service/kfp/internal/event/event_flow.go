@@ -153,6 +153,8 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		ServingModelArtifacts: modelArtifacts,
 		PipelineComponents:    nil,
 		Provider:              ef.ProviderConfig.Name,
+		RunStartTime:          resourceReferences.CreatedAt,
+		RunEndTime:            resourceReferences.FinishedAt,
 	}, nil
 }
 

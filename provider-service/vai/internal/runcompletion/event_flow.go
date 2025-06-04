@@ -3,6 +3,7 @@ package runcompletion
 import (
 	"context"
 	"errors"
+	"time"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -215,6 +216,18 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		Namespace: job.Labels[label.RunConfigurationNamespace],
 	}
 
+	var runStartTime *time.Time
+	if job.StartTime != nil && !job.StartTime.AsTime().IsZero() {
+		startTime := job.StartTime.AsTime()
+		runStartTime = &startTime
+	}
+
+	var runEndTime *time.Time
+	if job.EndTime != nil && !job.EndTime.AsTime().IsZero() {
+		endTime := job.EndTime.AsTime()
+		runEndTime = &endTime
+	}
+
 	return &common.RunCompletionEventData{
 		Status:                runCompletionStatus,
 		PipelineName:          pipelineName,
@@ -224,5 +237,7 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		ServingModelArtifacts: modelServingArtifactsForJob(job),
 		PipelineComponents:    artifactsFilterData(job),
 		Provider:              vef.ProviderConfig.Name,
+		RunStartTime:          runStartTime,
+		RunEndTime:            runEndTime,
 	}, nil
 }

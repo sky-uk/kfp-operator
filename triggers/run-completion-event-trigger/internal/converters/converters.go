@@ -3,6 +3,7 @@ package converters
 import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
+	"time"
 )
 
 func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (common.RunCompletionEvent, error) {
@@ -22,6 +23,18 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		return common.RunCompletionEvent{}, err
 	}
 
+	var startTime *time.Time
+	if protoRunCompletion.RunStartTime != nil {
+		st := protoRunCompletion.RunStartTime.AsTime()
+		startTime = &st
+	}
+
+	var endTime *time.Time
+	if protoRunCompletion.RunEndTime != nil {
+		et := protoRunCompletion.RunEndTime.AsTime()
+		endTime = &et
+	}
+
 	return common.RunCompletionEvent{
 		Status:                statusConverter(protoRunCompletion.Status),
 		PipelineName:          pipelineName,
@@ -31,6 +44,8 @@ func ProtoRunCompletionToCommon(protoRunCompletion *pb.RunCompletionEvent) (comm
 		ServingModelArtifacts: protoToArtifacts(protoRunCompletion.ServingModelArtifacts),
 		Artifacts:             protoToArtifacts(protoRunCompletion.Artifacts),
 		Provider:              protoRunCompletion.Provider,
+		RunStartTime:          startTime,
+		RunEndTime:            endTime,
 	}, nil
 }
 

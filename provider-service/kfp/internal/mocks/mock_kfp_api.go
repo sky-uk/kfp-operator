@@ -6,7 +6,11 @@ import (
 	"context"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
+	"time"
 )
+
+// StaticTime Round is used to remove monotonic clock from time.Now() to ensure that the time is compatible with equality checks
+var StaticTime = time.Now().UTC().Round(0)
 
 type MockKfpApi struct {
 	resourceReferences resource.References
@@ -27,6 +31,8 @@ func (mka *MockKfpApi) ReturnResourceReferencesForRun() resource.References {
 		RunConfigurationName: common.RandomNamespacedName(),
 		RunName:              common.RandomNamespacedName(),
 		PipelineName:         common.RandomNamespacedName(),
+		CreatedAt:            &StaticTime,
+		FinishedAt:           &StaticTime,
 	}
 	mka.err = nil
 

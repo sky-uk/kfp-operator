@@ -153,9 +153,10 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunId:                 runId,
 					ServingModelArtifacts: servingModelArtifacts,
 					Provider:              providerName,
+					RunStartTime:          &mocks.StaticTime,
+					RunEndTime:            &mocks.StaticTime,
 				}
-
-				Eventually(getEventData).Should(Equal(expectedRced))
+				Eventually(getEventData).Should(BeEquivalentTo(expectedRced))
 				Eventually(func(g Gomega) {
 					g.Expect(workflowLabel(ctx, workflow.GetName(), workflowUpdateTriggeredLabel)).To(Equal("true"))
 				}).Should(Succeed())
@@ -185,9 +186,11 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
 					RunName:              resourceReferences.RunName.NonEmptyPtr(),
 					Provider:             providerName,
+					RunStartTime:         &mocks.StaticTime,
+					RunEndTime:           &mocks.StaticTime,
 				}
 
-				Eventually(getEventData).Should(Equal(expectedRced))
+				Eventually(getEventData).Should(BeEquivalentTo(expectedRced))
 				Eventually(func(g Gomega) {
 					g.Expect(workflowLabel(ctx, workflow.GetName(), workflowUpdateTriggeredLabel)).To(Equal("true"))
 				}).Should(Succeed())
@@ -216,9 +219,11 @@ var _ = Describe("Run completion eventsource", Serial, func() {
 					RunConfigurationName: resourceReferences.RunConfigurationName.NonEmptyPtr(),
 					RunName:              resourceReferences.RunName.NonEmptyPtr(),
 					Provider:             providerName,
+					RunStartTime:         &mocks.StaticTime,
+					RunEndTime:           &mocks.StaticTime,
 				}
 
-				Eventually(getEventData).Should(Equal(expectedRced))
+				Eventually(getEventData).Should(BeEquivalentTo(expectedRced))
 				Eventually(func(g Gomega) {
 					g.Expect(workflowLabel(ctx, workflow.GetName(), workflowUpdateTriggeredLabel)).To(Equal("true"))
 				}).Should(Succeed())

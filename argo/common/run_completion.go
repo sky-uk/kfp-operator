@@ -1,8 +1,9 @@
 package common
 
-import "fmt"
-
-const RunCompletionEventName = "run-completion"
+import (
+	"fmt"
+	"time"
+)
 
 type Artifact struct {
 	Name     string `json:"name"`
@@ -26,6 +27,8 @@ type RunCompletionEvent struct {
 	RunConfigurationName  *NamespacedName `json:"runConfigurationName,omitempty"`
 	RunName               *NamespacedName `json:"runName,omitempty"`
 	RunId                 string          `json:"runId"`
+	RunStartTime          *time.Time      `json:"runStartTime,omitempty"`
+	RunEndTime            *time.Time      `json:"runEndTime,omitempty"`
 	ServingModelArtifacts []Artifact      `json:"servingModelArtifacts"`
 	Artifacts             []Artifact      `json:"artifacts"`
 	Provider              string          `json:"provider"`
@@ -58,6 +61,8 @@ type RunCompletionEventData struct {
 	RunConfigurationName  *NamespacedName     `json:"runConfigurationName,omitempty"`
 	RunName               *NamespacedName     `json:"runName,omitempty"`
 	RunId                 string              `json:"runId"`
+	RunStartTime          *time.Time          `json:"runStartTime,omitempty"`
+	RunEndTime            *time.Time          `json:"runEndTime,omitempty"`
 	ServingModelArtifacts []Artifact          `json:"servingModelArtifacts"`
 	PipelineComponents    []PipelineComponent `json:"pipelineComponents"`
 	Provider              string              `json:"provider"`
@@ -70,6 +75,8 @@ func (rced RunCompletionEventData) ToRunCompletionEvent() RunCompletionEvent {
 		RunConfigurationName:  rced.RunConfigurationName,
 		RunName:               rced.RunName,
 		RunId:                 rced.RunId,
+		RunStartTime:          rced.RunStartTime,
+		RunEndTime:            rced.RunEndTime,
 		ServingModelArtifacts: rced.ServingModelArtifacts,
 		Artifacts:             nil,
 		Provider:              rced.Provider,

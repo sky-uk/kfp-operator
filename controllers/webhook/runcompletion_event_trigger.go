@@ -3,6 +3,7 @@ package webhook
 import (
 	"context"
 	"fmt"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"google.golang.org/grpc/credentials/insecure"
@@ -75,6 +76,16 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		}
 	}
 
+	var runStartTime *timestamppb.Timestamp
+	if event.RunStartTime != nil {
+		runStartTime = timestamppb.New(*event.RunStartTime)
+	}
+
+	var runEndTime *timestamppb.Timestamp
+	if event.RunEndTime != nil {
+		runEndTime = timestamppb.New(*event.RunEndTime)
+	}
+
 	runCompletionEvent := pb.RunCompletionEvent{
 		PipelineName:          pipelineName,
 		Provider:              event.Provider,
@@ -84,6 +95,8 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		ServingModelArtifacts: artifactToProto(event.ServingModelArtifacts),
 		Artifacts:             artifactToProto(event.Artifacts),
 		Status:                statusToProto(event.Status),
+		RunStartTime:          runStartTime,
+		RunEndTime:            runEndTime,
 	}
 
 	return &runCompletionEvent, nil

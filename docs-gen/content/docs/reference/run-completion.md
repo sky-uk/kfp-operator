@@ -22,19 +22,21 @@ The specification of the events follows [CloudEvents](https://github.com/cloudev
   "data": {
     "provider": "{{ PROVIDER_NAME }}",
     "status": "succeeded|failed",
-    "pipelineName":"{{ PIPELINE_NAME }}",
+    "pipelineName": "{{ PIPELINE_NAME }}",
     "servingModelArtifacts": [
       {
-        "name":"{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
-        "location":"gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}"
+        "name": "{{ PIPELINE_NAME }}:{{ WORKFLOW_NAME }}:Pusher:pushed_model:{{ PUSHER_INDEX }}",
+        "location": "gs://{{ PIPELINE_ROOT }}/Pusher/pushed_model/{{ MODEL_VERSION }}"
       }
     ],
     "artifacts": [
       {
-        "name":"serving-model",
-        "location":"gs://{{ ARTIFACT_LOCATION }}"
+        "name": "serving-model",
+        "location": "gs://{{ ARTIFACT_LOCATION }}"
       }
-    ]
+    ],
+    "runStartTime": "{{ START_TIME }}",
+    "runEndTime": "{{ END_TIME }}"
   }
 }
 ```

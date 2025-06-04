@@ -3,7 +3,9 @@
 package converters
 
 import (
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"testing"
+	"time"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
@@ -26,6 +28,10 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 					Name:     "some-name",
 				},
 			}
+
+			timeNow := time.Now().UTC()
+			timestampNow := timestamppb.New(timeNow)
+
 			protoRunCompletionEvent := pb.RunCompletionEvent{
 				PipelineName:          "namespace/some-pipeline",
 				Provider:              "some-provider",
@@ -35,6 +41,8 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 				ServingModelArtifacts: artifacts,
 				Artifacts:             artifacts,
 				Status:                pb.Status_SUCCEEDED,
+				RunStartTime:          timestampNow,
+				RunEndTime:            timestampNow,
 			}
 
 			expectedArtifacts := []common.Artifact{
@@ -61,6 +69,8 @@ var _ = Context("ProtoRunCompletionToCommon", func() {
 				ServingModelArtifacts: expectedArtifacts,
 				Artifacts:             expectedArtifacts,
 				Provider:              "some-provider",
+				RunStartTime:          &timeNow,
+				RunEndTime:            &timeNow,
 			}
 
 			Expect(ProtoRunCompletionToCommon(&protoRunCompletionEvent)).To(Equal(expectedCommonRunCompletionEvent))
