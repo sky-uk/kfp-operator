@@ -6,6 +6,6 @@ spec:
   provider: provider-namespace/kfp
   image: kfp-operator-kfpsdk-quickstart:v1
   framework:
-    type: kfpsdk
+    name: kfpsdk
     parameters:
       pipeline: getting_started.pipeline.add_pipeline

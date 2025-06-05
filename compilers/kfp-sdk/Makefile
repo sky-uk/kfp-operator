@@ -24,5 +24,6 @@ test: build ## Run unit tests
 integration-test: docker-build ## Build and run integration tests
 	$(MAKE) -C ../../docs-gen/includes/master/kfpsdk-quickstart docker-build
 	$(eval TMP := $(shell mktemp -d))
-	docker run -v $(TMP):/shared ${IMG}:${VERSION} /shared
-	docker run -v $(TMP):/shared -v ./integration:/pipeline --entrypoint /shared/compile.sh kfp-operator-kfpsdk-quickstart:${VERSION} --pipeline_config /pipeline/pipeline.yaml  --provider_config /pipeline/provider.json --output_file /shared/out.json
+	docker run --user $(id -u):$(id -g) -v $(TMP):/shared ${IMG}:${VERSION} /shared
+	docker run --user $(id -u):$(id -g) -v $(TMP):/shared -v ./integration:/pipeline --entrypoint /shared/compile.sh kfp-operator-kfpsdk-quickstart:${VERSION} --pipeline_config /pipeline/pipeline.yaml  --provider_config /pipeline/provider.json --output_file /shared/out.json
+	rm -rf $(TMP)

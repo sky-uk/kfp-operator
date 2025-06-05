@@ -7,6 +7,6 @@ spec:
   provider: provider-namespace/kfp
   image: kfp-quickstart-base:v1
   framework:
-    type: tfx
+    name: tfx
     parameters:
       pipeline: penguin_examples.pipeline.create_components
