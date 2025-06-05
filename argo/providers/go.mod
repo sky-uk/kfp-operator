@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/argo/providers
 
-go 1.22.11
+go 1.23.9
 
 require (
 	github.com/sky-uk/kfp-operator v0.4.0
