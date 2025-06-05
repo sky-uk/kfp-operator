@@ -3,7 +3,7 @@ module github.com/sky-uk/kfp-operator/provider-service/stub
 go 1.23.9
 
 require (
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.3
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250206144534-40d416150c6b
 	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000
 	github.com/sky-uk/kfp-operator/provider-service/base v0.0.0-00010101000000-000000000000
