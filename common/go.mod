@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/common
 
-go 1.22.11
+go 1.23.9
 
 require k8s.io/client-go v0.27.16
 
