@@ -55,7 +55,7 @@ cat > $SHARED_DIR/pipeline.yaml << EOF
 name: <Your pipeline name>
 image: $PIPELINE_IMAGE
 framework:
-  type: tfx
+  name: tfx
   parameters:
     components: <component function>
     beamArgs:

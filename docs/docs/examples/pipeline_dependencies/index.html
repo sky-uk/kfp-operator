@@ -45,7 +45,7 @@ Auto<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul
 </span></span><span style=display:flex><span>  <span style=color:#f92672>provider</span>: <span style=color:#ae81ff>provider-namespace/kfp</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>image</span>: <span style=color:#ae81ff>kfp-quickstart-base:v1</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>framework</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>type</span>: <span style=color:#ae81ff>tfx</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>tfx</span>
 </span></span><span style=display:flex><span>    <span style=color:#f92672>parameters</span>:
 </span></span><span style=display:flex><span>      <span style=color:#f92672>pipeline</span>: <span style=color:#ae81ff>penguin_examples.pipeline.create_components</span>
 </span></span></code></pre></div><p>Create <code>quickstart-base/resources/runconfiguration.yaml</code> which schedules the pipeline to be trained at regular intervals and specifies the output artifacts that it exposes.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1beta1</span>
@@ -131,7 +131,7 @@ The code for this pipeline can be found under <a href=https://github.com/sky-uk/
 </span></span><span style=display:flex><span>  <span style=color:#f92672>provider</span>: <span style=color:#ae81ff>provider-namespace/kfp</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>image</span>: <span style=color:#ae81ff>kfp-quickstart-base:v1</span>
 </span></span><span style=display:flex><span>  <span style=color:#f92672>framework</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>type</span>: <span style=color:#ae81ff>tfx</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>tfx</span>
 </span></span><span style=display:flex><span>    <span style=color:#f92672>parameters</span>:
 </span></span><span style=display:flex><span>      <span style=color:#f92672>pipeline</span>: <span style=color:#ae81ff>penguin_training.pipeline.create_components</span>
 </span></span></code></pre></div><p><code>quickstart-dependant/resources/runconfiguration.yaml</code> has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1beta1</span>

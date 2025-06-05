@@ -1,7 +1,7 @@
 name: test
 image: test-pipeline
 framework:
-  type: tfx
+  name: tfx
   parameters:
     components: pipeline.create_components
     beamArgs:
