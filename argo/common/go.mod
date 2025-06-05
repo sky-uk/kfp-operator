@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/argo/common
 
-go 1.22.11
+go 1.23.9
 
 require (
 	github.com/go-logr/logr v1.4.3

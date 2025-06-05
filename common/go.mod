@@ -1,6 +1,6 @@
 module github.com/sky-uk/kfp-operator/common
 
-go 1.22.11
+go 1.23.9
 
 require k8s.io/client-go v0.27.16
 
@@ -23,7 +23,7 @@ require (
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
