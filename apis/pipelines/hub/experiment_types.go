@@ -10,6 +10,8 @@ import (
 )
 
 type ExperimentSpec struct {
+	// +kubebuilder:validation:Type=string
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?/[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	Provider    common.NamespacedName `json:"provider" yaml:"provider"`
 	Description string                `json:"description,omitempty"`
 }

@@ -11,6 +11,8 @@ import (
 )
 
 type RunScheduleSpec struct {
+	// +kubebuilder:validation:Type=string
+	// +kubebuilder:validation:Pattern=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?/[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	Provider       common.NamespacedName `json:"provider" yaml:"provider"`
 	Pipeline       PipelineIdentifier    `json:"pipeline,omitempty"`
 	ExperimentName string                `json:"experimentName,omitempty"`

@@ -642,6 +642,7 @@ spec:
                     pattern: ^[\w\-]+(?::[\w\-_.]+)?$
                     type: string
                   provider:
+                    pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?/[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                     type: string
                   runtimeParameters:
                     description: 'Deprecated: Needed for conversion only'
