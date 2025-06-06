@@ -12,7 +12,7 @@ COPY dist/compiler-${WHEEL_VERSION}-*.whl /
 RUN pip install /compiler-${WHEEL_VERSION}-*.whl --target=/compiler
 RUN rm /compiler-${WHEEL_VERSION}-*.whl
 
-FROM alpine:3.20.1
+FROM alpine:3.22.0
 
 WORKDIR /
 COPY --from=python39 /compiler compiler/py3.9
