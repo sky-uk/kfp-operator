@@ -1,6 +1,6 @@
 ---
 title: "Run Completion Events"
-weight: 5
+weight: 6
 ---
 
 Run completion events are created by a [`Provider`](../../reference/providers/overview) to signal the completion of a pipeline run, and is used to trigger downstream processes. 

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Migrating resources on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/migrating-resources/</link><description>Recent content in Migrating resources on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/docs/reference/migrating-resources/index.xml" rel="self" type="application/rss+xml"/><item><title>v1alpha5 to v1alpha6</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/migrating-resources/v1alpha6/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/migrating-resources/v1alpha6/</guid><description>&lt;p>This guide documents how to upgrade &lt;code>pipelines.kubeflow.org&lt;/code> resources from &lt;code>v1alpha5&lt;/code> to &lt;code>v1alpha6&lt;/code>.&lt;/p>
+&lt;p>Follow the steps below for every &lt;code>Pipeline&lt;/code>, &lt;code>RunConfiguration&lt;/code>, &lt;code>Experiment&lt;/code>, and &lt;code>Provider&lt;/code> you have deployed.&lt;/p>
+&lt;h2 id="pipeline">Pipeline&lt;/h2>
+&lt;ol>
+&lt;li>Change the &lt;code>apiVersion&lt;/code> from &lt;code>pipelines.kubeflow.org/v1alpha5&lt;/code> to &lt;code>pipelines.kubeflow.org/v1alpha6&lt;/code>.&lt;/li>
+&lt;li>Set &lt;code>spec.provider&lt;/code> to the value of the &lt;code>pipelines.kubeflow.org/provider&lt;/code> annotation in &lt;code>metadata.annotations&lt;/code>.&lt;/li>
+&lt;li>Remove the &lt;code>pipelines.kubeflow.org/provider&lt;/code> annotation from &lt;code>metadata.annotations&lt;/code>.&lt;/li>
+&lt;/ol>
+&lt;h3 id="example">Example&lt;/h3>
+&lt;p>The example below shows the required changes for migrating a Pipeline resource from &lt;code>v1alpha5&lt;/code> to &lt;code>v1alpha6&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-diff" data-lang="diff">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">- apiVersion: pipelines.kubeflow.org/v1alpha5
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">&lt;/span>&lt;span style="color:#a6e22e">+ apiVersion: pipelines.kubeflow.org/v1alpha6
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">&lt;/span>kind: Pipeline
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>metadata:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name: my-training-pipeline
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> namespace: my-namespace
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">- annotations: 
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">- pipelines.kubeflow.org/provider: vai
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">&lt;/span>spec:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">+ provider: vai
+&lt;/span>&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#a6e22e">&lt;/span> image: registry/mypipelineimage
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> tfxComponents: pipeline.create_components
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> beamArgs:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - name: anArg
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> value: aValue
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="runconfiguration">RunConfiguration&lt;/h2>
+&lt;ol>
+&lt;li>Change the &lt;code>apiVersion&lt;/code> from &lt;code>pipelines.kubeflow.org/v1alpha5&lt;/code> to &lt;code>pipelines.kubeflow.org/v1alpha6&lt;/code>.&lt;/li>
+&lt;li>Set &lt;code>spec.provider&lt;/code> to the value of the &lt;code>pipelines.kubeflow.org/provider&lt;/code> annotation in &lt;code>metadata.annotations&lt;/code>.&lt;/li>
+&lt;li>Remove the &lt;code>pipelines.kubeflow.org/provider&lt;/code> annotation from &lt;code>metadata.annotations&lt;/code>.&lt;/li>
+&lt;li>Change the &lt;code>spec.trigger.schedules&lt;/code> block from being a list of cron expression strings to a list of objects, where each object contains &lt;code>cronExpression&lt;/code>. If required, users can set the &lt;code>startTime&lt;/code>, and &lt;code>endTime&lt;/code> to define when the schedule should start or stop.&lt;/li>
+&lt;/ol>
+&lt;h3 id="example-1">Example&lt;/h3>
+&lt;p>The example below shows the required changes for migrating a RunConfiguration resource from &lt;code>v1alpha5&lt;/code> to &lt;code>v1alpha6&lt;/code>.&lt;/p></description></item><item><title>v1alpha6 to v1beta1</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/migrating-resources/v1beta1/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/migrating-resources/v1beta1/</guid><description>&lt;p>This guide documents how to upgrade &lt;code>pipelines.kubeflow.org&lt;/code> resources from &lt;code>v1alpha6&lt;/code> to &lt;code>v1beta1&lt;/code>.&lt;/p>
+&lt;p>Follow the steps below for every &lt;code>Pipeline&lt;/code>, &lt;code>RunConfiguration&lt;/code>, &lt;code>Experiment&lt;/code>, and &lt;code>Provider&lt;/code> you have deployed.&lt;/p>
+&lt;h2 id="pipeline">Pipeline&lt;/h2>
+&lt;ol>
+&lt;li>Change the &lt;code>apiVersion&lt;/code> from &lt;code>pipelines.kubeflow.org/v1alpha6&lt;/code> to &lt;code>pipelines.kubeflow.org/v1beta1&lt;/code>.&lt;/li>
+&lt;li>Ensure that the &lt;code>spec.provider&lt;/code> field includes the namespace that the Provider resource is deployed in.&lt;/li>
+&lt;li>Add &lt;code>spec.frameworks&lt;/code>, which is an object with &lt;code>name&lt;/code> and &lt;code>parameters&lt;/code> fields. &lt;code>parameters&lt;/code> are framework specific parameters, such as &lt;code>components&lt;/code> and &lt;code>beamArgs&lt;/code>. To use the &lt;code>tfx&lt;/code> framework that was the only option under versions &lt;code>v1alpha6&lt;/code> and below, set the &lt;code>name&lt;/code> field to &lt;code>tfx&lt;/code>, add the path to the function that returns the tfx components under &lt;code>spec.frameworks.components&lt;/code>, and add any required beamArgs like the example below.&lt;/li>
+&lt;li>Remove &lt;code>spec.tfxComponents&lt;/code>.&lt;/li>
+&lt;li>Remove &lt;code>spec.beamArgs&lt;/code>.&lt;/li>
+&lt;/ol>
+&lt;h3 id="example">Example&lt;/h3>
+&lt;p>The example below shows the required changes for migrating a Pipeline resource from &lt;code>v1alpha6&lt;/code> to &lt;code>v1beta1&lt;/code>.&lt;/p></description></item></channel></rss>
