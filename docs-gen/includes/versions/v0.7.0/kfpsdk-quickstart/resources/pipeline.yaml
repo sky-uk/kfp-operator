@@ -1,0 +1,11 @@
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Pipeline
+metadata:
+  name: kfpsdk-quickstart
+spec:
+  provider: provider-namespace/kfp
+  image: kfp-operator-kfpsdk-quickstart:v1
+  framework:
+    name: kfpsdk
+    parameters:
+      pipeline: getting_started.pipeline.add_pipeline
