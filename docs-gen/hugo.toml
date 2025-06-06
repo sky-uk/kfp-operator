@@ -9,7 +9,7 @@ canonifyURLs = false
   [[menu.main]]
     name = "Documentation"
     weight = -101
-    url = "/versions/v0.6.0"
+    url = "/versions/v0.7.0"
     pre = "<i class='fa-solid fa-book'></i>"
   [[menu.main]]
     name = "Discuss"
@@ -59,3 +59,7 @@ url = "/kfp-operator/docs/"
 [[params.versions]]
 version = "v0.6.0"
 url = "/kfp-operator/versions/v0.6.0"
+
+[[params.versions]]
+version = "v0.7.0"
+url = "/kfp-operator/versions/v0.7.0"
