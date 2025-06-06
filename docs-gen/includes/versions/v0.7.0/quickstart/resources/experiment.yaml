@@ -1,0 +1,7 @@
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Experiment
+metadata:
+  name: penguin-experiment
+spec:
+  description: An experiment for the penguin pipeline
+  provider: provider-namespace/kfp

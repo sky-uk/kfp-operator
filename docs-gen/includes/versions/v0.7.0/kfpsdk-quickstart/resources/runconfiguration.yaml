@@ -1,0 +1,13 @@
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: RunConfiguration
+metadata:
+  name: penguin-pipeline-training-rc
+spec:
+  run:
+    provider: provider-namespace/kfp
+    pipeline: kfpsdk-quickstart
+  triggers:
+    schedules:
+    - cronExpression: 0 * * * *
+      startTime: 2024-01-01T00:00:00Z
+      endTime: 2024-12-31T23:59:59Z

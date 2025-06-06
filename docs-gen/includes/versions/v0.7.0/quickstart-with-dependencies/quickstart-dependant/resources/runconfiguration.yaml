@@ -1,0 +1,18 @@
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: RunConfiguration
+metadata:
+  name: penguin-pipeline-training-rc
+  namespace: dependant-namespace
+spec:
+  run:
+    provider: provider-namespace/kfp
+    pipeline: penguin-pipeline-training
+    parameters:
+    - name: examples_location
+      valueFrom:
+        runConfigurationRef:
+          name: base-namespace/penguin-pipeline-examples-rc
+          outputArtifact: examples
+  triggers:
+    runConfigurations:
+      - base-namespace/penguin-pipeline-examples-rc
