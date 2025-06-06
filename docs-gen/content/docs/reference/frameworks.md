@@ -1,13 +1,14 @@
 ---
 title: "Pipeline Frameworks"
 type: docs
-weight: 4
+weight: 5
 ---
 
 ## Overview
 
 The KFP Operator supports multiple pipeline frameworks, including:
 - [TFX](https://www.tensorflow.org/tfx)
+- [KFP SDK](https://kubeflow-pipelines.readthedocs.io/)
 
 ## Compiler Workflow
 The `kfp-operator-create-compiled` workflow `compile` step accepts the following parameters:
