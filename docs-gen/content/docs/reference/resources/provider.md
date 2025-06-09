@@ -57,7 +57,7 @@ spec:
             "path": "/framework/parameters/beamArgs/0",
             "value": {
               "name": "project",
-              "Value": "<project>"
+              "value": "<project>"
             }
           }
         ]
@@ -107,7 +107,7 @@ spec:
             "path": "/framework/parameters/beamArgs/0",
             "value": {
               "name": "project",
-              "Value": "<project>"
+              "value": "<project>"
             }
           }
         ]
