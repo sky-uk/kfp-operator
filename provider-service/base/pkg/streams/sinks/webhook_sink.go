@@ -9,6 +9,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	"go.opentelemetry.io/otel/metric"
 )
 
 type WebhookSink struct {
@@ -69,4 +70,11 @@ func (hws WebhookSink) send(rced common.RunCompletionEventData) (error, *resty.R
 	}
 
 	return nil, response
+}
+
+type metrics struct {
+	success              metric.Int64Counter
+	recoverableFailure   metric.Int64Counter
+	unrecoverableFailure metric.Int64Counter
+	discarded            metric.Int64Counter
 }
