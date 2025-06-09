@@ -118,6 +118,7 @@
 &lt;p>The KFP Operator supports multiple pipeline frameworks, including:&lt;/p>
 &lt;ul>
 &lt;li>&lt;a href="https://www.tensorflow.org/tfx">TFX&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://kubeflow-pipelines.readthedocs.io/">KFP SDK&lt;/a>&lt;/li>
 &lt;/ul>
 &lt;h2 id="compiler-workflow">Compiler Workflow&lt;/h2>
 &lt;p>The &lt;code>kfp-operator-create-compiled&lt;/code> workflow &lt;code>compile&lt;/code> step accepts the following parameters:&lt;/p>
