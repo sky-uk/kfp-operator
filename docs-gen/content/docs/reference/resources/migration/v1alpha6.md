@@ -91,7 +91,7 @@ spec:
 ---
 
 ## Run
-> In general, we expect users to deploy [RunConfigurations](../runconfiguration) to configure the lifecycle of their runs, leaving the management of `Runs` to the operator. However, if users are deploying `Runs` themselves, they can follow the below steps to migrate the resource version.
+> In general, we expect users to deploy [RunConfigurations](../../runconfiguration) to configure the lifecycle of their runs, leaving the management of `Runs` to the operator. However, if users are deploying `Runs` themselves, they can follow the below steps to migrate the resource version.
 1. Change the `apiVersion` from `pipelines.kubeflow.org/v1alpha5` to `pipelines.kubeflow.org/v1alpha6`.
 2. Set `spec.provider` to the value of the `pipelines.kubeflow.org/provider` annotation in `metadata.annotations`.
 3. Remove the `pipelines.kubeflow.org/provider` annotation from `metadata.annotations`.
@@ -126,7 +126,7 @@ spec:
 ---
 
 ## RunSchedule
-> In general, we expect users to deploy [RunConfigurations](../runconfiguration) to configure the lifecycle of their runs, leaving the management of `RunSchedules` to the operator. However, if users are deploying `RunSchedules` themselves, they can follow the below steps to migrate the resource version.
+> In general, we expect users to deploy [RunConfigurations](../../runconfiguration) to configure the lifecycle of their runs, leaving the management of `RunSchedules` to the operator. However, if users are deploying `RunSchedules` themselves, they can follow the below steps to migrate the resource version.
 1. Change the `apiVersion` from `pipelines.kubeflow.org/v1alpha5` to `pipelines.kubeflow.org/v1alpha6`.
 2. Set `spec.provider` to the value of the `pipelines.kubeflow.org/provider` annotation in `metadata.annotations`.
 3. Remove the `pipelines.kubeflow.org/provider` annotation from `metadata.annotations`.
@@ -165,7 +165,7 @@ spec:
 
 ## Provider
 1. Change the `apiVersion` from `pipelines.kubeflow.org/v1alpha5` to `pipelines.kubeflow.org/v1alpha6`.
-2. Set `spec.serviceImage` to the relevant [provider service](../../reference/providers/overview.md) image tag.
+2. Set `spec.serviceImage` to the relevant [provider service](../../../providers/overview) image tag.
 
 ### Example
 The example below shows the required changes for migrating a Provider resource from `v1alpha5` to `v1alpha6`.
