@@ -1,6 +1,6 @@
 ---
 title: "Debugging"
-weight: 7
+weight: 6
 ---
 
 ## Kubernetes Events

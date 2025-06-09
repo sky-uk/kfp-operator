@@ -1,7 +1,7 @@
 ---
 title: "Pipeline Frameworks"
 type: docs
-weight: 5
+weight: 4
 ---
 
 ## Overview
