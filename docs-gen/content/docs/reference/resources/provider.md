@@ -62,8 +62,8 @@ spec:
           }
         ]
   allowedNamespaces:
-    - default
-    - my-namespace
+  - default
+  - my-namespace
 ```
 
 #### Kubeflow Specific Parameters

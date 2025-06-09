@@ -34,11 +34,11 @@ Auto<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e>+   parameters:
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e>+     components: base_pipeline.create_components
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e>+     beamArgs:
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+       - name: anArg
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+         value: aValue
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+     - name: anArg
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+       value: aValue
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e></span><span style=color:#f92672>- beamArgs:
-</span></span></span><span style=display:flex><span><span style=color:#f92672>-    - name: anArg
-</span></span></span><span style=display:flex><span><span style=color:#f92672>-      value: aValue
+</span></span></span><span style=display:flex><span><span style=color:#f92672>- - name: anArg
+</span></span></span><span style=display:flex><span><span style=color:#f92672>-   value: aValue
 </span></span></span></code></pre></div><h2 id=runconfiguration>RunConfiguration</h2><ol><li>Change the <code>apiVersion</code> from <code>pipelines.kubeflow.org/v1alpha6</code> to <code>pipelines.kubeflow.org/v1beta1</code>.</li><li>Ensure that the <code>spec.run.provider</code> field includes the namespace that the Provider resource is deployed in.</li></ol><h3 id=example-1>Example</h3><p>The example below shows the required changes for migrating a RunConfiguration resource from <code>v1alpha6</code> to <code>v1beta1</code>.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-diff data-lang=diff><span style=display:flex><span><span style=color:#f92672>- apiVersion: pipelines.kubeflow.org/v1alpha6
 </span></span></span><span style=display:flex><span><span style=color:#f92672></span><span style=color:#a6e22e>+ apiVersion: pipelines.kubeflow.org/v1beta1
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e></span>kind: RunConfiguration
@@ -86,22 +86,22 @@ Auto<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul
 </span></span><span style=display:flex><span>    vaiLocation: europe-west2
 </span></span><span style=display:flex><span>    vaiProject: &lt;project&gt;
 </span></span><span style=display:flex><span><span style=color:#a6e22e>+ frameworks:
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+   - name: tfx
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+     image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+     patches:
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+       - type: json
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+         patch: |
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+           [
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+             {
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+               &#34;op&#34;: &#34;add&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+               &#34;path&#34;: &#34;/framework/parameters/beamArgs/0&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+               &#34;value&#34;: {
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+                 &#34;name&#34;: &#34;project&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+                 &#34;Value&#34;: &#34;&lt;project&gt;&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+               }
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+             }
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+           ]
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+ - name: tfx
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+   image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+   patches:
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+   - type: json
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+     patch: |
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+       [
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+         {
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+           &#34;op&#34;: &#34;add&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+           &#34;path&#34;: &#34;/framework/parameters/beamArgs/0&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+           &#34;value&#34;: {
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+             &#34;name&#34;: &#34;project&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+             &#34;Value&#34;: &#34;&lt;project&gt;&#34;
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+           }
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+         }
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+       ]
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e>+ allowedNamespaces:
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+   - default
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+   - my-namespace
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+ - default
+</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+ - my-namespace
 </span></span></span></code></pre></div></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"></div></div></div></footer></div><script src=/kfp-operator/js/main.min.62e96d9ad97b3843cee93df5033671cd47c7dd4302260e7ec95baa69263afaa9.js integrity="sha256-Yultmtl7OEPO6T31AzZxzUfH3UMCJg5+yVuqaSY6+qk=" crossorigin=anonymous></script><script defer src=/kfp-operator/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js integrity="sha256-c0eKfUgHaYrtfjVesj+YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin=anonymous></script><script src=/kfp-operator/js/tabpane-persist.js></script></body></html>

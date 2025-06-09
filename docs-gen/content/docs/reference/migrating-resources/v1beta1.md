@@ -33,11 +33,11 @@ spec:
 +   parameters:
 +     components: base_pipeline.create_components
 +     beamArgs:
-+       - name: anArg
-+         value: aValue
++     - name: anArg
++       value: aValue
 - beamArgs:
--    - name: anArg
--      value: aValue
+- - name: anArg
+-   value: aValue
 ```
 
 
@@ -116,22 +116,22 @@ spec:
     vaiLocation: europe-west2
     vaiProject: <project>
 + frameworks:
-+   - name: tfx
-+     image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
-+     patches:
-+       - type: json
-+         patch: |
-+           [
-+             {
-+               "op": "add",
-+               "path": "/framework/parameters/beamArgs/0",
-+               "value": {
-+                 "name": "project",
-+                 "Value": "<project>"
-+               }
-+             }
-+           ]
++ - name: tfx
++   image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
++   patches:
++   - type: json
++     patch: |
++       [
++         {
++           "op": "add",
++           "path": "/framework/parameters/beamArgs/0",
++           "value": {
++             "name": "project",
++             "Value": "<project>"
++           }
++         }
++       ]
 + allowedNamespaces:
-+   - default
-+   - my-namespace
++ - default
++ - my-namespace
 ```

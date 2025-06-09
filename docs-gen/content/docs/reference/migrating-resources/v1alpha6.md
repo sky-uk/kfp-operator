@@ -28,8 +28,8 @@ spec:
   image: registry/mypipelineimage
   tfxComponents: pipeline.create_components
   beamArgs:
-    - name: anArg
-      value: aValue
+  - name: anArg
+    value: aValue
 ```
 
 ---
@@ -58,8 +58,8 @@ spec:
     pipeline: my-training-pipeline
   triggers:
     schedules:
--     - 0 * * * *
-+     - cronExpression: 0 * * * *
+-   - 0 * * * *
++   - cronExpression: 0 * * * *
 ```
 
 ---

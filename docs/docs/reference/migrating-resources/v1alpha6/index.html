@@ -35,8 +35,8 @@ Auto<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e></span>  image: registry/mypipelineimage
 </span></span><span style=display:flex><span>  tfxComponents: pipeline.create_components
 </span></span><span style=display:flex><span>  beamArgs:
-</span></span><span style=display:flex><span>    - name: anArg
-</span></span><span style=display:flex><span>      value: aValue
+</span></span><span style=display:flex><span>  - name: anArg
+</span></span><span style=display:flex><span>    value: aValue
 </span></span></code></pre></div><hr><h2 id=runconfiguration>RunConfiguration</h2><ol><li>Change the <code>apiVersion</code> from <code>pipelines.kubeflow.org/v1alpha5</code> to <code>pipelines.kubeflow.org/v1alpha6</code>.</li><li>Set <code>spec.provider</code> to the value of the <code>pipelines.kubeflow.org/provider</code> annotation in <code>metadata.annotations</code>.</li><li>Remove the <code>pipelines.kubeflow.org/provider</code> annotation from <code>metadata.annotations</code>.</li><li>Change the <code>spec.trigger.schedules</code> block from being a list of cron expression strings to a list of objects, where each object contains <code>cronExpression</code>. If required, users can set the <code>startTime</code>, and <code>endTime</code> to define when the schedule should start or stop.</li></ol><h3 id=example-1>Example</h3><p>The example below shows the required changes for migrating a RunConfiguration resource from <code>v1alpha5</code> to <code>v1alpha6</code>.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-diff data-lang=diff><span style=display:flex><span><span style=color:#f92672>- apiVersion: pipelines.kubeflow.org/v1alpha5
 </span></span></span><span style=display:flex><span><span style=color:#f92672></span><span style=color:#a6e22e>+ apiVersion: pipelines.kubeflow.org/v1alpha6
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e></span>kind: RunConfiguration
@@ -51,8 +51,8 @@ Auto<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e></span>    pipeline: my-training-pipeline
 </span></span><span style=display:flex><span>  triggers:
 </span></span><span style=display:flex><span>    schedules:
-</span></span><span style=display:flex><span><span style=color:#f92672>-     - 0 * * * *
-</span></span></span><span style=display:flex><span><span style=color:#f92672></span><span style=color:#a6e22e>+     - cronExpression: 0 * * * *
+</span></span><span style=display:flex><span><span style=color:#f92672>-   - 0 * * * *
+</span></span></span><span style=display:flex><span><span style=color:#f92672></span><span style=color:#a6e22e>+   - cronExpression: 0 * * * *
 </span></span></span></code></pre></div><hr><h2 id=experiment>Experiment</h2><ol><li>Change the <code>apiVersion</code> from <code>pipelines.kubeflow.org/v1alpha5</code> to <code>pipelines.kubeflow.org/v1alpha6</code>.</li><li>Set <code>spec.provider</code> to the value of the <code>pipelines.kubeflow.org/provider</code> annotation in <code>metadata.annotations</code>.</li><li>Remove the <code>pipelines.kubeflow.org/provider</code> annotation from <code>metadata.annotations</code>.</li></ol><h3 id=example-2>Example</h3><p>The example below shows the required changes for migrating an Experiment resource from <code>v1alpha5</code> to <code>v1alpha6</code>.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-diff data-lang=diff><span style=display:flex><span><span style=color:#f92672>- apiVersion: pipelines.kubeflow.org/v1alpha5
 </span></span></span><span style=display:flex><span><span style=color:#f92672></span><span style=color:#a6e22e>+ apiVersion: pipelines.kubeflow.org/v1alpha6
 </span></span></span><span style=display:flex><span><span style=color:#a6e22e></span>kind: Experiment
