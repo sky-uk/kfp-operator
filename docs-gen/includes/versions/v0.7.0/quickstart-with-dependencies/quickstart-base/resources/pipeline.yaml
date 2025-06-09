@@ -1,0 +1,12 @@
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Pipeline
+metadata:
+  name: penguin-pipeline-examples
+  namespace: base-namespace
+spec:
+  provider: provider-namespace/kfp
+  image: kfp-quickstart-base:v1
+  framework:
+    name: tfx
+    parameters:
+      pipeline: penguin_examples.pipeline.create_components

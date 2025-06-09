@@ -65,3 +65,7 @@ archive-version: ## Archive a version of the documentation. Requires VERSION to 
 	sed -i '' -E 's|href="versions/v[0-9]+\.[0-9]+\.[0-9]+"|href="versions/${VERSION}"|g' content/_index.md
 	sed -i '' -E 's|latest_stable_version = "/v[0-9]+\.[0-9]+\.[0-9]+"|latest_stable_version = "${VERSION}"|g' hugo.toml
 	sed -i '' -E 's|url = "/versions/v[0-9]+\.[0-9]+\.[0-9]+"|url = "/versions/${VERSION}"|g' hugo.toml
+	
+	# Add current date to the versioned docs to maintain order of section navigation
+	grep -q '^date:' content/versions/${VERSION}/_index.md || \
+	perl -i'' -pe 's/^(title:.*)/$$1\ndate: $(shell date +%F)/' content/versions/${VERSION}/_index.md
