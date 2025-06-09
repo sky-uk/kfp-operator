@@ -1,6 +1,6 @@
 ---
 title: "Experiment"
-weight: 4
+weight: 5
 ---
 
 The Experiment resource represents the lifecycle of Experiments,
@@ -19,6 +19,6 @@ spec:
 ## Fields
 
 | Name               | Description                                                                                                                             |
-| ------------------ |-----------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `spec.provider`    | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`. |
 | `spec.description` | The description of the experiment.                                                                                                      |
