@@ -87,7 +87,7 @@ spec:
 1. Change the `apiVersion` from `pipelines.kubeflow.org/v1alpha6` to `pipelines.kubeflow.org/v1beta1`.
 2. Add a list of [frameworks](../../frameworks) supported by the provider in question, including the `name` and `image` of the compiler image. `patches` can be used to perform a patch operation on Pipeline resources, which can be used to provide defaults such as defaultBeamArgs. See the example below and [reference guide](../../resources/provider) for more detail.
 3. If required, add a list of namespaces that resources can reference this provider from under `spec.allowedNamespaces`. See the example below and [reference guide](../../resources/provider) for more detail.
-4. Remove `spec.image` - this was the image of the provider CLI which has now been deprecated.
+4. Remove `spec.image` - this was the image of the provider CLI which has now been removed.
 5. Remove `spec.defaultBeamArgs`.
 
 ### Example
