@@ -44,23 +44,27 @@ func (hws WebhookSink) SendEvents(ctx context.Context) {
 
 			if err != nil || response == nil {
 				logger.Error(err, "failed to send event", "event", fmt.Sprintf("%+v", message.Message))
+				webhookCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, RecoverableFailure.String())))
 				message.OnRecoverableFailure()
 			} else {
 				switch response.StatusCode() {
 				case http.StatusOK:
 					logger.Info("successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
-					webhookCounter.Add(ctx, 1, metric.WithAttributes(attribute.String("result", "success")))
+					webhookCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, Success.String())))
 					message.OnSuccess()
 				case http.StatusGone:
 					logger.Info("resource tied to event is gone", "event", fmt.Sprintf("%+v", message.Message))
+					webhookCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, UnrecoverableFailure.String())))
 					message.OnUnrecoverableFailureHandler()
 				default:
 					logger.Error(fmt.Errorf("unexpected status code %d", response.StatusCode()), "unexpected response from webhook", "event", fmt.Sprintf("%+v", message.Message))
+					webhookCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, RecoverableFailure.String())))
 					message.OnRecoverableFailureHandler()
 				}
 			}
 		} else {
 			logger.Info("discarding empty message")
+			webhookCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, Discarded.String())))
 		}
 	}
 }
@@ -77,14 +81,6 @@ func (hws WebhookSink) send(rced common.RunCompletionEventData) (error, *resty.R
 	}
 
 	return nil, response
-}
-
-type metrics struct {
-	counter              metric.Int64Counter
-	success              metric.Int64Counter
-	recoverableFailure   metric.Int64Counter
-	unrecoverableFailure metric.Int64Counter
-	discarded            metric.Int64Counter
 }
 
 var webhookCounter metric.Int64Counter
