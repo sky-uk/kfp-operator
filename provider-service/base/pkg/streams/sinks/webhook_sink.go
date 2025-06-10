@@ -89,7 +89,10 @@ func initWebhookMetrics() error {
 	meter := otel.Meter("webhook-sink")
 
 	var err error
-	webhookCounter, err = meter.Int64Counter("provider_webhook_send_events_count")
+	webhookCounter, err = meter.Int64Counter(
+		"provider_webhook_send_events_count",
+		metric.WithDescription("Total number of provider webhook sink SendEvents calls"),
+	)
 
 	return err
 }
