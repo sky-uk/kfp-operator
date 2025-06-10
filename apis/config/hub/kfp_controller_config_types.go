@@ -2,20 +2,20 @@ package v1beta1
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/apis"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	cfg "sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
 )
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:storageversion
 type KfpControllerConfig struct {
-	metav1.TypeMeta                        `json:",inline"`
-	metav1.ObjectMeta                      `json:"metadata,omitempty"`
-	Spec                                   KfpControllerConfigSpec `json:"spec,omitempty"`
-	cfg.ControllerManagerConfigurationSpec `json:"controller,omitempty"`
+	metav1.TypeMeta        `json:",inline"`
+	metav1.ObjectMeta      `json:"metadata,omitempty"`
+	Spec                   KfpControllerConfigSpec `json:"spec,omitempty"`
+	apis.ControllerWrapper `json:"controller,omitempty"`
 }
 
 type KfpControllerConfigSpec struct {
