@@ -59,7 +59,6 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 
-
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(
