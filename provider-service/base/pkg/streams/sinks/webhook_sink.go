@@ -9,6 +9,8 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 )
 
@@ -20,6 +22,10 @@ type WebhookSink struct {
 
 func NewWebhookSink(ctx context.Context, client *resty.Client, operatorWebhook string, inChan chan StreamMessage[*common.RunCompletionEventData]) *WebhookSink {
 	webhookSink := &WebhookSink{client: client, operatorWebhook: operatorWebhook, in: inChan}
+
+	if err := initWebhookMetrics(); err != nil {
+		return nil
+	}
 
 	go webhookSink.SendEvents(ctx)
 
@@ -43,6 +49,7 @@ func (hws WebhookSink) SendEvents(ctx context.Context) {
 				switch response.StatusCode() {
 				case http.StatusOK:
 					logger.Info("successfully sent event", "event", fmt.Sprintf("%+v", message.Message))
+					webhookCounter.Add(ctx, 1, metric.WithAttributes(attribute.String("result", "success")))
 					message.OnSuccess()
 				case http.StatusGone:
 					logger.Info("resource tied to event is gone", "event", fmt.Sprintf("%+v", message.Message))
@@ -73,8 +80,20 @@ func (hws WebhookSink) send(rced common.RunCompletionEventData) (error, *resty.R
 }
 
 type metrics struct {
+	counter              metric.Int64Counter
 	success              metric.Int64Counter
 	recoverableFailure   metric.Int64Counter
 	unrecoverableFailure metric.Int64Counter
 	discarded            metric.Int64Counter
+}
+
+var webhookCounter metric.Int64Counter
+
+func initWebhookMetrics() error {
+	meter := otel.Meter("webhook-sink")
+
+	var err error
+	webhookCounter, err = meter.Int64Counter("provider_webhook_send_events_count")
+
+	return err
 }
