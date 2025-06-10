@@ -1,3 +1,5 @@
+//go:generate stringer -type sendEventsMetricAttribute
+
 package sinks
 
 const sendEventsMetricResultKey = "result"
