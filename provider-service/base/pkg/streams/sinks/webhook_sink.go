@@ -142,28 +142,31 @@ func (ows ObservedWebhookSink) OnEmpty(ctx context.Context) {
 
 func (ows ObservedWebhookSink) OnError(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
 	logger := common.LoggerFromContext(ctx)
-	logger.Error(fmt.Errorf("webhook sink received error message"), "error message", fmt.Sprintf("%+v", message))
+	jsonMessage, _ := json.Marshal(message.Message)
+	logger.Error(fmt.Errorf("webhook sink received error message"), "", "message", string(jsonMessage))
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, RecoverableFailure.String())))
 	ows.delegate.OnError(ctx, message)
 }
 
 func (ows ObservedWebhookSink) OnRecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
 	logger := common.LoggerFromContext(ctx)
-	logger.Error(fmt.Errorf("webhook sink received recoverable failure"), "message", fmt.Sprintf("%+v", message))
+	jsonMessage, _ := json.Marshal(message.Message)
+	logger.Error(fmt.Errorf("webhook sink received recoverable failure"), "", "message", string(jsonMessage))
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, RecoverableFailure.String())))
 	ows.delegate.OnRecoverableFailure(ctx, message)
 }
 
 func (ows ObservedWebhookSink) OnUnrecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
 	logger := common.LoggerFromContext(ctx)
-	logger.Error(fmt.Errorf("webhook sink received unrecoverable failure"), "message", fmt.Sprintf("%+v", message))
+	jsonMessage, _ := json.Marshal(message.Message)
+	logger.Error(fmt.Errorf("webhook sink received unrecoverable failure"), "", "message", string(jsonMessage))
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, UnrecoverableFailure.String())))
 	ows.delegate.OnUnrecoverableFailure(ctx, message)
 }
 
 func (ows ObservedWebhookSink) OnSuccess(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
 	logger := common.LoggerFromContext(ctx)
-	logger.Info("webhook sink received success message", "message", fmt.Sprintf("%+v", message))
+	logger.Info("webhook sink received successful", "runId", message.Message.RunId)
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, Success.String())))
 	ows.delegate.OnSuccess(ctx, message)
 }
