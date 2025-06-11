@@ -3,7 +3,7 @@ execution, and events of ML pipelines across various providers using resource de
 A &amp;ldquo;provider&amp;rdquo; refers to a runtime environment that handles the orchestration and execution of these pipelines and
 associated resources.&lt;/p>
 &lt;p>The diagram below gives a high level overview of what the KFP Operator offers.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/high-level-overview.svg" alt="high-level-overview">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/high-level-overview.svg" alt="high-level-overview">&lt;/p>
 &lt;p>For a more detailed architecture, see this &lt;a href="../introduction/#architecture-overview">overview&lt;/a>.&lt;/p>
 &lt;h3 id="why-kfp-operator">Why KFP Operator&lt;/h3>
 &lt;p>This project was initiated with the goal of &lt;strong>promoting best practices in Machine Learning engineering&lt;/strong> while minimizing
