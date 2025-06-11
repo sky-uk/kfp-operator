@@ -2,6 +2,9 @@ include ../../help.mk
 
 ##@ Development
 generate: ## Run all golang code generation tools
+	@command -v stringer >/dev/null 2>&1 || { \
+		go install golang.org/x/tools/cmd/stringer@latest; \
+	}
 	go generate ./...
 
 unit-test: generate ## Unit-test the provider-service
