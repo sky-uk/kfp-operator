@@ -59,7 +59,6 @@ func main() {
 	}
 	logger.Info(fmt.Sprintf("loaded provider config: %+v", vaiProviderConfig), "provider", serviceConfig.ProviderName, "namespace", serviceConfig.Pod.Namespace)
 
-
 	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(
@@ -112,7 +111,11 @@ func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig
 		flow.Start(ctx)
 	}()
 
-	sink := sinks.NewWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
+	sink, err := sinks.NewWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData])).WithMetrics(ctx)
+	if err != nil {
+		logger.Error(err, "failed to create webhook sink")
+		panic(err)
+	}
 	errorSink := sinks.NewErrorSink(ctx, make(chan error))
 
 	logger.Info("starting vai event flow")
