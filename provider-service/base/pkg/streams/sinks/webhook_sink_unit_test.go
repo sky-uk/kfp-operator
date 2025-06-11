@@ -51,7 +51,7 @@ var _ = Context("SendEvents", func() {
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{client: client, operatorWebhook: webhookUrl, in: in}
 
-			go webhookSink.SendEvents(ctx)
+			go webhookSink.SendEvents(ctx, webhookSink)
 
 			streamMessage := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,
@@ -75,7 +75,7 @@ var _ = Context("SendEvents", func() {
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{client: client, operatorWebhook: webhookUrl, in: in}
 
-			go webhookSink.SendEvents(ctx)
+			go webhookSink.SendEvents(ctx, webhookSink)
 
 			streamMessage := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,
@@ -99,7 +99,7 @@ var _ = Context("SendEvents", func() {
 			in := make(chan StreamMessage[*common.RunCompletionEventData])
 			webhookSink := &WebhookSink{client: client, operatorWebhook: webhookUrl, in: in}
 
-			go webhookSink.SendEvents(ctx)
+			go webhookSink.SendEvents(ctx, webhookSink)
 
 			streamMessage := StreamMessage[*common.RunCompletionEventData]{
 				Message:            &runCompletionEventData,

@@ -111,7 +111,7 @@ func runEventing(ctx context.Context, logger logr.Logger, baseConfig *baseConfig
 		flow.Start(ctx)
 	}()
 
-	sink, err := sinks.NewWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData])).WithMetrics(ctx)
+	sink, err := sinks.NewObservedWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
 	if err != nil {
 		logger.Error(err, "failed to create webhook sink")
 		panic(err)

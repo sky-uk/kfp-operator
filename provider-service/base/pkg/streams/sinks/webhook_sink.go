@@ -16,7 +16,10 @@ import (
 
 type MessageSink interface {
 	In() chan<- StreamMessage[*common.RunCompletionEventData]
-	SendEvents(ctx context.Context)
+	SendEvents(ctx context.Context, handler MessageHandler)
+}
+
+type MessageHandler interface {
 	OnEmpty(ctx context.Context)
 	OnError(ctx context.Context, message StreamMessage[*common.RunCompletionEventData])
 	OnRecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData])
@@ -33,12 +36,12 @@ type WebhookSink struct {
 func NewWebhookSink(ctx context.Context, client *resty.Client, operatorWebhook string, inChan chan StreamMessage[*common.RunCompletionEventData]) *WebhookSink {
 	webhookSink := &WebhookSink{client: client, operatorWebhook: operatorWebhook, in: inChan}
 
-	go webhookSink.SendEvents(ctx)
+	go webhookSink.SendEvents(ctx, webhookSink)
 
 	return webhookSink
 }
 
-func (hws WebhookSink) WithMetrics(ctx context.Context) (*ObservedWebhookSink, error) {
+func NewObservedWebhookSink(ctx context.Context, client *resty.Client, operatorWebhook string, inChan chan StreamMessage[*common.RunCompletionEventData]) (*ObservedWebhookSink, error) {
 	meter := otel.Meter("webhook_sink")
 	sendEventsCounter, err := meter.Int64Counter(
 		"provider_webhook_send_events_count",
@@ -49,62 +52,66 @@ func (hws WebhookSink) WithMetrics(ctx context.Context) (*ObservedWebhookSink, e
 		return nil, err
 	}
 
-	return &ObservedWebhookSink{
-		delegate:          hws,
+	delegateWebSink := WebhookSink{client: client, operatorWebhook: operatorWebhook, in: inChan}
+	observed := ObservedWebhookSink{
+		delegate:          delegateWebSink,
 		meter:             meter,
 		sendEventsCounter: sendEventsCounter,
-	}, nil
+	}
+
+	go delegateWebSink.SendEvents(ctx, observed)
+	return &observed, nil
 }
 
-func (hws WebhookSink) OnEmpty(ctx context.Context) {}
-func (hws WebhookSink) OnError(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
+func (ws WebhookSink) OnEmpty(ctx context.Context) {}
+func (ws WebhookSink) OnError(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
 	message.OnRecoverableFailure()
 }
-func (hws WebhookSink) OnRecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
+func (ws WebhookSink) OnRecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
 	message.OnRecoverableFailure()
 }
 
-func (hws WebhookSink) OnUnrecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
+func (ws WebhookSink) OnUnrecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
 	message.OnUnrecoverableFailure()
 }
 
-func (hws WebhookSink) OnSuccess(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
+func (ws WebhookSink) OnSuccess(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
 	message.OnSuccess()
 }
 
-func (hws WebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData] {
-	return hws.in
+func (ws WebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData] {
+	return ws.in
 }
 
-func (hws WebhookSink) SendEvents(ctx context.Context) {
-	for message := range hws.in {
+func (ws WebhookSink) SendEvents(ctx context.Context, handler MessageHandler) {
+	for message := range ws.in {
 		if message.Message != nil {
-			err, response := hws.send(*message.Message)
+			err, response := ws.send(*message.Message)
 			if err != nil || response == nil {
-				hws.OnError(ctx, message)
+				handler.OnError(ctx, message)
 			} else {
 				switch response.StatusCode() {
 				case http.StatusOK:
-					hws.OnSuccess(ctx, message)
+					handler.OnSuccess(ctx, message)
 				case http.StatusGone:
-					hws.OnUnrecoverableFailure(ctx, message)
+					handler.OnUnrecoverableFailure(ctx, message)
 				default:
-					hws.OnRecoverableFailure(ctx, message)
+					handler.OnRecoverableFailure(ctx, message)
 				}
 			}
 		} else {
-			hws.OnEmpty(ctx)
+			handler.OnEmpty(ctx)
 		}
 	}
 }
 
-func (hws WebhookSink) send(rced common.RunCompletionEventData) (error, *resty.Response) {
+func (ws WebhookSink) send(rced common.RunCompletionEventData) (error, *resty.Response) {
 	rcedBytes, err := json.Marshal(rced)
 	if err != nil {
 		return err, nil
 	}
 
-	response, err := hws.client.R().SetHeader("Content-Type", "application/json").SetBody(rcedBytes).Post(hws.operatorWebhook)
+	response, err := ws.client.R().SetHeader("Content-Type", "application/json").SetBody(rcedBytes).Post(ws.operatorWebhook)
 	if err != nil {
 		return err, nil
 	}
@@ -118,8 +125,8 @@ type ObservedWebhookSink struct {
 	sendEventsCounter metric.Int64Counter
 }
 
-func (ows ObservedWebhookSink) SendEvents(ctx context.Context) {
-	ows.delegate.SendEvents(ctx)
+func (ows ObservedWebhookSink) SendEvents(ctx context.Context, _ MessageHandler) {
+	ows.delegate.SendEvents(ctx, ows)
 }
 
 func (ows ObservedWebhookSink) In() chan<- StreamMessage[*common.RunCompletionEventData] {
