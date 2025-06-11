@@ -4,11 +4,13 @@ weight: 2
 ---
 
 Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:
+
 - The data of an earlier step changes at a lower frequency than the data for subsequent steps
 - Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data
 - Serving a combined model of two or more pipelines
 
 In this example, we break up the penguin example pipeline into two pipelines:
+
 - The *Penguin Examples Pipeline* has a single pipeline step that imports the CSV example and outputs it as an artifact
 - The *Penguin Training Pipeline* references the previously produces example and trains the model
 
@@ -65,9 +67,7 @@ Next create `penguin_training/trainer.py`, which has not changed from [the origi
 
 Create the following `Dockerfile`. In contrast to the above, this Dockerfile does not include the examples CSV.
 
-
 {{% readfile file="/includes/versions/v0.7.0/quickstart-with-dependencies/quickstart-dependant/Dockerfile" code="true" lang="Dockerfile"%}}
-
 
 Next, build the pipeline as a Docker container and push it:
 
@@ -80,7 +80,6 @@ Now create and apply the resources needed to compile and train the penguin train
 `quickstart-dependant/resources/pipeline.yaml` has not changed from the original example:
 
 {{% readfile file="/includes/versions/v0.7.0/quickstart-with-dependencies/quickstart-dependant/resources/pipeline.yaml" code="true" lang="yaml"%}}
-
 
 `quickstart-dependant/resources/runconfiguration.yaml` has been updated so that a run is triggered as soon as the dependency has finished training and produced the referenced artifact. This artifact will then be provided to the pipeline as a runtime parameter:
 
