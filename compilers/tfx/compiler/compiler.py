@@ -6,8 +6,6 @@ import importlib.util
 import os
 from tfx.v1.orchestration import experimental as kubeflow_dag_runner
 from tfx.orchestration import pipeline
-from tfx.components import Pusher, Trainer
-from tfx.proto import pusher_pb2
 
 
 @click.command()
@@ -23,7 +21,7 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ',
                     fg='green')
 
-        pipeline_root, serving_model_directory, temp_location = pipeline_paths_for_config(pipeline_config_contents,
+        pipeline_root, _, temp_location = pipeline_paths_for_config(pipeline_config_contents,
                                                                                         provider_config_contents)
 
         framework_parameters = pipeline_config_contents['framework']['parameters']
@@ -32,7 +30,6 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         beam_cli_args.append(f"--temp_location={temp_location}")
 
         components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
-        expanded_components = expand_components_with_pusher(components, serving_model_directory)
 
         compile_fn = compile_v1 if provider_config_contents['executionMode'] == 'v1' else compile_v2
 
@@ -40,7 +37,7 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
             pipeline.Pipeline(
                 pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
                 pipeline_root=pipeline_root,
-                components=expanded_components,
+                components=components,
                 enable_cache=False,
                 metadata_connection_config=None,
                 beam_pipeline_args=beam_cli_args
@@ -48,53 +45,6 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         )
 
         click.secho(f'{output_file} written', fg='green')
-
-
-def expand_components_with_pusher(tfx_components: list, serving_model_directory: str):
-    if not any(isinstance(component, Pusher) for component in tfx_components):
-
-        click.secho(
-            "Could not find Pusher component. Trying to expand. Expanding", fg="green"
-        )
-
-        trainers = (
-            comp
-            for comp in tfx_components
-            if isinstance(comp, Trainer) and "model" in comp.outputs
-        )
-        trainer = next(trainers, None)
-
-        if next(trainers, None):
-            click.secho("Found more than one Trainer component. aborting", fg="red")
-            sys.exit(1)
-
-        if trainer:
-            model = trainer.outputs["model"]
-        else:
-            return tfx_components
-
-        evaluators = (comp for comp in tfx_components if "blessing" in comp.outputs)
-        evaluator = next(evaluators, None)
-
-        if next(evaluators, None):
-            click.secho("Found more than one Evaluator component. aborting", fg="red")
-            sys.exit(1)
-
-        blessing = evaluator.outputs["blessing"] if evaluator else None
-
-        pusher = Pusher(
-            model=model,
-            model_blessing=blessing,
-            push_destination=pusher_pb2.PushDestination(
-                filesystem=pusher_pb2.PushDestination.Filesystem(
-                    base_directory=serving_model_directory
-                )
-            ),
-        )
-
-        return tfx_components + [pusher]
-    else:
-        return tfx_components
 
 
 def load_fn(tfx_components: str, env: list):

@@ -1,7 +1,7 @@
 import os
 from typing import List
-from tfx.components import CsvExampleGen, Trainer
-from tfx.proto import trainer_pb2
+from tfx.components import CsvExampleGen, Pusher, Trainer
+from tfx.proto import pusher_pb2, trainer_pb2
 from tfx.dsl.components.base.base_node import BaseNode
 
 ### Environmental parameters can be left out when using the operator.
@@ -25,17 +25,17 @@ def create_components() -> List[BaseNode]:
     ### This needs to be omitted when using the operator.
     #
     ## Pushes the model to a filesystem destination.
-    #pusher = tfx.components.Pusher(
-    #  model=penguin_pipeline.trainer.outputs['model'],
-    #  push_destination=tfx.proto.PushDestination(
-    #      filesystem=tfx.proto.PushDestination.Filesystem(
-    #          base_directory=serving_model_dir)))
+    pusher = Pusher(
+     model=trainer.outputs['model'],
+     push_destination=pusher_pb2.PushDestination(
+         filesystem=pusher_pb2.PushDestination.Filesystem(
+             base_directory="serving_model_dir")))
 
     # Following three components will be included in the pipeline.
     components = [
         example_gen,
         trainer,
-        #pusher
+        pusher
     ]
 
     ### When using the operator, it creates the pipeline for us, 
