@@ -15,7 +15,7 @@ off the &lt;a href="#configuration">configuration provided.&lt;/a>&lt;/p></descr
 &lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with
 Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
 submission, status monitoring, schedules and experiment management.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/kfp.svg" alt="KFP Provider">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/kfp.svg" alt="KFP Provider">&lt;/p>
 &lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
 &lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Kubeflow. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p>
@@ -24,10 +24,9 @@ Its configuration can be controlled using the &lt;a href="../../resources/provid
 &lt;p>The &lt;strong>Vertex AI (VAI) Provider Service&lt;/strong> is included within this project to interface directly with
 Google Cloud&amp;rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
 seamless management and execution of machine learning workflows.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/vai.svg" alt="VAI Provider">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/vai.svg" alt="VAI Provider">&lt;/p>
 &lt;blockquote>
-&lt;p>Note: VAI does not support the &lt;code>experiment&lt;/code> resource&lt;/p>
-&lt;/blockquote>
+&lt;p>Note: VAI does not support the &lt;code>experiment&lt;/code> resource&lt;/p>&lt;/blockquote>
 &lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
 &lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Vertex AI instance. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p></description></item></channel></rss>
