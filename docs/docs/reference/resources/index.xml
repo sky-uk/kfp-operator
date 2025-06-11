@@ -21,30 +21,30 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td>The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Container image containing TFX component definitions.&lt;/td>
+ &lt;td>&lt;code>spec.image&lt;/code>&lt;/td>
+ &lt;td>Container image containing TFX component definitions.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.env&lt;/code>&lt;/td>
- &lt;td style="text-align: left">List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
+ &lt;td>&lt;code>spec.env&lt;/code>&lt;/td>
+ &lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.framework.name&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use.&lt;/td>
+ &lt;td>&lt;code>spec.framework.name&lt;/code>&lt;/td>
+ &lt;td>Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.framework.parameters&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. &lt;code>components: base_pipeline.create_components&lt;/code>&lt;/td>
+ &lt;td>&lt;code>spec.framework.parameters&lt;/code>&lt;/td>
+ &lt;td>Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. &lt;code>components: base_pipeline.create_components&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -138,18 +138,18 @@ and can be configured as follows:&lt;/p>
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td>The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.description&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The description of the experiment.&lt;/td>
+ &lt;td>&lt;code>spec.description&lt;/code>&lt;/td>
+ &lt;td>The description of the experiment.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table></description></item><item><title>Provider</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</guid><description>&lt;p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.
