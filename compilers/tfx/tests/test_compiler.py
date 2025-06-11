@@ -19,10 +19,9 @@ def test_pipeline_paths_for_config():
     pipeline_config = {'name': 'pipeline'}
     provider_config = {'pipelineRootStorage': "pipeline_root"}
 
-    pipeline_root, serving_model_directory, temp_directory = compiler.pipeline_paths_for_config(pipeline_config, provider_config)
+    pipeline_root, temp_directory = compiler.pipeline_paths_for_config(pipeline_config, provider_config)
 
     assert pipeline_root == "pipeline_root/pipeline"
-    assert serving_model_directory == "pipeline_root/pipeline/serving"
     assert temp_directory == "pipeline_root/pipeline/tmp"
 
 

@@ -21,7 +21,7 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ',
                     fg='green')
 
-        pipeline_root, _, temp_location = pipeline_paths_for_config(pipeline_config_contents,
+        pipeline_root, temp_location = pipeline_paths_for_config(pipeline_config_contents,
                                                                                         provider_config_contents)
 
         framework_parameters = pipeline_config_contents['framework']['parameters']
@@ -95,7 +95,7 @@ def compile_v2(config: dict, output_filename: str):
 
 def pipeline_paths_for_config(pipeline_config: dict, provider_config: dict):
     pipeline_root = provider_config['pipelineRootStorage'] + '/' + pipeline_config['name']
-    return pipeline_root, pipeline_root + "/serving", pipeline_root + "/tmp"
+    return pipeline_root, pipeline_root + "/tmp"
 
 
 def name_values_to_cli_args(name_values: list):
