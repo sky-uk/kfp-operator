@@ -1,8 +1,11 @@
 import os
-from typing import List
+
+from typing import List, Text
+
 from tfx.components import CsvExampleGen, Pusher, Trainer
-from tfx.proto import pusher_pb2, trainer_pb2
 from tfx.dsl.components.base.base_node import BaseNode
+from tfx.proto import pusher_pb2, trainer_pb2
+from tfx.orchestration.data_types import RuntimeParameter
 
 ### Environmental parameters can be left out when using the operator.
 ### Also, the return type is now a list of components instead of a pipeline.
@@ -27,9 +30,7 @@ def create_components() -> List[BaseNode]:
     ## Pushes the model to a filesystem destination.
     pusher = Pusher(
      model=trainer.outputs['model'],
-     push_destination=pusher_pb2.PushDestination(
-         filesystem=pusher_pb2.PushDestination.Filesystem(
-             base_directory="serving_model_dir")))
+     push_destination=RuntimeParameter(name="push_destination", ptype=Text))
 
     # Following three components will be included in the pipeline.
     components = [

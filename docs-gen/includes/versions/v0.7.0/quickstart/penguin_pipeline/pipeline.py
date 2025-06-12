@@ -1,8 +1,11 @@
 import os
-from typing import List
-from tfx.components import CsvExampleGen, Trainer
-from tfx.proto import trainer_pb2
+
+from typing import List, Text
+
+from tfx.components import CsvExampleGen, Pusher, Trainer
 from tfx.dsl.components.base.base_node import BaseNode
+from tfx.proto import pusher_pb2, trainer_pb2
+from tfx.orchestration.data_types import RuntimeParameter
 
 ### Environmental parameters can be left out when using the operator.
 ### Also, the return type is now a list of components instead of a pipeline.
@@ -25,20 +28,18 @@ def create_components() -> List[BaseNode]:
     ### This needs to be omitted when using the operator.
     #
     ## Pushes the model to a filesystem destination.
-    #pusher = tfx.components.Pusher(
-    #  model=penguin_pipeline.trainer.outputs['model'],
-    #  push_destination=tfx.proto.PushDestination(
-    #      filesystem=tfx.proto.PushDestination.Filesystem(
-    #          base_directory=serving_model_dir)))
+    pusher = Pusher(
+        model=trainer.outputs['model'],
+        push_destination=RuntimeParameter(name="push_destination", ptype=Text))
 
     # Following three components will be included in the pipeline.
     components = [
         example_gen,
         trainer,
-        #pusher
+        pusher
     ]
 
-    ### When using the operator, it creates the pipeline for us, 
+    ### When using the operator, it creates the pipeline for us,
     ### so we return the components directly instead.
     #
     #return tfx.dsl.Pipeline(

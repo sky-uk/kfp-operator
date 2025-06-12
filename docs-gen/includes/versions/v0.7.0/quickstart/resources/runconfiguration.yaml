@@ -7,6 +7,9 @@ spec:
       provider: provider-namespace/kfp
       pipeline: penguin-pipeline
       experimentName: penguin-experiment
+      parameters:
+      - name: push_destination
+        value: 'gs://my-bucket/penguin-pipeline'
     triggers:
       schedules:
       - cronExpression: 0 * * * *

@@ -21,8 +21,7 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ',
                     fg='green')
 
-        pipeline_root, temp_location = pipeline_paths_for_config(pipeline_config_contents,
-                                                                                        provider_config_contents)
+        pipeline_root, temp_location = pipeline_paths_for_config(pipeline_config_contents, provider_config_contents)
 
         framework_parameters = pipeline_config_contents['framework']['parameters']
         pipeline_beam_args = framework_parameters.get('beamArgs', [])
