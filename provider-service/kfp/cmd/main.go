@@ -115,7 +115,10 @@ func runEventing(ctx context.Context, k8sClient K8sClient, baseConfig *baseConfi
 		panic(err)
 	}
 
-	sink := sinks.NewWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
+	sink, err := sinks.NewObservedWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan StreamMessage[*common.RunCompletionEventData]))
+	if err != nil {
+		panic(fmt.Errorf("failed to create webhook sink: %w", err))
+	}
 	errorSink := sinks.NewErrorSink(ctx, make(chan error))
 
 	connectedFlow := flow.From(source)
