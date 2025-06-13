@@ -56,6 +56,9 @@ spec:
                   type: object
                 type: array
               executionMode:
+                default: ""
+                description: 'Deprecated: This field is ignored and will be removed
+                  in future versions.'
                 type: string
               image:
                 type: string
@@ -69,7 +72,6 @@ spec:
                 pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
                 type: string
             required:
-            - executionMode
             - image
             - pipelineRootStorage
             - serviceAccount
@@ -201,6 +203,9 @@ spec:
                   type: object
                 type: array
               executionMode:
+                default: ""
+                description: 'Deprecated: This field is ignored and will be removed
+                  in future versions.'
                 type: string
               image:
                 type: string
@@ -216,7 +221,6 @@ spec:
               serviceImage:
                 type: string
             required:
-            - executionMode
             - image
             - pipelineRootStorage
             - serviceAccount
@@ -346,6 +350,9 @@ spec:
                   type: string
                 type: array
               executionMode:
+                default: ""
+                description: 'Deprecated: This field is ignored and will be removed
+                  in future versions.'
                 type: string
               frameworks:
                 items:
@@ -380,7 +387,6 @@ spec:
               serviceImage:
                 type: string
             required:
-            - executionMode
             - pipelineRootStorage
             - serviceAccount
             - serviceImage
