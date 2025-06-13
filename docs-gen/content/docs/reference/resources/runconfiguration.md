@@ -19,6 +19,8 @@ spec:
     parameters:
     - name: TRAINING_RUNS
       value: '100'
+    - name: push_destination
+      value: '{"filesystem":{"base_directory":"gs://my-bucket/penguin-pipeline"}}'
     artifacts:
     - name: serving-model
       path: 'Pusher:pushed_model:0[pushed == 1]'
