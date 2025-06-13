@@ -92,7 +92,7 @@ test-triggers: ## Run all tests for triggers
 test-provider-service: ## Run all tests for provider-service
 	$(MAKE) -C provider-service test
 
-test-all: test helm-test-operator test-argo test-triggers test-provider-service test-compilers ## Run all tests
+test-all: test helm-test-operator test-argo test-triggers test-provider-service test-compilers integration-test-all ## Run all tests
 
 integration-test-all: ## Run all integration tests
 	$(MAKE) -C compilers integration-test-all
