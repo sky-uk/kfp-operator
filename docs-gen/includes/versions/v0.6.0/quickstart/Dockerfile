@@ -12,7 +12,7 @@ RUN poetry config virtualenvs.create true
 RUN poetry config virtualenvs.in-project true
 RUN poetry install --no-root
 
-FROM python:3.10.12-slim as runtime
+FROM python:3.13.5-slim as runtime
 
 ENV VIRTUAL_ENV=/.venv \
     PATH="/.venv/bin:$PATH"
