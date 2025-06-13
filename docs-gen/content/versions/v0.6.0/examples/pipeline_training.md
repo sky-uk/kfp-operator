@@ -12,6 +12,7 @@ The examples for this tutorial can be found on [GitHub]({{< param "github_repo" 
 We use the same pipeline as the [TFX example](https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple) with a few modifications.
 
 Create `pipeline.py`.
+Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:
 
 {{% readfile file="/includes/versions/v0.6.0/quickstart/penguin_pipeline/pipeline.py" code="true" lang="python"%}}
 

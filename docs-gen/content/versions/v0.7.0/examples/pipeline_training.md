@@ -12,6 +12,7 @@ The examples for this tutorial can be found on [GitHub]({{< param "github_repo" 
 We use the same pipeline as the [TFX example](https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple) with a few modifications.
 
 Create `pipeline.py`.
+Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:
 
 {{% readfile file="/includes/versions/v0.7.0/quickstart/penguin_pipeline/pipeline.py" code="true" lang="python"%}}
 
@@ -84,7 +85,7 @@ This will trigger run of `penguin-pipeline` once every hour. Note that the cron 
 ## 5. (Optional) Deploy newly trained models
 
 If the operator has been installed with [Argo-Events](https://argoproj.github.io/argo-events/) support, we can now specify eventsources and sensors to update arbitrary Kubernetes config when a pipeline has been trained successfully.
-In this example we are updating a serving component with the location of the newly trained model.
+In this example we are updating a serving component with the location of the newly trained model. 
 
 Create `apply-model-location.yaml`. This creates an `EventSource` and a `Sensor` as well as an `EventBus`:
 
