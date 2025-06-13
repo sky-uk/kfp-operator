@@ -2,51 +2,51 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultExperiment&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default Experiment name to be used for creating pipeline runs&lt;/td>
- &lt;td style="text-align: left">&lt;code>Default&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultExperiment&lt;/code>&lt;/td>
+ &lt;td>Default Experiment name to be used for creating pipeline runs&lt;/td>
+ &lt;td>&lt;code>Default&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultProvider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
- &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultProvider&lt;/code>&lt;/td>
+ &lt;td>Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
+ &lt;td>&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultTfxImage&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td>
- &lt;td style="text-align: left">&lt;code>gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultTfxImage&lt;/code>&lt;/td>
+ &lt;td>Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td>
+ &lt;td>&lt;code>gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>multiversion&lt;/code>&lt;/td>
- &lt;td style="text-align: left">If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
- &lt;td style="text-align: left">&lt;code>true&lt;/code>&lt;/td>
+ &lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
+ &lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
+ &lt;td>&lt;code>true&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>workflowNamespace&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
- &lt;td style="text-align: left">&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
+ &lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
+ &lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
+ &lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>runCompletionTTL&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
- &lt;td style="text-align: left">&lt;code>10m&lt;/code>&lt;/td>
+ &lt;td>&lt;code>runCompletionTTL&lt;/code>&lt;/td>
+ &lt;td>Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
+ &lt;td>&lt;code>10m&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>runCompletionFeed&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="#run-completion-feed-configuration">Configuration of the service&lt;/a> for the run completion feed back to KFP Operator&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>runCompletionFeed&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="#run-completion-feed-configuration">Configuration of the service&lt;/a> for the run completion feed back to KFP Operator&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultProviderValues&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>defaultProviderValues&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -54,21 +54,21 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>port&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that the feed endpoint will listen on&lt;/td>
- &lt;td style="text-align: left">&lt;code>8082&lt;/code>&lt;/td>
+ &lt;td>&lt;code>port&lt;/code>&lt;/td>
+ &lt;td>The port that the feed endpoint will listen on&lt;/td>
+ &lt;td>&lt;code>8082&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>endpoints&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Array of run completion event handler endpoints that should be called per feed message&lt;/td>
- &lt;td style="text-align: left">&lt;code>- host: run-completion-event-handler&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
+ &lt;td>&lt;code>endpoints&lt;/code>&lt;/td>
+ &lt;td>Array of run completion event handler endpoints that should be called per feed message&lt;/td>
+ &lt;td>&lt;code>- host: run-completion-event-handler&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -76,41 +76,41 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>replicas&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Number of replicas used within the deployment&lt;/td>
- &lt;td style="text-align: left">&lt;code>2&lt;/code>&lt;/td>
+ &lt;td>&lt;code>replicas&lt;/code>&lt;/td>
+ &lt;td>Number of replicas used within the deployment&lt;/td>
+ &lt;td>&lt;code>2&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>serviceContainerName&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Name of the container that will execute the provider image. &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec name&lt;/td>
- &lt;td style="text-align: left">&lt;code>provider-service&lt;/code>&lt;/td>
+ &lt;td>&lt;code>serviceContainerName&lt;/code>&lt;/td>
+ &lt;td>Name of the container that will execute the provider image. &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec name&lt;/td>
+ &lt;td>&lt;code>provider-service&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>servicePort&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
- &lt;td style="text-align: left">&lt;code>8080&lt;/code>&lt;/td>
+ &lt;td>&lt;code>servicePort&lt;/code>&lt;/td>
+ &lt;td>The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
+ &lt;td>&lt;code>8080&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>metricsPort&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that should expose the metrics service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>metrics&lt;/code> port defined in the podTemplateSpec&lt;/td>
- &lt;td style="text-align: left">&lt;code>8081&lt;/code>&lt;/td>
+ &lt;td>&lt;code>metricsPort&lt;/code>&lt;/td>
+ &lt;td>The port that should expose the metrics service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>metrics&lt;/code> port defined in the podTemplateSpec&lt;/td>
+ &lt;td>&lt;code>8081&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>labels&lt;/code>&lt;/td>
- &lt;td style="text-align: left">A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>. To attach labels to a provider service pod, use &lt;code>podTemplateSpec&lt;/code>.&lt;/td>
- &lt;td style="text-align: left">&lt;code>a: label&lt;/code>&lt;/td>
+ &lt;td>&lt;code>labels&lt;/code>&lt;/td>
+ &lt;td>A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>. To attach labels to a provider service pod, use &lt;code>podTemplateSpec&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>a: label&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>podTemplateSpec&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates">k8s pod template spec for the provider service deployment&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>podTemplateSpec&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates">k8s pod template spec for the provider service deployment&lt;/a>&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -118,41 +118,41 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultExperiment&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default Experiment name to be used for creating pipeline runs&lt;/td>
- &lt;td style="text-align: left">&lt;code>Default&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultExperiment&lt;/code>&lt;/td>
+ &lt;td>Default Experiment name to be used for creating pipeline runs&lt;/td>
+ &lt;td>&lt;code>Default&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultProvider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
- &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultProvider&lt;/code>&lt;/td>
+ &lt;td>Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
+ &lt;td>&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>multiversion&lt;/code>&lt;/td>
- &lt;td style="text-align: left">If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
- &lt;td style="text-align: left">&lt;code>true&lt;/code>&lt;/td>
+ &lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
+ &lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
+ &lt;td>&lt;code>true&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>workflowNamespace&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
- &lt;td style="text-align: left">&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
+ &lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
+ &lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
+ &lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>runCompletionTTL&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
- &lt;td style="text-align: left">&lt;code>10m&lt;/code>&lt;/td>
+ &lt;td>&lt;code>runCompletionTTL&lt;/code>&lt;/td>
+ &lt;td>Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
+ &lt;td>&lt;code>10m&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>runCompletionFeed&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Configuration of the service for the run completion feed back to KFP Operator&lt;/td>
- &lt;td style="text-align: left">See &lt;a href="#run-completion-feed-configuration">here&lt;/a>&lt;/td>
+ &lt;td>&lt;code>runCompletionFeed&lt;/code>&lt;/td>
+ &lt;td>Configuration of the service for the run completion feed back to KFP Operator&lt;/td>
+ &lt;td>See &lt;a href="#run-completion-feed-configuration">here&lt;/a>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -160,51 +160,51 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultExperiment&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default Experiment name to be used for creating pipeline runs&lt;/td>
- &lt;td style="text-align: left">&lt;code>Default&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultExperiment&lt;/code>&lt;/td>
+ &lt;td>Default Experiment name to be used for creating pipeline runs&lt;/td>
+ &lt;td>&lt;code>Default&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultProvider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
- &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultProvider&lt;/code>&lt;/td>
+ &lt;td>Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
+ &lt;td>&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultTfxImage&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td>
- &lt;td style="text-align: left">&lt;code>gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultTfxImage&lt;/code>&lt;/td>
+ &lt;td>Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td>
+ &lt;td>&lt;code>gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>multiversion&lt;/code>&lt;/td>
- &lt;td style="text-align: left">If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
- &lt;td style="text-align: left">&lt;code>true&lt;/code>&lt;/td>
+ &lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
+ &lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
+ &lt;td>&lt;code>true&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>workflowNamespace&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
- &lt;td style="text-align: left">&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
+ &lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
+ &lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
+ &lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>runCompletionTTL&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
- &lt;td style="text-align: left">&lt;code>10m&lt;/code>&lt;/td>
+ &lt;td>&lt;code>runCompletionTTL&lt;/code>&lt;/td>
+ &lt;td>Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
+ &lt;td>&lt;code>10m&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>runCompletionFeed&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="#run-completion-feed-configuration">Configuration of the service&lt;/a> for the run completion feed back to KFP Operator&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>runCompletionFeed&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="#run-completion-feed-configuration">Configuration of the service&lt;/a> for the run completion feed back to KFP Operator&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultProviderValues&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>defaultProviderValues&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -212,21 +212,21 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>port&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that the feed endpoint will listen on&lt;/td>
- &lt;td style="text-align: left">&lt;code>8082&lt;/code>&lt;/td>
+ &lt;td>&lt;code>port&lt;/code>&lt;/td>
+ &lt;td>The port that the feed endpoint will listen on&lt;/td>
+ &lt;td>&lt;code>8082&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>endpoints&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Array of run completion event handler endpoints that should be called per feed message&lt;/td>
- &lt;td style="text-align: left">&lt;code>- host: run-completion-event-handler&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
+ &lt;td>&lt;code>endpoints&lt;/code>&lt;/td>
+ &lt;td>Array of run completion event handler endpoints that should be called per feed message&lt;/td>
+ &lt;td>&lt;code>- host: run-completion-event-handler&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -234,41 +234,41 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>replicas&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Number of replicas used within the deployment&lt;/td>
- &lt;td style="text-align: left">&lt;code>2&lt;/code>&lt;/td>
+ &lt;td>&lt;code>replicas&lt;/code>&lt;/td>
+ &lt;td>Number of replicas used within the deployment&lt;/td>
+ &lt;td>&lt;code>2&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>serviceContainerName&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Name of the container that will execute the provider image. &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec name&lt;/td>
- &lt;td style="text-align: left">&lt;code>provider-service&lt;/code>&lt;/td>
+ &lt;td>&lt;code>serviceContainerName&lt;/code>&lt;/td>
+ &lt;td>Name of the container that will execute the provider image. &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec name&lt;/td>
+ &lt;td>&lt;code>provider-service&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>servicePort&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
- &lt;td style="text-align: left">&lt;code>8080&lt;/code>&lt;/td>
+ &lt;td>&lt;code>servicePort&lt;/code>&lt;/td>
+ &lt;td>The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
+ &lt;td>&lt;code>8080&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>metricsPort&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that should expose the metrics service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>metrics&lt;/code> port defined in the podTemplateSpec&lt;/td>
- &lt;td style="text-align: left">&lt;code>8081&lt;/code>&lt;/td>
+ &lt;td>&lt;code>metricsPort&lt;/code>&lt;/td>
+ &lt;td>The port that should expose the metrics service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>metrics&lt;/code> port defined in the podTemplateSpec&lt;/td>
+ &lt;td>&lt;code>8081&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>labels&lt;/code>&lt;/td>
- &lt;td style="text-align: left">A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>. To attach labels to a provider service pod, use &lt;code>podTemplateSpec&lt;/code>.&lt;/td>
- &lt;td style="text-align: left">&lt;code>a: label&lt;/code>&lt;/td>
+ &lt;td>&lt;code>labels&lt;/code>&lt;/td>
+ &lt;td>A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>. To attach labels to a provider service pod, use &lt;code>podTemplateSpec&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>a: label&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>podTemplateSpec&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates">k8s pod template spec for the provider service deployment&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>podTemplateSpec&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates">k8s pod template spec for the provider service deployment&lt;/a>&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -277,7 +277,7 @@ execution, and events of ML pipelines across various providers using resource de
 A &amp;ldquo;provider&amp;rdquo; refers to a runtime environment that handles the orchestration and execution of these pipelines and
 associated resources.&lt;/p>
 &lt;p>The diagram below gives a high level overview of what the KFP Operator offers.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/high-level-overview.svg" alt="high-level-overview">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/high-level-overview.svg" alt="high-level-overview">&lt;/p>
 &lt;p>For a more detailed architecture, see this &lt;a href="../introduction/#architecture-overview">overview&lt;/a>.&lt;/p>
 &lt;h3 id="why-kfp-operator">Why KFP Operator&lt;/h3>
 &lt;p>This project was initiated with the goal of &lt;strong>promoting best practices in Machine Learning engineering&lt;/strong> while minimizing
@@ -304,7 +304,7 @@ execution, and events of ML pipelines across various providers using resource de
 A &amp;ldquo;provider&amp;rdquo; refers to a runtime environment that handles the orchestration and execution of these pipelines and
 associated resources.&lt;/p>
 &lt;p>The diagram below gives a high level overview of what the KFP Operator offers.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/versions/v0.7.0/images/high-level-overview.svg" alt="high-level-overview">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/images/high-level-overview.svg" alt="high-level-overview">&lt;/p>
 &lt;p>For a more detailed architecture, see this &lt;a href="../introduction/#architecture-overview">overview&lt;/a>.&lt;/p>
 &lt;h3 id="why-kfp-operator">Why KFP Operator&lt;/h3>
 &lt;p>This project was initiated with the goal of &lt;strong>promoting best practices in Machine Learning engineering&lt;/strong> while minimizing
@@ -346,30 +346,30 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td>The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Container image containing TFX component definitions.&lt;/td>
+ &lt;td>&lt;code>spec.image&lt;/code>&lt;/td>
+ &lt;td>Container image containing TFX component definitions.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.env&lt;/code>&lt;/td>
- &lt;td style="text-align: left">List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
+ &lt;td>&lt;code>spec.env&lt;/code>&lt;/td>
+ &lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.framework.name&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use.&lt;/td>
+ &lt;td>&lt;code>spec.framework.name&lt;/code>&lt;/td>
+ &lt;td>Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.framework.parameters&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. &lt;code>components: base_pipeline.create_components&lt;/code>&lt;/td>
+ &lt;td>&lt;code>spec.framework.parameters&lt;/code>&lt;/td>
+ &lt;td>Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. &lt;code>components: base_pipeline.create_components&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -395,26 +395,26 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Container image containing TFX component definitions.&lt;/td>
+ &lt;td>&lt;code>spec.image&lt;/code>&lt;/td>
+ &lt;td>Container image containing TFX component definitions.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.tfxComponents&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Fully qualified name of the Python function creating pipeline components.&lt;/td>
+ &lt;td>&lt;code>spec.tfxComponents&lt;/code>&lt;/td>
+ &lt;td>Fully qualified name of the Python function creating pipeline components.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.env&lt;/code>&lt;/td>
- &lt;td style="text-align: left">List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
+ &lt;td>&lt;code>spec.env&lt;/code>&lt;/td>
+ &lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.beamArgs&lt;/code>&lt;/td>
- &lt;td style="text-align: left">List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline.&lt;/td>
+ &lt;td>&lt;code>spec.beamArgs&lt;/code>&lt;/td>
+ &lt;td>List of named objects. These will be provided as &lt;code>beam_pipeline_args&lt;/code> when compiling the pipeline.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -442,30 +442,30 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td>The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Container image containing TFX component definitions.&lt;/td>
+ &lt;td>&lt;code>spec.image&lt;/code>&lt;/td>
+ &lt;td>Container image containing TFX component definitions.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.env&lt;/code>&lt;/td>
- &lt;td style="text-align: left">List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
+ &lt;td>&lt;code>spec.env&lt;/code>&lt;/td>
+ &lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.framework.name&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use.&lt;/td>
+ &lt;td>&lt;code>spec.framework.name&lt;/code>&lt;/td>
+ &lt;td>Sets a specific &lt;a href="../../frameworks">pipeline framework&lt;/a> to use.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.framework.parameters&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. &lt;code>components: base_pipeline.create_components&lt;/code>&lt;/td>
+ &lt;td>&lt;code>spec.framework.parameters&lt;/code>&lt;/td>
+ &lt;td>Parameters to pass to the pipeline framework compiler. A map of any parameters required by that framework can be passed, e.g. &lt;code>components: base_pipeline.create_components&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -737,26 +737,26 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.pipeline&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.&lt;/td>
+ &lt;td>&lt;code>spec.pipeline&lt;/code>&lt;/td>
+ &lt;td>The &lt;a href="../pipeline/#identifier">identifier&lt;/a> of the corresponding pipeline resource to run. If no version is specified, then the RunConfiguration will use the latest version of the specified pipeline.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.experimentName&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
+ &lt;td>&lt;code>spec.experimentName&lt;/code>&lt;/td>
+ &lt;td>The name of the corresponding experiment resource (optional - the &lt;code>Default&lt;/code> Experiment as defined in the &lt;a href="README.md#configuration">Installation and Configuration section of the documentation&lt;/a> will be used if no &lt;code>experimentName&lt;/code> is provided).&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.runtimeParameters[]&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Runtime parameters for the pipeline training run. See below for more information.&lt;/td>
+ &lt;td>&lt;code>spec.runtimeParameters[]&lt;/code>&lt;/td>
+ &lt;td>Runtime parameters for the pipeline training run. See below for more information.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.&lt;/td>
+ &lt;td>&lt;code>spec.run.artifacts[]&lt;/code>&lt;/td>
+ &lt;td>Exposed output artifacts that will be included in run completion event when this run has succeeded. See below for more information.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -784,7 +784,7 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Note the usage of &lt;code>metadata.generateName&lt;/code> which tells Kubernetes to generate a new name based on the given prefix for every new resource.&lt;/p>
 &lt;blockquote>
-&lt;p>In general, we expect users to deploy &lt;a href="../runconfiguration">RunConfigurations&lt;/a> to configure the lifecycle of their runs, leaving the management of &lt;code>Runs&lt;/code> to the operator.&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/run-completion/</guid><description>&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/versions/v0.6.0/images/run-completion.svg" alt="Model Serving">&lt;/p>
+&lt;p>In general, we expect users to deploy &lt;a href="../runconfiguration">RunConfigurations&lt;/a> to configure the lifecycle of their runs, leaving the management of &lt;code>Runs&lt;/code> to the operator.&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/run-completion/</guid><description>&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/versions/v0.6.0/images/run-completion.svg" alt="Model Serving">&lt;/p>
 &lt;p>The KFP-Operator Events system provides a &lt;a href="https://nats.io/">NATS Event bus&lt;/a> in the operator namespace to consume events from.
 To use it, users can create an Argo-Events &lt;a href="https://argoproj.github.io/argo-events/eventsources/setup/nats/">NATS Eventsource&lt;/a> as follows:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">argoproj.io/v1alpha1&lt;/span>
@@ -836,14 +836,14 @@ and can be configured as follows:&lt;/p>
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.description&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The description of the experiment.&lt;/td>
+ &lt;td>&lt;code>spec.description&lt;/code>&lt;/td>
+ &lt;td>The description of the experiment.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table></description></item><item><title>Pipeline Frameworks</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/frameworks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/frameworks/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
@@ -954,18 +954,18 @@ and can be configured as follows:&lt;/p>
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td>The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.description&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The description of the experiment.&lt;/td>
+ &lt;td>&lt;code>spec.description&lt;/code>&lt;/td>
+ &lt;td>The description of the experiment.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table></description></item><item><title>Experiment</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/resources/experiment/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/resources/experiment/</guid><description>&lt;p>The Experiment resource represents the lifecycle of Experiments,
@@ -981,18 +981,18 @@ and can be configured as follows:&lt;/p>
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.provider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>spec.provider&lt;/code>&lt;/td>
+ &lt;td>The namespace and name of the associated &lt;a href="../provider/">Provider resource&lt;/a> separated by a &lt;code>/&lt;/code>, e.g. &lt;code>provider-namespace/provider-name&lt;/code>.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.description&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The description of the experiment.&lt;/td>
+ &lt;td>&lt;code>spec.description&lt;/code>&lt;/td>
+ &lt;td>The description of the experiment.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table></description></item><item><title>Provider</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/provider/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/reference/resources/provider/</guid><description>&lt;p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.
@@ -1002,48 +1002,48 @@ Providers configuration can be set using this resource and permissions for acces
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.image&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
- &lt;td style="text-align: left">Container image of the provider&lt;/td>
- &lt;td style="text-align: left">&lt;code>kfp-operator-kfp-provider:0.0.2&lt;/code>&lt;/td>
+ &lt;td>&lt;code>spec.image&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
+ &lt;td>Container image of the provider&lt;/td>
+ &lt;td>&lt;code>kfp-operator-kfp-provider:0.0.2&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.executionMode&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
- &lt;td style="text-align: left">KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
+ &lt;td>&lt;code>spec.executionMode&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
+ &lt;td>KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
+ &lt;td>&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.serviceAccount&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
- &lt;td style="text-align: left">Service Account name to be used for all provider-specific operations (see respective provider)&lt;/td>
- &lt;td style="text-align: left">&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
+ &lt;td>&lt;code>spec.serviceAccount&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
+ &lt;td>Service Account name to be used for all provider-specific operations (see respective provider)&lt;/td>
+ &lt;td>&lt;code>kfp-operator-vertex-ai&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.defaultBeamArgs&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default Beam arguments to which the pipeline-defined ones will be added&lt;/td>
- &lt;td style="text-align: left">&lt;pre>- name: project&lt;br/> value: my-gcp-project&lt;/pre>&lt;/td>
+ &lt;td>&lt;code>spec.defaultBeamArgs&lt;/code>&lt;/td>
+ &lt;td>Default Beam arguments to which the pipeline-defined ones will be added&lt;/td>
+ &lt;td>&lt;pre>- name: project&lt;br/> value: my-gcp-project&lt;/pre>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>spec.pipelineRootStorage&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
- &lt;td style="text-align: left">&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
+ &lt;td>&lt;code>spec.pipelineRootStorage&lt;/code>&lt;/td>
+ &lt;td>The storage location used by &lt;a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (&lt;code>pipeline-root&lt;/code>)&lt;/a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline&lt;/td>
+ &lt;td>&lt;code>gcs://kubeflow-pipelines-bucket&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
 &lt;p>&lt;sup>*&lt;/sup> field automatically populated by Helm based on provider type&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
 Within the operator this can be updating the status fields of resources such as their &lt;code>synchronizationState&lt;/code> or &lt;code>providerId&lt;/code>. Within the ML Ops ecosystem,
 this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/run-completion.svg" alt="Model Serving">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/run-completion.svg" alt="Model Serving">&lt;/p>
 &lt;h2 id="event-specification">Event Specification&lt;/h2>
 &lt;p>The specification of the events follows &lt;a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md">CloudEvents&lt;/a>:&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
 Within the operator this can be updating the status fields of resources such as their &lt;code>synchronizationState&lt;/code> or &lt;code>providerId&lt;/code>. Within the ML Ops ecosystem,
 this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/versions/v0.7.0/images/run-completion.svg" alt="Model Serving">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/images/run-completion.svg" alt="Model Serving">&lt;/p>
 &lt;h2 id="event-specification">Event Specification&lt;/h2>
 &lt;p>The specification of the events follows &lt;a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md">CloudEvents&lt;/a>:&lt;/p></description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
 &lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
@@ -1085,7 +1085,7 @@ Any referenced resources must always match the provider of the referencing resou
 &lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with
 Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
 submission, status monitoring, schedules and experiment management.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/kfp.svg" alt="KFP Provider">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/kfp.svg" alt="KFP Provider">&lt;/p>
 &lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
 &lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Kubeflow. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p>
@@ -1094,7 +1094,7 @@ Its configuration can be controlled using the &lt;a href="../../resources/provid
 &lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with
 Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
 submission, status monitoring, schedules and experiment management.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/versions/v0.7.0/images/kfp.svg" alt="KFP Provider">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/images/kfp.svg" alt="KFP Provider">&lt;/p>
 &lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
 &lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Kubeflow. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p>
@@ -1103,20 +1103,18 @@ Its configuration can be controlled using the &lt;a href="../../resources/provid
 &lt;p>The &lt;strong>Vertex AI (VAI) Provider Service&lt;/strong> is included within this project to interface directly with
 Google Cloud&amp;rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
 seamless management and execution of machine learning workflows.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/vai.svg" alt="VAI Provider">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/vai.svg" alt="VAI Provider">&lt;/p>
 &lt;blockquote>
-&lt;p>Note: VAI does not support the &lt;code>experiment&lt;/code> resource&lt;/p>
-&lt;/blockquote>
+&lt;p>Note: VAI does not support the &lt;code>experiment&lt;/code> resource&lt;/p>&lt;/blockquote>
 &lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
 &lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Vertex AI instance. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p></description></item><item><title>Vertex AI</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/vai/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/vai/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
 &lt;p>The &lt;strong>Vertex AI (VAI) Provider Service&lt;/strong> is included within this project to interface directly with
 Google Cloud&amp;rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
 seamless management and execution of machine learning workflows.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/versions/v0.7.0/images/vai.svg" alt="VAI Provider">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/images/vai.svg" alt="VAI Provider">&lt;/p>
 &lt;blockquote>
-&lt;p>Note: VAI does not support the &lt;code>experiment&lt;/code> resource&lt;/p>
-&lt;/blockquote>
+&lt;p>Note: VAI does not support the &lt;code>experiment&lt;/code> resource&lt;/p>&lt;/blockquote>
 &lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
 &lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Vertex AI instance. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p></description></item></channel></rss>

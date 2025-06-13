@@ -2,51 +2,51 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultExperiment&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default Experiment name to be used for creating pipeline runs&lt;/td>
- &lt;td style="text-align: left">&lt;code>Default&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultExperiment&lt;/code>&lt;/td>
+ &lt;td>Default Experiment name to be used for creating pipeline runs&lt;/td>
+ &lt;td>&lt;code>Default&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultProvider&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
- &lt;td style="text-align: left">&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultProvider&lt;/code>&lt;/td>
+ &lt;td>Default provider name to be used (see &lt;a href="../providers">Using Multiple Providers&lt;/a>). &lt;strong>Note:&lt;/strong> This is deprecated as of v1alpha6 and will be removed when support for v1alpha5 is dropped&lt;/td>
+ &lt;td>&lt;code>vertex-ai-europe&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultTfxImage&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td>
- &lt;td style="text-align: left">&lt;code>gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code>&lt;/td>
+ &lt;td>&lt;code>defaultTfxImage&lt;/code>&lt;/td>
+ &lt;td>Default TFX image to be used when converting provider resource from v1alpha5 or v1alpha6 to v1beta1&lt;/td>
+ &lt;td>&lt;code>gcr.io/tfx-oss-public/tfx:0.32.0&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>multiversion&lt;/code>&lt;/td>
- &lt;td style="text-align: left">If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
- &lt;td style="text-align: left">&lt;code>true&lt;/code>&lt;/td>
+ &lt;td>&lt;code>multiversion&lt;/code>&lt;/td>
+ &lt;td>If enabled, it will support previous versions of the CRDs, only the latest otherwise&lt;/td>
+ &lt;td>&lt;code>true&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>workflowNamespace&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
- &lt;td style="text-align: left">&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
+ &lt;td>&lt;code>workflowNamespace&lt;/code>&lt;/td>
+ &lt;td>Namespace where operator Argo workflows should be running - defaults to the operator&amp;rsquo;s namespace&lt;/td>
+ &lt;td>&lt;code>kfp-operator-workflows&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>runCompletionTTL&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
- &lt;td style="text-align: left">&lt;code>10m&lt;/code>&lt;/td>
+ &lt;td>&lt;code>runCompletionTTL&lt;/code>&lt;/td>
+ &lt;td>Duration string for how long to keep one-off runs after completion - a zero-length or negative duration will result in runs being deleted immediately after completion; defaults to empty (never delete runs)&lt;/td>
+ &lt;td>&lt;code>10m&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>runCompletionFeed&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="#run-completion-feed-configuration">Configuration of the service&lt;/a> for the run completion feed back to KFP Operator&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>runCompletionFeed&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="#run-completion-feed-configuration">Configuration of the service&lt;/a> for the run completion feed back to KFP Operator&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>defaultProviderValues&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>defaultProviderValues&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="#provider-values-configuration">Configuration of the deployment and service&lt;/a> created for &lt;a href="../reference/providers/overview">providers&lt;/a>&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -54,21 +54,21 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>port&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that the feed endpoint will listen on&lt;/td>
- &lt;td style="text-align: left">&lt;code>8082&lt;/code>&lt;/td>
+ &lt;td>&lt;code>port&lt;/code>&lt;/td>
+ &lt;td>The port that the feed endpoint will listen on&lt;/td>
+ &lt;td>&lt;code>8082&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>endpoints&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Array of run completion event handler endpoints that should be called per feed message&lt;/td>
- &lt;td style="text-align: left">&lt;code>- host: run-completion-event-handler&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
+ &lt;td>&lt;code>endpoints&lt;/code>&lt;/td>
+ &lt;td>Array of run completion event handler endpoints that should be called per feed message&lt;/td>
+ &lt;td>&lt;code>- host: run-completion-event-handler&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;path: /&amp;lt;br/&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;port: 12000&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -76,41 +76,41 @@
 &lt;table>
  &lt;thead>
  &lt;tr>
- &lt;th style="text-align: left">Parameter name&lt;/th>
- &lt;th style="text-align: left">Description&lt;/th>
- &lt;th style="text-align: left">Example&lt;/th>
+ &lt;th>Parameter name&lt;/th>
+ &lt;th>Description&lt;/th>
+ &lt;th>Example&lt;/th>
  &lt;/tr>
  &lt;/thead>
  &lt;tbody>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>replicas&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Number of replicas used within the deployment&lt;/td>
- &lt;td style="text-align: left">&lt;code>2&lt;/code>&lt;/td>
+ &lt;td>&lt;code>replicas&lt;/code>&lt;/td>
+ &lt;td>Number of replicas used within the deployment&lt;/td>
+ &lt;td>&lt;code>2&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>serviceContainerName&lt;/code>&lt;/td>
- &lt;td style="text-align: left">Name of the container that will execute the provider image. &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec name&lt;/td>
- &lt;td style="text-align: left">&lt;code>provider-service&lt;/code>&lt;/td>
+ &lt;td>&lt;code>serviceContainerName&lt;/code>&lt;/td>
+ &lt;td>Name of the container that will execute the provider image. &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec name&lt;/td>
+ &lt;td>&lt;code>provider-service&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>servicePort&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
- &lt;td style="text-align: left">&lt;code>8080&lt;/code>&lt;/td>
+ &lt;td>&lt;code>servicePort&lt;/code>&lt;/td>
+ &lt;td>The port that should expose the service &lt;strong>Note:&lt;/strong> this must match the podTemplateSpec ports&lt;/td>
+ &lt;td>&lt;code>8080&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>metricsPort&lt;/code>&lt;/td>
- &lt;td style="text-align: left">The port that should expose the metrics service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>metrics&lt;/code> port defined in the podTemplateSpec&lt;/td>
- &lt;td style="text-align: left">&lt;code>8081&lt;/code>&lt;/td>
+ &lt;td>&lt;code>metricsPort&lt;/code>&lt;/td>
+ &lt;td>The port that should expose the metrics service. &lt;strong>Note:&lt;/strong> this must match the &lt;code>metrics&lt;/code> port defined in the podTemplateSpec&lt;/td>
+ &lt;td>&lt;code>8081&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>labels&lt;/code>&lt;/td>
- &lt;td style="text-align: left">A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>. To attach labels to a provider service pod, use &lt;code>podTemplateSpec&lt;/code>.&lt;/td>
- &lt;td style="text-align: left">&lt;code>a: label&lt;/code>&lt;/td>
+ &lt;td>&lt;code>labels&lt;/code>&lt;/td>
+ &lt;td>A map of additional labels to add to the provider service Deployment &lt;strong>and&lt;/strong> Service. The Deployment and Service will also have a label of &lt;code>app: provider-&amp;lt;provider_name&amp;gt;&lt;/code>. To attach labels to a provider service pod, use &lt;code>podTemplateSpec&lt;/code>.&lt;/td>
+ &lt;td>&lt;code>a: label&lt;/code>&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td style="text-align: left">&lt;code>podTemplateSpec&lt;/code>&lt;/td>
- &lt;td style="text-align: left">&lt;a href="https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates">k8s pod template spec for the provider service deployment&lt;/a>&lt;/td>
- &lt;td style="text-align: left">&lt;/td>
+ &lt;td>&lt;code>podTemplateSpec&lt;/code>&lt;/td>
+ &lt;td>&lt;a href="https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates">k8s pod template spec for the provider service deployment&lt;/a>&lt;/td>
+ &lt;td>&lt;/td>
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
@@ -132,7 +132,7 @@ script should copy the required compiler code into the shared directory &lt;code
 the first and only parameter to the entrypoint script.&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
 Within the operator this can be updating the status fields of resources such as their &lt;code>synchronizationState&lt;/code> or &lt;code>providerId&lt;/code>. Within the ML Ops ecosystem,
 this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/run-completion.svg" alt="Model Serving">&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/run-completion.svg" alt="Model Serving">&lt;/p>
 &lt;h2 id="event-specification">Event Specification&lt;/h2>
 &lt;p>The specification of the events follows &lt;a href="https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md">CloudEvents&lt;/a>:&lt;/p></description></item><item><title>Debugging</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/debugging/</guid><description>&lt;h2 id="kubernetes-events">Kubernetes Events&lt;/h2>
 &lt;p>The operator emits Kubernetes events for all resource transitions which can be viewed using &lt;code>kubectl describe&lt;/code>.&lt;/p>
