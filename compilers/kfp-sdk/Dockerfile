@@ -5,7 +5,7 @@ COPY dist/*-${WHEEL_VERSION}-*.whl /
 RUN pip install /*-${WHEEL_VERSION}-*.whl --target=/compiler && \
     rm /*-${WHEEL_VERSION}-*.whl
 
-FROM alpine:3.20.1
+FROM alpine:3.22.0
 
 WORKDIR /
 
