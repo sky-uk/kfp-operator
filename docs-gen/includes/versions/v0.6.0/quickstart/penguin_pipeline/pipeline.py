@@ -38,7 +38,7 @@ def create_components() -> List[BaseNode]:
         #pusher
     ]
 
-    ### When using the operator, it creates the pipeline for us, 
+    ### When using the operator, it creates the pipeline for us,
     ### so we return the components directly instead.
     #
     #return tfx.dsl.Pipeline(

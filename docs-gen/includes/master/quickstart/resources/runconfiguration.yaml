@@ -4,9 +4,12 @@ metadata:
     name: penguin-pipeline-recurring-run
 spec:
     run:
-      provider: provider-namespace/kfp
+      provider: provider-namespace/vai
       pipeline: penguin-pipeline
       experimentName: penguin-experiment
+      parameters:
+      - name: push_destination
+        value: '{"filesystem":{"base_directory":"gs://my-bucket/penguin-pipeline"}}'
     triggers:
       schedules:
       - cronExpression: 0 * * * *
