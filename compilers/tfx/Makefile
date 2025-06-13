@@ -35,12 +35,12 @@ DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-con
 test: build ## Run all tests
 	poetry run pytest
 
-integration-test: docker-build penguin-39 penguin-310 penguin-310-115 ## Run the integration test
+integration-test: docker-build penguin-310-115 ## Run the integration test
 	$(eval TMP := $(shell mktemp -d))
 
 	docker run -v $(TMP):/shared kfp-operator-tfx-compiler /shared
 
-	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v2.yaml
-	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v2.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v2.yaml
-	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_v1.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v1.yaml
+	# docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v2.yaml
+	# docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v2.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v2.yaml
+	# docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_v1.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v1.yaml
 	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_115_v2.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v2.yaml

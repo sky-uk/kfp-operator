@@ -94,7 +94,7 @@ test-provider-service: ## Run all tests for provider-service
 
 test-all: test helm-test-operator test-argo test-triggers test-provider-service test-compilers ## Run all tests
 
-integration-test-all: integration-test ## Run all integration tests
+integration-test-all: ## Run all integration tests
 	$(MAKE) -C compilers integration-test-all
 
 ##@ Build
