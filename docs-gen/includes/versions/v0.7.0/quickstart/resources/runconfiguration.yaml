@@ -9,7 +9,7 @@ spec:
       experimentName: penguin-experiment
       parameters:
       - name: push_destination
-        value: 'gs://my-bucket/penguin-pipeline'
+        value: '{"filesystem":{"base_directory":"gs://my-bucket/penguin-pipeline"}}'
     triggers:
       schedules:
       - cronExpression: 0 * * * *

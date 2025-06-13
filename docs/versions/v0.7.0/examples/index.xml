@@ -30,8 +30,6 @@
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> train_args&lt;span style="color:#f92672">=&lt;/span>trainer_pb2&lt;span style="color:#f92672">.&lt;/span>TrainArgs(num_steps&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">100&lt;/span>),
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> eval_args&lt;span style="color:#f92672">=&lt;/span>trainer_pb2&lt;span style="color:#f92672">.&lt;/span>EvalArgs(num_steps&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">5&lt;/span>))
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">### This needs to be omitted when using the operator.&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">#&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#75715e">## Pushes the model to a filesystem destination.&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> pusher &lt;span style="color:#f92672">=&lt;/span> Pusher(
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> model&lt;span style="color:#f92672">=&lt;/span>trainer&lt;span style="color:#f92672">.&lt;/span>outputs[&lt;span style="color:#e6db74">&amp;#39;model&amp;#39;&lt;/span>],

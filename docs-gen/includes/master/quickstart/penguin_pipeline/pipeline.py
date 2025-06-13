@@ -25,8 +25,6 @@ def create_components() -> List[BaseNode]:
         train_args=trainer_pb2.TrainArgs(num_steps=100),
         eval_args=trainer_pb2.EvalArgs(num_steps=5))
 
-    ### This needs to be omitted when using the operator.
-    #
     ## Pushes the model to a filesystem destination.
     pusher = Pusher(
      model=trainer.outputs['model'],
