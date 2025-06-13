@@ -40,7 +40,6 @@ integration-test: docker-build penguin-39 penguin-310 penguin-310-115 ## Run the
 
 	docker run -v $(TMP):/shared kfp-operator-tfx-compiler /shared
 
-	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v2.yaml
-	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v2.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v2.yaml
-	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_v1.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v1.yaml
-	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_115_v2.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider_v2.yaml
+	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.9 --output_file /shared/pipeline_v3.9.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider.yaml
+	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10 --output_file /shared/pipeline_v3.10.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider.yaml
+	docker run -v $(TMP):/shared --entrypoint /shared/compile.sh penguin:3.10-115 --output_file /shared/pipeline_v3.10-115.yaml --pipeline_config /pipeline/pipeline.yaml --provider_config /pipeline/provider.yaml
