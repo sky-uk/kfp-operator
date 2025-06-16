@@ -17,7 +17,7 @@ metadata:
 spec:
   provider: provider-namespace/kfp
   image: kfp-quickstart:v1
-  frameworks:
+  framework:
     name: tfx
     parameters:
       components: base_pipeline.create_components
