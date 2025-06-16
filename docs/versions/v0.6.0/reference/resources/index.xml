@@ -160,7 +160,7 @@ Providers configuration can be set using this resource and permissions for acces
  &lt;/tr>
  &lt;tr>
  &lt;td style="text-align: left">&lt;code>spec.executionMode&lt;/code>&lt;sup>*&lt;/sup>&lt;/td>
- &lt;td style="text-align: left">Deprecated: This field will be dropped in future versions and the provider will only support v2 execution mode under the hood. KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
+ &lt;td style="text-align: left">KFP compiler &lt;a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode&lt;/a>&lt;/td>
  &lt;td style="text-align: left">&lt;code>v1&lt;/code> (currently KFP) or &lt;code>v2&lt;/code> (Vertex AI)&lt;/td>
  &lt;/tr>
  &lt;tr>
