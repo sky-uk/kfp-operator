@@ -47,8 +47,6 @@ The compilation process relies on the pipeline resource and the provider configu
 
 ```shell
 export PIPELINE_IMAGE=<your pipeline image>
-# Choose an execution mode: v1 for KFP or v2 for Vertex AI
-export EXECUTION_MODE=v1
 
 # create the pipeline resource
 cat > $SHARED_DIR/pipeline.yaml << EOF
@@ -66,7 +64,6 @@ EOF
 
 # create the required provider configuration
 cat > $SHARED_DIR/provider.yaml << EOF
-executionMode: $EXECUTION_MODE
 pipelineRootStorage: <pipeline root storage location>
 defaultBeamArgs:
   - [] # List of NamedValues for default beam arguments

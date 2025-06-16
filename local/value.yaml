@@ -13,7 +13,7 @@ manager:
       name: kfp-operator-argo
       create: true
   configuration:
-    defaultProvider: kfp
+    defaultProvider: vai
     defaultExperiment: Default
     runCompletionTTL: 30s
   monitoring:
@@ -39,7 +39,6 @@ statusFeedback:
   enabled: true
 
 providers:
-  - kfp
   - vai
 
 provider:

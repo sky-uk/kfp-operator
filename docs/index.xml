@@ -283,10 +283,9 @@ associated resources.&lt;/p>
 &lt;p>This project was initiated with the goal of &lt;strong>promoting best practices in Machine Learning engineering&lt;/strong> while minimizing
 the operational complexities involved in deploying, executing, and maintaining training pipelines. This project seeks to
 move away from manual, error-prone, copy-and-paste deployments, and towards a &lt;strong>declarative, transparent, and
-self-service model&lt;/strong>.&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/overview/</guid><description>&lt;p>The KFP Operator supports multiple pipeline orchestration providers, currently including:&lt;/p>
+self-service model&lt;/strong>.&lt;/p></description></item><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/overview/</guid><description>&lt;p>The KFP Operator supports the following pipeline orchestration providers:&lt;/p>
 &lt;ul>
 &lt;li>&lt;strong>&lt;a href="../vai">Vertex AI Integration&lt;/a>&lt;/strong>&lt;/li>
-&lt;li>&lt;strong>&lt;a href="../kfp">Kubeflow Pipelines Integration&lt;/a>&lt;/strong>&lt;/li>
 &lt;/ul>
 &lt;p>You can also integrate the KFP Operator with custom providers by implementing a &lt;a href="#using-custom-providers">custom Provider Service&lt;/a>.&lt;/p>
 &lt;h2 id="service">Service&lt;/h2>
@@ -333,7 +332,7 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/provider-namespace&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">image&lt;/span>: &lt;span style="color:#ae81ff">kfp-quickstart:v1&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">framework&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">tfx&lt;/span>
@@ -575,10 +574,11 @@ Note that the pipeline definition itself is simpler because all infrastructure r
 &lt;p>The operator currently supports&lt;/p>
 &lt;ul>
 &lt;li>TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet&lt;/li>
-&lt;li>KFP standalone (a full KFP installation is not supported yet) and Vertex AI&lt;/li>
+&lt;li>Vertex AI&lt;/li>
 &lt;/ul>
 &lt;h2 id="tfx-pipelines-and-components">TFX Pipelines and Components&lt;/h2>
-&lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, etc.&lt;/p></description></item><item><title>Introduction</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/introduction/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/introduction/</guid><description>&lt;h2 id="compatibility">Compatibility&lt;/h2>
+&lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, etc.&lt;/p>
+&lt;p>For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/master/quickstart/penguin_pipeline/pipeline.py">penguin pipeline&lt;/a> for an example.&lt;/p></description></item><item><title>Introduction</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/introduction/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/introduction/</guid><description>&lt;h2 id="compatibility">Compatibility&lt;/h2>
 &lt;p>The operator currently supports&lt;/p>
 &lt;ul>
 &lt;li>TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet&lt;/li>
@@ -618,7 +618,7 @@ Pipeline training runs can be configured using this resource as follows:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-recurring-run&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">run&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/provider-namespace&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">parameters&lt;/span>:
@@ -749,7 +749,7 @@ One-off pipeline training runs can be configured using this resource as follows:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">generateName&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline-run-&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/provider-name&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">parameters&lt;/span>:
@@ -940,9 +940,9 @@ the first and only parameter to the entrypoint script.&lt;/p></description></ite
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">artifacts&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">serving-model&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">path&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;Pusher:pushed_model:0[pushed == 1]&amp;#39;&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment &lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">experimentName&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">pipeline&lt;/span>: &lt;span style="color:#ae81ff">penguin-pipeline:v1-abcdef&lt;/span>
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/provider-name&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">parameters&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> - &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">TRAINING_RUNS&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">value&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;100&amp;#39;&lt;/span>
@@ -1002,7 +1002,7 @@ and can be configured as follows:&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">penguin-experiment&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">spec&lt;/span>:
-&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/kfp&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">provider&lt;/span>: &lt;span style="color:#ae81ff">provider-namespace/provider-name&lt;/span>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">description&lt;/span>: &lt;span style="color:#e6db74">&amp;#39;An experiment for the penguin pipeline&amp;#39;&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="fields">Fields&lt;/h2>
 &lt;table>
@@ -1126,7 +1126,7 @@ this can also be used to reload a serving instance of a model with the newly tra
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> Normal Synced 78s kfp-operator Succeeded &lt;span style="color:#f92672">[&lt;/span>version: &lt;span style="color:#e6db74">&amp;#34;57be7f4-681dd8&amp;#34;&lt;/span>&lt;span style="color:#f92672">]&lt;/span>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="compiling-locally">Compiling locally&lt;/h2>
 &lt;p>The KFP-Operator&amp;rsquo;s compiler can be used locally for debugging purposes. This can be especially useful for troubleshooting environment variable and beam argument resolution.&lt;/p></description></item><item><title>Provider</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</guid><description>&lt;p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.
-e.g Kubeflow Pipelines or the Vertex AI Platform.
+e.g Vertex AI Platform.
 Providers configuration can be set using this resource and permissions for access can be configured via service accounts.&lt;/p>
 &lt;blockquote>
 &lt;p>Note: changing the provider of a resource that was previously managed by another provider will result in a resource error.
@@ -1135,16 +1135,7 @@ e.g Kubeflow Pipelines or the Vertex AI Platform.
 Providers configuration can be set using this resource and permissions for access can be configured via service accounts.&lt;/p>
 &lt;blockquote>
 &lt;p>Note: changing the provider of a resource that was previously managed by another provider will result in a resource error.
-Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
-&lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with
-Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
-submission, status monitoring, schedules and experiment management.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/kfp-operator/master/images/kfp.svg" alt="KFP Provider">&lt;/p>
-&lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
-&lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
-credentials for the Kubeflow. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p>
-&lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/legacy-v1/installation/standalone-deployment/">standalone mode&lt;/a>.
-Its configuration can be controlled using the &lt;a href="../../resources/provider/#kubeflow">KFP specific parameters within a Provider Resource&lt;/a>.&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
 &lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with
 Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
 submission, status monitoring, schedules and experiment management.&lt;/p>

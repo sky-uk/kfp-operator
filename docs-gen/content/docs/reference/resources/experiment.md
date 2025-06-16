@@ -12,7 +12,7 @@ kind: Experiment
 metadata:
   name: penguin-experiment
 spec:
-  provider: provider-namespace/kfp
+  provider: provider-namespace/provider-name
   description: 'An experiment for the penguin pipeline'
 ```
 

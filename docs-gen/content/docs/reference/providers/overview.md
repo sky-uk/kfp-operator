@@ -4,9 +4,8 @@ type: swagger
 weight: 1
 ---
 
-The KFP Operator supports multiple pipeline orchestration providers, currently including:
+The KFP Operator supports the following pipeline orchestration providers:
 - **[Vertex AI Integration](../vai)**
-- **[Kubeflow Pipelines Integration](../kfp)**
 
 You can also integrate the KFP Operator with custom providers by implementing a [custom Provider Service](#using-custom-providers).
 
@@ -30,7 +29,6 @@ The provider service is the first point of contact for [Run Completion Events](.
 external pipeline orchestration provider. In its current implementation, the KFP Operator supports:
 
 - **Vertex AI**: Run completion events are consumed from Pub/Sub.
-- **Kubeflow Pipelines**: Run completion events are consumed from workflows via Argo Events.
 
 For each provider, the events are processed to ensure accurate status reporting back to the KFP Operator.
 

@@ -75,7 +75,6 @@ Examples for these values can be found in the [test configuration]({{< ghblob "/
 ## Providers
 
 Please refer to your chosen provider instructions before proceeding. Supported providers are:
-- [Kubeflow Pipelines](../../reference/providers/kfp/#deployment-and-usage)
 - [Vertex AI](../../reference/providers/vai/#deployment-and-usage)
 
 To install your chosen provider, create a [Provider resource](../../reference/resources/provider) in a namespace that the operator can access (see the [rbac setup below]({{< ref "#provider-rbac" >}}) for reference). Once it is applied the Provider controller will reconcile and create the Provider Deployment and Provider Service within the same namespace that the Provider resource was applied.
@@ -152,40 +151,4 @@ subjects:
 - kind: ServiceAccount
   name: kfp-operator-kfp-service-account
   namespace: kfp-namespace
-```
-
-##### KubeFlow completion eventing required RBACs
-If using the `KubeFlowProvider` you will also need a `ClusterRole` for permission to interact with argo workflows for the
-[eventing system]({{< ref "../reference/run-completion" >}} "Run Completion Events").
-
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: kfp-operator-kfp-eventsource-server-role
-rules:
-- apiGroups:
-  - argoproj.io
-  resources:
-  - workflows
-  verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: kfp-operator-kfp-eventsource-server-rolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: kfp-operator-kfp-eventsource-server-role
-subjects:
-- kind: ServiceAccount
-  name:  kfp-operator-kfp-service-account
-  namespace:  kfp-operator-namespace
 ```
