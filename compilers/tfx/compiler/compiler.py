@@ -30,9 +30,15 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
 
         components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
 
-        compile_fn = compile_v1 if provider_config_contents['executionMode'] == 'v1' else compile_v2
+        dag_runner = kubeflow_dag_runner.KubeflowV2DagRunner(
+            config=kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
+                display_name=pipeline_config_contents['name'],
+                default_image=pipeline_config_contents['image']
+            ),
+            output_filename=output_file
+        )
 
-        compile_fn(pipeline_config_contents, output_file).run(
+        dag_runner.run(
             pipeline.Pipeline(
                 pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
                 pipeline_root=pipeline_root,
@@ -64,32 +70,6 @@ def load_fn(tfx_components: str, env: list):
 
 def sanitise_namespaced_pipeline_name(namespaced_name: str) -> str:
     return namespaced_name.replace("/", "-")
-
-
-def compile_v1(config: dict, output_filename: str):
-    metadata_config = kubeflow_dag_runner.get_default_kubeflow_metadata_config()
-
-    runner_config = kubeflow_dag_runner.KubeflowDagRunnerConfig(
-        kubeflow_metadata_config=metadata_config,
-        tfx_image=config['image']
-    )
-
-    return kubeflow_dag_runner.KubeflowDagRunner(
-        config=runner_config,
-        output_filename=output_filename
-    )
-
-
-def compile_v2(config: dict, output_filename: str):
-    runner_config = kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
-        display_name=config['name'],
-        default_image=config['image']
-    )
-
-    return kubeflow_dag_runner.KubeflowV2DagRunner(
-        config=runner_config,
-        output_filename=output_filename
-    )
 
 
 def pipeline_paths_for_config(pipeline_config: dict, provider_config: dict):
