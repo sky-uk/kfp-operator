@@ -11,7 +11,7 @@ require (
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
-	github.com/prometheus/client_golang v1.20.5
+	github.com/prometheus/client_golang v1.22.0
 	github.com/sky-uk/kfp-operator v0.6.0
 	github.com/sky-uk/kfp-operator/argo/common v0.0.0-20250127163801-188c8090ec65
 	github.com/sky-uk/kfp-operator/common v0.0.0-00010101000000-000000000000
@@ -74,7 +74,6 @@ require (
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/pointerstructure v1.2.1 // indirect
