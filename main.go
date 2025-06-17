@@ -17,9 +17,9 @@ limitations under the License.
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"github.com/samber/lo"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
 
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
@@ -89,8 +89,8 @@ func main() {
 			setupLog.Error(err, "unable to read the config file", "path", configFile)
 			os.Exit(1)
 		}
-		if err = json.Unmarshal(bytes, &ctrlConfig); err != nil {
-			setupLog.Error(err, "unable to parse the config file", "path", configFile)
+		if err = yaml.Unmarshal(bytes, &ctrlConfig); err != nil {
+			setupLog.Error(err, "unable to parse the config file", "path", configFile, "content", string(bytes))
 			os.Exit(1)
 		}
 		options.Controller = ctrlConfig.ControllerWrapper.ToController()
