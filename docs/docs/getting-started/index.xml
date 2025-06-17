@@ -12,11 +12,13 @@ move away from manual, error-prone, copy-and-paste deployments, and towards a &l
 self-service model&lt;/strong>.&lt;/p></description></item><item><title>Introduction</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/introduction/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/introduction/</guid><description>&lt;h2 id="compatibility">Compatibility&lt;/h2>
 &lt;p>The operator currently supports&lt;/p>
 &lt;ul>
-&lt;li>TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet&lt;/li>
-&lt;li>KFP standalone (a full KFP installation is not supported yet) and Vertex AI&lt;/li>
+&lt;li>TFX Pipelines with Python 3.7 and 3.9&lt;/li>
+&lt;li>&lt;a href="https://kubeflow-pipelines.readthedocs.io/">Kubeflow Pipelines SDK&lt;/a>&lt;/li>
+&lt;li>Vertex AI&lt;/li>
 &lt;/ul>
 &lt;h2 id="tfx-pipelines-and-components">TFX Pipelines and Components&lt;/h2>
-&lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, etc.&lt;/p></description></item><item><title>Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>&lt;p>We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p>
+&lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, etc.&lt;/p>
+&lt;p>For running a pipeline using the operator, only the list of TFX components needs to be returned. Everything else is done by the operator. See the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/master/quickstart/penguin_pipeline/pipeline.py">penguin pipeline&lt;/a> for an example.&lt;/p></description></item><item><title>Installation</title><link>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/getting-started/installation/</guid><description>&lt;p>We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p>
 &lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
 &lt;h2 id="prerequisites">Prerequisites&lt;/h2>
 &lt;ul>

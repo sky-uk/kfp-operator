@@ -12,7 +12,7 @@ kind: Run
 metadata:
   generateName: penguin-pipeline-run-
 spec:
-  provider: provider-namespace/kfp
+  provider: provider-namespace/provider-name
   pipeline: penguin-pipeline:v1-abcdef
   experimentName: penguin-experiment
   parameters:

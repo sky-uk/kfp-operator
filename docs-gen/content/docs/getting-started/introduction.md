@@ -6,8 +6,9 @@ weight: 2
 ## Compatibility
 
 The operator currently supports
-- TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet
-- KFP standalone (a full KFP installation is not supported yet) and Vertex AI
+- TFX Pipelines with Python 3.7 and 3.9
+- [Kubeflow Pipelines SDK](https://kubeflow-pipelines.readthedocs.io/)
+- Vertex AI
 
 ## TFX Pipelines and Components
 

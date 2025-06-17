@@ -4,4 +4,4 @@ metadata:
   name: penguin-experiment
 spec:
   description: An experiment for the penguin pipeline
-  provider: provider-namespace/kfp
+  provider: provider-namespace/provider-name

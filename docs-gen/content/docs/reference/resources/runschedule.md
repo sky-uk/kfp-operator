@@ -16,9 +16,9 @@ spec:
   artifacts:
   - name: serving-model
     path: 'Pusher:pushed_model:0[pushed == 1]'
-  experimentName: penguin-experiment  
+  experimentName: penguin-experiment
   pipeline: penguin-pipeline:v1-abcdef
-  provider: provider-namespace/kfp
+  provider: provider-namespace/provider-name
   parameters:
   - name: TRAINING_RUNS
     value: '100'
