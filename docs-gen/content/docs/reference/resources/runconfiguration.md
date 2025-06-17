@@ -13,7 +13,7 @@ metadata:
   name: penguin-pipeline-recurring-run
 spec:
   run:
-    provider: provider-namespace/provider-namespace
+    provider: provider-namespace/provider-name
     pipeline: penguin-pipeline:v1-abcdef
     experimentName: penguin-experiment
     parameters:
