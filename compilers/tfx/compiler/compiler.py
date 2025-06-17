@@ -41,7 +41,6 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         dag_runner.run(
             pipeline.Pipeline(
                 pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
-                pipeline_root=pipeline_root,
                 components=components,
                 enable_cache=False,
                 metadata_connection_config=None,
