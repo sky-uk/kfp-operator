@@ -28,8 +28,12 @@ type ProviderList struct {
 }
 
 type ProviderSpec struct {
-	ServiceImage  string `json:"serviceImage" yaml:"serviceImage"`
-	Image         string `json:"image" yaml:"image"`
+	ServiceImage string `json:"serviceImage" yaml:"serviceImage"`
+	Image        string `json:"image" yaml:"image"`
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:deprecatedversion=true
+	// +kubebuilder:default=""
+	// Deprecated: This field is ignored and will be removed in future versions.
 	ExecutionMode string `json:"executionMode" yaml:"executionMode"`
 	// +kubebuilder:validation:Pattern:=`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`
 	ServiceAccount      string                           `json:"serviceAccount" yaml:"serviceAccount"`
