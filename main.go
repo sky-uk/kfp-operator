@@ -81,7 +81,7 @@ func main() {
 
 	var err error
 	ctrlConfig := config.KfpControllerConfig{}
-	options := ctrl.Options{Scheme: scheme}
+	options := ctrl.Options{Scheme: scheme, HealthProbeBindAddress: ":8081"}
 
 	if configFile != "" {
 		bytes, err := os.ReadFile(configFile)
