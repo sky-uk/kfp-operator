@@ -1,4 +1,4 @@
-//go:generate stringer -type sendEventsMetricAttribute
+//go:generate go tool stringer -type sendEventsMetricAttribute
 
 package sinks
 
