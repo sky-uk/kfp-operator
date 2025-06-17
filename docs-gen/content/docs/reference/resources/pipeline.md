@@ -16,7 +16,7 @@ metadata:
   name: penguin-pipeline
 spec:
   provider: provider-namespace/provider-namespace
-  image: kfp-quickstart:v1
+  image: quickstart:v1
   framework:
     name: tfx
     parameters:
