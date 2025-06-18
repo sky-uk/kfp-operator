@@ -19,18 +19,18 @@ Any referenced resources must always match the provider of the referencing resou
 | `spec.serviceAccount`      | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                                                                                                | `kfp-operator-vertex-ai`                  |
 | `spec.pipelineRootStorage` | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline                                                                            | `gcs://kubeflow-pipelines-bucket`         |
 | `spec.parameters`          | Parameters specific to each provider, i.e. [VAI](#vertex-ai-specific-parameters)                                                                                                                                                                                                                              | `gcs://kubeflow-pipelines-bucket`         |
-| `spec.frameworks[]`        | A list of Frameworks [see framework](#Framework) supported by the provider.                                                                                                                                                                                                                                   |                                           |
+| `spec.frameworks[]`        | A list of Frameworks [see framework](#framework) supported by the provider.                                                                                                                                                                                                                                   |                                           |
 | `spec.allowedNamespaces[]` | A list of namespaces that resources can reference this provider from. If a resource tries to reference this provider from a namespace not in the `allowedNamespaces` list, the resource will fail. If no allowedNamespaces list is configured, then resources can reference this provider from any namespace. | ```- default ```                          |
 
-### Framework:
+### Framework
 
-| Name                  | Description                                                                                                                                                                                                                                                                                                   | Example                                                      |
-|:----------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------|
-| `name`                | Name of the framework.                                                                                                                                                                                                                                                                                        | `tfx`                                                        |
-| `image`               | Framework image.                                                                                                                                                                                                                                                                                              | `ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag` |
-| `patches[]`           | A list of JSON patches [See Patch](#Patch),  that will be applied to every `Pipeline` resource that uses this `Provider` before it's passed (as JSON) to the corresponding Argo Workflow for processing.                                                                                                      |                                                              |
+| Name                  | Description                                                                                                                                                                                              | Example                                                      |
+|:----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------|
+| `name`                | Name of the framework.                                                                                                                                                                                   | `tfx`                                                        |
+| `image`               | Framework image.                                                                                                                                                                                         | `ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag` |
+| `patches[]`           | A list of JSON patches [See Patch](#patch),  that will be applied to every `Pipeline` resource that uses this `Provider` before it's passed (as JSON) to the corresponding Argo Workflow for processing. |                                                              |
 
-### Patch:
+### Patch
 
 | Name      | Description                                                                                                                                                                                                                      | Example                                                                                                             |
 |:----------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------|
@@ -38,7 +38,7 @@ Any referenced resources must always match the provider of the referencing resou
 | `payload` | The patch to be applied to the pipeline resource definition JSON.                                                                                                                                                                | `[{ "op": "add", "path": "/framework/parameters/beamArgs/0", "value": { "name": "newArg", "value": "newValue" } }]` |
 
 
-### Vertex AI:
+### Vertex AI
 
 ```yaml
 apiVersion: pipelines.kubeflow.org/v1beta1
