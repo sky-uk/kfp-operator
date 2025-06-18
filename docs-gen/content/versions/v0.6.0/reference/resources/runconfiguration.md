@@ -14,7 +14,7 @@ metadata:
 spec:
   run:
     provider: kfp
-    pipeline: penguin-pipeline:v1-abcdef
+    pipeline: penguin-pipeline
     experimentName: penguin-experiment
     runtimeParameters:
     - name: TRAINING_RUNS

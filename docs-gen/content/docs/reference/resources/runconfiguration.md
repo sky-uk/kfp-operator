@@ -14,7 +14,7 @@ metadata:
 spec:
   run:
     provider: provider-namespace/provider-name
-    pipeline: penguin-pipeline:v1-abcdef
+    pipeline: penguin-pipeline
     experimentName: penguin-experiment
     parameters:
     - name: TRAINING_RUNS
