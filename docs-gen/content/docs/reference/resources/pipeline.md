@@ -29,7 +29,7 @@ spec:
 ## Fields
 
 | Name                        | Description                                                                                                                                                                 |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------------------| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `spec.provider`             | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`.                                     |
 | `spec.image`                | Container image containing TFX component definitions.                                                                                                                       |
 | `spec.env`                  | List of named objects. These will be provided to the `tfxComponents` function as environment variables.                                                                     |
