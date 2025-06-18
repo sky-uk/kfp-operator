@@ -21,7 +21,3 @@ updates:
     rebase-strategy: "disabled"
     allow:
     - dependency-type: "direct"
-    ignore:
-    - dependency-name: "*"
-      update-types:
-      - "version-update:semver-major"
