@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"github.com/samber/lo"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
 
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
@@ -80,14 +81,19 @@ func main() {
 
 	var err error
 	ctrlConfig := config.KfpControllerConfig{}
-	options := ctrl.Options{Scheme: scheme}
+	options := ctrl.Options{Scheme: scheme, HealthProbeBindAddress: ":8081"}
 
 	if configFile != "" {
-		options, err = options.AndFrom(ctrl.ConfigFile().AtPath(configFile).OfKind(&ctrlConfig))
+		bytes, err := os.ReadFile(configFile)
 		if err != nil {
-			setupLog.Error(err, "unable to load the config file")
+			setupLog.Error(err, "unable to read the config file", "path", configFile)
 			os.Exit(1)
 		}
+		if err = yaml.Unmarshal(bytes, &ctrlConfig); err != nil {
+			setupLog.Error(err, "unable to parse the config file", "path", configFile, "content", string(bytes))
+			os.Exit(1)
+		}
+		options.Controller = ctrlConfig.ControllerWrapper.ToController()
 	}
 
 	// TODO: This is temporary whilst have conversion from v1alpha5/6 to v1beta1, this is to be removed once v1alpha6 is removed.
