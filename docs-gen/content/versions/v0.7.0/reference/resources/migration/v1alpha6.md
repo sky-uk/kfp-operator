@@ -108,7 +108,8 @@ metadata:
 -   pipelines.kubeflow.org/provider: vai
 spec:
 + provider: vai
-  pipeline: penguin-pipeline:v1-abcdef
+  pipeline: penguin-pipeline
+
   experimentName: penguin-experiment
   runtimeParameters:
   - name: TRAINING_RUNS
@@ -144,7 +145,8 @@ metadata:
 -   pipelines.kubeflow.org/provider: vai
 spec:
 + provider: vai
-  pipeline: penguin-pipeline:v1-abcdef
+  pipeline: penguin-pipeline
+
   experimentName: penguin-experiment
  runtimeParameters:
   - name: TRAINING_RUNS

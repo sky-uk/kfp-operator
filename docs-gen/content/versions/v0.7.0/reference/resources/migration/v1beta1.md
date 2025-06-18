@@ -105,7 +105,8 @@ metadata:
 spec:
 - provider: vai
 + provider: my-provider-namespace/vai
-  pipeline: penguin-pipeline:v1-abcdef
+  pipeline: penguin-pipeline
+
   experimentName: penguin-experiment
 - runtimeParameters:
 + parameters:
@@ -142,7 +143,8 @@ metadata:
 spec:
 - provider: vai
 + provider: my-provider-namespace/vai
-  pipeline: penguin-pipeline:v1-abcdef
+  pipeline: penguin-pipeline
+
   experimentName: penguin-experiment
 - runtimeParameters:
 + parameters:
