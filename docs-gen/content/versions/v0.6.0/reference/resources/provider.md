@@ -19,7 +19,7 @@ Providers configuration can be set using this resource and permissions for acces
 
 <sup>*</sup> field automatically populated by Helm based on provider type
 
-### Kubeflow:
+### Kubeflow
 
 ```yaml
 apiVersion: pipelines.kubeflow.org/v1alpha6
@@ -51,7 +51,7 @@ spec:
 | `restKfpApiUrl`            | The exposed restful endpoint used to interact with Kubeflow pipelines     |
 
 
-### Vertex AI:
+### Vertex AI
 
 ```yaml
 apiVersion: pipelines.kubeflow.org/v1alpha6
