@@ -113,6 +113,7 @@ var _ = BeforeSuite(func() {
 	Expect(NewRunConfigurationReconciler(ec, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewRunScheduleReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewExperimentReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
+	Expect(pipelineshub.NewPipelineValidatorWebhook(k8sManager)).To(Succeed())
 	Expect((&pipelineshub.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 	Expect((&pipelineshub.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
 
