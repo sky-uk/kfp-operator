@@ -35,8 +35,8 @@ It then submits the pipeline to Kubeflow and manages versions accordingly.&lt;/p
  &lt;td>Container image containing TFX component definitions.&lt;/td>
  &lt;/tr>
  &lt;tr>
- &lt;td>&lt;code>spec.env&lt;/code>&lt;/td>
- &lt;td>List of named objects. These will be provided to the &lt;code>tfxComponents&lt;/code> function as environment variables.&lt;/td>
+ &lt;td>&lt;code>spec.env[]&lt;/code>&lt;/td>
+ &lt;td>List of named objects. These will be provided by the compiler to the pipeline/components function as environment variables&lt;/td>
  &lt;/tr>
  &lt;tr>
  &lt;td>&lt;code>spec.framework.name&lt;/code>&lt;/td>
