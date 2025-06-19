@@ -34,6 +34,7 @@ func TestPipelineControllersDecoupledSuite(t *testing.T) {
 var (
 	testEnv    *envtest.Environment
 	k8sManager manager.Manager
+	cancel     context.CancelFunc
 )
 
 const (
@@ -141,8 +142,12 @@ var _ = BeforeSuite(func() {
 	)
 	Expect(K8sClient.Create(Ctx, &providerSvc)).To(Succeed())
 
+	var managerCtx context.Context
+	managerCtx, cancel = context.WithCancel(ctrl.SetupSignalHandler())
+
 	go func() {
-		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).To(Succeed())
+		defer GinkgoRecover()
+		Expect(k8sManager.Start(managerCtx)).To(Succeed())
 	}()
 })
 
@@ -174,6 +179,8 @@ var _ = BeforeEach(func() {
 
 var _ = AfterSuite(func() {
 	By("tearing down the test environment")
+
+	cancel()
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
