@@ -14,19 +14,14 @@ from tfx.orchestration import pipeline
 @click.option('--output_file', help='Output file path', required=True)
 def compile(pipeline_config: str, provider_config: str, output_file: str):
     """Compiles TFX components into a Kubeflow Pipelines pipeline definition"""
-    with open(pipeline_config, "r") as pipeline_stream, open(provider_config, "r") as provider_stream:
+    with open(pipeline_config, "r") as pipeline_stream:
         pipeline_config_contents = yaml.safe_load(pipeline_stream)
-        provider_config_contents = yaml.safe_load(provider_stream)
 
-        click.secho(f'Compiling with pipeline: {pipeline_config_contents} and provider {provider_config_contents} ',
-                    fg='green')
-
-        pipeline_root, temp_location = pipeline_paths_for_config(pipeline_config_contents, provider_config_contents)
+        click.secho(f'Compiling with pipeline: {pipeline_config_contents}', fg='green')
 
         framework_parameters = pipeline_config_contents['framework']['parameters']
         pipeline_beam_args = framework_parameters.get('beamArgs', [])
         beam_cli_args = name_values_to_cli_args(pipeline_beam_args)
-        beam_cli_args.append(f"--temp_location={temp_location}")
 
         components = load_fn(framework_parameters.get('components', ""), pipeline_config_contents.get('env', []))()
 
@@ -41,7 +36,6 @@ def compile(pipeline_config: str, provider_config: str, output_file: str):
         dag_runner.run(
             pipeline.Pipeline(
                 pipeline_name=sanitise_namespaced_pipeline_name(pipeline_config_contents['name']),
-                pipeline_root=pipeline_root,
                 components=components,
                 enable_cache=False,
                 metadata_connection_config=None,
@@ -70,11 +64,6 @@ def load_fn(tfx_components: str, env: list):
 
 def sanitise_namespaced_pipeline_name(namespaced_name: str) -> str:
     return namespaced_name.replace("/", "-")
-
-
-def pipeline_paths_for_config(pipeline_config: dict, provider_config: dict):
-    pipeline_root = provider_config['pipelineRootStorage'] + '/' + pipeline_config['name']
-    return pipeline_root, pipeline_root + "/tmp"
 
 
 def name_values_to_cli_args(name_values: list):

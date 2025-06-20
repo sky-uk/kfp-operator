@@ -71,11 +71,3 @@ def test_sanitise_namespaced_pipeline_name():
     for input, output in tests:
         sanitised = compiler.sanitise_namespaced_pipeline_name(input)
         assert sanitised == output, f"Expected {output}, got {sanitised}"
-
-
-def test_compiler_get_pipeline_root():
-    provider_config_contents = {"pipelineRootStorage": "storage"}
-    assert (
-        compiler.get_pipeline_root(provider_config_contents, "pipeline")
-        == "storage/pipeline"
-    )

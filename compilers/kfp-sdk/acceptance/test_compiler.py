@@ -53,4 +53,3 @@ def test_compiler__compile(tmp_path):
             pipeline = yaml.safe_load(f.read())
 
         assert pipeline["schemaVersion"] == "2.1.0"
-        assert pipeline["defaultPipelineRoot"] == "gs://bucket/test"
