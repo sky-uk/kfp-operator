@@ -1,12 +1,25 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Examples on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/examples/</link><description>Recent content in Examples on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/examples/index.xml" rel="self" type="application/rss+xml"/><item><title>Pipeline Training</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/examples/pipeline_training/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/examples/pipeline_training/</guid><description>&lt;p>This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p>
-&lt;p>The examples for this tutorial can be found on &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/versions/v0.7.0/quickstart">GitHub&lt;/a>.&lt;/p>
-&lt;h2 id="1-build-the-pipeline">1. Build the Pipeline&lt;/h2>
-&lt;p>We use the same pipeline as the &lt;a href="https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple">TFX example&lt;/a> with a few modifications.&lt;/p>
-&lt;p>Create &lt;code>pipeline.py&lt;/code>.
-Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:&lt;/p></description></item><item><title>Pipeline Dependencies</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/examples/pipeline_dependencies/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/examples/pipeline_dependencies/</guid><description>&lt;p>Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p>
-&lt;ul>
-&lt;li>The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li>
-&lt;li>Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data&lt;/li>
-&lt;li>Serving a combined model of two or more pipelines&lt;/li>
-&lt;/ul>
-&lt;p>In this example, we break up the penguin example pipeline into two pipelines:&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Examples on KFP-Operator</title>
+    <link>http://localhost:1313/kfp-operator/versions/v0.7.0/examples/</link>
+    <description>Recent content in Examples on KFP-Operator</description>
+    <generator>Hugo</generator>
+    <language>en-gb</language>
+    <atom:link href="http://localhost:1313/kfp-operator/versions/v0.7.0/examples/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pipeline Training</title>
+      <link>http://localhost:1313/kfp-operator/versions/v0.7.0/examples/pipeline_training/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/kfp-operator/versions/v0.7.0/examples/pipeline_training/</guid>
+      <description>&lt;p&gt;This tutorial walks you through the creation of a simple TFX pipeline on Kubeflow Pipelines and shows you how to manage pipelines via Kubernetes Custom Resources.&lt;/p&gt;&#xA;&lt;p&gt;The examples for this tutorial can be found on &lt;a href=&#34;https://github.com/sky-uk/kfp-operator/blob/master/docs-gen/includes/versions/v0.7.0/quickstart&#34;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;h2 id=&#34;1-build-the-pipeline&#34;&gt;1. Build the Pipeline&lt;/h2&gt;&#xA;&lt;p&gt;We use the same pipeline as the &lt;a href=&#34;https://www.tensorflow.org/tfx/tutorials/tfx/penguin_simple&#34;&gt;TFX example&lt;/a&gt; with a few modifications.&lt;/p&gt;&#xA;&lt;p&gt;Create &lt;code&gt;pipeline.py&lt;/code&gt;.&#xA;Note that the pipeline definition itself is simpler because all infrastructure references, like pusher and pipeline root, will be injected by the operator before the pipeline is uploaded to Kubeflow:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Pipeline Dependencies</title>
+      <link>http://localhost:1313/kfp-operator/versions/v0.7.0/examples/pipeline_dependencies/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/kfp-operator/versions/v0.7.0/examples/pipeline_dependencies/</guid>
+      <description>&lt;p&gt;Pipeline dependencies allow splitting up larger machine learning pipelines into sub-pipelines. This is particularly useful when:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;The data of an earlier step changes at a lower frequency than the data for subsequent steps&lt;/li&gt;&#xA;&lt;li&gt;Outputs of an earlier step could be shared between pipelines to avoid re-processing the same data&lt;/li&gt;&#xA;&lt;li&gt;Serving a combined model of two or more pipelines&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;In this example, we break up the penguin example pipeline into two pipelines:&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
