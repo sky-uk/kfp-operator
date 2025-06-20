@@ -175,7 +175,7 @@ func main() {
 	}
 
 	if ctrlConfig.Spec.Multiversion {
-		if err = (&pipelineshub.Pipeline{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = pipelineshub.NewPipelineValidatorWebhook(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
 			os.Exit(1)
 		}
