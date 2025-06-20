@@ -9,7 +9,7 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-validating-webhook-configuration
 webhooks:
   - admissionReviewVersions:
-    - v1
+      - v1
     clientConfig:
       service:
         name: {{ include "kfp-operator.fullname" . }}-webhook-service
@@ -21,15 +21,15 @@ webhooks:
     failurePolicy: Fail
     name: vpipeline.kb.io
     rules:
-    - apiGroups:
-      - pipelines.kubeflow.org
-      apiVersions:
-      - v1beta1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pipelines
+      - apiGroups:
+          - pipelines.kubeflow.org
+        apiVersions:
+          - v1beta1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - pipelines
     sideEffects: None
   - admissionReviewVersions:
       - v1
