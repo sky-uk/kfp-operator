@@ -28,8 +28,8 @@ spec:
 | -------------------- | ------------------------------------------------------------------------------------------------------- |
 | `spec.image`         | Container image containing TFX component definitions.                                                   |
 | `spec.tfxComponents` | Fully qualified name of the Python function creating pipeline components.                               |
-| `spec.env`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables. |
-| `spec.beamArgs`      | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline.      |
+| `spec.env[]`           | List of named objects. These will be provided to the `tfxComponents` function as environment variables. |
+| `spec.beamArgs[]`      | List of named objects. These will be provided as `beam_pipeline_args` when compiling the pipeline.      |
 
 ## Versioning
 
