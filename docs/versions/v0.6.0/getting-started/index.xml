@@ -1,21 +1,32 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Getting Started on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/</link><description>Recent content in Getting Started on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/index.xml" rel="self" type="application/rss+xml"/><item><title>Overview</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/overview/</guid><description>&lt;p>The Kubeflow Pipelines Operator (KFP Operator) provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.
-A provider is a runtime environment for managing and executing ML pipelines and related resources.&lt;/p>
-&lt;h3 id="why-kfp-operator">Why KFP Operator&lt;/h3>
-&lt;p>We started this project to promote the best engineering practices in the Machine Learning process, while reducing the operational overhead associated with deploying, running and maintaining training pipelines. We wanted to move away from a manual, opaque, copy-and-paste style deployment and closer to a declarative, traceable, and self-serve approach.&lt;/p></description></item><item><title>Introduction</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/introduction/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/introduction/</guid><description>&lt;h2 id="compatibility">Compatibility&lt;/h2>
-&lt;p>The operator currently supports&lt;/p>
-&lt;ul>
-&lt;li>TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet&lt;/li>
-&lt;li>KFP standalone (a full KFP installation is not supported yet) and Vertex AI&lt;/li>
-&lt;/ul>
-&lt;h2 id="tfx-pipelines-and-components">TFX Pipelines and Components&lt;/h2>
-&lt;p>Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.&lt;/p></description></item><item><title>Installation</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.6.0/getting-started/installation/</guid><description>&lt;p>We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p>
-&lt;p>This guide assumes you are familiar with &lt;a href="https://helm.sh/">Helm&lt;/a>.&lt;/p>
-&lt;h2 id="prerequisites">Prerequisites&lt;/h2>
-&lt;ul>
-&lt;li>&lt;a href="https://argoproj.github.io/argo-workflows/installation/">Argo 3.1.6-3.3&lt;/a> installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
-&lt;li>&lt;a href="https://argoproj.github.io/argo-events/installation/">Argo-Events 1.7.4+&lt;/a> installed cluster-wide (see &lt;a href="../../reference/configuration">configuration&lt;/a>).&lt;/li>
-&lt;/ul>
-&lt;h2 id="kfp-operator">KFP-Operator&lt;/h2>
-&lt;p>To get a working installation you will need to install both the KFP-Operator and at least one provider (&lt;a href="#providers" title="Providers">see below&lt;/a>)&lt;/p>
-&lt;h3 id="build-and-install">Build and Install&lt;/h3>
-&lt;p>Create basic &lt;code>values.yaml&lt;/code> with the following content:&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Getting Started on KFP-Operator</title>
+    <link>http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/</link>
+    <description>Recent content in Getting Started on KFP-Operator</description>
+    <generator>Hugo</generator>
+    <language>en-gb</language>
+    <atom:link href="http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Overview</title>
+      <link>http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/overview/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/overview/</guid>
+      <description>&lt;p&gt;The Kubeflow Pipelines Operator (KFP Operator) provides a declarative API for managing and running ML pipelines with Resource Definitions on multiple providers.&#xA;A provider is a runtime environment for managing and executing ML pipelines and related resources.&lt;/p&gt;&#xA;&lt;h3 id=&#34;why-kfp-operator&#34;&gt;Why KFP Operator&lt;/h3&gt;&#xA;&lt;p&gt;We started this project to promote the best engineering practices in the Machine Learning process, while reducing the operational overhead associated with deploying, running and maintaining training pipelines. We wanted to move away from a manual, opaque, copy-and-paste style deployment and closer to a declarative, traceable, and self-serve approach.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Introduction</title>
+      <link>http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/introduction/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/introduction/</guid>
+      <description>&lt;h2 id=&#34;compatibility&#34;&gt;Compatibility&lt;/h2&gt;&#xA;&lt;p&gt;The operator currently supports&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;TFX Pipelines with Python 3.7 and 3.9 - pipelines created using the KFP DSL are not supported yet&lt;/li&gt;&#xA;&lt;li&gt;KFP standalone (a full KFP installation is not supported yet) and Vertex AI&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;tfx-pipelines-and-components&#34;&gt;TFX Pipelines and Components&lt;/h2&gt;&#xA;&lt;p&gt;Unlike imperative Kubeflow Pipelines deployments, the operator takes care of providing all environment-specific configuration and setup for the pipelines. Pipeline creators therefore don&amp;rsquo;t have to provide DAG runners, metadata configs, serving directories, etc. Furthermore, pusher is not required and the operator can extend the pipeline with this very environment-specific component.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Installation</title>
+      <link>http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/installation/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/kfp-operator/versions/v0.6.0/getting-started/installation/</guid>
+      <description>&lt;p&gt;We recommend the installation using Helm as it allows a declarative approach to managing Kubernetes resources.&lt;/p&gt;&#xA;&lt;p&gt;This guide assumes you are familiar with &lt;a href=&#34;https://helm.sh/&#34;&gt;Helm&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;h2 id=&#34;prerequisites&#34;&gt;Prerequisites&lt;/h2&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://argoproj.github.io/argo-workflows/installation/&#34;&gt;Argo 3.1.6-3.3&lt;/a&gt; installed cluster-wide or into the namespace where the operator&amp;rsquo;s workflows run (see &lt;a href=&#34;../../reference/configuration&#34;&gt;configuration&lt;/a&gt;).&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://argoproj.github.io/argo-events/installation/&#34;&gt;Argo-Events 1.7.4+&lt;/a&gt; installed cluster-wide (see &lt;a href=&#34;../../reference/configuration&#34;&gt;configuration&lt;/a&gt;).&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h2 id=&#34;kfp-operator&#34;&gt;KFP-Operator&lt;/h2&gt;&#xA;&lt;p&gt;To get a working installation you will need to install both the KFP-Operator and at least one provider (&lt;a href=&#34;#providers&#34; title=&#34;Providers&#34;&gt;see below&lt;/a&gt;)&lt;/p&gt;&#xA;&lt;h3 id=&#34;build-and-install&#34;&gt;Build and Install&lt;/h3&gt;&#xA;&lt;p&gt;Create basic &lt;code&gt;values.yaml&lt;/code&gt; with the following content:&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

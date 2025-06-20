@@ -9,3 +9,6 @@ spec:
     name: tfx
     parameters:
       pipeline: penguin_pipeline.pipeline.create_components
+      beamArgs:
+      - name: anArg
+        value: aValue
