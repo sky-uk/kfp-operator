@@ -82,8 +82,8 @@ test: fmt vet unit-test decoupled-test ## Run all tests
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test-all
 
-test-triggers: ## Run all tests for triggers
-	$(MAKE) -C triggers/run-completion-event-trigger test functional-test
+test-triggers: ## Run all tests for triggers. TODO: it only runs the functional
+	$(MAKE) -C triggers/run-completion-event-trigger functional-test
 
 test-provider-service: ## Run all tests for provider-service
 	$(MAKE) -C provider-service test
