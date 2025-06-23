@@ -46,7 +46,9 @@ git-status-check: ## Check if there are uncommitted or untracked files
 	@if [ -n "$$(git status -s)" ]; then echo "Uncommitted or untracked files: "; git status -s ; exit 1; fi
 
 decoupled-test: manifests generate ## Run decoupled acceptance tests
-	$(call envtest-run,go test ./... -tags=decoupled -coverprofile cover.out)
+	$(call envtest-run,go test ./controllers/pipelines/... -tags=decoupled -coverprofile cover.out)
+	go test ./controllers/webhook/... -tags=decoupled
+	$(MAKE) -C provider-service decoupled-test
 
 ARGO_VERSION=$(shell sed -n 's/[^ tab]*github.com\/argoproj\/argo-workflows\/v3 \(v[.0-9]*\)[^.0-9]*/\1/p' <go.mod)
 integration-test-up: ## Spin up a minikube cluster for integration tests
@@ -85,7 +87,7 @@ test: fmt vet unit-test decoupled-test functional-test ## Run all tests
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test-all
 
-test-triggers: ## Run all tests for triggers.
+test-triggers: ## Run all tests for triggers
 	$(MAKE) -C triggers/run-completion-event-trigger test
 
 test-provider-service: ## Run all tests for provider-service
