@@ -77,18 +77,21 @@ integration-test-down: ## Tear down the minikube cluster
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
 
-test: fmt vet unit-test decoupled-test ## Run all tests
+functional-test: ## Run functional tests
+	$(MAKE) -C triggers/run-completion-event-trigger functional-test
+
+test: fmt vet unit-test decoupled-test functional-test ## Run all tests
 
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test-all
 
-test-triggers: ## Run all tests for triggers. TODO: it only runs the functional
-	$(MAKE) -C triggers/run-completion-event-trigger functional-test
+test-triggers: ## Run all tests for triggers.
+	$(MAKE) -C triggers/run-completion-event-trigger test
 
 test-provider-service: ## Run all tests for provider-service
 	$(MAKE) -C provider-service test
 
-test-all: test helm-test-operator test-triggers test-provider-service test-compilers ## Run all tests
+test-all: test helm-test-operator test-provider-service test-compilers ## Run all tests
 
 integration-test-all: integration-test ## Run all integration tests
 	$(MAKE) -C compilers integration-test-all
