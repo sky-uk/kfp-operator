@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/samber/lo"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -73,6 +74,25 @@ func (p *PipelineValidator) ValidateCreate(
 			},
 		)
 	}
+
+	providerFrameworkNames := lo.Map(provider.Spec.Frameworks, func(f Framework, _ int) string {
+		return f.Name
+	})
+
+	if !lo.Contains(providerFrameworkNames, pipeline.Spec.Framework.Name) {
+		return nil, apierrors.NewInvalid(
+			obj.GetObjectKind().GroupVersionKind().GroupKind(),
+			fmt.Sprintf("%s/%s", pipeline.GetNamespacedName().Namespace, pipeline.GetNamespacedName().Name),
+			[]*field.Error{
+				field.NotSupported(
+					field.NewPath("spec", "framework"),
+					pipeline.Spec.Framework.Name,
+					providerFrameworkNames,
+				),
+			},
+		)
+	}
+
 	return nil, nil
 }
 
