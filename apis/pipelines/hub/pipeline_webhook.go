@@ -19,7 +19,7 @@ func NewPipelineValidatorWebhook(mgr ctrl.Manager) error {
 		For(&Pipeline{}).
 		WithValidator(
 			&PipelineValidator{
-				client: mgr.GetClient(),
+				reader: mgr.GetClient(),
 			},
 		).
 		Complete()
@@ -29,7 +29,7 @@ func NewPipelineValidatorWebhook(mgr ctrl.Manager) error {
 //+kubebuilder:object:generate=false
 
 type PipelineValidator struct {
-	client client.Client
+	reader client.Reader
 }
 
 var _ webhook.CustomValidator = &PipelineValidator{}
@@ -41,21 +41,17 @@ func (p *PipelineValidator) ValidateCreate(
 	pipeline, ok := obj.(*Pipeline)
 
 	if !ok {
-		return nil, apierrors.NewInvalid(
-			obj.GetObjectKind().GroupVersionKind().GroupKind(),
-			"dunno",
-			[]*field.Error{
-				field.TypeInvalid(
-					field.NewPath("kind"),
-					obj,
-					"incorrect kind",
-				),
-			},
+		return nil, apierrors.NewBadRequest(
+			fmt.Sprintf(
+				"Got kind=%v; expected kind=%v",
+				obj.GetObjectKind().GroupVersionKind().GroupKind(),
+				GroupVersion.WithKind(Pipeline{}.GetKind()).GroupKind(),
+			),
 		)
 	}
 
 	provider := Provider{}
-	if err = p.client.Get(
+	if err = p.reader.Get(
 		ctx,
 		client.ObjectKey{
 			Namespace: pipeline.Spec.Provider.Namespace,
