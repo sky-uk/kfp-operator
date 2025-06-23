@@ -10,4 +10,4 @@ The KFP Operator supports multiple pipeline frameworks, including:
 - [TFX](https://www.tensorflow.org/tfx)
 - [KFP SDK](https://kubeflow-pipelines.readthedocs.io/)
 
-If supported by your chosen [Provider](../providers/overview/), a custom framework can also be added.
+Custom frameworks can also be added if supported by your chosen [Provider](../providers/overview/). 

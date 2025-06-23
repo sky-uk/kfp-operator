@@ -1,18 +1,8 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Operator Manual on KFP-Operator</title>
-    <link>http://localhost:1313/kfp-operator/versions/v0.7.0/operator-manual/</link>
-    <description>Recent content in Operator Manual on KFP-Operator</description>
-    <generator>Hugo</generator>
-    <language>en-gb</language>
-    <atom:link href="http://localhost:1313/kfp-operator/versions/v0.7.0/operator-manual/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Upgrade Guide</title>
-      <link>http://localhost:1313/kfp-operator/versions/v0.7.0/operator-manual/upgrade-guide/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/kfp-operator/versions/v0.7.0/operator-manual/upgrade-guide/</guid>
-      <description>&lt;h2 id=&#34;upgrading-to-a-new-crd-version&#34;&gt;Upgrading to a New CRD Version&lt;/h2&gt;&#xA;&lt;p&gt;Upgrading the KFP Operator to a new CRD version is quite simple. These are the steps you need to follow:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Make sure the &lt;code&gt;manager.multiversion.storedVersion&lt;/code&gt; field in your Helm values (&lt;code&gt;values.yaml&lt;/code&gt; file) is set to the new version, e.g. &lt;code&gt;manager.multiversion.storedVersion: v1beta1&lt;/code&gt; (see &lt;a href=&#34;../../reference/configuration&#34;&gt;Configuration&lt;/a&gt; for a full list of configuration options). This field will always be set to the latest CRD version in the default Helm values, so you can omit this step if you&amp;rsquo;re not overriding the default values with your own &lt;code&gt;values.yaml&lt;/code&gt; file.&lt;/li&gt;&#xA;&lt;li&gt;Install/upgrade the operator in the desired cluster as normal.&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h2 id=&#34;upgrading-to-an-unstable-crd-version&#34;&gt;Upgrading to an Unstable CRD Version&lt;/h2&gt;&#xA;&lt;p&gt;If you want to upgrade the KFP Operator to a CRD version that hasn&amp;rsquo;t been marked as stable yet (e.g. from the latest commit on &lt;code&gt;master&lt;/code&gt; instead of a stable GitHub release) and you want to ensure that rolling back to a stable version is easy, you can override the default stored version to be the currently stable version:&lt;/p&gt;</description>
-    </item>
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Operator Manual on KFP-Operator</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/operator-manual/</link><description>Recent content in Operator Manual on KFP-Operator</description><generator>Hugo</generator><language>en-gb</language><atom:link href="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/operator-manual/index.xml" rel="self" type="application/rss+xml"/><item><title>Upgrade Guide</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/operator-manual/upgrade-guide/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/operator-manual/upgrade-guide/</guid><description>&lt;h2 id="upgrading-to-a-new-crd-version">Upgrading to a New CRD Version&lt;/h2>
+&lt;p>Upgrading the KFP Operator to a new CRD version is quite simple. These are the steps you need to follow:&lt;/p>
+&lt;ol>
+&lt;li>Make sure the &lt;code>manager.multiversion.storedVersion&lt;/code> field in your Helm values (&lt;code>values.yaml&lt;/code> file) is set to the new version, e.g. &lt;code>manager.multiversion.storedVersion: v1beta1&lt;/code> (see &lt;a href="../../reference/configuration">Configuration&lt;/a> for a full list of configuration options). This field will always be set to the latest CRD version in the default Helm values, so you can omit this step if you&amp;rsquo;re not overriding the default values with your own &lt;code>values.yaml&lt;/code> file.&lt;/li>
+&lt;li>Install/upgrade the operator in the desired cluster as normal.&lt;/li>
+&lt;/ol>
+&lt;h2 id="upgrading-to-an-unstable-crd-version">Upgrading to an Unstable CRD Version&lt;/h2>
+&lt;p>If you want to upgrade the KFP Operator to a CRD version that hasn&amp;rsquo;t been marked as stable yet (e.g. from the latest commit on &lt;code>master&lt;/code> instead of a stable GitHub release) and you want to ensure that rolling back to a stable version is easy, you can override the default stored version to be the currently stable version:&lt;/p></description></item></channel></rss>
