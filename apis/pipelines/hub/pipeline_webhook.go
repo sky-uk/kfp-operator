@@ -2,6 +2,8 @@ package v1beta1
 
 import (
 	"context"
+	"fmt"
+
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -62,7 +64,7 @@ func (p *PipelineValidator) ValidateCreate(
 	); err != nil {
 		return nil, apierrors.NewInvalid(
 			obj.GetObjectKind().GroupVersionKind().GroupKind(),
-			"fgggg",
+			fmt.Sprintf("%s/%s", pipeline.GetNamespacedName().Namespace, pipeline.GetNamespacedName().Name),
 			[]*field.Error{
 				field.NotFound(
 					field.NewPath("spec", "provider"),
