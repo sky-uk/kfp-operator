@@ -79,9 +79,6 @@ unit-test: manifests generate ## Run unit tests
 
 test: fmt vet unit-test decoupled-test ## Run all tests
 
-test-argo: ## Run all tests for argo
-	$(MAKE) -C argo/common test
-
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test-all
 
@@ -91,7 +88,7 @@ test-triggers: ## Run all tests for triggers
 test-provider-service: ## Run all tests for provider-service
 	$(MAKE) -C provider-service test
 
-test-all: test helm-test-operator test-argo test-triggers test-provider-service test-compilers ## Run all tests
+test-all: test helm-test-operator test-triggers test-provider-service test-compilers ## Run all tests
 
 integration-test-all: integration-test ## Run all integration tests
 	$(MAKE) -C compilers integration-test-all
