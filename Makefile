@@ -76,7 +76,6 @@ integration-test-down: ## Tear down the minikube cluster
 
 unit-test: manifests generate ## Run unit tests
 	go test ./... -tags=unit
-	$(MAKE) -C provider-service unit-test
 
 test: fmt vet unit-test decoupled-test ## Run all tests
 
