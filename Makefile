@@ -83,6 +83,9 @@ functional-test: ## Run functional tests
 	$(MAKE) -C triggers/run-completion-event-trigger functional-test
 
 test: fmt vet unit-test decoupled-test functional-test ## Run all tests
+	# TODO: after integraion tests can run on CI, run provider-service as part
+	# of integration-test
+	$(MAKE) -C provider-service integration-test
 
 test-compilers: ## Run all tests for compilers
 	$(MAKE) -C compilers test-all
@@ -93,7 +96,7 @@ test-triggers: ## Run all tests for triggers
 test-provider-service: ## Run all tests for provider-service
 	$(MAKE) -C provider-service test
 
-test-all: test helm-test-operator test-provider-service test-compilers ## Run all tests
+test-all: test helm-test-operator test-compilers ## Run all tests
 
 integration-test-all: integration-test ## Run all integration tests
 	$(MAKE) -C compilers integration-test-all
