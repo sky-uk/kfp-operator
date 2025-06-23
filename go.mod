@@ -23,7 +23,7 @@ require (
 	github.com/nats-io/nats.go v1.43.0
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
-	github.com/prometheus/client_golang v1.20.5
+	github.com/prometheus/client_golang v1.22.0
 	github.com/samber/lo v1.50.0
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
