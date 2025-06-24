@@ -89,6 +89,19 @@ func (p *PipelineValidator) validate(ctx context.Context, obj runtime.Object) (w
 		)
 	}
 
+	if !lo.Contains(provider.Spec.AllowedNamespaces, pipeline.GetNamespacedName().Namespace) {
+		return nil, apierrors.NewInvalid(
+			obj.GetObjectKind().GroupVersionKind().GroupKind(),
+			fmt.Sprintf("%s/%s", pipeline.GetNamespacedName().Namespace, pipeline.GetNamespacedName().Name),
+			[]*field.Error{
+				field.Forbidden(
+					field.NewPath("metadata", "namespace"),
+					fmt.Sprintf("namespace %s is not allowed by provider %s", pipeline.GetNamespacedName().Namespace, provider.GetNamespacedName().String()),
+				),
+			},
+		)
+	}
+
 	providerFrameworkNames := lo.Map(provider.Spec.Frameworks, func(f Framework, _ int) string {
 		return f.Name
 	})
