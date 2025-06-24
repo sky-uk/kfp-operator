@@ -38,6 +38,24 @@ func (p *PipelineValidator) ValidateCreate(
 	ctx context.Context,
 	obj runtime.Object,
 ) (warnings admission.Warnings, err error) {
+	return p.validate(ctx, obj)
+}
+
+func (p *PipelineValidator) ValidateUpdate(
+	ctx context.Context,
+	_, newObj runtime.Object,
+) (warnings admission.Warnings, err error) {
+	return p.validate(ctx, newObj)
+}
+
+func (p *PipelineValidator) ValidateDelete(
+	_ context.Context,
+	_ runtime.Object,
+) (warnings admission.Warnings, err error) {
+	return nil, nil
+}
+
+func (p *PipelineValidator) validate(ctx context.Context, obj runtime.Object) (warnings admission.Warnings, err error) {
 	pipeline, ok := obj.(*Pipeline)
 
 	if !ok {
@@ -89,19 +107,5 @@ func (p *PipelineValidator) ValidateCreate(
 		)
 	}
 
-	return nil, nil
-}
-
-func (p *PipelineValidator) ValidateUpdate(
-	ctx context.Context,
-	oldObj, newObj runtime.Object,
-) (warnings admission.Warnings, err error) {
-	return nil, nil
-}
-
-func (p *PipelineValidator) ValidateDelete(
-	ctx context.Context,
-	obj runtime.Object,
-) (warnings admission.Warnings, err error) {
 	return nil, nil
 }

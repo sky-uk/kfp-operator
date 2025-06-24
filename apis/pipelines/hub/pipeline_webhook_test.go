@@ -29,7 +29,7 @@ var _ = Describe("PipelineValidator Webhook", func() {
 		}
 	})
 
-	Context("ValidateCreate", func() {
+	Context("validate", func() {
 		When("k8s reader returns specified provider and it contains a matching framework", func() {
 			It("not error", func() {
 				pipeline := Pipeline{
@@ -59,8 +59,7 @@ var _ = Describe("PipelineValidator Webhook", func() {
 						}
 					},
 				)
-
-				warnings, err := validator.ValidateCreate(ctx, &pipeline)
+				warnings, err := validator.validate(ctx, &pipeline)
 				Expect(warnings).To(BeNil())
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -96,7 +95,7 @@ var _ = Describe("PipelineValidator Webhook", func() {
 					},
 				)
 
-				warnings, err := validator.ValidateCreate(ctx, &pipeline)
+				warnings, err := validator.validate(ctx, &pipeline)
 				Expect(warnings).To(BeNil())
 				var statusErr *apierrors.StatusError
 				Expect(errors.As(err, &statusErr)).To(BeTrue())
@@ -125,7 +124,7 @@ var _ = Describe("PipelineValidator Webhook", func() {
 					mock.AnythingOfType("*v1beta1.Provider"),
 				).Return(errors.New("No matching provider"))
 
-				warnings, err := validator.ValidateCreate(ctx, &pipeline)
+				warnings, err := validator.validate(ctx, &pipeline)
 				Expect(warnings).To(BeNil())
 				var statusErr *apierrors.StatusError
 				Expect(errors.As(err, &statusErr)).To(BeTrue())
@@ -134,7 +133,7 @@ var _ = Describe("PipelineValidator Webhook", func() {
 
 		When("the runtime object is not a pipeline", func() {
 			It("should return a StatusError", func() {
-				warnings, err := validator.ValidateCreate(ctx, &Run{})
+				warnings, err := validator.validate(ctx, &Run{})
 				Expect(warnings).To(BeNil())
 				var statusErr *apierrors.StatusError
 				Expect(errors.As(err, &statusErr)).To(BeTrue())
