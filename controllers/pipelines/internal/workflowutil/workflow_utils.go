@@ -54,19 +54,6 @@ func SetWorkflowProvider(
 	workflow *argo.Workflow,
 	provider pipelineshub.Provider,
 ) (*argo.Workflow, error) {
-	providerStr, err := json.Marshal(provider)
-	if err != nil {
-		return nil, err
-	}
-
-	workflow.Spec.Arguments.Parameters = append(
-		workflow.Spec.Arguments.Parameters,
-		argo.Parameter{
-			Name:  workflowconstants.ProviderConfigParameterName,
-			Value: argo.AnyStringPtr(providerStr),
-		},
-	)
-
 	namespacedProvider, err := provider.GetCommonNamespacedName().String()
 	if err != nil {
 		fmt.Println("WorkflowUtils: err: ", err)

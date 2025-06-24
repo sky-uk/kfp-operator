@@ -130,11 +130,6 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
-	providerConf, err := json.Marshal(provider.Spec)
-	if err != nil {
-		return nil, err
-	}
-
 	namespacedProvider, err := provider.GetCommonNamespacedName().String()
 	if err != nil {
 		return nil, err
@@ -156,10 +151,6 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		{
 			Name:  workflowconstants.ProviderNameParameterName,
 			Value: argo.AnyStringPtr(namespacedProvider),
-		},
-		{
-			Name:  workflowconstants.ProviderConfigParameterName,
-			Value: argo.AnyStringPtr(string(providerConf)),
 		},
 		{
 			Name: workflowconstants.ProviderServiceUrl,
@@ -201,11 +192,6 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		return nil, err
 	}
 
-	providerConf, err := json.Marshal(provider.Spec)
-	if err != nil {
-		return nil, err
-	}
-
 	namespacedProvider, err := provider.GetCommonNamespacedName().String()
 	if err != nil {
 		return nil, err
@@ -231,10 +217,6 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructUpdate
 		{
 			Name:  workflowconstants.ProviderNameParameterName,
 			Value: argo.AnyStringPtr(namespacedProvider),
-		},
-		{
-			Name:  workflowconstants.ProviderConfigParameterName,
-			Value: argo.AnyStringPtr(string(providerConf)),
 		},
 		{
 			Name: workflowconstants.ProviderServiceUrl,
@@ -271,11 +253,6 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 	providerSvc corev1.Service,
 	resource R,
 ) (*argo.Workflow, error) {
-	providerConf, err := json.Marshal(provider.Spec)
-	if err != nil {
-		return nil, err
-	}
-
 	namespacedProvider, err := provider.GetCommonNamespacedName().String()
 	if err != nil {
 		fmt.Println("ResourceWorkflowFactory: err: ", err)
@@ -302,10 +279,6 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructDeleti
 					{
 						Name:  workflowconstants.ProviderNameParameterName,
 						Value: argo.AnyStringPtr(namespacedProvider),
-					},
-					{
-						Name:  workflowconstants.ProviderConfigParameterName,
-						Value: argo.AnyStringPtr(string(providerConf)),
 					},
 					{
 						Name: workflowconstants.ProviderServiceUrl,

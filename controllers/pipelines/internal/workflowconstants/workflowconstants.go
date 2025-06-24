@@ -12,7 +12,6 @@ const (
 	OwnerNameLabelKey                   = apis.Group + "/owner.name"
 	OwnerNamespaceLabelKey              = apis.Group + "/owner.namespace"
 	ConstructionFailedError             = "error constructing workflow"
-	ProviderConfigParameterName         = "provider-config"
 	ProviderNameParameterName           = "provider-name"
 	ProviderServiceUrl                  = "provider-service-url"
 	ProviderOutputParameterName         = "provider-output"
