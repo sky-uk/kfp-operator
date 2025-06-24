@@ -10,9 +10,8 @@ from tfx.orchestration import pipeline
 
 @click.command()
 @click.option('--pipeline_config', help='Pipeline configuration in yaml format', required=True)
-@click.option('--provider_config', help='Provider configuration in yaml format', required=True)
 @click.option('--output_file', help='Output file path', required=True)
-def compile(pipeline_config: str, provider_config: str, output_file: str):
+def compile(pipeline_config: str, output_file: str):
     """Compiles TFX components into a Kubeflow Pipelines pipeline definition"""
     with open(pipeline_config, "r") as pipeline_stream:
         pipeline_config_contents = yaml.safe_load(pipeline_stream)
