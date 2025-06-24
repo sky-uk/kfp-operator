@@ -17,7 +17,8 @@ spec:
   - name: serving-model
     path: 'Pusher:pushed_model:0[pushed == 1]'
   experimentName: penguin-experiment  
-  pipeline: penguin-pipeline:v1-abcdef
+  pipeline: penguin-pipeline
+
   provider: provider-namespace/kfp
   parameters:
   - name: TRAINING_RUNS
@@ -49,6 +50,7 @@ Note the usage of `metadata.generateName` which tells Kubernetes to generate a n
 
 
 ### Schedule Definition
+
 | Name             | Description                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `cronExpression` | Cron expression to execute training runs. It can have 5 (standard cron) or 6 (first digit expresses seconds) fields. When a provider does not support the 6-field format, seconds will be omitted.                                                                                                                                                                                                                            |

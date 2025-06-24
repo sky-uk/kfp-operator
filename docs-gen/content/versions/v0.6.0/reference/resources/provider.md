@@ -19,7 +19,7 @@ Providers configuration can be set using this resource and permissions for acces
 
 <sup>*</sup> field automatically populated by Helm based on provider type
 
-### Kubeflow:
+### Kubeflow
 
 ```yaml
 apiVersion: pipelines.kubeflow.org/v1alpha6
@@ -45,13 +45,13 @@ spec:
 #### Kubeflow Specific Parameters
 | Name                                  | Description                                                               |
 | ------------------------------------- | ------------------------------------------------------------------------- |
-| `parameters.grpcKfpApiAddress`        | The exposed grpc endpoint used to interact with Kubeflow pipelines        |
-| `parameters.grpcMetadataStoreAddress` | The exposed grpc endpoint used for metadata store with Kubeflow pipelines |
-| `parameters.kfpNamespace`             | The namespace where Kubeflow is deployed                                  |
-| `parameters.restKfpApiUrl`            | The exposed restful endpoint used to interact with Kubeflow pipelines     |
+| `grpcKfpApiAddress`        | The exposed grpc endpoint used to interact with Kubeflow pipelines        |
+| `grpcMetadataStoreAddress` | The exposed grpc endpoint used for metadata store with Kubeflow pipelines |
+| `kfpNamespace`             | The namespace where Kubeflow is deployed                                  |
+| `restKfpApiUrl`            | The exposed restful endpoint used to interact with Kubeflow pipelines     |
 
 
-### Vertex AI:
+### Vertex AI
 
 ```yaml
 apiVersion: pipelines.kubeflow.org/v1alpha6
@@ -79,9 +79,9 @@ spec:
 #### Vertex AI Specific Parameters
 | Name                                               | Description                                                          |
 | -------------------------------------------------- | -------------------------------------------------------------------- |
-| `parameters.eventsourcePipelineEventsSubscription` | The eventsource subscription used to capture run-completion events   |
-| `parameters.maxConcurrentRunCount`                 | The number of pipelines that may run concurrently                    |
-| `parameters.pipelineBucket`                        | The output storage bucket for a trained pipeline model               |
-| `parameters.vaiJobServiceAccount`                  | The service account should be used by VAI when submitting a pipeline |
-| `parameters.vaiLocation`                           | The region VAI should run a pipeline within                          |
-| `parameters.vaiProject`                            | The project VAI should run a pipeline within                         |
+| `eventsourcePipelineEventsSubscription` | The eventsource subscription used to capture run-completion events   |
+| `maxConcurrentRunCount`                 | The number of pipelines that may run concurrently                    |
+| `pipelineBucket`                        | The output storage bucket for a trained pipeline model               |
+| `vaiJobServiceAccount`                  | The service account should be used by VAI when submitting a pipeline |
+| `vaiLocation`                           | The region VAI should run a pipeline within                          |
+| `vaiProject`                            | The project VAI should run a pipeline within                         |
