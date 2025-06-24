@@ -37,25 +37,28 @@ var _ webhook.CustomValidator = &PipelineValidator{}
 func (p *PipelineValidator) ValidateCreate(
 	ctx context.Context,
 	obj runtime.Object,
-) (warnings admission.Warnings, err error) {
+) (admission.Warnings, error) {
 	return p.validate(ctx, obj)
 }
 
 func (p *PipelineValidator) ValidateUpdate(
 	ctx context.Context,
 	_, newObj runtime.Object,
-) (warnings admission.Warnings, err error) {
+) (admission.Warnings, error) {
 	return p.validate(ctx, newObj)
 }
 
 func (p *PipelineValidator) ValidateDelete(
 	_ context.Context,
 	_ runtime.Object,
-) (warnings admission.Warnings, err error) {
+) (admission.Warnings, error) {
 	return nil, nil
 }
 
-func (p *PipelineValidator) validate(ctx context.Context, obj runtime.Object) (warnings admission.Warnings, err error) {
+func (p *PipelineValidator) validate(
+	ctx context.Context,
+	obj runtime.Object,
+) (admission.Warnings, error) {
 	pipeline, ok := obj.(*Pipeline)
 
 	if !ok {
@@ -69,7 +72,7 @@ func (p *PipelineValidator) validate(ctx context.Context, obj runtime.Object) (w
 	}
 
 	provider := Provider{}
-	if err = p.reader.Get(
+	if err := p.reader.Get(
 		ctx,
 		client.ObjectKey{
 			Namespace: pipeline.Spec.Provider.Namespace,
@@ -89,22 +92,32 @@ func (p *PipelineValidator) validate(ctx context.Context, obj runtime.Object) (w
 		)
 	}
 
-	if !lo.Contains(provider.Spec.AllowedNamespaces, pipeline.GetNamespacedName().Namespace) {
+	if len(provider.Spec.AllowedNamespaces) > 0 &&
+		!lo.Contains(
+			provider.Spec.AllowedNamespaces,
+			pipeline.GetNamespacedName().Namespace,
+		) {
 		return nil, apierrors.NewInvalid(
 			obj.GetObjectKind().GroupVersionKind().GroupKind(),
 			fmt.Sprintf("%s/%s", pipeline.GetNamespacedName().Namespace, pipeline.GetNamespacedName().Name),
 			[]*field.Error{
 				field.Forbidden(
 					field.NewPath("metadata", "namespace"),
-					fmt.Sprintf("namespace %s is not allowed by provider %s", pipeline.GetNamespacedName().Namespace, provider.GetNamespacedName().String()),
+					fmt.Sprintf(
+						"namespace %s is not allowed by provider %s",
+						pipeline.GetNamespacedName().Namespace,
+						provider.GetNamespacedName().String(),
+					),
 				),
 			},
 		)
 	}
 
-	providerFrameworkNames := lo.Map(provider.Spec.Frameworks, func(f Framework, _ int) string {
-		return f.Name
-	})
+	providerFrameworkNames := lo.Map(
+		provider.Spec.Frameworks, func(f Framework, _ int) string {
+			return f.Name
+		},
+	)
 
 	if !lo.Contains(providerFrameworkNames, pipeline.Spec.Framework.Name) {
 		return nil, apierrors.NewInvalid(

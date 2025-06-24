@@ -183,6 +183,45 @@ var _ = Describe("PipelineValidator Webhook", func() {
 			})
 		})
 
+		When("the provider allows all namespaces", func() {
+			It("should not error", func() {
+				pipeline := Pipeline{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "pipeline-ns",
+					},
+					Spec: PipelineSpec{
+						Provider: common.NamespacedName{
+							Name:      "provider-name",
+							Namespace: "provider-ns",
+						},
+						Framework: PipelineFramework{
+							Name: "framework-name",
+						},
+					},
+				}
+				mockReader.On(
+					"Get",
+					client.ObjectKey{
+						Namespace: pipeline.Spec.Provider.Namespace,
+						Name:      pipeline.Spec.Provider.Name,
+					},
+					mock.AnythingOfType("*v1beta1.Provider"),
+				).Return(nil).Run(
+					func(args mock.Arguments) {
+						provider := args.Get(1).(*Provider)
+						provider.Spec.Frameworks = []Framework{
+							{Name: "some-other-framework"},
+							{Name: pipeline.Spec.Framework.Name},
+						}
+					},
+				)
+
+				warnings, err := validator.validate(ctx, &pipeline)
+				Expect(warnings).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
 		When("the runtime object is not a pipeline", func() {
 			It("should return a StatusError", func() {
 				warnings, err := validator.validate(ctx, &Run{})
