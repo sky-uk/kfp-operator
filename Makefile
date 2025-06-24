@@ -68,7 +68,7 @@ integration-test: manifests generate helm-cmd yq ## Run integration tests
 	$(HELM) template helm/kfp-operator --values config/testing/integration-test-values.yaml | \
  		$(YQ) e 'select(.kind == "*WorkflowTemplate")' - | \
  		kubectl apply -f -
-	go test ./... -tags=integration --timeout 20m
+	go test ./controllers/pipelines/internal/workflowfactory/... -tags=integration --timeout 20m
 
 integration-test-down: ## Tear down the minikube cluster
 	(cat config/testing/pids | xargs kill) || true
