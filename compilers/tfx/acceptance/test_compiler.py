@@ -10,8 +10,6 @@ import pytest
 runner = CliRunner()
 config_file_path = 'acceptance/pipeline_conf.yaml'
 
-provider_config_file_path = 'acceptance/provider_conf.yaml'
-
 
 @pytest.fixture(scope="session", autouse=True)
 def setup():
@@ -22,7 +20,7 @@ def test_cli():
     with TemporaryDirectory() as tmp_dir:
         output_file_path = os.path.join(tmp_dir, 'pipeline.yaml')
 
-        result = runner.invoke(compiler.compile, ['--pipeline_config', config_file_path, '--provider_config', provider_config_file_path, '--output_file', output_file_path])
+        result = runner.invoke(compiler.compile, ['--pipeline_config', config_file_path, '--output_file', output_file_path])
 
         assert result.exit_code == 0
         assert os.stat(output_file_path).st_size != 0
