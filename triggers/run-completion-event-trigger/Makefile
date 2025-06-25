@@ -12,7 +12,7 @@ build: ## Build run-completion-event-trigger
 unit-test: ## Run unit tests
 	go test ./... -tags=unit
 
-functional-test: docker-build ## Run all functional tests
+functional-test: docker-build ## Run functional tests
 	docker compose up -d
 	go test ./... -tags=functional
 	docker compose down
