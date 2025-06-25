@@ -22,8 +22,8 @@ func (m *MockK8sClientReader) Get(
 func (m *MockK8sClientReader) List(
 	_ context.Context,
 	list client.ObjectList,
-	_ ...client.ListOption,
+	opts ...client.ListOption,
 ) error {
-	args := m.Called(list)
+	args := m.Called(list, opts)
 	return args.Error(0)
 }

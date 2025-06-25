@@ -87,6 +87,7 @@ func (p *ProviderValidator) ValidateDelete(
 	}
 
 	var pipelineList PipelineList
+	var errors field.ErrorList
 	// TODOO: implement case for when allowedNamespaces is not there/empty(?)
 	for _, ns := range provider.Spec.AllowedNamespaces {
 		if err := p.reader.List(
@@ -115,15 +116,14 @@ func (p *ProviderValidator) ValidateDelete(
 			},
 		)
 
-		var errors field.ErrorList
-
 		for _, pp := range pipelinesWithMatchingFramework {
 			errors = append(
 				errors,
 				field.Forbidden(
 					field.NewPath("spec"),
 					fmt.Sprintf(
-						"no allowed bro due to existing pipeline %v containing framework %v",
+						"Cannot delete provider %v due to existing pipeline %v containing framework %v",
+						provider.GetNamespacedName(),
 						pp.GetNamespacedName(),
 						pp.Spec.Framework.Name,
 					),
@@ -131,13 +131,14 @@ func (p *ProviderValidator) ValidateDelete(
 			)
 		}
 
-		if len(errors) > 0 {
-			return nil, apierrors.NewInvalid(
-				provider.GetObjectKind().GroupVersionKind().GroupKind(),
-				provider.GetNamespacedName().String(),
-				errors,
-			)
-		}
+	}
+
+	if len(errors) > 0 {
+		return nil, apierrors.NewInvalid(
+			provider.GetObjectKind().GroupVersionKind().GroupKind(),
+			provider.GetNamespacedName().String(),
+			errors,
+		)
 	}
 
 	return nil, nil
