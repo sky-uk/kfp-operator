@@ -20,11 +20,26 @@ var _ = Describe("PipelineValidator Webhook", func() {
 	var (
 		mockReader mocks.MockK8sClientReader
 		validator  PipelineValidator
+		pipeline   Pipeline
 		ctx        = context.Background()
 	)
 
 	BeforeEach(func() {
 		mockReader = mocks.MockK8sClientReader{}
+		pipeline = Pipeline{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "pipeline-ns",
+			},
+			Spec: PipelineSpec{
+				Provider: common.NamespacedName{
+					Name:      "provider-name",
+					Namespace: "provider-ns",
+				},
+				Framework: PipelineFramework{
+					Name: "framework-name",
+				},
+			},
+		}
 		validator = PipelineValidator{
 			reader: &mockReader,
 		}
@@ -33,20 +48,6 @@ var _ = Describe("PipelineValidator Webhook", func() {
 	Context("validate", func() {
 		When("k8s reader returns specified provider and it contains a matching framework", func() {
 			It("not error", func() {
-				pipeline := Pipeline{
-					ObjectMeta: metav1.ObjectMeta{
-						Namespace: "pipeline-ns",
-					},
-					Spec: PipelineSpec{
-						Provider: common.NamespacedName{
-							Name:      "provider-name",
-							Namespace: "provider-ns",
-						},
-						Framework: PipelineFramework{
-							Name: "framework-name",
-						},
-					},
-				}
 				mockReader.On(
 					"Get",
 					client.ObjectKey{
@@ -72,20 +73,6 @@ var _ = Describe("PipelineValidator Webhook", func() {
 
 		When("k8s reader returns a provider that does not contain the specified framework", func() {
 			It("should return a StatusError", func() {
-				pipeline := Pipeline{
-					ObjectMeta: metav1.ObjectMeta{
-						Namespace: "pipeline-ns",
-					},
-					Spec: PipelineSpec{
-						Provider: common.NamespacedName{
-							Name:      "provider-name",
-							Namespace: "provider-ns",
-						},
-						Framework: PipelineFramework{
-							Name: "framework-name",
-						},
-					},
-				}
 				mockReader.On(
 					"Get",
 					client.ObjectKey{
@@ -114,20 +101,6 @@ var _ = Describe("PipelineValidator Webhook", func() {
 
 		When("k8s reader errors when fetching the specified provider", func() {
 			It("should return an StatusError", func() {
-				pipeline := Pipeline{
-					ObjectMeta: metav1.ObjectMeta{
-						Namespace: "pipeline-ns",
-					},
-					Spec: PipelineSpec{
-						Provider: common.NamespacedName{
-							Name:      "provider-name",
-							Namespace: "provider-ns",
-						},
-						Framework: PipelineFramework{
-							Name: "framework-name",
-						},
-					},
-				}
 				mockReader.On(
 					"Get",
 					client.ObjectKey{
@@ -147,20 +120,6 @@ var _ = Describe("PipelineValidator Webhook", func() {
 
 		When("the pipeline namespace is not allowed by the provider", func() {
 			It("should return a StatusError", func() {
-				pipeline := Pipeline{
-					ObjectMeta: metav1.ObjectMeta{
-						Namespace: "pipeline-ns",
-					},
-					Spec: PipelineSpec{
-						Provider: common.NamespacedName{
-							Name:      "provider-name",
-							Namespace: "provider-ns",
-						},
-						Framework: PipelineFramework{
-							Name: "framework-name",
-						},
-					},
-				}
 				mockReader.On(
 					"Get",
 					client.ObjectKey{
@@ -185,20 +144,6 @@ var _ = Describe("PipelineValidator Webhook", func() {
 
 		When("the provider allows all namespaces", func() {
 			It("should not error", func() {
-				pipeline := Pipeline{
-					ObjectMeta: metav1.ObjectMeta{
-						Namespace: "pipeline-ns",
-					},
-					Spec: PipelineSpec{
-						Provider: common.NamespacedName{
-							Name:      "provider-name",
-							Namespace: "provider-ns",
-						},
-						Framework: PipelineFramework{
-							Name: "framework-name",
-						},
-					},
-				}
 				mockReader.On(
 					"Get",
 					client.ObjectKey{
