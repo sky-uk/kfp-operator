@@ -81,8 +81,8 @@ func (p *PipelineValidator) validate(
 		&provider,
 	); err != nil {
 		return nil, apierrors.NewInvalid(
-			obj.GetObjectKind().GroupVersionKind().GroupKind(),
-			fmt.Sprintf("%s/%s", pipeline.GetNamespacedName().Namespace, pipeline.GetNamespacedName().Name),
+			pipeline.GetObjectKind().GroupVersionKind().GroupKind(),
+			pipeline.GetNamespacedName().String(),
 			[]*field.Error{
 				field.NotFound(
 					field.NewPath("spec", "provider"),
@@ -98,8 +98,8 @@ func (p *PipelineValidator) validate(
 			pipeline.GetNamespacedName().Namespace,
 		) {
 		return nil, apierrors.NewInvalid(
-			obj.GetObjectKind().GroupVersionKind().GroupKind(),
-			fmt.Sprintf("%s/%s", pipeline.GetNamespacedName().Namespace, pipeline.GetNamespacedName().Name),
+			pipeline.GetObjectKind().GroupVersionKind().GroupKind(),
+			pipeline.GetNamespacedName().String(),
 			[]*field.Error{
 				field.Forbidden(
 					field.NewPath("metadata", "namespace"),
@@ -121,8 +121,8 @@ func (p *PipelineValidator) validate(
 
 	if !lo.Contains(providerFrameworkNames, pipeline.Spec.Framework.Name) {
 		return nil, apierrors.NewInvalid(
-			obj.GetObjectKind().GroupVersionKind().GroupKind(),
-			fmt.Sprintf("%s/%s", pipeline.GetNamespacedName().Namespace, pipeline.GetNamespacedName().Name),
+			pipeline.GetObjectKind().GroupVersionKind().GroupKind(),
+			pipeline.GetNamespacedName().String(),
 			[]*field.Error{
 				field.NotSupported(
 					field.NewPath("spec", "framework"),
