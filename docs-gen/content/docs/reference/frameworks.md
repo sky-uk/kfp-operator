@@ -13,7 +13,6 @@ The KFP Operator supports multiple pipeline frameworks, including:
 ## Compiler Workflow
 The `kfp-operator-create-compiled` workflow `compile` step accepts the following parameters:
 - **resource-image**: the image containing the model code (looked up from the pipeline resource in preview workflow step)
-- **provider-config**: the provider configuration ([see provider overview](../providers/overview))
 - **pipeline-framework-image**: the image for the pipeline framework compiler
 
 The image specified in `pipeline-framework-image` is executed as a initContainer and runs the entrypoint script. The entrypoint
@@ -32,7 +31,7 @@ e.g. `ghcr.io/kfp-operator/kfp-operator-custom-compiler:version-tag`
 
 The Docker image needs to conform to the correct structure for the KFP Operator to be able to use it. See [readme](https://github.com/sky-uk/kfp-operator/blob/master/compilers/README.md) for more information.
 
-Once the docker image is correctly published to an accessible repository it needs to be configured as an available frameworks for the provider it is to be used in.
+Once the docker image is correctly published to an accessible repository it needs to be configured as an available framework for the provider it is to be used in.
 This is done by creating or adding to the `frameworks` element in the [provider custom resource](../resources/provider/#common-fields).
 
 Then to use the custom framework in a pipeline simply configure the framework attribute in the [pipeline resource](../resources/pipeline/#fields).

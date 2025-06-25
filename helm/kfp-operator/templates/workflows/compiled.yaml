@@ -9,7 +9,6 @@ spec:
     inputs:
       parameters:
       - name: resource-image
-      - name: provider-config
       - name: pipeline-framework-image
       artifacts:
       - name: resource-definition
@@ -17,11 +16,6 @@ spec:
           data: |
             {{`{{workflow.parameters.resource-definition}}`}}
         path: /resource-definition.json
-      - name: provider-config
-        path: /provider-config.json
-        raw:
-          data: |
-            {{`{{workflow.parameters.provider-config}}`}}
     outputs:
       artifacts:
       - name: resource
@@ -42,8 +36,6 @@ spec:
       - /tmp/resource.json
       - --{{`{{workflow.parameters.resource-kind}}`}}_config
       - /resource-definition.json
-      - --provider_config
-      - /provider-config.json
       {{- include "kfp-operator.notEmptyYaml" .Values.manager.argo.containerDefaults | nindent 6 }}
     volumes:
     - name: shared
@@ -91,7 +83,6 @@ spec:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
-    - name: provider-config
     - name: provider-name
     - name: provider-service-url
     - name: resource-kind
@@ -119,8 +110,6 @@ spec:
           parameters:
           - name: resource-image
             value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
-          - name: provider-config
-            value: '{{`{{workflow.parameters.provider-config}}`}}'
           - name: pipeline-framework-image
             value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
     - - name: combine-files
@@ -158,7 +147,6 @@ spec:
     {{- .Values.manager.argo.ttlStrategy | toYaml | nindent 4 }}
   arguments:
     parameters:
-    - name: provider-config
     - name: provider-name
     - name: provider-service-url
     - name: resource-kind
@@ -187,8 +175,6 @@ spec:
           parameters:
           - name: resource-image
             value: '{{`{{steps.select-resource-image.outputs.result}}`}}'
-          - name: provider-config
-            value: '{{`{{workflow.parameters.provider-config}}`}}'
           - name: pipeline-framework-image
             value: '{{`{{workflow.parameters.pipeline-framework-image}}`}}'
     - - name: combine-files

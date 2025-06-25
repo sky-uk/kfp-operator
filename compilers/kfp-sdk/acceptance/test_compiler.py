@@ -32,15 +32,12 @@ def test_compiler__compile(tmp_path):
         output_file = os.path.join(tmp_dir, "pipeline.yaml")
 
         pipeline_config = "acceptance/pipeline.yaml"
-        provider_config = "acceptance/provider.yaml"
 
         result = runner.invoke(
             compiler.compile,
             [
                 "--pipeline_config",
                 pipeline_config,
-                "--provider_config",
-                provider_config,
                 "--output_file",
                 str(output_file),
             ],

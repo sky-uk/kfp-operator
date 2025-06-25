@@ -132,7 +132,6 @@ spec:
     secondsAfterCompletion: 3600
   arguments:
     parameters:
-    - name: provider-config
     - name: provider-name
     - name: provider-service-url
     - name: resource-kind

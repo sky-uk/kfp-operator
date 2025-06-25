@@ -79,5 +79,5 @@ You can then run the compiler from inside your pipeline container to produce `$S
 
 ```shell
 # Run the compiler in your pipeline image
-docker run -v $SHARED_DIR:/shared --entrypoint /shared/compile.sh $PIPELINE_IMAGE --provider_config /shard/provider.yaml --pipeline_config /shared/pipeline.yaml --output_file /shared/pipeline_out.yaml
+docker run -v $SHARED_DIR:/shared --entrypoint /shared/compile.sh $PIPELINE_IMAGE --provider_config /shared/provider.yaml --pipeline_config /shared/pipeline.yaml --output_file /shared/pipeline_out.yaml
 ```
