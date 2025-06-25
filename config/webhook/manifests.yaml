@@ -30,6 +30,26 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /validate-providers-kubeflow-org-v1beta1-provider
+  failurePolicy: Fail
+  name: vprovider.kb.io
+  rules:
+  - apiGroups:
+    - providers.kubeflow.org
+    apiVersions:
+    - v1beta1
+    operations:
+    - UPDATE
+    - DELETE
+    resources:
+    - providers
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
       path: /validate-pipelines-kubeflow-org-v1beta1-run
   failurePolicy: Fail
   name: vrun.kb.io

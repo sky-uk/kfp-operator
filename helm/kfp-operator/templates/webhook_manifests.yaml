@@ -37,6 +37,29 @@ webhooks:
       service:
         name: {{ include "kfp-operator.fullname" . }}-webhook-service
         namespace: {{ .Values.namespace.name }}
+        path: /validate-providers-kubeflow-org-v1beta1-provider
+      {{- if eq .Values.manager.webhookCertificates.provider "custom" }}
+      caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
+      {{- end }}
+    failurePolicy: Fail
+    name: vprovider.kb.io
+    rules:
+      - apiGroups:
+          - providers.kubeflow.org
+        apiVersions:
+          - v1beta1
+        operations:
+          - UPDATE
+          - DELETE
+        resources:
+          - providers
+    sideEffects: None
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ include "kfp-operator.fullname" . }}-webhook-service
+        namespace: {{ .Values.namespace.name }}
         path: /validate-pipelines-kubeflow-org-v1beta1-run
       {{- if eq .Values.manager.webhookCertificates.provider "custom" }}
       caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
