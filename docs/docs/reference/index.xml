@@ -124,7 +124,6 @@
 &lt;p>The &lt;code>kfp-operator-create-compiled&lt;/code> workflow &lt;code>compile&lt;/code> step accepts the following parameters:&lt;/p>
 &lt;ul>
 &lt;li>&lt;strong>resource-image&lt;/strong>: the image containing the model code (looked up from the pipeline resource in preview workflow step)&lt;/li>
-&lt;li>&lt;strong>provider-config&lt;/strong>: the provider configuration (&lt;a href="../providers/overview">see provider overview&lt;/a>)&lt;/li>
 &lt;li>&lt;strong>pipeline-framework-image&lt;/strong>: the image for the pipeline framework compiler&lt;/li>
 &lt;/ul>
 &lt;p>The image specified in &lt;code>pipeline-framework-image&lt;/code> is executed as a initContainer and runs the entrypoint script. The entrypoint

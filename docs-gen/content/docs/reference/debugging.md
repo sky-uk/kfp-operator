@@ -61,13 +61,6 @@ framework:
 env:
   <Dict[str, str] of environment variables to be passed to the compilation step>
 EOF
-
-# create the required provider configuration
-cat > $SHARED_DIR/provider.yaml << EOF
-pipelineRootStorage: <pipeline root storage location>
-defaultBeamArgs:
-  - [] # List of NamedValues for default beam arguments
-EOF
 ```
 
 ### Running the compiler
@@ -76,5 +69,5 @@ You can then run the compiler from inside your pipeline container to produce `$S
 
 ```shell
 # Run the compiler in your pipeline image
-docker run -v $SHARED_DIR:/shared --entrypoint /shared/compile.sh $PIPELINE_IMAGE --provider_config /shard/provider.yaml --pipeline_config /shared/pipeline.yaml --output_file /shared/pipeline_out.yaml
+docker run -v $SHARED_DIR:/shared --entrypoint /shared/compile.sh $PIPELINE_IMAGE --pipeline_config /shared/pipeline.yaml --output_file /shared/pipeline_out.yaml
 ```
