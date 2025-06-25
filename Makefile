@@ -83,7 +83,7 @@ functional-test: ## Run functional tests
 	$(MAKE) -C triggers/run-completion-event-trigger functional-test
 
 test: fmt vet unit-test decoupled-test functional-test ## Run all tests
-	# TODO: after integraion tests can run on CI, run provider-service as part
+	# TODO: after integration tests can run on CI, run provider-service as part
 	# of integration-test
 	$(MAKE) -C provider-service integration-test
 
