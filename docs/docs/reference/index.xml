@@ -114,21 +114,7 @@
  &lt;/tr>
  &lt;/tbody>
 &lt;/table>
-&lt;p>An example configuration:&lt;/p></description></item><item><title>Pipeline Frameworks</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/frameworks/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/frameworks/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
-&lt;p>The KFP Operator supports multiple pipeline frameworks, including:&lt;/p>
-&lt;ul>
-&lt;li>&lt;a href="https://www.tensorflow.org/tfx">TFX&lt;/a>&lt;/li>
-&lt;li>&lt;a href="https://kubeflow-pipelines.readthedocs.io/">KFP SDK&lt;/a>&lt;/li>
-&lt;/ul>
-&lt;h2 id="compiler-workflow">Compiler Workflow&lt;/h2>
-&lt;p>The &lt;code>kfp-operator-create-compiled&lt;/code> workflow &lt;code>compile&lt;/code> step accepts the following parameters:&lt;/p>
-&lt;ul>
-&lt;li>&lt;strong>resource-image&lt;/strong>: the image containing the model code (looked up from the pipeline resource in preview workflow step)&lt;/li>
-&lt;li>&lt;strong>pipeline-framework-image&lt;/strong>: the image for the pipeline framework compiler&lt;/li>
-&lt;/ul>
-&lt;p>The image specified in &lt;code>pipeline-framework-image&lt;/code> is executed as a initContainer and runs the entrypoint script. The entrypoint
-script should copy the required compiler code into the shared directory &lt;code>/shared&lt;/code> (which is mirrored into the main container) and then exit. This &lt;code>/shared&lt;/code> location is passed as
-the first and only parameter to the entrypoint script.&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
+&lt;p>An example configuration:&lt;/p></description></item><item><title>Run Completion Events</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/run-completion/</guid><description>&lt;p>Run completion events are created by a &lt;a href="../../reference/providers/overview">&lt;code>Provider&lt;/code>&lt;/a> to signal the completion of a pipeline run, and is used to trigger downstream processes.
 Within the operator this can be updating the status fields of resources such as their &lt;code>synchronizationState&lt;/code> or &lt;code>providerId&lt;/code>. Within the ML Ops ecosystem,
 this can also be used to reload a serving instance of a model with the newly trained version.&lt;/p>
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/run-completion.svg" alt="Model Serving">&lt;/p>

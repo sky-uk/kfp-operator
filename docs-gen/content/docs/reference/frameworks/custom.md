@@ -24,7 +24,7 @@ The image specified in `pipeline-framework-image` is executed as a initContainer
 script should copy the required compiler code into the shared directory `/shared` (which is mirrored into the main container) and then exit. This `/shared` location is passed as 
 the first and only parameter to the entrypoint script.
 
-Once the init container has complete then the main container is executed. The `/shared/compile.sh` which needs to be provided
-by the compiler image should simply execute the compiler module.
+Once the init container has completed, the main container is executed. The `/shared/compile.sh` script executing the compiler module must be provided 
+within the compiler image.
 
 See examples of entrypoint and compile scripts [here](https://github.com/sky-uk/kfp-operator/blob/master/compilers/resources).
