@@ -53,7 +53,7 @@ var _ = Describe("ProviderValidator Webhook", func() {
 		}
 	})
 
-	Context("validate", func() {
+	Context("validateDelete", func() {
 		When("the runtime object is not a provider", func() {
 			It("should return a StatusError", func() {
 				warnings, err := validator.ValidateDelete(ctx, &Run{})
@@ -154,4 +154,147 @@ var _ = Describe("ProviderValidator Webhook", func() {
 			})
 		})
 	})
+
+	Context("validateUpdate", func() {
+
+		newProvider := provider.DeepCopy()
+		oldProvider := provider.DeepCopy()
+		frameworkMarkedForDeletion := "framework-which-would-be-deleted-by-update"
+		oldProvider.Spec.Frameworks = append(oldProvider.Spec.Frameworks, Framework{Name: frameworkMarkedForDeletion})
+
+		When("the new runtime object is not a provider", func() {
+			It("should return a StatusError", func() {
+				warnings, err := validator.ValidateUpdate(ctx, &Provider{}, &Run{})
+				Expect(warnings).To(BeNil())
+
+				var statusErr *apierrors.StatusError
+				Expect(errors.As(err, &statusErr)).To(BeTrue())
+				Expect(statusErr.Status().Reason).To(Equal(metav1.StatusReasonBadRequest))
+			})
+		})
+
+		When("the old runtime object is not a provider", func() {
+			It("should return a StatusError", func() {
+				warnings, err := validator.ValidateUpdate(ctx, &Run{}, &Provider{})
+				Expect(warnings).To(BeNil())
+
+				var statusErr *apierrors.StatusError
+				Expect(errors.As(err, &statusErr)).To(BeTrue())
+				Expect(statusErr.Status().Reason).To(Equal(metav1.StatusReasonBadRequest))
+			})
+		})
+
+		When("k8s reader errors when fetching the pipeline list", func() {
+			It("should return a StatusError", func() {
+				mockReader.On(
+					"List",
+					mock.AnythingOfType("*v1beta1.PipelineList"),
+					mock.Anything,
+				).Return(errors.New("No pipeline list"))
+
+				warnings, err := validator.ValidateUpdate(ctx, oldProvider, newProvider)
+				Expect(warnings).To(BeNil())
+
+				var statusErr *apierrors.StatusError
+				Expect(errors.As(err, &statusErr)).To(BeTrue())
+				Expect(statusErr.Status().Reason).To(Equal(metav1.StatusReasonInternalError))
+			})
+		})
+
+		When("k8s reader returns pipelines that references provider with a framework marked for deletion", func() {
+			It("should return a StatusError", func() {
+				mockReader.On(
+					"List",
+					mock.AnythingOfType("*v1beta1.PipelineList"),
+					mock.Anything,
+				).Return(nil).Run(
+					func(args mock.Arguments) {
+						pipelineList := args.Get(0).(*PipelineList)
+						nonMatchingPipeline := pipeline
+						matchingPipeline := pipeline
+						matchingPipeline.Spec.Framework.Name = frameworkMarkedForDeletion
+
+						pipelineList.Items = append(
+							pipelineList.Items,
+							nonMatchingPipeline,
+							matchingPipeline,
+						)
+					},
+				)
+
+				warnings, err := validator.ValidateUpdate(ctx, oldProvider, newProvider)
+				Expect(warnings).To(BeNil())
+
+				var statusErr *apierrors.StatusError
+				Expect(errors.As(err, &statusErr)).To(BeTrue())
+				Expect(statusErr.Status().Details.Causes[0].Type).To(Equal(metav1.CauseTypeForbidden))
+			})
+		})
+
+		When("k8s reader returns pipelines that do not reference a providers framework marked for deletion", func() {
+			It("should not error", func() {
+				mockReader.On(
+					"List",
+					mock.AnythingOfType("*v1beta1.PipelineList"),
+					mock.Anything,
+				).Return(nil).Run(
+					func(args mock.Arguments) {
+						pipelineList := args.Get(0).(*PipelineList)
+						nonMatchingPipeline1 := pipeline
+						nonMatchingPipeline1.Spec.Framework.Name = "other-framework-1"
+						nonMatchingPipeline2 := pipeline
+						nonMatchingPipeline2.Spec.Framework.Name = "other-framework-2"
+						pipelineList.Items = append(
+							pipelineList.Items,
+							nonMatchingPipeline1,
+							nonMatchingPipeline2,
+						)
+					},
+				)
+
+				warnings, err := validator.ValidateUpdate(ctx, oldProvider, newProvider)
+				Expect(warnings).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		When("k8s reader returns pipelines that do not reference the provider", func() {
+			It("should not error", func() {
+				mockReader.On(
+					"List",
+					mock.AnythingOfType("*v1beta1.PipelineList"),
+					mock.Anything,
+				).Return(nil).Run(
+					func(args mock.Arguments) {
+						pipelineList := args.Get(0).(*PipelineList)
+						matchingPipeline := pipeline
+
+						pipelineList.Items = append(
+							pipelineList.Items,
+							matchingPipeline,
+						)
+					},
+				)
+
+				warnings, err := validator.ValidateUpdate(ctx, oldProvider, newProvider)
+				Expect(warnings).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
+		When("k8s reader returns no pipelines", func() {
+			It("should not error", func() {
+				mockReader.On(
+					"List",
+					mock.AnythingOfType("*v1beta1.PipelineList"),
+					mock.Anything,
+				).Return(nil).Run(func(args mock.Arguments) {})
+
+				warnings, err := validator.ValidateUpdate(ctx, oldProvider, newProvider)
+				Expect(warnings).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+	})
+
 })

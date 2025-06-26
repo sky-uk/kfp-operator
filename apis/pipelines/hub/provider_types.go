@@ -1,6 +1,7 @@
 package v1beta1
 
 import (
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -76,7 +77,7 @@ func (p *Provider) GetNamespacedName() types.NamespacedName {
 	}
 }
 
-func (p Provider) GetCommonNamespacedName() common.NamespacedName {
+func (p *Provider) GetCommonNamespacedName() common.NamespacedName {
 	return common.NamespacedName{
 		Name:      p.Name,
 		Namespace: p.Namespace,
@@ -95,6 +96,12 @@ func (p *Provider) StatusWithCondition(state apis.SynchronizationState, message 
 		Type:               apis.ConditionTypes.SynchronizationSucceeded,
 		Status:             apis.ConditionStatusForSynchronizationState(state),
 		Reason:             string(state),
+	})
+}
+
+func (p *Provider) Frameworks() []string {
+	return lo.Map(p.Spec.Frameworks, func(framework Framework, i int) string {
+		return framework.Name
 	})
 }
 

@@ -62,8 +62,47 @@ func (p *ProviderValidator) ValidateCreate(
 
 func (p *ProviderValidator) ValidateUpdate(
 	ctx context.Context,
-	_, newObj runtime.Object,
+	oldObj, newObj runtime.Object,
 ) (admission.Warnings, error) {
+	oldProvider, err := p.castToProviderOrErr(oldObj)
+	if err != nil {
+		return nil, err
+	}
+
+	newProvider, err := p.castToProviderOrErr(newObj)
+	if err != nil {
+		return nil, err
+	}
+
+	deletedFrameworks := lo.Filter(oldProvider.Frameworks(), func(framework string, _ int) bool {
+		return !lo.Contains(newProvider.Frameworks(), framework)
+	})
+
+	if len(deletedFrameworks) > 0 {
+		var pipelineList PipelineList
+		if err := p.reader.List(
+			ctx,
+			&pipelineList,
+			client.MatchingFields{
+				"spec.provider": newProvider.GetNamespacedName().String(),
+			},
+		); err != nil {
+			return nil, apierrors.NewInternalError(err)
+		}
+
+		pipelinesFilteredByNamespaces := filterByNamespaces(pipelineList.Items, newProvider.Spec.AllowedNamespaces)
+		pipelinesWithMatchingDeletedFramework := filterByFrameworks(pipelinesFilteredByNamespaces, deletedFrameworks)
+		errors := createErrorsForPipelines(pipelinesWithMatchingDeletedFramework, newProvider, "update")
+
+		if len(errors) > 0 {
+			return nil, apierrors.NewInvalid(
+				newProvider.GetObjectKind().GroupVersionKind().GroupKind(),
+				newProvider.GetNamespacedName().String(),
+				errors,
+			)
+		}
+	}
+
 	return nil, nil
 }
 
@@ -71,67 +110,25 @@ func (p *ProviderValidator) ValidateDelete(
 	ctx context.Context,
 	obj runtime.Object,
 ) (admission.Warnings, error) {
-	provider, ok := obj.(*Provider)
-
-	providerPtr := &Provider{}
-
-	if !ok {
-		return nil, apierrors.NewBadRequest(
-			fmt.Sprintf(
-				"Got kind=%v; expected kind=%v",
-				obj.GetObjectKind().GroupVersionKind().GroupKind(),
-				GroupVersion.WithKind(providerPtr.GetKind()).GroupKind(),
-			),
-		)
-
+	provider, err := p.castToProviderOrErr(obj)
+	if err != nil {
+		return nil, err
 	}
 
 	var pipelineList PipelineList
-	var errors field.ErrorList
-	// TODOO: implement case for when allowedNamespaces is not there/empty(?)
-	for _, ns := range provider.Spec.AllowedNamespaces {
-		if err := p.reader.List(
-			ctx,
-			&pipelineList,
-			client.InNamespace(ns),
-			client.MatchingFields{
-				"spec.provider": provider.GetNamespacedName().String(),
-			},
-		); err != nil {
-			return nil, apierrors.NewInternalError(err)
-		}
-
-		pipelinesWithMatchingFramework := lo.Filter(
-			pipelineList.Items,
-			func(p Pipeline, _ int) bool {
-				return lo.Contains(
-					lo.Map(
-						provider.Spec.Frameworks,
-						func(f Framework, _ int) string {
-							return f.Name
-						},
-					),
-					p.Spec.Framework.Name,
-				)
-			},
-		)
-
-		for _, pp := range pipelinesWithMatchingFramework {
-			errors = append(
-				errors,
-				field.Forbidden(
-					field.NewPath("spec"),
-					fmt.Sprintf(
-						"Cannot delete provider %v due to existing pipeline %v containing framework %v",
-						provider.GetNamespacedName(),
-						pp.GetNamespacedName(),
-						pp.Spec.Framework.Name,
-					),
-				),
-			)
-		}
-
+	if err := p.reader.List(
+		ctx,
+		&pipelineList,
+		client.MatchingFields{
+			"spec.provider": provider.GetNamespacedName().String(),
+		},
+	); err != nil {
+		return nil, apierrors.NewInternalError(err)
 	}
+
+	pipelinesFilteredByNamespaces := filterByNamespaces(pipelineList.Items, provider.Spec.AllowedNamespaces)
+	pipelinesWithMatchingFramework := filterByFrameworks(pipelinesFilteredByNamespaces, provider.Frameworks())
+	errors := createErrorsForPipelines(pipelinesWithMatchingFramework, provider, "delete")
 
 	if len(errors) > 0 {
 		return nil, apierrors.NewInvalid(
@@ -142,4 +139,67 @@ func (p *ProviderValidator) ValidateDelete(
 	}
 
 	return nil, nil
+}
+
+func (p *ProviderValidator) castToProviderOrErr(obj runtime.Object) (*Provider, error) {
+	providerPtr := &Provider{}
+	provider, ok := obj.(*Provider)
+	if !ok {
+		return nil, apierrors.NewBadRequest(
+			fmt.Sprintf(
+				"Got kind=%v; expected kind=%v",
+				obj.GetObjectKind().GroupVersionKind().GroupKind(),
+				GroupVersion.WithKind(providerPtr.GetKind()).GroupKind(),
+			),
+		)
+	}
+	return provider, nil
+}
+
+func createErrorsForPipelines(pipelinesWithMatchingFramework []Pipeline, provider *Provider, operation string) field.ErrorList {
+	errors := field.ErrorList{}
+	for _, pipeline := range pipelinesWithMatchingFramework {
+		errors = append(
+			errors,
+			field.Forbidden(
+				field.NewPath("spec"),
+				fmt.Sprintf(
+					"Cannot %s provider %v due to existing pipeline %v containing framework %v",
+					operation,
+					provider.GetNamespacedName(),
+					pipeline.GetNamespacedName(),
+					pipeline.Spec.Framework.Name,
+				),
+			),
+		)
+	}
+	return errors
+}
+
+func filterByNamespaces(pipelineListItems []Pipeline, namespaces []string) []Pipeline {
+	if len(namespaces) > 0 {
+		pipelineListItems = lo.Filter(
+			pipelineListItems,
+			func(pipeline Pipeline, _ int) bool {
+				return lo.Contains(
+					namespaces,
+					pipeline.Namespace,
+				)
+			},
+		)
+	}
+	return pipelineListItems
+}
+
+func filterByFrameworks(pipelineListItems []Pipeline, frameworks []string) []Pipeline {
+	pipelinesWithMatchingFramework := lo.Filter(
+		pipelineListItems,
+		func(pipeline Pipeline, _ int) bool {
+			return lo.Contains(
+				frameworks,
+				pipeline.Spec.Framework.Name,
+			)
+		},
+	)
+	return pipelinesWithMatchingFramework
 }
