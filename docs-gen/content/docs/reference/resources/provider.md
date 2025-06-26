@@ -3,19 +3,24 @@ title: "Provider"
 weight: 6
 ---
 
-The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.
+The Provider resource represents the provider specific configuration required to submit / update / delete ml resources
+with the given provider.
 e.g Vertex AI Platform.
-Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
+Providers configuration can be set using this resource and permissions for access can be configured via service
+accounts.
 
-> Note: changing the provider of a resource that was previously managed by another provider will result in a resource error.
-Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.
+> Note: changing the provider of a resource that was previously managed by another provider will result in a resource
+> error.
+
+Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline)
+as updates are not propagated or checked and will result in runtime errors on the provider.
 
 ### Common Fields
 
 | Name                       | Description                                                                                                                                                                                                                                                                                                   | Example                                   |
 |:---------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------|
 | `spec.serviceImage`        | Container image of [the provider service](../../providers/#provider-service)                                                                                                                                                                                                                                  | `kfp-operator-kfp-provider-service:0.0.2` |
-| `spec.executionMode`       | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode)                                                                                                                                                                          | `v1` (currently KFP) or `v2` (Vertex AI)  |
+| `spec.executionMode`       | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode) **Note:** This field has been deprecated after v0.7.0 v1beta1 api specification changes, and will be removed in future versions.                                         | `v1` (currently KFP) or `v2` (Vertex AI)  |
 | `spec.serviceAccount`      | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                                                                                                | `kfp-operator-vertex-ai`                  |
 | `spec.pipelineRootStorage` | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline                                                                            | `gcs://kubeflow-pipelines-bucket`         |
 | `spec.parameters`          | Parameters specific to each provider, i.e. [VAI](#vertex-ai-specific-parameters)                                                                                                                                                                                                                              | `gcs://kubeflow-pipelines-bucket`         |
@@ -24,11 +29,11 @@ Any referenced resources must always match the provider of the referencing resou
 
 ### Framework
 
-| Name                  | Description                                                                                                                                                                                    | Example                                                      |
-|:----------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------|
-| `name`                | Name of the framework.                                                                                                                                                                         | `tfx`                                                        |
-| `image`               | Framework image.                                                                                                                                                                               | `ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag` |
-| `patches[]`           | A list of JSON [patches](#patch),  that will be applied to every `Pipeline` resource that uses this `Provider` before it's passed (as JSON) to the corresponding Argo Workflow for processing. |                                                              |
+| Name        | Description                                                                                                                                                                                    | Example                                                      |
+|:------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------------|
+| `name`      | Name of the framework.                                                                                                                                                                         | `tfx`                                                        |
+| `image`     | Framework image.                                                                                                                                                                               | `ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag` |
+| `patches[]` | A list of JSON [patches](#patch),  that will be applied to every `Pipeline` resource that uses this `Provider` before it's passed (as JSON) to the corresponding Argo Workflow for processing. |                                                              |
 
 ### Patch
 
@@ -36,7 +41,6 @@ Any referenced resources must always match the provider of the referencing resou
 |:----------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------|
 | `type`    | The type of patch to be applied to the pipeline resource definition JSON. Can be either `json` ([RFC6902](https://datatracker.ietf.org/doc/html/rfc6902)) or `merge` ([RFC7396](https://datatracker.ietf.org/doc/html/rfc7396)). | `json`                                                                                                              |
 | `payload` | The patch to be applied to the pipeline resource definition JSON.                                                                                                                                                                | `[{ "op": "add", "path": "/framework/parameters/beamArgs/0", "value": { "name": "newArg", "value": "newValue" } }]` |
-
 
 ### Vertex AI
 
@@ -76,8 +80,9 @@ spec:
 ```
 
 #### Vertex AI Specific Parameters
-| Name                                               | Description                                                          |
-| -------------------------------------------------- | -------------------------------------------------------------------- |
+
+| Name                                    | Description                                                          |
+|-----------------------------------------|----------------------------------------------------------------------|
 | `eventsourcePipelineEventsSubscription` | The eventsource subscription used to capture run-completion events   |
 | `maxConcurrentRunCount`                 | The number of pipelines that may run concurrently                    |
 | `pipelineBucket`                        | The output storage bucket for a trained pipeline model               |

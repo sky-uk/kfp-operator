@@ -155,9 +155,13 @@ and can be configured as follows:&lt;/p>
  &lt;td>The description of the experiment.&lt;/td>
  &lt;/tr>
  &lt;/tbody>
-&lt;/table></description></item><item><title>Provider</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</guid><description>&lt;p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider.
+&lt;/table></description></item><item><title>Provider</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/resources/provider/</guid><description>&lt;p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources
+with the given provider.
 e.g Vertex AI Platform.
-Providers configuration can be set using this resource and permissions for access can be configured via service accounts.&lt;/p>
+Providers configuration can be set using this resource and permissions for access can be configured via service
+accounts.&lt;/p>
 &lt;blockquote>
-&lt;p>Note: changing the provider of a resource that was previously managed by another provider will result in a resource error.
-Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item></channel></rss>
+&lt;p>Note: changing the provider of a resource that was previously managed by another provider will result in a resource
+error.&lt;/p>&lt;/blockquote>
+&lt;p>Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline)
+as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item></channel></rss>
