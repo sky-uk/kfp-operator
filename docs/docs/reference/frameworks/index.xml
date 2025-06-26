@@ -85,8 +85,8 @@
 &lt;ol>
 &lt;li>Follow the steps in the &lt;a href="https://github.com/sky-uk/kfp-operator/blob/master/compilers/README.md">compilers README&lt;/a> to build your custom Docker image, ensuring it conforms to the correct structure. Examples of the structure can be found in the code for the natively supported frameworks. This image will be called by a set of Argo Workflows, with &lt;a href="#compiler-workflow">these parameters&lt;/a>.&lt;/li>
 &lt;li>Publish the Docker image to a repository accessible via the KFP Operator deployment.&lt;/li>
-&lt;li>Update your &lt;a href="../providers/overview/">Provider&lt;/a> resource to support your custom framework by specifying your framework name and image in &lt;code>spec.frameworks[]&lt;/code>.&lt;/li>
-&lt;li>To then use the custom framework in a &lt;a href="../resources/pipeline/#fields">Pipeline&lt;/a> resource, simply configure &lt;code>spec.framework&lt;/code> to take the same name as the framework set in the Provider resource, and any additional parameters that your framework requires.&lt;/li>
+&lt;li>Update your &lt;a href="../../providers/overview/">Provider&lt;/a> resource to support your custom framework by specifying your framework name and image in &lt;code>spec.frameworks[]&lt;/code>.&lt;/li>
+&lt;li>To then use the custom framework in a &lt;a href="../../resources/pipeline/#fields">Pipeline&lt;/a> resource, simply configure &lt;code>spec.framework&lt;/code> to take the same name as the framework set in the Provider resource, and any additional parameters that your framework requires.&lt;/li>
 &lt;/ol>
 &lt;h3 id="compiler-workflow">Compiler Workflow&lt;/h3>
 &lt;p>The &lt;code>kfp-operator-create-compiled&lt;/code> workflow &lt;code>compile&lt;/code> step accepts the following parameters:&lt;/p></description></item></channel></rss>

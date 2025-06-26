@@ -12,8 +12,8 @@ This image should be pushed to a container registry that the KFP Operator deploy
 Follow these steps to build the image and configure your installation of the KFP Operator:
 1. Follow the steps in the [compilers README](https://github.com/sky-uk/kfp-operator/blob/master/compilers/README.md) to build your custom Docker image, ensuring it conforms to the correct structure. Examples of the structure can be found in the code for the natively supported frameworks. This image will be called by a set of Argo Workflows, with [these parameters](#compiler-workflow).
 2. Publish the Docker image to a repository accessible via the KFP Operator deployment. 
-3. Update your [Provider](../providers/overview/) resource to support your custom framework by specifying your framework name and image in `spec.frameworks[]`.
-4. To then use the custom framework in a [Pipeline](../resources/pipeline/#fields) resource, simply configure `spec.framework` to take the same name as the framework set in the Provider resource, and any additional parameters that your framework requires.
+3. Update your [Provider](../../providers/overview/) resource to support your custom framework by specifying your framework name and image in `spec.frameworks[]`.
+4. To then use the custom framework in a [Pipeline](../../resources/pipeline/#fields) resource, simply configure `spec.framework` to take the same name as the framework set in the Provider resource, and any additional parameters that your framework requires.
 
 ### Compiler Workflow
 The `kfp-operator-create-compiled` workflow `compile` step accepts the following parameters:
