@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -41,7 +42,7 @@ func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Create(requestCtx, body)
+		resp, err := hr.Create(requestCtx, body, flattenHeaders(r.Header))
 
 		switch {
 		case err == nil:
@@ -82,7 +83,7 @@ func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Update(requestCtx, decodedId, body)
+		resp, err := hr.Update(requestCtx, decodedId, body, flattenHeaders(r.Header))
 
 		switch {
 		case err == nil:
@@ -104,7 +105,7 @@ func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 	}
 }
 
-func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.HandlerFunc {
+func deleteHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
 	logger := common.LoggerFromContext(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +118,7 @@ func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.Han
 			return
 		}
 
-		err = a.Delete(requestCtx, decodedId)
+		err = hr.Delete(requestCtx, decodedId, flattenHeaders(r.Header))
 
 		switch {
 		case err == nil:
@@ -208,4 +209,12 @@ func writeResponse(w http.ResponseWriter, responseBody resource.ResponseBody, st
 	w.Write(marshalledResponse)
 	return
 
+}
+
+func flattenHeaders(requestHeaders http.Header) map[string]string {
+	var headers = map[string]string{}
+	for k, v := range requestHeaders {
+		headers[k] = strings.Join(v, ",")
+	}
+	return headers
 }

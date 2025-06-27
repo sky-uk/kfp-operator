@@ -46,6 +46,7 @@ type RunDefinition struct {
 	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
 	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	Labels               map[string]string          `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 type RunScheduleDefinition struct {
@@ -74,7 +75,7 @@ type PipelineProvider interface {
 }
 
 type RunProvider interface {
-	CreateRun(ctx context.Context, rd RunDefinition) (string, error)
+	CreateRun(ctx context.Context, rd RunDefinition, triggers map[string]string) (string, error)
 	DeleteRun(ctx context.Context, id string) error
 }
 

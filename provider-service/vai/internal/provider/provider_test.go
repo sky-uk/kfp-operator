@@ -168,7 +168,7 @@ var _ = Describe("Provider", func() {
 						rd.PipelineVersion,
 					),
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", rd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunPipelineJob", rd, mock.Anything).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockPipelineClient.On(
 					"CreatePipelineJob",
@@ -178,7 +178,7 @@ var _ = Describe("Provider", func() {
 						PipelineJob:   &pj,
 					},
 				).Return(&pj, nil)
-				runId, err := vaiProvider.CreateRun(ctx, rd)
+				runId, err := vaiProvider.CreateRun(ctx, rd, nil)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(runId).To(Equal(fmt.Sprintf("%s-%s", rd.Name.Namespace, rd.Name.Name)))
@@ -191,7 +191,7 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, errors.New("failed"))
-				_, err := vaiProvider.CreateRun(ctx, rd)
+				_, err := vaiProvider.CreateRun(ctx, rd, nil)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -204,8 +204,8 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", rd).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRun(ctx, rd)
+				mockJobBuilder.On("MkRunPipelineJob", rd, mock.Anything).Return(nil, errors.New("failed"))
+				_, err := vaiProvider.CreateRun(ctx, rd, nil)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -219,9 +219,9 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", rd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunPipelineJob", rd, mock.Anything).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRun(ctx, rd)
+				_, err := vaiProvider.CreateRun(ctx, rd, nil)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))
@@ -235,10 +235,10 @@ var _ = Describe("Provider", func() {
 					vaiProvider.config.Parameters.PipelineBucket,
 					mock.Anything,
 				).Return(map[string]any{}, nil)
-				mockJobBuilder.On("MkRunPipelineJob", rd).Return(&pj, nil)
+				mockJobBuilder.On("MkRunPipelineJob", rd, mock.Anything).Return(&pj, nil)
 				mockJobEnricher.On("Enrich", &pj, map[string]any{}).Return(&pj, nil)
 				mockPipelineClient.On("CreatePipelineJob", mock.Anything).Return(nil, errors.New("failed"))
-				_, err := vaiProvider.CreateRun(ctx, rd)
+				_, err := vaiProvider.CreateRun(ctx, rd, nil)
 
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("failed"))

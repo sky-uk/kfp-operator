@@ -10,8 +10,9 @@ type MockJobBuilder struct{ mock.Mock }
 
 func (m *MockJobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
+	triggers map[string]string,
 ) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(rd)
+	args := m.Called(rd, triggers)
 	var pipelineJob *aiplatformpb.PipelineJob
 	if arg0 := args.Get(0); arg0 != nil {
 		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
