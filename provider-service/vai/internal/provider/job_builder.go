@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/samber/lo"
 	"time"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -14,6 +15,7 @@ import (
 type JobBuilder interface {
 	MkRunPipelineJob(
 		rd resource.RunDefinition,
+		triggers map[string]string,
 	) (*aiplatformpb.PipelineJob, error)
 	MkRunSchedulePipelineJob(
 		rsd resource.RunScheduleDefinition,
@@ -37,6 +39,7 @@ type DefaultJobBuilder struct {
 // to a vai pipeline job client.
 func (jb DefaultJobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
+	triggers map[string]string,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.Parameters))
 	for name, value := range rd.Parameters {
@@ -60,6 +63,8 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 	if err != nil {
 		return nil, err
 	}
+
+	labels = lo.Assign(labels, triggers)
 
 	pipelineResourceName, err := rd.Name.String()
 	if err != nil {

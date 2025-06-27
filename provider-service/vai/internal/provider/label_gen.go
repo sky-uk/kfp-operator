@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/trigger"
 	"strings"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -85,9 +86,9 @@ func (lg DefaultLabelGen) runLabelsFromSchedule(
 		runLabels[label.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
 	}
 
-	runLabels[label.TriggerType] = "schedule"
-	runLabels[label.TriggerSource] = rsd.Name.Name
-	runLabels[label.TriggerSourceNamespace] = rsd.Name.Namespace
+	runLabels[trigger.TriggerType] = "schedule"
+	runLabels[trigger.TriggerSource] = rsd.Name.Name
+	runLabels[trigger.TriggerSourceNamespace] = rsd.Name.Namespace
 
 	return runLabels
 }

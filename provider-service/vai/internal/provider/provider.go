@@ -122,7 +122,7 @@ func (vaip *VAIProvider) DeletePipeline(ctx context.Context, id string) error {
 	return nil
 }
 
-func (vaip *VAIProvider) CreateRun(ctx context.Context, rd resource.RunDefinition) (string, error) {
+func (vaip *VAIProvider) CreateRun(ctx context.Context, rd resource.RunDefinition, triggers map[string]string) (string, error) {
 	logger := common.LoggerFromContext(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(
@@ -142,7 +142,7 @@ func (vaip *VAIProvider) CreateRun(ctx context.Context, rd resource.RunDefinitio
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunPipelineJob(rd)
+	job, err := vaip.jobBuilder.MkRunPipelineJob(rd, triggers)
 	if err != nil {
 		return "", err
 	}
