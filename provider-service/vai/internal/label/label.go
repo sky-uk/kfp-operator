@@ -10,4 +10,7 @@ const (
 	RunConfigurationNamespace = "runconfiguration-namespace"
 	RunName                   = "run-name"
 	RunNamespace              = "run-namespace"
+	TriggerType               = "trigger-type"
+	TriggerSource             = "trigger-source"
+	TriggerSourceNamespace    = "trigger-source-namespace"
 )

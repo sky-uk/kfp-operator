@@ -85,5 +85,9 @@ func (lg DefaultLabelGen) runLabelsFromSchedule(
 		runLabels[label.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
 	}
 
+	runLabels[label.TriggerType] = "schedule"
+	runLabels[label.TriggerSource] = rsd.Name.Name
+	runLabels[label.TriggerSourceNamespace] = rsd.Name.Namespace
+
 	return runLabels
 }

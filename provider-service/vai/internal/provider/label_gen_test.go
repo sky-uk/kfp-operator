@@ -123,9 +123,21 @@ var _ = Describe("DefaultLabelGen", func() {
 				Expect(rl).NotTo(HaveKey(label.RunConfigurationNamespace))
 			})
 		})
+
+		When("TriggerType is schedule", func() {
+			It("generates run labels with trigger type and source", func() {
+				rsd := testutil.RandomRunScheduleDefinition()
+				rl, err := lg.GenerateLabels(rsd)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(rl[label.TriggerType]).To(Equal("schedule"))
+				Expect(rl[label.TriggerSource]).To(Equal(rsd.Name.Name))
+				Expect(rl[label.TriggerSourceNamespace]).To(Equal(rsd.Name.Namespace))
+			})
+		})
 	})
 
-	Context("runLabelsFromSchedule", func() {
+	Context("runLabelsFromRunDefinition", func() {
 		It("replaces fullstops with dashes in pipelineVersion", func() {
 			rd := testutil.RandomRunDefinition()
 			rd.PipelineVersion = "0.4.0"
