@@ -20,6 +20,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
 	github.com/hashicorp/go-bexpr v0.1.14
 	github.com/jarcoal/httpmock v1.4.1
+	github.com/kubeflow/pipelines v0.0.0-00010101000000-000000000000
 	github.com/nats-io/nats.go v1.43.0
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
@@ -151,6 +152,6 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/kubeflow/pipelines => github.com/kubeflow/pipelines v0.0.0-20250606193816-2b04d2f8967a
+replace github.com/kubeflow/pipelines => github.com/kubeflow/pipelines v0.0.0-20240325174303-f328f0b588c3
 
 tool golang.org/x/tools/cmd/stringer
