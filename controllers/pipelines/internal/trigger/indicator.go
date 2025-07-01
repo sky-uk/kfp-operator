@@ -1,8 +1,6 @@
 package trigger
 
 import (
-	"fmt"
-
 	"github.com/sky-uk/kfp-operator/apis"
 )
 
@@ -13,7 +11,9 @@ const (
 )
 
 const (
-	TriggerByLabel = apis.Group + "/triggered-by"
+	TriggerByTypeLabel            = apis.Group + "/triggered-by-type"
+	TriggerBySourceLabel          = apis.Group + "/triggered-by-source"
+	TriggerBySourceNamespaceLabel = apis.Group + "/triggered-by-source-namespace"
 )
 
 const (
@@ -28,10 +28,24 @@ type Indicator struct {
 	SourceNamespace string `json:"sourceNamespace"`
 }
 
-func (i *Indicator) AsHeaders() map[string]string {
-	return map[string]string{
-		Type:            fmt.Sprintf("%s: %s", Type, i.Type),
-		Source:          fmt.Sprintf("%s: %s", Source, i.Source),
-		SourceNamespace: fmt.Sprintf("%s: %s", SourceNamespace, i.SourceNamespace),
+func (i Indicator) AsHeaders() map[string]string {
+	headers := map[string]string{}
+	if i.Type != "" {
+		headers[Type] = i.Type
+	}
+	if i.Source != "" {
+		headers[Source] = i.Source
+	}
+	if i.SourceNamespace != "" {
+		headers[SourceNamespace] = i.SourceNamespace
+	}
+	return headers
+}
+
+func FromLabels(labels map[string]string) Indicator {
+	return Indicator{
+		Type:            labels[TriggerByTypeLabel],
+		Source:          labels[TriggerBySourceLabel],
+		SourceNamespace: labels[TriggerBySourceNamespaceLabel],
 	}
 }

@@ -2,7 +2,6 @@ package pipelines
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/trigger"
 	"reflect"
@@ -167,11 +166,9 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		if desiredRun.Labels == nil {
 			desiredRun.Labels = map[string]string{}
 		}
-		triggerIndicatorMarshalled, err := json.Marshal(indicator)
-		if err != nil {
-			return fmt.Errorf("failed to marshal trigger indicator: %w", err)
-		}
-		desiredRun.Labels[trigger.TriggerByLabel] = string(triggerIndicatorMarshalled)
+		desiredRun.Labels[trigger.TriggerByTypeLabel] = indicator.Type
+		desiredRun.Labels[trigger.TriggerBySourceLabel] = indicator.Source
+		desiredRun.Labels[trigger.TriggerBySourceNamespaceLabel] = indicator.SourceNamespace
 	}
 
 	return r.EC.Client.Create(ctx, desiredRun)

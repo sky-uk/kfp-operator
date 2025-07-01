@@ -51,6 +51,7 @@ func (p *StubProvider) DeletePipeline(_ context.Context, id string) error {
 func (p *StubProvider) CreateRun(
 	_ context.Context,
 	rd resource.RunDefinition,
+	_ map[string]string,
 ) (string, error) {
 	if strings.EqualFold(rd.Name.Name, CreateRunFail) {
 		return "", &CreateRunError{}
