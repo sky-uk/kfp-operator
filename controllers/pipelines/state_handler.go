@@ -365,7 +365,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 		var failureMessage string
 
 		if failed != nil {
-			failureMessage = "operation failed"
+			failureMessage = fmt.Sprintf("operation failed: %s", failed.Status.Message)
 		} else {
 			failureMessage = "operation progress unknown"
 		}
