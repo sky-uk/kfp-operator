@@ -6,12 +6,28 @@ import (
 
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-type KfpProvider struct{}
+type KfpProvider struct {
+	experimentService ExperimentService
+}
 
 func NewKfpProvider(config config.Config) (*KfpProvider, error) {
-	return &KfpProvider{}, nil
+	conn, err := grpc.NewClient(
+		config.Parameters.GrpcKfpApiAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	experimentService, err := NewExperimentService(conn)
+
+	return &KfpProvider{
+		experimentService: experimentService,
+	}, nil
 }
 
 var _ resource.Provider = &KfpProvider{}
@@ -74,24 +90,37 @@ func (*KfpProvider) DeleteRunSchedule(
 	return errors.New("not implemented")
 }
 
-func (*KfpProvider) CreateExperiment(
+func (p *KfpProvider) CreateExperiment(
 	ctx context.Context,
 	ed resource.ExperimentDefinition,
 ) (string, error) {
-	return "", errors.New("not implemented")
+	expId, err := p.experimentService.CreateExperiment(
+		ctx,
+		ed.Name,
+		ed.Description,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return expId, nil
 }
 
-func (*KfpProvider) UpdateExperiment(
+func (p *KfpProvider) UpdateExperiment(
 	ctx context.Context,
 	ed resource.ExperimentDefinition,
 	id string,
 ) (string, error) {
-	return "", errors.New("not implemented")
+	if err := p.DeleteExperiment(ctx, id); err != nil {
+		return id, err
+	}
+
+	return p.CreateExperiment(ctx, ed)
 }
 
-func (KfpProvider) DeleteExperiment(
+func (p *KfpProvider) DeleteExperiment(
 	ctx context.Context,
 	id string,
 ) error {
-	return errors.New("not implemented")
+	return p.experimentService.DeleteExperiment(ctx, id)
 }
