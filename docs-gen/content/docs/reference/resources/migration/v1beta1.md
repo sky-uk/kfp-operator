@@ -10,7 +10,7 @@ Follow the steps below for every `Pipeline`, `RunConfiguration`, `Experiment`, `
 ## Pipeline
 1. Change the `apiVersion` from `pipelines.kubeflow.org/v1alpha6` to `pipelines.kubeflow.org/v1beta1`.
 2. Ensure that the `spec.provider` field includes the namespace that the Provider resource is deployed in.
-3. Add `spec.frameworks`, which is an object with `name` and `parameters` fields. `parameters` are framework specific parameters, such as `components` and `beamArgs`. To use the `tfx` framework that was the only option under versions `v1alpha6` and below, set the `name` field to `tfx`, add the path to the function that returns the tfx components under `spec.frameworks.components`, and add any required beamArgs like the example below.
+3. Add `spec.framework`, which is an object with `name` and `parameters` fields. `parameters` are framework specific parameters, such as `components` and `beamArgs`. To use the `tfx` framework that was the only option under versions `v1alpha6` and below, set the `name` field to `tfx`, add the path to the function that returns the tfx components under `spec.framework.parameters.components`, and add any required beamArgs like the example below.
 4. Remove `spec.tfxComponents`.
 5. Remove `spec.beamArgs`.
 
@@ -28,7 +28,7 @@ spec:
 + provider: my-provider-namespace/vai
   image: registry/mypipelineimage
 - tfxComponents: pipeline.create_components
-+ frameworks:
++ framework:
 +   name: tfx
 +   parameters:
 +     components: base_pipeline.create_components
