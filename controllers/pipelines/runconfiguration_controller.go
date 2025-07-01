@@ -2,7 +2,9 @@ package pipelines
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/trigger"
 	"reflect"
 	"slices"
 	"time"
@@ -143,6 +145,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 	ctx context.Context,
 	runConfiguration *pipelineshub.RunConfiguration,
+	indicator *trigger.Indicator,
 ) error {
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
@@ -154,12 +157,21 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		return err
 	}
 
-	runExists := slices.ContainsFunc(runs, func(run pipelineshub.Run) bool {
+	if runExists := slices.ContainsFunc(runs, func(run pipelineshub.Run) bool {
 		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
-	})
-
-	if runExists {
+	}); runExists {
 		return nil
+	}
+
+	if indicator != nil {
+		if desiredRun.Labels == nil {
+			desiredRun.Labels = map[string]string{}
+		}
+		triggerIndicatorMarshalled, err := json.Marshal(indicator)
+		if err != nil {
+			return fmt.Errorf("failed to marshal trigger indicator: %w", err)
+		}
+		desiredRun.Labels[trigger.TriggerByLabel] = string(triggerIndicatorMarshalled)
 	}
 
 	return r.EC.Client.Create(ctx, desiredRun)
@@ -203,16 +215,72 @@ func (r *RunConfigurationReconciler) syncWithRuns(
 	oldStatus := runConfiguration.Status
 	runConfiguration.Status = r.updateRcTriggers(*runConfiguration)
 
-	if runConfiguration.Status.Triggers.Equals(oldStatus.Triggers) &&
-		runConfiguration.Status.Triggers.Pipeline.Version == oldStatus.Triggers.Pipeline.Version {
+	triggersEqual := runConfiguration.Status.Triggers.Equals(oldStatus.Triggers)
+	pipelineVersionEqual := runConfiguration.Status.Triggers.Pipeline.Version == oldStatus.Triggers.Pipeline.Version
+
+	if triggersEqual && pipelineVersionEqual {
 		return false, nil
 	}
 
-	if err := r.triggerUntriggeredRuns(ctx, runConfiguration); err != nil {
+	triggerIndication := r.identifyRunTriggerReason(runConfiguration, oldStatus)
+
+	if err := r.triggerUntriggeredRuns(ctx, runConfiguration, triggerIndication); err != nil {
 		return false, err
 	}
 
 	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
+}
+
+func (r *RunConfigurationReconciler) identifyRunTriggerReason(runConfiguration *pipelineshub.RunConfiguration, oldStatus pipelineshub.RunConfigurationStatus) *trigger.Indicator {
+
+	if runConfiguration.Status.Triggers.RunSpec.Version != "" && runConfiguration.Status.Triggers.RunSpec.Version != oldStatus.Triggers.RunSpec.Version {
+		return &trigger.Indicator{
+			Type:            trigger.OnChangeRunSpec,
+			Source:          runConfiguration.Name,
+			SourceNamespace: runConfiguration.Namespace,
+		}
+	}
+
+	if runConfiguration.Status.Triggers.Pipeline.Version != "" && runConfiguration.Status.Triggers.Pipeline.Version != oldStatus.Triggers.Pipeline.Version {
+		return &trigger.Indicator{
+			Type:            trigger.OnChangePipeline,
+			Source:          runConfiguration.Spec.Run.Pipeline.Name,
+			SourceNamespace: runConfiguration.Namespace,
+		}
+	}
+
+	if runConfiguration.Status.Triggers.RunConfigurations != nil {
+		differentRCs := GetDifferingRCs(runConfiguration.Status.Triggers.RunConfigurations, oldStatus.Triggers.RunConfigurations)
+		if len(differentRCs) > 0 {
+			firstDifferentRc, hasDifferentRC := lo.First(differentRCs)
+			if hasDifferentRC {
+				triggerIndication := trigger.Indicator{
+					Type:   trigger.RunConfiguration,
+					Source: firstDifferentRc,
+				}
+				foundTriggerSpecForDifferentRC, ok := lo.Find(runConfiguration.Spec.Triggers.RunConfigurations, func(rc common.NamespacedName) bool {
+					return rc.Name == firstDifferentRc
+				})
+				if ok {
+					triggerIndication.SourceNamespace = foundTriggerSpecForDifferentRC.Namespace
+				}
+
+				return &triggerIndication
+			}
+		}
+	}
+
+	return nil
+}
+
+func GetDifferingRCs[K comparable, V comparable](a, b map[K]V) []K {
+	differs := []K{}
+	for k, vA := range a {
+		if vB, ok := b[k]; ok && vA != vB {
+			differs = append(differs, k)
+		}
+	}
+	return differs
 }
 
 func (r *RunConfigurationReconciler) syncStatus(

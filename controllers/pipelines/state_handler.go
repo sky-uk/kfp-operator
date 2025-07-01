@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/trigger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -225,6 +226,11 @@ func (st StateHandler[R]) onSucceededOrFailed(
 			provider,
 			providerSvc,
 			resource,
+			trigger.Indicator{
+				Type:            resource.GetKind(),
+				Source:          resource.GetName(),
+				SourceNamespace: resource.GetNamespace(),
+			},
 		)
 
 		if err != nil {

@@ -3,6 +3,8 @@ package workflowfactory
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/samber/lo"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/trigger"
 	"slices"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -161,6 +163,33 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 				),
 			),
 		},
+	}
+
+	labels := resource.GetLabels()
+	if labels != nil {
+		triggerIndicatorJson := labels[trigger.TriggerByLabel]
+		triggerIndicator := trigger.Indicator{}
+		if triggerIndicatorJson != "" {
+			err := json.Unmarshal([]byte(triggerIndicatorJson), &triggerIndicator)
+			if err != nil {
+				return nil, fmt.Errorf("error unmarshalling trigger indicator: %w", err)
+			}
+			triggerAsHeaders := triggerIndicator.AsHeaders()
+			
+			params = append(params, argo.Parameter{
+				Name:  workflowconstants.TriggeredByIndicatorSource,
+				Value: argo.AnyStringPtr(triggerAsHeaders[trigger.Source]),
+			},
+				argo.Parameter{
+					Name:  workflowconstants.TriggeredByIndicatorType,
+					Value: argo.AnyStringPtr(triggerAsHeaders[trigger.Type]),
+				},
+				argo.Parameter{
+					Name:  workflowconstants.TriggeredByIndicatorSourceNamespace,
+					Value: argo.AnyStringPtr(triggerAsHeaders[trigger.SourceNamespace]),
+				})
+
+		}
 	}
 
 	additionalParams, err := workflows.WorkflowParamsCreator(provider, resource)
