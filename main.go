@@ -183,7 +183,7 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
 			os.Exit(1)
 		}
-		if err = (&pipelineshub.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = pipelineshub.NewRunConfigurationValidatorWebhook(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
 			os.Exit(1)
 		}
@@ -198,7 +198,7 @@ func main() {
 	}
 
 	// Resources that have a validation webhook in addition to conversion
-	if err = (&pipelineshub.Run{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = pipelineshub.NewRunValidatorWebhook(mgr); err != nil {
 		setupLog.Error(err, "unable to create webhook", "webhook", "Run")
 		os.Exit(1)
 	}

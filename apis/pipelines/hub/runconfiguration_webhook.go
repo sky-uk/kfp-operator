@@ -1,6 +1,9 @@
 package v1beta1
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/samber/lo"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -10,17 +13,21 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-func (rc *RunConfiguration) SetupWebhookWithManager(mgr ctrl.Manager) error {
+func NewRunConfigurationValidatorWebhook(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
-		For(rc).
+		For(&RunConfiguration{}).
+		WithValidator(&RunConfigurationValidator{}).
 		Complete()
 }
 
 //+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1beta1-runconfiguration,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runconfigurations,verbs=create;update,versions=v1beta1,name=vrunconfiguration.kb.io,admissionReviewVersions=v1
+// +kubebuilder:object:generate=false
 
-var _ webhook.Validator = &RunConfiguration{}
+type RunConfigurationValidator struct{}
 
-func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) {
+var _ webhook.CustomValidator = &RunConfigurationValidator{}
+
+func validateUniqueStructures(rc RunConfiguration) (errors field.ErrorList) {
 	duplicateSchedules := lo.FindDuplicates(rc.Spec.Triggers.Schedules)
 	schedulePath := field.NewPath("spec").Key("triggers").Key("schedules")
 	errors = append(errors, lo.Map(duplicateSchedules, func(schedule Schedule, _ int) *field.Error {
@@ -36,7 +43,7 @@ func (rc *RunConfiguration) validateUniqueStructures() (errors field.ErrorList) 
 	return
 }
 
-func (rc *RunConfiguration) validateRunParameters() (errors field.ErrorList) {
+func validateRunParameters(rc RunConfiguration) (errors field.ErrorList) {
 	runParametersPath := field.NewPath("spec").Child("run").Child("parameters")
 	for i, p := range rc.Spec.Run.Parameters {
 		if p.ValueFrom != nil && p.Value != "" {
@@ -49,8 +56,8 @@ func (rc *RunConfiguration) validateRunParameters() (errors field.ErrorList) {
 	return
 }
 
-func (rc *RunConfiguration) validate() (admission.Warnings, error) {
-	errors := append(rc.validateRunParameters(), rc.validateUniqueStructures()...)
+func validate(rc RunConfiguration) (admission.Warnings, error) {
+	errors := append(validateRunParameters(rc), validateUniqueStructures(rc)...)
 
 	if len(errors) > 0 {
 		return nil, apierrors.NewInvalid(rc.GroupVersionKind().GroupKind(), rc.Name, errors)
@@ -59,14 +66,45 @@ func (rc *RunConfiguration) validate() (admission.Warnings, error) {
 	return nil, nil
 }
 
-func (rc *RunConfiguration) ValidateCreate() (admission.Warnings, error) {
-	return rc.validate()
+func (*RunConfigurationValidator) ValidateCreate(
+	ctx context.Context,
+	obj runtime.Object,
+) (admission.Warnings, error) {
+	rc, ok := obj.(*RunConfiguration)
+
+	if !ok {
+		return nil, apierrors.NewBadRequest(
+			fmt.Sprintf(
+				"Got kind=%v; expected kind=%v",
+				obj.GetObjectKind().GroupVersionKind().GroupKind(),
+				GroupVersion.WithKind((&RunConfiguration{}).GetKind()).GroupKind(),
+			),
+		)
+	}
+	return validate(*rc)
 }
 
-func (rc *RunConfiguration) ValidateUpdate(_ runtime.Object) (admission.Warnings, error) {
-	return rc.validate()
+func (*RunConfigurationValidator) ValidateUpdate(
+	ctx context.Context,
+	_, newObj runtime.Object,
+) (admission.Warnings, error) {
+	rc, ok := newObj.(*RunConfiguration)
+
+	if !ok {
+		return nil, apierrors.NewBadRequest(
+			fmt.Sprintf(
+				"Got kind=%v; expected kind=%v",
+				newObj.GetObjectKind().GroupVersionKind().GroupKind(),
+				GroupVersion.WithKind((&RunConfiguration{}).GetKind()).GroupKind(),
+			),
+		)
+	}
+	return validate(*rc)
 }
 
-func (rc *RunConfiguration) ValidateDelete() (admission.Warnings, error) {
+func (*RunConfigurationValidator) ValidateDelete(
+	_ context.Context,
+	_ runtime.Object,
+) (admission.Warnings, error) {
 	return nil, nil
 }
