@@ -1,6 +1,8 @@
 package v1beta1
 
 import (
+	"context"
+	"fmt"
 	"reflect"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -11,17 +13,36 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-func (r *Run) SetupWebhookWithManager(mgr ctrl.Manager) error {
+func NewRunValidatorWebhook(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
-		For(r).
+		For(&Run{}).
+		WithValidator(&RunValidator{}).
 		Complete()
 }
 
-//+kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1beta1-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=create;update,versions=v1beta1,name=vrun.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/validate-pipelines-kubeflow-org-v1beta1-run,mutating=false,failurePolicy=fail,sideEffects=None,groups=pipelines.kubeflow.org,resources=runs,verbs=create;update,versions=v1beta1,name=vrun.kb.io,admissionReviewVersions=v1
+// +kubebuilder:object:generate=false
 
-var _ webhook.Validator = &Run{}
+type RunValidator struct{}
 
-func (r *Run) ValidateCreate() (admission.Warnings, error) {
+var _ webhook.CustomValidator = &RunValidator{}
+
+func (*RunValidator) ValidateCreate(
+	ctx context.Context,
+	obj runtime.Object,
+) (admission.Warnings, error) {
+	r, ok := obj.(*Run)
+
+	if !ok {
+		return nil, apierrors.NewBadRequest(
+			fmt.Sprintf(
+				"Got kind=%v; expected kind=%v",
+				obj.GetObjectKind().GroupVersionKind().GroupKind(),
+				GroupVersion.WithKind((&Run{}).GetKind()).GroupKind(),
+			),
+		)
+	}
+
 	for i, p := range r.Spec.Parameters {
 		if p.ValueFrom != nil && p.Value != "" {
 			return nil, apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
@@ -37,15 +58,44 @@ func (r *Run) ValidateCreate() (admission.Warnings, error) {
 	return nil, nil
 }
 
-func (r *Run) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
-	if !reflect.DeepEqual(r.Spec, old.(*Run).Spec) {
-		return nil, apierrors.NewInvalid(r.GroupVersionKind().GroupKind(),
-			r.Name, field.ErrorList{field.Forbidden(field.NewPath("spec"), "immutable")})
+func (*RunValidator) ValidateUpdate(
+	ctx context.Context,
+	oldObj, newObj runtime.Object,
+) (admission.Warnings, error) {
+	oldRun, ok := oldObj.(*Run)
+
+	if !ok {
+		return nil, apierrors.NewBadRequest(
+			fmt.Sprintf(
+				"Got kind=%v; expected kind=%v",
+				oldObj.GetObjectKind().GroupVersionKind().GroupKind(),
+				GroupVersion.WithKind((&Run{}).GetKind()).GroupKind(),
+			),
+		)
 	}
 
+	newRun, ok := newObj.(*Run)
+
+	if !ok {
+		return nil, apierrors.NewBadRequest(
+			fmt.Sprintf(
+				"Got kind=%v; expected kind=%v",
+				newObj.GetObjectKind().GroupVersionKind().GroupKind(),
+				GroupVersion.WithKind((&Run{}).GetKind()).GroupKind(),
+			),
+		)
+	}
+
+	if !reflect.DeepEqual(newRun.Spec, oldRun.Spec) {
+		return nil, apierrors.NewInvalid(newRun.GroupVersionKind().GroupKind(),
+			newRun.Name, field.ErrorList{field.Forbidden(field.NewPath("spec"), "immutable")})
+	}
 	return nil, nil
 }
 
-func (r *Run) ValidateDelete() (admission.Warnings, error) {
+func (*RunValidator) ValidateDelete(
+	_ context.Context,
+	_ runtime.Object,
+) (admission.Warnings, error) {
 	return nil, nil
 }
