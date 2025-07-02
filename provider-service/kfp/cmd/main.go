@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/internal/log"
 	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	kfpConfig "github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	logger, err := common.NewLogger(zapcore.InfoLevel)
+	logger, err := log.NewLogger(zapcore.InfoLevel)
 	if err != nil {
 		panic(err)
 	}
