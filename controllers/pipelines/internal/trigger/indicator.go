@@ -1,6 +1,7 @@
 package trigger
 
 import (
+	"fmt"
 	"github.com/sky-uk/kfp-operator/apis"
 )
 
@@ -31,13 +32,13 @@ type Indicator struct {
 func (i Indicator) AsHeaders() map[string]string {
 	headers := map[string]string{}
 	if i.Type != "" {
-		headers[Type] = i.Type
+		headers[Type] = fmt.Sprintf("%s: %s", Type, i.Type)
 	}
 	if i.Source != "" {
-		headers[Source] = i.Source
+		headers[Source] = fmt.Sprintf("%s: %s", Source, i.Source)
 	}
 	if i.SourceNamespace != "" {
-		headers[SourceNamespace] = i.SourceNamespace
+		headers[SourceNamespace] = fmt.Sprintf("%s: %s", SourceNamespace, i.Source)
 	}
 	return headers
 }

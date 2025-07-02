@@ -19,9 +19,9 @@ const (
 	ResourceDefinitionParameterName     = "resource-definition"
 	ResourceIdParameterName             = "resource-id"
 	PipelineFrameworkImageParameterName = "pipeline-framework-image"
-	TriggeredByIndicatorSource          = "triggered-by-indicator-source"
-	TriggeredByIndicatorType            = "triggered-by-indicator-type"
-	TriggeredByIndicatorSourceNamespace = "triggered-by-indicator-namespace"
+	TriggeredByIndicatorSource          = "trigger-source"
+	TriggeredByIndicatorType            = "trigger-type"
+	TriggeredByIndicatorSourceNamespace = "trigger-source-namespace"
 )
 
 type WorkflowParameterError struct {

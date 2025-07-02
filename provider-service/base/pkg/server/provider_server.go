@@ -42,6 +42,7 @@ func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 		}
 		defer r.Body.Close()
 
+		logger.Info("Received request to create resource", "headers", r.Header)
 		resp, err := hr.Create(requestCtx, body, flattenHeaders(r.Header))
 
 		switch {
@@ -214,7 +215,7 @@ func writeResponse(w http.ResponseWriter, responseBody resource.ResponseBody, st
 func flattenHeaders(requestHeaders http.Header) map[string]string {
 	var headers = map[string]string{}
 	for k, v := range requestHeaders {
-		headers[k] = strings.Join(v, ",")
+		headers[strings.ToLower(k)] = strings.Join(v, ",")
 	}
 	return headers
 }
