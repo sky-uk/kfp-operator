@@ -30,7 +30,7 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 		labels = lg.runLabelsFromSchedule(v)
 	default:
 		return nil, fmt.Errorf(
-			"Unexpected definition received [%T], expected %T or %T",
+			"unexpected definition received [%T], expected %T or %T",
 			value,
 			resource.RunDefinition{},
 			resource.RunScheduleDefinition{},
@@ -39,7 +39,8 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 
 	labels[label.ProviderName] = lg.providerName.Name
 	labels[label.ProviderNamespace] = lg.providerName.Namespace
-	return labels, nil
+
+	return label.SanitizeLabels(labels), nil
 }
 
 func (lg DefaultLabelGen) runLabelsFromPipeline(
