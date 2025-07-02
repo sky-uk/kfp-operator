@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/trigger"
 	"testing"
 
 	"io"
@@ -125,7 +126,13 @@ var _ = Describe("Http Server Endpoints", func() {
 			When("succeeds", func() {
 				It("returns 201 with valid response body", func() {
 					response := "mocked-id"
-					handledResource.On("Create", ignoreCtx, payload, mock.Anything).Return(
+					expectedHeaders := map[string]string{
+						trigger.TriggerType:            "TestType",
+						trigger.TriggerSource:          "TestSource",
+						trigger.TriggerSourceNamespace: "TestNamespace",
+					}
+
+					handledResource.On("Create", ignoreCtx, payload, expectedHeaders).Return(
 						resource.ResponseBody{
 							Id: response,
 						},
@@ -137,6 +144,10 @@ var _ = Describe("Http Server Endpoints", func() {
 						"/resource/"+resourceType,
 						bytes.NewReader(payload),
 					)
+					req.Header.Add(trigger.TriggerType, expectedHeaders[trigger.TriggerType])
+					req.Header.Add(trigger.TriggerSource, expectedHeaders[trigger.TriggerSource])
+					req.Header.Add(trigger.TriggerSourceNamespace, expectedHeaders[trigger.TriggerSourceNamespace])
+
 					rr := httptest.NewRecorder()
 					server.Config.Handler.ServeHTTP(rr, req)
 					resp := rr.Result()
@@ -502,4 +513,36 @@ var _ = Describe("Http Server Endpoints", func() {
 			})
 		})
 	})
+})
+
+var _ = Describe("flattenHeaders", func() {
+	DescribeTable("flattens and lowercases HTTP headers",
+		func(input http.Header, expected map[string]string) {
+			result := flattenHeaders(input)
+			Expect(result).To(Equal(expected))
+		},
+
+		Entry("empty headers",
+			http.Header{},
+			map[string]string{},
+		),
+
+		Entry("single header, single value",
+			http.Header{
+				"X-Test": []string{"abc"},
+			},
+			map[string]string{
+				"x-test": "abc",
+			},
+		),
+
+		Entry("single header, multiple values",
+			http.Header{
+				"X-Test": []string{"a", "b", "c"},
+			},
+			map[string]string{
+				"x-test": "a,b,c",
+			},
+		),
+	)
 })

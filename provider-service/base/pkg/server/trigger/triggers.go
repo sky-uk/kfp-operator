@@ -9,15 +9,15 @@ const (
 func FromHeaders(headers map[string]string) map[string]string {
 	triggers := map[string]string{}
 
-	if triggers[TriggerType] != "" {
+	if headers[TriggerType] != "" {
 		triggers[TriggerType] = headers[TriggerType]
 	}
 
-	if triggers[TriggerSource] != "" {
+	if headers[TriggerSource] != "" {
 		triggers[TriggerSource] = headers[TriggerSource]
 	}
 
-	if triggers[TriggerSourceNamespace] != "" {
+	if headers[TriggerSourceNamespace] != "" {
 		triggers[TriggerSourceNamespace] = headers[TriggerSourceNamespace]
 	}
 

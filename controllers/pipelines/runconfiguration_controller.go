@@ -166,9 +166,7 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		if desiredRun.Labels == nil {
 			desiredRun.Labels = map[string]string{}
 		}
-		desiredRun.Labels[trigger.TriggerByTypeLabel] = indicator.Type
-		desiredRun.Labels[trigger.TriggerBySourceLabel] = indicator.Source
-		desiredRun.Labels[trigger.TriggerBySourceNamespaceLabel] = indicator.SourceNamespace
+		desiredRun.Labels = lo.Assign(desiredRun.Labels, indicator.AsLabels())
 	}
 
 	return r.EC.Client.Create(ctx, desiredRun)
@@ -219,7 +217,7 @@ func (r *RunConfigurationReconciler) syncWithRuns(
 		return false, nil
 	}
 
-	triggerIndication := r.identifyRunTriggerReason(runConfiguration, oldStatus)
+	triggerIndication := r.IdentifyRunTriggerReason(runConfiguration, oldStatus)
 
 	if err := r.triggerUntriggeredRuns(ctx, runConfiguration, triggerIndication); err != nil {
 		return false, err
@@ -228,7 +226,7 @@ func (r *RunConfigurationReconciler) syncWithRuns(
 	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
-func (r *RunConfigurationReconciler) identifyRunTriggerReason(runConfiguration *pipelineshub.RunConfiguration, oldStatus pipelineshub.RunConfigurationStatus) *trigger.Indicator {
+func (r *RunConfigurationReconciler) IdentifyRunTriggerReason(runConfiguration *pipelineshub.RunConfiguration, oldStatus pipelineshub.RunConfigurationStatus) *trigger.Indicator {
 
 	if runConfiguration.Status.Triggers.RunSpec.Version != "" && runConfiguration.Status.Triggers.RunSpec.Version != oldStatus.Triggers.RunSpec.Version {
 		return &trigger.Indicator{
@@ -247,22 +245,19 @@ func (r *RunConfigurationReconciler) identifyRunTriggerReason(runConfiguration *
 	}
 
 	if runConfiguration.Status.Triggers.RunConfigurations != nil {
-		differentRCs := GetDifferingRCs(runConfiguration.Status.Triggers.RunConfigurations, oldStatus.Triggers.RunConfigurations)
-		if len(differentRCs) > 0 {
-			firstDifferentRc, hasDifferentRC := lo.First(differentRCs)
-			if hasDifferentRC {
-				triggerIndication := trigger.Indicator{
-					Type:   trigger.RunConfiguration,
-					Source: firstDifferentRc,
-				}
-				foundTriggerSpecForDifferentRC, ok := lo.Find(runConfiguration.Spec.Triggers.RunConfigurations, func(rc common.NamespacedName) bool {
-					return rc.Name == firstDifferentRc
-				})
-				if ok {
-					triggerIndication.SourceNamespace = foundTriggerSpecForDifferentRC.Namespace
-				}
+		differentRCs := GetDiffering(runConfiguration.Status.Triggers.RunConfigurations, oldStatus.Triggers.RunConfigurations)
+		firstDifferentRc, hasDifferentRC := lo.First(differentRCs)
 
-				return &triggerIndication
+		if hasDifferentRC {
+			rcNamespaceName, err := common.NamespacedNameFromString(firstDifferentRc)
+			if err != nil {
+				return nil
+			}
+
+			return &trigger.Indicator{
+				Type:            trigger.RunConfiguration,
+				Source:          rcNamespaceName.Name,
+				SourceNamespace: rcNamespaceName.Namespace,
 			}
 		}
 	}
@@ -270,7 +265,7 @@ func (r *RunConfigurationReconciler) identifyRunTriggerReason(runConfiguration *
 	return nil
 }
 
-func GetDifferingRCs[K comparable, V comparable](a, b map[K]V) []K {
+func GetDiffering[K comparable, V comparable](a, b map[K]V) []K {
 	differs := []K{}
 	for k, vA := range a {
 		if vB, ok := b[k]; ok && vA != vB {

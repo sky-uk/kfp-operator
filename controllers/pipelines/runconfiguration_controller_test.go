@@ -9,6 +9,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/trigger"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -141,4 +142,111 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 		updatedStatus.Triggers.Pipeline.Version = runConfiguration.Status.Triggers.Pipeline.Version
 		Expect(updatedStatus).To(Equal(runConfiguration.Status))
 	})
+})
+
+var _ = Context("identifyRunTriggerReason", func() {
+	reconciler := &RunConfigurationReconciler{}
+
+	DescribeTable("determines correct trigger reason",
+		func(status pipelineshub.RunConfigurationStatus, old pipelineshub.RunConfigurationStatus, expected *trigger.Indicator) {
+			rc := &pipelineshub.RunConfiguration{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "run-config",
+					Namespace: "namespace",
+				},
+				Spec: pipelineshub.RunConfigurationSpec{
+					Run: pipelineshub.RunSpec{
+						Pipeline: pipelineshub.PipelineIdentifier{
+							Name:    "pipeline",
+							Version: "0.0.1",
+						},
+					},
+				},
+				Status: status,
+			}
+
+			indicator := reconciler.IdentifyRunTriggerReason(rc, old)
+			Expect(indicator).To(Equal(expected))
+		},
+
+		Entry("returns OnChangeRunSpec when RunSpec version changes",
+			pipelineshub.RunConfigurationStatus{
+				Triggers: pipelineshub.TriggersStatus{
+					RunSpec: pipelineshub.RunSpecTriggerStatus{Version: "0.0.1"},
+				},
+			},
+			pipelineshub.RunConfigurationStatus{
+				Triggers: pipelineshub.TriggersStatus{
+					RunSpec: pipelineshub.RunSpecTriggerStatus{Version: "0.0.2"},
+				},
+			},
+			&trigger.Indicator{
+				Type:            trigger.OnChangeRunSpec,
+				Source:          "run-config",
+				SourceNamespace: "namespace",
+			},
+		),
+
+		Entry("returns OnChangePipeline when Pipeline version changes",
+			pipelineshub.RunConfigurationStatus{
+				Triggers: pipelineshub.TriggersStatus{
+					Pipeline: pipelineshub.PipelineTriggerStatus{Version: "0.0.1"},
+				},
+			},
+			pipelineshub.RunConfigurationStatus{
+				Triggers: pipelineshub.TriggersStatus{
+					Pipeline: pipelineshub.PipelineTriggerStatus{Version: "0.0.2"},
+				},
+			},
+			&trigger.Indicator{
+				Type:            trigger.OnChangePipeline,
+				Source:          "pipeline",
+				SourceNamespace: "namespace",
+			},
+		),
+
+		Entry("returns RunConfiguration when RunConfigurations differ",
+			pipelineshub.RunConfigurationStatus{
+				Triggers: pipelineshub.TriggersStatus{
+					RunConfigurations: map[string]pipelineshub.TriggeredRunReference{
+						"namespace2/run-configuration-dependent": {ProviderId: "0.0.1"},
+					},
+				},
+			},
+			pipelineshub.RunConfigurationStatus{
+				Triggers: pipelineshub.TriggersStatus{
+					RunConfigurations: map[string]pipelineshub.TriggeredRunReference{
+						"namespace2/run-configuration-dependent": {ProviderId: "0.0.2"},
+					},
+				},
+			},
+			&trigger.Indicator{
+				Type:            trigger.RunConfiguration,
+				Source:          "run-configuration-dependent",
+				SourceNamespace: "namespace2",
+			},
+		),
+
+		Entry("returns nil when all versions and configs are the same",
+			pipelineshub.RunConfigurationStatus{
+				Triggers: pipelineshub.TriggersStatus{
+					RunSpec:  pipelineshub.RunSpecTriggerStatus{Version: "0.0.1"},
+					Pipeline: pipelineshub.PipelineTriggerStatus{Version: "0.0.1"},
+					RunConfigurations: map[string]pipelineshub.TriggeredRunReference{
+						"namespace2/run-configuration-dependent": {ProviderId: "0.0.1"},
+					},
+				},
+			},
+			pipelineshub.RunConfigurationStatus{
+				Triggers: pipelineshub.TriggersStatus{
+					RunSpec:  pipelineshub.RunSpecTriggerStatus{Version: "0.0.1"},
+					Pipeline: pipelineshub.PipelineTriggerStatus{Version: "0.0.1"},
+					RunConfigurations: map[string]pipelineshub.TriggeredRunReference{
+						"namespace2/run-configuration-dependent": {ProviderId: "0.0.1"},
+					},
+				},
+			},
+			nil,
+		),
+	)
 })

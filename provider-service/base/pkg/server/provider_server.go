@@ -42,7 +42,6 @@ func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 		}
 		defer r.Body.Close()
 
-		logger.Info("Received request to create resource", "headers", r.Header)
 		resp, err := hr.Create(requestCtx, body, flattenHeaders(r.Header))
 
 		switch {
