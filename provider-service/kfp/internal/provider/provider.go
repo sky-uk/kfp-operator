@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
@@ -56,7 +57,7 @@ func (*KfpProvider) DeletePipeline(
 
 func (*KfpProvider) CreateRun(
 	ctx context.Context,
-	rd resource.RunDefinition,
+	rd base.RunDefinition,
 ) (string, error) {
 	return "", errors.New("not implemented")
 }
@@ -70,14 +71,14 @@ func (*KfpProvider) DeleteRun(
 
 func (*KfpProvider) CreateRunSchedule(
 	ctx context.Context,
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) (string, error) {
 	return "", errors.New("not implemented")
 }
 
 func (*KfpProvider) UpdateRunSchedule(
 	ctx context.Context,
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	id string,
 ) (string, error) {
 	return "", errors.New("not implemented")
@@ -92,7 +93,7 @@ func (*KfpProvider) DeleteRunSchedule(
 
 func (p *KfpProvider) CreateExperiment(
 	ctx context.Context,
-	ed resource.ExperimentDefinition,
+	ed base.ExperimentDefinition,
 ) (string, error) {
 	expId, err := p.experimentService.CreateExperiment(
 		ctx,
@@ -108,7 +109,7 @@ func (p *KfpProvider) CreateExperiment(
 
 func (p *KfpProvider) UpdateExperiment(
 	ctx context.Context,
-	ed resource.ExperimentDefinition,
+	ed base.ExperimentDefinition,
 	id string,
 ) (string, error) {
 	if err := p.DeleteExperiment(ctx, id); err != nil {

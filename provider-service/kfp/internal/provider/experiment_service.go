@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	kfpUtil "github.com/sky-uk/kfp-operator/provider-service/kfp/internal/util"
