@@ -6,16 +6,28 @@ import (
 
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type KfpProvider struct {
-	experimentService ExperimentService
+	config                *config.Config
+	pipelineUploadService PipelineUploadService
+	pipelineService       PipelineService
+	runService            RunService
+	experimentService     ExperimentService
 }
 
-func NewKfpProvider(config config.Config) (*KfpProvider, error) {
+func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
+	pipelineUploadService, err := NewPipelineUploadService(
+		config.Parameters.RestKfpApiUrl,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	conn, err := grpc.NewClient(
 		config.Parameters.GrpcKfpApiAddress,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -24,42 +36,113 @@ func NewKfpProvider(config config.Config) (*KfpProvider, error) {
 		return nil, err
 	}
 
+	pipelineService, err := NewPipelineService(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	runService, err := NewRunService(conn)
+	if err != nil {
+		return nil, err
+	}
+
 	experimentService, err := NewExperimentService(conn)
 
 	return &KfpProvider{
-		experimentService: experimentService,
+		config:                config,
+		pipelineUploadService: pipelineUploadService,
+		pipelineService:       pipelineService,
+		runService:            runService,
+		experimentService:     experimentService,
 	}, nil
 }
 
 var _ resource.Provider = &KfpProvider{}
 
-func (*KfpProvider) CreatePipeline(
+func (p *KfpProvider) CreatePipeline(
 	ctx context.Context,
-	ppd resource.PipelineDefinitionWrapper,
+	pdw resource.PipelineDefinitionWrapper,
 ) (string, error) {
-	return "", errors.New("not implemented")
+	pipelineName, err := pdw.PipelineDefinition.Name.String()
+	if err != nil {
+		return "", err
+	}
+
+	pipelineId, err := p.pipelineUploadService.UploadPipeline(
+		ctx,
+		pdw.CompiledPipeline,
+		pipelineName,
+	)
+	if err != nil {
+		return "", err
+	}
+	return p.UpdatePipeline(ctx, pdw, pipelineId)
 }
 
-func (*KfpProvider) UpdatePipeline(
+func (p *KfpProvider) UpdatePipeline(
 	ctx context.Context,
-	ppd resource.PipelineDefinitionWrapper,
+	pdw resource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
-	return "", errors.New("not implemented")
+	if err := p.pipelineUploadService.UploadPipelineVersion(
+		ctx,
+		id,
+		pdw.CompiledPipeline,
+		pdw.PipelineDefinition.Version,
+	); err != nil {
+		return "", err
+	}
+
+	return id, nil
 }
 
-func (*KfpProvider) DeletePipeline(
+func (p *KfpProvider) DeletePipeline(
 	ctx context.Context,
 	id string,
 ) error {
-	return errors.New("not implemented")
+	return p.pipelineService.DeletePipeline(ctx, id)
 }
 
-func (*KfpProvider) CreateRun(
+func (p *KfpProvider) CreateRun(
 	ctx context.Context,
 	rd base.RunDefinition,
 ) (string, error) {
-	return "", errors.New("not implemented")
+	pipelineName, err := util.ResourceNameFromNamespacedName(rd.PipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineId, err := p.pipelineService.PipelineIdForName(ctx, pipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineVersionId, err := p.pipelineService.PipelineVersionIdForName(
+		ctx,
+		rd.PipelineVersion,
+		pipelineId,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	experimentId, err := p.experimentService.ExperimentIdByName(ctx, rd.ExperimentName)
+	if err != nil {
+		return "", err
+	}
+
+	runId, err := p.runService.CreateRun(
+		ctx,
+		rd,
+		pipelineId,
+		pipelineVersionId,
+		experimentId,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return runId, nil
 }
 
 func (*KfpProvider) DeleteRun(
