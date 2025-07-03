@@ -40,7 +40,7 @@ func (i Indicator) AsHeaders() map[string]string {
 		headers[Source] = fmt.Sprintf("%s: %s", Source, i.Source)
 	}
 	if i.SourceNamespace != "" {
-		headers[SourceNamespace] = fmt.Sprintf("%s: %s", SourceNamespace, i.Source)
+		headers[SourceNamespace] = fmt.Sprintf("%s: %s", SourceNamespace, i.SourceNamespace)
 	}
 	return headers
 }

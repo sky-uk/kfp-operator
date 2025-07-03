@@ -144,7 +144,7 @@ var _ = Context("updateRcTriggers", PropertyBased, func() {
 	})
 })
 
-var _ = Context("identifyRunTriggerReason", func() {
+var _ = Context("IdentifyRunTriggerReason", func() {
 	reconciler := &RunConfigurationReconciler{}
 
 	DescribeTable("determines correct trigger reason",
