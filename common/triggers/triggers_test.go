@@ -1,6 +1,6 @@
 //go:build unit
 
-package trigger
+package triggers
 
 import (
 	"testing"
@@ -28,44 +28,44 @@ var _ = Describe("FromHeaders", func() {
 
 		Entry("only trigger-type present",
 			map[string]string{
-				TriggerType: "type",
+				Type: "type",
 			},
 			map[string]string{
-				TriggerType: "type",
+				Type: "type",
 			},
 		),
 
 		Entry("trigger-source and trigger-source-namespace present",
 			map[string]string{
-				TriggerSource:          "github",
-				TriggerSourceNamespace: "ci",
+				Source:          "github",
+				SourceNamespace: "ci",
 			},
 			map[string]string{
-				TriggerSource:          "github",
-				TriggerSourceNamespace: "ci",
+				Source:          "github",
+				SourceNamespace: "ci",
 			},
 		),
 
 		Entry("all headers present",
 			map[string]string{
-				TriggerType:            "type",
-				TriggerSource:          "source",
-				TriggerSourceNamespace: "namespace",
+				Type:            "type",
+				Source:          "source",
+				SourceNamespace: "namespace",
 			},
 			map[string]string{
-				TriggerType:            "type",
-				TriggerSource:          "source",
-				TriggerSourceNamespace: "namespace",
+				Type:            "type",
+				Source:          "source",
+				SourceNamespace: "namespace",
 			},
 		),
 
 		Entry("irrelevant headers are ignored",
 			map[string]string{
 				"unrelated": "foo",
-				TriggerType: "type",
+				Type:        "type",
 			},
 			map[string]string{
-				TriggerType: "type",
+				Type: "type",
 			},
 		),
 	)

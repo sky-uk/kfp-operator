@@ -1,17 +1,11 @@
 //go:build unit
 
-package trigger
+package triggers
 
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"testing"
 )
-
-func TestTriggerUnitSuite(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Trigger Unit Test")
-}
 
 var _ = Context("Indicator", func() {
 	Describe("AsHeaders", func() {

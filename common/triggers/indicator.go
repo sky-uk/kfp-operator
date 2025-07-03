@@ -1,22 +1,9 @@
-package trigger
+package triggers
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/apis"
 	"regexp"
 	"strings"
-)
-
-const (
-	Type            = "trigger-type"
-	Source          = "trigger-source"
-	SourceNamespace = "trigger-source-namespace"
-)
-
-const (
-	TriggerByTypeLabel            = apis.Group + "/triggered-by-type"
-	TriggerBySourceLabel          = apis.Group + "/triggered-by-source"
-	TriggerBySourceNamespaceLabel = apis.Group + "/triggered-by-source-namespace"
 )
 
 const (

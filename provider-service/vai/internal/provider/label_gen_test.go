@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/trigger"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 )
@@ -107,9 +107,9 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rsd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[trigger.TriggerType]).To(Equal("schedule"))
-				Expect(rl[trigger.TriggerSource]).To(Equal(rsd.Name.Name))
-				Expect(rl[trigger.TriggerSourceNamespace]).To(Equal(rsd.Name.Namespace))
+				Expect(rl[triggers.Type]).To(Equal("schedule"))
+				Expect(rl[triggers.Source]).To(Equal(rsd.Name.Name))
+				Expect(rl[triggers.SourceNamespace]).To(Equal(rsd.Name.Namespace))
 			})
 		})
 	})

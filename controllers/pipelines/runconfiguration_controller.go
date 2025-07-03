@@ -3,7 +3,7 @@ package pipelines
 import (
 	"context"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/trigger"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"reflect"
 	"slices"
 	"time"
@@ -144,7 +144,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 	ctx context.Context,
 	runConfiguration *pipelineshub.RunConfiguration,
-	indicator *trigger.Indicator,
+	indicator *triggers.Indicator,
 ) error {
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
@@ -226,19 +226,19 @@ func (r *RunConfigurationReconciler) syncWithRuns(
 	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
 }
 
-func (r *RunConfigurationReconciler) IdentifyRunTriggerReason(runConfiguration *pipelineshub.RunConfiguration, oldStatus pipelineshub.RunConfigurationStatus) *trigger.Indicator {
+func (r *RunConfigurationReconciler) IdentifyRunTriggerReason(runConfiguration *pipelineshub.RunConfiguration, oldStatus pipelineshub.RunConfigurationStatus) *triggers.Indicator {
 
 	if runConfiguration.Status.Triggers.RunSpec.Version != "" && runConfiguration.Status.Triggers.RunSpec.Version != oldStatus.Triggers.RunSpec.Version {
-		return &trigger.Indicator{
-			Type:            trigger.OnChangeRunSpec,
+		return &triggers.Indicator{
+			Type:            triggers.OnChangeRunSpec,
 			Source:          runConfiguration.Name,
 			SourceNamespace: runConfiguration.Namespace,
 		}
 	}
 
 	if runConfiguration.Status.Triggers.Pipeline.Version != "" && runConfiguration.Status.Triggers.Pipeline.Version != oldStatus.Triggers.Pipeline.Version {
-		return &trigger.Indicator{
-			Type:            trigger.OnChangePipeline,
+		return &triggers.Indicator{
+			Type:            triggers.OnChangePipeline,
 			Source:          runConfiguration.Spec.Run.Pipeline.Name,
 			SourceNamespace: runConfiguration.Namespace,
 		}
@@ -254,8 +254,8 @@ func (r *RunConfigurationReconciler) IdentifyRunTriggerReason(runConfiguration *
 				return nil
 			}
 
-			return &trigger.Indicator{
-				Type:            trigger.RunConfiguration,
+			return &triggers.Indicator{
+				Type:            triggers.RunConfiguration,
 				Source:          rcNamespaceName.Name,
 				SourceNamespace: rcNamespaceName.Namespace,
 			}

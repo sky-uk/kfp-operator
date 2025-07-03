@@ -3,7 +3,7 @@ package resource
 import (
 	"context"
 	"encoding/json"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/trigger"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
@@ -25,7 +25,7 @@ func (r *Run) Create(ctx context.Context, body []byte, headers map[string]string
 		return ResponseBody{}, &UserError{err}
 	}
 
-	id, err := r.Provider.CreateRun(ctx, rd, trigger.FromHeaders(headers))
+	id, err := r.Provider.CreateRun(ctx, rd, triggers.FromHeaders(headers))
 	if err != nil {
 		logger.Error(err, "CreateRun failed")
 		return ResponseBody{}, err

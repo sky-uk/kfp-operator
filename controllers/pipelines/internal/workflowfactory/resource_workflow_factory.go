@@ -3,7 +3,7 @@ package workflowfactory
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/trigger"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"slices"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -140,7 +140,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
-	triggerHeaders := trigger.FromLabels(resource.GetLabels()).AsHeaders()
+	triggerHeaders := triggers.FromLabels(resource.GetLabels()).AsHeaders()
 
 	params := []argo.Parameter{
 		{
@@ -166,15 +166,15 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		},
 		{
 			Name:  workflowconstants.TriggeredByIndicatorSource,
-			Value: argo.AnyStringPtr(triggerHeaders[trigger.Source]),
+			Value: argo.AnyStringPtr(triggerHeaders[triggers.Source]),
 		},
 		{
 			Name:  workflowconstants.TriggeredByIndicatorType,
-			Value: argo.AnyStringPtr(triggerHeaders[trigger.Type]),
+			Value: argo.AnyStringPtr(triggerHeaders[triggers.Type]),
 		},
 		{
 			Name:  workflowconstants.TriggeredByIndicatorSourceNamespace,
-			Value: argo.AnyStringPtr(triggerHeaders[trigger.SourceNamespace]),
+			Value: argo.AnyStringPtr(triggerHeaders[triggers.SourceNamespace]),
 		},
 	}
 

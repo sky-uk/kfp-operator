@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/trigger"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"testing"
 
 	"io"
@@ -127,9 +127,9 @@ var _ = Describe("Http Server Endpoints", func() {
 				It("returns 201 with valid response body", func() {
 					response := "mocked-id"
 					expectedHeaders := map[string]string{
-						trigger.TriggerType:            "TestType",
-						trigger.TriggerSource:          "TestSource",
-						trigger.TriggerSourceNamespace: "TestNamespace",
+						triggers.Type:            "TestType",
+						triggers.Source:          "TestSource",
+						triggers.SourceNamespace: "TestNamespace",
 					}
 
 					handledResource.On("Create", ignoreCtx, payload, expectedHeaders).Return(
@@ -144,9 +144,9 @@ var _ = Describe("Http Server Endpoints", func() {
 						"/resource/"+resourceType,
 						bytes.NewReader(payload),
 					)
-					req.Header.Add(trigger.TriggerType, expectedHeaders[trigger.TriggerType])
-					req.Header.Add(trigger.TriggerSource, expectedHeaders[trigger.TriggerSource])
-					req.Header.Add(trigger.TriggerSourceNamespace, expectedHeaders[trigger.TriggerSourceNamespace])
+					req.Header.Add(triggers.Type, expectedHeaders[triggers.Type])
+					req.Header.Add(triggers.Source, expectedHeaders[triggers.Source])
+					req.Header.Add(triggers.SourceNamespace, expectedHeaders[triggers.SourceNamespace])
 
 					rr := httptest.NewRecorder()
 					server.Config.Handler.ServeHTTP(rr, req)
