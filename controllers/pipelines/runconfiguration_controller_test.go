@@ -148,7 +148,7 @@ var _ = Context("IdentifyRunTriggerReason", func() {
 	reconciler := &RunConfigurationReconciler{}
 
 	DescribeTable("determines correct trigger reason",
-		func(status pipelineshub.RunConfigurationStatus, old pipelineshub.RunConfigurationStatus, expected *trigger.Indicator) {
+		func(status, old pipelineshub.RunConfigurationStatus, expected *trigger.Indicator) {
 			rc := &pipelineshub.RunConfiguration{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "run-config",

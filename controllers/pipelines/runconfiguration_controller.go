@@ -265,7 +265,10 @@ func (r *RunConfigurationReconciler) IdentifyRunTriggerReason(runConfiguration *
 	return nil
 }
 
-func GetDiffering[K comparable, V comparable](a, b map[K]V) []K {
+// GetDiffering returns a slice of keys that are present in both input maps `a` and `b`
+// but have different values associated with them. The function only considers keys
+// that exist in both maps and compares their corresponding values.
+func GetDiffering[K, V comparable](a, b map[K]V) []K {
 	differs := []K{}
 	for k, vA := range a {
 		if vB, ok := b[k]; ok && vA != vB {
