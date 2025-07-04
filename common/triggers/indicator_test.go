@@ -8,7 +8,7 @@ import (
 )
 
 var _ = Context("Indicator", func() {
-	Describe("AsHeaders", func() {
+	Describe("AsWorkflowHeaders", func() {
 		It("returns headers only for non-empty fields", func() {
 			indicator := Indicator{
 				Type:            "onChangePipeline",
@@ -16,7 +16,7 @@ var _ = Context("Indicator", func() {
 				SourceNamespace: "namespace",
 			}
 
-			result := indicator.AsHeaders()
+			result := indicator.AsWorkflowHeaders()
 
 			Expect(result).To(HaveKey(Type))
 			Expect(result[Type]).To(Equal("trigger-type: onChangePipeline"))
@@ -33,7 +33,7 @@ var _ = Context("Indicator", func() {
 				Type: "onChangePipeline",
 			}
 
-			result := indicator.AsHeaders()
+			result := indicator.AsWorkflowHeaders()
 
 			Expect(result).To(HaveKey(Type))
 			Expect(result).NotTo(HaveKey(Source))
@@ -107,5 +107,62 @@ var _ = Context("Indicator", func() {
 			Expect(labels[TriggerBySourceLabel]).To(Equal("some_source"))
 			Expect(labels[TriggerBySourceNamespaceLabel]).To(Equal("someNamespace"))
 		})
+	})
+
+	Describe("FromHeaders", func() {
+		DescribeTable("extracts correct trigger headers",
+			func(input map[string]string, expected map[string]string) {
+				result := FromHeaders(input)
+				Expect(result).To(Equal(expected))
+			},
+
+			Entry("empty headers",
+				map[string]string{},
+				map[string]string{},
+			),
+
+			Entry("only trigger-type present",
+				map[string]string{
+					Type: "type",
+				},
+				map[string]string{
+					Type: "type",
+				},
+			),
+
+			Entry("trigger-source and trigger-source-namespace present",
+				map[string]string{
+					Source:          "github",
+					SourceNamespace: "ci",
+				},
+				map[string]string{
+					Source:          "github",
+					SourceNamespace: "ci",
+				},
+			),
+
+			Entry("all headers present",
+				map[string]string{
+					Type:            "type",
+					Source:          "source",
+					SourceNamespace: "namespace",
+				},
+				map[string]string{
+					Type:            "type",
+					Source:          "source",
+					SourceNamespace: "namespace",
+				},
+			),
+
+			Entry("irrelevant headers are ignored",
+				map[string]string{
+					"unrelated": "foo",
+					Type:        "type",
+				},
+				map[string]string{
+					Type: "type",
+				},
+			),
+		)
 	})
 })

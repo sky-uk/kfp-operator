@@ -6,10 +6,24 @@ import (
 	"strings"
 )
 
+const Group = "pipelines.kubeflow.org"
+
+const (
+	Type            = "trigger-type"
+	Source          = "trigger-source"
+	SourceNamespace = "trigger-source-namespace"
+)
+
 const (
 	OnChangePipeline = "onChangePipeline"
 	OnChangeRunSpec  = "onChangeRunSpec"
 	RunConfiguration = "runConfiguration"
+)
+
+var (
+	TriggerByTypeLabel            = fmt.Sprintf("%s/%s", Group, Type)
+	TriggerBySourceLabel          = fmt.Sprintf("%s/%s", Group, Source)
+	TriggerBySourceNamespaceLabel = fmt.Sprintf("%s/%s", Group, SourceNamespace)
 )
 
 type Indicator struct {
@@ -18,7 +32,9 @@ type Indicator struct {
 	SourceNamespace string `json:"sourceNamespace"`
 }
 
-func (i Indicator) AsHeaders() map[string]string {
+// AsWorkflowHeaders converts the Indicator to a map of headers suitable for use in workflow parameters.
+// format of value is "key: value" as per http header specifications
+func (i Indicator) AsWorkflowHeaders() map[string]string {
 	headers := map[string]string{}
 	if i.Type != "" {
 		headers[Type] = fmt.Sprintf("%s: %s", Type, i.Type)
@@ -30,6 +46,20 @@ func (i Indicator) AsHeaders() map[string]string {
 		headers[SourceNamespace] = fmt.Sprintf("%s: %s", SourceNamespace, i.SourceNamespace)
 	}
 	return headers
+}
+
+func FromHeaders(headers map[string]string) Indicator {
+	indicator := Indicator{}
+	if headers[Type] != "" {
+		indicator.Type = headers[Type]
+	}
+	if headers[Source] != "" {
+		indicator.Source = headers[Source]
+	}
+	if headers[SourceNamespace] != "" {
+		indicator.SourceNamespace = headers[SourceNamespace]
+	}
+	return indicator
 }
 
 func (i Indicator) AsLabels() map[string]string {

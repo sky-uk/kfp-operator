@@ -140,7 +140,7 @@ func (workflows *ResourceWorkflowFactory[R, ResourceDefinition]) ConstructCreati
 		return nil, err
 	}
 
-	triggerHeaders := triggers.FromLabels(resource.GetLabels()).AsHeaders()
+	triggerHeaders := triggers.FromLabels(resource.GetLabels()).AsWorkflowHeaders()
 
 	params := []argo.Parameter{
 		{

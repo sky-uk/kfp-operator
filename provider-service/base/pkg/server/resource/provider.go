@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	"github.com/sky-uk/kfp-operator/apis"
@@ -74,7 +75,7 @@ type PipelineProvider interface {
 }
 
 type RunProvider interface {
-	CreateRun(ctx context.Context, rd RunDefinition, triggers map[string]string) (string, error)
+	CreateRun(ctx context.Context, rd RunDefinition, triggerIndicator *triggers.Indicator) (string, error)
 	DeleteRun(ctx context.Context, id string) error
 }
 

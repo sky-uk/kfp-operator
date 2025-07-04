@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -110,8 +111,8 @@ type MockRunProvider struct {
 	mock.Mock
 }
 
-func (m *MockRunProvider) CreateRun(ctx context.Context, rd RunDefinition, triggers map[string]string) (string, error) {
-	args := m.Called(ctx, rd, triggers)
+func (m *MockRunProvider) CreateRun(ctx context.Context, rd RunDefinition, triggerIndicator *triggers.Indicator) (string, error) {
+	args := m.Called(ctx, rd, triggerIndicator)
 	return args.String(0), args.Error(1)
 }
 

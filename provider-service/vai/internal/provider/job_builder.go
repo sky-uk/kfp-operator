@@ -3,6 +3,7 @@ package provider
 import (
 	"fmt"
 	"github.com/samber/lo"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 type JobBuilder interface {
 	MkRunPipelineJob(
 		rd resource.RunDefinition,
-		triggers map[string]string,
+		triggerIndicator *triggers.Indicator,
 	) (*aiplatformpb.PipelineJob, error)
 	MkRunSchedulePipelineJob(
 		rsd resource.RunScheduleDefinition,
@@ -40,7 +41,7 @@ type DefaultJobBuilder struct {
 // to a vai pipeline job client.
 func (jb DefaultJobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
-	triggers map[string]string,
+	triggerIndicator *triggers.Indicator,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.Parameters))
 	for name, value := range rd.Parameters {
@@ -64,7 +65,14 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 	if err != nil {
 		return nil, err
 	}
-	labels = lo.Assign(labels, label.SanitizeLabels(triggers))
+
+	if triggerIndicator != nil {
+		labels = lo.Assign(labels, label.SanitizeLabels(map[string]string{
+			triggers.Type:            triggerIndicator.Type,
+			triggers.Source:          triggerIndicator.Source,
+			triggers.SourceNamespace: triggerIndicator.SourceNamespace,
+		}))
+	}
 
 	pipelineResourceName, err := rd.Name.String()
 	if err != nil {

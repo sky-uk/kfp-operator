@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
 )
@@ -10,9 +11,9 @@ type MockJobBuilder struct{ mock.Mock }
 
 func (m *MockJobBuilder) MkRunPipelineJob(
 	rd resource.RunDefinition,
-	triggers map[string]string,
+	triggerIndicators *triggers.Indicator,
 ) (*aiplatformpb.PipelineJob, error) {
-	args := m.Called(rd, triggers)
+	args := m.Called(rd, triggerIndicators)
 	var pipelineJob *aiplatformpb.PipelineJob
 	if arg0 := args.Get(0); arg0 != nil {
 		pipelineJob = arg0.(*aiplatformpb.PipelineJob)
