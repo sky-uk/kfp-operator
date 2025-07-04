@@ -42,7 +42,7 @@ func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Create(requestCtx, body, flattenHeaders(r.Header))
+		resp, err := hr.Create(requestCtx, body)
 
 		switch {
 		case err == nil:
@@ -83,7 +83,7 @@ func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 		}
 		defer r.Body.Close()
 
-		resp, err := hr.Update(requestCtx, decodedId, body, flattenHeaders(r.Header))
+		resp, err := hr.Update(requestCtx, decodedId, body)
 
 		switch {
 		case err == nil:
@@ -118,7 +118,7 @@ func deleteHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 			return
 		}
 
-		err = hr.Delete(requestCtx, decodedId, flattenHeaders(r.Header))
+		err = hr.Delete(requestCtx, decodedId)
 
 		switch {
 		case err == nil:

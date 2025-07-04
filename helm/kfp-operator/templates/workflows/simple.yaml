@@ -12,9 +12,6 @@ spec:
     - name: provider-service-url
     - name: resource-kind
     - name: resource-definition
-    - name: trigger-type
-    - name: trigger-source
-    - name: trigger-source-namespace
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
@@ -39,12 +36,6 @@ spec:
           parameters:
           - name: provider-service-url
             value: '{{`{{workflow.parameters.provider-service-url}}`}}'
-          - name: trigger-type
-            value: '{{`{{workflow.parameters.trigger-type}}`}}'
-          - name: trigger-source
-            value: '{{`{{workflow.parameters.trigger-source}}`}}'
-          - name: trigger-source-namespace
-            value: '{{`{{workflow.parameters.trigger-source-namespace}}`}}'
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate

@@ -47,6 +47,7 @@ type RunDefinition struct {
 	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
 	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
 }
 
 type RunScheduleDefinition struct {
@@ -59,6 +60,7 @@ type RunScheduleDefinition struct {
 	Schedule             pipelines.Schedule         `json:"schedule" yaml:"schedule"`
 	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
 }
 
 type Provider interface {
@@ -75,7 +77,7 @@ type PipelineProvider interface {
 }
 
 type RunProvider interface {
-	CreateRun(ctx context.Context, rd RunDefinition, triggerIndicator *triggers.Indicator) (string, error)
+	CreateRun(ctx context.Context, rd RunDefinition) (string, error)
 	DeleteRun(ctx context.Context, id string) error
 }
 

@@ -4,6 +4,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 )
 
 type PipelineDefinition struct {
@@ -30,6 +31,7 @@ type RunScheduleDefinition struct {
 	Schedule             pipelineshub.Schedule         `json:"schedule" yaml:"schedule"`
 	Parameters           map[string]string             `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Artifacts            []pipelineshub.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	TriggerIndicator     triggers.Indicator            `json:"triggerIndicator,omitempty" yaml:"labels,omitempty"`
 }
 
 type RunDefinition struct {
@@ -41,6 +43,7 @@ type RunDefinition struct {
 	ExperimentName       common.NamespacedName         `json:"experimentName" yaml:"experimentName"`
 	Parameters           map[string]string             `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Artifacts            []pipelineshub.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	TriggerIndicator     triggers.Indicator            `json:"triggerIndicator,omitempty" yaml:"labels,omitempty"`
 }
 
 type Output struct {

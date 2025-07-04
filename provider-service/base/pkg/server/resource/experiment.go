@@ -15,7 +15,7 @@ func (*Experiment) Type() string {
 	return "experiment"
 }
 
-func (e *Experiment) Create(ctx context.Context, body []byte, _ map[string]string) (ResponseBody, error) {
+func (e *Experiment) Create(ctx context.Context, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
@@ -35,7 +35,7 @@ func (e *Experiment) Create(ctx context.Context, body []byte, _ map[string]strin
 	}, nil
 }
 
-func (e *Experiment) Update(ctx context.Context, id string, body []byte, _ map[string]string) (ResponseBody, error) {
+func (e *Experiment) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
 	ed := ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
@@ -55,7 +55,7 @@ func (e *Experiment) Update(ctx context.Context, id string, body []byte, _ map[s
 	}, nil
 }
 
-func (e *Experiment) Delete(ctx context.Context, id string, _ map[string]string) error {
+func (e *Experiment) Delete(ctx context.Context, id string) error {
 	logger := common.LoggerFromContext(ctx)
 	if err := e.Provider.DeleteExperiment(ctx, id); err != nil {
 		logger.Error(err, "DeleteExperiment failed", "id", id)

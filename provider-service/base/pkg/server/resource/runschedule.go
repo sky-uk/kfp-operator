@@ -15,7 +15,7 @@ func (*RunSchedule) Type() string {
 	return "runschedule"
 }
 
-func (rs *RunSchedule) Create(ctx context.Context, body []byte, _ map[string]string) (ResponseBody, error) {
+func (rs *RunSchedule) Create(ctx context.Context, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
@@ -35,7 +35,7 @@ func (rs *RunSchedule) Create(ctx context.Context, body []byte, _ map[string]str
 	}, nil
 }
 
-func (rs *RunSchedule) Update(ctx context.Context, id string, body []byte, _ map[string]string) (ResponseBody, error) {
+func (rs *RunSchedule) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
 	rsd := RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
@@ -55,7 +55,7 @@ func (rs *RunSchedule) Update(ctx context.Context, id string, body []byte, _ map
 	}, nil
 }
 
-func (rs *RunSchedule) Delete(ctx context.Context, id string, _ map[string]string) error {
+func (rs *RunSchedule) Delete(ctx context.Context, id string) error {
 	logger := common.LoggerFromContext(ctx)
 	if err := rs.Provider.DeleteRunSchedule(ctx, id); err != nil {
 		logger.Error(err, "DeleteRunSchedule failed", "id", id)

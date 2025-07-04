@@ -36,7 +36,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 
 				id := "some-id"
 				mockProvider.On("CreatePipeline", ignoreCtx, pdw).Return(id, nil)
-				resp, err := p.Create(ctx, jsonPipeline, nil)
+				resp, err := p.Create(ctx, jsonPipeline)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(resp).To(Equal(ResponseBody{Id: id}))
@@ -46,7 +46,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-				response, err := p.Create(ctx, invalidJson, nil)
+				response, err := p.Create(ctx, invalidJson)
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
@@ -63,7 +63,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 
 				expectedErr := errors.New("some-error")
 				mockProvider.On("CreatePipeline", ignoreCtx, pdw).Return("", expectedErr)
-				response, err := p.Create(ctx, jsonPipeline, nil)
+				response, err := p.Create(ctx, jsonPipeline)
 
 				Expect(err).To(Equal(expectedErr))
 				Expect(response).To(Equal(ResponseBody{}))
@@ -82,7 +82,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 				id := "some-id"
 				updatedId := "some-update-id"
 				mockProvider.On("UpdatePipeline", ignoreCtx, pdw, id).Return(updatedId, nil)
-				resp, err := p.Update(ctx, id, jsonPipeline, nil)
+				resp, err := p.Update(ctx, id, jsonPipeline)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(resp).To(Equal(ResponseBody{Id: updatedId}))
@@ -92,7 +92,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-				resp, err := p.Update(ctx, "some-id", invalidJson, nil)
+				resp, err := p.Update(ctx, "some-id", invalidJson)
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
@@ -110,7 +110,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 				expectedErr := errors.New("some-error")
 				id := "some-id"
 				mockProvider.On("UpdatePipeline", ignoreCtx, pdw, id).Return("", expectedErr)
-				resp, err := p.Update(ctx, id, jsonExperiment, nil)
+				resp, err := p.Update(ctx, id, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
 				Expect(resp).To(Equal(ResponseBody{}))
@@ -123,7 +123,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 			It("return no error", func() {
 				id := "some-id"
 				mockProvider.On("DeletePipeline", ignoreCtx, id).Return(nil)
-				err := p.Delete(ctx, id, nil)
+				err := p.Delete(ctx, id)
 
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -134,7 +134,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 				id := "some-id"
 				expectedErr := errors.New("some-error")
 				mockProvider.On("DeletePipeline", ignoreCtx, id).Return(expectedErr)
-				err := p.Delete(ctx, id, nil)
+				err := p.Delete(ctx, id)
 
 				Expect(err).To(Equal(expectedErr))
 			})

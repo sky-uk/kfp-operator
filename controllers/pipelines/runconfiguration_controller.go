@@ -166,7 +166,7 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		if desiredRun.Labels == nil {
 			desiredRun.Labels = map[string]string{}
 		}
-		desiredRun.Labels = lo.Assign(desiredRun.Labels, indicator.AsLabels())
+		desiredRun.Labels = lo.Assign(desiredRun.Labels, indicator.AsK8sLabels())
 	}
 
 	return r.EC.Client.Create(ctx, desiredRun)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/common/triggers"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -123,7 +122,7 @@ func (vaip *VAIProvider) DeletePipeline(ctx context.Context, id string) error {
 	return nil
 }
 
-func (vaip *VAIProvider) CreateRun(ctx context.Context, rd resource.RunDefinition, triggerIndicator *triggers.Indicator) (string, error) {
+func (vaip *VAIProvider) CreateRun(ctx context.Context, rd resource.RunDefinition) (string, error) {
 	logger := common.LoggerFromContext(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(
@@ -143,7 +142,7 @@ func (vaip *VAIProvider) CreateRun(ctx context.Context, rd resource.RunDefinitio
 		return "", err
 	}
 
-	job, err := vaip.jobBuilder.MkRunPipelineJob(rd, triggerIndicator)
+	job, err := vaip.jobBuilder.MkRunPipelineJob(rd)
 	if err != nil {
 		return "", err
 	}

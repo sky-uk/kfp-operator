@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/sky-uk/kfp-operator/common/triggers"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -37,7 +36,7 @@ var _ = Describe("Run", Ordered, func() {
 
 				id := "some-id"
 				mockProvider.On("CreateRun", ignoreCtx, rd, mock.Anything).Return(id, nil)
-				response, err := r.Create(ctx, jsonRun, nil)
+				response, err := r.Create(ctx, jsonRun)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(response).To(Equal(ResponseBody{Id: id}))
@@ -47,7 +46,7 @@ var _ = Describe("Run", Ordered, func() {
 		When("invalid json is passed", func() {
 			It("errors", func() {
 				invalidJson := []byte(`/n`)
-				response, err := r.Create(ctx, invalidJson, nil)
+				response, err := r.Create(ctx, invalidJson)
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
@@ -64,7 +63,7 @@ var _ = Describe("Run", Ordered, func() {
 
 				expectedErr := errors.New("some-error")
 				mockProvider.On("CreateRun", ignoreCtx, rd, mock.Anything).Return("", expectedErr)
-				response, err := r.Create(ctx, jsonRun, nil)
+				response, err := r.Create(ctx, jsonRun)
 
 				Expect(err).To(Equal(expectedErr))
 				Expect(response).To(Equal(ResponseBody{}))
@@ -75,7 +74,7 @@ var _ = Describe("Run", Ordered, func() {
 	Context("Update", func() {
 		It("returns an Unimplemented error", func() {
 			id := "some-id"
-			response, err := r.Update(ctx, id, []byte("foo"), nil)
+			response, err := r.Update(ctx, id, []byte("foo"))
 
 			var expectedErr *UnimplementedError
 			Expect(errors.As(err, &expectedErr)).To(BeTrue())
@@ -88,7 +87,7 @@ var _ = Describe("Run", Ordered, func() {
 			It("return no error", func() {
 				id := "some-id"
 				mockProvider.On("DeleteRun", ignoreCtx, id, mock.Anything).Return(nil)
-				err := r.Delete(ctx, id, nil)
+				err := r.Delete(ctx, id)
 
 				Expect(err).ToNot(HaveOccurred())
 			})
@@ -99,7 +98,7 @@ var _ = Describe("Run", Ordered, func() {
 				id := "some-id"
 				expectedErr := errors.New("some-error")
 				mockProvider.On("DeleteRun", ignoreCtx, id, mock.Anything).Return(expectedErr)
-				err := r.Delete(ctx, id, nil)
+				err := r.Delete(ctx, id)
 
 				Expect(err).To(Equal(expectedErr))
 			})
@@ -111,8 +110,8 @@ type MockRunProvider struct {
 	mock.Mock
 }
 
-func (m *MockRunProvider) CreateRun(ctx context.Context, rd RunDefinition, triggerIndicator *triggers.Indicator) (string, error) {
-	args := m.Called(ctx, rd, triggerIndicator)
+func (m *MockRunProvider) CreateRun(ctx context.Context, rd RunDefinition) (string, error) {
+	args := m.Called(ctx, rd)
 	return args.String(0), args.Error(1)
 }
 

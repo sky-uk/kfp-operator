@@ -74,6 +74,12 @@ func (lg DefaultLabelGen) runLabelsFromRunDefinition(
 		runLabels[label.RunNamespace] = rd.Name.Namespace
 	}
 
+	if rd.TriggerIndicator != nil {
+		runLabels[triggers.Type] = rd.TriggerIndicator.Type
+		runLabels[triggers.Source] = rd.TriggerIndicator.Source
+		runLabels[triggers.SourceNamespace] = rd.TriggerIndicator.SourceNamespace
+	}
+
 	return runLabels
 }
 
@@ -87,9 +93,11 @@ func (lg DefaultLabelGen) runLabelsFromSchedule(
 		runLabels[label.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
 	}
 
-	runLabels[triggers.Type] = "schedule"
-	runLabels[triggers.Source] = rsd.Name.Name
-	runLabels[triggers.SourceNamespace] = rsd.Name.Namespace
+	if rsd.TriggerIndicator != nil {
+		runLabels[triggers.Type] = rsd.TriggerIndicator.Type
+		runLabels[triggers.Source] = rsd.TriggerIndicator.Source
+		runLabels[triggers.SourceNamespace] = rsd.TriggerIndicator.SourceNamespace
+	}
 
 	return runLabels
 }

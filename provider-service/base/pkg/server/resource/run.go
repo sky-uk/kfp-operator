@@ -3,8 +3,6 @@ package resource
 import (
 	"context"
 	"encoding/json"
-	"github.com/sky-uk/kfp-operator/common/triggers"
-
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 
@@ -16,7 +14,7 @@ func (*Run) Type() string {
 	return "run"
 }
 
-func (r *Run) Create(ctx context.Context, body []byte, headers map[string]string) (ResponseBody, error) {
+func (r *Run) Create(ctx context.Context, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
 	rd := RunDefinition{}
 
@@ -25,9 +23,7 @@ func (r *Run) Create(ctx context.Context, body []byte, headers map[string]string
 		return ResponseBody{}, &UserError{err}
 	}
 
-	triggerIndicator := triggers.FromHeaders(headers)
-
-	id, err := r.Provider.CreateRun(ctx, rd, &triggerIndicator)
+	id, err := r.Provider.CreateRun(ctx, rd)
 	if err != nil {
 		logger.Error(err, "CreateRun failed")
 		return ResponseBody{}, err
@@ -39,11 +35,11 @@ func (r *Run) Create(ctx context.Context, body []byte, headers map[string]string
 	}, nil
 }
 
-func (r *Run) Update(_ context.Context, _ string, _ []byte, _ map[string]string) (ResponseBody, error) {
+func (r *Run) Update(_ context.Context, _ string, _ []byte) (ResponseBody, error) {
 	return ResponseBody{}, &UnimplementedError{Method: "Update", ResourceType: r.Type()}
 }
 
-func (r *Run) Delete(ctx context.Context, id string, _ map[string]string) error {
+func (r *Run) Delete(ctx context.Context, id string) error {
 	logger := common.LoggerFromContext(ctx)
 	if err := r.Provider.DeleteRun(ctx, id); err != nil {
 		logger.Error(err, "DeleteRun failed", "id", id)

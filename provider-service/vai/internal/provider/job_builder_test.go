@@ -26,7 +26,7 @@ var _ = Describe("JobBuilder", func() {
 		When("templateUri is valid", func() {
 			It("should make a run pipeline job", func() {
 				rd := testutil.RandomRunDefinition()
-				job, err := jb.MkRunPipelineJob(rd, nil)
+				job, err := jb.MkRunPipelineJob(rd)
 				expectedTemplateUri := fmt.Sprintf(
 					"gs://%s/%s/%s/%s",
 					jb.pipelineBucket,
@@ -49,7 +49,7 @@ var _ = Describe("JobBuilder", func() {
 			It("should return error", func() {
 				rd := testutil.RandomRunDefinition()
 				rd.PipelineName.Name = ""
-				_, err := jb.MkRunPipelineJob(rd, nil)
+				_, err := jb.MkRunPipelineJob(rd)
 
 				Expect(err).To(HaveOccurred())
 			})
@@ -58,7 +58,7 @@ var _ = Describe("JobBuilder", func() {
 			It("should return error", func() {
 				rd := testutil.RandomRunDefinition()
 				rd.Name.Name = ""
-				_, err := jb.MkRunPipelineJob(rd, nil)
+				_, err := jb.MkRunPipelineJob(rd)
 
 				Expect(err).To(HaveOccurred())
 			})

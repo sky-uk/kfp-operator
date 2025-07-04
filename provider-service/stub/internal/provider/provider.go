@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/common/triggers"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -52,7 +51,6 @@ func (p *StubProvider) DeletePipeline(_ context.Context, id string) error {
 func (p *StubProvider) CreateRun(
 	_ context.Context,
 	rd resource.RunDefinition,
-	_ *triggers.Indicator,
 ) (string, error) {
 	if strings.EqualFold(rd.Name.Name, CreateRunFail) {
 		return "", &CreateRunError{}

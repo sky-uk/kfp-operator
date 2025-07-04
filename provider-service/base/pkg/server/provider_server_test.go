@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/sky-uk/kfp-operator/common/triggers"
 	"testing"
 
 	"io"
@@ -32,8 +31,8 @@ func (m *MockHandledResource) Type() string {
 	return args.String(0)
 }
 
-func (m *MockHandledResource) Create(ctx context.Context, body []byte, headers map[string]string) (resource.ResponseBody, error) {
-	args := m.Called(ctx, body, headers)
+func (m *MockHandledResource) Create(ctx context.Context, body []byte) (resource.ResponseBody, error) {
+	args := m.Called(ctx, body)
 	var response resource.ResponseBody
 	if arg0 := args.Get(0); arg0 != nil {
 		response = arg0.(resource.ResponseBody)
@@ -45,9 +44,8 @@ func (m *MockHandledResource) Update(
 	ctx context.Context,
 	id string,
 	body []byte,
-	headers map[string]string,
 ) (resource.ResponseBody, error) {
-	args := m.Called(ctx, id, body, headers)
+	args := m.Called(ctx, id, body)
 	var response resource.ResponseBody
 	if arg0 := args.Get(0); arg0 != nil {
 		response = arg0.(resource.ResponseBody)
@@ -55,8 +53,8 @@ func (m *MockHandledResource) Update(
 	return response, args.Error(1)
 }
 
-func (m *MockHandledResource) Delete(ctx context.Context, id string, headers map[string]string) error {
-	args := m.Called(ctx, id, headers)
+func (m *MockHandledResource) Delete(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
@@ -126,13 +124,8 @@ var _ = Describe("Http Server Endpoints", func() {
 			When("succeeds", func() {
 				It("returns 201 with valid response body", func() {
 					response := "mocked-id"
-					expectedHeaders := map[string]string{
-						triggers.Type:            "TestType",
-						triggers.Source:          "TestSource",
-						triggers.SourceNamespace: "TestNamespace",
-					}
 
-					handledResource.On("Create", ignoreCtx, payload, expectedHeaders).Return(
+					handledResource.On("Create", ignoreCtx, payload).Return(
 						resource.ResponseBody{
 							Id: response,
 						},
@@ -144,9 +137,6 @@ var _ = Describe("Http Server Endpoints", func() {
 						"/resource/"+resourceType,
 						bytes.NewReader(payload),
 					)
-					req.Header.Add(triggers.Type, expectedHeaders[triggers.Type])
-					req.Header.Add(triggers.Source, expectedHeaders[triggers.Source])
-					req.Header.Add(triggers.SourceNamespace, expectedHeaders[triggers.SourceNamespace])
 
 					rr := httptest.NewRecorder()
 					server.Config.Handler.ServeHTTP(rr, req)

@@ -43,9 +43,6 @@ spec:
         path: /body.json
       parameters:
       - name: provider-service-url
-      - name: trigger-type
-      - name: trigger-source
-      - name: trigger-source-namespace
     outputs:
       parameters:
       - name: provider-output
@@ -61,9 +58,6 @@ spec:
         HTTP_RESPONSE=$(
           curl -v -s -o /tmp/provider-output.json -w "%{response_code}" -X POST \
               -H "Content-Type: application/json" \
-              -H "{{workflow.parameters.trigger-type}}"  \
-              -H "{{workflow.parameters.trigger-source}}"  \
-              -H "{{workflow.parameters.trigger-source-namespace}}"  \
               --data-binary @{{inputs.artifacts.body.path}} \
               "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
         )

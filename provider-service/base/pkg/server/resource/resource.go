@@ -4,9 +4,9 @@ import "context"
 
 type HttpHandledResource interface {
 	Type() string
-	Create(ctx context.Context, body []byte, headers map[string]string) (ResponseBody, error)
-	Update(ctx context.Context, id string, body []byte, headers map[string]string) (ResponseBody, error)
-	Delete(ctx context.Context, id string, headers map[string]string) error
+	Create(ctx context.Context, body []byte) (ResponseBody, error)
+	Update(ctx context.Context, id string, body []byte) (ResponseBody, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type ResponseBody struct {

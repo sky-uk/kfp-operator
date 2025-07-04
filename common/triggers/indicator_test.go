@@ -8,40 +8,7 @@ import (
 )
 
 var _ = Context("Indicator", func() {
-	Describe("AsWorkflowHeaders", func() {
-		It("returns headers only for non-empty fields", func() {
-			indicator := Indicator{
-				Type:            "onChangePipeline",
-				Source:          "source",
-				SourceNamespace: "namespace",
-			}
-
-			result := indicator.AsWorkflowHeaders()
-
-			Expect(result).To(HaveKey(Type))
-			Expect(result[Type]).To(Equal("trigger-type: onChangePipeline"))
-
-			Expect(result).To(HaveKey(Source))
-			Expect(result[Source]).To(Equal("trigger-source: source"))
-
-			Expect(result).To(HaveKey(SourceNamespace))
-			Expect(result[SourceNamespace]).To(Equal("trigger-source-namespace: namespace"))
-		})
-
-		It("omits empty fields", func() {
-			indicator := Indicator{
-				Type: "onChangePipeline",
-			}
-
-			result := indicator.AsWorkflowHeaders()
-
-			Expect(result).To(HaveKey(Type))
-			Expect(result).NotTo(HaveKey(Source))
-			Expect(result).NotTo(HaveKey(SourceNamespace))
-		})
-	})
-
-	Describe("AsLabels", func() {
+	Describe("AsK8sLabels", func() {
 		It("returns sanitized labels", func() {
 			indicator := Indicator{
 				Type:            "onChangePipeline",
@@ -49,7 +16,7 @@ var _ = Context("Indicator", func() {
 				SourceNamespace: "namespace/test",
 			}
 
-			result := indicator.AsLabels()
+			result := indicator.AsK8sLabels()
 
 			Expect(result).To(HaveKey(TriggerByTypeLabel))
 			Expect(result[TriggerByTypeLabel]).To(Equal("onChangePipeline"))
@@ -64,7 +31,7 @@ var _ = Context("Indicator", func() {
 		It("omits empty fields", func() {
 			indicator := Indicator{}
 
-			labels := indicator.AsLabels()
+			labels := indicator.AsK8sLabels()
 			Expect(labels).To(BeEmpty())
 		})
 	})
@@ -95,74 +62,17 @@ var _ = Context("Indicator", func() {
 
 	Describe("sanitise", func() {
 		It("removes invalid characters and replaces slashes", func() {
-			// sanitise is unexported, so we'll test it via AsLabels
+			// sanitise is unexported, so we'll test it via AsK8sLabels
 			indicator := Indicator{
 				Type:            "@Type!",
 				Source:          "some/source@$",
 				SourceNamespace: "some&*Namespace",
 			}
 
-			labels := indicator.AsLabels()
+			labels := indicator.AsK8sLabels()
 			Expect(labels[TriggerByTypeLabel]).To(Equal("Type"))
 			Expect(labels[TriggerBySourceLabel]).To(Equal("some_source"))
 			Expect(labels[TriggerBySourceNamespaceLabel]).To(Equal("someNamespace"))
 		})
-	})
-
-	Describe("FromHeaders", func() {
-		DescribeTable("extracts correct trigger headers",
-			func(input map[string]string, expected map[string]string) {
-				result := FromHeaders(input)
-				Expect(result).To(Equal(expected))
-			},
-
-			Entry("empty headers",
-				map[string]string{},
-				map[string]string{},
-			),
-
-			Entry("only trigger-type present",
-				map[string]string{
-					Type: "type",
-				},
-				map[string]string{
-					Type: "type",
-				},
-			),
-
-			Entry("trigger-source and trigger-source-namespace present",
-				map[string]string{
-					Source:          "github",
-					SourceNamespace: "ci",
-				},
-				map[string]string{
-					Source:          "github",
-					SourceNamespace: "ci",
-				},
-			),
-
-			Entry("all headers present",
-				map[string]string{
-					Type:            "type",
-					Source:          "source",
-					SourceNamespace: "namespace",
-				},
-				map[string]string{
-					Type:            "type",
-					Source:          "source",
-					SourceNamespace: "namespace",
-				},
-			),
-
-			Entry("irrelevant headers are ignored",
-				map[string]string{
-					"unrelated": "foo",
-					Type:        "type",
-				},
-				map[string]string{
-					Type: "type",
-				},
-			),
-		)
 	})
 })
