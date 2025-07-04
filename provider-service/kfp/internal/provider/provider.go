@@ -15,6 +15,7 @@ type KfpProvider struct {
 	config                *config.Config
 	pipelineUploadService PipelineUploadService
 	pipelineService       PipelineService
+	runService            RunService
 	experimentService     ExperimentService
 }
 
@@ -39,12 +40,18 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 		return nil, err
 	}
 
+	runService, err := NewRunService(conn)
+	if err != nil {
+		return nil, err
+	}
+
 	experimentService, err := NewExperimentService(conn)
 
 	return &KfpProvider{
 		config:                config,
 		pipelineUploadService: pipelineUploadService,
 		pipelineService:       pipelineService,
+		runService:            runService,
 		experimentService:     experimentService,
 	}, nil
 }
