@@ -46,7 +46,6 @@ type RunDefinition struct {
 	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
 	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
-	Labels               map[string]string          `json:"labels,omitempty" yaml:"labels,omitempty"`
 }
 
 type RunScheduleDefinition struct {
