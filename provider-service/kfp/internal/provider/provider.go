@@ -17,6 +17,7 @@ type KfpProvider struct {
 	pipelineUploadService PipelineUploadService
 	pipelineService       PipelineService
 	runService            RunService
+	recurringRunService   RecurringRunService
 	experimentService     ExperimentService
 }
 
@@ -46,6 +47,11 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 		return nil, err
 	}
 
+	recurringRunService, err := NewRecurringRunService(conn)
+	if err != nil {
+		return nil, err
+	}
+
 	experimentService, err := NewExperimentService(conn)
 
 	return &KfpProvider{
@@ -53,6 +59,7 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 		pipelineUploadService: pipelineUploadService,
 		pipelineService:       pipelineService,
 		runService:            runService,
+		recurringRunService:   recurringRunService,
 		experimentService:     experimentService,
 	}, nil
 }
@@ -152,26 +159,65 @@ func (*KfpProvider) DeleteRun(
 	return errors.New("not implemented")
 }
 
-func (*KfpProvider) CreateRunSchedule(
+func (p *KfpProvider) CreateRunSchedule(
 	ctx context.Context,
 	rsd base.RunScheduleDefinition,
 ) (string, error) {
-	return "", errors.New("not implemented")
+	pipelineName, err := util.ResourceNameFromNamespacedName(rsd.PipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineId, err := p.pipelineService.PipelineIdForName(ctx, pipelineName)
+	if err != nil {
+		return "", err
+	}
+
+	pipelineVersionId, err := p.pipelineService.PipelineVersionIdForName(
+		ctx,
+		rsd.PipelineVersion,
+		pipelineId,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	experimentId, err := p.experimentService.ExperimentIdByName(ctx, rsd.ExperimentName)
+	if err != nil {
+		return "", err
+	}
+
+	recurringRunId, err := p.recurringRunService.CreateRecurringRun(
+		ctx,
+		rsd,
+		pipelineId,
+		pipelineVersionId,
+		experimentId,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return recurringRunId, nil
 }
 
-func (*KfpProvider) UpdateRunSchedule(
+func (p *KfpProvider) UpdateRunSchedule(
 	ctx context.Context,
 	rsd base.RunScheduleDefinition,
 	id string,
 ) (string, error) {
-	return "", errors.New("not implemented")
+	if err := p.DeleteRunSchedule(ctx, id); err != nil {
+		return id, err
+	}
+
+	return p.CreateRunSchedule(ctx, rsd)
 }
 
-func (*KfpProvider) DeleteRunSchedule(
+func (p *KfpProvider) DeleteRunSchedule(
 	ctx context.Context,
 	id string,
 ) error {
-	return errors.New("not implemented")
+	return p.recurringRunService.DeleteRecurringRun(ctx, id)
 }
 
 func (p *KfpProvider) CreateExperiment(

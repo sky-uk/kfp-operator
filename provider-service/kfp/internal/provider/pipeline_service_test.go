@@ -23,21 +23,21 @@ var _ = Describe("PipelineService", func() {
 	)
 
 	var (
-		mockPipelineServiceClient mocks.MockPipelineServiceClient
-		pipelineService           PipelineService
-		ctx                       = context.Background()
+		mockClient      mocks.MockPipelineServiceClient
+		pipelineService PipelineService
+		ctx             = context.Background()
 	)
 
 	BeforeEach(func() {
-		mockPipelineServiceClient = mocks.MockPipelineServiceClient{}
+		mockClient = mocks.MockPipelineServiceClient{}
 		pipelineService = &DefaultPipelineService{
-			&mockPipelineServiceClient,
+			&mockClient,
 		}
 	})
 
 	Context("DeletePipeline", func() {
 		It("should not error if pipeline is deleted", func() {
-			mockPipelineServiceClient.On(
+			mockClient.On(
 				"DeletePipeline",
 				&go_client.DeletePipelineRequest{
 					PipelineId: pipelineId,
@@ -50,7 +50,7 @@ var _ = Describe("PipelineService", func() {
 
 		When("PipelineServiceClient returns gRPC NOT_FOUND", func() {
 			It("should not error", func() {
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"DeletePipeline",
 					&go_client.DeletePipelineRequest{
 						PipelineId: pipelineId,
@@ -64,7 +64,7 @@ var _ = Describe("PipelineService", func() {
 
 		When("PipelineServiceClient returns non NOT_FOUND gRPC error ", func() {
 			It("should return the error", func() {
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"DeletePipeline",
 					&go_client.DeletePipelineRequest{
 						PipelineId: pipelineId,
@@ -78,7 +78,7 @@ var _ = Describe("PipelineService", func() {
 
 		When("PipelineServiceClient returns a non gRPC error ", func() {
 			It("should return the error", func() {
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"DeletePipeline",
 					&go_client.DeletePipelineRequest{
 						PipelineId: pipelineId,
@@ -98,7 +98,7 @@ var _ = Describe("PipelineService", func() {
 					{PipelineId: pipelineId},
 				},
 			}
-			mockPipelineServiceClient.On(
+			mockClient.On(
 				"ListPipelines",
 				&go_client.ListPipelinesRequest{
 					Filter: util.ByNameFilter(pipelineId),
@@ -113,7 +113,7 @@ var _ = Describe("PipelineService", func() {
 
 		When("ListPipelines errors", func() {
 			It("should return the error", func() {
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"ListPipelines",
 					&go_client.ListPipelinesRequest{
 						Filter: util.ByNameFilter(pipelineId),
@@ -132,7 +132,7 @@ var _ = Describe("PipelineService", func() {
 				expectedResult := go_client.ListPipelinesResponse{
 					Pipelines: []*go_client.Pipeline{},
 				}
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"ListPipelines",
 					&go_client.ListPipelinesRequest{
 						Filter: util.ByNameFilter(pipelineId),
@@ -154,7 +154,7 @@ var _ = Describe("PipelineService", func() {
 						{PipelineId: "two"},
 					},
 				}
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"ListPipelines",
 					&go_client.ListPipelinesRequest{
 						Filter: util.ByNameFilter(pipelineId),
@@ -176,7 +176,7 @@ var _ = Describe("PipelineService", func() {
 					{PipelineId: versionId},
 				},
 			}
-			mockPipelineServiceClient.On(
+			mockClient.On(
 				"ListPipelineVersions",
 				&go_client.ListPipelineVersionsRequest{
 					PipelineId: pipelineId,
@@ -192,7 +192,7 @@ var _ = Describe("PipelineService", func() {
 
 		When("ListPipelineVersions errors", func() {
 			It("should return the error", func() {
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"ListPipelineVersions",
 					&go_client.ListPipelineVersionsRequest{
 						PipelineId: pipelineId,
@@ -212,7 +212,7 @@ var _ = Describe("PipelineService", func() {
 				expectedResult := go_client.ListPipelineVersionsResponse{
 					PipelineVersions: []*go_client.PipelineVersion{},
 				}
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"ListPipelineVersions",
 					&go_client.ListPipelineVersionsRequest{
 						PipelineId: pipelineId,
@@ -235,7 +235,7 @@ var _ = Describe("PipelineService", func() {
 						{PipelineId: "two"},
 					},
 				}
-				mockPipelineServiceClient.On(
+				mockClient.On(
 					"ListPipelineVersions",
 					&go_client.ListPipelineVersionsRequest{
 						PipelineId: pipelineId,
