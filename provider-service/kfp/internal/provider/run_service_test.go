@@ -5,13 +5,15 @@ package provider
 import (
 	"context"
 	"errors"
-	"github.com/kubeflow/pipelines/backend/api/go_client"
+
+	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	latest "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
+	"google.golang.org/protobuf/types/known/structpb"
 	"gopkg.in/yaml.v2"
 )
 
@@ -45,9 +47,9 @@ var _ = Describe("RunService", func() {
 		"key-2": "value-2",
 	}
 
-	expectedRuntimeParams := []*go_client.Parameter{
-		{Name: "key-1", Value: "value-1"},
-		{Name: "key-2", Value: "value-2"},
+	expectedRuntimeParams := map[string]*structpb.Value{
+		"key-1": structpb.NewStringValue("value-1"),
+		"key-2": structpb.NewStringValue("value-2"),
 	}
 
 	runAsDescription, err := yaml.Marshal(resource.References{
@@ -60,34 +62,17 @@ var _ = Describe("RunService", func() {
 
 	expectedReq := &go_client.CreateRunRequest{
 		Run: &go_client.Run{
-			Name:        "runNamespace-runName",
-			Description: string(runAsDescription),
-			PipelineSpec: &go_client.PipelineSpec{
-				PipelineId: pipelineId,
-				Parameters: expectedRuntimeParams,
+			ExperimentId: experimentVersion,
+			DisplayName:  "runNamespace-runName",
+			Description:  string(runAsDescription),
+			PipelineSource: &go_client.Run_PipelineVersionReference{
+				PipelineVersionReference: &go_client.PipelineVersionReference{
+					PipelineId:        pipelineId,
+					PipelineVersionId: pipelineVersionId,
+				},
 			},
-			ResourceReferences: []*go_client.ResourceReference{
-				{
-					Key: &go_client.ResourceKey{
-						Type: go_client.ResourceType_EXPERIMENT,
-						Id:   experimentVersion,
-					},
-					Relationship: go_client.Relationship_OWNER,
-				},
-				{
-					Key: &go_client.ResourceKey{
-						Type: go_client.ResourceType_PIPELINE_VERSION,
-						Id:   pipelineVersionId,
-					},
-					Relationship: go_client.Relationship_CREATOR,
-				},
-				{
-					Key: &go_client.ResourceKey{
-						Type: go_client.ResourceType_NAMESPACE,
-						Id:   rd.Name.Namespace,
-					},
-					Relationship: go_client.Relationship_OWNER,
-				},
+			RuntimeConfig: &go_client.RuntimeConfig{
+				Parameters: expectedRuntimeParams,
 			},
 		},
 	}
@@ -105,7 +90,7 @@ var _ = Describe("RunService", func() {
 		It("should return a run id", func() {
 			expectedId := "expected-id"
 			mockRunServiceClient.On("CreateRun", expectedReq).Return(
-				&go_client.RunDetail{Run: &go_client.Run{Id: expectedId}},
+				&go_client.Run{RunId: expectedId},
 				nil,
 			)
 			runId, err := runService.CreateRun(
