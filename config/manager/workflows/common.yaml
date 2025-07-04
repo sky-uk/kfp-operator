@@ -44,11 +44,8 @@ spec:
       parameters:
       - name: provider-service-url
       - name: trigger-type
-        value: ""
       - name: trigger-source
-        value: ""
       - name: trigger-source-namespace
-        value: ""
     outputs:
       parameters:
       - name: provider-output

@@ -13,11 +13,8 @@ spec:
     - name: resource-kind
     - name: resource-definition
     - name: trigger-type
-      value: ""
     - name: trigger-source
-      value: ""
     - name: trigger-source-namespace
-      value: ""
   entrypoint: main
   serviceAccountName: {{ .Values.manager.argo.serviceAccount.name }}
   templates:
