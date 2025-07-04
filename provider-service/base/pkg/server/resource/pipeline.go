@@ -15,7 +15,7 @@ func (*Pipeline) Type() string {
 	return "pipeline"
 }
 
-func (p *Pipeline) Create(ctx context.Context, body []byte) (ResponseBody, error) {
+func (p *Pipeline) Create(ctx context.Context, body []byte, _ map[string]string) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
@@ -35,7 +35,7 @@ func (p *Pipeline) Create(ctx context.Context, body []byte) (ResponseBody, error
 	}, nil
 }
 
-func (p *Pipeline) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
+func (p *Pipeline) Update(ctx context.Context, id string, body []byte, _ map[string]string) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
@@ -55,7 +55,7 @@ func (p *Pipeline) Update(ctx context.Context, id string, body []byte) (Response
 	}, err
 }
 
-func (p *Pipeline) Delete(ctx context.Context, id string) error {
+func (p *Pipeline) Delete(ctx context.Context, id string, _ map[string]string) error {
 	logger := common.LoggerFromContext(ctx)
 	if err := p.Provider.DeletePipeline(ctx, id); err != nil {
 		logger.Error(err, "DeletePipeline failed", "id", id)

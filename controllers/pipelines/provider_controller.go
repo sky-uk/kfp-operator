@@ -103,7 +103,6 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if providerOutOfSync || existingDeployment == nil || !r.DeploymentManager.Equal(existingDeployment, desiredDeployment) {
 		if existingDeployment == nil {
-
 			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Creating, "")
 
 			if err := r.DeploymentManager.Create(ctx, desiredDeployment, &provider); err != nil {
@@ -112,8 +111,8 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				}
 				return ctrl.Result{}, err
 			}
-		} else {
 
+		} else {
 			r.StatusManager.UpdateProviderStatus(ctx, &provider, apis.Updating, "")
 
 			if err := r.DeploymentManager.Update(ctx, existingDeployment, desiredDeployment, &provider); err != nil {

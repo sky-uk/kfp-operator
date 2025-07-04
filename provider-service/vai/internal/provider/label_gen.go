@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"strings"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -29,7 +30,7 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 		labels = lg.runLabelsFromSchedule(v)
 	default:
 		return nil, fmt.Errorf(
-			"Unexpected definition received [%T], expected %T or %T",
+			"unexpected definition received [%T], expected %T or %T",
 			value,
 			resource.RunDefinition{},
 			resource.RunScheduleDefinition{},
@@ -38,7 +39,8 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 
 	labels[label.ProviderName] = lg.providerName.Name
 	labels[label.ProviderNamespace] = lg.providerName.Namespace
-	return labels, nil
+
+	return label.SanitizeLabels(labels), nil
 }
 
 func (lg DefaultLabelGen) runLabelsFromPipeline(
@@ -84,6 +86,10 @@ func (lg DefaultLabelGen) runLabelsFromSchedule(
 		runLabels[label.RunConfigurationName] = rsd.RunConfigurationName.Name
 		runLabels[label.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
 	}
+
+	runLabels[triggers.Type] = "schedule"
+	runLabels[triggers.Source] = rsd.Name.Name
+	runLabels[triggers.SourceNamespace] = rsd.Name.Namespace
 
 	return runLabels
 }
