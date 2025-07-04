@@ -61,7 +61,7 @@ func NewPipelineUploadService(
 
 // UploadPipeline uploads the compiled pipeline content and returns the upload
 // result payload ID - which represents the generated pipeline id.
-// pipelineFilePath file extension and content data time must align and be
+// pipelineFilePath file extension and content data type must align and be
 // recognized by pipeline_upload_service.
 func (us *DefaultPipelineUploadService) UploadPipeline(
 	ctx context.Context,
@@ -87,7 +87,7 @@ func (us *DefaultPipelineUploadService) UploadPipeline(
 
 // UploadPipelineVersion uploads the compiled pipeline content, updates the
 // version of an existing pipeline id.
-// pipelineFilePath file extension and content data time must align and be
+// pipelineFilePath file extension and content data type must align and be
 // recognized by pipeline_upload_service.
 func (us *DefaultPipelineUploadService) UploadPipelineVersion(
 	ctx context.Context,
