@@ -17,8 +17,8 @@ import (
 
 var _ = Describe("DefaultPipelineUploadService", func() {
 	var (
-		mockPipelineUploadServiceClient mocks.MockPipelineUploadServiceClient
-		pipelineUploadService           DefaultPipelineUploadService
+		mockClient            mocks.MockPipelineUploadServiceClient
+		pipelineUploadService DefaultPipelineUploadService
 
 		content      = []byte{86}
 		pipelineName = "pipeline-name"
@@ -27,9 +27,9 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 	)
 
 	BeforeEach(func() {
-		mockPipelineUploadServiceClient = mocks.MockPipelineUploadServiceClient{}
+		mockClient = mocks.MockPipelineUploadServiceClient{}
 		pipelineUploadService = DefaultPipelineUploadService{
-			&mockPipelineUploadServiceClient,
+			&mockClient,
 		}
 	})
 
@@ -42,7 +42,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					Context:    ctx,
 				}
 				expectedId := "expected-id"
-				mockPipelineUploadServiceClient.On(
+				mockClient.On(
 					"UploadPipeline",
 					expectedReq,
 				).Return(
@@ -71,7 +71,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					Uploadfile: uploadFile,
 					Context:    ctx,
 				}
-				mockPipelineUploadServiceClient.On(
+				mockClient.On(
 					"UploadPipeline",
 					expectedReq,
 				).Return(nil, errors.New("failed"))
@@ -100,7 +100,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					Uploadfile: uploadFile,
 					Context:    ctx,
 				}
-				mockPipelineUploadServiceClient.On(
+				mockClient.On(
 					"UploadPipelineVersion",
 					expectedReq,
 				).Return(
@@ -128,7 +128,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 					Uploadfile: uploadFile,
 					Context:    ctx,
 				}
-				mockPipelineUploadServiceClient.On(
+				mockClient.On(
 					"UploadPipelineVersion",
 					expectedReq,
 				).Return(nil, errors.New("failed"))

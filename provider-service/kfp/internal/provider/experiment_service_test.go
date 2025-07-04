@@ -16,9 +16,9 @@ import (
 
 var _ = Describe("ExperimentService", func() {
 	var (
-		mockExperimentServiceClient mocks.MockExperimentServiceClient
-		experimentService           ExperimentService
-		nsn                         = common.NamespacedName{
+		mockClient        mocks.MockExperimentServiceClient
+		experimentService ExperimentService
+		nsn               = common.NamespacedName{
 			Name:      "name",
 			Namespace: "namespace",
 		}
@@ -26,16 +26,16 @@ var _ = Describe("ExperimentService", func() {
 	)
 
 	BeforeEach(func() {
-		mockExperimentServiceClient = mocks.MockExperimentServiceClient{}
+		mockClient = mocks.MockExperimentServiceClient{}
 		experimentService = &DefaultExperimentService{
-			&mockExperimentServiceClient,
+			&mockClient,
 		}
 	})
 
 	Context("CreateExperiment", func() {
 		It("should return experiment result id ", func() {
 			expectedId := "expected-result-id"
-			mockExperimentServiceClient.On(
+			mockClient.On(
 				"CreateExperiment",
 				&go_client.CreateExperimentRequest{
 					Experiment: &go_client.Experiment{
@@ -64,7 +64,7 @@ var _ = Describe("ExperimentService", func() {
 
 		When("experimentServiceClient CreateExperiment errors", func() {
 			It("should return error", func() {
-				mockExperimentServiceClient.On(
+				mockClient.On(
 					"CreateExperiment",
 					&go_client.CreateExperimentRequest{
 						Experiment: &go_client.Experiment{
@@ -84,7 +84,7 @@ var _ = Describe("ExperimentService", func() {
 	Context("DeleteExperiment", func() {
 		It("should not error", func() {
 			id := "delete-experiment-id"
-			mockExperimentServiceClient.On(
+			mockClient.On(
 				"DeleteExperiment",
 				&go_client.DeleteExperimentRequest{
 					ExperimentId: id,
@@ -98,7 +98,7 @@ var _ = Describe("ExperimentService", func() {
 		When("experimentServiceClient DeleteExperiment errors", func() {
 			It("should return error", func() {
 				id := "delete-experiment-id"
-				mockExperimentServiceClient.On(
+				mockClient.On(
 					"DeleteExperiment",
 					&go_client.DeleteExperimentRequest{
 						ExperimentId: id,
@@ -118,7 +118,7 @@ var _ = Describe("ExperimentService", func() {
 					{ExperimentId: "one"},
 				},
 			}
-			mockExperimentServiceClient.On(
+			mockClient.On(
 				"ListExperiments",
 				&go_client.ListExperimentsRequest{
 					Filter: util.ByNameFilter("namespace-name"),
@@ -144,7 +144,7 @@ var _ = Describe("ExperimentService", func() {
 
 		When("experimentServiceClient ListExperiment errors", func() {
 			It("should return error", func() {
-				mockExperimentServiceClient.On(
+				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
 						Filter: util.ByNameFilter("namespace-name"),
@@ -162,7 +162,7 @@ var _ = Describe("ExperimentService", func() {
 				expectedResult := go_client.ListExperimentsResponse{
 					Experiments: []*go_client.Experiment{},
 				}
-				mockExperimentServiceClient.On(
+				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
 						Filter: util.ByNameFilter("namespace-name"),
@@ -183,7 +183,7 @@ var _ = Describe("ExperimentService", func() {
 						{ExperimentId: "two"},
 					},
 				}
-				mockExperimentServiceClient.On(
+				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
 						Filter: util.ByNameFilter("namespace-name"),
