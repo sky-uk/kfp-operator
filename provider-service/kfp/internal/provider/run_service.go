@@ -10,6 +10,7 @@ import (
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -90,5 +91,5 @@ func (drs DefaultRunService) CreateRun(
 		return "", err
 	}
 
-	return run.Run.Id, nil
+	return run.RunId, nil
 }
