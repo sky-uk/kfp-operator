@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -208,13 +207,4 @@ func writeResponse(w http.ResponseWriter, responseBody resource.ResponseBody, st
 	w.WriteHeader(statusCode)
 	w.Write(marshalledResponse)
 	return
-
-}
-
-func flattenHeaders(requestHeaders http.Header) map[string]string {
-	var headers = map[string]string{}
-	for k, v := range requestHeaders {
-		headers[strings.ToLower(k)] = strings.Join(v, ",")
-	}
-	return headers
 }

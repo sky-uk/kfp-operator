@@ -1,7 +1,6 @@
 package triggers
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -21,9 +20,9 @@ const (
 )
 
 var (
-	TriggerByTypeLabel            = fmt.Sprintf("%s/%s", Group, Type)
-	TriggerBySourceLabel          = fmt.Sprintf("%s/%s", Group, Source)
-	TriggerBySourceNamespaceLabel = fmt.Sprintf("%s/%s", Group, SourceNamespace)
+	TriggerByTypeLabel            = Group + "/" + Type
+	TriggerBySourceLabel          = Group + "/" + Source
+	TriggerBySourceNamespaceLabel = Group + "/" + SourceNamespace
 )
 
 type Indicator struct {

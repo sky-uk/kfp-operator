@@ -504,35 +504,3 @@ var _ = Describe("Http Server Endpoints", func() {
 		})
 	})
 })
-
-var _ = Describe("flattenHeaders", func() {
-	DescribeTable("flattens and lowercases HTTP headers",
-		func(input http.Header, expected map[string]string) {
-			result := flattenHeaders(input)
-			Expect(result).To(Equal(expected))
-		},
-
-		Entry("empty headers",
-			http.Header{},
-			map[string]string{},
-		),
-
-		Entry("single header, single value",
-			http.Header{
-				"X-Test": []string{"abc"},
-			},
-			map[string]string{
-				"x-test": "abc",
-			},
-		),
-
-		Entry("single header, multiple values",
-			http.Header{
-				"X-Test": []string{"a", "b", "c"},
-			},
-			map[string]string{
-				"x-test": "a,b,c",
-			},
-		),
-	)
-})
