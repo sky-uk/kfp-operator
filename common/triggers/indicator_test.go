@@ -51,7 +51,7 @@ var _ = Context("Indicator", func() {
 			Expect(result.SourceNamespace).To(Equal("namespace"))
 		})
 
-		It("returns empty fields when labels are missing", func() {
+		It("returns empty fields when trigger indicator labels are missing", func() {
 			result := FromLabels(map[string]string{})
 
 			Expect(result.Type).To(BeEmpty())
