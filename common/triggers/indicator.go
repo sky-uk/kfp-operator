@@ -23,6 +23,7 @@ var (
 	TriggerByTypeLabel            = Group + "/" + Type
 	TriggerBySourceLabel          = Group + "/" + Source
 	TriggerBySourceNamespaceLabel = Group + "/" + SourceNamespace
+	labelRegex                    = regexp.MustCompile(`[^a-zA-Z0-9_-]+`)
 )
 
 type Indicator struct {
@@ -56,8 +57,7 @@ func FromLabels(labels map[string]string) Indicator {
 // sanitise removes any characters that are not alphanumeric, underscore, or hyphen.
 // It also replaces slashes with underscores as run configurations maybe namespaced but / is not valid in label values.
 func sanitise(s string) string {
-	regex := regexp.MustCompile(`[^a-zA-Z0-9_-]+`)
 	s = strings.ReplaceAll(s, "/", "_")
-	s = regex.ReplaceAllString(s, "")
+	s = labelRegex.ReplaceAllString(s, "")
 	return s
 }
