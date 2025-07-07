@@ -124,6 +124,7 @@ var _ = Describe("Http Server Endpoints", func() {
 			When("succeeds", func() {
 				It("returns 201 with valid response body", func() {
 					response := "mocked-id"
+
 					handledResource.On("Create", ignoreCtx, payload).Return(
 						resource.ResponseBody{
 							Id: response,
@@ -136,6 +137,7 @@ var _ = Describe("Http Server Endpoints", func() {
 						"/resource/"+resourceType,
 						bytes.NewReader(payload),
 					)
+
 					rr := httptest.NewRecorder()
 					server.Config.Handler.ServeHTTP(rr, req)
 					resp := rr.Result()
@@ -173,7 +175,7 @@ var _ = Describe("Http Server Endpoints", func() {
 				When("the error is UserError", func() {
 					It("returns 400 with error response body", func() {
 						response := "failed to create"
-						handledResource.On("Create", ignoreCtx, payload).Return(
+						handledResource.On("Create", ignoreCtx, payload, mock.Anything).Return(
 							nil,
 							&resource.UserError{E: errors.New(response)},
 						)
@@ -201,7 +203,7 @@ var _ = Describe("Http Server Endpoints", func() {
 							Method:       "Create",
 							ResourceType: resourceType,
 						}
-						handledResource.On("Create", ignoreCtx, payload).Return(
+						handledResource.On("Create", ignoreCtx, payload, mock.Anything).Return(
 							nil,
 							&response,
 						)
@@ -225,7 +227,7 @@ var _ = Describe("Http Server Endpoints", func() {
 				})
 				It("returns 500 with error response body", func() {
 					response := "failed to create"
-					handledResource.On("Create", ignoreCtx, payload).Return(
+					handledResource.On("Create", ignoreCtx, payload, mock.Anything).Return(
 						nil,
 						errors.New(response),
 					)
@@ -254,7 +256,7 @@ var _ = Describe("Http Server Endpoints", func() {
 				It("returns 200 with valid response body", func() {
 					id := "mock-id/bla"
 					response := "response-id"
-					handledResource.On("Update", ignoreCtx, id, payload).Return(
+					handledResource.On("Update", ignoreCtx, id, payload, mock.Anything).Return(
 						resource.ResponseBody{Id: response},
 						nil,
 					)
@@ -327,7 +329,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					It("returns 400 with error response body", func() {
 						id := "mock-id"
 						response := "failed to update"
-						handledResource.On("Update", ignoreCtx, id, payload).Return(
+						handledResource.On("Update", ignoreCtx, id, payload, mock.Anything).Return(
 							nil,
 							&resource.UserError{E: errors.New(response)},
 						)
@@ -355,7 +357,7 @@ var _ = Describe("Http Server Endpoints", func() {
 							Method:       "Update",
 							ResourceType: resourceType,
 						}
-						handledResource.On("Update", ignoreCtx, id, payload).Return(
+						handledResource.On("Update", ignoreCtx, id, payload, mock.Anything).Return(
 							nil,
 							&response,
 						)
@@ -379,7 +381,7 @@ var _ = Describe("Http Server Endpoints", func() {
 				It("returns 500 with error response body", func() {
 					id := "mock-id"
 					response := "failed to update"
-					handledResource.On("Update", ignoreCtx, id, payload).Return(
+					handledResource.On("Update", ignoreCtx, id, payload, mock.Anything).Return(
 						nil,
 						errors.New(response),
 					)
@@ -407,7 +409,7 @@ var _ = Describe("Http Server Endpoints", func() {
 				It("returns 200 with empty body", func() {
 					id := "mock-id/bla"
 					encodedId := url.PathEscape(id)
-					handledResource.On("Delete", ignoreCtx, id).Return(nil)
+					handledResource.On("Delete", ignoreCtx, id, mock.Anything).Return(nil)
 
 					req := httptest.NewRequest(
 						http.MethodDelete,
@@ -459,7 +461,7 @@ var _ = Describe("Http Server Endpoints", func() {
 							Method:       "Delete",
 							ResourceType: resourceType,
 						}
-						handledResource.On("Delete", ignoreCtx, id).Return(&response)
+						handledResource.On("Delete", ignoreCtx, id, mock.Anything).Return(&response)
 						req := httptest.NewRequest(
 							http.MethodDelete,
 							"/resource/"+resourceType+"/"+id,
@@ -481,7 +483,7 @@ var _ = Describe("Http Server Endpoints", func() {
 				It("returns 500 with error response body", func() {
 					id := "mock-id"
 					response := "failed to delete"
-					handledResource.On("Delete", ignoreCtx, id).Return(errors.New(response))
+					handledResource.On("Delete", ignoreCtx, id, mock.Anything).Return(errors.New(response))
 					req := httptest.NewRequest(
 						http.MethodDelete,
 						"/resource/"+resourceType+"/"+id,

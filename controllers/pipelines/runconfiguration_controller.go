@@ -3,6 +3,7 @@ package pipelines
 import (
 	"context"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"reflect"
 	"slices"
 	"time"
@@ -143,6 +144,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 	ctx context.Context,
 	runConfiguration *pipelineshub.RunConfiguration,
+	indicator *triggers.Indicator,
 ) error {
 	runs, err := findOwnedRuns(ctx, r.EC.Client.NonCached, runConfiguration)
 	if err != nil {
@@ -154,12 +156,17 @@ func (r *RunConfigurationReconciler) triggerUntriggeredRuns(
 		return err
 	}
 
-	runExists := slices.ContainsFunc(runs, func(run pipelineshub.Run) bool {
+	if runExists := slices.ContainsFunc(runs, func(run pipelineshub.Run) bool {
 		return string(run.ComputeHash()) == string(desiredRun.ComputeHash())
-	})
-
-	if runExists {
+	}); runExists {
 		return nil
+	}
+
+	if indicator != nil {
+		if desiredRun.Labels == nil {
+			desiredRun.Labels = map[string]string{}
+		}
+		desiredRun.Labels = lo.Assign(desiredRun.Labels, indicator.AsK8sLabels())
 	}
 
 	return r.EC.Client.Create(ctx, desiredRun)
@@ -203,16 +210,72 @@ func (r *RunConfigurationReconciler) syncWithRuns(
 	oldStatus := runConfiguration.Status
 	runConfiguration.Status = r.updateRcTriggers(*runConfiguration)
 
-	if runConfiguration.Status.Triggers.Equals(oldStatus.Triggers) &&
-		runConfiguration.Status.Triggers.Pipeline.Version == oldStatus.Triggers.Pipeline.Version {
+	triggersEqual := runConfiguration.Status.Triggers.Equals(oldStatus.Triggers)
+	pipelineVersionEqual := runConfiguration.Status.Triggers.Pipeline.Version == oldStatus.Triggers.Pipeline.Version
+
+	if triggersEqual && pipelineVersionEqual {
 		return false, nil
 	}
 
-	if err := r.triggerUntriggeredRuns(ctx, runConfiguration); err != nil {
+	triggerIndication := r.IdentifyRunTriggerReason(runConfiguration, oldStatus)
+
+	if err := r.triggerUntriggeredRuns(ctx, runConfiguration, triggerIndication); err != nil {
 		return false, err
 	}
 
 	return true, r.EC.Client.Status().Update(ctx, runConfiguration)
+}
+
+func (r *RunConfigurationReconciler) IdentifyRunTriggerReason(runConfiguration *pipelineshub.RunConfiguration, oldStatus pipelineshub.RunConfigurationStatus) *triggers.Indicator {
+
+	if runConfiguration.Status.Triggers.RunSpec.Version != "" && runConfiguration.Status.Triggers.RunSpec.Version != oldStatus.Triggers.RunSpec.Version {
+		return &triggers.Indicator{
+			Type:            triggers.OnChangeRunSpec,
+			Source:          runConfiguration.Name,
+			SourceNamespace: runConfiguration.Namespace,
+		}
+	}
+
+	if runConfiguration.Status.Triggers.Pipeline.Version != "" && runConfiguration.Status.Triggers.Pipeline.Version != oldStatus.Triggers.Pipeline.Version {
+		return &triggers.Indicator{
+			Type:            triggers.OnChangePipeline,
+			Source:          runConfiguration.Spec.Run.Pipeline.Name,
+			SourceNamespace: runConfiguration.Namespace,
+		}
+	}
+
+	if runConfiguration.Status.Triggers.RunConfigurations != nil {
+		differentRCs := GetDiffering(runConfiguration.Status.Triggers.RunConfigurations, oldStatus.Triggers.RunConfigurations)
+		firstDifferentRc, hasDifferentRC := lo.First(differentRCs)
+
+		if hasDifferentRC {
+			rcNamespaceName, err := common.NamespacedNameFromString(firstDifferentRc)
+			if err != nil {
+				return nil
+			}
+
+			return &triggers.Indicator{
+				Type:            triggers.RunConfiguration,
+				Source:          rcNamespaceName.Name,
+				SourceNamespace: rcNamespaceName.Namespace,
+			}
+		}
+	}
+
+	return nil
+}
+
+// GetDiffering returns a slice of keys that are present in both input maps `a` and `b`
+// but have different values associated with them. The function only considers keys
+// that exist in both maps and compares their corresponding values.
+func GetDiffering[K, V comparable](a, b map[K]V) []K {
+	differs := []K{}
+	for k, vA := range a {
+		if vB, ok := b[k]; ok && vA != vB {
+			differs = append(differs, k)
+		}
+	}
+	return differs
 }
 
 func (r *RunConfigurationReconciler) syncStatus(

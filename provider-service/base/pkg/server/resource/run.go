@@ -3,7 +3,6 @@ package resource
 import (
 	"context"
 	"encoding/json"
-
 	"github.com/sky-uk/kfp-operator/argo/common"
 )
 

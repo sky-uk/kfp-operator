@@ -56,7 +56,8 @@ spec:
       args:
       - |
         HTTP_RESPONSE=$(
-          curl -v -s -o /tmp/provider-output.json -w "%{response_code}" -X POST -H "Content-Type: application/json" \
+          curl -v -s -o /tmp/provider-output.json -w "%{response_code}" -X POST \
+              -H "Content-Type: application/json" \
               --data-binary @{{inputs.artifacts.body.path}} \
               "{{workflow.parameters.provider-service-url}}/resource/{{workflow.parameters.resource-kind}}"
         )

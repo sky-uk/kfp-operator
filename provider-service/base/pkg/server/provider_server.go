@@ -104,7 +104,7 @@ func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 	}
 }
 
-func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.HandlerFunc {
+func deleteHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
 	logger := common.LoggerFromContext(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +117,7 @@ func deleteHandler(ctx context.Context, a resource.HttpHandledResource) http.Han
 			return
 		}
 
-		err = a.Delete(requestCtx, decodedId)
+		err = hr.Delete(requestCtx, decodedId)
 
 		switch {
 		case err == nil:
@@ -207,5 +207,4 @@ func writeResponse(w http.ResponseWriter, responseBody resource.ResponseBody, st
 	w.WriteHeader(statusCode)
 	w.Write(marshalledResponse)
 	return
-
 }

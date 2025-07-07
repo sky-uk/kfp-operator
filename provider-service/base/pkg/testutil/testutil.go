@@ -5,6 +5,7 @@ package testutil
 import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"time"
 
@@ -17,8 +18,9 @@ var Start = metav1.Time{Time: time.Date(10000, 1, 1, 0, 0, 0, 0, time.UTC)}
 var End = metav1.Time{Time: time.Date(10001, 1, 1, 0, 0, 0, 0, time.UTC)}
 
 func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
+	name := common.RandomNamespacedName()
 	return resource.RunScheduleDefinition{
-		Name:                 common.RandomNamespacedName(),
+		Name:                 name,
 		Version:              common.RandomString(),
 		PipelineName:         common.RandomNamespacedName(),
 		PipelineVersion:      common.RandomString(),
@@ -28,6 +30,11 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 			CronExpression: "1 1 0 0 0",
 			StartTime:      &Start,
 			EndTime:        &End,
+		},
+		TriggerIndicator: &triggers.Indicator{
+			Type:            "schedule",
+			Source:          name.Name,
+			SourceNamespace: name.Namespace,
 		},
 	}
 }

@@ -2,6 +2,7 @@ package workflowfactory
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -52,10 +53,11 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 			Namespace: run.Namespace,
 			Name:      run.Spec.Pipeline.Name,
 		},
-		PipelineVersion: run.Status.Dependencies.Pipeline.Version,
-		ExperimentName:  experimentName,
-		Parameters:      NamedValuesToMap(parameters),
-		Artifacts:       run.Spec.Artifacts,
+		PipelineVersion:  run.Status.Dependencies.Pipeline.Version,
+		ExperimentName:   experimentName,
+		Parameters:       NamedValuesToMap(parameters),
+		Artifacts:        run.Spec.Artifacts,
+		TriggerIndicator: triggers.FromLabels(run.Labels),
 	}
 
 	if runConfigurationName, ok := run.Labels[RunConfigurationConstants.RunConfigurationNameLabelKey]; ok {

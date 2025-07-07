@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	"github.com/sky-uk/kfp-operator/apis"
@@ -46,6 +47,7 @@ type RunDefinition struct {
 	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
 	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
 }
 
 type RunScheduleDefinition struct {
@@ -58,6 +60,7 @@ type RunScheduleDefinition struct {
 	Schedule             pipelines.Schedule         `json:"schedule" yaml:"schedule"`
 	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
 	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
+	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
 }
 
 type Provider interface {

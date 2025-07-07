@@ -1,6 +1,7 @@
 package workflowfactory
 
 import (
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"strings"
 
 	"github.com/sky-uk/kfp-operator/apis"
@@ -48,6 +49,11 @@ func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
 		Schedule:        rs.Spec.Schedule,
 		Parameters:      NamedValuesToMap(rs.Spec.Parameters),
 		Artifacts:       rs.Spec.Artifacts,
+		TriggerIndicator: triggers.Indicator{
+			Type:            "schedule",
+			Source:          rs.Name,
+			SourceNamespace: rs.Namespace,
+		},
 	}, nil
 }
 

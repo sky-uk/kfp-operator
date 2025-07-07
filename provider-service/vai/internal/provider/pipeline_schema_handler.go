@@ -157,8 +157,9 @@ func (sv21 Schema2_1Handler) extract(raw map[string]any) (*PipelineValues, error
 	}, nil
 }
 
+var labelRegex = regexp.MustCompile(`[^a-z0-9\-_]`)
+
 func sanitizeString(input string) string {
 	input = strings.ToLower(input)
-	re := regexp.MustCompile(`[^a-z0-9\-_]`)
-	return re.ReplaceAllString(input, "_")
+	return labelRegex.ReplaceAllString(input, "_")
 }

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/common/triggers"
 	"strings"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
@@ -29,7 +30,7 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 		labels = lg.runLabelsFromSchedule(v)
 	default:
 		return nil, fmt.Errorf(
-			"Unexpected definition received [%T], expected %T or %T",
+			"unexpected definition received [%T], expected %T or %T",
 			value,
 			resource.RunDefinition{},
 			resource.RunScheduleDefinition{},
@@ -38,7 +39,8 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 
 	labels[label.ProviderName] = lg.providerName.Name
 	labels[label.ProviderNamespace] = lg.providerName.Namespace
-	return labels, nil
+
+	return label.SanitizeLabels(labels), nil
 }
 
 func (lg DefaultLabelGen) runLabelsFromPipeline(
@@ -72,6 +74,12 @@ func (lg DefaultLabelGen) runLabelsFromRunDefinition(
 		runLabels[label.RunNamespace] = rd.Name.Namespace
 	}
 
+	if rd.TriggerIndicator != nil {
+		runLabels[triggers.Type] = rd.TriggerIndicator.Type
+		runLabels[triggers.Source] = rd.TriggerIndicator.Source
+		runLabels[triggers.SourceNamespace] = rd.TriggerIndicator.SourceNamespace
+	}
+
 	return runLabels
 }
 
@@ -83,6 +91,12 @@ func (lg DefaultLabelGen) runLabelsFromSchedule(
 	if !rsd.RunConfigurationName.Empty() {
 		runLabels[label.RunConfigurationName] = rsd.RunConfigurationName.Name
 		runLabels[label.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
+	}
+
+	if rsd.TriggerIndicator != nil {
+		runLabels[triggers.Type] = rsd.TriggerIndicator.Type
+		runLabels[triggers.Source] = rsd.TriggerIndicator.Source
+		runLabels[triggers.SourceNamespace] = rsd.TriggerIndicator.SourceNamespace
 	}
 
 	return runLabels
