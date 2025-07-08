@@ -17,7 +17,7 @@ func (m *MockPipelineService) DeletePipeline(
 	return args.Error(0)
 }
 
-func (m *MockPipelineService) PipelineIdForName(
+func (m *MockPipelineService) PipelineIdForDisplayName(
 	_ context.Context,
 	pipelineName string,
 ) (string, error) {
@@ -25,7 +25,7 @@ func (m *MockPipelineService) PipelineIdForName(
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockPipelineService) PipelineVersionIdForName(
+func (m *MockPipelineService) PipelineVersionIdForDisplayName(
 	_ context.Context,
 	versionName string,
 	pipelineId string,

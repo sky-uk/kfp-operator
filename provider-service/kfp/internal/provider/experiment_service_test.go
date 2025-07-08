@@ -111,7 +111,7 @@ var _ = Describe("ExperimentService", func() {
 		})
 	})
 
-	Context("ExperimentIdByName", func() {
+	Context("ExperimentIdByDisplayName", func() {
 		It("should return the experiment result id", func() {
 			expectedResult := go_client.ListExperimentsResponse{
 				Experiments: []*go_client.Experiment{
@@ -121,10 +121,10 @@ var _ = Describe("ExperimentService", func() {
 			mockClient.On(
 				"ListExperiments",
 				&go_client.ListExperimentsRequest{
-					Filter: util.ByNameFilter("namespace-name"),
+					Filter: util.ByDisplayNameFilter("namespace-name"),
 				},
 			).Return(&expectedResult, nil)
-			res, err := experimentService.ExperimentIdByName(ctx, nsn)
+			res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal("one"))
@@ -135,7 +135,7 @@ var _ = Describe("ExperimentService", func() {
 				invalidNsn := common.NamespacedName{
 					Namespace: "namespace",
 				}
-				res, err := experimentService.ExperimentIdByName(ctx, invalidNsn)
+				res, err := experimentService.ExperimentIdByDisplayName(ctx, invalidNsn)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -147,10 +147,10 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByNameFilter("namespace-name"),
+						Filter: util.ByDisplayNameFilter("namespace-name"),
 					},
 				).Return(nil, errors.New("failed"))
-				res, err := experimentService.ExperimentIdByName(ctx, nsn)
+				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -165,10 +165,10 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByNameFilter("namespace-name"),
+						Filter: util.ByDisplayNameFilter("namespace-name"),
 					},
 				).Return(&expectedResult, nil)
-				res, err := experimentService.ExperimentIdByName(ctx, nsn)
+				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -186,10 +186,10 @@ var _ = Describe("ExperimentService", func() {
 				mockClient.On(
 					"ListExperiments",
 					&go_client.ListExperimentsRequest{
-						Filter: util.ByNameFilter("namespace-name"),
+						Filter: util.ByDisplayNameFilter("namespace-name"),
 					},
 				).Return(&expectedResult, nil)
-				res, err := experimentService.ExperimentIdByName(ctx, nsn)
+				res, err := experimentService.ExperimentIdByDisplayName(ctx, nsn)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
