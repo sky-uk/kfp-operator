@@ -91,7 +91,7 @@ var _ = Describe("PipelineService", func() {
 		})
 	})
 
-	Context("PipelineIdForName", func() {
+	Context("PipelineIdForDisplayName", func() {
 		It("should return the pipeline ID if exactly one pipeline is found", func() {
 			expectedResult := go_client.ListPipelinesResponse{
 				Pipelines: []*go_client.Pipeline{
@@ -101,11 +101,11 @@ var _ = Describe("PipelineService", func() {
 			mockClient.On(
 				"ListPipelines",
 				&go_client.ListPipelinesRequest{
-					Filter: util.ByNameFilter(pipelineId),
+					Filter: util.ByDisplayNameFilter(pipelineId),
 				},
 			).Return(&expectedResult, nil)
 
-			res, err := pipelineService.PipelineIdForName(ctx, pipelineId)
+			res, err := pipelineService.PipelineIdForDisplayName(ctx, pipelineId)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(pipelineId))
@@ -116,11 +116,11 @@ var _ = Describe("PipelineService", func() {
 				mockClient.On(
 					"ListPipelines",
 					&go_client.ListPipelinesRequest{
-						Filter: util.ByNameFilter(pipelineId),
+						Filter: util.ByDisplayNameFilter(pipelineId),
 					},
 				).Return(nil, errors.New("failed"))
 
-				res, err := pipelineService.PipelineIdForName(ctx, pipelineId)
+				res, err := pipelineService.PipelineIdForDisplayName(ctx, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -135,11 +135,11 @@ var _ = Describe("PipelineService", func() {
 				mockClient.On(
 					"ListPipelines",
 					&go_client.ListPipelinesRequest{
-						Filter: util.ByNameFilter(pipelineId),
+						Filter: util.ByDisplayNameFilter(pipelineId),
 					},
 				).Return(&expectedResult, nil)
 
-				res, err := pipelineService.PipelineIdForName(ctx, pipelineId)
+				res, err := pipelineService.PipelineIdForDisplayName(ctx, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -157,11 +157,11 @@ var _ = Describe("PipelineService", func() {
 				mockClient.On(
 					"ListPipelines",
 					&go_client.ListPipelinesRequest{
-						Filter: util.ByNameFilter(pipelineId),
+						Filter: util.ByDisplayNameFilter(pipelineId),
 					},
 				).Return(&expectedResult, nil)
 
-				res, err := pipelineService.PipelineIdForName(ctx, pipelineId)
+				res, err := pipelineService.PipelineIdForDisplayName(ctx, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -180,11 +180,11 @@ var _ = Describe("PipelineService", func() {
 				"ListPipelineVersions",
 				&go_client.ListPipelineVersionsRequest{
 					PipelineId: pipelineId,
-					Filter:     util.ByNameFilter(versionName),
+					Filter:     util.ByDisplayNameFilter(versionName),
 				},
 			).Return(&expectedResult, nil)
 
-			res, err := pipelineService.PipelineVersionIdForName(ctx, versionName, pipelineId)
+			res, err := pipelineService.PipelineVersionIdForDisplayName(ctx, versionName, pipelineId)
 
 			Expect(err).ToNot(HaveOccurred())
 			Expect(res).To(Equal(versionId))
@@ -196,11 +196,11 @@ var _ = Describe("PipelineService", func() {
 					"ListPipelineVersions",
 					&go_client.ListPipelineVersionsRequest{
 						PipelineId: pipelineId,
-						Filter:     util.ByNameFilter(versionName),
+						Filter:     util.ByDisplayNameFilter(versionName),
 					},
 				).Return(nil, errors.New("failed"))
 
-				res, err := pipelineService.PipelineVersionIdForName(ctx, versionName, pipelineId)
+				res, err := pipelineService.PipelineVersionIdForDisplayName(ctx, versionName, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -216,11 +216,11 @@ var _ = Describe("PipelineService", func() {
 					"ListPipelineVersions",
 					&go_client.ListPipelineVersionsRequest{
 						PipelineId: pipelineId,
-						Filter:     util.ByNameFilter(versionName),
+						Filter:     util.ByDisplayNameFilter(versionName),
 					},
 				).Return(&expectedResult, nil)
 
-				res, err := pipelineService.PipelineVersionIdForName(ctx, versionName, pipelineId)
+				res, err := pipelineService.PipelineVersionIdForDisplayName(ctx, versionName, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())
@@ -239,11 +239,11 @@ var _ = Describe("PipelineService", func() {
 					"ListPipelineVersions",
 					&go_client.ListPipelineVersionsRequest{
 						PipelineId: pipelineId,
-						Filter:     util.ByNameFilter(versionName),
+						Filter:     util.ByDisplayNameFilter(versionName),
 					},
 				).Return(&expectedResult, nil)
 
-				res, err := pipelineService.PipelineVersionIdForName(ctx, versionName, pipelineId)
+				res, err := pipelineService.PipelineVersionIdForDisplayName(ctx, versionName, pipelineId)
 
 				Expect(err).To(HaveOccurred())
 				Expect(res).To(BeEmpty())

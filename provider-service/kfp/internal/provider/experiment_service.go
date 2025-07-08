@@ -21,7 +21,7 @@ type ExperimentService interface {
 
 	DeleteExperiment(ctx context.Context, id string) error
 
-	ExperimentIdByName(ctx context.Context, experiment common.NamespacedName) (string, error)
+	ExperimentIdByDisplayName(ctx context.Context, experiment common.NamespacedName) (string, error)
 }
 
 type DefaultExperimentService struct {
@@ -82,9 +82,9 @@ func (es *DefaultExperimentService) DeleteExperiment(ctx context.Context, id str
 	return nil
 }
 
-// ExperimentIdByName gets the experiment id corresponding to the experiment name.
+// ExperimentIdByDisplayName gets the experiment id corresponding to the experiment name.
 // Expects to find exactly one such experiment.
-func (es *DefaultExperimentService) ExperimentIdByName(
+func (es *DefaultExperimentService) ExperimentIdByDisplayName(
 	ctx context.Context,
 	experiment common.NamespacedName,
 ) (string, error) {
@@ -96,7 +96,7 @@ func (es *DefaultExperimentService) ExperimentIdByName(
 	experimentResult, err := es.client.ListExperiments(
 		ctx,
 		&go_client.ListExperimentsRequest{
-			Filter: kfpUtil.ByNameFilter(experimentName),
+			Filter: kfpUtil.ByDisplayNameFilter(experimentName),
 		},
 	)
 	if err != nil {

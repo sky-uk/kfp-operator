@@ -14,8 +14,8 @@ import (
 
 type PipelineService interface {
 	DeletePipeline(ctx context.Context, id string) error
-	PipelineIdForName(ctx context.Context, pipelineName string) (string, error)
-	PipelineVersionIdForName(ctx context.Context, versionName string, pipelineId string) (string, error)
+	PipelineIdForDisplayName(ctx context.Context, pipelineName string) (string, error)
+	PipelineVersionIdForDisplayName(ctx context.Context, versionName string, pipelineId string) (string, error)
 }
 
 type DefaultPipelineService struct {
@@ -62,16 +62,16 @@ func (ps *DefaultPipelineService) DeletePipeline(ctx context.Context, id string)
 	return nil
 }
 
-// PipelineIdForName gets the pipeline id corresponding to the pipeline name.
+// PipelineIdForDisplayName gets the pipeline id corresponding to the pipeline name.
 // Expects to find exactly one such pipeline.
-func (ps *DefaultPipelineService) PipelineIdForName(
+func (ps *DefaultPipelineService) PipelineIdForDisplayName(
 	ctx context.Context,
 	pipelineName string,
 ) (string, error) {
 	res, err := ps.client.ListPipelines(
 		ctx,
 		&go_client.ListPipelinesRequest{
-			Filter: util.ByNameFilter(pipelineName),
+			Filter: util.ByDisplayNameFilter(pipelineName),
 		},
 	)
 	if err != nil {
@@ -85,9 +85,9 @@ func (ps *DefaultPipelineService) PipelineIdForName(
 	return res.Pipelines[0].PipelineId, nil
 }
 
-// PipelineVersionIdForName gets the pipeline version corresponding to the
+// PipelineVersionIdForDisplayName gets the pipeline version corresponding to the
 // pipeline id. Expects to find exactly one such pipeline.
-func (ps *DefaultPipelineService) PipelineVersionIdForName(
+func (ps *DefaultPipelineService) PipelineVersionIdForDisplayName(
 	ctx context.Context,
 	versionName string,
 	pipelineId string,
@@ -96,7 +96,7 @@ func (ps *DefaultPipelineService) PipelineVersionIdForName(
 		ctx,
 		&go_client.ListPipelineVersionsRequest{
 			PipelineId: pipelineId,
-			Filter:     util.ByNameFilter(versionName),
+			Filter:     util.ByDisplayNameFilter(versionName),
 		},
 	)
 	if err != nil {
