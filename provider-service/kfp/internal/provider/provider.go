@@ -118,12 +118,12 @@ func (p *KfpProvider) CreateRun(
 		return "", err
 	}
 
-	pipelineId, err := p.pipelineService.PipelineIdForName(ctx, pipelineName)
+	pipelineId, err := p.pipelineService.PipelineIdForDisplayName(ctx, pipelineName)
 	if err != nil {
 		return "", err
 	}
 
-	pipelineVersionId, err := p.pipelineService.PipelineVersionIdForName(
+	pipelineVersionId, err := p.pipelineService.PipelineVersionIdForDisplayName(
 		ctx,
 		rd.PipelineVersion,
 		pipelineId,
@@ -132,7 +132,7 @@ func (p *KfpProvider) CreateRun(
 		return "", err
 	}
 
-	experimentId, err := p.experimentService.ExperimentIdByName(ctx, rd.ExperimentName)
+	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, rd.ExperimentName)
 	if err != nil {
 		return "", err
 	}
@@ -167,12 +167,12 @@ func (p *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	pipelineId, err := p.pipelineService.PipelineIdForName(ctx, pipelineName)
+	pipelineId, err := p.pipelineService.PipelineIdForDisplayName(ctx, pipelineName)
 	if err != nil {
 		return "", err
 	}
 
-	pipelineVersionId, err := p.pipelineService.PipelineVersionIdForName(
+	pipelineVersionId, err := p.pipelineService.PipelineVersionIdForDisplayName(
 		ctx,
 		rsd.PipelineVersion,
 		pipelineId,
@@ -181,7 +181,7 @@ func (p *KfpProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	experimentId, err := p.experimentService.ExperimentIdByName(ctx, rsd.ExperimentName)
+	experimentId, err := p.experimentService.ExperimentIdByDisplayName(ctx, rsd.ExperimentName)
 	if err != nil {
 		return "", err
 	}
