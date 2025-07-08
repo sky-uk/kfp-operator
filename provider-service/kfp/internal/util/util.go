@@ -6,7 +6,7 @@ import "fmt"
 // https://github.com/kubeflow/pipelines/blob/master/backend/api/v1beta1/filter.proto
 func ByNameFilter(name string) string {
 	return fmt.Sprintf(
-		`{"predicates": [{"op": "EQUALS", "key": "name", "string_value": "%s"}]}`,
+		`{"predicates": [{"operation": "EQUALS", "key": "name", "string_value": "%s"}]}`,
 		name,
 	)
 }
