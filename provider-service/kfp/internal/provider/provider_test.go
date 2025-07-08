@@ -54,9 +54,9 @@ var _ = Describe("Provider", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			It("should return run id if run is created", func() {
-				mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-				mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return(experimentId, nil)
+				mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+				mockPipelineService.On("PipelineVersionIdForDisplayName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+				mockExperimentService.On("ExperimentIdByDisplayName", rd.ExperimentName).Return(experimentId, nil)
 				mockRunService.On("CreateRun", rd, pipelineId, pipelineVersionId, experimentId).Return(runId, nil)
 				result, err := provider.CreateRun(ctx, rd)
 
@@ -75,10 +75,10 @@ var _ = Describe("Provider", func() {
 				})
 			})
 
-			When("pipeline service PipelineIdForName errors", func() {
+			When("pipeline service PipelineIdForDisplayName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -86,11 +86,11 @@ var _ = Describe("Provider", func() {
 				})
 			})
 
-			When("pipeline service PipelineVersionIdForName errors", func() {
+			When("pipeline service PipelineVersionIdForDisplayName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForDisplayName", rd.PipelineVersion, pipelineId).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -98,12 +98,12 @@ var _ = Describe("Provider", func() {
 				})
 			})
 
-			When("experiment service ExperimentIdByName errors", func() {
+			When("experiment service ExperimentIdByDisplayName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForDisplayName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByDisplayName", rd.ExperimentName).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
 					Expect(err).To(HaveOccurred())
@@ -114,9 +114,9 @@ var _ = Describe("Provider", func() {
 			When("run service CreateRun errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					mockExperimentService.On("ExperimentIdByName", rd.ExperimentName).Return(experimentId, nil)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForDisplayName", rd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByDisplayName", rd.ExperimentName).Return(experimentId, nil)
 					mockRunService.On("CreateRun", rd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
 					result, err := provider.CreateRun(ctx, rd)
 
@@ -229,9 +229,9 @@ var _ = Describe("Provider", func() {
 
 		Context("CreateRunSchedule", func() {
 			It("should return recurring run id if run schedule is created", func() {
-				mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-				mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				mockExperimentService.On("ExperimentIdByName", rsd.ExperimentName).Return(experimentId, nil)
+				mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+				mockPipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+				mockExperimentService.On("ExperimentIdByDisplayName", rsd.ExperimentName).Return(experimentId, nil)
 				mockRecurringRunService.On("CreateRecurringRun", rsd, pipelineId, pipelineVersionId, experimentId).Return(recurringRunId, nil)
 				result, err := provider.CreateRunSchedule(ctx, rsd)
 
@@ -250,10 +250,10 @@ var _ = Describe("Provider", func() {
 				})
 			})
 
-			When("pipeline service PipelineIdForName errors", func() {
+			When("pipeline service PipelineIdForDisplayName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -261,11 +261,11 @@ var _ = Describe("Provider", func() {
 				})
 			})
 
-			When("pipeline service PipelineVersionIdForName errors", func() {
+			When("pipeline service PipelineVersionIdForDisplayName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -273,12 +273,12 @@ var _ = Describe("Provider", func() {
 				})
 			})
 
-			When("experiment service ExperimentIdByName errors", func() {
+			When("experiment service ExperimentIdByDisplayName errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					mockExperimentService.On("ExperimentIdByName", rsd.ExperimentName).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByDisplayName", rsd.ExperimentName).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
 					Expect(err).To(Equal(expectedErr))
@@ -289,9 +289,9 @@ var _ = Describe("Provider", func() {
 			When("recurring run service CreateRecurringRun errors", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-					mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-					mockExperimentService.On("ExperimentIdByName", rsd.ExperimentName).Return(experimentId, nil)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+					mockPipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+					mockExperimentService.On("ExperimentIdByDisplayName", rsd.ExperimentName).Return(experimentId, nil)
 					mockRecurringRunService.On("CreateRecurringRun", rsd, pipelineId, pipelineVersionId, experimentId).Return("", expectedErr)
 					result, err := provider.CreateRunSchedule(ctx, rsd)
 
@@ -304,9 +304,9 @@ var _ = Describe("Provider", func() {
 		Context("UpdateRunSchedule", func() {
 			It("should return recurring run id if run schedule is updated", func() {
 				mockRecurringRunService.On("DeleteRecurringRun", recurringRunId).Return(nil)
-				mockPipelineService.On("PipelineIdForName", nsnStr).Return(pipelineId, nil)
-				mockPipelineService.On("PipelineVersionIdForName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
-				mockExperimentService.On("ExperimentIdByName", rsd.ExperimentName).Return(experimentId, nil)
+				mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return(pipelineId, nil)
+				mockPipelineService.On("PipelineVersionIdForDisplayName", rsd.PipelineVersion, pipelineId).Return(pipelineVersionId, nil)
+				mockExperimentService.On("ExperimentIdByDisplayName", rsd.ExperimentName).Return(experimentId, nil)
 				mockRecurringRunService.On("CreateRecurringRun", rsd, pipelineId, pipelineVersionId, experimentId).Return(recurringRunId, nil)
 				result, err := provider.UpdateRunSchedule(ctx, rsd, recurringRunId)
 
@@ -329,7 +329,7 @@ var _ = Describe("Provider", func() {
 				It("should return error", func() {
 					expectedErr := errors.New("failed")
 					mockRecurringRunService.On("DeleteRecurringRun", recurringRunId).Return(nil)
-					mockPipelineService.On("PipelineIdForName", nsnStr).Return("", expectedErr)
+					mockPipelineService.On("PipelineIdForDisplayName", nsnStr).Return("", expectedErr)
 					result, err := provider.UpdateRunSchedule(ctx, rsd, recurringRunId)
 
 					Expect(err).To(Equal(expectedErr))
