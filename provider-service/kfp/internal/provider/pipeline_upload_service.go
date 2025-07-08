@@ -35,7 +35,7 @@ type DefaultPipelineUploadService struct {
 	pipelineUploadService client.PipelineUploadService
 }
 
-const uploadPipelineFilePath string = "resource.json"
+const uploadPipelineFilePath string = "resource.yaml"
 
 func NewPipelineUploadService(
 	restKfpApiUrl string,
