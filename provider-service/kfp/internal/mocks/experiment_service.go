@@ -27,7 +27,7 @@ func (m *MockExperimentService) DeleteExperiment(
 	return args.Error(0)
 }
 
-func (m *MockExperimentService) ExperimentIdByName(
+func (m *MockExperimentService) ExperimentIdByDisplayName(
 	_ context.Context,
 	experiment common.NamespacedName,
 ) (string, error) {
