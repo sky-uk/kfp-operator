@@ -10,7 +10,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	baseResource "github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
@@ -25,7 +25,7 @@ var _ = Describe("DefaultRecurringRunService", func() {
 	var (
 		mockClient          mocks.MockRecurringRunServiceClient
 		recurringRunService DefaultRecurringRunService
-		rsd                 baseResource.RunScheduleDefinition
+		rsd                 base.RunScheduleDefinition
 		ctx                 = context.Background()
 	)
 

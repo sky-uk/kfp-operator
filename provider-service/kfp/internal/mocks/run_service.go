@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -12,7 +12,7 @@ type MockRunService struct {
 
 func (m *MockRunService) CreateRun(
 	_ context.Context,
-	rd resource.RunDefinition,
+	rd base.RunDefinition,
 	pipelineId string,
 	pipelineVersionId string,
 	experimentId string,
