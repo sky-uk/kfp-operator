@@ -79,7 +79,6 @@ func (js *DefaultRecurringRunService) CreateRecurringRun(
 
 	recurringRun, err := js.client.CreateRecurringRun(ctx, &go_client.CreateRecurringRunRequest{
 		RecurringRun: &go_client.RecurringRun{
-			RecurringRunId: "",
 			DisplayName:    recurringRunName,
 			Description:    string(runScheduleAsDescription),
 			PipelineSource: &go_client.RecurringRun_PipelineVersionReference{
