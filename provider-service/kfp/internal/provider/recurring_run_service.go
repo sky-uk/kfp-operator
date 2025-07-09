@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
-	baseResource "github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
@@ -19,7 +19,7 @@ import (
 type RecurringRunService interface {
 	CreateRecurringRun(
 		ctx context.Context,
-		rsd baseResource.RunScheduleDefinition,
+		rsd base.RunScheduleDefinition,
 		pipelineId string,
 		pipelineVersionId string,
 		experimentId string,
@@ -45,9 +45,9 @@ func NewRecurringRunService(conn *grpc.ClientConn) (RecurringRunService, error) 
 }
 
 // CreateRecurringRun creates a recurring run and returns the recurring run id.
-func (js *DefaultRecurringRunService) CreateRecurringRun(
+func (rrs *DefaultRecurringRunService) CreateRecurringRun(
 	ctx context.Context,
-	rsd baseResource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	pipelineId string,
 	pipelineVersionId string,
 	experimentId string,
@@ -77,11 +77,10 @@ func (js *DefaultRecurringRunService) CreateRecurringRun(
 		return "", err
 	}
 
-	recurringRun, err := js.client.CreateRecurringRun(ctx, &go_client.CreateRecurringRunRequest{
+	recurringRun, err := rrs.client.CreateRecurringRun(ctx, &go_client.CreateRecurringRunRequest{
 		RecurringRun: &go_client.RecurringRun{
-			RecurringRunId: "",
-			DisplayName:    recurringRunName,
-			Description:    string(runScheduleAsDescription),
+			DisplayName: recurringRunName,
+			Description: string(runScheduleAsDescription),
 			PipelineSource: &go_client.RecurringRun_PipelineVersionReference{
 				PipelineVersionReference: &go_client.PipelineVersionReference{
 					PipelineId:        pipelineId,
@@ -107,12 +106,12 @@ func (js *DefaultRecurringRunService) CreateRecurringRun(
 	return recurringRun.RecurringRunId, nil
 }
 
-// GetRecurringRun takes a recurring run id and returns a recurring run description.
-func (js *DefaultRecurringRunService) GetRecurringRun(
+// GetRecurringRun takes a recurring run id and returns the recurring run description.
+func (rrs *DefaultRecurringRunService) GetRecurringRun(
 	ctx context.Context,
 	id string,
 ) (string, error) {
-	recurringRun, err := js.client.GetRecurringRun(
+	recurringRun, err := rrs.client.GetRecurringRun(
 		ctx,
 		&go_client.GetRecurringRunRequest{RecurringRunId: id},
 	)
@@ -125,17 +124,15 @@ func (js *DefaultRecurringRunService) GetRecurringRun(
 
 // DeleteRecurringRun deletes a recurring run by recurring run id.
 // Does not error if there is no such recurring run id.
-func (js *DefaultRecurringRunService) DeleteRecurringRun(
+func (rrs *DefaultRecurringRunService) DeleteRecurringRun(
 	ctx context.Context,
 	id string,
 ) error {
-	_, err := js.client.DeleteRecurringRun(
+	if _, err := rrs.client.DeleteRecurringRun(
 		ctx,
 		&go_client.DeleteRecurringRunRequest{RecurringRunId: id},
-	)
-	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
+	); err != nil {
+		if st, ok := status.FromError(err); ok {
 			// is a gRPC error
 			switch st.Code() {
 			case codes.NotFound:
@@ -151,7 +148,7 @@ func (js *DefaultRecurringRunService) DeleteRecurringRun(
 }
 
 func createAPICronSchedule(
-	rsd baseResource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) (*go_client.CronSchedule, error) {
 	cronExpression, err := util.ParseCron(rsd.Schedule.CronExpression)
 	if err != nil {

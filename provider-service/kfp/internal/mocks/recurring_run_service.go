@@ -3,7 +3,7 @@ package mocks
 import (
 	"context"
 
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -13,7 +13,7 @@ type MockRecurringRunService struct {
 
 func (m *MockRecurringRunService) CreateRecurringRun(
 	_ context.Context,
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	pipelineId string,
 	pipelineVersionId string,
 	experimentId string,
