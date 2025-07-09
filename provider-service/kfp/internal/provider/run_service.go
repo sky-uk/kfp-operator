@@ -44,7 +44,7 @@ func NewRunService(
 }
 
 // CreateRun creates a run and returns the generated run id.
-func (drs DefaultRunService) CreateRun(
+func (rs DefaultRunService) CreateRun(
 	ctx context.Context,
 	rd baseResource.RunDefinition,
 	pipelineId string,
@@ -71,7 +71,7 @@ func (drs DefaultRunService) CreateRun(
 		return "", err
 	}
 
-	run, err := drs.client.CreateRun(ctx, &go_client.CreateRunRequest{
+	run, err := rs.client.CreateRun(ctx, &go_client.CreateRunRequest{
 		Run: &go_client.Run{
 			ExperimentId: experimentId,
 			DisplayName:  name,
