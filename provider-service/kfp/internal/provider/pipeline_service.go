@@ -114,5 +114,5 @@ func (ps *DefaultPipelineService) PipelineVersionIdForDisplayName(
 			pipelineVersionCount,
 		)
 	}
-	return res.PipelineVersions[0].PipelineId, nil
+	return res.PipelineVersions[0].PipelineVersionId, nil
 }
