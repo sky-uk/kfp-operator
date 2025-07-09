@@ -5,9 +5,11 @@ package provider
 import (
 	"context"
 	"errors"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 )
@@ -131,7 +133,7 @@ var _ = Describe("Provider", func() {
 		const id = "pipeline-id"
 		pdw := testutil.RandomPipelineDefinitionWrapper()
 		version := pdw.PipelineDefinition.Version
-		nsnStr, err := pdw.PipelineDefinition.Name.String()
+		nsnStr, err := util.ResourceNameFromNamespacedName(pdw.PipelineDefinition.Name)
 
 		Expect(err).ToNot(HaveOccurred())
 
