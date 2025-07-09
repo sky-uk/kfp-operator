@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	baseResource "github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"gopkg.in/yaml.v2"
 
@@ -18,7 +18,7 @@ import (
 type RunService interface {
 	CreateRun(
 		ctx context.Context,
-		rd baseResource.RunDefinition,
+		rd base.RunDefinition,
 		pipelineId string,
 		pipelineVersionId string,
 		experimentId string,
@@ -44,9 +44,9 @@ func NewRunService(
 }
 
 // CreateRun creates a run and returns the generated run id.
-func (drs DefaultRunService) CreateRun(
+func (rs DefaultRunService) CreateRun(
 	ctx context.Context,
-	rd baseResource.RunDefinition,
+	rd base.RunDefinition,
 	pipelineId string,
 	pipelineVersionId string,
 	experimentId string,
@@ -71,7 +71,7 @@ func (drs DefaultRunService) CreateRun(
 		return "", err
 	}
 
-	run, err := drs.client.CreateRun(ctx, &go_client.CreateRunRequest{
+	run, err := rs.client.CreateRun(ctx, &go_client.CreateRunRequest{
 		Run: &go_client.Run{
 			ExperimentId: experimentId,
 			DisplayName:  name,
