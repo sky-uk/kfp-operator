@@ -79,7 +79,11 @@ func (ps *DefaultPipelineService) PipelineIdForDisplayName(
 	}
 	pipelineCount := len(res.Pipelines)
 	if pipelineCount != 1 {
-		return "", fmt.Errorf("found %d pipelines, expected exactly one", pipelineCount)
+		return "", fmt.Errorf(
+			"found %d pipelines for %s, expected exactly one",
+			pipelineCount,
+			pipelineName,
+		)
 	}
 
 	return res.Pipelines[0].PipelineId, nil
