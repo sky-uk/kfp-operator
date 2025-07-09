@@ -70,7 +70,7 @@ func (p *KfpProvider) CreatePipeline(
 	ctx context.Context,
 	pdw resource.PipelineDefinitionWrapper,
 ) (string, error) {
-	pipelineName, err := pdw.PipelineDefinition.Name.String()
+	pipelineName, err := util.ResourceNameFromNamespacedName(pdw.PipelineDefinition.Name)
 	if err != nil {
 		return "", err
 	}
