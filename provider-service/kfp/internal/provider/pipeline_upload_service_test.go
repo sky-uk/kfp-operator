@@ -120,7 +120,7 @@ var _ = Describe("DefaultPipelineUploadService", func() {
 			})
 		})
 
-		When("client UploadPipelineVersionParams fails", func() {
+		When("client UploadPipelineVersion fails", func() {
 			It("should return error", func() {
 				expectedReq := &pipeline_upload_service.UploadPipelineVersionParams{
 					Name:       &version,
