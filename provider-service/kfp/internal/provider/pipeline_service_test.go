@@ -173,7 +173,7 @@ var _ = Describe("PipelineService", func() {
 		It("should return the pipeline version ID if exactly one pipeline version is found", func() {
 			expectedResult := go_client.ListPipelineVersionsResponse{
 				PipelineVersions: []*go_client.PipelineVersion{
-					{PipelineId: versionId},
+					{PipelineVersionId: versionId},
 				},
 			}
 			mockClient.On(
