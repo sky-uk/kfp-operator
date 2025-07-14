@@ -2,6 +2,8 @@ package pipelines
 
 import (
 	"context"
+	"k8s.io/client-go/util/workqueue"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -89,7 +91,15 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 func (r *ExperimentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	experiment := &pipelineshub.Experiment{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(experiment)
+		For(experiment).WithOptions(controller.Options{
+		// This rate limiter is used to limit the rate of retry requests for Pipelines.
+		// It is set to requeue after 1 minute for the first 10 retries, and then every 30 minutes thereafter.
+		RateLimiter: workqueue.NewItemFastSlowRateLimiter(
+			1*time.Minute,
+			30*time.Minute,
+			10,
+		),
+	})
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, experiment)
 

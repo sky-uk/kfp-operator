@@ -2,6 +2,8 @@ package pipelines
 
 import (
 	"context"
+	"k8s.io/client-go/util/workqueue"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -67,7 +69,7 @@ func NewRunReconciler(
 func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	startTime := time.Now()
-	logger.V(2).Info("reconciliation started")
+	logger.Info("run reconciliation started", "run", req.String())
 
 	var run = &pipelineshub.Run{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, run); err != nil {
@@ -213,7 +215,15 @@ func (r *RunReconciler) reconciliationRequestsForRunconfigurations(
 func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	run := &pipelineshub.Run{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(run)
+		For(run).WithOptions(controller.Options{
+		// This rate limiter is used to limit the rate of retry requests for runs.
+		// It is set to requeue after 5 minutes for the first 10 retries, and then every 30 minutes thereafter.
+		RateLimiter: workqueue.NewItemFastSlowRateLimiter(
+			1*time.Minute,
+			30*time.Minute,
+			10,
+		),
+	})
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, run)
 	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(
