@@ -389,9 +389,10 @@ func (r *RunConfigurationReconciler) reconciliationRequestsForRunConfiguration(
 func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	runConfiguration := &pipelineshub.RunConfiguration{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(runConfiguration).WithOptions(controller.Options{
-		RateLimiter: controllerconfigutil.RateLimiter,
-	})
+		For(runConfiguration).
+		WithOptions(controller.Options{
+			RateLimiter: controllerconfigutil.RateLimiter,
+		})
 
 	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(
 		mgr,

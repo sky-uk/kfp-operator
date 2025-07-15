@@ -61,9 +61,10 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(provider, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
-		)).WithOptions(controller.Options{
-		RateLimiter: controllerconfigutil.RateLimiter,
-	}).
+		)).
+		WithOptions(controller.Options{
+			RateLimiter: controllerconfigutil.RateLimiter,
+		}).
 		Owns(&appsv1.Deployment{}, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
 			predicate.ResourceVersionChangedPredicate{},

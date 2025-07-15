@@ -96,9 +96,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	pipeline := &pipelineshub.Pipeline{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(pipeline).WithOptions(controller.Options{
-		RateLimiter: controllerconfigutil.RateLimiter,
-	})
+		For(pipeline).
+		WithOptions(controller.Options{
+			RateLimiter: controllerconfigutil.RateLimiter,
+		})
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, pipeline)
 

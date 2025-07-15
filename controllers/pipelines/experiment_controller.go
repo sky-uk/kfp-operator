@@ -91,9 +91,10 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 func (r *ExperimentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	experiment := &pipelineshub.Experiment{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(experiment).WithOptions(controller.Options{
-		RateLimiter: controllerconfigutil.RateLimiter,
-	})
+		For(experiment).
+		WithOptions(controller.Options{
+			RateLimiter: controllerconfigutil.RateLimiter,
+		})
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, experiment)
 

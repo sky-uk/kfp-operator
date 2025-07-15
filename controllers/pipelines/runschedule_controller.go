@@ -91,9 +91,10 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 func (r *RunScheduleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	runSchedule := &pipelineshub.RunSchedule{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(runSchedule).WithOptions(controller.Options{
-		RateLimiter: controllerconfigutil.RateLimiter,
-	})
+		For(runSchedule).
+		WithOptions(controller.Options{
+			RateLimiter: controllerconfigutil.RateLimiter,
+		})
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, runSchedule)
 
