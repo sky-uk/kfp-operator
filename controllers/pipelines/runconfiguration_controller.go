@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/common/triggers"
-	"k8s.io/client-go/util/workqueue"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/controllerconfigutil"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"slices"
@@ -390,13 +390,7 @@ func (r *RunConfigurationReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	runConfiguration := &pipelineshub.RunConfiguration{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(runConfiguration).WithOptions(controller.Options{
-		// This rate limiter is used to limit the rate of retry requests for RunConfigurations.
-		// It is set to requeue after 1 minute for the first 10 retries, and then every 30 minutes thereafter.
-		RateLimiter: workqueue.NewItemFastSlowRateLimiter(
-			1*time.Minute,
-			30*time.Minute,
-			10,
-		),
+		RateLimiter: controllerconfigutil.RateLimiter,
 	})
 
 	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(

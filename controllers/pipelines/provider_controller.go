@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/argo/common"
-	"k8s.io/client-go/util/workqueue"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/controllerconfigutil"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"time"
@@ -62,13 +62,7 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(provider, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
 		)).WithOptions(controller.Options{
-		// This rate limiter is used to limit the rate of retry requests for Providers.
-		// It is set to requeue after 1 minute for the first 10 retries, and then every 30 minutes thereafter.
-		RateLimiter: workqueue.NewItemFastSlowRateLimiter(
-			1*time.Minute,
-			30*time.Minute,
-			10,
-		),
+		RateLimiter: controllerconfigutil.RateLimiter,
 	}).
 		Owns(&appsv1.Deployment{}, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
