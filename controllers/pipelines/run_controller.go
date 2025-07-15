@@ -69,7 +69,7 @@ func NewRunReconciler(
 func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	startTime := time.Now()
-	logger.Info("run reconciliation started", "run", req.String())
+	logger.V(2).Info("reconciliation started")
 
 	var run = &pipelineshub.Run{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, run); err != nil {
