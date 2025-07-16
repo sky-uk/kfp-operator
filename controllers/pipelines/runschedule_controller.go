@@ -83,7 +83,7 @@ func (r *RunScheduleReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	duration := time.Since(startTime)
-	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
+	logger.Info("RunSchedule reconciliation ended", "RunSchedule", req.String(), logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

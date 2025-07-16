@@ -83,7 +83,7 @@ func (r *ExperimentReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	}
 
 	duration := time.Since(startTime)
-	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
+	logger.Info("Experiment reconciliation ended", "experiment", req.Name, logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

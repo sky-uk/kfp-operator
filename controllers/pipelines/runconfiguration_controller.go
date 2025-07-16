@@ -138,7 +138,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	}
 
 	duration := time.Since(startTime)
-	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
+	logger.Info("RunConfiguration reconciliation ended", "RunConfiguration", req.String(), logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }

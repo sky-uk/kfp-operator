@@ -3,7 +3,6 @@ package pipelines
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/controllerconfigutil"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -168,7 +167,7 @@ func (r *ProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	duration := time.Since(startTime)
-	logger.Info(fmt.Sprintf("provider %s reconciliation successful", provider.Name), logkeys.Duration, duration)
+	logger.Info("Provider reconciliation ended", "provider", req.String(), logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
