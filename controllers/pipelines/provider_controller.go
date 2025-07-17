@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/controllerconfigutil"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"time"
 
 	"github.com/sky-uk/kfp-operator/apis"
@@ -60,6 +62,9 @@ func (r *ProviderReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(provider, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
 		)).
+		WithOptions(controller.Options{
+			RateLimiter: controllerconfigutil.RateLimiter,
+		}).
 		Owns(&appsv1.Deployment{}, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
 			predicate.ResourceVersionChangedPredicate{},

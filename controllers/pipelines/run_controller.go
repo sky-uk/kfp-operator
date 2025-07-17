@@ -2,6 +2,8 @@ package pipelines
 
 import (
 	"context"
+	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/controllerconfigutil"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -114,7 +116,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 	}
 
-	duration := time.Now().Sub(startTime)
+	duration := time.Since(startTime)
 	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
 
 	return result, nil
@@ -213,7 +215,10 @@ func (r *RunReconciler) reconciliationRequestsForRunconfigurations(
 func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	run := &pipelineshub.Run{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(run)
+		For(run).
+		WithOptions(controller.Options{
+			RateLimiter: controllerconfigutil.RateLimiter,
+		})
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, run)
 	controllerBuilder, err := r.DependingOnPipelineReconciler.setupWithManager(
