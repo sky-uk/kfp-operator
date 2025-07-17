@@ -2,9 +2,7 @@ package pipelines
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/controllerconfigutil"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
@@ -13,7 +11,6 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -60,24 +57,24 @@ func NewPipelineReconciler(
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	startTime := time.Now()
-	logger.V(2).Info("reconciliation started")
+	logger.Info("pipeline reconciliation started", "p", req.String())
 
 	var pipeline = &pipelineshub.Pipeline{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, pipeline); err != nil {
-		logger.Error(err, "unable to fetch pipeline")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		logger.Error(err, "error loading pipeline", "pipeline", req.NamespacedName)
+		return ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 	}
-
-	logger.V(3).Info("found pipeline", "resource", pipeline)
 
 	provider, err := r.LoadProvider(ctx, pipeline.Spec.Provider)
 	if err != nil {
-		return ctrl.Result{}, err
+		logger.Error(err, "error loading provider", "prov", pipeline.Spec.Provider)
+		return ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 	}
 
 	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
 	if err != nil {
-		return ctrl.Result{}, err
+		logger.Error(err, "error fetching provider service", "svc", provider.Name)
+		return ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 	}
 
 	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, pipeline)
@@ -85,13 +82,13 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, pipeline); err != nil {
 			logger.Error(err, "error executing command", logkeys.Command, commands[i])
-			return ctrl.Result{}, err
+			return ctrl.Result{RequeueAfter: 10 * time.Minute}, nil
 		}
 	}
 
 	duration := time.Since(startTime)
-	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
 
+	logger.Info("reconciliation ended", logkeys.Duration, duration)
 	return ctrl.Result{}, nil
 }
 
@@ -100,11 +97,7 @@ func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(pipeline, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
-			predicate.ResourceVersionChangedPredicate{},
-		)).
-		WithOptions(controller.Options{
-			RateLimiter: controllerconfigutil.RateLimiter,
-		})
+		))
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, pipeline)
 
