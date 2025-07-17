@@ -210,7 +210,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 	newResourceVersion := resource.ComputeVersion()
 
 	if resource.GetStatus().Version == newResourceVersion &&
-		resource.GetStatus().Conditions.GetSyncStateFromReason() == apis.Succeeded {
+		resource.GetStatus().Conditions.GetSyncStateFromReason() != apis.Failed {
 		logger.V(2).Info("resource version has not changed and its already succeeded")
 		return []Command{}
 	}

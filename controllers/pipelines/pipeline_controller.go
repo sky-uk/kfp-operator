@@ -3,7 +3,9 @@ package pipelines
 import (
 	"context"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/controllerconfigutil"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
@@ -96,7 +98,10 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	pipeline := &pipelineshub.Pipeline{}
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
-		For(pipeline).
+		For(pipeline, builder.WithPredicates(
+			predicate.GenerationChangedPredicate{},
+			predicate.ResourceVersionChangedPredicate{},
+		)).
 		WithOptions(controller.Options{
 			RateLimiter: controllerconfigutil.RateLimiter,
 		})
