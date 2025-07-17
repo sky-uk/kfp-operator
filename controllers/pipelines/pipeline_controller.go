@@ -70,16 +70,12 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	provider, err := r.LoadProvider(ctx, pipeline.Spec.Provider)
 	if err != nil {
-		return ctrl.Result{
-			RequeueAfter: 1 * time.Minute,
-		}, err
+		return ctrl.Result{}, err
 	}
 
 	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
 	if err != nil {
-		return ctrl.Result{
-			RequeueAfter: 1 * time.Minute,
-		}, err
+		return ctrl.Result{}, err
 	}
 
 	commands := r.StateHandler.StateTransition(ctx, provider, *providerSvc, pipeline)
@@ -87,9 +83,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	for i := range commands {
 		if err := commands[i].execute(ctx, r.EC, pipeline); err != nil {
 			logger.Error(err, "error executing command", logkeys.Command, commands[i])
-			return ctrl.Result{
-				RequeueAfter: 1 * time.Minute,
-			}, err
+			return ctrl.Result{}, err
 		}
 	}
 
