@@ -94,7 +94,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	duration := time.Since(startTime)
-	logger.Info("Pipeline reconciliation ended", "pipeline", req.Name, logkeys.Duration, duration)
+	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
