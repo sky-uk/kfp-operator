@@ -21,8 +21,6 @@ import (
 	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"os"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"time"
 
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
 
@@ -82,16 +80,8 @@ func main() {
 	flag.Parse()
 
 	var err error
-	duration := 5 * time.Minute
-
 	ctrlConfig := config.KfpControllerConfig{}
-	options := ctrl.Options{
-		Scheme:                 scheme,
-		HealthProbeBindAddress: ":8081",
-		Cache: cache.Options{
-			SyncPeriod: &duration,
-		},
-	}
+	options := ctrl.Options{Scheme: scheme, HealthProbeBindAddress: ":8081"}
 
 	if configFile != "" {
 		bytes, err := os.ReadFile(configFile)
