@@ -16,15 +16,8 @@ updates:
     - dependency-type: "direct"
 
   - package-ecosystem: "pip"
-    directory: "/docs-gen/includes/master/kfpsdk-quickstart"
-    schedule:
-      interval: "weekly"
-    rebase-strategy: "disabled"
-    allow:
-    - dependency-type: "direct"
-
-  - package-ecosystem: "pip"
-    directory: "/docs-gen/includes/0.7.0/kfpsdk-quickstart"
+    directories:
+    - "/docs-gen/includes/*/kfpsdk-quickstart"
     schedule:
       interval: "weekly"
     rebase-strategy: "disabled"
