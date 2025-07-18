@@ -8,14 +8,7 @@ updates:
   - package-ecosystem: "gomod"
     directories:
     - "/"
-    - "/common"
     - "/docs-gen"
-    - "/argo/common"
-    - "/argo/providers"
-    - "/provider-service/base"
-    - "/provider-service/kfp"
-    - "/provider-service/vai"
-    - "/provider-service/stub"
     schedule:
       interval: "weekly"
     rebase-strategy: "disabled"
