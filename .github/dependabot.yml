@@ -21,3 +21,19 @@ updates:
     rebase-strategy: "disabled"
     allow:
     - dependency-type: "direct"
+
+  - package-ecosystem: "poetry"
+    directory: "/docs-gen/includes/master/kfpsdk-quickstart"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "disabled"
+    allow:
+    - dependency-type: "direct"
+
+  - package-ecosystem: "poetry"
+    directory: "/docs-gen/includes/0.7.0/kfpsdk-quickstart"
+    schedule:
+      interval: "weekly"
+    rebase-strategy: "disabled"
+    allow:
+    - dependency-type: "direct"
