@@ -15,7 +15,7 @@ updates:
     allow:
     - dependency-type: "direct"
 
-  - package-ecosystem: "poetry"
+  - package-ecosystem: "pip"
     directory: "/docs-gen/includes/master/kfpsdk-quickstart"
     schedule:
       interval: "weekly"
@@ -23,7 +23,7 @@ updates:
     allow:
     - dependency-type: "direct"
 
-  - package-ecosystem: "poetry"
+  - package-ecosystem: "pip"
     directory: "/docs-gen/includes/0.7.0/kfpsdk-quickstart"
     schedule:
       interval: "weekly"
