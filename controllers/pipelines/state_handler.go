@@ -310,6 +310,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 	transitionTime metav1.Time,
 ) []Command {
 	logger := log.FromContext(ctx)
+	var err error
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
 		var err error
 		var handleWorkflowErr = func(err error) *SetStatus {
