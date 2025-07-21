@@ -41,7 +41,10 @@ func (st *StateHandler[R]) stateTransition(
 			WithSyncStateCondition(apis.Failed, transitionTime, StateHandlerConstants.ProviderChangedError)
 		commands = []Command{*setStatus}
 	} else {
-		switch resource.GetStatus().Conditions.GetSyncStateFromReason() {
+		reason := resource.GetStatus().Conditions.GetSyncStateFromReason()
+		logger := log.FromContext(ctx)
+		logger.Info("stateTransition", "reason", reason)
+		switch reason {
 		case apis.Creating:
 			commands = st.onCreating(
 				ctx,
