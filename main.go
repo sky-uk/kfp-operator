@@ -143,41 +143,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = pipelinescontrollers.NewRunReconciler(
-		ec,
-		workflowRepository,
-		ctrlConfig.Spec,
-	).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Run")
-		os.Exit(1)
-	}
-
-	if err = pipelinescontrollers.NewRunScheduleReconciler(
-		ec,
-		workflowRepository,
-		ctrlConfig.Spec,
-	).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "RunSchedule")
-		os.Exit(1)
-	}
-
-	if err = pipelinescontrollers.NewExperimentReconciler(
-		ec,
-		workflowRepository,
-		ctrlConfig.Spec,
-	).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Experiment")
-		os.Exit(1)
-	}
-
-	if err = pipelinescontrollers.NewRunConfigurationReconciler(
-		ec,
-		ctrlConfig.Spec,
-	).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "RunConfiguration")
-		os.Exit(1)
-	}
-
 	if err = pipelinescontrollers.NewProviderReconciler(ec, ctrlConfig.Spec).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Provider")
 		os.Exit(1)
@@ -188,28 +153,10 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Pipeline")
 			os.Exit(1)
 		}
-		if err = (&pipelineshub.Experiment{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "Experiment")
-			os.Exit(1)
-		}
-		if err = (&pipelineshub.RunConfiguration{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "RunConfiguration")
-			os.Exit(1)
-		}
-		if err = (&pipelineshub.RunSchedule{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "RunSchedule")
-			os.Exit(1)
-		}
 		if err = (&pipelineshub.Provider{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Provider")
 			os.Exit(1)
 		}
-	}
-
-	// Resources that have a validation webhook in addition to conversion
-	if err = (&pipelineshub.Run{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Run")
-		os.Exit(1)
 	}
 
 	//+kubebuilder:scaffold:builder
