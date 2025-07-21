@@ -213,7 +213,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 	newResourceVersion := resource.ComputeVersion()
 
 	if resource.GetStatus().Version == newResourceVersion {
-		logger.V(2).Info("resource version has not changed")
+		logger.Info("onSucceededOrFailed, resource version has not changed")
 		return []Command{}
 	}
 
@@ -223,7 +223,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 
 	providerId := resource.GetStatus().Provider.Id
 	if providerId == "" {
-		logger.V(2).Info("no providerId exists, creating")
+		logger.Info("onSucceededOrFailed, no providerId exists, creating")
 		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(
 			provider,
 			providerSvc,
@@ -232,7 +232,7 @@ func (st StateHandler[R]) onSucceededOrFailed(
 
 		if err != nil {
 			failureMessage := workflowconstants.ConstructionFailedError
-			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
+			logger.Error(err, fmt.Sprintf("onSucceededOrFailed, %s, failing resource", failureMessage))
 			if wpErr, ok := err.(*workflowconstants.WorkflowParameterError); ok {
 				failureMessage = wpErr.Error()
 			}
@@ -245,12 +245,12 @@ func (st StateHandler[R]) onSucceededOrFailed(
 
 		targetState = apis.Creating
 	} else {
-		logger.V(2).Info("providerId exists, updating", "providerId", providerId)
+		logger.Info("onSucceededOrFailed, providerId exists, updating", "providerId", providerId)
 		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(provider, providerSvc, resource)
 
 		if err != nil {
 			failureMessage := workflowconstants.ConstructionFailedError
-			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
+			logger.Error(err, fmt.Sprintf("onSucceededOrFailed, %s, failing resource", failureMessage))
 			if wpErr, ok := err.(*workflowconstants.WorkflowParameterError); ok {
 				failureMessage = wpErr.Error()
 			}
