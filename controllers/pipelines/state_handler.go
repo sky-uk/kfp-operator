@@ -81,9 +81,9 @@ func (st *StateHandler[R]) stateTransition(
 		commands = append([]Command{AcquireResource{}}, commands...)
 	}
 
-	fmt.Printf("state transition for %s", resource.GetNamespacedName(),
-		" with state ", resource.GetStatus().Conditions.GetSyncStateFromReason(),
-		" and commands: ", commands)
+	fmt.Printf("state transition for: %s , with state: %s and commands: %s", resource.GetNamespacedName(),
+		resource.GetStatus().Conditions.GetSyncStateFromReason(),
+		commands)
 	return
 }
 
