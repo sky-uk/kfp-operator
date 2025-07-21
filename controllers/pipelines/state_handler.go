@@ -212,6 +212,11 @@ func (st StateHandler[R]) onSucceededOrFailed(
 	logger := log.FromContext(ctx)
 	newResourceVersion := resource.ComputeVersion()
 
+	if resource.GetStatus().Version == newResourceVersion {
+		logger.Info("onSucceededOrFailed, resource version has not changed")
+		return []Command{}
+	}
+
 	var workflow *argo.Workflow
 	var err error
 	var targetState apis.SynchronizationState
