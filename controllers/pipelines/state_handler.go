@@ -52,7 +52,13 @@ func (st *StateHandler[R]) stateTransition(
 				st.WorkflowRepository.GetByLabels(ctx, workflowconstants.CommonWorkflowLabels(resource)),
 				transitionTime,
 			)
-		case apis.Succeeded, apis.Failed:
+		case apis.Failed:
+			if !resource.GetDeletionTimestamp().IsZero() {
+				commands = st.onDelete(ctx, provider, providerSvc, resource, transitionTime)
+			} else {
+				commands = st.onFailed(ctx, provider, providerSvc, resource, transitionTime)
+			}
+		case apis.Succeeded:
 			if !resource.GetDeletionTimestamp().IsZero() {
 				commands = st.onDelete(ctx, provider, providerSvc, resource, transitionTime)
 			} else {
@@ -198,6 +204,71 @@ func (st StateHandler[R]) onDelete(
 	return []Command{
 		*From(resource.GetStatus()).
 			WithSyncStateCondition(apis.Deleting, transitionTime, ""),
+		CreateWorkflow{Workflow: *workflow},
+	}
+}
+
+func (st StateHandler[R]) onFailed(
+	ctx context.Context,
+	provider pipelineshub.Provider,
+	providerSvc corev1.Service,
+	resource R,
+	transitionTime metav1.Time,
+) []Command {
+	logger := log.FromContext(ctx)
+	newResourceVersion := resource.ComputeVersion()
+
+	var workflow *argo.Workflow
+	var err error
+	var targetState apis.SynchronizationState
+
+	providerId := resource.GetStatus().Provider.Id
+	if providerId == "" {
+		logger.Info("onFailed, no providerId exists, creating")
+		workflow, err = st.WorkflowFactory.ConstructCreationWorkflow(
+			provider,
+			providerSvc,
+			resource,
+		)
+
+		if err != nil {
+			failureMessage := workflowconstants.ConstructionFailedError
+			logger.Error(err, fmt.Sprintf("onFailed, %s, failing resource", failureMessage))
+			if wpErr, ok := err.(*workflowconstants.WorkflowParameterError); ok {
+				failureMessage = wpErr.Error()
+			}
+			return []Command{
+				*From(resource.GetStatus()).
+					WithVersion(newResourceVersion).
+					WithSyncStateCondition(apis.Failed, transitionTime, failureMessage),
+			}
+		}
+
+		targetState = apis.Creating
+	} else {
+		logger.Info("onFailed, providerId exists, updating", "providerId", providerId)
+		workflow, err = st.WorkflowFactory.ConstructUpdateWorkflow(provider, providerSvc, resource)
+
+		if err != nil {
+			failureMessage := workflowconstants.ConstructionFailedError
+			logger.Error(err, fmt.Sprintf("onFailed, %s, failing resource", failureMessage))
+			if wpErr, ok := err.(*workflowconstants.WorkflowParameterError); ok {
+				failureMessage = wpErr.Error()
+			}
+			return []Command{
+				*From(resource.GetStatus()).
+					WithVersion(newResourceVersion).
+					WithSyncStateCondition(apis.Failed, transitionTime, failureMessage),
+			}
+		}
+
+		targetState = apis.Updating
+	}
+
+	return []Command{
+		*From(resource.GetStatus()).
+			WithSyncStateCondition(targetState, transitionTime, "").
+			WithVersion(newResourceVersion),
 		CreateWorkflow{Workflow: *workflow},
 	}
 }
