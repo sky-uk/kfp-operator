@@ -54,9 +54,9 @@ func NewPipelineReconciler(
 //+kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	logger := log.FromContext(ctx).WithValues("resource", "pipeline")
 	startTime := time.Now()
-	logger.V(2).Info("reconciliation started")
+	logger.Info("reconciliation started")
 
 	var pipeline = &pipelineshub.Pipeline{}
 	if err := r.EC.Client.NonCached.Get(ctx, req.NamespacedName, pipeline); err != nil {
@@ -64,7 +64,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	logger.V(3).Info("found pipeline", "resource", pipeline)
+	logger.Info("found pipeline", "resource", pipeline)
 
 	provider, err := r.LoadProvider(ctx, pipeline.Spec.Provider)
 	if err != nil {
@@ -86,7 +86,7 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	duration := time.Now().Sub(startTime)
-	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
+	logger.Info("reconciliation ended", logkeys.Duration, duration)
 
 	return ctrl.Result{}, nil
 }
