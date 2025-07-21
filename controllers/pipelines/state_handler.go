@@ -81,6 +81,9 @@ func (st *StateHandler[R]) stateTransition(
 		commands = append([]Command{AcquireResource{}}, commands...)
 	}
 
+	fmt.Printf("state transition for %s", resource.GetNamespacedName(),
+		" with state ", resource.GetStatus().Conditions.GetSyncStateFromReason(),
+		" and commands: ", commands)
 	return
 }
 
@@ -308,6 +311,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 ) []Command {
 	logger := log.FromContext(ctx)
 	statusFromProviderOutput := func(workflow *argo.Workflow) *SetStatus {
+		var err error
 		var handleWorkflowErr = func(err error) *SetStatus {
 			failureMessage := "could not retrieve workflow output"
 			logger.Error(err, fmt.Sprintf("%s, failing resource", failureMessage))
@@ -365,7 +369,7 @@ func (st StateHandler[R]) setStateIfProviderFinished(
 		var failureMessage string
 
 		if failed != nil {
-			failureMessage = "operation failed"
+			failureMessage = fmt.Sprintf("operation failed, %s", err)
 		} else {
 			failureMessage = "operation progress unknown"
 		}
