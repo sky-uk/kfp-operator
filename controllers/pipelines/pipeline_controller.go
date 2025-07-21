@@ -2,10 +2,14 @@ package pipelines
 
 import (
 	"context"
+	"k8s.io/apimachinery/pkg/api/equality"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
@@ -94,10 +98,28 @@ func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 func (r *PipelineReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	pipeline := &pipelineshub.Pipeline{}
+	logger := log.FromContext(ctx)
+
 	controllerBuilder := ctrl.NewControllerManagedBy(mgr).
 		For(pipeline, builder.WithPredicates(
 			predicate.GenerationChangedPredicate{},
-		))
+		)).WithEventFilter(predicate.Funcs{
+		CreateFunc: func(e event.CreateEvent) bool {
+			logger.Info("Create event", "name", e.Object.GetName())
+			return true
+		},
+		UpdateFunc: func(e event.UpdateEvent) bool {
+
+			oldObj := e.ObjectOld.DeepCopyObject().(client.Object)
+			newObj := e.ObjectNew.DeepCopyObject().(client.Object)
+			logger.Info("Update event", "name", e.ObjectNew.GetName(), diff := cmp.Diff(oldObj, newObj))
+			return true
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			logger.Info("Delete event", "name", e.Object.GetName())
+			return true
+		},
+	})
 
 	controllerBuilder = r.ResourceReconciler.setupWithManager(controllerBuilder, pipeline)
 
