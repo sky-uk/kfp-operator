@@ -61,7 +61,7 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 		return nil, err
 	}
 
-	pipelineResourceName, err := rd.Name.String()
+	pipelineResourceName, err := rd.PipelineName.String()
 	if err != nil {
 		return nil, err
 	}
