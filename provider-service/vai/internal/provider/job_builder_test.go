@@ -4,6 +4,7 @@ package provider
 
 import (
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -42,7 +43,7 @@ var _ = Describe("JobBuilder", func() {
 				}
 				Expect(job.ServiceAccount).To(Equal(jb.serviceAccount))
 				Expect(job.TemplateUri).To(Equal(expectedTemplateUri))
-				Expect(job.RuntimeConfig.GcsOutputDirectory).To(Equal(fmt.Sprintf("%s/%s/%s", jb.pipelineRootStorage, rd.Name.Namespace, rd.Name.Name)))
+				Expect(job.RuntimeConfig.GcsOutputDirectory).To(Equal(fmt.Sprintf("%s/%s/%s", jb.pipelineRootStorage, rd.PipelineName.Namespace, rd.PipelineName.Name)))
 			})
 		})
 		When("templateUri is invalid", func() {
@@ -54,10 +55,10 @@ var _ = Describe("JobBuilder", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
-		When("run definition name is invalid", func() {
+		When("run definition's pipeline name is invalid", func() {
 			It("should return error", func() {
 				rd := testutil.RandomRunDefinition()
-				rd.Name.Name = ""
+				rd.PipelineName.Name = ""
 				_, err := jb.MkRunPipelineJob(rd)
 
 				Expect(err).To(HaveOccurred())
