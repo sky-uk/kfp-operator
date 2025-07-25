@@ -17,6 +17,7 @@ updates:
 
   - package-ecosystem: "pip"
     directories:
+    - "/compilers/kfp-sdk"
     - "/docs-gen/includes/*/kfpsdk-quickstart"
     schedule:
       interval: "weekly"
