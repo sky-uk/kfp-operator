@@ -37,8 +37,8 @@ github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/cloudmock v0
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/cloudmock v0.48.1/go.mod h1:0wEl7vrAD8mehJyohS9HZy+WyEOaQO2mJx86Cvh93kM=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.48.1 h1:8nn+rsCvTq9axyEh382S0PFLBeaFwNsT43IrPWzctRU=
 github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.48.1/go.mod h1:viRWSEhtMZqz1rhwmOVKkWl6SwmVowfL9O2YR5gI2PE=
-github.com/Masterminds/semver/v3 v3.2.0 h1:3MEsd0SM6jqZojhjLWWeBY+Kcjy9i6MQAeY7YgDP83g=
-github.com/Masterminds/semver/v3 v3.2.0/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
+github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
+github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/argoproj/argo-workflows/v3 v3.3.10 h1:ybgHGFC+RIvbBrOoD0Tmig6z7VtG/SiLerfcsORpd2Q=
 github.com/argoproj/argo-workflows/v3 v3.3.10/go.mod h1:Cg442YnzaUxILjmk6xMZo19X87Feev1DyEX4Onj08vo=
