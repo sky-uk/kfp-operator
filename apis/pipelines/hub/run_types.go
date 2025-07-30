@@ -113,7 +113,6 @@ func (rs RunSpec) WriteRunSpec(oh pipelines.ObjectHasher) {
 	oh.WriteStringField(rs.Pipeline.String())
 	oh.WriteStringField(rs.ExperimentName)
 	WriteParameters(oh, rs.Parameters)
-	pipelines.WriteKVListField(oh, rs.Artifacts)
 }
 
 func (rs RunSpec) ComputeVersion() string {
