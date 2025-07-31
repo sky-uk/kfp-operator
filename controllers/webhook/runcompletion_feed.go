@@ -11,6 +11,9 @@ import (
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -22,21 +25,34 @@ const (
 )
 
 type RunCompletionFeed struct {
-	client         client.Reader
-	eventProcessor EventProcessor
-	eventHandlers  []RunCompletionEventHandler
+	client          client.Reader
+	eventProcessor  EventProcessor
+	eventHandlers   []RunCompletionEventHandler
+	requestsCounter metric.Int64Counter
 }
 
 func NewRunCompletionFeed(
 	client client.Reader,
 	handlers []RunCompletionEventHandler,
-) RunCompletionFeed {
+) (RunCompletionFeed, error) {
 	eventProcessor := NewResourceArtifactsEventProcessor()
-	return RunCompletionFeed{
-		client:         client,
-		eventProcessor: eventProcessor,
-		eventHandlers:  handlers,
+
+	meter := otel.Meter("run_completion_feed")
+	requestsCounter, err := meter.Int64Counter(
+		"run_completion_feed_requests",
+		metric.WithDescription("Total number of requests received by the run completion feed"),
+	)
+
+	if err != nil {
+		return RunCompletionFeed{}, fmt.Errorf("failed to create requests counter: %w", err)
 	}
+
+	return RunCompletionFeed{
+		client:          client,
+		eventProcessor:  eventProcessor,
+		eventHandlers:   handlers,
+		requestsCounter: requestsCounter,
+	}, nil
 }
 
 func getRequestBody(ctx context.Context, request *http.Request) ([]byte, error) {
@@ -123,6 +139,11 @@ func (rcf RunCompletionFeed) handleEvent(ctx context.Context) func(responseWrite
 	logger := log.FromContext(ctx)
 
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		rcf.requestsCounter.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("method", request.Method),
+			attribute.String("endpoint", "/events"),
+		))
+
 		switch request.Method {
 		case http.MethodPost:
 

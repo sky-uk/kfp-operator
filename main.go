@@ -18,9 +18,11 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	"github.com/samber/lo"
 	"k8s.io/apimachinery/pkg/util/yaml"
-	"os"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
 
@@ -62,6 +64,12 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 
 	utilruntime.Must(external.InitSchemes(scheme))
+
+	_, err := controllers.InitMeterProvider("kfp-operator", metrics.Registry)
+	if err != nil {
+		setupLog.Error(err, "failed to initialize metrics")
+		os.Exit(1)
+	}
 }
 
 func main() {
@@ -230,10 +238,14 @@ func main() {
 		os.Exit(1)
 	}
 	handlers = append(handlers, statusUpdater)
-	rcf := webhook.NewRunCompletionFeed(
+	rcf, err := webhook.NewRunCompletionFeed(
 		client.NonCached,
 		handlers,
 	)
+	if err != nil {
+		setupLog.Error(err, "unable to create run completion feed")
+		os.Exit(1)
+	}
 	go func() {
 		err = rcf.Start(ctx, ctrlConfig.Spec.RunCompletionFeed.Port)
 		if err != nil {
