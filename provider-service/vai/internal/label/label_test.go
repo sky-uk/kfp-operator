@@ -3,7 +3,6 @@
 package label_test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -39,21 +38,20 @@ var _ = Describe("SanitizeLabels", func() {
 			map[string]string{"test_test": "test_test"},
 			map[string]string{"test_test": "test_test"},
 		),
-
-		Entry("truncates long values to 64 characters total",
-			func() map[string]string {
-				k := "key"
-				v := strings.Repeat("v", 80)
-				return map[string]string{k: v}
-			}(),
-			func() map[string]string {
-				k := "key"
-				v := strings.Repeat("v", 80)
-				v = v[:64-len(fmt.Sprintf("%s: ", k))-len("...")] + "..."
-				return map[string]string{k: v}
-			}(),
-		),
 	)
+
+	It("trims keys and values to 63 characters", func() {
+		maxLength := 63
+
+		key := strings.Repeat("k", 100)
+		value := strings.Repeat("v", 100)
+
+		result := label.SanitizeLabels(map[string]string{key: value})
+		Expect(result).To(Equal(map[string]string{
+			key[:maxLength]: value[:maxLength],
+		}))
+		Expect(len(key[:maxLength])).To(Equal(63))
+	})
 
 	It("returns an empty map when input is empty", func() {
 		result := label.SanitizeLabels(map[string]string{})
