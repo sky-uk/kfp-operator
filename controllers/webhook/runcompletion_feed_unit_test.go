@@ -5,12 +5,13 @@ package webhook
 import (
 	"bytes"
 	"context"
+	"net/http"
+
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"go.uber.org/zap/zapcore"
-	"net/http"
 )
 
 var _ = Context("getRequestBody", func() {

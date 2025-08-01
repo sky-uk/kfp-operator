@@ -139,10 +139,12 @@ func (rcf RunCompletionFeed) handleEvent(ctx context.Context) func(responseWrite
 	logger := log.FromContext(ctx)
 
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		rcf.requestsCounter.Add(ctx, 1, metric.WithAttributes(
-			attribute.String("method", request.Method),
-			attribute.String("endpoint", "/events"),
-		))
+		if rcf.requestsCounter != nil {
+			rcf.requestsCounter.Add(ctx, 1, metric.WithAttributes(
+				attribute.String("method", request.Method),
+				attribute.String("endpoint", "/events"),
+			))
+		}
 
 		switch request.Method {
 		case http.MethodPost:
