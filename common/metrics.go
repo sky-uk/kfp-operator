@@ -1,4 +1,4 @@
-package controllers
+package common
 
 import (
 	"go.opentelemetry.io/otel"
@@ -9,9 +9,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
-func InitMeterProvider(serviceName string, registerer metrics.RegistererGatherer) (*metric.MeterProvider, error) {
+func InitMeterProvider(serviceName string, registerer *metrics.RegistererGatherer) (*metric.MeterProvider, error) {
 	exporter, err := prometheus.New(
-		prometheus.WithRegisterer(registerer),
+		prometheus.WithRegisterer(*registerer),
 	)
 	if err != nil {
 		return nil, err

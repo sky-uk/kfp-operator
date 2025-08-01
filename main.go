@@ -21,10 +21,10 @@ import (
 	"os"
 
 	"github.com/samber/lo"
+	"github.com/sky-uk/kfp-operator/common"
+	"github.com/sky-uk/kfp-operator/controllers/webhook"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
-
-	"github.com/sky-uk/kfp-operator/controllers/webhook"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -64,8 +64,7 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 
 	utilruntime.Must(external.InitSchemes(scheme))
-
-	_, err := controllers.InitMeterProvider("kfp-operator", metrics.Registry)
+	_, err := common.InitMeterProvider("kfp-operator", &metrics.Registry)
 	if err != nil {
 		setupLog.Error(err, "failed to initialize metrics")
 		os.Exit(1)
