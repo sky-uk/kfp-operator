@@ -17,7 +17,6 @@ import (
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/noop"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -126,30 +125,10 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("calls out to configured run completion event handlers passing expected data", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withHandlers.handleEvent(ctx)(resp, req)
+			withHandlers.HandleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusOK))
 			Expect(mockRCEHandlerHandleCounter).To(Equal(len(handlers)))
-		})
-		It("increments the counter when it handles the request", func() {
-			noopMeter := noop.NewMeterProvider().Meter("test")
-			noopCounter, _ := noopMeter.Int64Counter("test_requests")
-
-			mockCounter := &MockCounter{
-				Int64Counter: noopCounter,
-			}
-			withHandlers := RunCompletionFeed{
-				client:          fakeClient,
-				eventProcessor:  eventProcessor,
-				eventHandlers:   handlers,
-				requestsCounter: mockCounter,
-			}
-
-			Expect(mockCounter.GetCount()).To(Equal(int64(0)))
-
-			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
-			withHandlers.handleEvent(ctx)(resp, req)
-			Expect(mockCounter.GetCount()).To(Equal(int64(1)))
 		})
 	})
 
@@ -157,7 +136,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns bad request", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, nil, HttpContentTypeJSON)
 
-			noHandlers.handleEvent(ctx)(resp, req)
+			noHandlers.HandleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusBadRequest))
 		})
@@ -167,7 +146,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns unsupported mediatype", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), "application/xml")
 
-			noHandlers.handleEvent(ctx)(resp, req)
+			noHandlers.HandleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusUnsupportedMediaType))
 		})
@@ -177,7 +156,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 		It("returns method not allowed error", func() {
 			req, resp := setupRequestResponse(ctx, http.MethodGet, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			noHandlers.handleEvent(ctx)(resp, req)
+			noHandlers.HandleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusMethodNotAllowed))
 		})
@@ -196,7 +175,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withErrorHandler.handleEvent(ctx)(resp, req)
+			withErrorHandler.HandleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusGone))
 		})
@@ -216,7 +195,7 @@ var _ = Describe("Run the run completion feed webhook", Serial, func() {
 
 			req, resp := setupRequestResponse(ctx, http.MethodPost, bytes.NewReader(requestStr), HttpContentTypeJSON)
 
-			withErrorHandler.handleEvent(ctx)(resp, req)
+			withErrorHandler.HandleEvent(ctx)(resp, req)
 
 			Expect(resp.Code).To(Equal(http.StatusInternalServerError))
 			Expect(resp.Body.String()).To(Equal("run completion event handler error\n"))

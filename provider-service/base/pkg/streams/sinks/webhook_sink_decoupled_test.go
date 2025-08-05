@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"testing"
 	"time"
 
@@ -81,20 +82,15 @@ var _ = Context("Webhook Sink", Ordered, func() {
 	BeforeAll(func() {
 		handlers = append(handlers, stubHandler)
 		fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(rc).Build()
-		rcf, err := webhook.NewRunCompletionFeed(
+		rcf := webhook.NewRunCompletionFeed(
 			fakeClient,
 			handlers,
 		)
-		if err != nil {
-			logger.Error(err, "problem creating run completion feed")
-			panic(err)
-		}
+
 		go func() {
-			err = rcf.Start(ctx, port)
-			if err != nil {
-				logger.Error(err, "problem starting run completion feed")
-				panic(err)
-			}
+			http.HandleFunc("/events", rcf.HandleEvent(ctx))
+
+			http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 		}()
 	})
 

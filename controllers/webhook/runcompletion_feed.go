@@ -25,34 +25,22 @@ const (
 )
 
 type RunCompletionFeed struct {
-	client          client.Reader
-	eventProcessor  EventProcessor
-	eventHandlers   []RunCompletionEventHandler
-	requestsCounter metric.Int64Counter
+	client         client.Reader
+	eventProcessor EventProcessor
+	eventHandlers  []RunCompletionEventHandler
 }
 
 func NewRunCompletionFeed(
 	client client.Reader,
 	handlers []RunCompletionEventHandler,
-) (RunCompletionFeed, error) {
+) RunCompletionFeed {
 	eventProcessor := NewResourceArtifactsEventProcessor()
 
-	meter := otel.Meter("run_completion_feed")
-	requestsCounter, err := meter.Int64Counter(
-		"run_completion_feed_requests",
-		metric.WithDescription("Total number of requests received by the run completion feed"),
-	)
-
-	if err != nil {
-		return RunCompletionFeed{}, fmt.Errorf("failed to create requests counter: %w", err)
-	}
-
 	return RunCompletionFeed{
-		client:          client,
-		eventProcessor:  eventProcessor,
-		eventHandlers:   handlers,
-		requestsCounter: requestsCounter,
-	}, nil
+		client:         client,
+		eventProcessor: eventProcessor,
+		eventHandlers:  handlers,
+	}
 }
 
 func getRequestBody(ctx context.Context, request *http.Request) ([]byte, error) {
@@ -135,17 +123,10 @@ func (rcf RunCompletionFeed) fetchRun(ctx context.Context, name *common.Namespac
 	return nil, nil
 }
 
-func (rcf RunCompletionFeed) handleEvent(ctx context.Context) func(responseWriter http.ResponseWriter, request *http.Request) {
+func (rcf RunCompletionFeed) HandleEvent(ctx context.Context) func(responseWriter http.ResponseWriter, request *http.Request) {
 	logger := log.FromContext(ctx)
 
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
-		if rcf.requestsCounter != nil {
-			rcf.requestsCounter.Add(ctx, 1, metric.WithAttributes(
-				attribute.String("method", request.Method),
-				attribute.String("endpoint", "/events"),
-			))
-		}
-
 		switch request.Method {
 		case http.MethodPost:
 
@@ -207,8 +188,42 @@ func (rcf RunCompletionFeed) handleEvent(ctx context.Context) func(responseWrite
 	}
 }
 
-func (rcf RunCompletionFeed) Start(ctx context.Context, port int) error {
-	http.HandleFunc("/events", rcf.handleEvent(ctx))
+type ObservedRunCompletionFeed struct {
+	delegate        RunCompletionFeed
+	requestsCounter metric.Int64Counter
+}
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+func NewObservedRunCompletionFeed(
+	client client.Reader,
+	handlers []RunCompletionEventHandler,
+) (ObservedRunCompletionFeed, error) {
+	delegateRunCompletionFeed := NewRunCompletionFeed(client, handlers)
+
+	meter := otel.Meter("run_completion_feed")
+	requestsCounter, err := meter.Int64Counter(
+		"run_completion_feed_requests",
+		metric.WithDescription("Total number of requests received by the run completion feed"),
+	)
+
+	if err != nil {
+		return ObservedRunCompletionFeed{}, fmt.Errorf("failed to create requests counter: %w", err)
+	}
+
+	return ObservedRunCompletionFeed{
+		delegate:        delegateRunCompletionFeed,
+		requestsCounter: requestsCounter,
+	}, nil
+}
+
+func (orcf ObservedRunCompletionFeed) HandleEvent(ctx context.Context) func(responseWriter http.ResponseWriter, request *http.Request) {
+	delegateHandler := orcf.delegate.HandleEvent(ctx)
+
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		orcf.requestsCounter.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("method", request.Method),
+			attribute.String("endpoint", "/events"),
+		))
+
+		delegateHandler(responseWriter, request)
+	}
 }

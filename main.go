@@ -18,6 +18,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/samber/lo"
@@ -237,7 +239,7 @@ func main() {
 		os.Exit(1)
 	}
 	handlers = append(handlers, statusUpdater)
-	rcf, err := webhook.NewRunCompletionFeed(
+	rcf, err := webhook.NewObservedRunCompletionFeed(
 		client.NonCached,
 		handlers,
 	)
@@ -246,7 +248,9 @@ func main() {
 		os.Exit(1)
 	}
 	go func() {
-		err = rcf.Start(ctx, ctrlConfig.Spec.RunCompletionFeed.Port)
+		http.HandleFunc("/events", rcf.HandleEvent(ctx))
+
+		http.ListenAndServe(fmt.Sprintf(":%d", ctrlConfig.Spec.RunCompletionFeed.Port), nil)
 		if err != nil {
 			setupLog.Error(err, "problem starting run completion feed")
 			os.Exit(1)
