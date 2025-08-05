@@ -21,7 +21,7 @@ type PipelineDefinition struct {
 }
 
 type PipelineFramework struct {
-	Type       string                           `json:"type" yaml:"type"`
+	Name       string                           `json:"name" yaml:"name"`
 	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
 }
 
