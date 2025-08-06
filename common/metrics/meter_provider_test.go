@@ -23,10 +23,8 @@ func TestMeterProvider(t *testing.T) {
 }
 
 var _ = Describe("InitMeterProvider", func() {
-	var (
-		serviceName           = "test-service"
-		originalMeterProvider = otel.GetMeterProvider()
-	)
+	serviceName := "test-service"
+	originalMeterProvider := otel.GetMeterProvider()
 
 	AfterEach(func() {
 		otel.SetMeterProvider(originalMeterProvider)
