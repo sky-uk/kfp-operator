@@ -18,22 +18,19 @@ package main
 
 import (
 	"flag"
-	"github.com/samber/lo"
-	"k8s.io/apimachinery/pkg/util/yaml"
+	"fmt"
+	"net/http"
 	"os"
 
+	"github.com/samber/lo"
+	"github.com/sky-uk/kfp-operator/common/metrics"
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	runtimeMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -41,6 +38,13 @@ import (
 	pipelineshubalpha6 "github.com/sky-uk/kfp-operator/apis/pipelines/v1alpha6"
 	"github.com/sky-uk/kfp-operator/controllers"
 	pipelinescontrollers "github.com/sky-uk/kfp-operator/controllers/pipelines"
+	"go.opentelemetry.io/otel/exporters/prometheus"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	//+kubebuilder:scaffold:imports
 
@@ -62,6 +66,11 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 
 	utilruntime.Must(external.InitSchemes(scheme))
+	_, err := metrics.InitMeterProvider("kfp-operator-controller-manager", prometheus.WithRegisterer(runtimeMetrics.Registry))
+	if err != nil {
+		setupLog.Error(err, "failed to initialise metrics")
+		os.Exit(1)
+	}
 }
 
 func main() {
@@ -230,12 +239,18 @@ func main() {
 		os.Exit(1)
 	}
 	handlers = append(handlers, statusUpdater)
-	rcf := webhook.NewRunCompletionFeed(
+	rcf, err := webhook.NewObservedRunCompletionFeed(
 		client.NonCached,
 		handlers,
 	)
+	if err != nil {
+		setupLog.Error(err, "unable to create run completion feed")
+		os.Exit(1)
+	}
 	go func() {
-		err = rcf.Start(ctx, ctrlConfig.Spec.RunCompletionFeed.Port)
+		http.HandleFunc("/events", rcf.HandleEvent(ctx))
+
+		http.ListenAndServe(fmt.Sprintf(":%d", ctrlConfig.Spec.RunCompletionFeed.Port), nil)
 		if err != nil {
 			setupLog.Error(err, "problem starting run completion feed")
 			os.Exit(1)
