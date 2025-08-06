@@ -216,14 +216,12 @@ func NewObservedRunCompletionFeed(
 }
 
 func (orcf ObservedRunCompletionFeed) HandleEvent(ctx context.Context) func(responseWriter http.ResponseWriter, request *http.Request) {
-	delegateHandler := orcf.delegate.HandleEvent(ctx)
-
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
 		orcf.requestsCounter.Add(ctx, 1, metric.WithAttributes(
 			attribute.String("method", request.Method),
 			attribute.String("endpoint", "/events"),
 		))
 
-		delegateHandler(responseWriter, request)
+		orcf.delegate.HandleEvent(ctx)(responseWriter, request)
 	}
 }
