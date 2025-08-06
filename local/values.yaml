@@ -42,20 +42,20 @@ statusFeedback:
   enabled: true
 
 providers:
-  - vai
+- vai
 
 provider:
   env:
-    - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /etc/gcloud/key-file.json
+  - name: GOOGLE_APPLICATION_CREDENTIALS
+    value: /etc/gcloud/key-file.json
   volumes:
-    - name: gcp-credentials
-      secret:
-        secretName: gcp-credentials
+  - name: gcp-credentials
+    secret:
+      secretName: gcp-credentials
   volumeMounts:
-    - name: gcp-credentials
-      mountPath: /etc/gcloud
-      readOnly: true
+  - name: gcp-credentials
+    mountPath: /etc/gcloud
+    readOnly: true
   replicas: 1
   resources:
     limits:
