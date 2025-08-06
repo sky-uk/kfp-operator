@@ -197,8 +197,6 @@ func NewObservedRunCompletionFeed(
 	client client.Reader,
 	handlers []RunCompletionEventHandler,
 ) (ObservedRunCompletionFeed, error) {
-	delegateRunCompletionFeed := NewRunCompletionFeed(client, handlers)
-
 	meter := otel.Meter("run_completion_feed")
 	requestsCounter, err := meter.Int64Counter(
 		"run_completion_feed_requests",
@@ -210,7 +208,7 @@ func NewObservedRunCompletionFeed(
 	}
 
 	return ObservedRunCompletionFeed{
-		delegate:        delegateRunCompletionFeed,
+		delegate:        NewRunCompletionFeed(client, handlers),
 		requestsCounter: requestsCounter,
 	}, nil
 }
