@@ -88,6 +88,21 @@ func (sv2 Schema2Handler) extract(raw map[string]any) (*PipelineValues, error) {
 		return nil, err
 	}
 
+	schemaVersion, ok := pipelineSpec["schemaVersion"].(string)
+	if !ok {
+		return nil, fmt.Errorf(
+			"expected string for 'schemaVersion', got %T",
+			raw["schemaVersion"],
+		)
+	}
+	sdkVersion, ok := pipelineSpec["sdkVersion"].(string)
+	if !ok {
+		return nil, fmt.Errorf(
+			"expected string for 'sdkVersion', got %T",
+			raw["sdkVersion"],
+		)
+	}
+
 	labels, ok := raw["labels"].(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -95,6 +110,9 @@ func (sv2 Schema2Handler) extract(raw map[string]any) (*PipelineValues, error) {
 			raw["labels"],
 		)
 	}
+	labels["schema_version"] = sanitizeString(schemaVersion)
+	labels["sdk_version"] = sanitizeString(sdkVersion)
+
 	convertedLabels := make(map[string]string)
 	for k, v := range labels {
 		if strVal, ok := v.(string); ok {
