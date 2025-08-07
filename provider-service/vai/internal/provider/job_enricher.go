@@ -2,11 +2,8 @@ package provider
 
 import (
 	"maps"
-	"regexp"
-	"strings"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 )
 
 type JobEnricher interface {
@@ -18,6 +15,17 @@ type JobEnricher interface {
 
 type DefaultJobEnricher struct {
 	pipelineSchemaHandler PipelineSchemaHandler
+	labelSanitizer        LabelSanitizer
+}
+
+func NewDefaultJobEnricher() DefaultJobEnricher {
+	return DefaultJobEnricher{
+		pipelineSchemaHandler: DefaultPipelineSchemaHandler{
+			schema2Handler:   Schema2Handler{},
+			schema2_1Handler: Schema2_1Handler{},
+		},
+		labelSanitizer: DefaultLabelSanitizer{},
+	}
 }
 
 func (dje DefaultJobEnricher) Enrich(
@@ -35,43 +43,7 @@ func (dje DefaultJobEnricher) Enrich(
 
 	maps.Copy(job.Labels, pv.labels)
 
-	job.Labels = sanitizeLabels(job.Labels)
+	job.Labels = dje.labelSanitizer.Sanitize(job.Labels)
 	job.PipelineSpec = pv.pipelineSpec
 	return job, nil
-}
-
-// Mutates PipelineJob labels in-place
-// Combines the `raw` labels with the existing job labels as well; both are
-// sanitized
-var regex = regexp.MustCompile(`[^a-z0-9_-]+`)
-
-func sanitizeLabels(labels map[string]string) map[string]string {
-	const maxLength = 63
-	sanitized := make(map[string]string, len(labels))
-
-	for kSan, vSan := range labels {
-		kSan = strings.ToLower(kSan)
-		vSan = strings.ToLower(vSan)
-
-		switch kSan {
-		case label.PipelineVersion:
-			vSan = regex.ReplaceAllString(vSan, "-")
-		case "schema_version", "sdk_version":
-			vSan = regex.ReplaceAllString(vSan, "_")
-		default:
-			kSan = regex.ReplaceAllString(kSan, "")
-			vSan = regex.ReplaceAllString(vSan, "")
-		}
-
-		if len(kSan) > maxLength {
-			kSan = kSan[:maxLength]
-		}
-		if len(vSan) > maxLength {
-			vSan = vSan[:maxLength]
-		}
-
-		sanitized[kSan] = vSan
-	}
-
-	return sanitized
 }
