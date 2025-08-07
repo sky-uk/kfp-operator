@@ -40,7 +40,7 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 	labels[label.ProviderName] = lg.providerName.Name
 	labels[label.ProviderNamespace] = lg.providerName.Namespace
 
-	return label.SanitizeLabels(labels), nil
+	return labels, nil
 }
 
 func (lg DefaultLabelGen) runLabelsFromPipeline(
