@@ -34,10 +34,11 @@ var _ = Describe("DefaultJobEnricher", func() {
 		expectedReturn := PipelineValues{
 			name: "enriched",
 			labels: map[string]string{
-				"key":            "value",
-				"schema_version": "2.1.0",
-				"sdk_version":    "kfp-2.12.2",
-				"Other&%":        "someVAl!ue",
+				"key":              "value",
+				"pipeline-version": "0.0.1",
+				"schema_version":   "2.1.0",
+				"sdk_version":      "kfp-2.12.2",
+				"Other&%":          "someVAl!ue",
 			},
 			pipelineSpec: &structpb.Struct{},
 		}
@@ -51,10 +52,11 @@ var _ = Describe("DefaultJobEnricher", func() {
 			mockPipelineSchemaHandler.On("extract", input).Return(&expectedReturn, nil)
 
 			sanitizedLabels := map[string]string{
-				"key":            "value",
-				"schema_version": "2_1_0",
-				"sdk_version":    "kfp-2_12_2",
-				"other":          "somevalue",
+				"key":              "value",
+				"pipeline-version": "0-0-1",
+				"schema_version":   "2_1_0",
+				"sdk_version":      "kfp-2_12_2",
+				"other":            "somevalue",
 			}
 
 			job := aiplatformpb.PipelineJob{}
@@ -70,11 +72,12 @@ var _ = Describe("DefaultJobEnricher", func() {
 			mockPipelineSchemaHandler.On("extract", input).Return(&expectedReturn, nil)
 
 			expectedCombinedLabels := map[string]string{
-				"key":            "value",
-				"schema_version": "2_1_0",
-				"sdk_version":    "kfp-2_12_2",
-				"other":          "somevalue",
-				"key2":           "value2",
+				"key":              "value",
+				"pipeline-version": "0-0-1",
+				"schema_version":   "2_1_0",
+				"sdk_version":      "kfp-2_12_2",
+				"other":            "somevalue",
+				"key2":             "value2",
 			}
 
 			job := aiplatformpb.PipelineJob{Labels: map[string]string{"Key2": "Value2"}}
@@ -102,19 +105,28 @@ var _ = Describe("DefaultJobEnricher", func() {
 				Expect(result).To(Equal(expected))
 			},
 
-			Entry("lowercases keys and values",
+			Entry(
+				"lowercases keys and values",
 				map[string]string{"TEST": "TEST"},
 				map[string]string{"test": "test"},
 			),
 
-			Entry("removes special characters",
+			Entry(
+				"removes special characters",
 				map[string]string{"%^@test*": "%^@test*"},
 				map[string]string{"test": "test"},
 			),
 
-			Entry("does not change compliant labels",
+			Entry(
+				"does not change compliant labels",
 				map[string]string{"test_test": "test_test"},
 				map[string]string{"test_test": "test_test"},
+			),
+
+			Entry(
+				"if key is pipeline-version then it replaces invalid characters with hyphen",
+				map[string]string{"pipeline-version": "0.0.1"},
+				map[string]string{"pipeline-version": "0-0-1"},
 			),
 
 			Entry(

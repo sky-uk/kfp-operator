@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
+	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 )
 
 type JobEnricher interface {
@@ -53,6 +54,8 @@ func sanitizeLabels(labels map[string]string) map[string]string {
 		vSan = strings.ToLower(vSan)
 
 		switch kSan {
+		case label.PipelineVersion:
+			vSan = regex.ReplaceAllString(vSan, "-")
 		case "schema_version", "sdk_version":
 			vSan = regex.ReplaceAllString(vSan, "_")
 		default:

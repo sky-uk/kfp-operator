@@ -82,16 +82,6 @@ var _ = Describe("DefaultLabelGen", func() {
 		})
 	})
 
-	Context("runLabelsFromRunDefinition", func() {
-		It("replaces fullstops with dashes in pipelineVersion", func() {
-			rd := testutil.RandomRunDefinition()
-			rd.PipelineVersion = "0.0.1"
-			rl := lg.runLabelsFromRunDefinition(rd)
-
-			Expect(rl[label.PipelineVersion]).To(Equal("0-0-1"))
-		})
-	})
-
 	Context("GenerateLabels - runLabelsFromSchedule", func() {
 		When("RunConfigurationName is present", func() {
 			It("generates run labels with RunConfiguration name and namespace", func() {
@@ -137,15 +127,4 @@ var _ = Describe("DefaultLabelGen", func() {
 			})
 		})
 	})
-
-	Context("runLabelsFromRunDefinition", func() {
-		It("replaces fullstops with dashes in pipelineVersion", func() {
-			rd := testutil.RandomRunDefinition()
-			rd.PipelineVersion = "0.0.1"
-			rl := lg.runLabelsFromRunDefinition(rd)
-
-			Expect(rl[label.PipelineVersion]).To(Equal("0-0-1"))
-		})
-	})
-
 })
