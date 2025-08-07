@@ -45,7 +45,6 @@ func (dje DefaultJobEnricher) Enrich(
 var regex = regexp.MustCompile(`[^a-z0-9_-]+`)
 
 func sanitizeLabels(labels map[string]string) map[string]string {
-
 	const maxLength = 63
 	sanitized := make(map[string]string, len(labels))
 
