@@ -32,7 +32,7 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 			EndTime:        &End,
 		},
 		TriggerIndicator: &triggers.Indicator{
-			Type:            "schedule",
+			Type:            triggers.Schedule,
 			Source:          name.Name,
 			SourceNamespace: name.Namespace,
 		},

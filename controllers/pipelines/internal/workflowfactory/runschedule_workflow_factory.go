@@ -50,7 +50,7 @@ func (rsdc RunScheduleDefinitionCreator) runScheduleDefinition(
 		Parameters:      NamedValuesToMap(rs.Spec.Parameters),
 		Artifacts:       rs.Spec.Artifacts,
 		TriggerIndicator: triggers.Indicator{
-			Type:            "schedule",
+			Type:            triggers.Schedule,
 			Source:          rs.Name,
 			SourceNamespace: rs.Namespace,
 		},
