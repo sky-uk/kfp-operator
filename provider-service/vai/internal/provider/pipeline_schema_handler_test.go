@@ -176,7 +176,9 @@ var _ = Describe("Schema2Handler", func() {
 		raw = map[string]any{
 			"displayName": "test-display-name",
 			"pipelineSpec": map[string]any{
-				"key": "value",
+				"key":           "value",
+				"schemaVersion": "2.0.0",
+				"sdkVersion":    "tfx-1.15.1",
 			},
 			"labels": map[string]any{
 				"label-key-from-raw": "label-value-from-raw",
@@ -188,13 +190,15 @@ var _ = Describe("Schema2Handler", func() {
 	})
 
 	Context("Extract", Ordered, func() {
-		It("should extract pipeline values from the raw map", func() {
+		It("should extract pipeline values from the raw map and sanitize schemaVersion and sdkVersion", func() {
 			pipelineValues, err := schema2Handler.extract(raw)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(pipelineValues.name).To(Equal(raw["displayName"]))
 			pipelineSpec, err := structpb.NewStruct(
 				map[string]any{
-					"key": "value",
+					"key":           "value",
+					"schemaVersion": "2.0.0",
+					"sdkVersion":    "tfx-1.15.1",
 				},
 			)
 			Expect(err).ToNot(HaveOccurred())
@@ -202,6 +206,8 @@ var _ = Describe("Schema2Handler", func() {
 			Expect(pipelineValues.labels).To(Equal(
 				map[string]string{
 					"label-key-from-raw": "label-value-from-raw",
+					"schema_version":     "2_0_0",
+					"sdk_version":        "tfx-1_15_1",
 				},
 			))
 		})
