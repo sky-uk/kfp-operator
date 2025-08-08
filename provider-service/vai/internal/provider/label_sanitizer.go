@@ -23,29 +23,29 @@ func (dls DefaultLabelSanitizer) Sanitize(labels map[string]string) map[string]s
 	const maxLength = 63
 	sanitized := make(map[string]string, len(labels))
 
-	for kSan, vSan := range labels {
-		kSan = strings.ToLower(kSan)
-		vSan = strings.ToLower(vSan)
+	for k, v := range labels {
+		key := strings.ToLower(k)
+		value := strings.ToLower(v)
 
 		// Differing methods of replacing invalid chars due to historical decisions.
-		switch kSan {
+		switch key {
 		case label.PipelineVersion:
-			vSan = vaiCompliant.ReplaceAllString(vSan, "-")
+			value = vaiCompliant.ReplaceAllString(value, "-")
 		case "schema_version", "sdk_version":
-			vSan = vaiCompliant.ReplaceAllString(vSan, "_")
+			value = vaiCompliant.ReplaceAllString(value, "_")
 		default:
-			kSan = vaiCompliant.ReplaceAllString(kSan, "")
-			vSan = vaiCompliant.ReplaceAllString(vSan, "")
+			key = vaiCompliant.ReplaceAllString(key, "")
+			value = vaiCompliant.ReplaceAllString(value, "")
 		}
 
-		if len(kSan) > maxLength {
-			kSan = kSan[:maxLength]
+		if len(key) > maxLength {
+			key = key[:maxLength]
 		}
-		if len(vSan) > maxLength {
-			vSan = vSan[:maxLength]
+		if len(value) > maxLength {
+			value = value[:maxLength]
 		}
 
-		sanitized[kSan] = vSan
+		sanitized[key] = value
 	}
 
 	return sanitized
