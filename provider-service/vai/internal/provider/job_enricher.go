@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"maps"
+
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 )
 
@@ -13,6 +15,17 @@ type JobEnricher interface {
 
 type DefaultJobEnricher struct {
 	pipelineSchemaHandler PipelineSchemaHandler
+	labelSanitizer        LabelSanitizer
+}
+
+func NewDefaultJobEnricher() DefaultJobEnricher {
+	return DefaultJobEnricher{
+		pipelineSchemaHandler: DefaultPipelineSchemaHandler{
+			schema2Handler:   Schema2Handler{},
+			schema2_1Handler: Schema2_1Handler{},
+		},
+		labelSanitizer: DefaultLabelSanitizer{},
+	}
 }
 
 func (dje DefaultJobEnricher) Enrich(
@@ -27,9 +40,10 @@ func (dje DefaultJobEnricher) Enrich(
 	if job.Labels == nil {
 		job.Labels = map[string]string{}
 	}
-	for k, v := range pv.labels {
-		job.Labels[k] = v
-	}
+
+	maps.Copy(job.Labels, pv.labels)
+
+	job.Labels = dje.labelSanitizer.Sanitize(job.Labels)
 	job.PipelineSpec = pv.pipelineSpec
 	return job, nil
 }

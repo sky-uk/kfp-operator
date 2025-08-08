@@ -33,6 +33,11 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
+				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
 				Expect(rl[label.RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
 				Expect(rl[label.RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
 				Expect(rl[label.RunName]).To(Equal(rd.Name.Name))
@@ -46,6 +51,11 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
+				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
 				Expect(rl[label.RunName]).To(Equal(rd.Name.Name))
 				Expect(rl[label.RunNamespace]).To(Equal(rd.Name.Namespace))
 				Expect(rl).NotTo(HaveKey(label.RunConfigurationName))
@@ -59,21 +69,16 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rd)
 				Expect(err).ToNot(HaveOccurred())
 
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
+				Expect(rl[label.PipelineName]).To(Equal(rd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rd.PipelineVersion))
 				Expect(rl[label.RunConfigurationName]).To(Equal(rd.RunConfigurationName.Name))
 				Expect(rl[label.RunConfigurationNamespace]).To(Equal(rd.RunConfigurationName.Namespace))
 				Expect(rl).NotTo(HaveKey(label.RunName))
 				Expect(rl).NotTo(HaveKey(label.RunNamespace))
 			})
-		})
-	})
-
-	Context("runLabelsFromRunDefinition", func() {
-		It("replaces fullstops with dashes in pipelineVersion", func() {
-			rd := testutil.RandomRunDefinition()
-			rd.PipelineVersion = "0.0.1"
-			rl := lg.runLabelsFromRunDefinition(rd)
-
-			Expect(rl[label.PipelineVersion]).To(Equal("0-0-1"))
 		})
 	})
 
@@ -84,6 +89,11 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rsd)
 				Expect(err).ToNot(HaveOccurred())
 
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
+				Expect(rl[label.PipelineName]).To(Equal(rsd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
+				Expect(rl[label.PipelineVersion]).To(Equal(rsd.PipelineVersion))
 				Expect(rl[label.RunConfigurationName]).To(Equal(rsd.RunConfigurationName.Name))
 				Expect(rl[label.RunConfigurationNamespace]).To(Equal(rsd.RunConfigurationName.Namespace))
 			})
@@ -95,33 +105,26 @@ var _ = Describe("DefaultLabelGen", func() {
 				rl, err := lg.GenerateLabels(rsd)
 				Expect(err).ToNot(HaveOccurred())
 
+				Expect(rl[label.ProviderName]).To(Equal(lg.providerName.Name))
+				Expect(rl[label.ProviderNamespace]).To(Equal(lg.providerName.Namespace))
+				Expect(rl[label.PipelineName]).To(Equal(rsd.PipelineName.Name))
+				Expect(rl[label.PipelineNamespace]).To(Equal(rsd.PipelineName.Namespace))
 				Expect(rl[label.PipelineVersion]).To(Equal(rsd.PipelineVersion))
 				Expect(rl).NotTo(HaveKey(label.RunConfigurationName))
 				Expect(rl).NotTo(HaveKey(label.RunConfigurationNamespace))
 			})
 		})
 
-		When("TriggerType is schedule", func() {
+		When("TriggerIndicator is non-empty", func() {
 			It("generates run labels with trigger type and source", func() {
 				rsd := testutil.RandomRunScheduleDefinition()
 				rl, err := lg.GenerateLabels(rsd)
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[triggers.Type]).To(Equal("schedule"))
+				Expect(rl[triggers.Type]).To(Equal(triggers.Schedule))
 				Expect(rl[triggers.Source]).To(Equal(rsd.Name.Name))
 				Expect(rl[triggers.SourceNamespace]).To(Equal(rsd.Name.Namespace))
 			})
 		})
 	})
-
-	Context("runLabelsFromRunDefinition", func() {
-		It("replaces fullstops with dashes in pipelineVersion", func() {
-			rd := testutil.RandomRunDefinition()
-			rd.PipelineVersion = "0.0.1"
-			rl := lg.runLabelsFromRunDefinition(rd)
-
-			Expect(rl[label.PipelineVersion]).To(Equal("0-0-1"))
-		})
-	})
-
 })
