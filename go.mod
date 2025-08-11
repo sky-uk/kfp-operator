@@ -14,7 +14,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/zapr v1.3.0
-	github.com/go-resty/resty/v2 v2.16.0
+	github.com/go-resty/resty/v2 v2.16.5
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.14.1
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
