@@ -21,9 +21,9 @@ manager:
   runcompletionWebhook:
     port: 8082
     endpoints:
-      - host: kfp-operator-run-completion-event-trigger.kfp-operator-system
-        path: ""
-        port: 50051
+    - host: kfp-operator-run-completion-event-trigger.kfp-operator-system
+      path: ""
+      port: 50051
 
 runcompletionEventTrigger:
   enabled: true
@@ -34,22 +34,35 @@ runcompletionEventTrigger:
       port: 4222
   server:
     port: 50051
+  metrics:
+    port: 8081
+  monitoring: false
 
 statusFeedback:
   enabled: true
 
 providers:
-  - vai
+- vai
 
 provider:
   env:
-    - name: GOOGLE_APPLICATION_CREDENTIALS
-      value: /etc/gcloud/key-file.json
+  - name: GOOGLE_APPLICATION_CREDENTIALS
+    value: /etc/gcloud/key-file.json
   volumes:
-    - name: gcp-credentials
-      secret:
-        secretName: gcp-credentials
+  - name: gcp-credentials
+    secret:
+      secretName: gcp-credentials
   volumeMounts:
-    - name: gcp-credentials
-      mountPath: /etc/gcloud
-      readOnly: true
+  - name: gcp-credentials
+    mountPath: /etc/gcloud
+    readOnly: true
+  replicas: 1
+  resources:
+    limits:
+      cpu: 100m
+      memory: 300Mi
+    requests:
+      cpu: 100m
+      memory: 200Mi
+  servicePort: 8080
+  metricsPort: 8081

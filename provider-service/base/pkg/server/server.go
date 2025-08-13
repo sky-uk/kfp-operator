@@ -7,16 +7,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
+	argoCommon "github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/common/metrics"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"golang.org/x/sync/errgroup"
 )
 
 func Start(ctx context.Context, cfg config.Config, provider resource.Provider) error {
-	log := common.LoggerFromContext(ctx)
+	log := argoCommon.LoggerFromContext(ctx)
 
-	meterProvider, err := initMeterProvider(cfg.ProviderName)
+	meterProvider, err := metrics.InitMeterProvider(fmt.Sprintf("provider-service-%s", cfg.ProviderName))
 	if err != nil {
 		return err
 	}

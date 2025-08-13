@@ -4,7 +4,7 @@
 
 The Kubeflow Pipelines Operator provides a declarative API for managing and running machine learning pipelines on Kubeflow with [Resource Definitions](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/).
 
-We currently only support TFX pipelines.
+We currently support pipelines written with [TFX](https://www.tensorflow.org/tfx) and [KFP SDK](https://kubeflow-pipelines.readthedocs.io/).
 
 ## Documentation:
 

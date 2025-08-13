@@ -45,7 +45,7 @@ func RandomPipelineDefinition() resource.PipelineDefinition {
 		Version:   common.RandomString(),
 		Image:     common.RandomString(),
 		Env:       make([]apis.NamedValue, 0),
-		Framework: resource.PipelineFramework{Type: common.RandomString()},
+		Framework: resource.PipelineFramework{Name: common.RandomString()},
 	}
 }
 

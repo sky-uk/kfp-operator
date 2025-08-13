@@ -1,4 +1,4 @@
-module github.com/sky-uk/kfp-operator
+module github.com/sky-uk/kfp-operator/docs-gen
 
 go 1.24.4
 
