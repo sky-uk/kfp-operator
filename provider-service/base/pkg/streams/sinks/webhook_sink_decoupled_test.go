@@ -5,6 +5,11 @@ package sinks
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
 	. "github.com/onsi/ginkgo/v2"
@@ -17,10 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"net"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"testing"
-	"time"
 )
 
 func TestSinksDecoupledSuite(t *testing.T) {
@@ -84,12 +86,11 @@ var _ = Context("Webhook Sink", Ordered, func() {
 			fakeClient,
 			handlers,
 		)
+
 		go func() {
-			err = rcf.Start(ctx, port)
-			if err != nil {
-				logger.Error(err, "problem starting run completion feed")
-				panic(err)
-			}
+			http.HandleFunc("/events", rcf.HandleEvent(ctx))
+
+			http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 		}()
 	})
 

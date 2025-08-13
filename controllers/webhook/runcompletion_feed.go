@@ -11,6 +11,9 @@ import (
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -32,6 +35,7 @@ func NewRunCompletionFeed(
 	handlers []RunCompletionEventHandler,
 ) RunCompletionFeed {
 	eventProcessor := NewResourceArtifactsEventProcessor()
+
 	return RunCompletionFeed{
 		client:         client,
 		eventProcessor: eventProcessor,
@@ -119,7 +123,7 @@ func (rcf RunCompletionFeed) fetchRun(ctx context.Context, name *common.Namespac
 	return nil, nil
 }
 
-func (rcf RunCompletionFeed) handleEvent(ctx context.Context) func(responseWriter http.ResponseWriter, request *http.Request) {
+func (rcf RunCompletionFeed) HandleEvent(ctx context.Context) func(responseWriter http.ResponseWriter, request *http.Request) {
 	logger := log.FromContext(ctx)
 
 	return func(responseWriter http.ResponseWriter, request *http.Request) {
@@ -184,8 +188,38 @@ func (rcf RunCompletionFeed) handleEvent(ctx context.Context) func(responseWrite
 	}
 }
 
-func (rcf RunCompletionFeed) Start(ctx context.Context, port int) error {
-	http.HandleFunc("/events", rcf.handleEvent(ctx))
+type ObservedRunCompletionFeed struct {
+	delegate        RunCompletionFeed
+	requestsCounter metric.Int64Counter
+}
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+func NewObservedRunCompletionFeed(
+	client client.Reader,
+	handlers []RunCompletionEventHandler,
+) (ObservedRunCompletionFeed, error) {
+	meter := otel.Meter("run_completion_feed")
+	requestsCounter, err := meter.Int64Counter(
+		"run_completion_feed_requests",
+		metric.WithDescription("Total number of requests received by the run completion feed"),
+	)
+
+	if err != nil {
+		return ObservedRunCompletionFeed{}, fmt.Errorf("failed to create requests counter: %w", err)
+	}
+
+	return ObservedRunCompletionFeed{
+		delegate:        NewRunCompletionFeed(client, handlers),
+		requestsCounter: requestsCounter,
+	}, nil
+}
+
+func (orcf ObservedRunCompletionFeed) HandleEvent(ctx context.Context) func(responseWriter http.ResponseWriter, request *http.Request) {
+	return func(responseWriter http.ResponseWriter, request *http.Request) {
+		orcf.requestsCounter.Add(ctx, 1, metric.WithAttributes(
+			attribute.String("method", request.Method),
+			attribute.String("endpoint", "/events"),
+		))
+
+		orcf.delegate.HandleEvent(ctx)(responseWriter, request)
+	}
 }
