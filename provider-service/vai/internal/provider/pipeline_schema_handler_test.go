@@ -213,6 +213,7 @@ var _ = Describe("Schema2Handler", func() {
 				},
 			))
 		})
+
 		When("displayName is not a string", func() {
 			It("should return error", func() {
 				raw["displayName"] = 123
@@ -221,6 +222,7 @@ var _ = Describe("Schema2Handler", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
 		When("pipelineSpec is not a map", func() {
 			It("should return error", func() {
 				raw["pipelineSpec"] = 123
@@ -229,6 +231,7 @@ var _ = Describe("Schema2Handler", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
 		When("labels is not a map", func() {
 			It("should return error", func() {
 				raw["labels"] = 123
@@ -237,6 +240,7 @@ var _ = Describe("Schema2Handler", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
 		When("schemaVersion is not a string", func() {
 			It("should return error", func() {
 				raw["pipelineSpec"].(map[string]any)["schemaVersion"] = 123
@@ -245,6 +249,7 @@ var _ = Describe("Schema2Handler", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
 		When("sdkVersion is not a string", func() {
 			It("should return error", func() {
 				raw["pipelineSpec"].(map[string]any)["sdkVersion"] = 123
