@@ -29,7 +29,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 		var (
 			pipelineSchemeHandler MockPipelineSchemaHandler
 			labelSanitizer        mocks.MockLabelSanitizer
-			dje                   DefaultJobEnricher
+			defaultJobEnricher    DefaultJobEnricher
 		)
 
 		pipelineValues := PipelineValues{
@@ -47,7 +47,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 		BeforeEach(func() {
 			pipelineSchemeHandler = MockPipelineSchemaHandler{}
 			labelSanitizer = mocks.MockLabelSanitizer{}
-			dje = DefaultJobEnricher{
+			defaultJobEnricher = DefaultJobEnricher{
 				pipelineSchemaHandler: &pipelineSchemeHandler,
 				labelSanitizer:        &labelSanitizer,
 			}
@@ -60,7 +60,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 			labelSanitizer.On("Sanitize", pipelineValues.labels).Return(pipelineValues.labels)
 
 			job := aiplatformpb.PipelineJob{}
-			_, err := dje.Enrich(&job, input)
+			_, err := defaultJobEnricher.Enrich(&job, input)
 			Expect(err).ToNot(HaveOccurred())
 
 			Expect(job.Name).To(Equal(pipelineValues.name))
@@ -81,7 +81,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 			labelSanitizer.On("Sanitize", combinedLabels).Return(combinedLabels)
 
 			job := aiplatformpb.PipelineJob{Labels: map[string]string{"Key2": "Value2"}}
-			_, err := dje.Enrich(&job, input)
+			_, err := defaultJobEnricher.Enrich(&job, input)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(job.Name).To(Equal(pipelineValues.name))
 			Expect(job.Labels).To(Equal(combinedLabels))
@@ -92,7 +92,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 			pipelineSchemeHandler.On("extract", input).Return(nil, errors.New("an error"))
 
 			job := aiplatformpb.PipelineJob{}
-			_, err := dje.Enrich(&job, input)
+			_, err := defaultJobEnricher.Enrich(&job, input)
 			Expect(err).To(HaveOccurred())
 		})
 	})
