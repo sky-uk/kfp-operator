@@ -13,7 +13,7 @@ type LabelSanitizer interface {
 
 type DefaultLabelSanitizer struct{}
 
-// Vertex AI PipelineJob label keys and values can be no longer than 64 chars,
+// Vertex AI PipelineJob label keys and values can be no longer than 63 chars,
 // can only contain lowercase letters, numeric chars, underscore and hyphens.
 var vaiCompliant = regexp.MustCompilePOSIX(`[^a-z0-9_-]+`)
 
