@@ -114,8 +114,8 @@ var _ = BeforeSuite(func() {
 	Expect(NewRunScheduleReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(NewExperimentReconciler(ec, &workflowRepository, TestConfig).SetupWithManager(k8sManager)).To(Succeed())
 	Expect(pipelineshub.NewPipelineValidatorWebhook(k8sManager)).To(Succeed())
-	Expect((&pipelineshub.RunConfiguration{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
-	Expect((&pipelineshub.Run{}).SetupWebhookWithManager(k8sManager)).To(Succeed())
+	Expect(pipelineshub.NewRunConfigurationValidatorWebhook(k8sManager)).To(Succeed())
+	Expect(pipelineshub.NewRunValidatorWebhook(k8sManager)).To(Succeed())
 
 	Provider = pipelineshub.RandomProvider()
 	Provider.Name = apis.RandomLowercaseString()
