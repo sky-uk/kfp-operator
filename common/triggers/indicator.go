@@ -17,6 +17,7 @@ const (
 	OnChangePipeline = "onChangePipeline"
 	OnChangeRunSpec  = "onChangeRunSpec"
 	RunConfiguration = "runConfiguration"
+	Schedule         = "schedule"
 )
 
 var (
