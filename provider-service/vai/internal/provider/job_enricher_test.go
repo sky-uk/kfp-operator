@@ -27,7 +27,7 @@ func (m *MockPipelineSchemaHandler) extract(raw map[string]any) (*PipelineValues
 var _ = Describe("DefaultJobEnricher", func() {
 	Context("Enrich", Ordered, func() {
 		var (
-			pipelineSchemeHandler MockPipelineSchemaHandler
+			pipelineSchemaHandler MockPipelineSchemaHandler
 			labelSanitizer        mocks.MockLabelSanitizer
 			defaultJobEnricher    DefaultJobEnricher
 		)
@@ -45,10 +45,10 @@ var _ = Describe("DefaultJobEnricher", func() {
 		}
 
 		BeforeEach(func() {
-			pipelineSchemeHandler = MockPipelineSchemaHandler{}
+			pipelineSchemaHandler = MockPipelineSchemaHandler{}
 			labelSanitizer = mocks.MockLabelSanitizer{}
 			defaultJobEnricher = DefaultJobEnricher{
-				pipelineSchemaHandler: &pipelineSchemeHandler,
+				pipelineSchemaHandler: &pipelineSchemaHandler,
 				labelSanitizer:        &labelSanitizer,
 			}
 		})
@@ -56,7 +56,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 		input := map[string]any{"somekey": "somevalue"}
 
 		It("enriches job with labels returned by pipelineSchemaHandler", func() {
-			pipelineSchemeHandler.On("extract", input).Return(&pipelineValues, nil)
+			pipelineSchemaHandler.On("extract", input).Return(&pipelineValues, nil)
 			labelSanitizer.On("Sanitize", pipelineValues.labels).Return(pipelineValues.labels)
 
 			job := aiplatformpb.PipelineJob{}
@@ -69,7 +69,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 		})
 
 		It("combines job labels and labels returned by pipelineSchemaHandler", func() {
-			pipelineSchemeHandler.On("extract", input).Return(&pipelineValues, nil)
+			pipelineSchemaHandler.On("extract", input).Return(&pipelineValues, nil)
 			combinedLabels := map[string]string{
 				"key":              "value",
 				"pipeline-version": "0.0.1",
@@ -89,7 +89,7 @@ var _ = Describe("DefaultJobEnricher", func() {
 		})
 
 		It("returns error on pipelineSchemaHandler error", func() {
-			pipelineSchemeHandler.On("extract", input).Return(nil, errors.New("an error"))
+			pipelineSchemaHandler.On("extract", input).Return(nil, errors.New("an error"))
 
 			job := aiplatformpb.PipelineJob{}
 			_, err := defaultJobEnricher.Enrich(&job, input)
