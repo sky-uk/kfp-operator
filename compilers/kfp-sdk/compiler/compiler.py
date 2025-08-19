@@ -1,6 +1,8 @@
 import importlib
 import importlib.util
 import os
+import tempfile
+import json
 
 import click
 import yaml
@@ -27,9 +29,33 @@ def compile(pipeline_config: str, output_file: str):
 
         pipeline_fn = load_fn(pipeline_config_contents, pipeline_environment)
 
-        compiler.Compiler().compile(
-            pipeline_fn, pipeline_name=sanitised_pipeline_name, package_path=output_file
-        )
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=".yaml") as temp_file:
+            temp_output_path = temp_file.name
+
+            compiler.Compiler().compile(
+                pipeline_fn,
+                pipeline_name=sanitised_pipeline_name,
+                package_path=temp_output_path,
+            )
+
+            with open(temp_output_path, "r") as f:
+                raw_pipeline_spec = yaml.safe_load(f)
+
+            wrapped_output = wrap_pipeline_spec(
+                raw_pipeline_spec, sanitised_pipeline_name
+            )
+
+            if output_file.lower().endswith(".json"):
+                with open(output_file, "w") as f:
+                    json.dump(wrapped_output, f, indent=2)
+            elif output_file.lower().endswith((".yaml", ".yml")):
+                with open(output_file, "w") as f:
+                    yaml.dump(wrapped_output, f, default_flow_style=False)
+            else:
+                raise ValueError(
+                    f"Unsupported output file format. Expected .json, .yaml, or .yml, got: {output_file}"
+                )
+
         click.secho(f"{output_file} compiled", fg="green")
 
 
@@ -67,3 +93,18 @@ def load_fn(pipeline_config_contents: dict, environment: list) -> Callable:
 
 def sanitise_namespaced_pipeline_name(namespaced_name: str) -> str:
     return namespaced_name.replace("/", "-")
+
+
+def wrap_pipeline_spec(raw_pipeline_spec: dict, pipeline_name: str) -> dict:
+    """
+    Wraps the raw KFP pipeline specification in the format expected by the KFP Operator
+    """
+
+    wrapped_spec = {
+        "displayName": pipeline_name,
+        "labels": {},
+        "pipelineSpec": raw_pipeline_spec,
+        "runtimeConfig": {},
+    }
+
+    return wrapped_spec
