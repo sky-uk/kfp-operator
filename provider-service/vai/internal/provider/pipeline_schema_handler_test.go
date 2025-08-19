@@ -120,8 +120,8 @@ var _ = Describe("Schema2_1Handler", func() {
 			Expect(pipelineValues.name).To(Equal(raw["pipelineInfo"].(map[string]any)["name"].(string)))
 			Expect(pipelineValues.labels).To(Equal(
 				map[string]string{
-					"sdk_version":    "kfp-1_2_3",
-					"schema_version": "version-1_2_3",
+					"sdk_version":    "KFP-1.2.3",
+					"schema_version": "Version-1.2.3",
 				},
 			))
 			deploySpec := pipelineValues.pipelineSpec.AsMap()["deploymentSpec"].(map[string]any)
@@ -157,7 +157,9 @@ var _ = Describe("Schema2_1Handler", func() {
 				_, err := schema21Handler.extract(raw)
 				Expect(err).To(HaveOccurred())
 			})
+		})
 
+		When("sdkVersion is not a string", func() {
 			It("should return error", func() {
 				raw["sdkVersion"] = 123
 
@@ -206,11 +208,12 @@ var _ = Describe("Schema2Handler", func() {
 			Expect(pipelineValues.labels).To(Equal(
 				map[string]string{
 					"label-key-from-raw": "label-value-from-raw",
-					"schema_version":     "2_0_0",
-					"sdk_version":        "tfx-1_15_1",
+					"schema_version":     "2.0.0",
+					"sdk_version":        "tfx-1.15.1",
 				},
 			))
 		})
+
 		When("displayName is not a string", func() {
 			It("should return error", func() {
 				raw["displayName"] = 123
@@ -219,6 +222,7 @@ var _ = Describe("Schema2Handler", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
 		When("pipelineSpec is not a map", func() {
 			It("should return error", func() {
 				raw["pipelineSpec"] = 123
@@ -227,9 +231,28 @@ var _ = Describe("Schema2Handler", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
 		When("labels is not a map", func() {
 			It("should return error", func() {
 				raw["labels"] = 123
+
+				_, err := schema2Handler.extract(raw)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		When("schemaVersion is not a string", func() {
+			It("should return error", func() {
+				raw["pipelineSpec"].(map[string]any)["schemaVersion"] = 123
+
+				_, err := schema2Handler.extract(raw)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		When("sdkVersion is not a string", func() {
+			It("should return error", func() {
+				raw["pipelineSpec"].(map[string]any)["sdkVersion"] = 123
 
 				_, err := schema2Handler.extract(raw)
 				Expect(err).To(HaveOccurred())

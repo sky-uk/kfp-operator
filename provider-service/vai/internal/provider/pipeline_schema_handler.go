@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/Masterminds/semver/v3"
 	"google.golang.org/protobuf/types/known/structpb"
-	"regexp"
-	"strings"
 )
 
 var (
@@ -110,8 +108,8 @@ func (sv2 Schema2Handler) extract(raw map[string]any) (*PipelineValues, error) {
 			raw["labels"],
 		)
 	}
-	labels["schema_version"] = sanitizeString(schemaVersion)
-	labels["sdk_version"] = sanitizeString(sdkVersion)
+	labels["schema_version"] = schemaVersion
+	labels["sdk_version"] = sdkVersion
 
 	convertedLabels := make(map[string]string)
 	for k, v := range labels {
@@ -160,8 +158,8 @@ func (sv21 Schema2_1Handler) extract(raw map[string]any) (*PipelineValues, error
 		)
 	}
 	labels := make(map[string]string)
-	labels["schema_version"] = sanitizeString(schemaVersion)
-	labels["sdk_version"] = sanitizeString(sdkVersion)
+	labels["schema_version"] = schemaVersion
+	labels["sdk_version"] = sdkVersion
 
 	pipelineSpecStruct, err := structpb.NewStruct(raw)
 	if err != nil {
@@ -173,11 +171,4 @@ func (sv21 Schema2_1Handler) extract(raw map[string]any) (*PipelineValues, error
 		labels:       labels,
 		pipelineSpec: pipelineSpecStruct,
 	}, nil
-}
-
-var labelRegex = regexp.MustCompile(`[^a-z0-9\-_]`)
-
-func sanitizeString(input string) string {
-	input = strings.ToLower(input)
-	return labelRegex.ReplaceAllString(input, "_")
 }
