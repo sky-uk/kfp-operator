@@ -18,9 +18,9 @@ import (
 var Start = metav1.Time{Time: time.Date(10000, 1, 1, 0, 0, 0, 0, time.UTC)}
 var End = metav1.Time{Time: time.Date(10001, 1, 1, 0, 0, 0, 0, time.UTC)}
 
-func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
+func RandomRunScheduleDefinition() base.RunScheduleDefinition {
 	name := common.RandomNamespacedName()
-	return resource.RunScheduleDefinition{
+	return base.RunScheduleDefinition{
 		Name:                 name,
 		Version:              common.RandomString(),
 		PipelineName:         common.RandomNamespacedName(),
@@ -32,7 +32,7 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 			StartTime:      &Start,
 			EndTime:        &End,
 		},
-		TriggerIndicator: &triggers.Indicator{
+		TriggerIndicator: triggers.Indicator{
 			Type:            triggers.Schedule,
 			Source:          name.Name,
 			SourceNamespace: name.Namespace,

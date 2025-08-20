@@ -174,7 +174,7 @@ func (vaip *VAIProvider) DeleteRun(_ context.Context, _ string) error {
 
 func (vaip *VAIProvider) CreateRunSchedule(
 	ctx context.Context,
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) (string, error) {
 	logger := common.LoggerFromContext(ctx)
 
@@ -233,7 +233,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 
 func (vaip *VAIProvider) UpdateRunSchedule(
 	ctx context.Context,
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	_ string,
 ) (string, error) {
 	logger := common.LoggerFromContext(ctx)

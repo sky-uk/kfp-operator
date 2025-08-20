@@ -5,6 +5,7 @@ package mocks
 import (
 	"fmt"
 
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 
@@ -16,7 +17,7 @@ func (lg MockLabelGen) GenerateLabels(value any) (map[string]string, error) {
 		return map[string]string{
 			"rd-key": "rd-value",
 		}, nil
-	case resource.RunScheduleDefinition:
+	case base.RunScheduleDefinition:
 		return map[string]string{
 			"rsd-key": "rsd-value",
 		}, nil

@@ -4,6 +4,7 @@ package mocks
 
 import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
 )
@@ -22,7 +23,7 @@ func (m *MockJobBuilder) MkRunPipelineJob(
 }
 
 func (m *MockJobBuilder) MkRunSchedulePipelineJob(
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	args := m.Called(rsd)
 	var pipelineJob *aiplatformpb.PipelineJob
@@ -33,7 +34,7 @@ func (m *MockJobBuilder) MkRunSchedulePipelineJob(
 }
 
 func (m *MockJobBuilder) MkSchedule(
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	pipelineJob *aiplatformpb.PipelineJob,
 	parent string,
 	maxConcurrentRunCount int64,

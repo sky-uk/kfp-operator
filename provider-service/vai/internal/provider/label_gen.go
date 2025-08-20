@@ -2,7 +2,9 @@ package provider
 
 import (
 	"fmt"
+
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/common/triggers"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
@@ -24,14 +26,14 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 	switch v := value.(type) {
 	case resource.RunDefinition:
 		labels = lg.runLabelsFromRunDefinition(v)
-	case resource.RunScheduleDefinition:
+	case base.RunScheduleDefinition:
 		labels = lg.runLabelsFromSchedule(v)
 	default:
 		return nil, fmt.Errorf(
 			"unexpected definition received [%T], expected %T or %T",
 			value,
 			resource.RunDefinition{},
-			resource.RunScheduleDefinition{},
+			base.RunScheduleDefinition{},
 		)
 	}
 
@@ -82,7 +84,7 @@ func (lg DefaultLabelGen) runLabelsFromRunDefinition(
 }
 
 func (lg DefaultLabelGen) runLabelsFromSchedule(
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) map[string]string {
 	runLabels := lg.runLabelsFromPipeline(rsd.PipelineName, rsd.PipelineVersion)
 
@@ -91,11 +93,9 @@ func (lg DefaultLabelGen) runLabelsFromSchedule(
 		runLabels[label.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
 	}
 
-	if rsd.TriggerIndicator != nil {
-		runLabels[triggers.Type] = rsd.TriggerIndicator.Type
-		runLabels[triggers.Source] = rsd.TriggerIndicator.Source
-		runLabels[triggers.SourceNamespace] = rsd.TriggerIndicator.SourceNamespace
-	}
+	runLabels[triggers.Type] = rsd.TriggerIndicator.Type
+	runLabels[triggers.Source] = rsd.TriggerIndicator.Source
+	runLabels[triggers.SourceNamespace] = rsd.TriggerIndicator.SourceNamespace
 
 	return runLabels
 }

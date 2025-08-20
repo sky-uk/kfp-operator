@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type RunSchedule struct {
@@ -17,7 +18,7 @@ func (*RunSchedule) Type() string {
 
 func (rs *RunSchedule) Create(ctx context.Context, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
-	rsd := RunScheduleDefinition{}
+	rsd := base.RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while creating RunSchedule")
 		return ResponseBody{}, &UserError{err}
@@ -37,7 +38,7 @@ func (rs *RunSchedule) Create(ctx context.Context, body []byte) (ResponseBody, e
 
 func (rs *RunSchedule) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
-	rsd := RunScheduleDefinition{}
+	rsd := base.RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while updating RunSchedule")
 		return ResponseBody{}, &UserError{err}

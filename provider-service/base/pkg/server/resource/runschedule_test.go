@@ -9,6 +9,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -29,7 +30,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 	Context("Create", func() {
 		When("valid json passed, and provider returns success", func() {
 			It("returns the id of the resource", func() {
-				rsd := RunScheduleDefinition{}
+				rsd := base.RunScheduleDefinition{}
 				jsonRunSchedule, err := json.Marshal(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -56,7 +57,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 
 		When("provider errors", func() {
 			It("errors", func() {
-				rsd := RunScheduleDefinition{}
+				rsd := base.RunScheduleDefinition{}
 				jsonRunSchedule, err := json.Marshal(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -74,7 +75,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 	Context("Update", func() {
 		When("valid json passed, and provider operations succeed", func() {
 			It("returns no error", func() {
-				rsd := RunScheduleDefinition{}
+				rsd := base.RunScheduleDefinition{}
 				jsonRunSchedule, err := json.Marshal(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -102,7 +103,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 
 		When("provider errors", func() {
 			It("errors", func() {
-				rsd := RunScheduleDefinition{}
+				rsd := base.RunScheduleDefinition{}
 				jsonExperiment, err := json.Marshal(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -148,7 +149,7 @@ type MockRunScheduleProvider struct {
 
 func (m *MockRunScheduleProvider) CreateRunSchedule(
 	ctx context.Context,
-	rsd RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) (string, error) {
 	args := m.Called(ctx, rsd)
 	return args.String(0), args.Error(1)
@@ -156,7 +157,7 @@ func (m *MockRunScheduleProvider) CreateRunSchedule(
 
 func (m *MockRunScheduleProvider) UpdateRunSchedule(
 	ctx context.Context,
-	rsd RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	id string,
 ) (string, error) {
 	args := m.Called(ctx, rsd, id)

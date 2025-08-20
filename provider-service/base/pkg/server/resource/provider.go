@@ -45,19 +45,6 @@ type RunDefinition struct {
 	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
 }
 
-type RunScheduleDefinition struct {
-	Name                 common.NamespacedName      `json:"name" yaml:"name"`
-	Version              string                     `json:"version" yaml:"version"`
-	PipelineName         common.NamespacedName      `json:"pipelineName" yaml:"pipelineName"`
-	PipelineVersion      string                     `json:"pipelineVersion" yaml:"pipelineVersion"`
-	RunConfigurationName common.NamespacedName      `json:"runConfigurationName" yaml:"runConfigurationName"`
-	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
-	Schedule             pipelines.Schedule         `json:"schedule" yaml:"schedule"`
-	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
-	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
-	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
-}
-
 type Provider interface {
 	PipelineProvider
 	RunProvider
@@ -77,8 +64,8 @@ type RunProvider interface {
 }
 
 type RunScheduleProvider interface {
-	CreateRunSchedule(ctx context.Context, rsd RunScheduleDefinition) (string, error)
-	UpdateRunSchedule(ctx context.Context, rsd RunScheduleDefinition, id string) (string, error)
+	CreateRunSchedule(ctx context.Context, rsd base.RunScheduleDefinition) (string, error)
+	UpdateRunSchedule(ctx context.Context, rsd base.RunScheduleDefinition, id string) (string, error)
 	DeleteRunSchedule(ctx context.Context, id string) error
 }
 
