@@ -10,7 +10,7 @@ require (
 	github.com/argoproj/argo-workflows/v3 v3.3.10
 	github.com/docker/distribution v2.8.2+incompatible
 	github.com/evanphx/json-patch/v5 v5.9.11
-	github.com/fsouza/fake-gcs-server v1.47.7
+	github.com/fsouza/fake-gcs-server v1.52.2
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/zapr v1.3.0
@@ -107,7 +107,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pkg/xattr v0.4.9 // indirect
+	github.com/pkg/xattr v0.4.10 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
