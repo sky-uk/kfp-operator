@@ -3,7 +3,9 @@ package resource
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type Run struct {
@@ -16,7 +18,7 @@ func (*Run) Type() string {
 
 func (r *Run) Create(ctx context.Context, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
-	rd := RunDefinition{}
+	rd := base.RunDefinition{}
 
 	if err := json.Unmarshal(body, &rd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunDefinition while creating Run")

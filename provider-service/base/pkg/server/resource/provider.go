@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/common/triggers"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
@@ -33,18 +31,6 @@ type PipelineDefinitionWrapper struct {
 	CompiledPipeline   json.RawMessage    `json:"compiledPipeline,omitempty"`
 }
 
-type RunDefinition struct {
-	Name                 common.NamespacedName      `json:"name" yaml:"name"`
-	Version              string                     `json:"version" yaml:"version"`
-	PipelineName         common.NamespacedName      `json:"pipelineName" yaml:"pipelineName"`
-	PipelineVersion      string                     `json:"pipelineVersion" yaml:"pipelineVersion"`
-	RunConfigurationName common.NamespacedName      `json:"runConfigurationName" yaml:"runConfigurationName"`
-	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
-	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
-	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
-	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
-}
-
 type Provider interface {
 	PipelineProvider
 	RunProvider
@@ -59,7 +45,7 @@ type PipelineProvider interface {
 }
 
 type RunProvider interface {
-	CreateRun(ctx context.Context, rd RunDefinition) (string, error)
+	CreateRun(ctx context.Context, rd base.RunDefinition) (string, error)
 	DeleteRun(ctx context.Context, id string) error
 }
 

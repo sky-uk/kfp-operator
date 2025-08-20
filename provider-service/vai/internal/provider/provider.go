@@ -120,7 +120,7 @@ func (vaip *VAIProvider) DeletePipeline(ctx context.Context, id string) error {
 	return nil
 }
 
-func (vaip *VAIProvider) CreateRun(ctx context.Context, rd resource.RunDefinition) (string, error) {
+func (vaip *VAIProvider) CreateRun(ctx context.Context, rd base.RunDefinition) (string, error) {
 	logger := common.LoggerFromContext(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(

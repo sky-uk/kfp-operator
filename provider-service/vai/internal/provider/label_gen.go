@@ -6,7 +6,6 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/common/triggers"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 )
 
@@ -24,7 +23,7 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 	var labels map[string]string
 
 	switch v := value.(type) {
-	case resource.RunDefinition:
+	case base.RunDefinition:
 		labels = lg.runLabelsFromRunDefinition(v)
 	case base.RunScheduleDefinition:
 		labels = lg.runLabelsFromSchedule(v)
@@ -32,7 +31,7 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 		return nil, fmt.Errorf(
 			"unexpected definition received [%T], expected %T or %T",
 			value,
-			resource.RunDefinition{},
+			base.RunDefinition{},
 			base.RunScheduleDefinition{},
 		)
 	}
@@ -55,7 +54,7 @@ func (lg DefaultLabelGen) runLabelsFromPipeline(
 }
 
 func (lg DefaultLabelGen) runLabelsFromRunDefinition(
-	rd resource.RunDefinition,
+	rd base.RunDefinition,
 ) map[string]string {
 	runLabels := lg.runLabelsFromPipeline(
 		rd.PipelineName,
@@ -74,11 +73,9 @@ func (lg DefaultLabelGen) runLabelsFromRunDefinition(
 		runLabels[label.RunNamespace] = rd.Name.Namespace
 	}
 
-	if rd.TriggerIndicator != nil {
-		runLabels[triggers.Type] = rd.TriggerIndicator.Type
-		runLabels[triggers.Source] = rd.TriggerIndicator.Source
-		runLabels[triggers.SourceNamespace] = rd.TriggerIndicator.SourceNamespace
-	}
+	runLabels[triggers.Type] = rd.TriggerIndicator.Type
+	runLabels[triggers.Source] = rd.TriggerIndicator.Source
+	runLabels[triggers.SourceNamespace] = rd.TriggerIndicator.SourceNamespace
 
 	return runLabels
 }

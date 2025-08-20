@@ -6,7 +6,6 @@ import (
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	baseUtil "github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -14,7 +13,7 @@ import (
 
 type JobBuilder interface {
 	MkRunPipelineJob(
-		rd resource.RunDefinition,
+		rd base.RunDefinition,
 	) (*aiplatformpb.PipelineJob, error)
 	MkRunSchedulePipelineJob(
 		rsd base.RunScheduleDefinition,
@@ -37,7 +36,7 @@ type DefaultJobBuilder struct {
 // MkRunPipelineJob creates a vai pipeline job for a run that can be submitted
 // to a vai pipeline job client.
 func (jb DefaultJobBuilder) MkRunPipelineJob(
-	rd resource.RunDefinition,
+	rd base.RunDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.Parameters))
 	for name, value := range rd.Parameters {

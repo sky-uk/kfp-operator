@@ -65,8 +65,8 @@ func RandomExperimentDefinition() base.ExperimentDefinition {
 	}
 }
 
-func RandomRunDefinition() resource.RunDefinition {
-	return resource.RunDefinition{
+func RandomRunDefinition() base.RunDefinition {
+	return base.RunDefinition{
 		Name:                 common.RandomNamespacedName(),
 		Version:              common.RandomString(),
 		PipelineName:         common.RandomNamespacedName(),
