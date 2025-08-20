@@ -4,31 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-
-	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
-
-type PipelineDefinition struct {
-	Name      common.NamespacedName `json:"name" yaml:"name"`
-	Version   string                `json:"version" yaml:"version"`
-	Image     string                `json:"image" yaml:"image"`
-	Env       []apis.NamedValue     `json:"env" yaml:"env"`
-	Framework PipelineFramework     `json:"framework" yaml:"framework"`
-}
-
-type PipelineFramework struct {
-	Name       string                           `json:"name" yaml:"name"`
-	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
-}
 
 // CompiledManifest represents the output of the python compile step, and
 // describes what vertex ai or kubeflow pipelines should do.
 type PipelineDefinitionWrapper struct {
-	PipelineDefinition PipelineDefinition `json:"pipelineDefinition"`
-	CompiledPipeline   json.RawMessage    `json:"compiledPipeline,omitempty"`
+	PipelineDefinition base.PipelineDefinition `json:"pipelineDefinition"`
+	CompiledPipeline   json.RawMessage         `json:"compiledPipeline,omitempty"`
 }
 
 type Provider interface {
