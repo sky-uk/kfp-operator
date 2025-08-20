@@ -8,6 +8,7 @@ import (
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
@@ -315,14 +316,14 @@ func ignoreNotFound(err error) error {
 
 func (vaip *VAIProvider) CreateExperiment(
 	_ context.Context,
-	_ resource.ExperimentDefinition,
+	_ base.ExperimentDefinition,
 ) (string, error) {
 	return "", errors.New("not implemented")
 }
 
 func (vaip *VAIProvider) UpdateExperiment(
 	_ context.Context,
-	_ resource.ExperimentDefinition,
+	_ base.ExperimentDefinition,
 	_ string,
 ) (string, error) {
 	return "", errors.New("not implemented")

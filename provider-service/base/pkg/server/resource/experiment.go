@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type Experiment struct {
@@ -17,7 +18,7 @@ func (*Experiment) Type() string {
 
 func (e *Experiment) Create(ctx context.Context, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
-	ed := ExperimentDefinition{}
+	ed := base.ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while creating Experiment")
 		return ResponseBody{}, &UserError{err}
@@ -37,7 +38,7 @@ func (e *Experiment) Create(ctx context.Context, body []byte) (ResponseBody, err
 
 func (e *Experiment) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
 	logger := common.LoggerFromContext(ctx)
-	ed := ExperimentDefinition{}
+	ed := base.ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while updating Experiment")
 		return ResponseBody{}, &UserError{err}

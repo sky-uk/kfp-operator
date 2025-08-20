@@ -10,6 +10,7 @@ import (
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type PipelineDefinition struct {
@@ -30,12 +31,6 @@ type PipelineFramework struct {
 type PipelineDefinitionWrapper struct {
 	PipelineDefinition PipelineDefinition `json:"pipelineDefinition"`
 	CompiledPipeline   json.RawMessage    `json:"compiledPipeline,omitempty"`
-}
-
-type ExperimentDefinition struct {
-	Name        common.NamespacedName `json:"name" yaml:"name"`
-	Version     string                `json:"version" yaml:"version"`
-	Description string                `json:"description" yaml:"description"`
 }
 
 type RunDefinition struct {
@@ -88,8 +83,8 @@ type RunScheduleProvider interface {
 }
 
 type ExperimentProvider interface {
-	CreateExperiment(ctx context.Context, ed ExperimentDefinition) (string, error)
-	UpdateExperiment(ctx context.Context, ed ExperimentDefinition, id string) (string, error)
+	CreateExperiment(ctx context.Context, ed base.ExperimentDefinition) (string, error)
+	UpdateExperiment(ctx context.Context, ed base.ExperimentDefinition, id string) (string, error)
 	DeleteExperiment(ctx context.Context, id string) error
 }
 

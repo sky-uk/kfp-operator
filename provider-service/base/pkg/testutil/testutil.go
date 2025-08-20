@@ -12,6 +12,7 @@ import (
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 var Start = metav1.Time{Time: time.Date(10000, 1, 1, 0, 0, 0, 0, time.UTC)}
@@ -56,8 +57,8 @@ func RandomPipelineDefinitionWrapper() resource.PipelineDefinitionWrapper {
 	}
 }
 
-func RandomExperimentDefinition() resource.ExperimentDefinition {
-	return resource.ExperimentDefinition{
+func RandomExperimentDefinition() base.ExperimentDefinition {
+	return base.ExperimentDefinition{
 		Name:        common.RandomNamespacedName(),
 		Version:     common.RandomString(),
 		Description: common.RandomString(),

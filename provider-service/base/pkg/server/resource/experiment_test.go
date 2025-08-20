@@ -9,6 +9,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -29,7 +30,7 @@ var _ = Describe("Experiment", Ordered, func() {
 	Context("Create", func() {
 		When("valid json passed, and provider returns success", func() {
 			It("returns the id of the resource", func() {
-				ed := ExperimentDefinition{}
+				ed := base.ExperimentDefinition{}
 				jsonExperiment, err := json.Marshal(ed)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -56,7 +57,7 @@ var _ = Describe("Experiment", Ordered, func() {
 
 		When("provider errors", func() {
 			It("errors", func() {
-				ed := ExperimentDefinition{}
+				ed := base.ExperimentDefinition{}
 				jsonExperiment, err := json.Marshal(ed)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -74,7 +75,7 @@ var _ = Describe("Experiment", Ordered, func() {
 	Context("Update", func() {
 		When("valid json passed, and provider operations succeed", func() {
 			It("returns no error", func() {
-				ed := ExperimentDefinition{}
+				ed := base.ExperimentDefinition{}
 				jsonExperiment, err := json.Marshal(ed)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -102,7 +103,7 @@ var _ = Describe("Experiment", Ordered, func() {
 
 		When("provider errors", func() {
 			It("errors", func() {
-				ed := ExperimentDefinition{}
+				ed := base.ExperimentDefinition{}
 				jsonExperiment, err := json.Marshal(ed)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -148,7 +149,7 @@ type MockExperimentProvider struct {
 
 func (m *MockExperimentProvider) CreateExperiment(
 	ctx context.Context,
-	ed ExperimentDefinition,
+	ed base.ExperimentDefinition,
 ) (string, error) {
 	args := m.Called(ctx, ed)
 	return args.String(0), args.Error(1)
@@ -156,7 +157,7 @@ func (m *MockExperimentProvider) CreateExperiment(
 
 func (m *MockExperimentProvider) UpdateExperiment(
 	ctx context.Context,
-	ed ExperimentDefinition,
+	ed base.ExperimentDefinition,
 	id string,
 ) (string, error) {
 	args := m.Called(ctx, ed, id)
