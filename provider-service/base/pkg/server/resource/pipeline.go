@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type Pipeline struct {
@@ -15,42 +16,42 @@ func (*Pipeline) Type() string {
 	return "pipeline"
 }
 
-func (p *Pipeline) Create(ctx context.Context, body []byte) (ResponseBody, error) {
+func (p *Pipeline) Create(ctx context.Context, body []byte) (base.Output, error) {
 	logger := common.LoggerFromContext(ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
 		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while creating Pipeline")
-		return ResponseBody{}, &UserError{err}
+		return base.Output{}, &UserError{err}
 	}
 
 	id, err := p.Provider.CreatePipeline(ctx, pdw)
 	if err != nil {
 		logger.Error(err, "CreatePipeline failed")
-		return ResponseBody{}, err
+		return base.Output{}, err
 	}
 	logger.Info("CreatePipeline succeeded", "response id", id)
 
-	return ResponseBody{
+	return base.Output{
 		Id: id,
 	}, nil
 }
 
-func (p *Pipeline) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
+func (p *Pipeline) Update(ctx context.Context, id string, body []byte) (base.Output, error) {
 	logger := common.LoggerFromContext(ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
 		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while updating Pipeline")
-		return ResponseBody{}, &UserError{err}
+		return base.Output{}, &UserError{err}
 	}
 
 	respId, err := p.Provider.UpdatePipeline(ctx, pdw, id)
 	if err != nil {
 		logger.Error(err, "UpdatePipeline failed", "id", id)
-		return ResponseBody{}, err
+		return base.Output{}, err
 	}
 	logger.Info("UpdatePipeline succeeded", "response id", respId)
 
-	return ResponseBody{
+	return base.Output{
 		Id: respId,
 	}, err
 }

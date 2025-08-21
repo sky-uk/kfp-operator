@@ -40,7 +40,7 @@ var _ = Describe("Run", Ordered, func() {
 				response, err := r.Create(ctx, jsonRun)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(Equal(ResponseBody{Id: id}))
+				Expect(response).To(Equal(base.Output{Id: id}))
 			})
 		})
 
@@ -51,7 +51,7 @@ var _ = Describe("Run", Ordered, func() {
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 
@@ -67,7 +67,7 @@ var _ = Describe("Run", Ordered, func() {
 				response, err := r.Create(ctx, jsonRun)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 	})
@@ -79,7 +79,7 @@ var _ = Describe("Run", Ordered, func() {
 
 			var expectedErr *UnimplementedError
 			Expect(errors.As(err, &expectedErr)).To(BeTrue())
-			Expect(response).To(Equal(ResponseBody{}))
+			Expect(response).To(Equal(base.Output{}))
 		})
 	})
 

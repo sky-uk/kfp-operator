@@ -40,7 +40,7 @@ var _ = Describe("Experiment", Ordered, func() {
 				response, err := exp.Create(ctx, jsonExperiment)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(Equal(ResponseBody{Id: id}))
+				Expect(response).To(Equal(base.Output{Id: id}))
 			})
 		})
 
@@ -51,7 +51,7 @@ var _ = Describe("Experiment", Ordered, func() {
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 
@@ -67,7 +67,7 @@ var _ = Describe("Experiment", Ordered, func() {
 				response, err := exp.Create(ctx, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 	})
@@ -86,7 +86,7 @@ var _ = Describe("Experiment", Ordered, func() {
 				resp, err := exp.Update(ctx, id, jsonExperiment)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(resp).To(Equal(ResponseBody{Id: updatedId}))
+				Expect(resp).To(Equal(base.Output{Id: updatedId}))
 			})
 		})
 
@@ -97,7 +97,7 @@ var _ = Describe("Experiment", Ordered, func() {
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
-				Expect(resp).To(Equal(ResponseBody{}))
+				Expect(resp).To(Equal(base.Output{}))
 			})
 		})
 
@@ -114,7 +114,7 @@ var _ = Describe("Experiment", Ordered, func() {
 				resp, err := exp.Update(ctx, id, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(resp).To(Equal(ResponseBody{}))
+				Expect(resp).To(Equal(base.Output{}))
 			})
 		})
 	})
