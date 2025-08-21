@@ -20,11 +20,8 @@ type DefaultJobEnricher struct {
 
 func NewDefaultJobEnricher() DefaultJobEnricher {
 	return DefaultJobEnricher{
-		pipelineSchemaHandler: DefaultPipelineSchemaHandler{
-			schema2Handler:   Schema2Handler{},
-			schema2_1Handler: Schema2_1Handler{},
-		},
-		labelSanitizer: DefaultLabelSanitizer{},
+		pipelineSchemaHandler: SchemaHandler{},
+		labelSanitizer:        DefaultLabelSanitizer{},
 	}
 }
 
