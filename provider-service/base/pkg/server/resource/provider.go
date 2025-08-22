@@ -7,7 +7,7 @@ import (
 	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
-// CompiledManifest represents the output of the python compile step, and
+// CompiledPipeline represents the output of the python compile step, and
 // describes what vertex ai or kubeflow pipelines should do.
 type PipelineDefinitionWrapper struct {
 	PipelineDefinition base.PipelineDefinition `json:"pipelineDefinition"`
