@@ -3,7 +3,9 @@ package resource
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type Run struct {
@@ -14,29 +16,29 @@ func (*Run) Type() string {
 	return "run"
 }
 
-func (r *Run) Create(ctx context.Context, body []byte) (ResponseBody, error) {
+func (r *Run) Create(ctx context.Context, body []byte) (base.Output, error) {
 	logger := common.LoggerFromContext(ctx)
-	rd := RunDefinition{}
+	rd := base.RunDefinition{}
 
 	if err := json.Unmarshal(body, &rd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunDefinition while creating Run")
-		return ResponseBody{}, &UserError{err}
+		return base.Output{}, &UserError{err}
 	}
 
 	id, err := r.Provider.CreateRun(ctx, rd)
 	if err != nil {
 		logger.Error(err, "CreateRun failed")
-		return ResponseBody{}, err
+		return base.Output{}, err
 	}
 	logger.Info("CreateRun succeeded", "response id", id)
 
-	return ResponseBody{
+	return base.Output{
 		Id: id,
 	}, nil
 }
 
-func (r *Run) Update(_ context.Context, _ string, _ []byte) (ResponseBody, error) {
-	return ResponseBody{}, &UnimplementedError{Method: "Update", ResourceType: r.Type()}
+func (r *Run) Update(_ context.Context, _ string, _ []byte) (base.Output, error) {
+	return base.Output{}, &UnimplementedError{Method: "Update", ResourceType: r.Type()}
 }
 
 func (r *Run) Delete(ctx context.Context, id string) error {

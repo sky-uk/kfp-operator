@@ -43,6 +43,8 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 		return nil, providers.RunDefinition{}, err
 	}
 
+	triggerIndicator := triggers.FromLabels(run.Labels)
+
 	runDefinition := providers.RunDefinition{
 		Name: common.NamespacedName{
 			Namespace: run.Namespace,
@@ -57,7 +59,7 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 		ExperimentName:   experimentName,
 		Parameters:       NamedValuesToMap(parameters),
 		Artifacts:        run.Spec.Artifacts,
-		TriggerIndicator: triggers.FromLabels(run.Labels),
+		TriggerIndicator: &triggerIndicator,
 	}
 
 	if runConfigurationName, ok := run.Labels[RunConfigurationConstants.RunConfigurationNameLabelKey]; ok {

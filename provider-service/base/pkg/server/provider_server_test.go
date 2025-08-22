@@ -15,6 +15,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
 )
@@ -31,11 +32,11 @@ func (m *MockHandledResource) Type() string {
 	return args.String(0)
 }
 
-func (m *MockHandledResource) Create(ctx context.Context, body []byte) (resource.ResponseBody, error) {
+func (m *MockHandledResource) Create(ctx context.Context, body []byte) (base.Output, error) {
 	args := m.Called(ctx, body)
-	var response resource.ResponseBody
+	var response base.Output
 	if arg0 := args.Get(0); arg0 != nil {
-		response = arg0.(resource.ResponseBody)
+		response = arg0.(base.Output)
 	}
 	return response, args.Error(1)
 }
@@ -44,11 +45,11 @@ func (m *MockHandledResource) Update(
 	ctx context.Context,
 	id string,
 	body []byte,
-) (resource.ResponseBody, error) {
+) (base.Output, error) {
 	args := m.Called(ctx, id, body)
-	var response resource.ResponseBody
+	var response base.Output
 	if arg0 := args.Get(0); arg0 != nil {
-		response = arg0.(resource.ResponseBody)
+		response = arg0.(base.Output)
 	}
 	return response, args.Error(1)
 }
@@ -126,7 +127,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					response := "mocked-id"
 
 					handledResource.On("Create", ignoreCtx, payload).Return(
-						resource.ResponseBody{
+						base.Output{
 							Id: response,
 						},
 						nil,
@@ -257,7 +258,7 @@ var _ = Describe("Http Server Endpoints", func() {
 					id := "mock-id/bla"
 					response := "response-id"
 					handledResource.On("Update", ignoreCtx, id, payload, mock.Anything).Return(
-						resource.ResponseBody{Id: response},
+						base.Output{Id: response},
 						nil,
 					)
 					encodedId := url.PathEscape(id)

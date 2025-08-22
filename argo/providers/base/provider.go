@@ -43,7 +43,7 @@ type RunDefinition struct {
 	ExperimentName       common.NamespacedName         `json:"experimentName" yaml:"experimentName"`
 	Parameters           map[string]string             `json:"parameters,omitempty" yaml:"parameters,omitempty"`
 	Artifacts            []pipelineshub.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
-	TriggerIndicator     triggers.Indicator            `json:"triggerIndicator,omitempty" yaml:"labels,omitempty"`
+	TriggerIndicator     *triggers.Indicator           `json:"triggerIndicator,omitempty" yaml:"labels,omitempty"`
 }
 
 type Output struct {

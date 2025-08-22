@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	baseUtil "github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/util"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -13,13 +13,13 @@ import (
 
 type JobBuilder interface {
 	MkRunPipelineJob(
-		rd resource.RunDefinition,
+		rd base.RunDefinition,
 	) (*aiplatformpb.PipelineJob, error)
 	MkRunSchedulePipelineJob(
-		rsd resource.RunScheduleDefinition,
+		rsd base.RunScheduleDefinition,
 	) (*aiplatformpb.PipelineJob, error)
 	MkSchedule(
-		rsd resource.RunScheduleDefinition,
+		rsd base.RunScheduleDefinition,
 		pipelineJob *aiplatformpb.PipelineJob,
 		parent string,
 		maxConcurrentRunCount int64,
@@ -36,7 +36,7 @@ type DefaultJobBuilder struct {
 // MkRunPipelineJob creates a vai pipeline job for a run that can be submitted
 // to a vai pipeline job client.
 func (jb DefaultJobBuilder) MkRunPipelineJob(
-	rd resource.RunDefinition,
+	rd base.RunDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rd.Parameters))
 	for name, value := range rd.Parameters {
@@ -74,7 +74,7 @@ func (jb DefaultJobBuilder) MkRunPipelineJob(
 // MkRunScheudlePipelineJob creates a vai pipeline job for a run schedule that
 // can be used to create a vai schedule.
 func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) (*aiplatformpb.PipelineJob, error) {
 	params := make(map[string]*aiplatformpb.Value, len(rsd.Parameters))
 	for name, value := range rsd.Parameters {
@@ -116,7 +116,7 @@ func (jb DefaultJobBuilder) MkRunSchedulePipelineJob(
 // Note that if the schedule has a start time in the past, the start time will be removed from the schedule,
 // and will start immediately. This is to prevent VAI from `catching up` on the schedule missed runs.
 func (jb DefaultJobBuilder) MkSchedule(
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	pipelineJob *aiplatformpb.PipelineJob,
 	parent string,
 	maxConcurrentRunCount int64,

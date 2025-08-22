@@ -11,15 +11,16 @@ import (
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var Start = metav1.Time{Time: time.Date(10000, 1, 1, 0, 0, 0, 0, time.UTC)}
 var End = metav1.Time{Time: time.Date(10001, 1, 1, 0, 0, 0, 0, time.UTC)}
 
-func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
+func RandomRunScheduleDefinition() base.RunScheduleDefinition {
 	name := common.RandomNamespacedName()
-	return resource.RunScheduleDefinition{
+	return base.RunScheduleDefinition{
 		Name:                 name,
 		Version:              common.RandomString(),
 		PipelineName:         common.RandomNamespacedName(),
@@ -31,7 +32,7 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 			StartTime:      &Start,
 			EndTime:        &End,
 		},
-		TriggerIndicator: &triggers.Indicator{
+		TriggerIndicator: triggers.Indicator{
 			Type:            triggers.Schedule,
 			Source:          name.Name,
 			SourceNamespace: name.Namespace,
@@ -39,13 +40,13 @@ func RandomRunScheduleDefinition() resource.RunScheduleDefinition {
 	}
 }
 
-func RandomPipelineDefinition() resource.PipelineDefinition {
-	return resource.PipelineDefinition{
+func RandomPipelineDefinition() base.PipelineDefinition {
+	return base.PipelineDefinition{
 		Name:      common.RandomNamespacedName(),
 		Version:   common.RandomString(),
 		Image:     common.RandomString(),
 		Env:       make([]apis.NamedValue, 0),
-		Framework: resource.PipelineFramework{Name: common.RandomString()},
+		Framework: pipelineshub.PipelineFramework{Name: common.RandomString()},
 	}
 }
 
@@ -56,16 +57,16 @@ func RandomPipelineDefinitionWrapper() resource.PipelineDefinitionWrapper {
 	}
 }
 
-func RandomExperimentDefinition() resource.ExperimentDefinition {
-	return resource.ExperimentDefinition{
+func RandomExperimentDefinition() base.ExperimentDefinition {
+	return base.ExperimentDefinition{
 		Name:        common.RandomNamespacedName(),
 		Version:     common.RandomString(),
 		Description: common.RandomString(),
 	}
 }
 
-func RandomRunDefinition() resource.RunDefinition {
-	return resource.RunDefinition{
+func RandomRunDefinition() base.RunDefinition {
+	return base.RunDefinition{
 		Name:                 common.RandomNamespacedName(),
 		Version:              common.RandomString(),
 		PipelineName:         common.RandomNamespacedName(),

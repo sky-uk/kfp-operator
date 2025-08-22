@@ -9,6 +9,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -39,7 +40,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 				resp, err := p.Create(ctx, jsonPipeline)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(resp).To(Equal(ResponseBody{Id: id}))
+				Expect(resp).To(Equal(base.Output{Id: id}))
 			})
 		})
 
@@ -50,7 +51,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 
@@ -66,7 +67,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 				response, err := p.Create(ctx, jsonPipeline)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 	})
@@ -85,7 +86,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 				resp, err := p.Update(ctx, id, jsonPipeline)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(resp).To(Equal(ResponseBody{Id: updatedId}))
+				Expect(resp).To(Equal(base.Output{Id: updatedId}))
 			})
 		})
 
@@ -96,7 +97,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
-				Expect(resp).To(Equal(ResponseBody{}))
+				Expect(resp).To(Equal(base.Output{}))
 			})
 		})
 
@@ -113,7 +114,7 @@ var _ = Describe("Pipeline", Ordered, func() {
 				resp, err := p.Update(ctx, id, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(resp).To(Equal(ResponseBody{}))
+				Expect(resp).To(Equal(base.Output{}))
 			})
 		})
 	})
