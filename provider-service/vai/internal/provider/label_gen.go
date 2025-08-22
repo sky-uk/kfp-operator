@@ -73,9 +73,11 @@ func (lg DefaultLabelGen) runLabelsFromRunDefinition(
 		runLabels[label.RunNamespace] = rd.Name.Namespace
 	}
 
-	runLabels[triggers.Type] = rd.TriggerIndicator.Type
-	runLabels[triggers.Source] = rd.TriggerIndicator.Source
-	runLabels[triggers.SourceNamespace] = rd.TriggerIndicator.SourceNamespace
+	if rd.TriggerIndicator != nil {
+		runLabels[triggers.Type] = rd.TriggerIndicator.Type
+		runLabels[triggers.Source] = rd.TriggerIndicator.Source
+		runLabels[triggers.SourceNamespace] = rd.TriggerIndicator.SourceNamespace
+	}
 
 	return runLabels
 }
