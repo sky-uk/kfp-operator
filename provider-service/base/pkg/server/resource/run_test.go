@@ -9,6 +9,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -29,7 +30,7 @@ var _ = Describe("Run", Ordered, func() {
 	Context("Create", func() {
 		When("valid json passed, and provider returns success", func() {
 			It("returns the id of the resource", func() {
-				rd := RunDefinition{}
+				rd := base.RunDefinition{}
 				jsonRun, err := json.Marshal(rd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -39,7 +40,7 @@ var _ = Describe("Run", Ordered, func() {
 				response, err := r.Create(ctx, jsonRun)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(Equal(ResponseBody{Id: id}))
+				Expect(response).To(Equal(base.Output{Id: id}))
 			})
 		})
 
@@ -50,13 +51,13 @@ var _ = Describe("Run", Ordered, func() {
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 
 		When("provider errors", func() {
 			It("errors", func() {
-				rd := RunDefinition{}
+				rd := base.RunDefinition{}
 				jsonRun, err := json.Marshal(rd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -66,7 +67,7 @@ var _ = Describe("Run", Ordered, func() {
 				response, err := r.Create(ctx, jsonRun)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 	})
@@ -78,7 +79,7 @@ var _ = Describe("Run", Ordered, func() {
 
 			var expectedErr *UnimplementedError
 			Expect(errors.As(err, &expectedErr)).To(BeTrue())
-			Expect(response).To(Equal(ResponseBody{}))
+			Expect(response).To(Equal(base.Output{}))
 		})
 	})
 
@@ -110,7 +111,7 @@ type MockRunProvider struct {
 	mock.Mock
 }
 
-func (m *MockRunProvider) CreateRun(ctx context.Context, rd RunDefinition) (string, error) {
+func (m *MockRunProvider) CreateRun(ctx context.Context, rd base.RunDefinition) (string, error) {
 	args := m.Called(ctx, rd)
 	return args.String(0), args.Error(1)
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
 type Experiment struct {
@@ -15,42 +16,42 @@ func (*Experiment) Type() string {
 	return "experiment"
 }
 
-func (e *Experiment) Create(ctx context.Context, body []byte) (ResponseBody, error) {
+func (e *Experiment) Create(ctx context.Context, body []byte) (base.Output, error) {
 	logger := common.LoggerFromContext(ctx)
-	ed := ExperimentDefinition{}
+	ed := base.ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while creating Experiment")
-		return ResponseBody{}, &UserError{err}
+		return base.Output{}, &UserError{err}
 	}
 
 	id, err := e.Provider.CreateExperiment(ctx, ed)
 	if err != nil {
 		logger.Error(err, "CreateExperiment failed")
-		return ResponseBody{}, err
+		return base.Output{}, err
 	}
 	logger.Info("CreateExperiment succeeded", "response id", id)
 
-	return ResponseBody{
+	return base.Output{
 		Id: id,
 	}, nil
 }
 
-func (e *Experiment) Update(ctx context.Context, id string, body []byte) (ResponseBody, error) {
+func (e *Experiment) Update(ctx context.Context, id string, body []byte) (base.Output, error) {
 	logger := common.LoggerFromContext(ctx)
-	ed := ExperimentDefinition{}
+	ed := base.ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while updating Experiment")
-		return ResponseBody{}, &UserError{err}
+		return base.Output{}, &UserError{err}
 	}
 
 	respId, err := e.Provider.UpdateExperiment(ctx, ed, id)
 	if err != nil {
 		logger.Error(err, "UpdateExperiment failed", "id", id)
-		return ResponseBody{}, err
+		return base.Output{}, err
 	}
 	logger.Info("UpdateExperiment succeeded", "response id", respId)
 
-	return ResponseBody{
+	return base.Output{
 		Id: respId,
 	}, nil
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -121,7 +122,7 @@ func deleteHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 
 		switch {
 		case err == nil:
-			writeResponse(w, resource.ResponseBody{}, http.StatusOK)
+			writeResponse(w, base.Output{}, http.StatusOK)
 			return
 
 		case errors.As(err, new(*resource.UserError)):
@@ -190,14 +191,14 @@ func NewProviderServer(
 }
 
 func writeErrorResponse(w http.ResponseWriter, id string, providerError error, statusCode int) {
-	responseBody := resource.ResponseBody{
+	responseBody := base.Output{
 		Id:            id,
 		ProviderError: providerError.Error(),
 	}
 	writeResponse(w, responseBody, statusCode)
 }
 
-func writeResponse(w http.ResponseWriter, responseBody resource.ResponseBody, statusCode int) {
+func writeResponse(w http.ResponseWriter, responseBody base.Output, statusCode int) {
 	marshalledResponse, err := json.Marshal(responseBody)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -206,5 +207,4 @@ func writeResponse(w http.ResponseWriter, responseBody resource.ResponseBody, st
 
 	w.WriteHeader(statusCode)
 	w.Write(marshalledResponse)
-	return
 }

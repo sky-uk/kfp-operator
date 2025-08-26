@@ -9,6 +9,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -29,7 +30,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 	Context("Create", func() {
 		When("valid json passed, and provider returns success", func() {
 			It("returns the id of the resource", func() {
-				rsd := RunScheduleDefinition{}
+				rsd := base.RunScheduleDefinition{}
 				jsonRunSchedule, err := json.Marshal(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -39,7 +40,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				response, err := rs.Create(ctx, jsonRunSchedule)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(response).To(Equal(ResponseBody{Id: id}))
+				Expect(response).To(Equal(base.Output{Id: id}))
 			})
 		})
 
@@ -50,13 +51,13 @@ var _ = Describe("RunSchedule", Ordered, func() {
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 
 		When("provider errors", func() {
 			It("errors", func() {
-				rsd := RunScheduleDefinition{}
+				rsd := base.RunScheduleDefinition{}
 				jsonRunSchedule, err := json.Marshal(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -66,7 +67,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				response, err := rs.Create(ctx, jsonRunSchedule)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(response).To(Equal(ResponseBody{}))
+				Expect(response).To(Equal(base.Output{}))
 			})
 		})
 	})
@@ -74,7 +75,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 	Context("Update", func() {
 		When("valid json passed, and provider operations succeed", func() {
 			It("returns no error", func() {
-				rsd := RunScheduleDefinition{}
+				rsd := base.RunScheduleDefinition{}
 				jsonRunSchedule, err := json.Marshal(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -85,7 +86,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				resp, err := rs.Update(ctx, id, jsonRunSchedule)
 
 				Expect(err).ToNot(HaveOccurred())
-				Expect(resp).To(Equal(ResponseBody{Id: updatedId}))
+				Expect(resp).To(Equal(base.Output{Id: updatedId}))
 			})
 		})
 
@@ -96,13 +97,13 @@ var _ = Describe("RunSchedule", Ordered, func() {
 
 				var expectedErr *UserError
 				Expect(errors.As(err, &expectedErr)).To(BeTrue())
-				Expect(resp).To(Equal(ResponseBody{}))
+				Expect(resp).To(Equal(base.Output{}))
 			})
 		})
 
 		When("provider errors", func() {
 			It("errors", func() {
-				rsd := RunScheduleDefinition{}
+				rsd := base.RunScheduleDefinition{}
 				jsonExperiment, err := json.Marshal(rsd)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -113,7 +114,7 @@ var _ = Describe("RunSchedule", Ordered, func() {
 				resp, err := rs.Update(ctx, id, jsonExperiment)
 
 				Expect(err).To(Equal(expectedErr))
-				Expect(resp).To(Equal(ResponseBody{}))
+				Expect(resp).To(Equal(base.Output{}))
 			})
 		})
 	})
@@ -148,7 +149,7 @@ type MockRunScheduleProvider struct {
 
 func (m *MockRunScheduleProvider) CreateRunSchedule(
 	ctx context.Context,
-	rsd RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) (string, error) {
 	args := m.Called(ctx, rsd)
 	return args.String(0), args.Error(1)
@@ -156,7 +157,7 @@ func (m *MockRunScheduleProvider) CreateRunSchedule(
 
 func (m *MockRunScheduleProvider) UpdateRunSchedule(
 	ctx context.Context,
-	rsd RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	id string,
 ) (string, error) {
 	args := m.Called(ctx, rsd, id)

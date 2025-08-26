@@ -133,16 +133,14 @@ var _ = Describe("DefaultLabelGen", func() {
 			})
 		})
 
-		When("TriggerIndicator is non-empty", func() {
-			It("generates run labels with trigger type and source", func() {
-				rsd := testutil.RandomRunScheduleDefinition()
-				rl, err := lg.GenerateLabels(rsd)
-				Expect(err).ToNot(HaveOccurred())
+		It("generates run labels with trigger type and source", func() {
+			rsd := testutil.RandomRunScheduleDefinition()
+			rl, err := lg.GenerateLabels(rsd)
+			Expect(err).ToNot(HaveOccurred())
 
-				Expect(rl[triggers.Type]).To(Equal(triggers.Schedule))
-				Expect(rl[triggers.Source]).To(Equal(rsd.Name.Name))
-				Expect(rl[triggers.SourceNamespace]).To(Equal(rsd.Name.Namespace))
-			})
+			Expect(rl[triggers.Type]).To(Equal(triggers.Schedule))
+			Expect(rl[triggers.Source]).To(Equal(rsd.Name.Name))
+			Expect(rl[triggers.SourceNamespace]).To(Equal(rsd.Name.Namespace))
 		})
 	})
 })

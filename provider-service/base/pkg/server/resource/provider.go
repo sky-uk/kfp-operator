@@ -4,63 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/common/triggers"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-
-	"github.com/sky-uk/kfp-operator/apis"
-	pipelines "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 )
 
-type PipelineDefinition struct {
-	Name      common.NamespacedName `json:"name" yaml:"name"`
-	Version   string                `json:"version" yaml:"version"`
-	Image     string                `json:"image" yaml:"image"`
-	Env       []apis.NamedValue     `json:"env" yaml:"env"`
-	Framework PipelineFramework     `json:"framework" yaml:"framework"`
-}
-
-type PipelineFramework struct {
-	Name       string                           `json:"name" yaml:"name"`
-	Parameters map[string]*apiextensionsv1.JSON `json:"parameters" yaml:"parameters"`
-}
-
-// CompiledManifest represents the output of the python compile step, and
+// CompiledPipeline represents the output of the python compile step, and
 // describes what vertex ai or kubeflow pipelines should do.
 type PipelineDefinitionWrapper struct {
-	PipelineDefinition PipelineDefinition `json:"pipelineDefinition"`
-	CompiledPipeline   json.RawMessage    `json:"compiledPipeline,omitempty"`
-}
-
-type ExperimentDefinition struct {
-	Name        common.NamespacedName `json:"name" yaml:"name"`
-	Version     string                `json:"version" yaml:"version"`
-	Description string                `json:"description" yaml:"description"`
-}
-
-type RunDefinition struct {
-	Name                 common.NamespacedName      `json:"name" yaml:"name"`
-	Version              string                     `json:"version" yaml:"version"`
-	PipelineName         common.NamespacedName      `json:"pipelineName" yaml:"pipelineName"`
-	PipelineVersion      string                     `json:"pipelineVersion" yaml:"pipelineVersion"`
-	RunConfigurationName common.NamespacedName      `json:"runConfigurationName" yaml:"runConfigurationName"`
-	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
-	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
-	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
-	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
-}
-
-type RunScheduleDefinition struct {
-	Name                 common.NamespacedName      `json:"name" yaml:"name"`
-	Version              string                     `json:"version" yaml:"version"`
-	PipelineName         common.NamespacedName      `json:"pipelineName" yaml:"pipelineName"`
-	PipelineVersion      string                     `json:"pipelineVersion" yaml:"pipelineVersion"`
-	RunConfigurationName common.NamespacedName      `json:"runConfigurationName" yaml:"runConfigurationName"`
-	ExperimentName       common.NamespacedName      `json:"experimentName" yaml:"experimentName"`
-	Schedule             pipelines.Schedule         `json:"schedule" yaml:"schedule"`
-	Parameters           map[string]string          `json:"parameters" yaml:"parameters"`
-	Artifacts            []pipelines.OutputArtifact `json:"artifacts,omitempty" yaml:"artifacts,omitempty"`
-	TriggerIndicator     *triggers.Indicator        `json:"triggerIndicator,omitempty" yaml:"triggerIndicator,omitempty"`
+	PipelineDefinition base.PipelineDefinition `json:"pipelineDefinition"`
+	CompiledPipeline   json.RawMessage         `json:"compiledPipeline,omitempty"`
 }
 
 type Provider interface {
@@ -77,19 +28,19 @@ type PipelineProvider interface {
 }
 
 type RunProvider interface {
-	CreateRun(ctx context.Context, rd RunDefinition) (string, error)
+	CreateRun(ctx context.Context, rd base.RunDefinition) (string, error)
 	DeleteRun(ctx context.Context, id string) error
 }
 
 type RunScheduleProvider interface {
-	CreateRunSchedule(ctx context.Context, rsd RunScheduleDefinition) (string, error)
-	UpdateRunSchedule(ctx context.Context, rsd RunScheduleDefinition, id string) (string, error)
+	CreateRunSchedule(ctx context.Context, rsd base.RunScheduleDefinition) (string, error)
+	UpdateRunSchedule(ctx context.Context, rsd base.RunScheduleDefinition, id string) (string, error)
 	DeleteRunSchedule(ctx context.Context, id string) error
 }
 
 type ExperimentProvider interface {
-	CreateExperiment(ctx context.Context, ed ExperimentDefinition) (string, error)
-	UpdateExperiment(ctx context.Context, ed ExperimentDefinition, id string) (string, error)
+	CreateExperiment(ctx context.Context, ed base.ExperimentDefinition) (string, error)
+	UpdateExperiment(ctx context.Context, ed base.ExperimentDefinition, id string) (string, error)
 	DeleteExperiment(ctx context.Context, id string) error
 }
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
+	"github.com/sky-uk/kfp-operator/argo/providers/base"
 	. "github.com/sky-uk/kfp-operator/common/testutil/provider"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
@@ -50,7 +51,7 @@ func (p *StubProvider) DeletePipeline(_ context.Context, id string) error {
 
 func (p *StubProvider) CreateRun(
 	_ context.Context,
-	rd resource.RunDefinition,
+	rd base.RunDefinition,
 ) (string, error) {
 	if strings.EqualFold(rd.Name.Name, CreateRunFail) {
 		return "", &CreateRunError{}
@@ -69,7 +70,7 @@ func (p *StubProvider) DeleteRun(_ context.Context, id string) error {
 
 func (p *StubProvider) CreateRunSchedule(
 	_ context.Context,
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 ) (string, error) {
 	if strings.EqualFold(rsd.Name.Name, CreateRunScheduleFail) {
 		return "", &CreateRunScheduleError{}
@@ -80,7 +81,7 @@ func (p *StubProvider) CreateRunSchedule(
 
 func (p *StubProvider) UpdateRunSchedule(
 	_ context.Context,
-	rsd resource.RunScheduleDefinition,
+	rsd base.RunScheduleDefinition,
 	_ string,
 ) (string, error) {
 	if strings.EqualFold(rsd.Name.Name, UpdateRunScheduleFail) {
@@ -100,7 +101,7 @@ func (p *StubProvider) DeleteRunSchedule(_ context.Context, id string) error {
 
 func (p *StubProvider) CreateExperiment(
 	_ context.Context,
-	ed resource.ExperimentDefinition,
+	ed base.ExperimentDefinition,
 ) (string, error) {
 	if strings.EqualFold(ed.Name.Name, CreateExperimentFail) {
 		return "", &CreateExperimentError{}
@@ -111,7 +112,7 @@ func (p *StubProvider) CreateExperiment(
 
 func (p *StubProvider) UpdateExperiment(
 	_ context.Context,
-	ed resource.ExperimentDefinition,
+	ed base.ExperimentDefinition,
 	_ string,
 ) (string, error) {
 	if strings.EqualFold(ed.Name.Name, UpdateExperimentFail) {
