@@ -1,12 +1,12 @@
 package pkg
 
 import (
-	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"k8s.io/client-go/dynamic"
 )
 
 func NewK8sClient() (*K8sClient, error) {
-	k8sConfig, err := common.K8sClientConfig()
+	k8sConfig, err := config.K8sClientConfig()
 	if err != nil {
 		return nil, err
 	}

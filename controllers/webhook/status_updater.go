@@ -2,7 +2,9 @@ package webhook
 
 import (
 	"context"
+
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/internal/config"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,7 +30,7 @@ type StatusUpdater struct {
 
 func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdater, error) {
 	logger := log.FromContext(ctx)
-	k8sConfig, err := common.K8sClientConfig()
+	k8sConfig, err := config.K8sClientConfig()
 	if err != nil {
 		logger.Error(err, "Error reading k8s client config")
 		return StatusUpdater{}, err
