@@ -24,7 +24,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
-	"github.com/sky-uk/kfp-operator/pkg/common/metrics"
+	"github.com/sky-uk/kfp-operator/internal/metrics"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	runtimeMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 
