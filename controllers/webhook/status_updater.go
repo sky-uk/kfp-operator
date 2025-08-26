@@ -4,7 +4,6 @@ import (
 	"context"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/pkg/common"
-	argocommon "github.com/sky-uk/kfp-operator/pkg/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -12,11 +11,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-func completionStateForRunCompletionStatus(rcs argocommon.RunCompletionStatus) *pipelineshub.CompletionState {
+func completionStateForRunCompletionStatus(rcs common.RunCompletionStatus) *pipelineshub.CompletionState {
 	switch rcs {
-	case argocommon.RunCompletionStatuses.Succeeded:
+	case common.RunCompletionStatuses.Succeeded:
 		return &pipelineshub.CompletionStates.Succeeded
-	case argocommon.RunCompletionStatuses.Failed:
+	case common.RunCompletionStatuses.Failed:
 		return &pipelineshub.CompletionStates.Failed
 	default:
 		return nil
@@ -47,7 +46,7 @@ func NewStatusUpdater(ctx context.Context, scheme *runtime.Scheme) (StatusUpdate
 	return StatusUpdater{k8sClient}, nil
 }
 
-func (su StatusUpdater) Handle(ctx context.Context, event argocommon.RunCompletionEvent) EventError {
+func (su StatusUpdater) Handle(ctx context.Context, event common.RunCompletionEvent) EventError {
 	logger := log.FromContext(ctx).WithValues("RunId", event.RunId)
 
 	runConfigurationIsSpecified := event.RunConfigurationName != nil
@@ -102,7 +101,7 @@ func (su StatusUpdater) Handle(ctx context.Context, event argocommon.RunCompleti
 	return nil
 }
 
-func (su StatusUpdater) completeRun(ctx context.Context, event argocommon.RunCompletionEvent) error {
+func (su StatusUpdater) completeRun(ctx context.Context, event common.RunCompletionEvent) error {
 	logger := log.FromContext(ctx)
 
 	if event.RunName.Namespace == "" {
@@ -138,11 +137,11 @@ func (su StatusUpdater) completeRun(ctx context.Context, event argocommon.RunCom
 
 func (su StatusUpdater) completeRunConfiguration(
 	ctx context.Context,
-	event argocommon.RunCompletionEvent,
+	event common.RunCompletionEvent,
 ) error {
 	logger := log.FromContext(ctx)
 
-	if event.Status != argocommon.RunCompletionStatuses.Succeeded ||
+	if event.Status != common.RunCompletionStatuses.Succeeded ||
 		event.RunConfigurationName.Namespace == "" {
 		logger.Info(
 			"RunCompletionEvent's RunConfigurationName namespace was empty. Skipping.",

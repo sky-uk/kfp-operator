@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	argoCommon "github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/common/metrics"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -15,7 +15,7 @@ import (
 )
 
 func Start(ctx context.Context, cfg config.Config, provider resource.Provider) error {
-	log := argoCommon.LoggerFromContext(ctx)
+	log := common.LoggerFromContext(ctx)
 
 	meterProvider, err := metrics.InitMeterProvider(fmt.Sprintf("provider-service-%s", cfg.ProviderName))
 	if err != nil {
