@@ -59,7 +59,6 @@ def test_compiler__compile_with_different_formats(file_extension, loader):
             pipeline = loader(f.read())
 
         assert "labels" in pipeline
-        assert "runtimeConfig" in pipeline
         assert pipeline["pipelineSpec"]["schemaVersion"] == "2.1.0"
         assert pipeline["displayName"] == "test"
 

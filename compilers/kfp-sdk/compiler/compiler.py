@@ -104,7 +104,6 @@ def wrap_pipeline_spec(raw_pipeline_spec: dict, pipeline_name: str) -> dict:
         "displayName": pipeline_name,
         "labels": {},
         "pipelineSpec": raw_pipeline_spec,
-        "runtimeConfig": {},
     }
 
     return wrapped_spec
