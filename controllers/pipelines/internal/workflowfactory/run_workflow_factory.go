@@ -2,7 +2,7 @@ package workflowfactory
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/common/triggers"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"

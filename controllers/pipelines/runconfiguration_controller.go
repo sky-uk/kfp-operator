@@ -3,7 +3,7 @@ package pipelines
 import (
 	"context"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/common/triggers"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"reflect"
 	"slices"
 	"time"

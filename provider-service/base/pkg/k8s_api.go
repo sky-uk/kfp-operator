@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"github.com/sky-uk/kfp-operator/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"k8s.io/client-go/dynamic"
 )
 

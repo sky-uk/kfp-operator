@@ -5,7 +5,7 @@ package testutil
 import (
 	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/common/triggers"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"time"
 

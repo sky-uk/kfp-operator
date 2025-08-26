@@ -1,7 +1,7 @@
 package workflowfactory
 
 import (
-	"github.com/sky-uk/kfp-operator/common/triggers"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"strings"
 
 	"github.com/sky-uk/kfp-operator/apis"

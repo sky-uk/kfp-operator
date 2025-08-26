@@ -6,7 +6,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	testutil "github.com/sky-uk/kfp-operator/common/testutil/provider"
+	testutil "github.com/sky-uk/kfp-operator/pkg/common/testutil/provider"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 

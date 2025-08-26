@@ -3,7 +3,7 @@ package webhook
 import (
 	"context"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	argocommon "github.com/sky-uk/kfp-operator/pkg/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
