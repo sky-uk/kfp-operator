@@ -3,7 +3,7 @@ package webhook
 import (
 	"github.com/hashicorp/go-bexpr"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 )
 
 type EventProcessor interface {

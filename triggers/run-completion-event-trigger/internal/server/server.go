@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/cmd/config"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/converters"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"

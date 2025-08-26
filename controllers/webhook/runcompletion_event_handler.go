@@ -2,7 +2,7 @@ package webhook
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 )
 
 type RunCompletionEventHandler interface {

@@ -2,7 +2,7 @@ package v1beta1
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 )
 
 // +kubebuilder:object:generate=true

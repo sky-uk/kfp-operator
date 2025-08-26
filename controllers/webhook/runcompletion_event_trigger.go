@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"google.golang.org/grpc/credentials/insecure"
 
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"

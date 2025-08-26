@@ -1,7 +1,7 @@
 package v1alpha6
 
 import (
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 )
 
 var DefaultProviderNamespace string

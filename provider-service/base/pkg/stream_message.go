@@ -1,6 +1,6 @@
 package pkg
 
-import _ "github.com/sky-uk/kfp-operator/argo/common"
+import _ "github.com/sky-uk/kfp-operator/pkg/common"
 
 type OnCompleteHandlers struct {
 	OnSuccessHandler              func()

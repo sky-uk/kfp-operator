@@ -3,7 +3,7 @@ package v1alpha5
 import (
 	"github.com/sky-uk/kfp-operator/apis"
 	hub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

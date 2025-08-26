@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"regexp"
 	"strings"
 )

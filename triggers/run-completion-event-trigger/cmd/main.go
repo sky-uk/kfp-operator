@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/nats-io/nats.go"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/cmd/config"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/server"

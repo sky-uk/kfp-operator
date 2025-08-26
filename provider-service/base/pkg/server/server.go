@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	argoCommon "github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/common/metrics"
+	argoCommon "github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"golang.org/x/sync/errgroup"

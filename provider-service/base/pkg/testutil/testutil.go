@@ -10,8 +10,8 @@ import (
 	"time"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

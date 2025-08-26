@@ -2,7 +2,7 @@ package resource
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
 type HttpHandledResource interface {

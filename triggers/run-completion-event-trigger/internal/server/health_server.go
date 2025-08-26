@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 

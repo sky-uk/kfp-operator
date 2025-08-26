@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
 
 	"google.golang.org/grpc/credentials/insecure"
