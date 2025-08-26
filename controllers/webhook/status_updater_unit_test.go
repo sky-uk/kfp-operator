@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
+	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -18,7 +19,7 @@ import (
 )
 
 var _ = Context("Handle", func() {
-	var logger, _ = common.NewLogger(zapcore.DebugLevel)
+	var logger, _ = log.NewLogger(zapcore.DebugLevel)
 	var ctx = logr.NewContext(context.Background(), logger)
 
 	scheme := runtime.NewScheme()

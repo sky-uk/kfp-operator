@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/internal/log"
 	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
 	"github.com/sky-uk/kfp-operator/provider-service/stub/internal/provider"
@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	logger, err := common.NewLogger(zapcore.InfoLevel)
+	logger, err := log.NewLogger(zapcore.InfoLevel)
 	if err != nil {
 		panic(err)
 	}

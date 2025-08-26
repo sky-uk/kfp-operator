@@ -5,14 +5,16 @@ package webhook
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/go-logr/logr"
 	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
+	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 	"google.golang.org/grpc"
@@ -27,7 +29,7 @@ func (pef ProcessEventFeedFunc) ProcessEventFeed(ctx context.Context, in *pb.Run
 
 var _ = Context("Handle", func() {
 	When("called", func() {
-		logger, _ := common.NewLogger(zapcore.DebugLevel)
+		logger, _ := log.NewLogger(zapcore.DebugLevel)
 		ctx := logr.NewContext(context.Background(), logger)
 
 		rce := RandomRunCompletionEventData().ToRunCompletionEvent()

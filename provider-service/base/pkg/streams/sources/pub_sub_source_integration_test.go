@@ -3,18 +3,19 @@
 package sources
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-logr/logr"
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/pkg/common"
-	"go.uber.org/zap/zapcore"
 	"os"
 	"testing"
 	"time"
+
+	"cloud.google.com/go/pubsub"
+	"github.com/go-logr/logr"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/internal/log"
+	"go.uber.org/zap/zapcore"
 )
 
 var topics = []*pubsub.Topic{}
@@ -34,7 +35,7 @@ func TestSourcesIntegrationSuite(t *testing.T) {
 }
 
 var _ = Context("Pub sub source", Ordered, func() {
-	logger, err := common.NewLogger(zapcore.InfoLevel)
+	logger, err := log.NewLogger(zapcore.InfoLevel)
 	Expect(err).ToNot(HaveOccurred())
 
 	ctx, cancel := createContextWithLogger(logger)

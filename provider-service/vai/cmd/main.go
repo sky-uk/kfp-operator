@@ -10,6 +10,7 @@ import (
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"github.com/go-logr/logr"
 	"github.com/go-resty/resty/v2"
+	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	baseConfig "github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server"
@@ -27,7 +28,7 @@ import (
 )
 
 func main() {
-	logger, err := common.NewLogger(zapcore.InfoLevel)
+	logger, err := log.NewLogger(zapcore.InfoLevel)
 	if err != nil {
 		panic(err)
 	}

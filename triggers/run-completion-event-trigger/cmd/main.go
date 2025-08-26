@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/nats-io/nats.go"
-	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/internal/log"
 	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/cmd/config"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/server"
@@ -24,7 +24,7 @@ import (
 )
 
 func main() {
-	logger, err := common.NewLogger(zapcore.InfoLevel)
+	logger, err := log.NewLogger(zapcore.InfoLevel)
 	if err != nil {
 		logger.Error(err, "Failed to create zap logger")
 		panic(err)
