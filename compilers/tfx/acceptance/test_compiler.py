@@ -18,10 +18,9 @@ def setup():
 
 def test_cli():
     with TemporaryDirectory() as tmp_dir:
-        output_file_path = os.path.join(tmp_dir, 'pipeline.yaml')
+        output_file_path = os.path.join(tmp_dir, 'pipeline.json')
 
         result = runner.invoke(compiler.compile, ['--pipeline_config', config_file_path, '--output_file', output_file_path])
-
         assert result.exit_code == 0
         assert os.stat(output_file_path).st_size != 0
 
