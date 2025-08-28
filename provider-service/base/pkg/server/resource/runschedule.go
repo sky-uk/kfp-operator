@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
 type RunSchedule struct {
@@ -17,7 +17,7 @@ func (*RunSchedule) Type() string {
 }
 
 func (rs *RunSchedule) Create(ctx context.Context, body []byte) (base.Output, error) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx)
 	rsd := base.RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while creating RunSchedule")
@@ -37,7 +37,7 @@ func (rs *RunSchedule) Create(ctx context.Context, body []byte) (base.Output, er
 }
 
 func (rs *RunSchedule) Update(ctx context.Context, id string, body []byte) (base.Output, error) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx)
 	rsd := base.RunScheduleDefinition{}
 	if err := json.Unmarshal(body, &rsd); err != nil {
 		logger.Error(err, "Failed to unmarshal RunScheduleDefinition while updating RunSchedule")
@@ -57,7 +57,7 @@ func (rs *RunSchedule) Update(ctx context.Context, id string, body []byte) (base
 }
 
 func (rs *RunSchedule) Delete(ctx context.Context, id string) error {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx)
 	if err := rs.Provider.DeleteRunSchedule(ctx, id); err != nil {
 		logger.Error(err, "DeleteRunSchedule failed", "id", id)
 		return err

@@ -10,7 +10,7 @@ import (
 	"net/http"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
@@ -84,7 +84,7 @@ func (rcf RunCompletionFeed) extractRunCompletionEventData(ctx context.Context, 
 }
 
 func (rcf RunCompletionFeed) fetchRunConfiguration(ctx context.Context, name *common.NamespacedName) (*pipelineshub.RunConfiguration, EventError) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.FromContext(ctx)
 	if name != nil {
 		rc := &pipelineshub.RunConfiguration{}
 		if err := rcf.client.Get(ctx, client.ObjectKey{
@@ -104,7 +104,7 @@ func (rcf RunCompletionFeed) fetchRunConfiguration(ctx context.Context, name *co
 }
 
 func (rcf RunCompletionFeed) fetchRun(ctx context.Context, name *common.NamespacedName) (*pipelineshub.Run, EventError) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.FromContext(ctx)
 	if name != nil {
 		run := &pipelineshub.Run{}
 		if err := rcf.client.Get(ctx, client.ObjectKey{

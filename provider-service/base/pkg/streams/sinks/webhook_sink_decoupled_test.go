@@ -15,8 +15,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
 	"github.com/sky-uk/kfp-operator/controllers/webhook"
+	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"go.uber.org/zap/zapcore"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -60,7 +61,7 @@ func randomFreePort() (int, error) {
 }
 
 var _ = Context("Webhook Sink", Ordered, func() {
-	logger, err := common.NewLogger(zapcore.InfoLevel)
+	logger, err := log.NewLogger(zapcore.InfoLevel)
 	Expect(err).ToNot(HaveOccurred())
 	ctx, cancel := createContextWithLogger(logger)
 

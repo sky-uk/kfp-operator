@@ -5,7 +5,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )

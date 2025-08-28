@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	pb "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/proto"
 
 	. "github.com/onsi/ginkgo/v2"

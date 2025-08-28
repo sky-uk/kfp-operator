@@ -10,12 +10,13 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"go.uber.org/zap/zapcore"
 )
 
 var _ = Context("getRequestBody", func() {
-	var logger, _ = common.NewLogger(zapcore.DebugLevel)
+	var logger, _ = log.NewLogger(zapcore.DebugLevel)
 	var ctx = logr.NewContext(context.Background(), logger)
 
 	When("valid request", func() {
@@ -44,7 +45,7 @@ var _ = Context("getRequestBody", func() {
 })
 
 var _ = Context("extractRunCompletionEventData", func() {
-	logger, _ := common.NewLogger(zapcore.DebugLevel)
+	logger, _ := log.NewLogger(zapcore.DebugLevel)
 	ctx := logr.NewContext(context.Background(), logger)
 	rcf := RunCompletionFeed{}
 

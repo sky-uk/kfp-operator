@@ -1,4 +1,4 @@
-package common
+package config
 
 import (
 	"k8s.io/client-go/rest"

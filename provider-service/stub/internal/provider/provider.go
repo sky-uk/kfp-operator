@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
-	. "github.com/sky-uk/kfp-operator/common/testutil/provider"
+	. "github.com/sky-uk/kfp-operator/pkg/common/testutil/provider"
+	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 

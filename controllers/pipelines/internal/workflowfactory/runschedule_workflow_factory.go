@@ -1,14 +1,14 @@
 package workflowfactory
 
 import (
-	"github.com/sky-uk/kfp-operator/common/triggers"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"strings"
 
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
-	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/pkg/common"
+	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )

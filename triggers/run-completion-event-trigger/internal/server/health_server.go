@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/internal/log"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
@@ -17,7 +17,7 @@ func (hs *HealthServer) Check(
 	ctx context.Context,
 	req *healthpb.HealthCheckRequest,
 ) (*healthpb.HealthCheckResponse, error) {
-	log := common.LoggerFromContext(ctx)
+	log := log.LoggerFromContext(ctx)
 
 	switch req.GetService() {
 	case "liveness":

@@ -6,7 +6,7 @@ package v1beta1
 
 import (
 	"github.com/sky-uk/kfp-operator/apis"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

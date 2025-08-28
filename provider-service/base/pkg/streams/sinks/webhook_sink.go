@@ -7,7 +7,8 @@ import (
 	"net/http"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -48,7 +49,7 @@ func NewObservedWebhookSink(ctx context.Context, client *resty.Client, operatorW
 		metric.WithDescription("Total number of provider webhook sink SendEvents calls"),
 	)
 	if err != nil {
-		common.LoggerFromContext(ctx).Error(err, "failed to create webhook counter")
+		log.LoggerFromContext(ctx).Error(err, "failed to create webhook counter")
 		return nil, err
 	}
 
@@ -134,14 +135,14 @@ func (ows ObservedWebhookSink) In() chan<- StreamMessage[*common.RunCompletionEv
 }
 
 func (ows ObservedWebhookSink) OnEmpty(ctx context.Context) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx)
 	logger.Info("webhook sink received empty message")
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, Discarded.String())))
 	ows.delegate.OnEmpty(ctx)
 }
 
 func (ows ObservedWebhookSink) OnError(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx)
 	jsonMessage, _ := json.Marshal(message.Message)
 	logger.Error(fmt.Errorf("webhook sink received error message"), "", "message", string(jsonMessage))
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, RecoverableFailure.String())))
@@ -149,7 +150,7 @@ func (ows ObservedWebhookSink) OnError(ctx context.Context, message StreamMessag
 }
 
 func (ows ObservedWebhookSink) OnRecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx)
 	jsonMessage, _ := json.Marshal(message.Message)
 	logger.Error(fmt.Errorf("webhook sink received recoverable failure"), "", "message", string(jsonMessage))
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, RecoverableFailure.String())))
@@ -157,7 +158,7 @@ func (ows ObservedWebhookSink) OnRecoverableFailure(ctx context.Context, message
 }
 
 func (ows ObservedWebhookSink) OnUnrecoverableFailure(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx)
 	jsonMessage, _ := json.Marshal(message.Message)
 	logger.Error(fmt.Errorf("webhook sink received unrecoverable failure"), "", "message", string(jsonMessage))
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, UnrecoverableFailure.String())))
@@ -165,7 +166,7 @@ func (ows ObservedWebhookSink) OnUnrecoverableFailure(ctx context.Context, messa
 }
 
 func (ows ObservedWebhookSink) OnSuccess(ctx context.Context, message StreamMessage[*common.RunCompletionEventData]) {
-	logger := common.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx)
 	logger.Info("webhook sink received successful", "runId", message.Message.RunId)
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, Success.String())))
 	ows.delegate.OnSuccess(ctx, message)

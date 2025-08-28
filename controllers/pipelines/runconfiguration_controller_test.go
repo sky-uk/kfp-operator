@@ -8,9 +8,9 @@ import (
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
-	"github.com/sky-uk/kfp-operator/common/triggers"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
+	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 )

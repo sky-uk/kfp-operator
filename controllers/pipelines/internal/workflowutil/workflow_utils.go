@@ -6,8 +6,8 @@ import (
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowconstants"
+	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
 var mapParams = func(params []argo.Parameter) map[string]string {

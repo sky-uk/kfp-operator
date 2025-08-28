@@ -3,7 +3,8 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/sky-uk/kfp-operator/argo/common"
+
+	"github.com/sky-uk/kfp-operator/internal/log"
 	configLoader "github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/cmd/config"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/converters"
 	"github.com/sky-uk/kfp-operator/triggers/run-completion-event-trigger/internal/publisher"
@@ -23,7 +24,7 @@ func (s *Server) ProcessEventFeed(
 	ctx context.Context,
 	runCompletion *pb.RunCompletionEvent,
 ) (*emptypb.Empty, error) {
-	logger := common.LoggerFromContext(ctx).WithValues("runId", runCompletion.RunId)
+	logger := log.LoggerFromContext(ctx).WithValues("runId", runCompletion.RunId)
 
 	commonRunCompletionEvent, err := converters.ProtoRunCompletionToCommon(runCompletion)
 	if err != nil {

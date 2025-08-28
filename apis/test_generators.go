@@ -3,7 +3,7 @@
 package apis
 
 import (
-	"github.com/sky-uk/kfp-operator/argo/common"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"math/rand"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

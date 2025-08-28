@@ -3,8 +3,8 @@ package workflowfactory
 import (
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
-	"github.com/sky-uk/kfp-operator/argo/common"
-	providers "github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/pkg/common"
+	providers "github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
 type ExperimentDefinitionCreator struct {
