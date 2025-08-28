@@ -2,7 +2,7 @@ package mocks
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/stretchr/testify/mock"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
-	"github.com/sky-uk/kfp-operator/argo/providers/base"
+	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
