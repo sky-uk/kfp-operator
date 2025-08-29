@@ -4,5 +4,15 @@ ARG WHEEL_VERSION
 RUN mkdir /data
 RUN wget https://raw.githubusercontent.com/tensorflow/tfx/master/tfx/examples/penguin/data/labelled/penguins_processed.csv -P /data
 
-COPY dist/*-${WHEEL_VERSION}-*.whl /
-RUN pip install /*.whl && rm /*.whl
+RUN pip install poetry==1.7.1
+
+COPY pyproject.toml .
+COPY poetry.lock .
+
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-root
+WORKDIR /pipeline
+
+COPY penguin_pipeline/*.py ./
+
+ENV PYTHONPATH="/pipeline:${PYTHONPATH}"
