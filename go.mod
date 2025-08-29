@@ -4,8 +4,8 @@ go 1.24.4
 
 require (
 	cloud.google.com/go/aiplatform v1.99.0
-	cloud.google.com/go/pubsub v1.49.0
-	cloud.google.com/go/storage v1.53.0
+	cloud.google.com/go/pubsub v1.50.0
+	cloud.google.com/go/storage v1.55.0
 	github.com/argoproj/argo-workflows/v3 v3.3.10
 	github.com/docker/distribution v2.8.2+incompatible
 	github.com/evanphx/json-patch/v5 v5.9.11
@@ -50,7 +50,7 @@ require (
 
 require (
 	cel.dev/expr v0.24.0 // indirect
-	cloud.google.com/go v0.121.1 // indirect
+	cloud.google.com/go v0.121.4 // indirect
 	cloud.google.com/go/auth v0.16.3 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.8 // indirect
 	cloud.google.com/go/compute/metadata v0.7.0 // indirect
