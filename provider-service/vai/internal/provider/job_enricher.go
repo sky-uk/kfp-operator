@@ -4,12 +4,13 @@ import (
 	"maps"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 
 type JobEnricher interface {
 	Enrich(
 		job *aiplatformpb.PipelineJob,
-		raw map[string]any,
+		raw resource.CompiledPipeline,
 	) (*aiplatformpb.PipelineJob, error)
 }
 
@@ -27,9 +28,9 @@ func NewDefaultJobEnricher() DefaultJobEnricher {
 
 func (dje DefaultJobEnricher) Enrich(
 	job *aiplatformpb.PipelineJob,
-	raw map[string]any,
+	compiledPipeline resource.CompiledPipeline,
 ) (*aiplatformpb.PipelineJob, error) {
-	pv, err := dje.pipelineSchemaHandler.extract(raw)
+	pv, err := dje.pipelineSchemaHandler.extract(compiledPipeline)
 	if err != nil {
 		return nil, err
 	}
