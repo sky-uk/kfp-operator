@@ -9,17 +9,17 @@ import (
 	"github.com/fsouza/fake-gcs-server/fakestorage"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 )
 
 var _ = Describe("GcsFileHandler", Ordered, func() {
 	var (
-		ctx       = context.Background()
-		server    *fakestorage.Server
-		handler   GcsFileHandler
-		bucket    string
-		filePath  string
-		testData  map[string]any
-		testBytes []byte
+		ctx              = context.Background()
+		server           *fakestorage.Server
+		handler          GcsFileHandler
+		bucket           string
+		filePath         string
+		compiledPipeline resource.CompiledPipeline
 	)
 
 	BeforeAll(func() {
@@ -37,8 +37,13 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 
 		bucket = "test-bucket"
 		filePath = "test-folder/test-file.json"
-		testData = map[string]any{"key": "value"}
-		testBytes, _ = json.Marshal(testData)
+		testData := map[string]any{"key": "value"}
+		testBytes, _ := json.Marshal(testData)
+		compiledPipeline = resource.CompiledPipeline{
+			DisplayName:  "display-name",
+			Labels:       map[string]string{"label-key": "label-value"},
+			PipelineSpec: testBytes,
+		}
 
 		err = server.Client().Bucket(bucket).Create(ctx, "test-project", nil)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -51,8 +56,10 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 	Context("Write, Read And Delete round trip", func() {
 		When("Write", func() {
 			It("should write data to the specified bucket and file path", func() {
-				err := handler.Write(ctx, testBytes, bucket, filePath)
-				err = handler.Write(ctx, testBytes, bucket, "test-folder/test-file2.json")
+				err := handler.Write(ctx, compiledPipeline, bucket, filePath)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				err = handler.Write(ctx, compiledPipeline, bucket, "test-folder/test-file2.json")
 				Expect(err).ShouldNot(HaveOccurred())
 
 				obj, err := server.Client().Bucket(bucket).Object(filePath).Attrs(ctx)
@@ -64,7 +71,14 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 			It("should extract the written data from the bucket", func() {
 				readData, err := handler.Read(ctx, bucket, filePath)
 				Expect(err).ShouldNot(HaveOccurred())
-				Expect(readData).To(Equal(testData))
+
+				readCompiledPipeline := resource.CompiledPipeline{}
+				readBytes, err := json.Marshal(readData)
+				Expect(err).ShouldNot(HaveOccurred())
+
+				err = json.Unmarshal(readBytes, &readCompiledPipeline)
+				Expect(err).ShouldNot(HaveOccurred())
+				Expect(readCompiledPipeline).To(Equal(compiledPipeline))
 			})
 		})
 		When("Delete", func() {

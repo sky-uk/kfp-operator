@@ -4,12 +4,19 @@ package mocks
 
 import (
 	"context"
+
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/stretchr/testify/mock"
 )
 
 type MockFileHandler struct{ mock.Mock }
 
-func (m *MockFileHandler) Write(_ context.Context, p []byte, bucket string, filePath string) error {
+func (m *MockFileHandler) Write(
+	_ context.Context,
+	p resource.CompiledPipeline,
+	bucket string,
+	filePath string,
+) error {
 	args := m.Called(p, bucket, filePath)
 	return args.Error(0)
 }

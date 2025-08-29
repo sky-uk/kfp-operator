@@ -3,11 +3,12 @@
 package provider
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
+
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -90,8 +91,8 @@ var _ = Describe("Provider", func() {
 				pdw := testutil.RandomPipelineDefinitionWrapper()
 				mockFileHandler.On(
 					"Write",
-					mock.MatchedBy(func(j json.RawMessage) bool {
-						return bytes.Equal(j, pdw.CompiledPipeline)
+					mock.MatchedBy(func(j resource.CompiledPipeline) bool {
+						return reflect.DeepEqual(j, pdw.CompiledPipeline)
 					}),
 					vaiProvider.config.Parameters.PipelineBucket,
 					fmt.Sprintf(
