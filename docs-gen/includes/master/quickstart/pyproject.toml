@@ -5,7 +5,7 @@ description = ""
 authors = []
 
 [tool.poetry.dependencies]
-python = "3.10.12"
+python = ">=3.10,<3.11"
 tfx = "1.15.1"
 google-genai = "^1.16.1"
 shapely = "<2"
