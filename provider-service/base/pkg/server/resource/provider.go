@@ -11,7 +11,13 @@ import (
 // describes what vertex ai or kubeflow pipelines should do.
 type PipelineDefinitionWrapper struct {
 	PipelineDefinition base.PipelineDefinition `json:"pipelineDefinition"`
-	CompiledPipeline   json.RawMessage         `json:"compiledPipeline,omitempty"`
+	CompiledPipeline   CompiledPipeline        `json:"compiledPipeline,omitempty"`
+}
+
+type CompiledPipeline struct {
+	DisplayName  string            `json:"displayName"`
+	Labels       map[string]string `json:"labels,omitempty"`
+	PipelineSpec json.RawMessage   `json:"pipelineSpec,omitempty"`
 }
 
 type Provider interface {

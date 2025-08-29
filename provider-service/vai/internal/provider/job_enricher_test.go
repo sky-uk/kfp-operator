@@ -8,6 +8,7 @@ import (
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -15,8 +16,10 @@ import (
 
 type MockPipelineSchemaHandler struct{ mock.Mock }
 
-func (m *MockPipelineSchemaHandler) extract(raw map[string]any) (*PipelineValues, error) {
-	args := m.Called(raw)
+func (m *MockPipelineSchemaHandler) extract(
+	compiledPipeline resource.CompiledPipeline,
+) (*PipelineValues, error) {
+	args := m.Called(compiledPipeline)
 	var pipelineValues *PipelineValues
 	if arg0 := args.Get(0); arg0 != nil {
 		pipelineValues = arg0.(*PipelineValues)
@@ -53,7 +56,9 @@ var _ = Describe("DefaultJobEnricher", func() {
 			}
 		})
 
-		input := map[string]any{"somekey": "somevalue"}
+		input := resource.CompiledPipeline{
+			PipelineSpec: []byte{'1', '2', '3'},
+		}
 
 		It("enriches job with labels returned by pipelineSchemaHandler", func() {
 			pipelineSchemaHandler.On("extract", input).Return(&pipelineValues, nil)

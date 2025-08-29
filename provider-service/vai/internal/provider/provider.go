@@ -132,7 +132,7 @@ func (vaip *VAIProvider) CreateRun(ctx context.Context, rd base.RunDefinition) (
 		return "", err
 	}
 
-	raw, err := vaip.fileHandler.Read(
+	compiledPipeline, err := vaip.fileHandler.Read(
 		ctx,
 		vaip.config.Parameters.PipelineBucket,
 		pipelinePath,
@@ -146,7 +146,7 @@ func (vaip *VAIProvider) CreateRun(ctx context.Context, rd base.RunDefinition) (
 		return "", err
 	}
 
-	enrichedJob, err := vaip.jobEnricher.Enrich(job, raw)
+	enrichedJob, err := vaip.jobEnricher.Enrich(job, compiledPipeline)
 	if err != nil {
 		return "", err
 	}
@@ -187,7 +187,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	raw, err := vaip.fileHandler.Read(
+	compiledPipeline, err := vaip.fileHandler.Read(
 		ctx,
 		vaip.config.Parameters.PipelineBucket,
 		pipelinePath,
@@ -201,7 +201,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 		return "", err
 	}
 
-	enrichedJob, err := vaip.jobEnricher.Enrich(job, raw)
+	enrichedJob, err := vaip.jobEnricher.Enrich(job, compiledPipeline)
 	if err != nil {
 		return "", err
 	}
@@ -247,7 +247,7 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 		return "", err
 	}
 
-	raw, err := vaip.fileHandler.Read(
+	compiledPipeline, err := vaip.fileHandler.Read(
 		ctx,
 		vaip.config.Parameters.PipelineBucket,
 		pipelinePath,
@@ -261,7 +261,7 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 		return "", err
 	}
 
-	enrichedJob, err := vaip.jobEnricher.Enrich(job, raw)
+	enrichedJob, err := vaip.jobEnricher.Enrich(job, compiledPipeline)
 	if err != nil {
 		return "", err
 	}

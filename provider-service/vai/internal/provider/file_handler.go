@@ -9,14 +9,15 @@ import (
 	"io"
 
 	"cloud.google.com/go/storage"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 )
 
 type FileHandler interface {
-	Write(ctx context.Context, content []byte, bucket string, filePath string) error
+	Write(ctx context.Context, content resource.CompiledPipeline, bucket string, filePath string) error
 	Delete(ctx context.Context, id string, bucket string) error
-	Read(ctx context.Context, bucket string, filePath string) (map[string]any, error)
+	Read(ctx context.Context, bucket string, filePath string) (resource.CompiledPipeline, error)
 }
 
 type GcsFileHandler struct {
@@ -50,13 +51,17 @@ func NewGcsFileHandler(
 // file path (relative to GCS bucket location).
 func (g *GcsFileHandler) Write(
 	ctx context.Context,
-	content []byte,
+	content resource.CompiledPipeline,
 	bucket string,
 	filePath string,
 ) error {
 	writer := g.gcsClient.Bucket(bucket).Object(filePath).NewWriter(ctx)
 
-	_, err := io.Writer(writer).Write(content)
+	raw, err := json.Marshal(content)
+	if err != nil {
+		return err
+	}
+	_, err = io.Writer(writer).Write(raw)
 	if err != nil {
 		return err
 	}
@@ -94,22 +99,22 @@ func (g *GcsFileHandler) Read(
 	ctx context.Context,
 	bucket string,
 	filePath string,
-) (map[string]any, error) {
+) (resource.CompiledPipeline, error) {
 	reader, err := g.gcsClient.Bucket(bucket).Object(filePath).NewReader(ctx)
 	if err != nil {
-		return nil, err
+		return resource.CompiledPipeline{}, err
 	}
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(reader)
 	if err != nil {
-		return nil, err
+		return resource.CompiledPipeline{}, err
 	}
 
-	raw := map[string]any{}
-	err = json.Unmarshal(buf.Bytes(), &raw)
+	content := resource.CompiledPipeline{}
+	err = json.Unmarshal(buf.Bytes(), &content)
 	if err != nil {
-		return nil, err
+		return resource.CompiledPipeline{}, err
 	}
-	return raw, nil
+	return content, nil
 }

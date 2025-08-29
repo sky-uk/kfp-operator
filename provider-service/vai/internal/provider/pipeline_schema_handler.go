@@ -1,8 +1,10 @@
 package provider
 
 import (
+	"encoding/json"
 	"fmt"
 
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -13,26 +15,17 @@ type PipelineValues struct {
 }
 
 type PipelineSchemaHandler interface {
-	extract(raw map[string]any) (*PipelineValues, error)
+	extract(compiledPipeline resource.CompiledPipeline) (*PipelineValues, error)
 }
 
 type SchemaHandler struct{}
 
-func (sh SchemaHandler) extract(raw map[string]any) (*PipelineValues, error) {
-	displayName, ok := raw["displayName"].(string)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected string for 'displayName', got %T",
-			raw["displayName"],
-		)
-	}
-
-	pipelineSpec, ok := raw["pipelineSpec"].(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected map for 'pipelineSpec', got %T",
-			raw["pipelineSpec"],
-		)
+func (sh SchemaHandler) extract(
+	compiledPipeline resource.CompiledPipeline,
+) (*PipelineValues, error) {
+	var pipelineSpec map[string]any
+	if err := json.Unmarshal(compiledPipeline.PipelineSpec, &pipelineSpec); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal PipelineSpec: %w", err)
 	}
 
 	pipelineSpecStruct, err := structpb.NewStruct(pipelineSpec)
@@ -44,39 +37,23 @@ func (sh SchemaHandler) extract(raw map[string]any) (*PipelineValues, error) {
 	if !ok {
 		return nil, fmt.Errorf(
 			"expected string for 'schemaVersion', got %T",
-			raw["schemaVersion"],
+			pipelineSpec["schemaVersion"],
 		)
 	}
 	sdkVersion, ok := pipelineSpec["sdkVersion"].(string)
 	if !ok {
 		return nil, fmt.Errorf(
 			"expected string for 'sdkVersion', got %T",
-			raw["sdkVersion"],
+			pipelineSpec["sdkVersion"],
 		)
 	}
 
-	labels, ok := raw["labels"].(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf(
-			"expected map for 'labels', got %T",
-			raw["labels"],
-		)
-	}
-	labels["schema_version"] = schemaVersion
-	labels["sdk_version"] = sdkVersion
-
-	convertedLabels := make(map[string]string)
-	for k, v := range labels {
-		if strVal, ok := v.(string); ok {
-			convertedLabels[k] = strVal
-		} else {
-			convertedLabels[k] = fmt.Sprintf("%v", v)
-		}
-	}
+	compiledPipeline.Labels["schema_version"] = schemaVersion
+	compiledPipeline.Labels["sdk_version"] = sdkVersion
 
 	return &PipelineValues{
-		name:         displayName,
-		labels:       convertedLabels,
+		name:         compiledPipeline.DisplayName,
+		labels:       compiledPipeline.Labels,
 		pipelineSpec: pipelineSpecStruct,
 	}, nil
 }

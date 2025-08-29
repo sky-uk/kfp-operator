@@ -3,7 +3,6 @@
 package testutil
 
 import (
-	"encoding/json"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -53,7 +52,11 @@ func RandomPipelineDefinition() base.PipelineDefinition {
 func RandomPipelineDefinitionWrapper() resource.PipelineDefinitionWrapper {
 	return resource.PipelineDefinitionWrapper{
 		PipelineDefinition: RandomPipelineDefinition(),
-		CompiledPipeline:   json.RawMessage{},
+		CompiledPipeline: resource.CompiledPipeline{
+			DisplayName:  common.RandomString(),
+			Labels:       map[string]string{"key": "value"},
+			PipelineSpec: []byte{'1', '2', '3'},
+		},
 	}
 }
 
