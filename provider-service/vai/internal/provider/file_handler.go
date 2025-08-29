@@ -17,7 +17,7 @@ import (
 type FileHandler interface {
 	Write(ctx context.Context, content resource.CompiledPipeline, bucket string, filePath string) error
 	Delete(ctx context.Context, id string, bucket string) error
-	Read(ctx context.Context, bucket string, filePath string) (map[string]any, error)
+	Read(ctx context.Context, bucket string, filePath string) (resource.CompiledPipeline, error)
 }
 
 type GcsFileHandler struct {
@@ -99,22 +99,22 @@ func (g *GcsFileHandler) Read(
 	ctx context.Context,
 	bucket string,
 	filePath string,
-) (map[string]any, error) {
+) (resource.CompiledPipeline, error) {
 	reader, err := g.gcsClient.Bucket(bucket).Object(filePath).NewReader(ctx)
 	if err != nil {
-		return nil, err
+		return resource.CompiledPipeline{}, err
 	}
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(reader)
 	if err != nil {
-		return nil, err
+		return resource.CompiledPipeline{}, err
 	}
 
-	raw := map[string]any{}
-	err = json.Unmarshal(buf.Bytes(), &raw)
+	content := resource.CompiledPipeline{}
+	err = json.Unmarshal(buf.Bytes(), &content)
 	if err != nil {
-		return nil, err
+		return resource.CompiledPipeline{}, err
 	}
-	return raw, nil
+	return content, nil
 }

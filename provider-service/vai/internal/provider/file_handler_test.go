@@ -72,13 +72,13 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 				readData, err := handler.Read(ctx, bucket, filePath)
 				Expect(err).ShouldNot(HaveOccurred())
 
-				readCompiledPipeline := resource.CompiledPipeline{}
-				readBytes, err := json.Marshal(readData)
-				Expect(err).ShouldNot(HaveOccurred())
+				// readCompiledPipeline := resource.CompiledPipeline{}
+				// readBytes, err := json.Marshal(readData)
+				// Expect(err).ShouldNot(HaveOccurred())
 
-				err = json.Unmarshal(readBytes, &readCompiledPipeline)
-				Expect(err).ShouldNot(HaveOccurred())
-				Expect(readCompiledPipeline).To(Equal(compiledPipeline))
+				// err = json.Unmarshal(readBytes, &readCompiledPipeline)
+				// Expect(err).ShouldNot(HaveOccurred())
+				Expect(readData).To(Equal(compiledPipeline))
 			})
 		})
 		When("Delete", func() {
@@ -88,11 +88,11 @@ var _ = Describe("GcsFileHandler", Ordered, func() {
 
 				readData, err := handler.Read(ctx, bucket, filePath)
 				Expect(err).Should(HaveOccurred())
-				Expect(readData).Should(BeNil())
+				Expect(readData).Should(Equal(resource.CompiledPipeline{}))
 
 				readData, err = handler.Read(ctx, bucket, "test-folder/test-file2.json")
 				Expect(err).Should(HaveOccurred())
-				Expect(readData).Should(BeNil())
+				Expect(readData).Should(Equal(resource.CompiledPipeline{}))
 			})
 		})
 	})

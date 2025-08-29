@@ -26,11 +26,15 @@ func (m *MockFileHandler) Delete(_ context.Context, id string, bucket string) er
 	return args.Error(0)
 }
 
-func (m *MockFileHandler) Read(_ context.Context, bucket string, filePath string) (map[string]any, error) {
+func (m *MockFileHandler) Read(
+	_ context.Context,
+	bucket string,
+	filePath string,
+) (resource.CompiledPipeline, error) {
 	args := m.Called(bucket, filePath)
-	var data map[string]any
+	var data resource.CompiledPipeline
 	if arg0 := args.Get(0); arg0 != nil {
-		data = arg0.(map[string]any)
+		data = arg0.(resource.CompiledPipeline)
 	}
 	return data, args.Error(1)
 }
