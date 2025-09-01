@@ -3,102 +3,122 @@
 package provider
 
 import (
-	"errors"
+	"encoding/json"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/mocks"
-	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/structpb"
 )
-
-type MockPipelineSchemaHandler struct{ mock.Mock }
-
-func (m *MockPipelineSchemaHandler) extract(
-	compiledPipeline resource.CompiledPipeline,
-) (*PipelineValues, error) {
-	args := m.Called(compiledPipeline)
-	var pipelineValues *PipelineValues
-	if arg0 := args.Get(0); arg0 != nil {
-		pipelineValues = arg0.(*PipelineValues)
-	}
-	return pipelineValues, args.Error(1)
-}
 
 var _ = Describe("DefaultJobEnricher", func() {
 	Context("Enrich", Ordered, func() {
 		var (
-			pipelineSchemaHandler MockPipelineSchemaHandler
-			labelSanitizer        mocks.MockLabelSanitizer
-			defaultJobEnricher    DefaultJobEnricher
+			labelSanitizer     mocks.MockLabelSanitizer
+			defaultJobEnricher DefaultJobEnricher
+			input              resource.CompiledPipeline
 		)
 
-		pipelineValues := PipelineValues{
-			name: "enriched",
-			labels: map[string]string{
-				"key":              "value",
-				"pipeline-version": "0.0.1",
-				"schema_version":   "2.1.0",
-				"sdk_version":      "kfp-2.12.2",
-				"Other&%":          "someVAl!ue",
-			},
-			pipelineSpec: &structpb.Struct{},
+		spec := map[string]string{
+			"schemaVersion": "2.1.0",
+			"sdkVersion":    "kfp-2.12.2",
 		}
+
+		specBytes, err := json.Marshal(spec)
+		Expect(err).ToNot(HaveOccurred())
 
 		BeforeEach(func() {
-			pipelineSchemaHandler = MockPipelineSchemaHandler{}
 			labelSanitizer = mocks.MockLabelSanitizer{}
 			defaultJobEnricher = DefaultJobEnricher{
-				pipelineSchemaHandler: &pipelineSchemaHandler,
-				labelSanitizer:        &labelSanitizer,
+				labelSanitizer: &labelSanitizer,
+			}
+
+			input = resource.CompiledPipeline{
+				DisplayName: "display-name",
+				Labels: map[string]string{
+					"key":            "value",
+					"tfx_py_version": "3-10",
+					"tfx_runner":     "kubeflow_v2",
+					"tfx_version":    "1-15-1",
+				},
+				PipelineSpec: specBytes,
 			}
 		})
 
-		input := resource.CompiledPipeline{
-			PipelineSpec: []byte{'1', '2', '3'},
-		}
-
-		It("enriches job with labels returned by pipelineSchemaHandler", func() {
-			pipelineSchemaHandler.On("extract", input).Return(&pipelineValues, nil)
-			labelSanitizer.On("Sanitize", pipelineValues.labels).Return(pipelineValues.labels)
-
+		It("enriches job with displayName, sanitized labels and PipelineSpec", func() {
 			job := aiplatformpb.PipelineJob{}
-			_, err := defaultJobEnricher.Enrich(&job, input)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(job.Name).To(Equal(pipelineValues.name))
-			Expect(job.Labels).To(Equal(pipelineValues.labels))
-			Expect(job.PipelineSpec).To(Equal(pipelineValues.pipelineSpec))
-		})
-
-		It("combines job labels and labels returned by pipelineSchemaHandler", func() {
-			pipelineSchemaHandler.On("extract", input).Return(&pipelineValues, nil)
 			combinedLabels := map[string]string{
-				"key":              "value",
-				"pipeline-version": "0.0.1",
-				"schema_version":   "2.1.0",
-				"sdk_version":      "kfp-2.12.2",
-				"Other&%":          "someVAl!ue",
-				"Key2":             "Value2",
+				"key":            "value",
+				"tfx_py_version": "3-10",
+				"tfx_runner":     "kubeflow_v2",
+				"tfx_version":    "1-15-1",
+				"schema_version": "2.1.0",
+				"sdk_version":    "kfp-2.12.2",
 			}
-			labelSanitizer.On("Sanitize", combinedLabels).Return(combinedLabels)
+			sanitizedLabels := map[string]string{
+				"key":            "value",
+				"tfx_py_version": "3-10",
+				"tfx_runner":     "kubeflow_v2",
+				"tfx_version":    "1-15-1",
+				"schema_version": "2-1-0",
+				"sdk_version":    "kfp-2-12-2",
+			}
 
-			job := aiplatformpb.PipelineJob{Labels: map[string]string{"Key2": "Value2"}}
-			_, err := defaultJobEnricher.Enrich(&job, input)
+			labelSanitizer.On("Sanitize", combinedLabels).Return(sanitizedLabels)
+
+			castedSpec := make(map[string]any, len(spec))
+			for k, v := range spec {
+				castedSpec[k] = v
+			}
+
+			pipelineSpecPb, err := structpb.NewStruct(castedSpec)
 			Expect(err).ToNot(HaveOccurred())
-			Expect(job.Name).To(Equal(pipelineValues.name))
-			Expect(job.Labels).To(Equal(combinedLabels))
-			Expect(job.PipelineSpec).To(Equal(pipelineValues.pipelineSpec))
+
+			_, err = defaultJobEnricher.Enrich(&job, input)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(job.Name).To(Equal(input.DisplayName))
+			Expect(job.Labels).To(Equal(sanitizedLabels))
+			Expect(job.PipelineSpec).To(Equal(pipelineSpecPb))
 		})
 
-		It("returns error on pipelineSchemaHandler error", func() {
-			pipelineSchemaHandler.On("extract", input).Return(nil, errors.New("an error"))
+		When("schemaVersion key is missing from PipelineSpec", func() {
+			It("returns error", func() {
+				spec, err := json.Marshal(
+					map[string]string{"sdkVersion": "kfp-2.12.2"},
+				)
+				Expect(err).ToNot(HaveOccurred())
 
-			job := aiplatformpb.PipelineJob{}
-			_, err := defaultJobEnricher.Enrich(&job, input)
-			Expect(err).To(HaveOccurred())
+				job := aiplatformpb.PipelineJob{}
+				input.PipelineSpec = spec
+				_, err = defaultJobEnricher.Enrich(&job, input)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		When("sdkVersion key is missing from PipelineSpec", func() {
+			It("returns error", func() {
+				spec, err := json.Marshal(
+					map[string]string{"schemaVersion": "2.1.0"},
+				)
+				Expect(err).ToNot(HaveOccurred())
+
+				job := aiplatformpb.PipelineJob{}
+				input.PipelineSpec = spec
+				_, err = defaultJobEnricher.Enrich(&job, input)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		When("PipelineSpec cannot be unmarshalled", func() {
+			It("returns error", func() {
+				input.PipelineSpec = []byte{'1'}
+				job := aiplatformpb.PipelineJob{}
+				_, err := defaultJobEnricher.Enrich(&job, input)
+				Expect(err).To(HaveOccurred())
+			})
 		})
 	})
 })
