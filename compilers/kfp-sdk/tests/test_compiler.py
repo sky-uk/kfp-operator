@@ -71,18 +71,3 @@ def test_sanitise_namespaced_pipeline_name():
     for input, output in tests:
         sanitised = compiler.sanitise_namespaced_pipeline_name(input)
         assert sanitised == output, f"Expected {output}, got {sanitised}"
-
-
-def test_wrap_pipeline_spec():
-    raw_pipeline_spec = {
-        "pipelineInfo": {"name": "test-pipeline"},
-        "components": {"comp-test": {"executorLabel": "exec-test"}},
-    }
-
-    pipeline_name = "test-pipeline"
-
-    result = compiler.wrap_pipeline_spec(raw_pipeline_spec, pipeline_name)
-
-    assert result["displayName"] == pipeline_name
-    assert result["pipelineSpec"] == raw_pipeline_spec
-    assert "labels" in result

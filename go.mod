@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/aiplatform v1.99.0
 	cloud.google.com/go/pubsub v1.50.0
 	cloud.google.com/go/storage v1.55.0
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/argoproj/argo-workflows/v3 v3.3.10
 	github.com/docker/distribution v2.8.2+incompatible
 	github.com/evanphx/json-patch/v5 v5.9.11
