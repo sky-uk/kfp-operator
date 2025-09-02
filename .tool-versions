@@ -1,4 +1,4 @@
-python 3.10.12
+python 3.9.23
 poetry 1.7.1
 protoc 21.12
 hugo extended_0.146.0
