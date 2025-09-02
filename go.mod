@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/storage v1.55.0
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/argoproj/argo-workflows/v3 v3.3.10
-	github.com/docker/distribution v2.8.2+incompatible
+	github.com/docker/distribution v2.8.3+incompatible
 	github.com/evanphx/json-patch/v5 v5.9.11
 	github.com/fsouza/fake-gcs-server v1.52.3
 	github.com/go-chi/chi/v5 v5.2.3
@@ -66,6 +66,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/distribution/reference v0.6.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
