@@ -13,7 +13,7 @@ setuptools = "~=70.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "7.4.0"
-tfx = "1.15.1"
+tfx = "1.16.0"
 shapely = "<2"
 
 [tool.poetry-dynamic-versioning]
