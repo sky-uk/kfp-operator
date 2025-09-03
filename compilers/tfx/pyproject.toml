@@ -8,12 +8,12 @@ authors = []
 python = ">=3.9,<3.11"
 click = ">=8,<9"
 PyYAML = ">=5.4.1"
-setuptools = "~=70.0"
-tfx = "1.15.1"
 kfp = "2.0.0"
+setuptools = "~=70.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "7.4.0"
+tfx = "1.15.1"
 shapely = "<2"
 
 [tool.poetry-dynamic-versioning]
