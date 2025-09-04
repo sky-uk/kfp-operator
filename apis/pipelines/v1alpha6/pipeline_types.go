@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	. "github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,10 +31,10 @@ func (ps Pipeline) ComputeHash() []byte {
 
 func (ps Pipeline) ComputeVersion() string {
 	hash := ps.ComputeHash()[0:3]
-	ref, err := ParseNormalizedNamed(ps.Spec.Image)
+	ref, err := reference.ParseNormalizedNamed(ps.Spec.Image)
 
 	if err == nil {
-		if namedTagged, ok := TagNameOnly(ref).(NamedTagged); ok {
+		if namedTagged, ok := reference.TagNameOnly(ref).(reference.NamedTagged); ok {
 			return fmt.Sprintf("%s-%x", namedTagged.Tag(), hash)
 		}
 	}

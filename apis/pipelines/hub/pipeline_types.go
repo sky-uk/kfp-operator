@@ -6,7 +6,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"strings"
 
-	. "github.com/docker/distribution/reference"
+	"github.com/distribution/reference"
 	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/apis/pipelines"
 	"github.com/sky-uk/kfp-operator/pkg/common"
@@ -53,10 +53,10 @@ func (ps Pipeline) ComputeVersion() string {
 		return ""
 	}
 	hash := computeHash[0:3]
-	ref, err := ParseNormalizedNamed(ps.Spec.Image)
+	ref, err := reference.ParseNormalizedNamed(ps.Spec.Image)
 
 	if err == nil {
-		if namedTagged, ok := TagNameOnly(ref).(NamedTagged); ok {
+		if namedTagged, ok := reference.TagNameOnly(ref).(reference.NamedTagged); ok {
 			return fmt.Sprintf("%s-%x", namedTagged.Tag(), hash)
 		}
 	}
