@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -20,6 +21,7 @@ type Parameter struct {
 type RunConfigurationRef struct {
 	Name           common.NamespacedName `json:"name"`
 	OutputArtifact string                `json:"outputArtifact"`
+	Optional       bool                  `json:"optional,omitempty"`
 }
 
 type ValueFrom struct {
@@ -40,14 +42,16 @@ type RunSpec struct {
 	Artifacts         []OutputArtifact `json:"artifacts,omitempty"`
 }
 
-func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.NamedValue, error) {
-	return apis.MapErr(runSpec.Parameters, func(p Parameter) (apis.NamedValue, error) {
+func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.NamedValue, []Parameter, error) {
+	unresolvedOptionalParameters := []Parameter{}
+	resolvedParameters, err := apis.MapErr(runSpec.Parameters, func(p Parameter) (apis.NamedValue, error) {
 		if p.ValueFrom == nil {
 			return apis.NamedValue{
 				Name:  p.Name,
 				Value: p.Value,
 			}, nil
 		}
+
 		rcNamespacedName, err := p.ValueFrom.RunConfigurationRef.Name.String()
 		if err != nil {
 			return apis.NamedValue{}, err
@@ -63,15 +67,21 @@ func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.Nam
 				}
 			}
 
+			if p.ValueFrom.RunConfigurationRef.Optional {
+				unresolvedOptionalParameters = append(unresolvedOptionalParameters, p)
+				return apis.NamedValue{}, nil
+			}
+
 			return apis.NamedValue{}, fmt.Errorf("artifact '%s' not found in dependency '%s'", p.ValueFrom.RunConfigurationRef.OutputArtifact, p.ValueFrom.RunConfigurationRef.Name)
 		}
 
 		return apis.NamedValue{}, fmt.Errorf("dependency '%s' not found", p.ValueFrom.RunConfigurationRef.Name)
 	})
+	return resolvedParameters, unresolvedOptionalParameters, err
 }
 
 func (runSpec *RunSpec) HasUnmetDependencies(dependencies Dependencies) bool {
-	_, err := runSpec.ResolveParameters(dependencies)
+	_, _, err := runSpec.ResolveParameters(dependencies)
 	return err != nil
 }
 
@@ -92,7 +102,11 @@ func cmpParameters(p1, p2 Parameter) bool {
 		return p1.ValueFrom.RunConfigurationRef.Name.Name < p2.ValueFrom.RunConfigurationRef.Name.Name
 	}
 
-	return p1.ValueFrom.RunConfigurationRef.OutputArtifact < p2.ValueFrom.RunConfigurationRef.OutputArtifact
+	if p1.ValueFrom.RunConfigurationRef.OutputArtifact != p2.ValueFrom.RunConfigurationRef.OutputArtifact {
+		return p1.ValueFrom.RunConfigurationRef.OutputArtifact < p2.ValueFrom.RunConfigurationRef.OutputArtifact
+	}
+
+	return !p1.ValueFrom.RunConfigurationRef.Optional && p1.ValueFrom.RunConfigurationRef.Optional != p2.ValueFrom.RunConfigurationRef.Optional
 }
 
 func writeParameter(oh pipelines.ObjectHasher, p Parameter) {
@@ -102,6 +116,7 @@ func writeParameter(oh pipelines.ObjectHasher, p Parameter) {
 		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.Name.Name)
 		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.Name.Namespace)
 		oh.WriteStringField(p.ValueFrom.RunConfigurationRef.OutputArtifact)
+		oh.WriteStringField(strconv.FormatBool(p.ValueFrom.RunConfigurationRef.Optional))
 	}
 }
 

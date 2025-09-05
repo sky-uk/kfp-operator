@@ -3,10 +3,11 @@ package pipelines
 import (
 	"context"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"reflect"
 	"slices"
 	"time"
+
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
@@ -109,9 +110,11 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	state := apis.Succeeded
 	message := ""
 
-	if resolvedParameters, err := runConfiguration.Spec.Run.ResolveParameters(
-		runConfiguration.Status.Dependencies,
-	); err == nil {
+	resolvedParameters, unresolvedOptionalParameters, err := runConfiguration.Spec.Run.ResolveParameters(runConfiguration.Status.Dependencies)
+	if err == nil {
+		for _, param := range unresolvedOptionalParameters {
+			r.EC.Recorder.Eventf(runConfiguration, EventTypes.Normal, EventReasons.Synced, "Parameter %s not resolved, but skipping as it is marked as optional.", param.Name)
+		}
 		if hasChanged, err := r.syncWithRuns(ctx, runConfiguration); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
@@ -120,6 +123,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+	} else {
+		message = fmt.Sprintf("Reconciliation succeeded, but unable to resolve parameters: %v", err)
 	}
 
 	newStatus = runConfiguration.Status

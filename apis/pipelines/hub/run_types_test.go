@@ -119,9 +119,17 @@ var _ = Context("Run", func() {
 				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: "B"}}},
 				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: "A"}}},
 				false),
+			Entry("same name and outputArtifact but first optional",
+				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged, Optional: true}}},
+				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged}}},
+				false),
+			Entry("same name and outputArtifact but second optional",
+				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged}}},
+				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged, Optional: true}}},
+				true),
 			Entry("same valueFrom",
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged}}},
-				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged}}},
+				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged, Optional: true}}},
+				Parameter{Name: unchanged, ValueFrom: &ValueFrom{RunConfigurationRef: RunConfigurationRef{Name: common.NamespacedName{Name: unchanged}, OutputArtifact: unchanged, Optional: true}}},
 				false),
 		)
 	})
@@ -218,15 +226,79 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
-			namedValues, err := rs.ResolveParameters(Dependencies{})
+			namedValues, unresolvedOptionalParameters, err := rs.ResolveParameters(Dependencies{})
 			Expect(err).NotTo(HaveOccurred())
 			Expect(namedValues).To(ConsistOf(expectedNamedValue))
+			Expect(unresolvedOptionalParameters).To(BeEmpty())
+		})
+
+		Specify("artifact not found in dependency but parameter is optional", func() {
+			runConfigurationName := common.RandomNamespacedName()
+			optionalParameter := Parameter{
+				Name: apis.RandomString(),
+				ValueFrom: &ValueFrom{
+					RunConfigurationRef: RunConfigurationRef{
+						Name:           runConfigurationName,
+						OutputArtifact: apis.RandomString(),
+						Optional:       true,
+					},
+				},
+			}
+			rs := RunSpec{Parameters: []Parameter{optionalParameter}}
+			rcNamespacedName, err := runConfigurationName.String()
+			Expect(err).NotTo(HaveOccurred())
+
+			namedValues, unresolvedOptionalParameters, err := rs.ResolveParameters(Dependencies{
+				RunConfigurations: map[string]RunReference{
+					rcNamespacedName: {},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(namedValues).To(ConsistOf(apis.NamedValue{}))
+			Expect(unresolvedOptionalParameters).To(Equal([]Parameter{optionalParameter}))
+		})
+
+		Specify("artifact not found in dependency but parameter is optional", func() {
+			runConfigurationName := common.RandomNamespacedName()
+			optionalParameter := Parameter{
+				Name: apis.RandomString(),
+				ValueFrom: &ValueFrom{
+					RunConfigurationRef: RunConfigurationRef{
+						Name:           runConfigurationName,
+						OutputArtifact: apis.RandomString(),
+						Optional:       true,
+					},
+				},
+			}
+			rs := RunSpec{Parameters: []Parameter{optionalParameter}}
+			rcNamespacedName, err := runConfigurationName.String()
+			Expect(err).NotTo(HaveOccurred())
+
+			namedValues, unresolvedOptionalParameters, err := rs.ResolveParameters(Dependencies{
+				RunConfigurations: map[string]RunReference{
+					rcNamespacedName: {},
+				},
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(namedValues).To(ConsistOf(apis.NamedValue{}))
+			Expect(unresolvedOptionalParameters).To(Equal([]Parameter{optionalParameter}))
 		})
 
 		Specify("artifact not found in dependency", func() {
 			runConfigurationName := common.RandomNamespacedName()
+			optionalParameter := Parameter{
+				Name: apis.RandomString(),
+				ValueFrom: &ValueFrom{
+					RunConfigurationRef: RunConfigurationRef{
+						Name:           runConfigurationName,
+						OutputArtifact: apis.RandomString(),
+						Optional:       true,
+					},
+				},
+			}
 			rs := RunSpec{
 				Parameters: []Parameter{
+					optionalParameter,
 					{
 						Name: apis.RandomString(),
 						ValueFrom: &ValueFrom{
@@ -241,12 +313,13 @@ var _ = Context("RunSpec", func() {
 			rcNamespacedName, err := runConfigurationName.String()
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = rs.ResolveParameters(Dependencies{
+			_, unresolvedOptionalParameters, err := rs.ResolveParameters(Dependencies{
 				RunConfigurations: map[string]RunReference{
 					rcNamespacedName: {},
 				},
 			})
 
+			Expect(unresolvedOptionalParameters).To(Equal([]Parameter{optionalParameter}))
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -264,7 +337,7 @@ var _ = Context("RunSpec", func() {
 				},
 			}
 
-			_, err := rs.ResolveParameters(Dependencies{})
+			_, _, err := rs.ResolveParameters(Dependencies{})
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -291,7 +364,7 @@ var _ = Context("RunSpec", func() {
 			rcNamespacedName, err := runConfigurationName.String()
 			Expect(err).NotTo(HaveOccurred())
 
-			namedValues, err := rs.ResolveParameters(Dependencies{
+			namedValues, unresolvedOptionalParameters, err := rs.ResolveParameters(Dependencies{
 				RunConfigurations: map[string]RunReference{
 					rcNamespacedName: {
 						Artifacts: []common.Artifact{
@@ -306,6 +379,7 @@ var _ = Context("RunSpec", func() {
 
 			Expect(err).NotTo(HaveOccurred())
 			Expect(namedValues).To(ConsistOf(expectedNamedValue))
+			Expect(unresolvedOptionalParameters).To(BeEmpty())
 		})
 	})
 })
