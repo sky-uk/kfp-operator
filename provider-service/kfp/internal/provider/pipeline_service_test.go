@@ -36,27 +36,7 @@ var _ = Describe("PipelineService", func() {
 	})
 
 	Context("DeletePipeline", func() {
-		It("should not error if all pipeline versions and pipeline are deleted", func() {
-			mockClient.On(
-				"ListPipelineVersions",
-				&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
-			).Return(
-				&go_client.ListPipelineVersionsResponse{
-					PipelineVersions: []*go_client.PipelineVersion{
-						{PipelineVersionId: versionId},
-					},
-				},
-				nil,
-			)
-
-			mockClient.On(
-				"DeletePipelineVersion",
-				&go_client.DeletePipelineVersionRequest{
-					PipelineId:        pipelineId,
-					PipelineVersionId: versionId,
-				},
-			).Return(nil)
-
+		It("should not error if pipeline is deleted", func() {
 			mockClient.On(
 				"DeletePipeline",
 				&go_client.DeletePipelineRequest{
@@ -68,69 +48,8 @@ var _ = Describe("PipelineService", func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		When("PipelineServiceClient.ListPipelineVersions returns error", func() {
-			It("should error", func() {
-				mockClient.On(
-					"ListPipelineVersions",
-					&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
-				).Return(nil, errors.New("failed"))
-
-				err := pipelineService.DeletePipeline(ctx, pipelineId)
-				Expect(err).To(HaveOccurred())
-			})
-
-		})
-
-		When("PipelineServiceClient.DeletePipelineVersion returns error", func() {
-			It("should error", func() {
-				mockClient.On(
-					"ListPipelineVersions",
-					&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
-				).Return(
-					&go_client.ListPipelineVersionsResponse{
-						PipelineVersions: []*go_client.PipelineVersion{
-							{PipelineVersionId: versionId},
-						},
-					},
-					nil,
-				)
-
-				mockClient.On(
-					"DeletePipelineVersion",
-					&go_client.DeletePipelineVersionRequest{
-						PipelineId:        pipelineId,
-						PipelineVersionId: versionId,
-					},
-				).Return(errors.New("failed"))
-
-				err := pipelineService.DeletePipeline(ctx, pipelineId)
-				Expect(err).To(HaveOccurred())
-			})
-
-		})
-
 		When("PipelineServiceClient.DeletePipeline returns gRPC NOT_FOUND", func() {
 			It("should not error", func() {
-				mockClient.On(
-					"ListPipelineVersions",
-					&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
-				).Return(
-					&go_client.ListPipelineVersionsResponse{
-						PipelineVersions: []*go_client.PipelineVersion{
-							{PipelineVersionId: versionId},
-						},
-					},
-					nil,
-				)
-
-				mockClient.On(
-					"DeletePipelineVersion",
-					&go_client.DeletePipelineVersionRequest{
-						PipelineId:        pipelineId,
-						PipelineVersionId: versionId,
-					},
-				).Return(nil)
-
 				mockClient.On(
 					"DeletePipeline",
 					&go_client.DeletePipelineRequest{
@@ -146,31 +65,11 @@ var _ = Describe("PipelineService", func() {
 		When("PipelineServiceClient.DeletePipeline returns non NOT_FOUND gRPC error ", func() {
 			It("should return the error", func() {
 				mockClient.On(
-					"ListPipelineVersions",
-					&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
-				).Return(
-					&go_client.ListPipelineVersionsResponse{
-						PipelineVersions: []*go_client.PipelineVersion{
-							{PipelineVersionId: versionId},
-						},
-					},
-					nil,
-				)
-
-				mockClient.On(
-					"DeletePipelineVersion",
-					&go_client.DeletePipelineVersionRequest{
-						PipelineId:        pipelineId,
-						PipelineVersionId: versionId,
-					},
-				).Return(nil)
-
-				mockClient.On(
 					"DeletePipeline",
 					&go_client.DeletePipelineRequest{
 						PipelineId: pipelineId,
 					},
-				).Return(status.Errorf(codes.Canceled, "resource not found"))
+				).Return(status.Errorf(codes.Canceled, "resource canceled"))
 
 				err := pipelineService.DeletePipeline(ctx, pipelineId)
 				Expect(err).To(HaveOccurred())
@@ -179,26 +78,6 @@ var _ = Describe("PipelineService", func() {
 
 		When("PipelineServiceClient.DeletePipeline returns a non gRPC error ", func() {
 			It("should return the error", func() {
-				mockClient.On(
-					"ListPipelineVersions",
-					&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
-				).Return(
-					&go_client.ListPipelineVersionsResponse{
-						PipelineVersions: []*go_client.PipelineVersion{
-							{PipelineVersionId: versionId},
-						},
-					},
-					nil,
-				)
-
-				mockClient.On(
-					"DeletePipelineVersion",
-					&go_client.DeletePipelineVersionRequest{
-						PipelineId:        pipelineId,
-						PipelineVersionId: versionId,
-					},
-				).Return(nil)
-
 				mockClient.On(
 					"DeletePipeline",
 					&go_client.DeletePipelineRequest{

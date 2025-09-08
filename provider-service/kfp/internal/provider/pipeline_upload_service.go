@@ -61,6 +61,7 @@ func NewPipelineUploadService(
 
 // UploadPipeline uploads the compiled pipeline content and returns the upload
 // result payload ID - which represents the generated pipeline id.
+// A default pipeline version is created with name set to the pipeline displayName.
 // pipelineFilePath file extension and content data type must align and be
 // recognized by pipeline_upload_service.
 func (us *DefaultPipelineUploadService) UploadPipeline(
@@ -85,7 +86,7 @@ func (us *DefaultPipelineUploadService) UploadPipeline(
 	return result.Payload.PipelineID, nil
 }
 
-// UploadPipelineVersion uploads the compiled pipeline content, updates the
+// UploadPipelineVersion uploads the compiled pipeline content, appends the new
 // version of an existing pipeline id.
 // pipelineFilePath file extension and content data type must align and be
 // recognized by pipeline_upload_service.

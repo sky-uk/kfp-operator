@@ -111,6 +111,10 @@ func (p *KfpProvider) DeletePipeline(
 	ctx context.Context,
 	id string,
 ) error {
+	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
+		return err
+	}
+
 	return p.pipelineService.DeletePipeline(ctx, id)
 }
 

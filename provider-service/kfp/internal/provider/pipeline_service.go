@@ -39,18 +39,14 @@ func NewPipelineService(
 
 // DeletePipeline deletes a pipeline by pipeline id. Does not error if there is
 // no such pipeline id.
+// Errors if there are pipeline versions for the id. Users should delete all
+// pipeline versions first if they wish to successfully delete the pipeline.
 func (ps *DefaultPipelineService) DeletePipeline(ctx context.Context, id string) error {
 	// The underlying client can only delete an empty pipeline and errors if there
 	// are any pipeline versions, therefore versions are cleaned up first.
-	if err := ps.deletePipelineVersions(ctx, id); err != nil {
-		return err
-	}
-
 	if _, err := ps.client.DeletePipeline(
 		ctx,
-		&go_client.DeletePipelineRequest{
-			PipelineId: id,
-		},
+		&go_client.DeletePipelineRequest{PipelineId: id},
 	); err != nil {
 		st, ok := status.FromError(err)
 		if ok {
@@ -68,14 +64,8 @@ func (ps *DefaultPipelineService) DeletePipeline(ctx context.Context, id string)
 	return nil
 }
 
+// DeletePipelineVersions deletes all pipeline versions for a given pipeline id.
 func (ps *DefaultPipelineService) DeletePipelineVersions(
-	ctx context.Context,
-	id string,
-) error {
-	return ps.deletePipelineVersions(ctx, id)
-}
-
-func (ps *DefaultPipelineService) deletePipelineVersions(
 	ctx context.Context,
 	id string,
 ) error {
