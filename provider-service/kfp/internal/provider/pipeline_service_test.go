@@ -212,6 +212,74 @@ var _ = Describe("PipelineService", func() {
 		})
 	})
 
+	Context("DeletePipelineVersions", func() {
+		It("should not error if pipeline versions can be listed and deleted ", func() {
+			mockClient.On(
+				"ListPipelineVersions",
+				&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
+			).Return(
+				&go_client.ListPipelineVersionsResponse{
+					PipelineVersions: []*go_client.PipelineVersion{
+						{PipelineVersionId: versionId},
+					},
+				},
+				nil,
+			)
+
+			mockClient.On(
+				"DeletePipelineVersion",
+				&go_client.DeletePipelineVersionRequest{
+					PipelineId:        pipelineId,
+					PipelineVersionId: versionId,
+				},
+			).Return(nil)
+
+			err := pipelineService.DeletePipelineVersions(ctx, pipelineId)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		When("PipelineServiceClient.ListPipelineVersions returns error", func() {
+			It("should error", func() {
+				mockClient.On(
+					"ListPipelineVersions",
+					&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
+				).Return(nil, errors.New("failed"))
+
+				err := pipelineService.DeletePipelineVersions(ctx, pipelineId)
+				Expect(err).To(HaveOccurred())
+			})
+
+		})
+
+		When("PipelineServiceClient.DeletePipelineVersion returns error", func() {
+			It("should error", func() {
+				mockClient.On(
+					"ListPipelineVersions",
+					&go_client.ListPipelineVersionsRequest{PipelineId: pipelineId},
+				).Return(
+					&go_client.ListPipelineVersionsResponse{
+						PipelineVersions: []*go_client.PipelineVersion{
+							{PipelineVersionId: versionId},
+						},
+					},
+					nil,
+				)
+
+				mockClient.On(
+					"DeletePipelineVersion",
+					&go_client.DeletePipelineVersionRequest{
+						PipelineId:        pipelineId,
+						PipelineVersionId: versionId,
+					},
+				).Return(errors.New("failed"))
+
+				err := pipelineService.DeletePipelineVersions(ctx, pipelineId)
+				Expect(err).To(HaveOccurred())
+			})
+
+		})
+	})
+
 	Context("PipelineIdForDisplayName", func() {
 		It("should return the pipeline ID if exactly one pipeline is found", func() {
 			expectedResult := go_client.ListPipelinesResponse{

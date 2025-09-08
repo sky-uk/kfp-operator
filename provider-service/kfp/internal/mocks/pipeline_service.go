@@ -19,6 +19,14 @@ func (m *MockPipelineService) DeletePipeline(
 	return args.Error(0)
 }
 
+func (m *MockPipelineService) DeletePipelineVersions(
+	_ context.Context,
+	id string,
+) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
 func (m *MockPipelineService) PipelineIdForDisplayName(
 	_ context.Context,
 	pipelineName string,

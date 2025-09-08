@@ -14,6 +14,7 @@ import (
 
 type PipelineService interface {
 	DeletePipeline(ctx context.Context, id string) error
+	DeletePipelineVersions(ctx context.Context, id string) error
 	PipelineIdForDisplayName(ctx context.Context, pipelineName string) (string, error)
 	PipelineVersionIdForDisplayName(ctx context.Context, versionName string, pipelineId string) (string, error)
 }
@@ -41,6 +42,43 @@ func NewPipelineService(
 func (ps *DefaultPipelineService) DeletePipeline(ctx context.Context, id string) error {
 	// The underlying client can only delete an empty pipeline and errors if there
 	// are any pipeline versions, therefore versions are cleaned up first.
+	if err := ps.deletePipelineVersions(ctx, id); err != nil {
+		return err
+	}
+
+	if _, err := ps.client.DeletePipeline(
+		ctx,
+		&go_client.DeletePipelineRequest{
+			PipelineId: id,
+		},
+	); err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			// is a gRPC error
+			switch st.Code() {
+			case codes.NotFound:
+				return nil
+			default:
+				return err
+			}
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (ps *DefaultPipelineService) DeletePipelineVersions(
+	ctx context.Context,
+	id string,
+) error {
+	return ps.deletePipelineVersions(ctx, id)
+}
+
+func (ps *DefaultPipelineService) deletePipelineVersions(
+	ctx context.Context,
+	id string,
+) error {
 	vers, err := ps.client.ListPipelineVersions(
 		ctx,
 		&go_client.ListPipelineVersionsRequest{PipelineId: id},
@@ -59,25 +97,6 @@ func (ps *DefaultPipelineService) DeletePipeline(ctx context.Context, id string)
 		); err != nil {
 			return err
 		}
-	}
-
-	if _, err = ps.client.DeletePipeline(
-		ctx,
-		&go_client.DeletePipelineRequest{
-			PipelineId: id,
-		},
-	); err != nil {
-		st, ok := status.FromError(err)
-		if ok {
-			// is a gRPC error
-			switch st.Code() {
-			case codes.NotFound:
-				return nil
-			default:
-				return err
-			}
-		}
-		return err
 	}
 
 	return nil
