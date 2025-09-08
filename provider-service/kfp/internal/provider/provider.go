@@ -91,6 +91,10 @@ func (p *KfpProvider) UpdatePipeline(
 	pdw resource.PipelineDefinitionWrapper,
 	id string,
 ) (string, error) {
+	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
+		return "", err
+	}
+
 	if err := p.pipelineUploadService.UploadPipelineVersion(
 		ctx,
 		id,

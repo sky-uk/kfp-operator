@@ -140,6 +140,7 @@ var _ = Describe("Provider", func() {
 		Context("CreatePipeline", func() {
 			It("should return id if pipeline is created", func() {
 				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return(id, nil)
+				mockPipelineService.On("DeletePipelineVersions", id).Return(nil)
 				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(nil)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
@@ -165,9 +166,20 @@ var _ = Describe("Provider", func() {
 				Expect(result).To(BeEmpty())
 			})
 
+			It("should return err if DeletePipelineVersions fails", func() {
+				expectedErr := errors.New("failed")
+				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return(id, nil)
+				mockPipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
+				result, err := provider.CreatePipeline(ctx, pdw)
+
+				Expect(err).To(Equal(expectedErr))
+				Expect(result).To(BeEmpty())
+			})
+
 			It("should return err if UpdatePipelineVersion fails", func() {
 				expectedErr := errors.New("failed")
 				mockPipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return(id, nil)
+				mockPipelineService.On("DeletePipelineVersions", id).Return(nil)
 				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
@@ -177,7 +189,8 @@ var _ = Describe("Provider", func() {
 		})
 
 		Context("UpdatePipeline", func() {
-			It("should return id if pipeline is updated", func() {
+			It("should return id if pipeline versions are cleaned up and version is updated", func() {
+				mockPipelineService.On("DeletePipelineVersions", id).Return(nil)
 				mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(nil)
 				result, err := provider.UpdatePipeline(ctx, pdw, id)
 
@@ -185,9 +198,21 @@ var _ = Describe("Provider", func() {
 				Expect(result).To(Equal(id))
 			})
 
-			When("pipeline upload service errors", func() {
+			When("DeletePipelineVersions errors", func() {
 				It("should return empty id and err", func() {
 					expectedErr := errors.New("failed")
+					mockPipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
+					result, err := provider.UpdatePipeline(ctx, pdw, id)
+
+					Expect(err).To(Equal(expectedErr))
+					Expect(result).To(BeEmpty())
+				})
+			})
+
+			When("UploadPipelineVersion errors", func() {
+				It("should return empty id and err", func() {
+					expectedErr := errors.New("failed")
+					mockPipelineService.On("DeletePipelineVersions", id).Return(nil)
 					mockPipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(expectedErr)
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
