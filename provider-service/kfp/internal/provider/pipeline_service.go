@@ -36,16 +36,37 @@ func NewPipelineService(
 	}, nil
 }
 
-// DeletePipeline deletes a pipline by pipeline id. Does not error if there is
+// DeletePipeline deletes a pipeline by pipeline id. Does not error if there is
 // no such pipeline id.
 func (ps *DefaultPipelineService) DeletePipeline(ctx context.Context, id string) error {
-	_, err := ps.client.DeletePipeline(
+	// The underlying client can only delete an empty pipeline and errors if there
+	// are any pipeline versions, therefore versions are cleaned up first.
+	vers, err := ps.client.ListPipelineVersions(
+		ctx,
+		&go_client.ListPipelineVersionsRequest{PipelineId: id},
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, pipelineVersion := range vers.PipelineVersions {
+		if _, err := ps.client.DeletePipelineVersion(
+			ctx,
+			&go_client.DeletePipelineVersionRequest{
+				PipelineId:        id,
+				PipelineVersionId: pipelineVersion.PipelineVersionId,
+			},
+		); err != nil {
+			return err
+		}
+	}
+
+	if _, err = ps.client.DeletePipeline(
 		ctx,
 		&go_client.DeletePipelineRequest{
 			PipelineId: id,
 		},
-	)
-	if err != nil {
+	); err != nil {
 		st, ok := status.FromError(err)
 		if ok {
 			// is a gRPC error

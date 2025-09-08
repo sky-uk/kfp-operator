@@ -25,4 +25,10 @@ type PipelineServiceClient interface {
 		in *go_client.ListPipelineVersionsRequest,
 		opts ...grpc.CallOption,
 	) (*go_client.ListPipelineVersionsResponse, error)
+
+	DeletePipelineVersion(
+		ctx context.Context,
+		in *go_client.DeletePipelineVersionRequest,
+		opts ...grpc.CallOption,
+	) (*emptypb.Empty, error)
 }

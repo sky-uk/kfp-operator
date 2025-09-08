@@ -48,3 +48,12 @@ func (m *MockPipelineServiceClient) ListPipelineVersions(
 	}
 	return res, args.Error(1)
 }
+
+func (m *MockPipelineServiceClient) DeletePipelineVersion(
+	_ context.Context,
+	in *go_client.DeletePipelineVersionRequest,
+	_ ...grpc.CallOption,
+) (*emptypb.Empty, error) {
+	args := m.Called(in)
+	return &emptypb.Empty{}, args.Error(0)
+}
