@@ -108,9 +108,8 @@ var _ = Context("RunCompletionEventToProto", func() {
 		}
 	})
 
-	When("converting event data to proto run completion event", func() {
-
-		It("returns no error when event data is converted to proto runcompletion event", func() {
+	When("event data is converted to proto run completion event", func() {
+		It("returns the converted event and no error", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
 			Expect(err).NotTo(HaveOccurred())
 
@@ -134,13 +133,14 @@ var _ = Context("RunCompletionEventToProto", func() {
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})
+	})
 
-		It("returns empty slices when there are no artifacts", func() {
-			rceWithoutArtifacts := rce
-			rceWithoutArtifacts.Artifacts = []common.Artifact{}
-			rceWithoutArtifacts.ServingModelArtifacts = []common.Artifact{}
+	When("There are no artifacts", func() {
+		It("returns empty slices", func() {
+			rce.Artifacts = []common.Artifact{}
+			rce.ServingModelArtifacts = []common.Artifact{}
 
-			protoRce, err := RunCompletionEventToProto(rceWithoutArtifacts)
+			protoRce, err := RunCompletionEventToProto(rce)
 			Expect(err).NotTo(HaveOccurred())
 
 			emptySliceOfArtifacts := []*pb.Artifact{}
@@ -148,8 +148,10 @@ var _ = Context("RunCompletionEventToProto", func() {
 			Expect(protoRce.Artifacts).To(Equal(emptySliceOfArtifacts))
 			Expect(protoRce.ServingModelArtifacts).To(Equal(emptySliceOfArtifacts))
 		})
+	})
 
-		It("returns no error when event data with no RunName provided is converted to proto runcompletion event", func() {
+	When("event has no RunName", func() {
+		It("returns no error", func() {
 			rce.RunName = nil
 			protoRce, err := RunCompletionEventToProto(rce)
 			Expect(err).NotTo(HaveOccurred())
@@ -174,8 +176,10 @@ var _ = Context("RunCompletionEventToProto", func() {
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})
+	})
 
-		It("returns no error when event data with no RunConfigurationName provided is converted to proto runcompletion event", func() {
+	When("event has no RunConfigurationName", func() {
+		It("returns no error", func() {
 			rce.RunConfigurationName = nil
 			protoRce, err := RunCompletionEventToProto(rce)
 			Expect(err).NotTo(HaveOccurred())
@@ -200,22 +204,19 @@ var _ = Context("RunCompletionEventToProto", func() {
 			}
 			Expect(protoRce).To(Equal(expectedResult))
 		})
+	})
 
-		It("returns error when when event data with no RunConfigurationName and no RunName is provided", func() {
+	When("event has no RunConfigurationName and no RunName", func() {
+		It("returns error", func() {
 			rce.RunConfigurationName = nil
 			rce.RunName = nil
 			_, err := RunCompletionEventToProto(rce)
 			Expect(err).To(HaveOccurred())
 		})
+	})
 
-		It("returns error when namespaced name fields cannot be marshalled", func() {
-
-			rce := common.RunCompletionEvent{
-				PipelineName:         namespacedName,
-				RunConfigurationName: &namespacedName,
-				RunName:              &namespacedName,
-			}
-
+	When("NamespacedName fields cannot be marshalled", func() {
+		It("returns error", func() {
 			invalidNamespacedName := common.NamespacedName{
 				Namespace: "namespace",
 			}
