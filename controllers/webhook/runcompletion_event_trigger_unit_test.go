@@ -77,22 +77,24 @@ var _ = Context("Handle", func() {
 	})
 })
 
-var _ = Context("EventDataToPbRunCompletion", func() {
-	When("converting event data to proto run completion event", func() {
-		namespacedName := common.NamespacedName{
+var _ = Context("RunCompletionEventToProto", func() {
+	var (
+		namespacedName = common.NamespacedName{
 			Name:      "name",
 			Namespace: "namespace",
 		}
-
-		artifacts := []common.Artifact{
+		artifacts = []common.Artifact{
 			{
 				Name:     "some-artifact",
 				Location: "gs://some/where",
 			},
 		}
+		timeNow = time.Now().UTC()
+		rce     common.RunCompletionEvent
+	)
 
-		timeNow := time.Now().UTC()
-		rce := common.RunCompletionEvent{
+	BeforeEach(func() {
+		rce = common.RunCompletionEvent{
 			Status:                common.RunCompletionStatuses.Succeeded,
 			PipelineName:          namespacedName,
 			RunConfigurationName:  &namespacedName,
@@ -104,6 +106,9 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 			RunStartTime:          &timeNow,
 			RunEndTime:            &timeNow,
 		}
+	})
+
+	When("converting event data to proto run completion event", func() {
 
 		It("returns no error when event data is converted to proto runcompletion event", func() {
 			protoRce, err := RunCompletionEventToProto(rce)
@@ -168,6 +173,39 @@ var _ = Context("EventDataToPbRunCompletion", func() {
 				RunEndTime:            timestamppb.New(timeNow),
 			}
 			Expect(protoRce).To(Equal(expectedResult))
+		})
+
+		It("returns no error when event data with no RunConfigurationName provided is converted to proto runcompletion event", func() {
+			rce.RunConfigurationName = nil
+			protoRce, err := RunCompletionEventToProto(rce)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedArtifacts := []*pb.Artifact{
+				{
+					Name:     "some-artifact",
+					Location: "gs://some/where",
+				},
+			}
+			expectedResult := &pb.RunCompletionEvent{
+				Status:                pb.Status_SUCCEEDED,
+				PipelineName:          "namespace/name",
+				RunConfigurationName:  "",
+				RunName:               "namespace/name",
+				RunId:                 "some-runid",
+				ServingModelArtifacts: expectedArtifacts,
+				Artifacts:             expectedArtifacts,
+				Provider:              "some-provider",
+				RunStartTime:          timestamppb.New(timeNow),
+				RunEndTime:            timestamppb.New(timeNow),
+			}
+			Expect(protoRce).To(Equal(expectedResult))
+		})
+
+		It("returns error when when event data with no RunConfigurationName and no RunName is provided", func() {
+			rce.RunConfigurationName = nil
+			rce.RunName = nil
+			_, err := RunCompletionEventToProto(rce)
+			Expect(err).To(HaveOccurred())
 		})
 
 		It("returns error when namespaced name fields cannot be marshalled", func() {

@@ -63,17 +63,28 @@ func RunCompletionEventToProto(event common.RunCompletionEvent) (*pb.RunCompleti
 		return nil, fmt.Errorf("failed to format pipeline name for proto run completion event: %w", err)
 	}
 
-	runConfigurationName, err := event.RunConfigurationName.String()
-	if err != nil {
-		return nil, fmt.Errorf("failed to format run configuration name for proto run completion event: %w", err)
+	var runConfigurationName string
+	if event.RunConfigurationName != nil {
+		runConfigurationName, err = event.RunConfigurationName.String()
+		if err != nil {
+			return nil, fmt.Errorf("failed to format run configuration name for proto run completion event: %w", err)
+		}
 	}
 
-	runName := ""
+	var runName string
 	if event.RunName != nil {
 		runName, err = event.RunName.String()
 		if err != nil {
 			return nil, fmt.Errorf("failed to format run name for proto run completion event: %w", err)
 		}
+	}
+
+	if runConfigurationName == "" && runName == "" {
+		return nil, fmt.Errorf(
+			"Both runConfigurationName and runName are empty for the run completion event with runId: %s, pipelineName: %v",
+			event.RunId,
+			event.PipelineName,
+		)
 	}
 
 	var runStartTime *timestamppb.Timestamp
