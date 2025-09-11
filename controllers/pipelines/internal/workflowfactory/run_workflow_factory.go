@@ -39,7 +39,6 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 	}
 
 	parameters, _, err := run.Spec.ResolveParameters(run.Status.Dependencies)
-	// might need to check for optional parameters here
 	if err != nil {
 		return nil, providers.RunDefinition{}, err
 	}

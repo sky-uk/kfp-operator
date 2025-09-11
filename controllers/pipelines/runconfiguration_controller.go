@@ -7,14 +7,13 @@ import (
 	"slices"
 	"time"
 
-	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
-
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -124,7 +123,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			return ctrl.Result{}, err
 		}
 	} else {
-		message = fmt.Sprintf("Reconciliation succeeded, but unable to resolve parameters: %v", err)
+		message = fmt.Sprintf("Unable to resolve parameters: %v", err)
 	}
 
 	newStatus = runConfiguration.Status
