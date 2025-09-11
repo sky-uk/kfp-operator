@@ -111,9 +111,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	resolvedParameters, unresolvedOptionalParameters, err := runConfiguration.Spec.Run.ResolveParameters(runConfiguration.Status.Dependencies)
 	if err == nil {
-		for _, param := range unresolvedOptionalParameters {
-			r.EC.Recorder.Eventf(runConfiguration, EventTypes.Normal, EventReasons.Synced, "Parameter %s not resolved, but skipping as it is marked as optional.", param.Name)
-		}
+		RecordUnresolvedOptionalParameters(runConfiguration, r.EC.Recorder, unresolvedOptionalParameters)
 		if hasChanged, err := r.syncWithRuns(ctx, runConfiguration); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}

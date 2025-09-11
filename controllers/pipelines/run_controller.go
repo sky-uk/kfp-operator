@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -100,9 +101,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 
 		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
-			for _, param := range unresolvedOptionalParameters {
-				r.EC.Recorder.Eventf(run, EventTypes.Normal, EventReasons.Synced, "Unable to resolve parameter %s, but skipping as it is marked as optional.", param.Name)
-			}
+			RecordUnresolvedOptionalParameters(run, r.EC.Recorder, unresolvedOptionalParameters)
 			return ctrl.Result{}, err
 		}
 
@@ -249,4 +248,10 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return controllerBuilder.Complete(r)
+}
+
+func RecordUnresolvedOptionalParameters(resource client.Object, recorder record.EventRecorder, unresolvedOptionalParameters []pipelineshub.Parameter) {
+	for _, param := range unresolvedOptionalParameters {
+		recorder.Eventf(resource, EventTypes.Normal, EventReasons.Synced, "Unable to resolve parameter %s, but skipping as it is marked as optional.", param.Name)
+	}
 }
