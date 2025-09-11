@@ -80,11 +80,6 @@ func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.Nam
 	return resolvedParameters, unresolvedOptionalParameters, err
 }
 
-func (runSpec *RunSpec) HasUnmetDependencies(dependencies Dependencies) bool {
-	_, _, err := runSpec.ResolveParameters(dependencies)
-	return err != nil
-}
-
 func cmpParameters(p1, p2 Parameter) bool {
 	if p1.Name != p2.Name {
 		return p1.Name < p2.Name
