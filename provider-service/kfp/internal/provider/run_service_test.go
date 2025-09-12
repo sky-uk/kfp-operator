@@ -81,7 +81,8 @@ var _ = Describe("RunService", func() {
 		func() {
 			mockClient = mocks.MockRunServiceClient{}
 			runService = DefaultRunService{
-				client: &mockClient,
+				client:         &mockClient,
+				labelGenerator: NoopLabelGen{},
 			}
 		},
 	)

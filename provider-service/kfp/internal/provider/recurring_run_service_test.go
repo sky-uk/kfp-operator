@@ -40,6 +40,7 @@ var _ = Describe("DefaultRecurringRunService", func() {
 		mockClient = mocks.MockRecurringRunServiceClient{}
 		recurringRunService = DefaultRecurringRunService{
 			&mockClient,
+			NoopLabelGen{},
 		}
 		rsd = testutil.RandomRunScheduleDefinition()
 	})
