@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
@@ -29,10 +30,11 @@ type RecurringRunService interface {
 }
 
 type DefaultRecurringRunService struct {
-	client client.RecurringRunServiceClient
+	client         client.RecurringRunServiceClient
+	labelGenerator LabelGen
 }
 
-func NewRecurringRunService(conn *grpc.ClientConn) (RecurringRunService, error) {
+func NewRecurringRunService(conn *grpc.ClientConn, labelGenerator LabelGen) (RecurringRunService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
 			"no gRPC connection was provided to start recurring run service",
@@ -40,7 +42,8 @@ func NewRecurringRunService(conn *grpc.ClientConn) (RecurringRunService, error) 
 	}
 
 	return &DefaultRecurringRunService{
-		client: go_client.NewRecurringRunServiceClient(conn),
+		client:         go_client.NewRecurringRunServiceClient(conn),
+		labelGenerator: labelGenerator,
 	}, nil
 }
 
@@ -67,8 +70,13 @@ func (rrs *DefaultRecurringRunService) CreateRecurringRun(
 		return "", err
 	}
 
+	generatedLabels, err := rrs.labelGenerator.GenerateLabels(rsd)
+	if err != nil {
+		return "", err
+	}
+
 	runtimeParams := make(map[string]*structpb.Value)
-	for k, v := range rsd.Parameters {
+	for k, v := range lo.Assign(rsd.Parameters, generatedLabels) {
 		runtimeParams[k] = structpb.NewStringValue(v)
 	}
 

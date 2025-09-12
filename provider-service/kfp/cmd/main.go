@@ -62,7 +62,7 @@ func main() {
 
 	g.Go(
 		func() error {
-			provider, err := kfp.NewKfpProvider(kfpProviderConfig)
+			provider, err := kfp.NewKfpProvider(kfpProviderConfig, serviceConfig.Pod.Namespace)
 			if err != nil {
 				return fmt.Errorf("failed to create provider: %w", err)
 			}
