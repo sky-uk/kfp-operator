@@ -3,6 +3,7 @@
 package pipelines
 
 import (
+	"fmt"
 	"time"
 
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -342,6 +343,58 @@ var _ = Describe("Run controller k8s integration", Serial, func() {
 				g.Expect(run.Status.Conditions.SynchronizationSucceeded().Reason).To(BeEquivalentTo(apis.Creating))
 				g.Expect(run.Status.Dependencies.RunConfigurations[rc1NamespacedName]).To(Equal(referencedRc1.Status.LatestRuns.Succeeded))
 				g.Expect(run.Status.Dependencies.RunConfigurations[rc2NamespacedName]).To(Equal(referencedRc2.Status.LatestRuns.Succeeded))
+			})).Should(Succeed())
+		})
+	})
+
+	When("A run has unresolved optional parameters", func() {
+		It("records events for unresolved optional parameters", func() {
+			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
+				ProviderId: apis.RandomString(),
+				Artifacts: []common.Artifact{
+					common.RandomArtifact(),
+				},
+			})
+			referencedRcNamespacedName := common.NamespacedName{Name: referencedRc.Name, Namespace: referencedRc.Namespace}
+
+			run := pipelineshub.RandomRun(Provider.GetCommonNamespacedName())
+			optionalParamName := "optional-param"
+			run.Spec.Parameters = []pipelineshub.Parameter{
+				{
+					Name: "working-param",
+					ValueFrom: &pipelineshub.ValueFrom{
+						RunConfigurationRef: pipelineshub.RunConfigurationRef{
+							Name:           referencedRcNamespacedName,
+							OutputArtifact: referencedRc.Status.LatestRuns.Succeeded.Artifacts[0].Name,
+						},
+					},
+				},
+				{
+					Name: optionalParamName,
+					ValueFrom: &pipelineshub.ValueFrom{
+						RunConfigurationRef: pipelineshub.RunConfigurationRef{
+							Name:           referencedRcNamespacedName,
+							OutputArtifact: "missing-artifact",
+							Optional:       true,
+						},
+					},
+				},
+			}
+
+			rcNamespacedName, err := referencedRcNamespacedName.String()
+			Expect(err).NotTo(HaveOccurred())
+
+			runHelper := Create(run)
+
+			Eventually(runHelper.ToMatch(func(g Gomega, run *pipelineshub.Run) {
+				g.Expect(run.Status.Dependencies.RunConfigurations[rcNamespacedName]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
+			})).Should(Succeed())
+
+			Eventually(runHelper.EmittedEventsToMatch(func(g Gomega, events []v1.Event) {
+				g.Expect(events).To(ContainElement(And(
+					HaveReason(EventReasons.Synced),
+					HaveField("Message", ContainSubstring(fmt.Sprintf("Unable to resolve parameter %s, but skipping as it is marked as optional.", optionalParamName))),
+				)))
 			})).Should(Succeed())
 		})
 	})

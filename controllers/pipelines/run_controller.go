@@ -101,7 +101,6 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 
 		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
-			RecordUnresolvedOptionalParameters(run, r.EC.Recorder, unresolvedOptionalParameters)
 			return ctrl.Result{}, err
 		}
 
@@ -111,6 +110,8 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 		return ctrl.Result{}, nil
 	}
+
+	RecordUnresolvedOptionalParameters(run, r.EC.Recorder, unresolvedOptionalParameters)
 
 	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
 	if err != nil {
