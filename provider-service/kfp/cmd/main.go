@@ -3,6 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/go-resty/resty/v2"
+	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sinks"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams/sources"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/runcompletion"
 	"os"
 	"os/signal"
 	"syscall"
@@ -70,6 +77,18 @@ func main() {
 		},
 	)
 
+	k8sClient, err := pkg.NewK8sClient()
+	if err != nil {
+		panic(err)
+	}
+
+	g.Go(
+		func() error {
+			runEventing(ctx, *k8sClient, serviceConfig, kfpProviderConfig)
+			return nil
+		},
+	)
+
 	go func() {
 		<-ctx.Done()
 		logger.Info("context canceled; shutting down...")
@@ -81,4 +100,36 @@ func main() {
 	}
 
 	logger.Info("kfp provider terminated gracefully")
+}
+
+func runEventing(ctx context.Context, k8sClient pkg.K8sClient, baseConfig *baseConfig.Config, providerConfig *kfpConfig.Config) {
+	kfpApi, err := client.CreateKfpApi(ctx, *providerConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	kfpMetadataStore, err := client.CreateMetadataStore(ctx, *providerConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	source, err := sources.NewWorkflowSource(ctx, providerConfig.Parameters.KfpNamespace, k8sClient)
+	if err != nil {
+		panic(err)
+	}
+
+	flow, err := runcompletion.NewEventFlow(ctx, *providerConfig, kfpApi, kfpMetadataStore)
+	if err != nil {
+		panic(err)
+	}
+
+	sink, err := sinks.NewObservedWebhookSink(ctx, resty.New(), baseConfig.OperatorWebhook, make(chan pkg.StreamMessage[*common.RunCompletionEventData]))
+	if err != nil {
+		panic(fmt.Errorf("failed to create webhook sink: %w", err))
+	}
+	errorSink := sinks.NewErrorSink(ctx, make(chan error))
+
+	connectedFlow := flow.From(source)
+	connectedFlow.To(sink)
+	connectedFlow.Error(errorSink)
 }
