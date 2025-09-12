@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/samber/lo"
 
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
@@ -26,11 +27,13 @@ type RunService interface {
 }
 
 type DefaultRunService struct {
-	client client.RunServiceClient
+	client         client.RunServiceClient
+	labelGenerator LabelGen
 }
 
 func NewRunService(
 	conn *grpc.ClientConn,
+	labelGenerator LabelGen,
 ) (RunService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
@@ -39,7 +42,8 @@ func NewRunService(
 	}
 
 	return &DefaultRunService{
-		client: go_client.NewRunServiceClient(conn),
+		client:         go_client.NewRunServiceClient(conn),
+		labelGenerator: labelGenerator,
 	}, nil
 }
 
@@ -51,11 +55,17 @@ func (rs DefaultRunService) CreateRun(
 	pipelineVersionId string,
 	experimentId string,
 ) (string, error) {
+	generatedLabels, err := rs.labelGenerator.GenerateLabels(rd)
+	if err != nil {
+		return "", err
+	}
+
 	runParameters := make(map[string]*structpb.Value)
-	for k, v := range rd.Parameters {
+	for k, v := range lo.Assign(rd.Parameters, generatedLabels) {
 		runParameters[k] = structpb.NewStringValue(v)
 	}
 
+	//Todo: Remove as metadata is now stored within parameters
 	runAsDescription, err := yaml.Marshal(resource.References{
 		RunName:              rd.Name,
 		RunConfigurationName: rd.RunConfigurationName,
