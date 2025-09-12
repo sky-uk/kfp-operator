@@ -38,7 +38,7 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 		return nil, providers.RunDefinition{}, fmt.Errorf("unknown pipeline version")
 	}
 
-	parameters, _, err := run.Spec.ResolveParameters(run.Status.Dependencies)
+	namedValues, _, err := run.Spec.ResolveParameters(run.Status.Dependencies)
 	if err != nil {
 		return nil, providers.RunDefinition{}, err
 	}
@@ -57,7 +57,7 @@ func (rdc RunDefinitionCreator) runDefinition(_ pipelineshub.Provider, run *pipe
 		},
 		PipelineVersion:  run.Status.Dependencies.Pipeline.Version,
 		ExperimentName:   experimentName,
-		Parameters:       NamedValuesToMap(parameters),
+		Parameters:       NamedValuesToMap(namedValues),
 		Artifacts:        run.Spec.Artifacts,
 		TriggerIndicator: &triggerIndicator,
 	}

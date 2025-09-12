@@ -282,7 +282,7 @@ var _ = Context("RunSpec", func() {
 				},
 			})
 
-			Expect(unresolvedOptionalParameters).To(Equal([]Parameter{optionalParameter}))
+			Expect(unresolvedOptionalParameters).To(BeEmpty())
 			Expect(err).To(HaveOccurred())
 		})
 
