@@ -258,47 +258,10 @@ var _ = Context("RunSpec", func() {
 			Expect(unresolvedOptionalParameters).To(Equal([]Parameter{optionalParameter}))
 		})
 
-		Specify("artifact not found in dependency but parameter is optional", func() {
+		Specify("artifact not found in dependency and parameter is not optional", func() {
 			runConfigurationName := common.RandomNamespacedName()
-			optionalParameter := Parameter{
-				Name: apis.RandomString(),
-				ValueFrom: &ValueFrom{
-					RunConfigurationRef: RunConfigurationRef{
-						Name:           runConfigurationName,
-						OutputArtifact: apis.RandomString(),
-						Optional:       true,
-					},
-				},
-			}
-			rs := RunSpec{Parameters: []Parameter{optionalParameter}}
-			rcNamespacedName, err := runConfigurationName.String()
-			Expect(err).NotTo(HaveOccurred())
-
-			namedValues, unresolvedOptionalParameters, err := rs.ResolveParameters(Dependencies{
-				RunConfigurations: map[string]RunReference{
-					rcNamespacedName: {},
-				},
-			})
-			Expect(err).NotTo(HaveOccurred())
-			Expect(namedValues).To(ConsistOf(apis.NamedValue{}))
-			Expect(unresolvedOptionalParameters).To(Equal([]Parameter{optionalParameter}))
-		})
-
-		Specify("artifact not found in dependency", func() {
-			runConfigurationName := common.RandomNamespacedName()
-			optionalParameter := Parameter{
-				Name: apis.RandomString(),
-				ValueFrom: &ValueFrom{
-					RunConfigurationRef: RunConfigurationRef{
-						Name:           runConfigurationName,
-						OutputArtifact: apis.RandomString(),
-						Optional:       true,
-					},
-				},
-			}
 			rs := RunSpec{
 				Parameters: []Parameter{
-					optionalParameter,
 					{
 						Name: apis.RandomString(),
 						ValueFrom: &ValueFrom{
