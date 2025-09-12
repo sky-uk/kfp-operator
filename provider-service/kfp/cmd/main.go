@@ -104,7 +104,6 @@ func main() {
 }
 
 func runEventing(ctx context.Context, k8sClient pkg.K8sClient, baseConfig *baseConfig.Config, providerConfig *kfpConfig.Config) {
-	logger := log.LoggerFromContext(ctx)
 	kfpApi, err := client.CreateKfpApi(ctx, *providerConfig)
 	if err != nil {
 		panic(err)
