@@ -3,7 +3,6 @@ package pipelines
 import (
 	"context"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"reflect"
 	"slices"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -109,9 +109,9 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	state := apis.Succeeded
 	message := ""
 
-	if resolvedParameters, err := runConfiguration.Spec.Run.ResolveParameters(
-		runConfiguration.Status.Dependencies,
-	); err == nil {
+	resolvedParameters, unresolvedOptionalParameters, err := runConfiguration.Spec.Run.ResolveParameters(runConfiguration.Status.Dependencies)
+	if err == nil {
+		RecordUnresolvedOptionalParameters(runConfiguration, r.EC.Recorder, unresolvedOptionalParameters)
 		if hasChanged, err := r.syncWithRuns(ctx, runConfiguration); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
@@ -120,6 +120,8 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+	} else {
+		message = fmt.Sprintf("Unable to resolve parameters: %v", err)
 	}
 
 	newStatus = runConfiguration.Status

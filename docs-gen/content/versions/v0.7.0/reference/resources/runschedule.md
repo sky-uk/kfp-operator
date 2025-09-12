@@ -23,11 +23,6 @@ spec:
   parameters:
   - name: TRAINING_RUNS
     value: '100'
-  - name: EXAMPLES
-    valueFrom:
-      runConfigurationRef:
-        name: base-namespace/penguin-pipeline-example-generator-runconfiguration
-        outputArtifact: examples
   schedule:
     cronExpression: '0 * * * *'
     startTime: "2024-01-01T00:00:00Z"
@@ -44,7 +39,7 @@ Note the usage of `metadata.generateName` which tells Kubernetes to generate a n
 | `spec.provider`       | The namespace and name of the associated [Provider resource](../provider/) separated by a `/`, e.g. `provider-namespace/provider-name`.                                                                                                    |
 | `spec.pipeline`       | The [identifier](../pipeline/#identifier) of the corresponding pipeline resource to run. If no version is specified, then the RunSchedule will use the latest version of the specified pipeline.                                           |
 | `spec.experimentName` | The name of the corresponding experiment resource (optional - the `Default` Experiment as defined in the [Installation section](../../../getting-started/installation#build-and-install) will be used if no `experimentName` is provided). |
-| `spec.parameters[]`   | Parameters for the pipeline training run. [See Run Parameters](../run#run-parameters-definition).                                                                                                                                          |
+| `spec.parameters[]`   | Parameters for the pipeline training run, given as a list of name-value pairs.                                                                                                                                                             |
 | `spec.artifacts[]`    | Exposed output artifacts that will be included in run completion event when this run has succeeded. See the [Run Artifact Definition](../run#run-artifact-definition) for more detail.                                                     |
 | `spec.schedule`       | for when the runs should be created. See [Schedule Definition](#schedule-definition) for more detail.                                                                                                                                      |
 

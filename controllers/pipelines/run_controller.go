@@ -2,8 +2,10 @@ package pipelines
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/sky-uk/kfp-operator/apis"
 	config "github.com/sky-uk/kfp-operator/apis/config/hub"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
@@ -11,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
@@ -87,8 +90,16 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	// Never change after being set
-	if run.Status.Dependencies.Pipeline.Version == "" || run.Spec.HasUnmetDependencies(run.Status.Dependencies) {
+	_, unresolvedOptionalParameters, err := run.Spec.ResolveParameters(run.Status.Dependencies)
+	if run.Status.Dependencies.Pipeline.Version == "" || err != nil {
+		if err != nil {
+			message := fmt.Sprintf("Unable to resolve parameters: %v", err)
+			updateStatus := From(run.Status.Status).WithSyncStateCondition(apis.Succeeded, metav1.Now(), message)
+			if err := updateStatus.execute(ctx, r.EC, run); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
 		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
 			return ctrl.Result{}, err
 		}
@@ -99,6 +110,8 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 		return ctrl.Result{}, nil
 	}
+
+	RecordUnresolvedOptionalParameters(run, r.EC.Recorder, unresolvedOptionalParameters)
 
 	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
 	if err != nil {
@@ -114,7 +127,7 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 	}
 
-	duration := time.Now().Sub(startTime)
+	duration := time.Since(startTime)
 	logger.V(2).Info("reconciliation ended", logkeys.Duration, duration)
 
 	return result, nil
@@ -236,4 +249,10 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return controllerBuilder.Complete(r)
+}
+
+func RecordUnresolvedOptionalParameters(resource client.Object, recorder record.EventRecorder, unresolvedOptionalParameters []pipelineshub.Parameter) {
+	for _, param := range unresolvedOptionalParameters {
+		recorder.Eventf(resource, EventTypes.Normal, EventReasons.Synced, "Unable to resolve parameter %s, but skipping as it is marked as optional.", param.Name)
+	}
 }

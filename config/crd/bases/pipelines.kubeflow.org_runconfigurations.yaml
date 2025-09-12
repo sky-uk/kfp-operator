@@ -625,6 +625,8 @@ spec:
                               properties:
                                 name:
                                   type: string
+                                optional:
+                                  type: boolean
                                 outputArtifact:
                                   type: string
                               required:
@@ -658,6 +660,8 @@ spec:
                               properties:
                                 name:
                                   type: string
+                                optional:
+                                  type: boolean
                                 outputArtifact:
                                   type: string
                               required:
