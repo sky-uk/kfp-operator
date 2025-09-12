@@ -85,6 +85,7 @@ func main() {
 	g.Go(
 		func() error {
 			runEventing(ctx, *k8sClient, serviceConfig, kfpProviderConfig)
+			logger.Info("eventing started")
 			return nil
 		},
 	)
