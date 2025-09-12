@@ -85,6 +85,7 @@ func main() {
 	g.Go(
 		func() error {
 			runEventing(ctx, *k8sClient, serviceConfig, kfpProviderConfig)
+			logger.Info("eventing started")
 			return nil
 		},
 	)
@@ -133,5 +134,4 @@ func runEventing(ctx context.Context, k8sClient pkg.K8sClient, baseConfig *baseC
 	connectedFlow := flow.From(source)
 	connectedFlow.To(sink)
 	connectedFlow.Error(errorSink)
-	logger.Info("eventing started")
 }
