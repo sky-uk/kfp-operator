@@ -112,6 +112,7 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	resolvedParams, unresolvedOptParams, err := runConfiguration.Spec.Run.ResolveParameters(runConfiguration.Status.Dependencies)
 	if err == nil {
 		RecordUnresolvedOptParams(runConfiguration, r.EC.Recorder, unresolvedOptParams)
+
 		if changed, err := r.syncWithRuns(ctx, runConfiguration); changed || err != nil {
 			return ctrl.Result{}, err
 		}
@@ -121,7 +122,13 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 			return ctrl.Result{}, err
 		}
 	} else {
-		message = fmt.Sprintf("Unable to resolve parameters: %v", err)
+		r.EC.Recorder.Eventf(
+			runConfiguration,
+			EventTypes.Normal,
+			EventReasons.Synced,
+			"Unable to resolve parameters: %v",
+			err,
+		)
 	}
 
 	newStatus = runConfiguration.Status

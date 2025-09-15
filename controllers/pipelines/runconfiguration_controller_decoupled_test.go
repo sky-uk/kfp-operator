@@ -55,8 +55,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 	})
 
-	It("succeeds without creating resources if dependencies are not met", func() {
-
+	It("succeeds without creating resources if dependencies are not met and records event", func() {
 		runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 			runConfiguration.Spec.Triggers = pipelineshub.RandomScheduleTrigger()
 			runConfiguration.Spec.Triggers.OnChange = []pipelineshub.OnChangeType{pipelineshub.OnChangeTypes.RunSpec}
@@ -68,6 +67,16 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 		Eventually(hasNoRuns(runConfiguration)).Should(Succeed())
+
+		Eventually(func(g Gomega) {
+			events := v1.EventList{}
+			g.Expect(K8sClient.List(Ctx, &events, client.MatchingFields{"involvedObject.name": runConfiguration.Name})).To(Succeed())
+
+			g.Expect(events.Items).To(ContainElement(And(
+				HaveReason(EventReasons.Synced),
+				HaveField("Message", ContainSubstring("Unable to resolve parameters")),
+			)))
+		}).Should(Succeed())
 	})
 
 	When("Deleted", func() {
