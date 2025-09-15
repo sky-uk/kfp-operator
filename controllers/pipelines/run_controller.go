@@ -90,28 +90,29 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	_, unresolvedOptionalParameters, err := run.Spec.ResolveParameters(run.Status.Dependencies)
-	if run.Status.Dependencies.Pipeline.Version == "" || err != nil {
-		if err != nil {
-			message := fmt.Sprintf("Unable to resolve parameters: %v", err)
-			updateStatus := From(run.Status.Status).WithSyncStateCondition(apis.Succeeded, metav1.Now(), message)
-			if err := updateStatus.execute(ctx, r.EC, run); err != nil {
-				return ctrl.Result{}, err
-			}
-		}
+	_, unresolvedOptParams, err := run.Spec.ResolveParameters(run.Status.Dependencies)
 
-		if hasChanged, err := r.handleDependentRuns(ctx, run); hasChanged || err != nil {
+	if err != nil {
+		message := fmt.Sprintf("Unable to resolve parameters: %v", err)
+		updateStatus := From(run.Status.Status).WithSyncStateCondition(apis.Succeeded, metav1.Now(), message)
+		if err := updateStatus.execute(ctx, r.EC, run); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	if run.Status.Dependencies.Pipeline.Version == "" {
+		if changed, err := r.handleDependentRuns(ctx, run); err != nil || changed {
 			return ctrl.Result{}, err
 		}
 
-		if hasChanged, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); hasChanged || err != nil {
+		if changed, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); err != nil || changed {
 			return ctrl.Result{}, err
 		}
 
 		return ctrl.Result{}, nil
 	}
 
-	RecordUnresolvedOptionalParameters(run, r.EC.Recorder, unresolvedOptionalParameters)
+	RecordUnresolvedOptionalParameters(run, r.EC.Recorder, unresolvedOptParams)
 
 	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
 	if err != nil {
