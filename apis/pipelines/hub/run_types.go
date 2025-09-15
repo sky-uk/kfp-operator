@@ -42,6 +42,12 @@ type RunSpec struct {
 	Artifacts         []OutputArtifact `json:"artifacts,omitempty"`
 }
 
+// ResolveParameters compares Parameters with input status Dependencies.
+// RunConfigurationRefs are checked against the corresponding status dependency:
+// A match implies resolved and a no-match implies dependency artifact has not been published.
+// Unless the RunConfigurationRef has been marked as Optional, this will error.
+// RunConfigurationRefs marked as Optional are considered unresolved to allow for
+// use cases such as recursive dependencies or when dependency is not always required.
 func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.NamedValue, []Parameter, error) {
 	unresolvedOptionalParameters := []Parameter{}
 	resolvedParameters, err := apis.MapErr(runSpec.Parameters, func(p Parameter) (apis.NamedValue, error) {
@@ -72,10 +78,17 @@ func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.Nam
 				return apis.NamedValue{}, nil
 			}
 
-			return apis.NamedValue{}, fmt.Errorf("artifact '%s' not found in dependency '%s'", p.ValueFrom.RunConfigurationRef.OutputArtifact, p.ValueFrom.RunConfigurationRef.Name)
+			return apis.NamedValue{}, fmt.Errorf(
+				"artifact '%s' not found in dependency '%s'",
+				p.ValueFrom.RunConfigurationRef.OutputArtifact,
+				p.ValueFrom.RunConfigurationRef.Name,
+			)
 		}
 
-		return apis.NamedValue{}, fmt.Errorf("dependency '%s' not found", p.ValueFrom.RunConfigurationRef.Name)
+		return apis.NamedValue{}, fmt.Errorf(
+			"dependency '%s' not found",
+			p.ValueFrom.RunConfigurationRef.Name,
+		)
 	})
 	return resolvedParameters, unresolvedOptionalParameters, err
 }
@@ -101,7 +114,8 @@ func cmpParameters(p1, p2 Parameter) bool {
 		return p1.ValueFrom.RunConfigurationRef.OutputArtifact < p2.ValueFrom.RunConfigurationRef.OutputArtifact
 	}
 
-	return !p1.ValueFrom.RunConfigurationRef.Optional && p1.ValueFrom.RunConfigurationRef.Optional != p2.ValueFrom.RunConfigurationRef.Optional
+	return !p1.ValueFrom.RunConfigurationRef.Optional &&
+		p1.ValueFrom.RunConfigurationRef.Optional != p2.ValueFrom.RunConfigurationRef.Optional
 }
 
 func writeParameter(oh pipelines.ObjectHasher, p Parameter) {
