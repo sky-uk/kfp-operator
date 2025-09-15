@@ -101,18 +101,18 @@ func (r *RunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 
 	if run.Status.Dependencies.Pipeline.Version == "" {
-		if changed, err := r.handleDependentRuns(ctx, run); err != nil || changed {
+		if changed, err := r.handleDependentRuns(ctx, run); changed || err != nil {
 			return ctrl.Result{}, err
 		}
 
-		if changed, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); err != nil || changed {
+		if changed, err := r.handleObservedPipelineVersion(ctx, run.Spec.Pipeline, run); changed || err != nil {
 			return ctrl.Result{}, err
 		}
 
 		return ctrl.Result{}, nil
 	}
 
-	RecordUnresolvedOptionalParameters(run, r.EC.Recorder, unresolvedOptParams)
+	RecordUnresolvedOptParams(run, r.EC.Recorder, unresolvedOptParams)
 
 	providerSvc, err := r.ServiceManager.Get(ctx, &provider)
 	if err != nil {
@@ -252,8 +252,18 @@ func (r *RunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return controllerBuilder.Complete(r)
 }
 
-func RecordUnresolvedOptionalParameters(resource client.Object, recorder record.EventRecorder, unresolvedOptionalParameters []pipelineshub.Parameter) {
-	for _, param := range unresolvedOptionalParameters {
-		recorder.Eventf(resource, EventTypes.Normal, EventReasons.Synced, "Unable to resolve parameter %s, but skipping as it is marked as optional.", param.Name)
+func RecordUnresolvedOptParams(
+	resource client.Object,
+	recorder record.EventRecorder,
+	params []pipelineshub.Parameter,
+) {
+	for _, p := range params {
+		recorder.Eventf(
+			resource,
+			EventTypes.Normal,
+			EventReasons.Synced,
+			"Unable to resolve parameter %s, but skipping as it is marked as optional.",
+			p.Name,
+		)
 	}
 }

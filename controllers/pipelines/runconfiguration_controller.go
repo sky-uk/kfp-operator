@@ -93,15 +93,15 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, r.EC.Client.Status().Update(ctx, runConfiguration)
 	}
 
-	if hasChanged, err := r.handleObservedPipelineVersion(
+	if changed, err := r.handleObservedPipelineVersion(
 		ctx,
 		runConfiguration.Spec.Run.Pipeline,
 		runConfiguration,
-	); hasChanged || err != nil {
+	); changed || err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if hasChanged, err := r.handleDependentRuns(ctx, runConfiguration); hasChanged || err != nil {
+	if changed, err := r.handleDependentRuns(ctx, runConfiguration); changed || err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -109,14 +109,14 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	state := apis.Succeeded
 	message := ""
 
-	resolvedParameters, unresolvedOptionalParameters, err := runConfiguration.Spec.Run.ResolveParameters(runConfiguration.Status.Dependencies)
+	resolvedParams, unresolvedOptParams, err := runConfiguration.Spec.Run.ResolveParameters(runConfiguration.Status.Dependencies)
 	if err == nil {
-		RecordUnresolvedOptionalParameters(runConfiguration, r.EC.Recorder, unresolvedOptionalParameters)
-		if hasChanged, err := r.syncWithRuns(ctx, runConfiguration); hasChanged || err != nil {
+		RecordUnresolvedOptParams(runConfiguration, r.EC.Recorder, unresolvedOptParams)
+		if changed, err := r.syncWithRuns(ctx, runConfiguration); changed || err != nil {
 			return ctrl.Result{}, err
 		}
 
-		state, message, err = r.syncStatus(ctx, runConfiguration, resolvedParameters)
+		state, message, err = r.syncStatus(ctx, runConfiguration, resolvedParams)
 		if err != nil {
 			return ctrl.Result{}, err
 		}

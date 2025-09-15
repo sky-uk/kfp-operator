@@ -49,7 +49,7 @@ type RunSpec struct {
 // RunConfigurationRefs marked as Optional are considered unresolved to allow for
 // use cases such as recursive dependencies or when dependency is not always required.
 func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.NamedValue, []Parameter, error) {
-	unresolvedOptionalParameters := []Parameter{}
+	unresolvedOptParams := []Parameter{}
 	resolvedParameters, err := apis.MapErr(runSpec.Parameters, func(p Parameter) (apis.NamedValue, error) {
 		if p.ValueFrom == nil {
 			return apis.NamedValue{
@@ -74,7 +74,7 @@ func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.Nam
 			}
 
 			if p.ValueFrom.RunConfigurationRef.Optional {
-				unresolvedOptionalParameters = append(unresolvedOptionalParameters, p)
+				unresolvedOptParams = append(unresolvedOptParams, p)
 				return apis.NamedValue{}, nil
 			}
 
@@ -90,7 +90,7 @@ func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.Nam
 			p.ValueFrom.RunConfigurationRef.Name,
 		)
 	})
-	return resolvedParameters, unresolvedOptionalParameters, err
+	return resolvedParameters, unresolvedOptParams, err
 }
 
 func cmpParameters(p1, p2 Parameter) bool {
