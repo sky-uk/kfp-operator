@@ -501,10 +501,13 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 					common.RandomArtifact(),
 				},
 			})
-			referencedRcNamespacedName := common.NamespacedName{Name: referencedRc.Name, Namespace: referencedRc.Namespace}
+			referencedRcNamespacedName := common.NamespacedName{
+				Name:      referencedRc.Name,
+				Namespace: referencedRc.Namespace,
+			}
 
 			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.GetCommonNamespacedName())
-			optionalParamName := "optional-param"
+			optParamName := "optional-param"
 			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
 				{
 					Name: "working-param",
@@ -516,7 +519,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 					},
 				},
 				{
-					Name: optionalParamName,
+					Name: optParamName,
 					ValueFrom: &pipelineshub.ValueFrom{
 						RunConfigurationRef: pipelineshub.RunConfigurationRef{
 							Name:           referencedRcNamespacedName,
@@ -542,7 +545,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 				g.Expect(events.Items).To(ContainElement(And(
 					HaveReason(EventReasons.Synced),
-					HaveField("Message", ContainSubstring(fmt.Sprintf("Unable to resolve parameter %s, but skipping as it is marked as optional.", optionalParamName))),
+					HaveField("Message", ContainSubstring(fmt.Sprintf("Unable to resolve parameter '%s', but skipping as it is marked as optional.", optParamName))),
 				)))
 			}).Should(Succeed())
 		})

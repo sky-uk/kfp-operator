@@ -262,7 +262,7 @@ func RecordUnresolvedOptParams(
 			resource,
 			EventTypes.Normal,
 			EventReasons.Synced,
-			"Unable to resolve parameter %s, but skipping as it is marked as optional.",
+			"Unable to resolve parameter '%s', but skipping as it is marked as optional.",
 			p.Name,
 		)
 	}
