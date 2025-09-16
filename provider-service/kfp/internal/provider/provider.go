@@ -2,12 +2,16 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
+	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/label"
+	"github.com/tidwall/sjson"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -82,6 +86,13 @@ func (p *KfpProvider) CreatePipeline(
 		return "", err
 	}
 
+	for _, labelKey := range label.Keys {
+		pdw.CompiledPipeline, err = injectParameter(pdw.CompiledPipeline, labelKey)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	pipelineId, err := p.pipelineUploadService.UploadPipeline(
 		ctx,
 		pdw.CompiledPipeline,
@@ -100,6 +111,14 @@ func (p *KfpProvider) UpdatePipeline(
 ) (string, error) {
 	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
 		return "", err
+	}
+
+	var err error
+	for _, labelKey := range label.Keys {
+		pdw.CompiledPipeline, err = injectParameter(pdw.CompiledPipeline, labelKey)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	if err := p.pipelineUploadService.UploadPipelineVersion(
@@ -268,4 +287,22 @@ func (p *KfpProvider) DeleteExperiment(
 	id string,
 ) error {
 	return p.experimentService.DeleteExperiment(ctx, id)
+}
+
+func injectParameter(jsonBytes []byte, label string) ([]byte, error) {
+	paramDef := map[string]any{
+		"isOptional":    true,
+		"parameterType": "STRING",
+		"defaultValue":  "",
+	}
+	paramAsJson, err := json.Marshal(paramDef)
+	if err != nil {
+		return nil, err
+	}
+	// Add a new top-level field
+	updated, err := sjson.SetRawBytes(jsonBytes, fmt.Sprintf("root.inputDefinitions.parameters.%s", label), paramAsJson)
+	if err != nil {
+		return nil, err
+	}
+	return updated, nil
 }

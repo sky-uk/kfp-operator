@@ -13,19 +13,19 @@ type MockPipelineUploadService struct {
 
 func (m *MockPipelineUploadService) UploadPipeline(
 	_ context.Context,
-	content []byte,
+	_ []byte,
 	pipelineName string,
 ) (string, error) {
-	args := m.Called(content, pipelineName)
+	args := m.Called(pipelineName)
 	return args.String(0), args.Error(1)
 }
 
 func (m *MockPipelineUploadService) UploadPipelineVersion(
 	_ context.Context,
 	id string,
-	content []byte,
+	_ []byte,
 	version string,
 ) error {
-	args := m.Called(id, content, version)
+	args := m.Called(id, version)
 	return args.Error(0)
 }
