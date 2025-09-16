@@ -114,8 +114,7 @@ func cmpParameters(p1, p2 Parameter) bool {
 		return p1.ValueFrom.RunConfigurationRef.OutputArtifact < p2.ValueFrom.RunConfigurationRef.OutputArtifact
 	}
 
-	return !p1.ValueFrom.RunConfigurationRef.Optional &&
-		p1.ValueFrom.RunConfigurationRef.Optional != p2.ValueFrom.RunConfigurationRef.Optional
+	return !p1.ValueFrom.RunConfigurationRef.Optional && p2.ValueFrom.RunConfigurationRef.Optional
 }
 
 func writeParameter(oh pipelines.ObjectHasher, p Parameter) {
