@@ -42,12 +42,8 @@ type RunSpec struct {
 	Artifacts         []OutputArtifact `json:"artifacts,omitempty"`
 }
 
-// ResolveParameters compares Parameters with input status Dependencies.
-// RunConfigurationRefs are checked against the corresponding status dependency:
-// A match implies resolved and a no-match implies dependency artifact has not been published.
-// Unless the RunConfigurationRef has been marked as Optional, this will error.
-// RunConfigurationRefs marked as Optional are considered unresolved to allow for
-// use cases such as recursive dependencies or when dependency is not always required.
+// ResolveParameters validates Parameters against dependencies, erroring on unresolved required refs while
+// allowing unresolved optional ones for use cases such as recursive dependencies or where a dependency is not immediately available.
 func (runSpec *RunSpec) ResolveParameters(dependencies Dependencies) ([]apis.NamedValue, []Parameter, error) {
 	unresolvedOptParams := []Parameter{}
 	resolvedParameters, err := apis.MapErr(runSpec.Parameters, func(p Parameter) (apis.NamedValue, error) {
