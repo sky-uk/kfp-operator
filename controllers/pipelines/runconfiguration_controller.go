@@ -3,7 +3,6 @@ package pipelines
 import (
 	"context"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"reflect"
 	"slices"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/logkeys"
 	"github.com/sky-uk/kfp-operator/controllers/pipelines/internal/workflowfactory"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -93,15 +93,15 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, r.EC.Client.Status().Update(ctx, runConfiguration)
 	}
 
-	if hasChanged, err := r.handleObservedPipelineVersion(
+	if changed, err := r.handleObservedPipelineVersion(
 		ctx,
 		runConfiguration.Spec.Run.Pipeline,
 		runConfiguration,
-	); hasChanged || err != nil {
+	); changed || err != nil {
 		return ctrl.Result{}, err
 	}
 
-	if hasChanged, err := r.handleDependentRuns(ctx, runConfiguration); hasChanged || err != nil {
+	if changed, err := r.handleDependentRuns(ctx, runConfiguration); changed || err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -109,17 +109,26 @@ func (r *RunConfigurationReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	state := apis.Succeeded
 	message := ""
 
-	if resolvedParameters, err := runConfiguration.Spec.Run.ResolveParameters(
-		runConfiguration.Status.Dependencies,
-	); err == nil {
-		if hasChanged, err := r.syncWithRuns(ctx, runConfiguration); hasChanged || err != nil {
+	resolvedParams, unresolvedOptParams, err := runConfiguration.Spec.Run.ResolveParameters(runConfiguration.Status.Dependencies)
+	if err == nil {
+		RecordUnresolvedOptParams(runConfiguration, r.EC.Recorder, unresolvedOptParams)
+
+		if changed, err := r.syncWithRuns(ctx, runConfiguration); changed || err != nil {
 			return ctrl.Result{}, err
 		}
 
-		state, message, err = r.syncStatus(ctx, runConfiguration, resolvedParameters)
+		state, message, err = r.syncStatus(ctx, runConfiguration, resolvedParams)
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+	} else {
+		r.EC.Recorder.Eventf(
+			runConfiguration,
+			EventTypes.Normal,
+			EventReasons.Synced,
+			"Unable to resolve parameters: %v",
+			err,
+		)
 	}
 
 	newStatus = runConfiguration.Status

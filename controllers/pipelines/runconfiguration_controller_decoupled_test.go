@@ -13,6 +13,8 @@ import (
 	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	. "github.com/sky-uk/kfp-operator/controllers/pipelines/internal/testutil"
 	"github.com/sky-uk/kfp-operator/pkg/common"
+	v1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
@@ -53,8 +55,7 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 	})
 
-	It("succeeds without creating resources if dependencies are not met", func() {
-
+	It("succeeds without creating resources if dependencies are not met and records event", func() {
 		runConfiguration := createSucceededRcWith(func(runConfiguration *pipelineshub.RunConfiguration) *pipelineshub.RunConfiguration {
 			runConfiguration.Spec.Triggers = pipelineshub.RandomScheduleTrigger()
 			runConfiguration.Spec.Triggers.OnChange = []pipelineshub.OnChangeType{pipelineshub.OnChangeTypes.RunSpec}
@@ -66,6 +67,16 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 
 		Eventually(hasNoSchedules(runConfiguration)).Should(Succeed())
 		Eventually(hasNoRuns(runConfiguration)).Should(Succeed())
+
+		Eventually(func(g Gomega) {
+			events := v1.EventList{}
+			g.Expect(K8sClient.List(Ctx, &events, client.MatchingFields{"involvedObject.name": runConfiguration.Name})).To(Succeed())
+
+			g.Expect(events.Items).To(ContainElement(And(
+				HaveReason(EventReasons.Synced),
+				HaveField("Message", ContainSubstring("Unable to resolve parameters")),
+			)))
+		}).Should(Succeed())
 	})
 
 	When("Deleted", func() {
@@ -488,6 +499,64 @@ var _ = Describe("RunConfiguration controller k8s integration", Serial, func() {
 			}
 
 			Expect(K8sClient.Update(Ctx, runConfiguration)).To(MatchError(ContainSubstring("only one of value or valueFrom can be set")))
+		})
+	})
+
+	When("A run configuration has unresolved optional parameters", func() {
+		It("records events for unresolved optional parameters", func() {
+			referencedRc := createRcWithLatestRun(pipelineshub.RunReference{
+				ProviderId: apis.RandomString(),
+				Artifacts: []common.Artifact{
+					common.RandomArtifact(),
+				},
+			})
+			referencedRcNamespacedName := common.NamespacedName{
+				Name:      referencedRc.Name,
+				Namespace: referencedRc.Namespace,
+			}
+
+			runConfiguration := pipelineshub.RandomRunConfiguration(Provider.GetCommonNamespacedName())
+			optParamName := "optional-param"
+			runConfiguration.Spec.Run.Parameters = []pipelineshub.Parameter{
+				{
+					Name: "working-param",
+					ValueFrom: &pipelineshub.ValueFrom{
+						RunConfigurationRef: pipelineshub.RunConfigurationRef{
+							Name:           referencedRcNamespacedName,
+							OutputArtifact: referencedRc.Status.LatestRuns.Succeeded.Artifacts[0].Name,
+						},
+					},
+				},
+				{
+					Name: optParamName,
+					ValueFrom: &pipelineshub.ValueFrom{
+						RunConfigurationRef: pipelineshub.RunConfigurationRef{
+							Name:           referencedRcNamespacedName,
+							OutputArtifact: "missing-artifact",
+							Optional:       true,
+						},
+					},
+				},
+			}
+
+			rcNamespacedName, err := referencedRcNamespacedName.String()
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(K8sClient.Create(Ctx, runConfiguration)).To(Succeed())
+
+			Eventually(matchRunConfiguration(runConfiguration, func(g Gomega, rc *pipelineshub.RunConfiguration) {
+				g.Expect(rc.Status.Dependencies.RunConfigurations[rcNamespacedName]).To(Equal(referencedRc.Status.LatestRuns.Succeeded))
+			})).Should(Succeed())
+
+			Eventually(func(g Gomega) {
+				events := v1.EventList{}
+				g.Expect(K8sClient.List(Ctx, &events, client.MatchingFields{"involvedObject.name": runConfiguration.Name})).To(Succeed())
+
+				g.Expect(events.Items).To(ContainElement(And(
+					HaveReason(EventReasons.Synced),
+					HaveField("Message", ContainSubstring(fmt.Sprintf("Unable to resolve parameter '%s', but skipping as it is marked as optional.", optParamName))),
+				)))
+			}).Should(Succeed())
 		})
 	})
 })
