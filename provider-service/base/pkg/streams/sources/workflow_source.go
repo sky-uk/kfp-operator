@@ -104,7 +104,6 @@ func (ws *WorkflowSource) start(ctx context.Context, namespace string) error {
 	handlerFuncs := cache.ResourceEventHandlerFuncs{}
 	handlerFuncs.UpdateFunc = func(oldObj, newObj interface{}) {
 		wf := newObj.(*unstructured.Unstructured)
-		ws.Logger.Info("received workflow update event", "workflow", wf.GetName())
 
 		select {
 		case ws.out <- StreamMessage[*unstructured.Unstructured]{

@@ -40,18 +40,31 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 		}
 
 		if runConfigurationName, ok := params[label.RunConfigurationName]; ok {
-			resourceReferences.RunName.Namespace = runConfigurationName.GetStringValue()
+			resourceReferences.RunConfigurationName.Name = runConfigurationName.GetStringValue()
 		}
 
 		if runConfigurationNamespace, ok := params[label.RunConfigurationNamespace]; ok {
-			resourceReferences.RunName.Namespace = runConfigurationNamespace.GetStringValue()
+			resourceReferences.RunConfigurationName.Namespace = runConfigurationNamespace.GetStringValue()
+		}
+
+		if pipelineName, ok := params[label.PipelineName]; ok {
+			resourceReferences.PipelineName.Name = pipelineName.GetStringValue()
+		}
+
+		if pipelineNamespace, ok := params[label.PipelineNamespace]; ok {
+			resourceReferences.PipelineName.Name = pipelineNamespace.GetStringValue()
 		}
 	}
 
-	runCreateTime := run.CreatedAt.AsTime()
-	runFinishedTime := run.FinishedAt.AsTime()
-	resourceReferences.CreatedAt = &runCreateTime
-	resourceReferences.FinishedAt = &runFinishedTime
+	if run.CreatedAt != nil {
+		runCreateTime := run.CreatedAt.AsTime()
+		resourceReferences.CreatedAt = &runCreateTime
+	}
+
+	if run.FinishedAt != nil {
+		runFinishedTime := run.FinishedAt.AsTime()
+		resourceReferences.FinishedAt = &runFinishedTime
+	}
 
 	return resourceReferences, nil
 }

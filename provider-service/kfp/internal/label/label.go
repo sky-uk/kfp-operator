@@ -1,5 +1,7 @@
 package label
 
+import "github.com/sky-uk/kfp-operator/pkg/common/triggers"
+
 const (
 	ProviderName              = "provider-name"
 	ProviderNamespace         = "provider-namespace"
@@ -11,3 +13,18 @@ const (
 	RunName                   = "run-name"
 	RunNamespace              = "run-namespace"
 )
+
+var Keys = []string{
+	ProviderName,
+	ProviderNamespace,
+	PipelineName,
+	PipelineNamespace,
+	PipelineVersion,
+	RunConfigurationName,
+	RunConfigurationNamespace,
+	RunName,
+	RunNamespace,
+	triggers.Type,
+	triggers.Source,
+	triggers.SourceNamespace,
+}
