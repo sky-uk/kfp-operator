@@ -5,7 +5,7 @@ metadata:
     {{- if and .Values.manager.multiversion.enabled (eq .Values.manager.webhookCertificates.provider "cert-manager") }}
     cert-manager.io/inject-ca-from: {{ .Values.namespace.name }}/{{ include "kfp-operator.fullname" . }}-serving-cert
     {{- end }}
-    controller-gen.kubebuilder.io/version: v0.17.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: experiments.pipelines.kubeflow.org
 spec:
   group: pipelines.kubeflow.org
