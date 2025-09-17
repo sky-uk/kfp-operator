@@ -19,7 +19,7 @@ require (
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.15.0
-	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
+	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
 	github.com/hashicorp/go-bexpr v0.1.14
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/kubeflow/pipelines v0.0.0-00010101000000-000000000000
