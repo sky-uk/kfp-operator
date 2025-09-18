@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"time"
 
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -30,7 +31,7 @@ type DefaultJobBuilder struct {
 	serviceAccount      string
 	pipelineBucket      string
 	pipelineRootStorage string
-	labelGen            LabelGen
+	labelGen            label.LabelGen
 }
 
 // MkRunPipelineJob creates a vai pipeline job for a run that can be submitted

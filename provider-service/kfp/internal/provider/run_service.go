@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/samber/lo"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
@@ -28,12 +29,12 @@ type RunService interface {
 
 type DefaultRunService struct {
 	client         client.RunServiceClient
-	labelGenerator LabelGen
+	labelGenerator label.LabelGen
 }
 
 func NewRunService(
 	conn *grpc.ClientConn,
-	labelGenerator LabelGen,
+	labelGenerator label.LabelGen,
 ) (RunService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(

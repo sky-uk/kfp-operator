@@ -14,7 +14,7 @@ const (
 	RunNamespace              = "run-namespace"
 )
 
-var Keys = []string{
+var LabelKeys = []string{
 	ProviderName,
 	ProviderNamespace,
 	PipelineName,

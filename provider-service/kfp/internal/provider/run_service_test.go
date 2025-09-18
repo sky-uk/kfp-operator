@@ -5,6 +5,7 @@ package provider
 import (
 	"context"
 	"errors"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	. "github.com/onsi/ginkgo/v2"
@@ -25,10 +26,11 @@ var _ = Describe("RunService", func() {
 	)
 
 	var (
-		mockClient mocks.MockRunServiceClient
-		runService RunService
-		rd         = testutil.RandomRunDefinition()
-		ctx        = context.Background()
+		mockClient   mocks.MockRunServiceClient
+		mockLabelGen mocks.MockLabelGen
+		runService   RunService
+		rd           = testutil.RandomRunDefinition()
+		ctx          = context.Background()
 	)
 
 	rd.Name.Name = "runName"
@@ -80,9 +82,10 @@ var _ = Describe("RunService", func() {
 	BeforeEach(
 		func() {
 			mockClient = mocks.MockRunServiceClient{}
+			mockLabelGen = mocks.MockLabelGen{}
 			runService = DefaultRunService{
 				client:         &mockClient,
-				labelGenerator: NoopLabelGen{},
+				labelGenerator: &mockLabelGen,
 			}
 		},
 	)
@@ -90,6 +93,7 @@ var _ = Describe("RunService", func() {
 	Context("CreateRun", func() {
 		It("should return a run id", func() {
 			expectedId := "expected-id"
+			mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
 			mockClient.On("CreateRun", expectedReq).Return(
 				&go_client.Run{RunId: expectedId},
 				nil,
@@ -110,6 +114,8 @@ var _ = Describe("RunService", func() {
 			It("should return an error", func() {
 				rdCopy := rd
 				rdCopy.Name.Name = ""
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 				runId, err := runService.CreateRun(
 					ctx,
 					rdCopy,
@@ -126,6 +132,7 @@ var _ = Describe("RunService", func() {
 		When("RunService Errors", func() {
 			It("should return an error", func() {
 				expectedErr := errors.New("error")
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
 				mockClient.On("CreateRun", expectedReq).Return(nil, expectedErr)
 				runId, err := runService.CreateRun(
 					ctx,
