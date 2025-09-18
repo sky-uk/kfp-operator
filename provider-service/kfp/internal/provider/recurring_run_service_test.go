@@ -24,6 +24,7 @@ import (
 var _ = Describe("DefaultRecurringRunService", func() {
 	var (
 		mockClient          mocks.MockRecurringRunServiceClient
+		mockLabelGen        mocks.MockLabelGen
 		recurringRunService DefaultRecurringRunService
 		rsd                 base.RunScheduleDefinition
 		ctx                 = context.Background()
@@ -38,9 +39,10 @@ var _ = Describe("DefaultRecurringRunService", func() {
 
 	BeforeEach(func() {
 		mockClient = mocks.MockRecurringRunServiceClient{}
+		mockLabelGen = mocks.MockLabelGen{}
 		recurringRunService = DefaultRecurringRunService{
 			&mockClient,
-			NoopLabelGen{},
+			&mockLabelGen,
 		}
 		rsd = testutil.RandomRunScheduleDefinition()
 	})
@@ -99,6 +101,8 @@ var _ = Describe("DefaultRecurringRunService", func() {
 					},
 				},
 			).Return(&go_client.RecurringRun{RecurringRunId: expectedId}, nil)
+			mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 			res, err := recurringRunService.CreateRecurringRun(
 				ctx,
 				rsd,
@@ -114,6 +118,8 @@ var _ = Describe("DefaultRecurringRunService", func() {
 		When("run schedule definition doesn't have a name", func() {
 			It("should return error", func() {
 				rsd.Name.Name = ""
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 				res, err := recurringRunService.CreateRecurringRun(
 					ctx,
 					rsd,
@@ -130,6 +136,8 @@ var _ = Describe("DefaultRecurringRunService", func() {
 		When("the cron expression is invalid", func() {
 			It("should return error", func() {
 				rsd.Schedule.CronExpression = "invalid-cron"
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 				res, err := recurringRunService.CreateRecurringRun(
 					ctx,
 					rsd,
@@ -149,6 +157,8 @@ var _ = Describe("DefaultRecurringRunService", func() {
 					"CreateRecurringRun",
 					mock.Anything,
 				).Return(nil, errors.New("failed"))
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 				res, err := recurringRunService.CreateRecurringRun(
 					ctx,
 					rsd,

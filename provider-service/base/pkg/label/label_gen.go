@@ -1,4 +1,4 @@
-package provider
+package label
 
 import (
 	"fmt"
@@ -6,24 +6,17 @@ import (
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/common/triggers"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/label"
 )
 
 type LabelGen interface {
 	GenerateLabels(value any) (map[string]string, error)
 }
 
-type NoopLabelGen struct{}
-
-func (lg NoopLabelGen) GenerateLabels(value any) (map[string]string, error) {
-	return map[string]string{}, nil
-}
-
 type DefaultLabelGen struct {
-	providerName common.NamespacedName
+	ProviderName common.NamespacedName
 }
 
-// GenerateLabels generates labels for runs and schedules to show
+// GenerateLabels generates labels for vertex ai runs and schedules to show
 // which run configuration it originated from.
 func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 	var labels map[string]string
@@ -42,8 +35,8 @@ func (lg DefaultLabelGen) GenerateLabels(value any) (map[string]string, error) {
 		)
 	}
 
-	labels[label.ProviderName] = lg.providerName.Name
-	labels[label.ProviderNamespace] = lg.providerName.Namespace
+	labels[ProviderName] = lg.ProviderName.Name
+	labels[ProviderNamespace] = lg.ProviderName.Namespace
 
 	return labels, nil
 }
@@ -53,9 +46,9 @@ func (lg DefaultLabelGen) runLabelsFromPipeline(
 	pipelineVersion string,
 ) map[string]string {
 	return map[string]string{
-		label.PipelineName:      pipelineName.Name,
-		label.PipelineNamespace: pipelineName.Namespace,
-		label.PipelineVersion:   pipelineVersion,
+		PipelineName:      pipelineName.Name,
+		PipelineNamespace: pipelineName.Namespace,
+		PipelineVersion:   pipelineVersion,
 	}
 }
 
@@ -68,15 +61,15 @@ func (lg DefaultLabelGen) runLabelsFromRunDefinition(
 	)
 
 	if !rd.RunConfigurationName.Empty() {
-		runLabels[label.RunConfigurationName] =
+		runLabels[RunConfigurationName] =
 			rd.RunConfigurationName.Name
-		runLabels[label.RunConfigurationNamespace] =
+		runLabels[RunConfigurationNamespace] =
 			rd.RunConfigurationName.Namespace
 	}
 
 	if !rd.Name.Empty() {
-		runLabels[label.RunName] = rd.Name.Name
-		runLabels[label.RunNamespace] = rd.Name.Namespace
+		runLabels[RunName] = rd.Name.Name
+		runLabels[RunNamespace] = rd.Name.Namespace
 	}
 
 	if rd.TriggerIndicator != nil {
@@ -94,8 +87,8 @@ func (lg DefaultLabelGen) runLabelsFromSchedule(
 	runLabels := lg.runLabelsFromPipeline(rsd.PipelineName, rsd.PipelineVersion)
 
 	if !rsd.RunConfigurationName.Empty() {
-		runLabels[label.RunConfigurationName] = rsd.RunConfigurationName.Name
-		runLabels[label.RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
+		runLabels[RunConfigurationName] = rsd.RunConfigurationName.Name
+		runLabels[RunConfigurationNamespace] = rsd.RunConfigurationName.Namespace
 	}
 
 	runLabels[triggers.Type] = rsd.TriggerIndicator.Type

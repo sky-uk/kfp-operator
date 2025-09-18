@@ -2,16 +2,13 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/label"
-	"github.com/tidwall/sjson"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -23,6 +20,7 @@ type KfpProvider struct {
 	runService            RunService
 	recurringRunService   RecurringRunService
 	experimentService     ExperimentService
+	labelService          LabelService
 }
 
 func NewKfpProvider(config *config.Config, namespace string) (*KfpProvider, error) {
@@ -46,8 +44,8 @@ func NewKfpProvider(config *config.Config, namespace string) (*KfpProvider, erro
 		return nil, err
 	}
 
-	labelGenerator := DefaultLabelGen{
-		providerName: common.NamespacedName{
+	labelGenerator := label.DefaultLabelGen{
+		ProviderName: common.NamespacedName{
 			Name:      config.Name,
 			Namespace: namespace,
 		},
@@ -64,6 +62,14 @@ func NewKfpProvider(config *config.Config, namespace string) (*KfpProvider, erro
 	}
 
 	experimentService, err := NewExperimentService(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	labelService, err := NewDefaultLabelService()
+	if err != nil {
+		return nil, err
+	}
 
 	return &KfpProvider{
 		config:                config,
@@ -72,6 +78,7 @@ func NewKfpProvider(config *config.Config, namespace string) (*KfpProvider, erro
 		runService:            runService,
 		recurringRunService:   recurringRunService,
 		experimentService:     experimentService,
+		labelService:          labelService,
 	}, nil
 }
 
@@ -86,11 +93,9 @@ func (p *KfpProvider) CreatePipeline(
 		return "", err
 	}
 
-	for _, labelKey := range label.Keys {
-		pdw.CompiledPipeline, err = injectParameter(pdw.CompiledPipeline, labelKey)
-		if err != nil {
-			return "", err
-		}
+	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
+	if err != nil {
+		return "", err
 	}
 
 	pipelineId, err := p.pipelineUploadService.UploadPipeline(
@@ -114,11 +119,9 @@ func (p *KfpProvider) UpdatePipeline(
 	}
 
 	var err error
-	for _, labelKey := range label.Keys {
-		pdw.CompiledPipeline, err = injectParameter(pdw.CompiledPipeline, labelKey)
-		if err != nil {
-			return "", err
-		}
+	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
+	if err != nil {
+		return "", err
 	}
 
 	if err := p.pipelineUploadService.UploadPipelineVersion(
@@ -287,22 +290,4 @@ func (p *KfpProvider) DeleteExperiment(
 	id string,
 ) error {
 	return p.experimentService.DeleteExperiment(ctx, id)
-}
-
-func injectParameter(jsonBytes []byte, label string) ([]byte, error) {
-	paramDef := map[string]any{
-		"isOptional":    true,
-		"parameterType": "STRING",
-		"defaultValue":  "",
-	}
-	paramAsJson, err := json.Marshal(paramDef)
-	if err != nil {
-		return nil, err
-	}
-	// Add a new top-level field
-	updated, err := sjson.SetRawBytes(jsonBytes, fmt.Sprintf("root.inputDefinitions.parameters.%s", label), paramAsJson)
-	if err != nil {
-		return nil, err
-	}
-	return updated, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
@@ -64,7 +65,7 @@ func NewVAIProvider(
 			serviceAccount:      config.Parameters.VaiJobServiceAccount,
 			pipelineRootStorage: config.PipelineRootStorage,
 			pipelineBucket:      config.Parameters.PipelineBucket,
-			labelGen:            DefaultLabelGen{providerName: common.NamespacedName{Name: config.Name, Namespace: namespace}},
+			labelGen:            label.DefaultLabelGen{ProviderName: common.NamespacedName{Name: config.Name, Namespace: namespace}},
 		},
 		jobEnricher: NewDefaultJobEnricher(),
 	}, nil

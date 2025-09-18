@@ -6,6 +6,7 @@ import (
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
@@ -31,10 +32,10 @@ type RecurringRunService interface {
 
 type DefaultRecurringRunService struct {
 	client         client.RecurringRunServiceClient
-	labelGenerator LabelGen
+	labelGenerator label.LabelGen
 }
 
-func NewRecurringRunService(conn *grpc.ClientConn, labelGenerator LabelGen) (RecurringRunService, error) {
+func NewRecurringRunService(conn *grpc.ClientConn, labelGenerator label.LabelGen) (RecurringRunService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
 			"no gRPC connection was provided to start recurring run service",

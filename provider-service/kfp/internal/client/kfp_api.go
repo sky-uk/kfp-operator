@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/label"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
