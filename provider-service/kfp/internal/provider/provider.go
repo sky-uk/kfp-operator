@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
@@ -11,6 +12,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type KfpProvider struct {
@@ -90,13 +92,15 @@ func (p *KfpProvider) CreatePipeline(
 ) (string, error) {
 	pipelineName, err := util.ResourceNameFromNamespacedName(pdw.PipelineDefinition.Name)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to fetch resource name %v", err)
 	}
 
 	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
+
+	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(pdw.CompiledPipeline))
 
 	pipelineId, err := p.pipelineUploadService.UploadPipeline(
 		ctx,
@@ -104,7 +108,7 @@ func (p *KfpProvider) CreatePipeline(
 		pipelineName,
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to upload pipeline %v", err)
 	}
 	return p.UpdatePipeline(ctx, pdw, pipelineId)
 }
@@ -115,14 +119,16 @@ func (p *KfpProvider) UpdatePipeline(
 	id string,
 ) (string, error) {
 	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to delete pipeline versions %v", err)
 	}
 
 	var err error
 	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
 	}
+
+	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(pdw.CompiledPipeline))
 
 	if err := p.pipelineUploadService.UploadPipelineVersion(
 		ctx,
@@ -130,7 +136,7 @@ func (p *KfpProvider) UpdatePipeline(
 		pdw.CompiledPipeline,
 		pdw.PipelineDefinition.Version,
 	); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to upload pipeline version %v", err)
 	}
 
 	return id, nil
