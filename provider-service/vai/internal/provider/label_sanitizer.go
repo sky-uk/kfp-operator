@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 )
 
 type LabelSanitizer interface {

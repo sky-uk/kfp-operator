@@ -10,10 +10,10 @@ import (
 	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/client"
 	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/config"
-	"github.com/sky-uk/kfp-operator/provider-service/vai/internal/label"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
