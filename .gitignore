@@ -1,6 +1,5 @@
 # Go
 bin/
-testbin/
 *.out
 /vendor/
 
