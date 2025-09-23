@@ -24,4 +24,4 @@ endif
 docker-build: GOOS=linux
 docker-build: GOARCH=amd64
 docker-build: build ## Build container image
-	docker build ${DOCKER_BUILD_EXTRA_PARAMS} -t ${IMG} -t ${IMG}:${VERSION} -f Dockerfile .
+	docker buildx build --platform linux/amd64 ${DOCKER_BUILD_EXTRA_PARAMS} -t ${IMG} -t ${IMG}:${VERSION} -f Dockerfile .
