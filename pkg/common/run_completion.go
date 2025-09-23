@@ -78,7 +78,7 @@ func (rced RunCompletionEventData) ToRunCompletionEvent() RunCompletionEvent {
 		RunStartTime:          rced.RunStartTime,
 		RunEndTime:            rced.RunEndTime,
 		ServingModelArtifacts: rced.ServingModelArtifacts,
-		Artifacts:             nil,
+		Artifacts:             nil, // to be populated later
 		Provider:              rced.Provider,
 	}
 }

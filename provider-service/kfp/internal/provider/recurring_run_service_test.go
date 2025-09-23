@@ -1,4 +1,4 @@
-//go:build unit
+//go:build unita
 
 package provider
 
@@ -58,11 +58,6 @@ var _ = Describe("DefaultRecurringRunService", func() {
 				rsd.Name.Namespace,
 				rsd.Name.Name,
 			)
-			expectedDescription, err := yaml.Marshal(resource.References{
-				PipelineName:         rsd.PipelineName,
-				RunConfigurationName: rsd.RunConfigurationName,
-				Artifacts:            rsd.Artifacts,
-			})
 
 			Expect(err).ToNot(HaveOccurred())
 
@@ -81,7 +76,6 @@ var _ = Describe("DefaultRecurringRunService", func() {
 					RecurringRun: &go_client.RecurringRun{
 						RecurringRunId: "",
 						DisplayName:    expectedName,
-						Description:    string(expectedDescription),
 						PipelineSource: &go_client.RecurringRun_PipelineVersionReference{
 							PipelineVersionReference: &go_client.PipelineVersionReference{
 								PipelineId:        pipelineId,

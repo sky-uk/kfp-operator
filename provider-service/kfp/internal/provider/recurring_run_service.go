@@ -9,13 +9,11 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"gopkg.in/yaml.v2"
 )
 
 type RecurringRunService interface {
@@ -56,15 +54,6 @@ func (rrs *DefaultRecurringRunService) CreateRecurringRun(
 	pipelineVersionId string,
 	experimentId string,
 ) (string, error) {
-	// needed to write metadata of the recurring run as no other field is possible
-	runScheduleAsDescription, err := yaml.Marshal(resource.References{
-		PipelineName:         rsd.PipelineName,
-		RunConfigurationName: rsd.RunConfigurationName,
-		Artifacts:            rsd.Artifacts,
-	})
-	if err != nil {
-		return "", err
-	}
 
 	recurringRunName, err := util.ResourceNameFromNamespacedName(rsd.Name)
 	if err != nil {
@@ -89,7 +78,6 @@ func (rrs *DefaultRecurringRunService) CreateRecurringRun(
 	recurringRun, err := rrs.client.CreateRecurringRun(ctx, &go_client.CreateRecurringRunRequest{
 		RecurringRun: &go_client.RecurringRun{
 			DisplayName: recurringRunName,
-			Description: string(runScheduleAsDescription),
 			PipelineSource: &go_client.RecurringRun_PipelineVersionReference{
 				PipelineVersionReference: &go_client.PipelineVersionReference{
 					PipelineId:        pipelineId,

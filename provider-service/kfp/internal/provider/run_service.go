@@ -8,11 +8,9 @@ import (
 
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
-	"gopkg.in/yaml.v2"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -66,17 +64,6 @@ func (rs DefaultRunService) CreateRun(
 		runParameters[k] = structpb.NewStringValue(v)
 	}
 
-	//Todo: Remove as metadata is now stored within parameters
-	runAsDescription, err := yaml.Marshal(resource.References{
-		RunName:              rd.Name,
-		RunConfigurationName: rd.RunConfigurationName,
-		PipelineName:         rd.PipelineName,
-		Artifacts:            rd.Artifacts,
-	})
-	if err != nil {
-		return "", err
-	}
-
 	name, err := util.ResourceNameFromNamespacedName(rd.Name)
 	if err != nil {
 		return "", err
@@ -86,7 +73,6 @@ func (rs DefaultRunService) CreateRun(
 		Run: &go_client.Run{
 			ExperimentId: experimentId,
 			DisplayName:  name,
-			Description:  string(runAsDescription),
 			PipelineSource: &go_client.Run_PipelineVersionReference{
 				PipelineVersionReference: &go_client.PipelineVersionReference{
 					PipelineId:        pipelineId,

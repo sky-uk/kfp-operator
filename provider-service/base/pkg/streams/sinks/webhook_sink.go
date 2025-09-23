@@ -135,8 +135,6 @@ func (ows ObservedWebhookSink) In() chan<- StreamMessage[*common.RunCompletionEv
 }
 
 func (ows ObservedWebhookSink) OnEmpty(ctx context.Context) {
-	logger := log.LoggerFromContext(ctx)
-	logger.Info("webhook sink received empty message")
 	ows.sendEventsCounter.Add(ctx, 1, metric.WithAttributes(attribute.String(sendEventsMetricResultKey, Discarded.String())))
 	ows.delegate.OnEmpty(ctx)
 }

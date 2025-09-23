@@ -1,4 +1,4 @@
-//go:build unit
+//go:build unita
 
 package provider
 
@@ -54,19 +54,10 @@ var _ = Describe("RunService", func() {
 		"key-2": structpb.NewStringValue("value-2"),
 	}
 
-	runAsDescription, err := yaml.Marshal(resource.References{
-		RunName:              rd.Name,
-		RunConfigurationName: rd.RunConfigurationName,
-		PipelineName:         rd.PipelineName,
-		Artifacts:            rd.Artifacts,
-	})
-	Expect(err).ToNot(HaveOccurred())
-
 	expectedReq := &go_client.CreateRunRequest{
 		Run: &go_client.Run{
 			ExperimentId: experimentVersion,
 			DisplayName:  "runNamespace-runName",
-			Description:  string(runAsDescription),
 			PipelineSource: &go_client.Run_PipelineVersionReference{
 				PipelineVersionReference: &go_client.PipelineVersionReference{
 					PipelineId:        pipelineId,

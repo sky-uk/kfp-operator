@@ -8,10 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"strings"
 
-	"github.com/hashicorp/go-bexpr"
-	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,7 +24,7 @@ const (
 
 type MetadataStore interface {
 	GetServingModelArtifact(ctx context.Context, workflowName string) ([]common.Artifact, error)
-	GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelineshub.OutputArtifact) ([]common.Artifact, error)
+	GetArtifactsForRun(ctx context.Context, runId string) ([]common.PipelineComponent, error)
 }
 
 type GrpcMetadataStore struct {
@@ -86,61 +83,86 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 	return results, nil
 }
 
-func (gms *GrpcMetadataStore) GetArtifacts(ctx context.Context, workflowName string, artifactDefs []pipelineshub.OutputArtifact) (artifacts []common.Artifact, err error) {
-	pipelineRunTypeName := PipelineRunTypeName
-	contextResponse, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{TypeName: &pipelineRunTypeName, ContextName: &workflowName})
-	if err != nil {
-		return nil, err
-	}
-	contextId := contextResponse.GetContext().GetId()
-	if contextId == InvalidId {
-		return nil, fmt.Errorf("invalid context ID")
-	}
-
-	artifactsResponse, err := gms.MetadataStoreServiceClient.GetArtifactsByContext(ctx, &ml_metadata.GetArtifactsByContextRequest{
-		ContextId: &contextId,
+func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId string) (artifacts []common.PipelineComponent, err error) {
+	a := "system.PipelineRun"
+	ctxResp, _ := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{
+		TypeName:    &a,
+		ContextName: &runId, // e.g., your KFP run ID
 	})
-	if err != nil {
-		return nil, err
+
+	// 1. Fetch all executions and filter by run_id
+	execResp, _ := gms.MetadataStoreServiceClient.GetExecutionsByContext(ctx, &ml_metadata.GetExecutionsByContextRequest{
+		ContextId: ctxResp.GetContext().Id,
+	})
+	var runExecs []*ml_metadata.Execution
+	for _, e := range execResp.Executions {
+		log.LoggerFromContext(ctx).Info("found executions", "execution", e)
+		runExecs = append(runExecs, e)
 	}
 
-	for _, artifactDef := range artifactDefs {
-		var evaluator *bexpr.Evaluator
-		if artifactDef.Path.Filter != "" {
-			evaluator, err = bexpr.CreateEvaluator(artifactDef.Path.Filter)
-			if err != nil {
-				return nil, err
-			}
+	arts, _ := gms.MetadataStoreServiceClient.GetArtifacts(ctx, &ml_metadata.GetArtifactsRequest{})
+	for _, artifacts := range arts.GetArtifacts() {
+		log.LoggerFromContext(ctx).Info("found artifact", "artifact", artifacts)
+	}
+
+	log.LoggerFromContext(ctx).Info("found executions for run", "runExecs", runExecs, "runId", runId)
+	// 2. Fetch events for those executions
+	var execIds []int64
+	for _, e := range runExecs {
+		execIds = append(execIds, e.GetId())
+	}
+	eventsResp, _ := gms.MetadataStoreServiceClient.GetEventsByExecutionIDs(ctx, &ml_metadata.GetEventsByExecutionIDsRequest{
+		ExecutionIds: execIds,
+	})
+
+	taskArtifactIDs := map[int64][]int64{}
+	for _, ev := range eventsResp.GetEvents() {
+		if ev.GetType() == ml_metadata.Event_OUTPUT {
+			taskArtifactIDs[ev.GetExecutionId()] = append(taskArtifactIDs[ev.GetExecutionId()], ev.GetArtifactId())
+		}
+	}
+
+	// 4. Fetch artifact details
+	var allArtifactIDs []int64
+	for _, ids := range taskArtifactIDs {
+		allArtifactIDs = append(allArtifactIDs, ids...)
+	}
+	artifactsResp, _ := gms.MetadataStoreServiceClient.GetArtifactsByID(ctx, &ml_metadata.GetArtifactsByIDRequest{
+		ArtifactIds: allArtifactIDs,
+	})
+
+	// 5. Map artifact IDs -> artifact proto
+	artifactByID := map[int64]*ml_metadata.Artifact{}
+	for _, a := range artifactsResp.Artifacts {
+		artifactByID[a.GetId()] = a
+	}
+
+	pcs := []common.PipelineComponent{}
+	for _, e := range runExecs {
+		pc := common.PipelineComponent{
+			Name:               e.CustomProperties["display_name"].GetStringValue(),
+			ComponentArtifacts: []common.ComponentArtifact{},
 		}
 
-		for _, artifact := range artifactsResponse.GetArtifacts() {
-			artifactUri := artifact.GetUri()
-			if artifactUri == "" {
-				continue
-			}
-			if !strings.HasSuffix(artifact.GetName(), artifactDef.Path.Locator.String()) {
-				continue
-			}
+		for _, artID := range taskArtifactIDs[e.GetId()] {
+			art := artifactByID[artID]
 
-			if evaluator != nil {
-				matched, err := evaluator.Evaluate(propertiesToPrimitiveMap(artifact.GetCustomProperties()))
-				// evaluator errors on missing properties
-				if err != nil {
-					continue
-				}
-				if !matched {
-					continue
-				}
-			}
-
-			artifacts = append(artifacts, common.Artifact{
-				Name:     artifactDef.Name,
-				Location: artifactUri,
+			pc.ComponentArtifacts = append(pc.ComponentArtifacts, common.ComponentArtifact{
+				Name: art.CustomProperties["display_name"].GetStringValue(),
+				Artifacts: []common.ComponentArtifactInstance{
+					{
+						Uri:      art.GetUri(),
+						Metadata: propertiesToPrimitiveMap(art.GetProperties()),
+					},
+				},
 			})
+
 		}
+		pcs = append(pcs, pc)
 	}
 
-	return artifacts, nil
+	return pcs, nil
+
 }
 
 func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]interface{} {

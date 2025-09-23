@@ -119,20 +119,25 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		return nil, nil
 	}
 
-	workflowName := workflow.GetName()
-
-	modelArtifacts, err := ef.MetadataStore.GetServingModelArtifact(ctx, workflowName)
-	if err != nil {
-		ef.Logger.Error(err, "failed to retrieve serving model artifact")
-		return nil, err
-	}
-
 	runId := workflow.GetLabels()[pipelineRunIdLabel]
 	resourceReferences, err := ef.KfpApi.GetResourceReferences(ctx, runId)
 	if err != nil {
 		ef.Logger.Error(err, "failed to retrieve resource references")
 		return nil, err
 	}
+
+	workflowName := workflow.GetName()
+	modelArtifacts, err := ef.MetadataStore.GetServingModelArtifact(ctx, workflowName)
+	if err != nil {
+		ef.Logger.Error(err, "failed to retrieve serving model artifact")
+		return nil, err
+	}
+
+	log.LoggerFromContext(ctx).Info("resource references artifacts", "references", resourceReferences.Artifacts)
+
+	pipelineComponents, err := ef.MetadataStore.GetArtifactsForRun(ctx, runId)
+
+	log.LoggerFromContext(ctx).Info("pipeline components", "components", pipelineComponents)
 
 	return &common.RunCompletionEventData{
 		Status:                status,
@@ -141,7 +146,7 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		RunName:               resourceReferences.RunName.NonEmptyPtr(),
 		RunId:                 runId,
 		ServingModelArtifacts: modelArtifacts,
-		PipelineComponents:    nil,
+		PipelineComponents:    pipelineComponents,
 		Provider:              ef.ProviderConfig.Name,
 		RunStartTime:          resourceReferences.CreatedAt,
 		RunEndTime:            resourceReferences.FinishedAt,
