@@ -50,17 +50,6 @@ func (m *MockMetadataStoreServiceClient) GetContextByTypeAndName(
 	return response, args.Error(1)
 }
 
-func (m *MockMetadataStoreServiceClient) GetArtifacts(
-	_ context.Context, in *ml_metadata.GetArtifactsRequest, _ ...grpc.CallOption,
-) (*ml_metadata.GetArtifactsResponse, error) {
-	args := m.Called(in)
-	var response *ml_metadata.GetArtifactsResponse
-	if arg0 := args.Get(0); arg0 != nil {
-		response = arg0.(*ml_metadata.GetArtifactsResponse)
-	}
-	return response, args.Error(1)
-}
-
 func (m *MockMetadataStoreServiceClient) GetEventsByExecutionIDs(
 	_ context.Context, in *ml_metadata.GetEventsByExecutionIDsRequest, _ ...grpc.CallOption,
 ) (*ml_metadata.GetEventsByExecutionIDsResponse, error) {

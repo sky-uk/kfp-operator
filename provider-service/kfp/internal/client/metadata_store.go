@@ -18,7 +18,7 @@ const (
 	PushedModelArtifactType    = "PushedModel"
 	ArtifactNameCustomProperty = "name"
 	PushedCustomProperty       = "pushed"
-	PipelineRunTypeName        = "pipeline_run"
+	PipelineRunTypeName        = "system.PipelineRun"
 	InvalidId                  = 0
 )
 
@@ -89,7 +89,9 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 		TypeName:    &typeName,
 		ContextName: &runId, // e.g., your KFP run ID
 	})
-
+	if err != nil {
+		return nil, err
+	}
 	// 1. Fetch all executions and filter by run_id
 	execResp, err := gms.MetadataStoreServiceClient.GetExecutionsByContext(ctx, &ml_metadata.GetExecutionsByContextRequest{
 		ContextId: ctxResp.GetContext().Id,

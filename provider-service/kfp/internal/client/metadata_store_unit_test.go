@@ -1,4 +1,4 @@
-//go:build unita
+//go:build unit
 
 package client
 
