@@ -133,11 +133,7 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		return nil, err
 	}
 
-	log.LoggerFromContext(ctx).Info("resource references artifacts", "references", resourceReferences.Artifacts)
-
 	pipelineComponents, err := ef.MetadataStore.GetArtifactsForRun(ctx, runId)
-
-	log.LoggerFromContext(ctx).Info("pipeline components", "components", pipelineComponents)
 
 	return &common.RunCompletionEventData{
 		Status:                status,

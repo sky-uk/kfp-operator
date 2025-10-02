@@ -97,25 +97,9 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 	if err != nil {
 		return nil, err
 	}
-
-	var runExecs []*ml_metadata.Execution
-	for _, execution := range execResp.Executions {
-		log.LoggerFromContext(ctx).Info("found executions", "execution", e)
-		runExecs = append(runExecs, execution)
-	}
-
-	arts, err := gms.MetadataStoreServiceClient.GetArtifacts(ctx, &ml_metadata.GetArtifactsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	for _, artifacts := range arts.GetArtifacts() {
-		log.LoggerFromContext(ctx).Info("found artifact", "artifact", artifacts)
-	}
-
-	log.LoggerFromContext(ctx).Info("found executions for run", "runExecs", runExecs, "runId", runId)
 	// 2. Fetch events for those executions
 	var execIds []int64
-	for _, runExec := range runExecs {
+	for _, runExec := range execResp.Executions {
 		execIds = append(execIds, runExec.GetId())
 	}
 	eventsResp, err := gms.MetadataStoreServiceClient.GetEventsByExecutionIDs(ctx, &ml_metadata.GetEventsByExecutionIDsRequest{
@@ -146,17 +130,17 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 	// 5. Map artifact IDs -> artifact proto
 	artifactByID := map[int64]*ml_metadata.Artifact{}
 	for _, artifact := range artifactsResp.Artifacts {
-		artifactByID[artifact.GetId()] = a
+		artifactByID[artifact.GetId()] = artifact
 	}
 
-	pcs := []common.PipelineComponent{}
-	for _, runExec := range runExecs {
+	var pcs []common.PipelineComponent
+	for _, runExec := range execResp.Executions {
 		pc := common.PipelineComponent{
 			Name:               runExec.CustomProperties["display_name"].GetStringValue(),
 			ComponentArtifacts: []common.ComponentArtifact{},
 		}
 
-		for _, artID := range taskArtifactIDs[e.GetId()] {
+		for _, artID := range taskArtifactIDs[runExec.GetId()] {
 			art := artifactByID[artID]
 
 			pc.ComponentArtifacts = append(pc.ComponentArtifacts, common.ComponentArtifact{
@@ -172,9 +156,7 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 		}
 		pcs = append(pcs, pc)
 	}
-
 	return pcs, nil
-
 }
 
 func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]interface{} {

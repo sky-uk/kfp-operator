@@ -52,7 +52,7 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 		}
 
 		if pipelineNamespace, ok := params[label.PipelineNamespace]; ok {
-			resourceReferences.PipelineName.Name = pipelineNamespace.GetStringValue()
+			resourceReferences.PipelineName.Namespace = pipelineNamespace.GetStringValue()
 		}
 	}
 
@@ -65,21 +65,6 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 		runFinishedTime := run.FinishedAt.AsTime()
 		resourceReferences.FinishedAt = &runFinishedTime
 	}
-
-	outputArtifactIdByTaskName := map[string]map[string][]int64{}
-	for _, runTask := range run.RunDetails.GetTaskDetails() {
-		runTask.GetExecutorDetail().GetMainJob()
-
-		log.LoggerFromContext(ctx).Info("found task", "task", runTask.DisplayName, "output", runTask.GetOutputs())
-		for artifactName, artifacts := range runTask.Outputs {
-			outputArtifactIdByTaskName[runTask.GetDisplayName()] = map[string][]int64{
-				artifactName: artifacts.GetArtifactIds(),
-			}
-		}
-	}
-
-	resourceReferences.Artifacts = outputArtifactIdByTaskName
-
 	return resourceReferences, nil
 }
 
