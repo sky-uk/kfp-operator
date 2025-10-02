@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/ml_metadata"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
@@ -20,6 +21,7 @@ const (
 	PushedCustomProperty       = "pushed"
 	PipelineRunTypeName        = "system.PipelineRun"
 	InvalidId                  = 0
+	DisplayName                = "display_name"
 )
 
 type MetadataStore interface {
@@ -83,87 +85,84 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 	return results, nil
 }
 
-func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId string) (artifacts []common.PipelineComponent, err error) {
-	typeName := "system.PipelineRun"
-	ctxResp, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx, &ml_metadata.GetContextByTypeAndNameRequest{
-		TypeName:    &typeName,
-		ContextName: &runId, // e.g., your KFP run ID
-	})
+func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId string) ([]common.PipelineComponent, error) {
+	// 1. Resolve run context
+	typeName := PipelineRunTypeName
+	ctxResp, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx,
+		&ml_metadata.GetContextByTypeAndNameRequest{TypeName: &typeName, ContextName: &runId})
 	if err != nil {
 		return nil, err
 	}
 	if ctxResp.GetContext() == nil {
 		return nil, fmt.Errorf("context not found for runId: %s", runId)
 	}
-	// 1. Fetch all executions and filter by run_id
-	execResp, err := gms.MetadataStoreServiceClient.GetExecutionsByContext(ctx, &ml_metadata.GetExecutionsByContextRequest{
-		ContextId: ctxResp.GetContext().Id,
-	})
+
+	// Fetch executions for the context
+	execResp, err := gms.MetadataStoreServiceClient.GetExecutionsByContext(ctx,
+		&ml_metadata.GetExecutionsByContextRequest{ContextId: ctxResp.GetContext().Id})
 	if err != nil {
 		return nil, err
 	}
-	// 2. Fetch events for those executions
-	var execIds []int64
-	for _, runExec := range execResp.Executions {
-		execIds = append(execIds, runExec.GetId())
-	}
-	eventsResp, err := gms.MetadataStoreServiceClient.GetEventsByExecutionIDs(ctx, &ml_metadata.GetEventsByExecutionIDsRequest{
-		ExecutionIds: execIds,
-	})
+	executions := execResp.Executions
+	execIDs := lo.Map(executions, func(e *ml_metadata.Execution, _ int) int64 { return e.GetId() })
+
+	// Fetch events and their exported artifactIds for those executions
+	eventsResp, err := gms.MetadataStoreServiceClient.GetEventsByExecutionIDs(ctx,
+		&ml_metadata.GetEventsByExecutionIDsRequest{ExecutionIds: execIDs})
 	if err != nil {
 		return nil, err
 	}
+	taskArtifactIDs := lo.GroupBy(
+		lo.Filter(eventsResp.GetEvents(), func(ev *ml_metadata.Event, _ int) bool {
+			return ev.GetType() == ml_metadata.Event_OUTPUT
+		}),
+		func(ev *ml_metadata.Event) int64 { return ev.GetExecutionId() },
+	)
 
-	taskArtifactIDs := map[int64][]int64{}
-	for _, ev := range eventsResp.GetEvents() {
-		if ev.GetType() == ml_metadata.Event_OUTPUT {
-			taskArtifactIDs[ev.GetExecutionId()] = append(taskArtifactIDs[ev.GetExecutionId()], ev.GetArtifactId())
-		}
-	}
-
-	// 4. Fetch artifact details
+	// Flatten artifact IDs
 	var allArtifactIDs []int64
-	for _, ids := range taskArtifactIDs {
-		allArtifactIDs = append(allArtifactIDs, ids...)
+	for _, evs := range taskArtifactIDs {
+		allArtifactIDs = append(allArtifactIDs,
+			lo.Map(evs, func(ev *ml_metadata.Event, _ int) int64 { return ev.GetArtifactId() })...,
+		)
 	}
-	artifactsResp, err := gms.MetadataStoreServiceClient.GetArtifactsByID(ctx, &ml_metadata.GetArtifactsByIDRequest{
-		ArtifactIds: allArtifactIDs,
-	})
+
+	// Fetch artifacts by the ids
+	artsResp, err := gms.MetadataStoreServiceClient.GetArtifactsByID(ctx,
+		&ml_metadata.GetArtifactsByIDRequest{ArtifactIds: allArtifactIDs})
 	if err != nil {
 		return nil, err
 	}
-	// 5. Map artifact IDs -> artifact proto
-	artifactByID := map[int64]*ml_metadata.Artifact{}
-	for _, artifact := range artifactsResp.Artifacts {
-		artifactByID[artifact.GetId()] = artifact
-	}
+	artifactByID := lo.Associate(artsResp.Artifacts, func(a *ml_metadata.Artifact) (int64, *ml_metadata.Artifact) {
+		return a.GetId(), a
+	})
 
-	var pcs []common.PipelineComponent
-	for _, runExec := range execResp.Executions {
+	// Build PipelineComponents from executions and their artifacts
+	pcs := lo.FilterMap(executions, func(exec *ml_metadata.Execution, _ int) (common.PipelineComponent, bool) {
 		pc := common.PipelineComponent{
-			Name:               runExec.CustomProperties["display_name"].GetStringValue(),
+			Name:               exec.CustomProperties[DisplayName].GetStringValue(),
 			ComponentArtifacts: []common.ComponentArtifact{},
 		}
 
-		for _, artID := range taskArtifactIDs[runExec.GetId()] {
-			art := artifactByID[artID]
-			if art == nil {
-				continue // skip missing artifacts to avoid nil pointer dereference
-			}
-			pc.ComponentArtifacts = append(pc.ComponentArtifacts, common.ComponentArtifact{
-				Name: art.CustomProperties["display_name"].GetStringValue(),
-				Artifacts: []common.ComponentArtifactInstance{
-					{
+		// Convert artifact IDs per execution into artifacts
+		pc.ComponentArtifacts = lo.FilterMap(taskArtifactIDs[exec.GetId()],
+			func(ev *ml_metadata.Event, _ int) (common.ComponentArtifact, bool) {
+				art := artifactByID[ev.GetArtifactId()]
+				if art == nil {
+					return common.ComponentArtifact{}, false
+				}
+				return common.ComponentArtifact{
+					Name: art.CustomProperties[DisplayName].GetStringValue(),
+					Artifacts: []common.ComponentArtifactInstance{{
 						Uri:      art.GetUri(),
 						Metadata: propertiesToPrimitiveMap(art.GetProperties()),
-					},
-				},
+					}},
+				}, true
 			})
-		}
-		if len(pc.ComponentArtifacts) > 0 {
-			pcs = append(pcs, pc)
-		}
-	}
+
+		return pc, len(pc.ComponentArtifacts) > 0
+	})
+
 	return pcs, nil
 }
 
