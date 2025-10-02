@@ -92,6 +92,9 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 	if err != nil {
 		return nil, err
 	}
+	if ctxResp.GetContext() == nil {
+		return nil, fmt.Errorf("context not found for runId: %s", runId)
+	}
 	// 1. Fetch all executions and filter by run_id
 	execResp, err := gms.MetadataStoreServiceClient.GetExecutionsByContext(ctx, &ml_metadata.GetExecutionsByContextRequest{
 		ContextId: ctxResp.GetContext().Id,
@@ -144,7 +147,9 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 
 		for _, artID := range taskArtifactIDs[runExec.GetId()] {
 			art := artifactByID[artID]
-
+			if art == nil {
+				continue // skip missing artifacts to avoid nil pointer dereference
+			}
 			pc.ComponentArtifacts = append(pc.ComponentArtifacts, common.ComponentArtifact{
 				Name: art.CustomProperties["display_name"].GetStringValue(),
 				Artifacts: []common.ComponentArtifactInstance{
@@ -154,9 +159,10 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 					},
 				},
 			})
-
 		}
-		pcs = append(pcs, pc)
+		if len(pc.ComponentArtifacts) > 0 {
+			pcs = append(pcs, pc)
+		}
 	}
 	return pcs, nil
 }

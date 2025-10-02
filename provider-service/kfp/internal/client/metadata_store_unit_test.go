@@ -5,17 +5,15 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sky-uk/kfp-operator/apis"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/ml_metadata"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/structpb"
-	"k8s.io/utils/pointer"
 )
 
 var _ = Context("gRPC Metadata Store", func() {
@@ -52,218 +50,170 @@ var _ = Context("gRPC Metadata Store", func() {
 		return contextId
 	}
 
-	Describe("GetArtifacts", func() {
-		artifactName := common.RandomString()
-		componentName := common.RandomString()
-		outputName := common.RandomString()
-		//artifactDefs := []pipelineshub.OutputArtifact{{
-		//	Name: artifactName,
-		//	Path: pipelineshub.ArtifactPath{
-		//		Locator: pipelineshub.ArtifactLocator{
-		//			Component: componentName,
-		//			Artifact:  outputName,
-		//			Index:     1,
-		//		},
-		//		Filter: "x.y == 1",
-		//	},
-		//}}
-		artifactPath := fmt.Sprintf("%s:%s:1", componentName, outputName)
+	Describe("GetArtifactsForRun", func() {
+		var (
+			artifactName = common.RandomString()
+			contextId    = int64(123)
+			executionId  = int64(456)
+			artifactId   = int64(789)
+		)
 
-		When("GetContextByTypeAndName errors", func() {
-			It("Errors", func() {
-				typeName := PipelineRunTypeName
+		It("returns error if GetContextByTypeAndName fails", func() {
+			mockMetadataStoreServiceClient.On(
+				"GetContextByTypeAndName",
+				mock.Anything,
+				mock.Anything,
+			).Return(nil, fmt.Errorf("context error"))
 
-				mockMetadataStoreServiceClient.On(
-					"GetContextByTypeAndName",
-					&ml_metadata.GetContextByTypeAndNameRequest{
-						TypeName:    &typeName,
-						ContextName: &workflowName,
-					},
-				).Return(nil, fmt.Errorf("an error"))
-
-				_, err := store.GetArtifactsForRun(context.Background(), workflowName)
-				Expect(err).To(HaveOccurred())
-			})
+			_, err := store.GetArtifactsForRun(context.Background(), workflowName)
+			Expect(err).To(HaveOccurred())
 		})
 
-		When("GetContextByTypeAndName returns an invalid context ID", func() {
-			It("Errors", func() {
-				typeName := PipelineRunTypeName
+		It("returns error if context is nil", func() {
+			mockMetadataStoreServiceClient.On(
+				"GetContextByTypeAndName",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetContextByTypeAndNameResponse{Context: nil}, nil)
 
-				mockMetadataStoreServiceClient.On(
-					"GetContextByTypeAndName",
-					&ml_metadata.GetContextByTypeAndNameRequest{
-						TypeName:    &typeName,
-						ContextName: &workflowName,
-					},
-				).Return(
-					&ml_metadata.GetContextByTypeAndNameResponse{
-						Context: nil,
-					},
-					nil,
-				)
-
-				_, err := store.GetArtifactsForRun(context.Background(), workflowName)
-				Expect(err).To(HaveOccurred())
-			})
+			_, err := store.GetArtifactsForRun(context.Background(), workflowName)
+			Expect(err).To(HaveOccurred())
 		})
 
-		When("GetArtifactsByContext errors", func() {
-			It("Errors", func() {
-				contextId := givenContextId()
+		It("returns error if GetExecutionsByContext fails", func() {
+			mockMetadataStoreServiceClient.On(
+				"GetContextByTypeAndName",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetContextByTypeAndNameResponse{Context: &ml_metadata.Context{Id: &contextId}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetExecutionsByContext",
+				mock.Anything,
+				mock.Anything,
+			).Return(nil, fmt.Errorf("executions error"))
 
-				mockMetadataStoreServiceClient.On(
-					"GetArtifactsByContext",
-					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
-				).Return(nil, fmt.Errorf("an error"))
-
-				_, err := store.GetArtifactsForRun(context.Background(), workflowName)
-				Expect(err).To(HaveOccurred())
-			})
+			_, err := store.GetArtifactsForRun(context.Background(), workflowName)
+			Expect(err).To(HaveOccurred())
 		})
 
-		When("GetArtifactsByContext returns artifacts", func() {
-			validProperties := map[string]*ml_metadata.Value{
-				"x": {
-					Value: &ml_metadata.Value_StructValue{
-						StructValue: &structpb.Struct{
-							Fields: map[string]*structpb.Value{
-								"y": structpb.NewNumberValue(1),
-							},
-						},
-					},
-				},
-			}
+		It("returns error if GetEventsByExecutionIDs fails", func() {
+			mockMetadataStoreServiceClient.On(
+				"GetContextByTypeAndName",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetContextByTypeAndNameResponse{Context: &ml_metadata.Context{Id: &contextId}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetExecutionsByContext",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetExecutionsByContextResponse{Executions: []*ml_metadata.Execution{{Id: &executionId}}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetEventsByExecutionIDs",
+				mock.Anything,
+				mock.Anything,
+			).Return(nil, fmt.Errorf("events error"))
 
-			It("filters out artifacts that don't match the name", func() {
-				contextId := givenContextId()
+			_, err := store.GetArtifactsForRun(context.Background(), workflowName)
+			Expect(err).To(HaveOccurred())
+		})
 
-				mockMetadataStoreServiceClient.On(
-					"GetArtifactsByContext",
-					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
-				).Return(
-					&ml_metadata.GetArtifactsByContextResponse{
-						Artifacts: []*ml_metadata.Artifact{
-							{
-								Name:             pointer.String(common.RandomString()),
-								Uri:              pointer.String(apis.RandomString()),
-								CustomProperties: validProperties,
-							},
-						},
-					},
-					nil,
-				)
+		It("returns error if GetArtifactsByID fails", func() {
+			eventType := ml_metadata.Event_OUTPUT
+			mockMetadataStoreServiceClient.On(
+				"GetContextByTypeAndName",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetContextByTypeAndNameResponse{Context: &ml_metadata.Context{Id: &contextId}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetExecutionsByContext",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetExecutionsByContextResponse{Executions: []*ml_metadata.Execution{{Id: &executionId}}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetEventsByExecutionIDs",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetEventsByExecutionIDsResponse{Events: []*ml_metadata.Event{{
+				Type:        &eventType,
+				ExecutionId: &executionId,
+				ArtifactId:  &artifactId,
+			}}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetArtifactsByID",
+				mock.Anything,
+				mock.Anything,
+			).Return(nil, fmt.Errorf("artifacts error"))
 
-				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(results).To(BeEmpty())
-			})
+			_, err := store.GetArtifactsForRun(context.Background(), workflowName)
+			Expect(err).To(HaveOccurred())
+		})
 
-			It("filters out artifacts that doesn't have a URI", func() {
-				contextId := givenContextId()
+		It("returns empty if no artifacts found", func() {
+			eventType := ml_metadata.Event_OUTPUT
+			mockMetadataStoreServiceClient.On(
+				"GetContextByTypeAndName",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetContextByTypeAndNameResponse{Context: &ml_metadata.Context{Id: &contextId}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetExecutionsByContext",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetExecutionsByContextResponse{Executions: []*ml_metadata.Execution{{Id: &executionId}}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetEventsByExecutionIDs",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetEventsByExecutionIDsResponse{Events: []*ml_metadata.Event{{
+				Type:        &eventType,
+				ExecutionId: &executionId,
+				ArtifactId:  &artifactId,
+			}}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetArtifactsByID",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetArtifactsByIDResponse{Artifacts: []*ml_metadata.Artifact{}}, nil)
 
-				mockMetadataStoreServiceClient.On(
-					"GetArtifactsByContext",
-					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
-				).Return(
-					&ml_metadata.GetArtifactsByContextResponse{
-						Artifacts: []*ml_metadata.Artifact{
-							{
-								Name:             pointer.String(artifactPath),
-								CustomProperties: validProperties,
-							},
-						},
-					},
-					nil,
-				)
+			results, err := store.GetArtifactsForRun(context.Background(), workflowName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(results).To(BeEmpty())
+		})
 
-				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(results).To(BeEmpty())
-			})
+		It("returns artifacts for successful flow", func() {
+			eventType := ml_metadata.Event_OUTPUT
+			artifactUri := common.RandomString()
+			mockMetadataStoreServiceClient.On(
+				"GetContextByTypeAndName",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetContextByTypeAndNameResponse{Context: &ml_metadata.Context{Id: &contextId}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetExecutionsByContext",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetExecutionsByContextResponse{Executions: []*ml_metadata.Execution{{Id: &executionId}}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetEventsByExecutionIDs",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetEventsByExecutionIDsResponse{Events: []*ml_metadata.Event{{
+				Type:        &eventType,
+				ExecutionId: &executionId,
+				ArtifactId:  &artifactId,
+			}}}, nil)
+			mockMetadataStoreServiceClient.On(
+				"GetArtifactsByID",
+				mock.Anything,
+				mock.Anything,
+			).Return(&ml_metadata.GetArtifactsByIDResponse{Artifacts: []*ml_metadata.Artifact{{
+				Id:   &artifactId,
+				Name: &artifactName,
+				Uri:  &artifactUri,
+			}}}, nil)
 
-			It("filters out artifacts that misses properties", func() {
-				contextId := givenContextId()
-
-				mockMetadataStoreServiceClient.On(
-					"GetArtifactsByContext",
-					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
-				).Return(
-					&ml_metadata.GetArtifactsByContextResponse{
-						Artifacts: []*ml_metadata.Artifact{
-							{
-								Name: pointer.String(artifactPath),
-								Uri:  pointer.String(artifactPath),
-							},
-						},
-					},
-					nil,
-				)
-
-				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(results).To(BeEmpty())
-			})
-
-			It("filters out artifacts that has properties that don't match", func() {
-				contextId := givenContextId()
-
-				mockMetadataStoreServiceClient.On(
-					"GetArtifactsByContext",
-					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
-				).Return(
-					&ml_metadata.GetArtifactsByContextResponse{
-						Artifacts: []*ml_metadata.Artifact{
-							{
-								Name: pointer.String(artifactPath),
-								Uri:  pointer.String(common.RandomString()),
-								CustomProperties: map[string]*ml_metadata.Value{
-									common.RandomString(): {
-										Value: &ml_metadata.Value_StringValue{
-											StringValue: common.RandomString(),
-										},
-									},
-								},
-							},
-						},
-					},
-					nil,
-				)
-
-				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(results).To(BeEmpty())
-			})
-
-			It("returns matching artifacts", func() {
-				contextId := givenContextId()
-				artifactLocation := common.RandomString()
-
-				mockMetadataStoreServiceClient.On(
-					"GetArtifactsByContext",
-					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
-				).Return(
-					&ml_metadata.GetArtifactsByContextResponse{
-						Artifacts: []*ml_metadata.Artifact{
-							{
-								Name:             pointer.String(artifactPath),
-								Uri:              &artifactLocation,
-								CustomProperties: validProperties,
-							},
-						},
-					},
-					nil,
-				)
-
-				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(results).To(ContainElements(
-					common.Artifact{
-						Name:     artifactName,
-						Location: artifactLocation,
-					},
-				))
-			})
+			_, err := store.GetArtifactsForRun(context.Background(), workflowName)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 
