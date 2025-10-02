@@ -15,6 +15,7 @@ type MockPipelineUploadServiceClient struct {
 func (m *MockPipelineUploadServiceClient) UploadPipeline(
 	in *pipeline_upload_service.UploadPipelineParams,
 	_ runtime.ClientAuthInfoWriter,
+	_ ...pipeline_upload_service.ClientOption,
 ) (*pipeline_upload_service.UploadPipelineOK, error) {
 	args := m.Called(in)
 	var response *pipeline_upload_service.UploadPipelineOK
@@ -27,6 +28,7 @@ func (m *MockPipelineUploadServiceClient) UploadPipeline(
 func (m *MockPipelineUploadServiceClient) UploadPipelineVersion(
 	in *pipeline_upload_service.UploadPipelineVersionParams,
 	_ runtime.ClientAuthInfoWriter,
+	_ ...pipeline_upload_service.ClientOption,
 ) (*pipeline_upload_service.UploadPipelineVersionOK, error) {
 	args := m.Called(in)
 	var response *pipeline_upload_service.UploadPipelineVersionOK
