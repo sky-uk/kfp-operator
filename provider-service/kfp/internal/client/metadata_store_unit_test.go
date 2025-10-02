@@ -1,4 +1,4 @@
-//go:build unita
+//go:build unit
 
 package client
 
@@ -9,7 +9,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/apis"
-	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/ml_metadata"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
@@ -57,17 +56,17 @@ var _ = Context("gRPC Metadata Store", func() {
 		artifactName := common.RandomString()
 		componentName := common.RandomString()
 		outputName := common.RandomString()
-		artifactDefs := []pipelineshub.OutputArtifact{{
-			Name: artifactName,
-			Path: pipelineshub.ArtifactPath{
-				Locator: pipelineshub.ArtifactLocator{
-					Component: componentName,
-					Artifact:  outputName,
-					Index:     1,
-				},
-				Filter: "x.y == 1",
-			},
-		}}
+		//artifactDefs := []pipelineshub.OutputArtifact{{
+		//	Name: artifactName,
+		//	Path: pipelineshub.ArtifactPath{
+		//		Locator: pipelineshub.ArtifactLocator{
+		//			Component: componentName,
+		//			Artifact:  outputName,
+		//			Index:     1,
+		//		},
+		//		Filter: "x.y == 1",
+		//	},
+		//}}
 		artifactPath := fmt.Sprintf("%s:%s:1", componentName, outputName)
 
 		When("GetContextByTypeAndName errors", func() {
@@ -82,7 +81,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					},
 				).Return(nil, fmt.Errorf("an error"))
 
-				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelineshub.OutputArtifact{})
+				_, err := store.GetArtifactsForRun(context.Background(), workflowName)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -104,7 +103,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					nil,
 				)
 
-				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelineshub.OutputArtifact{})
+				_, err := store.GetArtifactsForRun(context.Background(), workflowName)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -118,7 +117,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					&ml_metadata.GetArtifactsByContextRequest{ContextId: &contextId},
 				).Return(nil, fmt.Errorf("an error"))
 
-				_, err := store.GetArtifacts(context.Background(), workflowName, []pipelineshub.OutputArtifact{})
+				_, err := store.GetArtifactsForRun(context.Background(), workflowName)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -155,7 +154,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					nil,
 				)
 
-				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(BeEmpty())
 			})
@@ -178,7 +177,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					nil,
 				)
 
-				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(BeEmpty())
 			})
@@ -201,7 +200,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					nil,
 				)
 
-				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(BeEmpty())
 			})
@@ -231,7 +230,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					nil,
 				)
 
-				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(BeEmpty())
 			})
@@ -256,7 +255,7 @@ var _ = Context("gRPC Metadata Store", func() {
 					nil,
 				)
 
-				results, err := store.GetArtifacts(context.Background(), workflowName, artifactDefs)
+				results, err := store.GetArtifactsForRun(context.Background(), workflowName)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(results).To(ContainElements(
 					common.Artifact{

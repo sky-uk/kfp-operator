@@ -32,11 +32,21 @@ type MetadataStoreServiceClient interface {
 		opts ...grpc.CallOption,
 	) (*ml_metadata.GetExecutionsByContextResponse, error)
 
-	GetArtifactsByID(ctx context.Context, in *ml_metadata.GetArtifactsByIDRequest, opts ...grpc.CallOption) (*ml_metadata.GetArtifactsByIDResponse, error)
+	GetArtifactsByID(
+		ctx context.Context,
+		in *ml_metadata.GetArtifactsByIDRequest,
+		opts ...grpc.CallOption,
+	) (*ml_metadata.GetArtifactsByIDResponse, error)
 
-	GetExecutions(ctx context.Context, in *ml_metadata.GetExecutionsRequest, opts ...grpc.CallOption) (*ml_metadata.GetExecutionsResponse, error)
+	GetArtifacts(
+		ctx context.Context,
+		in *ml_metadata.GetArtifactsRequest,
+		opts ...grpc.CallOption,
+	) (*ml_metadata.GetArtifactsResponse, error)
 
-	GetArtifacts(ctx context.Context, in *ml_metadata.GetArtifactsRequest, opts ...grpc.CallOption) (*ml_metadata.GetArtifactsResponse, error)
-
-	GetEventsByExecutionIDs(ctx context.Context, in *ml_metadata.GetEventsByExecutionIDsRequest, opts ...grpc.CallOption) (*ml_metadata.GetEventsByExecutionIDsResponse, error)
+	GetEventsByExecutionIDs(
+		ctx context.Context,
+		in *ml_metadata.GetEventsByExecutionIDsRequest,
+		opts ...grpc.CallOption,
+	) (*ml_metadata.GetEventsByExecutionIDsResponse, error)
 }
