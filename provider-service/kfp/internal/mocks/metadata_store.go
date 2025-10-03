@@ -5,17 +5,18 @@ package mocks
 import (
 	"context"
 
-	pipelineshub "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 )
 
 type MockMetadataStore struct {
-	results []common.Artifact
-	err     error
+	results          []common.Artifact
+	resultComponents []common.PipelineComponent
+	err              error
 }
 
-func (mms *MockMetadataStore) GetArtifacts(_ context.Context, _ string, _ []pipelineshub.OutputArtifact) ([]common.Artifact, error) {
-	return mms.results, mms.err
+func (mms *MockMetadataStore) GetArtifactsForRun(_ context.Context, _ string) ([]common.PipelineComponent, error) {
+	return mms.resultComponents, mms.err
+
 }
 
 func (mms *MockMetadataStore) GetServingModelArtifact(_ context.Context, _ string) ([]common.Artifact, error) {

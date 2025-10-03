@@ -118,6 +118,10 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		ef.Logger.V(2).Info("ignoring workflow that hasn't finished yet")
 		return nil, nil
 	}
+	workflowName := workflow.GetName()
+	if workflowName == "" {
+		return nil, nil
+	}
 
 	runId := workflow.GetLabels()[pipelineRunIdLabel]
 	resourceReferences, err := ef.KfpApi.GetResourceReferences(ctx, runId)
@@ -126,7 +130,6 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 		return nil, err
 	}
 
-	workflowName := workflow.GetName()
 	modelArtifacts, err := ef.MetadataStore.GetServingModelArtifact(ctx, workflowName)
 	if err != nil {
 		ef.Logger.Error(err, "failed to retrieve serving model artifact")
@@ -134,6 +137,10 @@ func (ef *EventFlow) eventForWorkflow(ctx context.Context, workflow *unstructure
 	}
 
 	pipelineComponents, err := ef.MetadataStore.GetArtifactsForRun(ctx, runId)
+	if err != nil {
+		ef.Logger.Error(err, "failed to retrieve pipeline components")
+		return nil, err
+	}
 
 	return &common.RunCompletionEventData{
 		Status:                status,

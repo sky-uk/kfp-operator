@@ -1,4 +1,4 @@
-//go:build unita
+//go:build unit
 
 package runcompletion
 
@@ -112,34 +112,37 @@ var _ = Context("Eventing Flow", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		//It("Doesn't emit an event when no ResourceReferences can be found and the workflow has no pipeline name", func() {
-		//	workflow := &unstructured.Unstructured{}
-		//	setWorkflowPhase(workflow, argo.WorkflowSucceeded)
-		//
-		//	mockMetadataStore := mocks.MockMetadataStore{}
-		//	mockKfpApi := mocks.MockKfpApi{}
-		//
-		//	eventingServer := EventFlow{
-		//		Logger:        logr.Discard(),
-		//		MetadataStore: &mockMetadataStore,
-		//		KfpApi:        &mockKfpApi,
-		//	}
-		//
-		//	event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
-		//	Expect(event).To(BeNil())
-		//	Expect(err).NotTo(HaveOccurred())
-		//})
-
-		It("errors when the artifact store errors", func() {
+		It("Doesn't emit an event when no ResourceReferences can be found and the workflow has no pipeline name", func() {
 			workflow := &unstructured.Unstructured{}
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
-			setPipelineNameInSpec(workflow, common.RandomString())
 
 			mockMetadataStore := mocks.MockMetadataStore{}
+			mockKfpApi := mocks.MockKfpApi{}
 
 			eventingServer := EventFlow{
 				Logger:        logr.Discard(),
 				MetadataStore: &mockMetadataStore,
+				KfpApi:        &mockKfpApi,
+			}
+
+			event, err := eventingServer.eventForWorkflow(context.Background(), workflow)
+			Expect(event).To(BeNil())
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("errors when the artifact store errors", func() {
+			workflow := &unstructured.Unstructured{}
+			workflow.SetName(common.RandomString())
+			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
+			setPipelineNameInSpec(workflow, common.RandomString())
+
+			mockMetadataStore := mocks.MockMetadataStore{}
+			mockKfpApi := mocks.MockKfpApi{}
+
+			eventingServer := EventFlow{
+				Logger:        logr.Discard(),
+				MetadataStore: &mockMetadataStore,
+				KfpApi:        &mockKfpApi,
 			}
 
 			expectedError := errors.New("an error occurred")
@@ -152,6 +155,7 @@ var _ = Context("Eventing Flow", func() {
 
 		It("errors when the KFP API errors", func() {
 			workflow := &unstructured.Unstructured{}
+			workflow.SetName(common.RandomString())
 			setWorkflowPhase(workflow, argo.WorkflowSucceeded)
 			setPipelineNameInSpec(workflow, common.RandomString())
 

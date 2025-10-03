@@ -1,4 +1,4 @@
-//go:build decoupleda
+//go:build decoupled
 
 package runcompletion
 
