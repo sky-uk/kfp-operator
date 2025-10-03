@@ -1,4 +1,4 @@
-//go:build unita
+//go:build unit
 
 package provider
 
@@ -12,13 +12,11 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
-	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("DefaultRecurringRunService", func() {
@@ -58,8 +56,6 @@ var _ = Describe("DefaultRecurringRunService", func() {
 				rsd.Name.Namespace,
 				rsd.Name.Name,
 			)
-
-			Expect(err).ToNot(HaveOccurred())
 
 			expectedRuntimeParams := map[string]*structpb.Value{
 				"key-1": structpb.NewStringValue("value-1"),

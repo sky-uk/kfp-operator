@@ -1,10 +1,11 @@
-//go:build unita
+//go:build unit
 
 package provider
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/stretchr/testify/mock"
 
@@ -169,7 +170,7 @@ var _ = Describe("Provider", func() {
 				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return("", expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
-				Expect(err).To(Equal(expectedErr))
+				Expect(err).To(Equal(fmt.Errorf("failed to upload pipeline %s", expectedErr)))
 				Expect(result).To(BeEmpty())
 			})
 
@@ -180,7 +181,7 @@ var _ = Describe("Provider", func() {
 				pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
-				Expect(err).To(Equal(expectedErr))
+				Expect(err).To(Equal(fmt.Errorf("failed to delete pipeline versions %s", expectedErr)))
 				Expect(result).To(BeEmpty())
 			})
 
@@ -192,7 +193,7 @@ var _ = Describe("Provider", func() {
 				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
-				Expect(err).To(Equal(expectedErr))
+				Expect(err).To(Equal(fmt.Errorf("failed to upload pipeline version %s", expectedErr)))
 				Expect(result).To(BeEmpty())
 			})
 		})
@@ -214,7 +215,7 @@ var _ = Describe("Provider", func() {
 					pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
-					Expect(err).To(Equal(expectedErr))
+					Expect(err).To(Equal(fmt.Errorf("failed to delete pipeline versions %s", expectedErr)))
 					Expect(result).To(BeEmpty())
 				})
 			})
@@ -228,7 +229,7 @@ var _ = Describe("Provider", func() {
 
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
-					Expect(err).To(Equal(expectedErr))
+					Expect(err).To(Equal(fmt.Errorf("failed to upload pipeline version %s", expectedErr)))
 					Expect(result).To(BeEmpty())
 				})
 			})

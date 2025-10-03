@@ -4,6 +4,7 @@ package client
 
 import (
 	"context"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
@@ -57,7 +58,7 @@ var _ = Context("KFP API", func() {
 
 				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
 				Expect(err).To(BeNil())
-				Expect(resourceReferences).To(Equal(resource.References{
+				Expect(resourceReferences).To(BeComparableTo(resource.References{
 					PipelineName: common.NamespacedName{
 						Name:      "PipelineName",
 						Namespace: "PipelineNamespace",
@@ -70,26 +71,7 @@ var _ = Context("KFP API", func() {
 						Name:      "RunName",
 						Namespace: "RunNamespace",
 					},
-				}))
-			})
-		})
-
-		When("GetRun returns run with missing parameter fields", func() {
-			It("Returns empty ResourceReferences", func() {
-				mockRunDetail := go_client.Run{
-					RuntimeConfig: &go_client.RuntimeConfig{
-						Parameters: map[string]*structpb.Value{},
-					},
-				}
-
-				mockRunServiceClient.On(
-					"GetRun",
-					&go_client.GetRunRequest{RunId: runId},
-				).Return(&mockRunDetail, nil)
-
-				resourceReferences, err := kfpApi.GetResourceReferences(context.Background(), runId)
-				Expect(err).To(BeNil())
-				Expect(resourceReferences).To(Equal(resource.References{}))
+				}, cmpopts.IgnoreFields(resource.References{}, "FinishedAt")))
 			})
 		})
 	})

@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/python:3.9.21-slim AS python39
+FROM python:3.9.21-slim AS python39
 ARG WHEEL_VERSION
 
 COPY dist/*-${WHEEL_VERSION}-*.whl /

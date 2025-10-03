@@ -1,4 +1,4 @@
-//go:build unita
+//go:build unit
 
 package provider
 
@@ -12,10 +12,8 @@ import (
 	. "github.com/onsi/gomega"
 	latest "github.com/sky-uk/kfp-operator/apis/pipelines/hub"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"google.golang.org/protobuf/types/known/structpb"
-	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("RunService", func() {
