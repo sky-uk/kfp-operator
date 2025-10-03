@@ -8,6 +8,7 @@ import (
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"time"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 )
@@ -64,6 +65,10 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 	if run.FinishedAt != nil {
 		runFinishedTime := run.FinishedAt.AsTime()
 		resourceReferences.FinishedAt = &runFinishedTime
+	} else {
+		// the FinishededAt field is unreliable, so if it's nil we set it to the current time
+		currentTime := time.Now().UTC()
+		resourceReferences.FinishedAt = &currentTime
 	}
 	return resourceReferences, nil
 }
