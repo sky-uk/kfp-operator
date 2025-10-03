@@ -27,8 +27,7 @@ def compile(pipeline_config: str, output_file: str):
         dag_runner = kubeflow_dag_runner.KubeflowV2DagRunner(
             config=kubeflow_dag_runner.KubeflowV2DagRunnerConfig(
                 display_name=pipeline_config_contents['name'],
-                default_image=pipeline_config_contents['image'],
-                use_pipeline_spec_2_1=True
+                default_image=pipeline_config_contents['image']
             ),
             output_filename=output_file
         )
