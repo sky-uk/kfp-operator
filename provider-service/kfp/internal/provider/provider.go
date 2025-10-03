@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
@@ -196,10 +195,10 @@ func (p *KfpProvider) CreateRun(
 }
 
 func (*KfpProvider) DeleteRun(
-	ctx context.Context,
-	id string,
+	_ context.Context,
+	_ string,
 ) error {
-	return errors.New("not implemented")
+	return nil
 }
 
 func (p *KfpProvider) CreateRunSchedule(
