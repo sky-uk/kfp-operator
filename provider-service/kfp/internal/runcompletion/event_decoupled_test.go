@@ -52,9 +52,10 @@ var (
 )
 
 const (
-	defaultNamespace = "default"
-	providerName     = "kfp"
-	webhookUrl       = "/operator-webhook"
+	defaultNamespace             = "default"
+	providerName                 = "kfp"
+	webhookUrl                   = "/operator-webhook"
+	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
 )
 
 var _ = BeforeSuite(func() {

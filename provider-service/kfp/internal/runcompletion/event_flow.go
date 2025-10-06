@@ -25,10 +25,9 @@ type EventFlow struct {
 }
 
 const (
-	pipelineRunIdLabel           = "pipeline/runid"
-	workflowPhaseLabel           = "workflows.argoproj.io/phase"
-	workflowUpdateTriggeredLabel = "pipelines.kubeflow.org/events-published"
-	pipelineSpecAnnotationName   = "pipelines.kubeflow.org/pipeline_spec"
+	pipelineRunIdLabel         = "pipeline/runid"
+	workflowPhaseLabel         = "workflows.argoproj.io/phase"
+	pipelineSpecAnnotationName = "pipelines.kubeflow.org/pipeline_spec"
 )
 
 type PipelineSpec struct {

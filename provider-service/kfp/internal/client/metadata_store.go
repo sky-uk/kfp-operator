@@ -86,20 +86,22 @@ func (gms *GrpcMetadataStore) GetServingModelArtifact(ctx context.Context, workf
 }
 
 func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId string) ([]common.PipelineComponent, error) {
-	// 1. Resolve run context
+	// Resolve run context
 	typeName := PipelineRunTypeName
 	ctxResp, err := gms.MetadataStoreServiceClient.GetContextByTypeAndName(ctx,
 		&ml_metadata.GetContextByTypeAndNameRequest{TypeName: &typeName, ContextName: &runId})
 	if err != nil {
 		return nil, err
 	}
-	if ctxResp.GetContext() == nil {
+
+	contextForRun := ctxResp.GetContext()
+	if contextForRun == nil {
 		return nil, fmt.Errorf("context not found for runId: %s", runId)
 	}
 
 	// Fetch executions for the context
 	execResp, err := gms.MetadataStoreServiceClient.GetExecutionsByContext(ctx,
-		&ml_metadata.GetExecutionsByContextRequest{ContextId: ctxResp.GetContext().Id})
+		&ml_metadata.GetExecutionsByContextRequest{ContextId: contextForRun.Id})
 	if err != nil {
 		return nil, err
 	}

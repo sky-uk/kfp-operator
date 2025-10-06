@@ -19,18 +19,15 @@ import (
 
 var _ = Context("KFP API", func() {
 	var (
-		mockRunServiceClient          mocks.MockRunServiceClient
-		mockRecurringRunServiceClient mocks.MockRecurringRunServiceClient
-		kfpApi                        GrpcKfpApi
-		runId                         string
+		mockRunServiceClient mocks.MockRunServiceClient
+		kfpApi               GrpcKfpApi
+		runId                string
 	)
 
 	BeforeEach(func() {
 		mockRunServiceClient = mocks.MockRunServiceClient{}
-		mockRecurringRunServiceClient = mocks.MockRecurringRunServiceClient{}
 		kfpApi = GrpcKfpApi{
-			RunServiceClient:          &mockRunServiceClient,
-			RecurringRunServiceClient: &mockRecurringRunServiceClient,
+			RunServiceClient: &mockRunServiceClient,
 		}
 		runId = common.RandomString()
 	})

@@ -19,7 +19,6 @@ type KfpApi interface {
 
 type GrpcKfpApi struct {
 	RunServiceClient
-	RecurringRunServiceClient
 }
 
 func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) (resource.References, error) {
@@ -90,7 +89,6 @@ func ConnectToKfpApi(address string) (*GrpcKfpApi, error) {
 	}
 
 	return &GrpcKfpApi{
-		RunServiceClient:          go_client.NewRunServiceClient(conn),
-		RecurringRunServiceClient: go_client.NewRecurringRunServiceClient(conn),
+		RunServiceClient: go_client.NewRunServiceClient(conn),
 	}, nil
 }
