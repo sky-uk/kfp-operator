@@ -62,6 +62,7 @@ var _ = BeforeSuite(func() {
 	ctx := context.Background()
 
 	testEnv := &envtest.Environment{
+		DownloadBinaryAssets: true,
 		CRDDirectoryPaths: []string{
 			filepath.Join("..", "..", "..", "..", "", "config", "crd", "external"),
 		},

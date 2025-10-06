@@ -10,7 +10,10 @@ IMG := kfp-operator-kfp-provider-service
 unit-test: ## Unit-test the provider-service
 	go test ./... -tags=unit
 
-test: unit-test ## Run all tests for the provider-service
+decoupled-test: ## Run decoupled tests for the provider-service
+	go test ./... -tags=decoupled
+
+test: unit-test decoupled-test ## Run all tests for the provider-service
 
 ##@ Build
 generate: protoc-gen-go ## Generate service definitions from protobuf

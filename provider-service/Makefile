@@ -14,6 +14,7 @@ unit-test: ## Unit-test all providers
 
 decoupled-test: ## Run all decoupled tests
 	$(MAKE) -C base decoupled-test
+	$(MAKE) -C kfp decoupled-test
 
 integration-test: ## Run all integration tests
 	$(MAKE) -C base integration-test
