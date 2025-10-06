@@ -141,6 +141,9 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 
 	// Build PipelineComponents from executions and their artifacts
 	pcs := lo.FilterMap(executions, func(exec *ml_metadata.Execution, _ int) (common.PipelineComponent, bool) {
+		if exec.CustomProperties == nil || exec.CustomProperties[DisplayName] == nil {
+			return common.PipelineComponent{}, false
+		}
 		pc := common.PipelineComponent{
 			Name:               exec.CustomProperties[DisplayName].GetStringValue(),
 			ComponentArtifacts: []common.ComponentArtifact{},
@@ -149,8 +152,14 @@ func (gms *GrpcMetadataStore) GetArtifactsForRun(ctx context.Context, runId stri
 		// Convert artifact IDs per execution into artifacts
 		pc.ComponentArtifacts = lo.FilterMap(taskArtifactIDs[exec.GetId()],
 			func(ev *ml_metadata.Event, _ int) (common.ComponentArtifact, bool) {
-				art := artifactByID[ev.GetArtifactId()]
+				if ev.ArtifactId == nil {
+					return common.ComponentArtifact{}, false
+				}
+				art := artifactByID[*ev.ArtifactId]
 				if art == nil {
+					return common.ComponentArtifact{}, false
+				}
+				if art.CustomProperties == nil || art.CustomProperties[DisplayName] == nil {
 					return common.ComponentArtifact{}, false
 				}
 				return common.ComponentArtifact{
