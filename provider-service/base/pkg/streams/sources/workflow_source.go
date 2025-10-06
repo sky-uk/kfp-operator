@@ -143,8 +143,8 @@ func jsonPatchPath(segments ...string) string {
 	var builder strings.Builder
 
 	for _, segment := range segments {
-		tildeReplaced := strings.Replace(segment, "~", "~0", -1)
-		slashReplaced := strings.Replace(tildeReplaced, "/", "~1", -1)
+		tildeReplaced := strings.ReplaceAll(segment, "~", "~0")
+		slashReplaced := strings.ReplaceAll(tildeReplaced, "/", "~1")
 		builder.WriteString("/")
 		builder.WriteString(slashReplaced)
 	}
