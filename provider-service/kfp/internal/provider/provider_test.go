@@ -5,6 +5,9 @@ package provider
 import (
 	"context"
 	"errors"
+	"fmt"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
+	"github.com/stretchr/testify/mock"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -22,6 +25,7 @@ var _ = Describe("Provider", func() {
 		runService            mocks.MockRunService
 		experimentService     mocks.MockExperimentService
 		recurringRunService   mocks.MockRecurringRunService
+		labelService          mocks.MockLabelService
 		ctx                   = context.Background()
 	)
 
@@ -31,6 +35,7 @@ var _ = Describe("Provider", func() {
 		runService = mocks.MockRunService{}
 		experimentService = mocks.MockExperimentService{}
 		recurringRunService = mocks.MockRecurringRunService{}
+		labelService = mocks.MockLabelService{}
 
 		provider = &KfpProvider{
 			config:                &config.Config{},
@@ -39,6 +44,7 @@ var _ = Describe("Provider", func() {
 			runService:            &runService,
 			experimentService:     &experimentService,
 			recurringRunService:   &recurringRunService,
+			labelService:          &labelService,
 		}
 	})
 
@@ -139,9 +145,10 @@ var _ = Describe("Provider", func() {
 
 		Context("CreatePipeline", func() {
 			It("should return id if pipeline is created", func() {
-				pipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return(id, nil)
+				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
-				pipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(nil)
+				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -159,31 +166,34 @@ var _ = Describe("Provider", func() {
 
 			It("should return err if UploadPipeline fails", func() {
 				expectedErr := errors.New("failed")
-				pipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return("", expectedErr)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return("", expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
-				Expect(err).To(Equal(expectedErr))
+				Expect(err).To(Equal(fmt.Errorf("failed to upload pipeline %s", expectedErr)))
 				Expect(result).To(BeEmpty())
 			})
 
 			It("should return err if DeletePipelineVersions fails", func() {
 				expectedErr := errors.New("failed")
-				pipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return(id, nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
-				Expect(err).To(Equal(expectedErr))
+				Expect(err).To(Equal(fmt.Errorf("failed to delete pipeline versions %s", expectedErr)))
 				Expect(result).To(BeEmpty())
 			})
 
 			It("should return err if UploadPipelineVersion fails", func() {
 				expectedErr := errors.New("failed")
-				pipelineUploadService.On("UploadPipeline", []byte{}, nsnStr).Return(id, nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+				pipelineUploadService.On("UploadPipeline", mock.Anything, nsnStr).Return(id, nil)
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
-				pipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(expectedErr)
+				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
 				result, err := provider.CreatePipeline(ctx, pdw)
 
-				Expect(err).To(Equal(expectedErr))
+				Expect(err).To(Equal(fmt.Errorf("failed to upload pipeline version %s", expectedErr)))
 				Expect(result).To(BeEmpty())
 			})
 		})
@@ -191,7 +201,8 @@ var _ = Describe("Provider", func() {
 		Context("UpdatePipeline", func() {
 			It("should return id if pipeline versions are cleaned up and version is updated", func() {
 				pipelineService.On("DeletePipelineVersions", id).Return(nil)
-				pipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(nil)
+				pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(nil)
+				labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
 				result, err := provider.UpdatePipeline(ctx, pdw, id)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -204,7 +215,7 @@ var _ = Describe("Provider", func() {
 					pipelineService.On("DeletePipelineVersions", id).Return(expectedErr)
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
-					Expect(err).To(Equal(expectedErr))
+					Expect(err).To(Equal(fmt.Errorf("failed to delete pipeline versions %s", expectedErr)))
 					Expect(result).To(BeEmpty())
 				})
 			})
@@ -213,10 +224,12 @@ var _ = Describe("Provider", func() {
 				It("should return empty id and err", func() {
 					expectedErr := errors.New("failed")
 					pipelineService.On("DeletePipelineVersions", id).Return(nil)
-					pipelineUploadService.On("UploadPipelineVersion", id, []byte{}, version).Return(expectedErr)
+					pipelineUploadService.On("UploadPipelineVersion", id, mock.Anything, version).Return(expectedErr)
+					labelService.On("InsertLabelsIntoParameters", mock.Anything, label.LabelKeys).Return(pdw.CompiledPipeline, nil)
+
 					result, err := provider.UpdatePipeline(ctx, pdw, id)
 
-					Expect(err).To(Equal(expectedErr))
+					Expect(err).To(Equal(fmt.Errorf("failed to upload pipeline version %s", expectedErr)))
 					Expect(result).To(BeEmpty())
 				})
 			})

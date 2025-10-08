@@ -2,14 +2,16 @@ package provider
 
 import (
 	"context"
-	"errors"
-
+	"fmt"
+	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type KfpProvider struct {
@@ -19,9 +21,10 @@ type KfpProvider struct {
 	runService            RunService
 	recurringRunService   RecurringRunService
 	experimentService     ExperimentService
+	labelService          LabelService
 }
 
-func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
+func NewKfpProvider(config *config.Config, namespace string) (*KfpProvider, error) {
 	pipelineUploadService, err := NewPipelineUploadService(
 		config.Parameters.RestKfpApiUrl,
 	)
@@ -42,17 +45,32 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 		return nil, err
 	}
 
-	runService, err := NewRunService(conn)
+	labelGenerator := label.DefaultLabelGen{
+		ProviderName: common.NamespacedName{
+			Name:      config.Name,
+			Namespace: namespace,
+		},
+	}
+
+	runService, err := NewRunService(conn, labelGenerator)
 	if err != nil {
 		return nil, err
 	}
 
-	recurringRunService, err := NewRecurringRunService(conn)
+	recurringRunService, err := NewRecurringRunService(conn, labelGenerator)
 	if err != nil {
 		return nil, err
 	}
 
 	experimentService, err := NewExperimentService(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	labelService, err := NewDefaultLabelService()
+	if err != nil {
+		return nil, err
+	}
 
 	return &KfpProvider{
 		config:                config,
@@ -61,6 +79,7 @@ func NewKfpProvider(config *config.Config) (*KfpProvider, error) {
 		runService:            runService,
 		recurringRunService:   recurringRunService,
 		experimentService:     experimentService,
+		labelService:          labelService,
 	}, nil
 }
 
@@ -72,8 +91,15 @@ func (p *KfpProvider) CreatePipeline(
 ) (string, error) {
 	pipelineName, err := util.ResourceNameFromNamespacedName(pdw.PipelineDefinition.Name)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to fetch resource name %v", err)
 	}
+
+	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
+	if err != nil {
+		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
+	}
+
+	log.FromContext(ctx).Info("Creating pipeline", "name", pipelineName, "spec", string(pdw.CompiledPipeline))
 
 	pipelineId, err := p.pipelineUploadService.UploadPipeline(
 		ctx,
@@ -81,7 +107,7 @@ func (p *KfpProvider) CreatePipeline(
 		pipelineName,
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to upload pipeline %v", err)
 	}
 	return p.UpdatePipeline(ctx, pdw, pipelineId)
 }
@@ -92,8 +118,16 @@ func (p *KfpProvider) UpdatePipeline(
 	id string,
 ) (string, error) {
 	if err := p.pipelineService.DeletePipelineVersions(ctx, id); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to delete pipeline versions %v", err)
 	}
+
+	var err error
+	pdw.CompiledPipeline, err = p.labelService.InsertLabelsIntoParameters(pdw.CompiledPipeline, label.LabelKeys)
+	if err != nil {
+		return "", fmt.Errorf("failed to insert labels into parameters %v", err)
+	}
+
+	log.FromContext(ctx).Info("Updating pipeline", "name", pdw.PipelineDefinition.Name, "spec", string(pdw.CompiledPipeline))
 
 	if err := p.pipelineUploadService.UploadPipelineVersion(
 		ctx,
@@ -101,7 +135,7 @@ func (p *KfpProvider) UpdatePipeline(
 		pdw.CompiledPipeline,
 		pdw.PipelineDefinition.Version,
 	); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to upload pipeline version %v", err)
 	}
 
 	return id, nil
@@ -161,10 +195,10 @@ func (p *KfpProvider) CreateRun(
 }
 
 func (*KfpProvider) DeleteRun(
-	ctx context.Context,
-	id string,
+	_ context.Context,
+	_ string,
 ) error {
-	return errors.New("not implemented")
+	return nil
 }
 
 func (p *KfpProvider) CreateRunSchedule(

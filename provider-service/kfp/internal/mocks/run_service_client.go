@@ -3,11 +3,11 @@
 package mocks
 
 import (
-	context "context"
+	"context"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	"github.com/stretchr/testify/mock"
-	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc"
 )
 
 type MockRunServiceClient struct {

@@ -3,14 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/samber/lo"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
-	"gopkg.in/yaml.v2"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -26,11 +26,13 @@ type RunService interface {
 }
 
 type DefaultRunService struct {
-	client client.RunServiceClient
+	client         client.RunServiceClient
+	labelGenerator label.LabelGen
 }
 
 func NewRunService(
 	conn *grpc.ClientConn,
+	labelGenerator label.LabelGen,
 ) (RunService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
@@ -39,7 +41,8 @@ func NewRunService(
 	}
 
 	return &DefaultRunService{
-		client: go_client.NewRunServiceClient(conn),
+		client:         go_client.NewRunServiceClient(conn),
+		labelGenerator: labelGenerator,
 	}, nil
 }
 
@@ -51,19 +54,14 @@ func (rs DefaultRunService) CreateRun(
 	pipelineVersionId string,
 	experimentId string,
 ) (string, error) {
-	runParameters := make(map[string]*structpb.Value)
-	for k, v := range rd.Parameters {
-		runParameters[k] = structpb.NewStringValue(v)
-	}
-
-	runAsDescription, err := yaml.Marshal(resource.References{
-		RunName:              rd.Name,
-		RunConfigurationName: rd.RunConfigurationName,
-		PipelineName:         rd.PipelineName,
-		Artifacts:            rd.Artifacts,
-	})
+	generatedLabels, err := rs.labelGenerator.GenerateLabels(rd)
 	if err != nil {
 		return "", err
+	}
+
+	runParameters := make(map[string]*structpb.Value)
+	for k, v := range lo.Assign(rd.Parameters, generatedLabels) {
+		runParameters[k] = structpb.NewStringValue(v)
 	}
 
 	name, err := util.ResourceNameFromNamespacedName(rd.Name)
@@ -75,7 +73,6 @@ func (rs DefaultRunService) CreateRun(
 		Run: &go_client.Run{
 			ExperimentId: experimentId,
 			DisplayName:  name,
-			Description:  string(runAsDescription),
 			PipelineSource: &go_client.Run_PipelineVersionReference{
 				PipelineVersionReference: &go_client.PipelineVersionReference{
 					PipelineId:        pipelineId,

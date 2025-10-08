@@ -53,7 +53,7 @@ func (s *Server) ProcessEventFeed(
 		}
 	}
 
-	logger.Info("Run Completion Event Processed")
+	logger.Info("Run Completion Event Processed", "event", runCompletion)
 
 	return &emptypb.Empty{}, nil
 }

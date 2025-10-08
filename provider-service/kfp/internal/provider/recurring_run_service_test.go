@@ -12,18 +12,17 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/testutil"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/mocks"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
-	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("DefaultRecurringRunService", func() {
 	var (
 		mockClient          mocks.MockRecurringRunServiceClient
+		mockLabelGen        mocks.MockLabelGen
 		recurringRunService DefaultRecurringRunService
 		rsd                 base.RunScheduleDefinition
 		ctx                 = context.Background()
@@ -38,8 +37,10 @@ var _ = Describe("DefaultRecurringRunService", func() {
 
 	BeforeEach(func() {
 		mockClient = mocks.MockRecurringRunServiceClient{}
+		mockLabelGen = mocks.MockLabelGen{}
 		recurringRunService = DefaultRecurringRunService{
 			&mockClient,
+			&mockLabelGen,
 		}
 		rsd = testutil.RandomRunScheduleDefinition()
 	})
@@ -55,13 +56,6 @@ var _ = Describe("DefaultRecurringRunService", func() {
 				rsd.Name.Namespace,
 				rsd.Name.Name,
 			)
-			expectedDescription, err := yaml.Marshal(resource.References{
-				PipelineName:         rsd.PipelineName,
-				RunConfigurationName: rsd.RunConfigurationName,
-				Artifacts:            rsd.Artifacts,
-			})
-
-			Expect(err).ToNot(HaveOccurred())
 
 			expectedRuntimeParams := map[string]*structpb.Value{
 				"key-1": structpb.NewStringValue("value-1"),
@@ -78,7 +72,6 @@ var _ = Describe("DefaultRecurringRunService", func() {
 					RecurringRun: &go_client.RecurringRun{
 						RecurringRunId: "",
 						DisplayName:    expectedName,
-						Description:    string(expectedDescription),
 						PipelineSource: &go_client.RecurringRun_PipelineVersionReference{
 							PipelineVersionReference: &go_client.PipelineVersionReference{
 								PipelineId:        pipelineId,
@@ -98,6 +91,8 @@ var _ = Describe("DefaultRecurringRunService", func() {
 					},
 				},
 			).Return(&go_client.RecurringRun{RecurringRunId: expectedId}, nil)
+			mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 			res, err := recurringRunService.CreateRecurringRun(
 				ctx,
 				rsd,
@@ -113,6 +108,8 @@ var _ = Describe("DefaultRecurringRunService", func() {
 		When("run schedule definition doesn't have a name", func() {
 			It("should return error", func() {
 				rsd.Name.Name = ""
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 				res, err := recurringRunService.CreateRecurringRun(
 					ctx,
 					rsd,
@@ -129,6 +126,8 @@ var _ = Describe("DefaultRecurringRunService", func() {
 		When("the cron expression is invalid", func() {
 			It("should return error", func() {
 				rsd.Schedule.CronExpression = "invalid-cron"
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 				res, err := recurringRunService.CreateRecurringRun(
 					ctx,
 					rsd,
@@ -148,6 +147,8 @@ var _ = Describe("DefaultRecurringRunService", func() {
 					"CreateRecurringRun",
 					mock.Anything,
 				).Return(nil, errors.New("failed"))
+				mockLabelGen.On("GenerateLabels", mock.Anything).Return(map[string]string{}, nil)
+
 				res, err := recurringRunService.CreateRecurringRun(
 					ctx,
 					rsd,

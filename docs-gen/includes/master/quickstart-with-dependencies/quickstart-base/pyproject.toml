@@ -8,5 +8,5 @@ authors = []
 python = "3.10.12"
 tfx = "1.15.1"
 shapely = "<2"
-kfp = "1.8.22"
+kfp = "2.0.0"
 setuptools = "~=70.0"

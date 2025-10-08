@@ -3,11 +3,11 @@
 package mocks
 
 import (
-	context "context"
+	"context"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 	"github.com/stretchr/testify/mock"
-	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -16,9 +16,9 @@ type MockRecurringRunServiceClient struct {
 }
 
 func (m *MockRecurringRunServiceClient) CreateRecurringRun(
-	ctx context.Context,
+	_ context.Context,
 	in *go_client.CreateRecurringRunRequest,
-	opts ...grpc.CallOption,
+	_ ...grpc.CallOption,
 ) (*go_client.RecurringRun, error) {
 	args := m.Called(in)
 	var recurringRun *go_client.RecurringRun
@@ -29,9 +29,9 @@ func (m *MockRecurringRunServiceClient) CreateRecurringRun(
 }
 
 func (m *MockRecurringRunServiceClient) GetRecurringRun(
-	ctx context.Context,
+	_ context.Context,
 	in *go_client.GetRecurringRunRequest,
-	opts ...grpc.CallOption,
+	_ ...grpc.CallOption,
 ) (*go_client.RecurringRun, error) {
 	args := m.Called(in)
 	var recurringRun *go_client.RecurringRun
@@ -42,9 +42,9 @@ func (m *MockRecurringRunServiceClient) GetRecurringRun(
 }
 
 func (m *MockRecurringRunServiceClient) DeleteRecurringRun(
-	ctx context.Context,
+	_ context.Context,
 	in *go_client.DeleteRecurringRunRequest,
-	opts ...grpc.CallOption,
+	_ ...grpc.CallOption,
 ) (*emptypb.Empty, error) {
 	args := m.Called(in)
 	return &emptypb.Empty{}, args.Error(0)

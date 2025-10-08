@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
+	"github.com/samber/lo"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
+	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/util"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client"
-	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"gopkg.in/yaml.v2"
 )
 
 type RecurringRunService interface {
@@ -29,10 +29,11 @@ type RecurringRunService interface {
 }
 
 type DefaultRecurringRunService struct {
-	client client.RecurringRunServiceClient
+	client         client.RecurringRunServiceClient
+	labelGenerator label.LabelGen
 }
 
-func NewRecurringRunService(conn *grpc.ClientConn) (RecurringRunService, error) {
+func NewRecurringRunService(conn *grpc.ClientConn, labelGenerator label.LabelGen) (RecurringRunService, error) {
 	if conn == nil {
 		return nil, fmt.Errorf(
 			"no gRPC connection was provided to start recurring run service",
@@ -40,7 +41,8 @@ func NewRecurringRunService(conn *grpc.ClientConn) (RecurringRunService, error) 
 	}
 
 	return &DefaultRecurringRunService{
-		client: go_client.NewRecurringRunServiceClient(conn),
+		client:         go_client.NewRecurringRunServiceClient(conn),
+		labelGenerator: labelGenerator,
 	}, nil
 }
 
@@ -52,23 +54,19 @@ func (rrs *DefaultRecurringRunService) CreateRecurringRun(
 	pipelineVersionId string,
 	experimentId string,
 ) (string, error) {
-	// needed to write metadata of the recurring run as no other field is possible
-	runScheduleAsDescription, err := yaml.Marshal(resource.References{
-		PipelineName:         rsd.PipelineName,
-		RunConfigurationName: rsd.RunConfigurationName,
-		Artifacts:            rsd.Artifacts,
-	})
-	if err != nil {
-		return "", err
-	}
 
 	recurringRunName, err := util.ResourceNameFromNamespacedName(rsd.Name)
 	if err != nil {
 		return "", err
 	}
 
+	generatedLabels, err := rrs.labelGenerator.GenerateLabels(rsd)
+	if err != nil {
+		return "", err
+	}
+
 	runtimeParams := make(map[string]*structpb.Value)
-	for k, v := range rsd.Parameters {
+	for k, v := range lo.Assign(rsd.Parameters, generatedLabels) {
 		runtimeParams[k] = structpb.NewStringValue(v)
 	}
 
@@ -80,7 +78,6 @@ func (rrs *DefaultRecurringRunService) CreateRecurringRun(
 	recurringRun, err := rrs.client.CreateRecurringRun(ctx, &go_client.CreateRecurringRunRequest{
 		RecurringRun: &go_client.RecurringRun{
 			DisplayName: recurringRunName,
-			Description: string(runScheduleAsDescription),
 			PipelineSource: &go_client.RecurringRun_PipelineVersionReference{
 				PipelineVersionReference: &go_client.PipelineVersionReference{
 					PipelineId:        pipelineId,
