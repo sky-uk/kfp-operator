@@ -1222,7 +1222,7 @@ facilitating operations such as pipeline submission, status monitoring, schedule
 &lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/kfp.svg" alt="KFP Provider">&lt;/p>
 &lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
 &lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
-credentials for the Kubeflow. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
+credentials for the Kubeflow Pipelines Provider. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
 &lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with
 Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
 submission, status monitoring, schedules and experiment management.&lt;/p>

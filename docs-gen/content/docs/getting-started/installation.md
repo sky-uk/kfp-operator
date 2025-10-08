@@ -154,8 +154,8 @@ subjects:
   namespace: kfp-namespace
 ```
 
-## KubeFlow completion eventing required RBACs
-If using the `KubeFlowProvider` you will also need a `ClusterRole` for permission to interact with argo workflows for the
+## Kubeflow completion eventing required RBACs
+If using the `Kubeflow Pipelines` Provider you will also need a `ClusterRole` for permission to interact with argo workflows for the
 [eventing system]({{< ref "../reference/run-completion" >}} "Run Completion Events").
 
 

@@ -42,7 +42,7 @@ as updates are not propagated or checked and will result in runtime errors on th
 | `type`    | The type of patch to be applied to the pipeline resource definition JSON. Can be either `json` ([RFC6902](https://datatracker.ietf.org/doc/html/rfc6902)) or `merge` ([RFC7396](https://datatracker.ietf.org/doc/html/rfc7396)). | `json`                                                                                                              |
 | `payload` | The patch to be applied to the pipeline resource definition JSON.                                                                                                                                                                | `[{ "op": "add", "path": "/framework/parameters/beamArgs/0", "value": { "name": "newArg", "value": "newValue" } }]` |
 
-### Kubeflow:
+### Kubeflow Pipelines:
 
 ```yaml
 apiVersion: pipelines.kubeflow.org/v1beta1
@@ -81,7 +81,7 @@ spec:
   - my-namespace
 ```
 
-#### Kubeflow Specific Parameters
+#### Kubeflow Pipelines Specific Parameters
 | Name                                  | Description                                                               |
 | ------------------------------------- | ------------------------------------------------------------------------- |
 | `parameters.grpcKfpApiAddress`        | The exposed grpc endpoint used to interact with Kubeflow pipelines        |

@@ -13,7 +13,7 @@ facilitating operations such as pipeline submission, status monitoring, schedule
 ## Deployment and Usage
 
 Set up the service with the necessary configurations, including API endpoints and authentication
-credentials for the Kubeflow. [See the getting started guide.](../../../getting-started/installation/#providers)
+credentials for the Kubeflow Pipelines Provider. [See the getting started guide.](../../../getting-started/installation/#providers)
 
 Kubeflow Pipelines must be [installed](https://www.kubeflow.org/docs/components/pipelines/operator-guides/installation/).
 Its configuration can be controlled using the [KFP specific parameters within a Provider Resource](../../resources/provider/#kubeflow).
