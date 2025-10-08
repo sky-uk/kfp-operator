@@ -1,9 +1,11 @@
 package apis
 
 import (
-	"github.com/samber/lo"
-	"golang.org/x/exp/maps"
+	"maps"
+	"slices"
 	"strings"
+
+	"github.com/samber/lo"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -46,7 +48,7 @@ func (conditions Conditions) SetReasonForSyncState(state SynchronizationState) C
 	condition := conditionsAsMap[ConditionTypes.SynchronizationSucceeded]
 	condition.Reason = string(state)
 	conditionsAsMap[ConditionTypes.SynchronizationSucceeded] = condition
-	return maps.Values(conditionsAsMap)
+	return slices.Collect(maps.Values(conditionsAsMap))
 }
 
 // SetObservedGeneration updates all conditions that match a given type
@@ -75,7 +77,7 @@ func (conditions Conditions) MergeIntoConditions(condition metav1.Condition) Con
 		conditionsAsMap[condition.Type] = condition
 	}
 
-	return maps.Values(conditionsAsMap)
+	return slices.Collect(maps.Values(conditionsAsMap))
 }
 
 type SynchronizationState string
