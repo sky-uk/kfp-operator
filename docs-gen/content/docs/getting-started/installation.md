@@ -75,7 +75,7 @@ Examples for these values can be found in the [test configuration]({{< ghblob "/
 ## Providers
 
 Please refer to your chosen provider instructions before proceeding. Supported providers are:
-- [Kubeflow Pipelines](../../reference/providers/kfp/#deployment-and-usage)
+- [Kubeflow Pipelines V2](../../reference/providers/kfp/#deployment-and-usage)
 - [Vertex AI](../../reference/providers/vai/#deployment-and-usage)
 
 To install your chosen provider, create a [Provider resource](../../reference/resources/provider) in a namespace that the operator can access (see the [rbac setup below]({{< ref "#provider-rbac" >}}) for reference). Once it is applied the Provider controller will reconcile and create the Provider Deployment and Provider Service within the same namespace that the Provider resource was applied.

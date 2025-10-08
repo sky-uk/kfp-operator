@@ -11,7 +11,7 @@
 &lt;li>&lt;strong>Resource Management&lt;/strong>: Manages provider-specific resources, such as runs in Vertex AI.&lt;/li>
 &lt;/ul>
 &lt;p>The KFP Operator will deploy the Provider service as Kubernetes deployment with an accompanying Kubernetes Service based
-off the &lt;a href="#configuration">configuration provided.&lt;/a>&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
+off the &lt;a href="#configuration">configuration provided.&lt;/a>&lt;/p></description></item><item><title>Kubeflow Pipelines V2</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
 &lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with the
 Kubeflow Pipelines V2 backend. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines V2,
 facilitating operations such as pipeline submission, status monitoring, schedules and experiment management.&lt;/p>

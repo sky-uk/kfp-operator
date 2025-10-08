@@ -1,5 +1,5 @@
 ---
-title: "Kubeflow Pipelines"
+title: "Kubeflow Pipelines V2"
 ---
 
 ## Overview

@@ -1215,14 +1215,7 @@ accounts.&lt;/p>
 error.
 Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to
 Pipeline)
-as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
-&lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with the
-Kubeflow Pipelines V2 backend. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines V2,
-facilitating operations such as pipeline submission, status monitoring, schedules and experiment management.&lt;/p>
-&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/kfp.svg" alt="KFP Provider">&lt;/p>
-&lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
-&lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
-credentials for the Kubeflow Pipelines Provider. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
+as updates are not propagated or checked and will result in runtime errors on the provider.&lt;/p></description></item><item><title>Kubeflow Pipelines</title><link>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
 &lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with
 Kubeflow Pipelines. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines, facilitating operations such as pipeline
 submission, status monitoring, schedules and experiment management.&lt;/p>
@@ -1231,7 +1224,14 @@ submission, status monitoring, schedules and experiment management.&lt;/p>
 &lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
 credentials for the Kubeflow. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p>
 &lt;p>KFP must be installed in &lt;a href="https://www.kubeflow.org/docs/components/pipelines/legacy-v1/installation/standalone-deployment/">standalone mode&lt;/a>.
-Its configuration can be controlled using the &lt;a href="../../resources/provider/#kubeflow">KFP specific parameters within a Provider Resource&lt;/a>.&lt;/p></description></item><item><title>Vertex AI</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/vai/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/vai/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
+Its configuration can be controlled using the &lt;a href="../../resources/provider/#kubeflow">KFP specific parameters within a Provider Resource&lt;/a>.&lt;/p></description></item><item><title>Kubeflow Pipelines V2</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/kfp/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
+&lt;p>The &lt;strong>Kubeflow Pipelines Provider Service&lt;/strong> is included within this project to interface directly with the
+Kubeflow Pipelines V2 backend. This service acts as a bridge between the KFP Operator and Kubeflow Pipelines V2,
+facilitating operations such as pipeline submission, status monitoring, schedules and experiment management.&lt;/p>
+&lt;p>&lt;img src="https://sky-uk.github.io/kfp-operator/master/images/kfp.svg" alt="KFP Provider">&lt;/p>
+&lt;h2 id="deployment-and-usage">Deployment and Usage&lt;/h2>
+&lt;p>Set up the service with the necessary configurations, including API endpoints and authentication
+credentials for the Kubeflow Pipelines Provider. &lt;a href="../../../getting-started/installation/#providers">See the getting started guide.&lt;/a>&lt;/p></description></item><item><title>Vertex AI</title><link>https://sky-uk.github.io/kfp-operator/docs/reference/providers/vai/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sky-uk.github.io/kfp-operator/docs/reference/providers/vai/</guid><description>&lt;h2 id="overview">Overview&lt;/h2>
 &lt;p>The &lt;strong>Vertex AI (VAI) Provider Service&lt;/strong> is included within this project to interface directly with
 Google Cloud&amp;rsquo;s Vertex AI platform. This service acts as a bridge between the KFP Operator and Vertex AI, enabling
 seamless management and execution of machine learning workflows.&lt;/p>
