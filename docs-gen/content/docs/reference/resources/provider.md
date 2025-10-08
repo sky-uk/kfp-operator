@@ -5,7 +5,7 @@ weight: 6
 
 The Provider resource represents the provider specific configuration required to submit / update / delete ml resources
 with the given provider.
-e.g Vertex AI Platform.
+e.g Kubeflow Pipelines or Vertex AI Platform.
 Providers configuration can be set using this resource and permissions for access can be configured via service
 accounts.
 
@@ -23,7 +23,7 @@ as updates are not propagated or checked and will result in runtime errors on th
 | `spec.executionMode`       | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode) **Note:** This field has been deprecated after v0.7.0 v1beta1 api specification changes, and will be removed in future versions.                                         | `v1` (currently KFP) or `v2` (Vertex AI)  |
 | `spec.serviceAccount`      | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                                                                                                | `kfp-operator-vertex-ai`                  |
 | `spec.pipelineRootStorage` | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline                                                                            | `gcs://kubeflow-pipelines-bucket`         |
-| `spec.parameters`          | Parameters specific to each provider, i.e. [VAI](#vertex-ai-specific-parameters)                                                                                                                                                                                                                              | `gcs://kubeflow-pipelines-bucket`         |
+| `spec.parameters`          | Parameters specific to each provider, i.e. [KFP](#kubeflow-specific-parameters) and [VAI](#vertex-ai-specific-parameters)                                                                                                                                                                                     | `gcs://kubeflow-pipelines-bucket`         |
 | `spec.frameworks[]`        | A list of [frameworks](#framework) supported by the provider.                                                                                                                                                                                                                                                 |                                           |
 | `spec.allowedNamespaces[]` | A list of namespaces that resources can reference this provider from. If a resource tries to reference this provider from a namespace not in the `allowedNamespaces` list, the resource will fail. If no allowedNamespaces list is configured, then resources can reference this provider from any namespace. | ```- default ```                          |
 
@@ -41,6 +41,53 @@ as updates are not propagated or checked and will result in runtime errors on th
 |:----------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------|
 | `type`    | The type of patch to be applied to the pipeline resource definition JSON. Can be either `json` ([RFC6902](https://datatracker.ietf.org/doc/html/rfc6902)) or `merge` ([RFC7396](https://datatracker.ietf.org/doc/html/rfc7396)). | `json`                                                                                                              |
 | `payload` | The patch to be applied to the pipeline resource definition JSON.                                                                                                                                                                | `[{ "op": "add", "path": "/framework/parameters/beamArgs/0", "value": { "name": "newArg", "value": "newValue" } }]` |
+
+### Kubeflow Pipelines:
+
+```yaml
+apiVersion: pipelines.kubeflow.org/v1beta1
+kind: Provider
+metadata:
+  name: kfp
+  namespace: kfp-operator
+spec:
+  serviceImage: kfp-operator-kfp-provider-service:<version>
+  executionMode: v1
+  pipelineRootStorage: gs://<storage_location>
+  serviceAccount: kfp-operator-kfp
+  parameters:
+    grpcKfpApiAddress: ml-pipeline.kubeflow:8887
+    grpcMetadataStoreAddress: metadata-grpc-service.kubeflow:8080
+    kfpNamespace: kubeflow
+    restKfpApiUrl: http://ml-pipeline.kubeflow:8888
+  frameworks:
+  - name: tfx
+    image: ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag
+    patches:
+    - type: json
+      patch: |
+        [
+          {
+            "op": "add",
+            "path": "/framework/parameters/beamArgs/0",
+            "value": {
+              "name": "project",
+              "value": "<project>"
+            }
+          }
+        ]
+  allowedNamespaces:
+  - default
+  - my-namespace
+```
+
+#### Kubeflow Pipelines Specific Parameters
+| Name                                  | Description                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------- |
+| `parameters.grpcKfpApiAddress`        | The exposed grpc endpoint used to interact with Kubeflow pipelines        |
+| `parameters.grpcMetadataStoreAddress` | The exposed grpc endpoint used for metadata store with Kubeflow pipelines |
+| `parameters.kfpNamespace`             | The namespace where Kubeflow is deployed                                  |
+| `parameters.restKfpApiUrl`            | The exposed restful endpoint used to interact with Kubeflow pipelines     |
 
 ### Vertex AI
 
