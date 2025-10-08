@@ -200,14 +200,14 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		return nil, err
 	}
 
-	if runCompletionStatus == common.RunCompletionStatuses.Failed {
-		if status := job.GetError(); status != nil {
-			code := status.GetCode()
-			msg := status.GetMessage()
-			details := status.GetDetails()
+	log.LoggerFromContext(ctx).Info("inside toRunCompletionEventData")
 
-			log.LoggerFromContext(ctx).Info("RunCompletion failed", "code", code, "msg", msg, "details", details)
-		}
+	if status := job.GetError(); status != nil {
+		code := status.GetCode()
+		msg := status.GetMessage()
+		details := status.GetDetails()
+
+		log.LoggerFromContext(ctx).Info("RunCompletion failed", "code", code, "msg", msg, "details", details)
 	}
 
 	var pipelineName common.NamespacedName
