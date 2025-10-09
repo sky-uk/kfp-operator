@@ -210,6 +210,10 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		log.LoggerFromContext(ctx).Info("RunCompletion failed", "code", code, "msg", msg, "details", details)
 	}
 
+	if jobDetail := job.GetJobDetail(); jobDetail != nil {
+		log.LoggerFromContext(ctx).Info("Trying to get job details", "jobDetail", jobDetail)
+	}
+
 	var pipelineName common.NamespacedName
 
 	pipelineName.Name = job.Labels[label.PipelineName]
