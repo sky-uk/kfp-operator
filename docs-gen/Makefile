@@ -7,9 +7,6 @@ quickstart: ## Build quickstart docker image
 	$(MAKE) -C includes/master/quickstart docker-build
 
 docker-push-quickstart: ## Push quickstart docker images
-	$(MAKE) -C includes/master/quickstart docker-push
-	$(MAKE) -C includes/master/quickstart-with-dependencies/quickstart-base docker-push
-	$(MAKE) -C includes/master/quickstart-with-dependencies/quickstart-dependant docker-push
 	$(MAKE) -C includes/master/kfpsdk-quickstart docker-push
 
 clean: ## Clean the site
