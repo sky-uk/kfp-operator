@@ -14,7 +14,7 @@ build: ## Build
 include ../../docker-targets.mk
 IMG := kfp-operator-kfpsdk-compiler
 WHEEL_VERSION=$(shell poetry version | cut -d ' ' -f 2)
-DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-context base-common=".."
+DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --build-context base-common=".." --platform linux/amd64
 
 ##@ Development
 
