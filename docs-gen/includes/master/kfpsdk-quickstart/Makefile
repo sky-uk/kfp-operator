@@ -12,4 +12,4 @@ include ../../../../docker-targets.mk
 
 IMG ?= kfp-operator-kfpsdk-quickstart
 WHEEL_VERSION=$(shell poetry version | cut -d ' ' -f 2)
-DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION}
+DOCKER_BUILD_EXTRA_PARAMS=--build-arg WHEEL_VERSION=${WHEEL_VERSION} --platform=linux/amd64
