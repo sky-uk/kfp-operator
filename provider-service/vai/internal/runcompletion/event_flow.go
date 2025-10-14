@@ -107,15 +107,31 @@ func (vef *EventFlow) Start(ctx context.Context) {
 	}()
 }
 
-func (vef *EventFlow) runCompletionEventDataForRun(ctx context.Context, runId string) (*common.RunCompletionEventData, error) {
-	job, err := vef.PipelineJobClient.GetPipelineJob(ctx, &aiplatformpb.GetPipelineJobRequest{
-		Name: vef.ProviderConfig.PipelineJobName(runId),
-	})
+func (vef *EventFlow) runCompletionEventDataForRun(
+	ctx context.Context,
+	runId string,
+) (*common.RunCompletionEventData, error) {
+	logger := log.LoggerFromContext(ctx)
+
+	job, err := vef.PipelineJobClient.GetPipelineJob(
+		ctx,
+		&aiplatformpb.GetPipelineJobRequest{
+			Name: vef.ProviderConfig.PipelineJobName(runId),
+		},
+	)
 	if err != nil {
-		log.LoggerFromContext(ctx).Error(err, "failed to fetch pipeline job")
+		logger.Error(err, "failed to fetch pipeline job")
 		return nil, err
 	}
-	return vef.toRunCompletionEventData(ctx, job, runId)
+
+	runCompletionStatus, completed := runCompletionStatus(job)
+	if !completed {
+		err := errors.New(PipelineJobNotFinishedErr)
+		logger.Error(err, "run-id", runId)
+		return nil, err
+	}
+
+	return vef.toRunCompletionEventData(ctx, runCompletionStatus, job, runId), nil
 }
 
 func runCompletionStatus(job *aiplatformpb.PipelineJob) (common.RunCompletionStatus, bool) {
@@ -191,30 +207,12 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifac
 	return servingModelArtifacts
 }
 
-func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatformpb.PipelineJob, runId string) (*common.RunCompletionEventData, error) {
-	runCompletionStatus, completed := runCompletionStatus(job)
-
-	logger := log.LoggerFromContext(ctx).WithValues("run-id", runId)
-
-	if !completed {
-		err := errors.New(PipelineJobNotFinishedErr)
-		logger.Error(err, "pipeline job not complete")
-		return nil, err
-	}
-
-	if errStatus := job.GetError(); errStatus != nil {
-		logger.Error(
-			nil,
-			"pipeline job failed or cancelled",
-			"code",
-			errStatus.GetCode(),
-			"message",
-			errStatus.GetMessage(),
-			"details",
-			errStatus.GetDetails(),
-		)
-	}
-
+func (vef *EventFlow) toRunCompletionEventData(
+	ctx context.Context,
+	runCompletionStatus common.RunCompletionStatus,
+	job *aiplatformpb.PipelineJob,
+	runId string,
+) *common.RunCompletionEventData {
 	var pipelineName common.NamespacedName
 
 	pipelineName.Name = job.Labels[label.PipelineName]
@@ -255,5 +253,5 @@ func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatf
 		Provider:              vef.ProviderConfig.Name,
 		RunStartTime:          runStartTime,
 		RunEndTime:            runEndTime,
-	}, nil
+	}
 }
