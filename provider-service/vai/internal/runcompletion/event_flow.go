@@ -194,10 +194,25 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifac
 func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatformpb.PipelineJob, runId string) (*common.RunCompletionEventData, error) {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
+	logger := log.LoggerFromContext(ctx).WithValues("run-id", runId)
+
 	if !completed {
 		err := errors.New(PipelineJobNotFinishedErr)
-		log.LoggerFromContext(ctx).Error(err, "run-id", runId)
+		logger.Error(err, "pipeline job not complete")
 		return nil, err
+	}
+
+	if errStatus := job.GetError(); errStatus != nil {
+		logger.Error(
+			nil,
+			"pipeline job failed or cancelled",
+			"code",
+			errStatus.GetCode(),
+			"message",
+			errStatus.GetMessage(),
+			"details",
+			errStatus.GetDetails(),
+		)
 	}
 
 	var pipelineName common.NamespacedName
