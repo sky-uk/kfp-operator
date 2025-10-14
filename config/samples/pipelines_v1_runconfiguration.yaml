@@ -1,7 +1,0 @@
-apiVersion: pipelines.kubeflow.org/v1alpha4
-kind: RunConfiguration
-metadata:
-  name: runconfiguration-sample
-spec:
-  pipelineName: pipeline-sample
-  schedule: * * * * * *
