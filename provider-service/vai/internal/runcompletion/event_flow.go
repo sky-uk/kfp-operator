@@ -111,7 +111,7 @@ func (vef *EventFlow) runCompletionEventDataForRun(
 	ctx context.Context,
 	runId string,
 ) (*common.RunCompletionEventData, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := log.LoggerFromContext(ctx).WithValues("runId", runId)
 
 	job, err := vef.PipelineJobClient.GetPipelineJob(
 		ctx,
@@ -127,8 +127,21 @@ func (vef *EventFlow) runCompletionEventDataForRun(
 	runCompletionStatus, completed := runCompletionStatus(job)
 	if !completed {
 		err := errors.New(PipelineJobNotFinishedErr)
-		logger.Error(err, "run-id", runId)
+		logger.Error(err, "pipeline job not completed yet")
 		return nil, err
+	}
+
+	if errStatus := job.GetError(); errStatus != nil {
+		logger.Error(
+			nil,
+			"pipeline job failed or cancelled",
+			"code",
+			errStatus.GetCode(),
+			"message",
+			errStatus.GetMessage(),
+			"details",
+			errStatus.GetDetails(),
+		)
 	}
 
 	return vef.toRunCompletionEventData(ctx, runCompletionStatus, job, runId), nil
