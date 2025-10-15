@@ -1,0 +1,11 @@
+# Default values for kfp-operator-crds.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+namespace:
+  name: "kfp-operator"
+
+manager:
+  multiversion:
+    enabled: false
+    storedVersion: v1beta1
