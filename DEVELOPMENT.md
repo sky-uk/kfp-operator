@@ -17,7 +17,7 @@ Install Go by following the instructions on the [website](https://golang.org/doc
 We use [asdf](http://asdf-vm.com) to set up the development environment. Install it it following the [Getting Started Guide](http://asdf-vm.com/guide/getting-started.html).
 Install all tool versions as follows:
 
-```bash
+```sh
 asdf install
 ```
 
@@ -26,7 +26,7 @@ Many commands in this guide will run *against your current kubernetes context*; 
 ## Run unit tests
 
 ```sh
-make test
+make unit-test
 ```
 
 Note: on first execution, the test environment will get downloaded and the command will therefore take longer to complete.
@@ -57,24 +57,27 @@ CONTAINER_REPOSITORIES=europe-docker.pkg.dev/<PROJECT_NAME>/images make docker-p
 
 Build the Helm chart as follows:
 
-```shell
+```sh
 make helm-package
 ```
 
 Push the Helm chart using one of the following options:
 
 1. OCI Image
-```shell
+
+```sh
 HELM_REPOSITORIES=oci://<YOUR_CHART_REPOSITORY> make helm-publish
 ```
 
-For example, to push to Google Artifact Registry::
+For example, to push to Google Artifact Registry:
 
+```sh
 HELM_REPOSITORIES=oci://europe-docker.pkg.dev/<PROJECT_NAME>/charts make helm-publish
+```
 
 2. `.tar.gz` archive
 
-```shell
+```sh
 HELM_REPOSITORIES=https://<YOUR_CHART_REPOSITORY> NETRC_FILE=<YOUR_NETRC_FILE> make helm-publish
 ```
 
