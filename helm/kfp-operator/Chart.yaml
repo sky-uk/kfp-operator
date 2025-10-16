@@ -9,3 +9,8 @@ version: 0.0.0
 
 # Set at packaging time
 appVersion: "latest"
+
+dependencies:
+- name: kfp-operator-crds
+  version: 0.0.0
+  condition: crds.enabled
