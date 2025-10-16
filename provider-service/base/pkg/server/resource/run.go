@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
@@ -17,7 +17,7 @@ func (*Run) Type() string {
 }
 
 func (r *Run) Create(ctx context.Context, body []byte) (base.Output, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	rd := base.RunDefinition{}
 
 	if err := json.Unmarshal(body, &rd); err != nil {
@@ -42,7 +42,7 @@ func (r *Run) Update(_ context.Context, _ string, _ []byte) (base.Output, error)
 }
 
 func (r *Run) Delete(ctx context.Context, id string) error {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	if err := r.Provider.DeleteRun(ctx, id); err != nil {
 		logger.Error(err, "DeleteRun failed", "id", id)
 		return err

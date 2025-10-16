@@ -12,7 +12,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -30,7 +29,7 @@ func livenessHandler(w http.ResponseWriter, _ *http.Request) {
 }
 
 func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestCtx := logr.NewContext(r.Context(), logger)
@@ -65,7 +64,7 @@ func createHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 }
 
 func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestCtx := logr.NewContext(r.Context(), logger)
@@ -106,7 +105,7 @@ func updateHandler(ctx context.Context, hr resource.HttpHandledResource) http.Ha
 }
 
 func deleteHandler(ctx context.Context, hr resource.HttpHandledResource) http.HandlerFunc {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		requestCtx := logr.NewContext(r.Context(), logger)

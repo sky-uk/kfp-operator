@@ -3,7 +3,6 @@ package sources
 import (
 	"context"
 	"fmt"
-	"github.com/sky-uk/kfp-operator/internal/log"
 	"strconv"
 	"strings"
 
@@ -45,7 +44,7 @@ func (ws *WorkflowSource) Out() <-chan StreamMessage[*unstructured.Unstructured]
 }
 
 func NewWorkflowSource(ctx context.Context, namespace string, k8sClient K8sClient) (*WorkflowSource, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	workflowSource := &WorkflowSource{
 		K8sClient: k8sClient,

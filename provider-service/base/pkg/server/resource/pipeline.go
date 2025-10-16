@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
@@ -17,7 +17,7 @@ func (*Pipeline) Type() string {
 }
 
 func (p *Pipeline) Create(ctx context.Context, body []byte) (base.Output, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
 		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while creating Pipeline")
@@ -37,7 +37,7 @@ func (p *Pipeline) Create(ctx context.Context, body []byte) (base.Output, error)
 }
 
 func (p *Pipeline) Update(ctx context.Context, id string, body []byte) (base.Output, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	pdw := PipelineDefinitionWrapper{}
 	if err := json.Unmarshal(body, &pdw); err != nil {
 		logger.Error(err, "Failed to unmarshal PipelineDefinitionWrapper while updating Pipeline")
@@ -57,7 +57,7 @@ func (p *Pipeline) Update(ctx context.Context, id string, body []byte) (base.Out
 }
 
 func (p *Pipeline) Delete(ctx context.Context, id string) error {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	if err := p.Provider.DeletePipeline(ctx, id); err != nil {
 		logger.Error(err, "DeletePipeline failed", "id", id)
 		return err

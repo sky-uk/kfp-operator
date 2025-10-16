@@ -2,7 +2,8 @@ package sinks
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/internal/log"
+
+	"github.com/go-logr/logr"
 )
 
 type ErrorSink struct {
@@ -22,7 +23,7 @@ func (es ErrorSink) In() chan<- error {
 }
 
 func (es ErrorSink) Log(ctx context.Context) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	for err := range es.in {
 		logger.Error(err, "failed to handle event")
 	}

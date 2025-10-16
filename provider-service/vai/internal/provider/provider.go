@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -123,7 +124,7 @@ func (vaip *VAIProvider) DeletePipeline(ctx context.Context, id string) error {
 }
 
 func (vaip *VAIProvider) CreateRun(ctx context.Context, rd base.RunDefinition) (string, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(
 		rd.PipelineName,
@@ -178,7 +179,7 @@ func (vaip *VAIProvider) CreateRunSchedule(
 	ctx context.Context,
 	rsd base.RunScheduleDefinition,
 ) (string, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(
 		rsd.PipelineName,
@@ -238,7 +239,7 @@ func (vaip *VAIProvider) UpdateRunSchedule(
 	rsd base.RunScheduleDefinition,
 	_ string,
 ) (string, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	pipelinePath, err := util.PipelineStorageObject(
 		rsd.PipelineName,

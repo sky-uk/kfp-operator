@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	argo "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg/streams"
@@ -70,7 +69,7 @@ func (ef *EventFlow) Error(inlet Inlet[error]) {
 }
 
 func NewEventFlow(ctx context.Context, config config.Config, kfpApi client.KfpApi, metadataStore client.MetadataStore) (*EventFlow, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	flow := &EventFlow{
 		ProviderConfig: config,

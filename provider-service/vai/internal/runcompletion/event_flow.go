@@ -7,7 +7,7 @@ import (
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
 	"cloud.google.com/go/aiplatform/apiv1/aiplatformpb"
-	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
@@ -83,7 +83,7 @@ func NewEventFlow(config *config.VAIProviderConfig, pipelineJobClient *aiplatfor
 
 func (vef *EventFlow) Start(ctx context.Context) {
 	go func() {
-		logger := log.LoggerFromContext(ctx)
+		logger := logr.FromContextOrDiscard(ctx)
 		for msg := range vef.in {
 			logger.Info("in VAI flow - received message", "message", msg.Message)
 			runCompletionEventData, err := vef.runCompletionEventDataForRun(ctx, msg.Message)
@@ -112,7 +112,7 @@ func (vef *EventFlow) runCompletionEventDataForRun(ctx context.Context, runId st
 		Name: vef.ProviderConfig.PipelineJobName(runId),
 	})
 	if err != nil {
-		log.LoggerFromContext(ctx).Error(err, "failed to fetch pipeline job")
+		logr.FromContextOrDiscard(ctx).Error(err, "failed to fetch pipeline job")
 		return nil, err
 	}
 	return vef.toRunCompletionEventData(ctx, job, runId)
@@ -194,7 +194,7 @@ func modelServingArtifactsForJob(job *aiplatformpb.PipelineJob) []common.Artifac
 func (vef *EventFlow) toRunCompletionEventData(ctx context.Context, job *aiplatformpb.PipelineJob, runId string) (*common.RunCompletionEventData, error) {
 	runCompletionStatus, completed := runCompletionStatus(job)
 
-	logger := log.LoggerFromContext(ctx).WithValues("run-id", runId)
+	logger := logr.FromContextOrDiscard(ctx).WithValues("run-id", runId)
 
 	if !completed {
 		err := errors.New(PipelineJobNotFinishedErr)
