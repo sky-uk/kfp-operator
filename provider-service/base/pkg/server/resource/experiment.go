@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/pkg/providers/base"
 )
 
@@ -17,7 +17,7 @@ func (*Experiment) Type() string {
 }
 
 func (e *Experiment) Create(ctx context.Context, body []byte) (base.Output, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	ed := base.ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while creating Experiment")
@@ -37,7 +37,7 @@ func (e *Experiment) Create(ctx context.Context, body []byte) (base.Output, erro
 }
 
 func (e *Experiment) Update(ctx context.Context, id string, body []byte) (base.Output, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	ed := base.ExperimentDefinition{}
 	if err := json.Unmarshal(body, &ed); err != nil {
 		logger.Error(err, "Failed to unmarshal ExperimentDefinition while updating Experiment")
@@ -57,7 +57,7 @@ func (e *Experiment) Update(ctx context.Context, id string, body []byte) (base.O
 }
 
 func (e *Experiment) Delete(ctx context.Context, id string) error {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	if err := e.Provider.DeleteExperiment(ctx, id); err != nil {
 		logger.Error(err, "DeleteExperiment failed", "id", id)
 		return err

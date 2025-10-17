@@ -7,7 +7,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/go-logr/logr"
-	"github.com/sky-uk/kfp-operator/internal/log"
 	. "github.com/sky-uk/kfp-operator/provider-service/base/pkg"
 )
 
@@ -33,7 +32,7 @@ func (ps *PubSubSource) ErrorOut() <-chan error {
 }
 
 func NewPubSubSource(ctx context.Context, project string, subscription string) (*PubSubSource, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	pubSubClient, err := pubsub.NewClient(ctx, project)
 	if err != nil {

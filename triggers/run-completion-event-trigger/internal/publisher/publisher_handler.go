@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/go-logr/logr"
 	"github.com/nats-io/nats.go"
-	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/pkg/common"
 )
 
@@ -44,7 +44,7 @@ type DataWrapper struct {
 }
 
 func NewNatsPublisher(ctx context.Context, nc *nats.Conn, subject string) *NatsPublisher {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 
 	logger.Info("New nats publisher:", "Subject", subject, "Server", nc.ConnectedUrl())
 	return &NatsPublisher{

@@ -3,8 +3,9 @@ package client
 import (
 	"context"
 	"fmt"
+
+	"github.com/go-logr/logr"
 	"github.com/samber/lo"
-	"github.com/sky-uk/kfp-operator/internal/log"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/ml_metadata"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
@@ -197,7 +198,7 @@ func propertiesToPrimitiveMap(in map[string]*ml_metadata.Value) map[string]inter
 }
 
 func CreateMetadataStore(ctx context.Context, config config.Config) (MetadataStore, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	metadataStore, err := ConnectToMetadataStore(config.Parameters.GrpcMetadataStoreAddress)
 	if err != nil {
 		logger.Error(err, "failed to connect to metadata store", "address", config.Parameters.GrpcMetadataStoreAddress)

@@ -2,13 +2,14 @@ package client
 
 import (
 	"context"
-	"github.com/sky-uk/kfp-operator/internal/log"
+	"time"
+
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/label"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/client/resource"
 	"github.com/sky-uk/kfp-operator/provider-service/kfp/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"time"
 
 	"github.com/kubeflow/pipelines/backend/api/v2beta1/go_client"
 )
@@ -73,7 +74,7 @@ func (gka *GrpcKfpApi) GetResourceReferences(ctx context.Context, runId string) 
 }
 
 func CreateKfpApi(ctx context.Context, config config.Config) (KfpApi, error) {
-	logger := log.LoggerFromContext(ctx)
+	logger := logr.FromContextOrDiscard(ctx)
 	kfpApi, err := ConnectToKfpApi(config.Parameters.GrpcKfpApiAddress)
 	if err != nil {
 		logger.Error(err, "failed to connect to Kubeflow API", "address", config.Parameters.GrpcKfpApiAddress)

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sky-uk/kfp-operator/internal/log"
+	"github.com/go-logr/logr"
 	"github.com/sky-uk/kfp-operator/internal/metrics"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/config"
 	"github.com/sky-uk/kfp-operator/provider-service/base/pkg/server/resource"
@@ -15,7 +15,7 @@ import (
 )
 
 func Start(ctx context.Context, cfg config.Config, provider resource.Provider) error {
-	log := log.LoggerFromContext(ctx)
+	log := logr.FromContextOrDiscard(ctx)
 
 	meterProvider, err := metrics.InitMeterProvider(fmt.Sprintf("provider-service-%s", cfg.ProviderName))
 	if err != nil {
