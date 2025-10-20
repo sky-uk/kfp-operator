@@ -14,6 +14,23 @@ namespace:
   name: "kfp-operator-system"
   metadata: {}
 
+global:
+  namespace:
+    name: "kfp-operator-system"
+  manager:
+    monitoring:
+      create: false
+      rbacSecured: false
+    multiversion:
+      enabled: false
+      storedVersion: v1beta1
+    rbac:
+      create: true
+    serviceAccount:
+      name: "kfp-operator-controller-manager"
+    webhookCertificates:
+      provider: cert-manager
+
 manager:
   metadata: {}
   rbac:
@@ -42,16 +59,9 @@ manager:
       default: 300
       compile: 1800
   monitoring:
-    create: false
-    rbacSecured: false
     serviceMonitor:
       create: false
       endpointConfiguration: {}
-  multiversion:
-    enabled: false
-    storedVersion: v1beta1
-  webhookCertificates:
-    provider: cert-manager
   webhookServicePort: 9443
   runcompletionWebhook:
     servicePort: 8082

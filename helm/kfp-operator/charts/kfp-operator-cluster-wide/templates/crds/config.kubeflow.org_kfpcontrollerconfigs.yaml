@@ -13,7 +13,7 @@ spec:
     singular: kfpcontrollerconfig
   scope: Namespaced
   versions:
-  {{- if .Values.manager.multiversion.enabled }}
+  {{- if .Values.global.manager.multiversion.enabled }}
   - name: v1alpha5
     schema:
       openAPIV3Schema:
@@ -88,7 +88,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: {{ eq .Values.manager.multiversion.storedVersion "v1alpha5" }}
+    storage: {{ eq .Values.global.manager.multiversion.storedVersion "v1alpha5" }}
     subresources:
       status: {}
   - name: v1alpha6
@@ -8659,7 +8659,7 @@ spec:
             type: object
         type: object
     served: true
-    storage: {{ eq .Values.manager.multiversion.storedVersion "v1alpha6" }}
+    storage: {{ eq .Values.global.manager.multiversion.storedVersion "v1alpha6" }}
     subresources:
       status: {}
   {{- end }}
@@ -17229,6 +17229,6 @@ spec:
             type: object
         type: object
     served: true
-    storage: {{ or (not .Values.manager.multiversion.enabled) (eq .Values.manager.multiversion.storedVersion "v1beta1") }}
+    storage: {{ or (not .Values.global.manager.multiversion.enabled) (eq .Values.global.manager.multiversion.storedVersion "v1beta1") }}
     subresources:
       status: {}

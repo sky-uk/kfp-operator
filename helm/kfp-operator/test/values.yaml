@@ -1,20 +1,23 @@
 fullnameOverride: kfp-operator
 containerRegistry: ""
+global:
+  manager:
+    monitoring:
+      create: true
+      rbacSecured: true
+    multiversion:
+      enabled: true
+    webhookCertificates:
+      provider: cert-manager
 manager:
   argo:
     containerDefaults: {}
   monitoring:
-    create: true
-    rbacSecured: true
     serviceMonitor:
       create: true
       endpointConfiguration:
         bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
         tlsConfig:
           insecureSkipVerify: true
-  multiversion:
-    enabled: true
-  webhookCertificates:
-    provider: cert-manager
 statusFeedback:
   enabled: false

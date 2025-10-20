@@ -12,7 +12,7 @@ data:
         healthProbeBindAddress: :8081
       metrics:
         bindAddress: :8080
-      {{- if .Values.manager.multiversion.enabled }}
+      {{- if .Values.global.manager.multiversion.enabled }}
       webhook:
         port: {{ .Values.manager.webhookServicePort }}
       {{- end }}

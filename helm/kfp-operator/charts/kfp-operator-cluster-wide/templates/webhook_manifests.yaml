@@ -3,8 +3,8 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   annotations:
-    {{- if eq .Values.manager.webhookCertificates.provider "cert-manager" }}
-    cert-manager.io/inject-ca-from: {{ .Values.namespace.name }}/{{ include "kfp-operator.fullname" . }}-serving-cert
+    {{- if eq .Values.global.manager.webhookCertificates.provider "cert-manager" }}
+    cert-manager.io/inject-ca-from: {{ .Values.global.namespace.name }}/{{ include "kfp-operator.fullname" . }}-serving-cert
     {{- end }}
   name: {{ include "kfp-operator.fullname" . }}-validating-webhook-configuration
 webhooks:
@@ -13,10 +13,10 @@ webhooks:
     clientConfig:
       service:
         name: {{ include "kfp-operator.fullname" . }}-webhook-service
-        namespace: {{ .Values.namespace.name }}
+        namespace: {{ .Values.global.namespace.name }}
         path: /validate-pipelines-kubeflow-org-v1beta1-pipeline
-      {{- if eq .Values.manager.webhookCertificates.provider "custom" }}
-      caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
+      {{- if eq .Values.global.manager.webhookCertificates.provider "custom" }}
+      caBundle: {{ .Values.global.manager.webhookCertificates.caBundle }}
       {{- end }}
     failurePolicy: Fail
     name: vpipeline.kb.io
@@ -36,10 +36,10 @@ webhooks:
     clientConfig:
       service:
         name: {{ include "kfp-operator.fullname" . }}-webhook-service
-        namespace: {{ .Values.namespace.name }}
+        namespace: {{ .Values.global.namespace.name }}
         path: /validate-pipelines-kubeflow-org-v1beta1-run
-      {{- if eq .Values.manager.webhookCertificates.provider "custom" }}
-      caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
+      {{- if eq .Values.global.manager.webhookCertificates.provider "custom" }}
+      caBundle: {{ .Values.global.manager.webhookCertificates.caBundle }}
       {{- end }}
     failurePolicy: Fail
     name: vrun.kb.io
@@ -59,10 +59,10 @@ webhooks:
     clientConfig:
       service:
         name: {{ include "kfp-operator.fullname" . }}-webhook-service
-        namespace: {{ .Values.namespace.name }}
+        namespace: {{ .Values.global.namespace.name }}
         path: /validate-pipelines-kubeflow-org-v1beta1-runconfiguration
-      {{- if eq .Values.manager.webhookCertificates.provider "custom" }}
-      caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
+      {{- if eq .Values.global.manager.webhookCertificates.provider "custom" }}
+      caBundle: {{ .Values.global.manager.webhookCertificates.caBundle }}
       {{- end }}
     failurePolicy: Fail
     name: vrunconfiguration.kb.io

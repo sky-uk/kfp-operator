@@ -14,23 +14,23 @@ spec:
     - mlprv
     singular: provider
   scope: Namespaced
-  {{- if .Values.manager.multiversion.enabled }}
+  {{- if .Values.global.manager.multiversion.enabled }}
   conversion:
     strategy: Webhook
     webhook:
       clientConfig:
         service:
           name: {{ include "kfp-operator.fullname" . }}-webhook-service
-          namespace: {{ .Values.namespace.name }}
+          namespace: {{ .Values.global.namespace.name }}
           path: /convert
-        {{- if and .Values.manager.multiversion.enabled (eq .Values.manager.webhookCertificates.provider "custom") }}
-        caBundle: {{ .Values.manager.webhookCertificates.caBundle }}
+        {{- if and .Values.global.manager.multiversion.enabled (eq .Values.global.manager.webhookCertificates.provider "custom") }}
+        caBundle: {{ .Values.global.manager.webhookCertificates.caBundle }}
         {{- end }}
       conversionReviewVersions:
       - v1
   {{- end }}
   versions:
-  {{- if .Values.manager.multiversion.enabled }}
+  {{- if .Values.global.manager.multiversion.enabled }}
   - additionalPrinterColumns:
     - jsonPath: .status.conditions[?(@.type == 'Synchronized')].reason
       name: SynchronizationState
@@ -162,7 +162,7 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: {{ eq .Values.manager.multiversion.storedVersion "v1alpha5" }}
+    storage: {{ eq .Values.global.manager.multiversion.storedVersion "v1alpha5" }}
     subresources:
       status: {}
   - additionalPrinterColumns:
@@ -304,7 +304,7 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: {{ eq .Values.manager.multiversion.storedVersion "v1alpha6" }}
+    storage: {{ eq .Values.global.manager.multiversion.storedVersion "v1alpha6" }}
     subresources:
       status: {}
   {{- end }}
@@ -455,6 +455,6 @@ spec:
         type: object
         x-kubernetes-preserve-unknown-fields: true
     served: true
-    storage: {{ or (not .Values.manager.multiversion.enabled) (eq .Values.manager.multiversion.storedVersion "v1beta1") }}
+    storage: {{ or (not .Values.global.manager.multiversion.enabled) (eq .Values.global.manager.multiversion.storedVersion "v1beta1") }}
     subresources:
       status: {}

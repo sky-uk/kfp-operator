@@ -58,7 +58,7 @@ workflowNamespace: {{ .Values.namespace.name }}
 {{- end }}
 {{- define "configurationOverrides" -}}
 workflowTemplatePrefix: {{ include "kfp-operator.fullname" . }}-
-{{- if .Values.manager.multiversion.enabled }}
+{{- if .Values.global.manager.multiversion.enabled }}
 multiversion: true
 {{- end -}}
 {{- end }}

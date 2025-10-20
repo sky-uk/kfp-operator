@@ -1,4 +1,4 @@
-{{- if and .Values.manager.rbac.create .Values.manager.monitoring.create .Values.manager.monitoring.rbacSecured -}}
+{{- if and .Values.global.manager.rbac.create .Values.global.manager.monitoring.create .Values.global.manager.monitoring.rbacSecured -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -9,6 +9,6 @@ roleRef:
   name: {{ include "kfp-operator.fullname" . }}-proxy-role
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.manager.serviceAccount.name }}
-  namespace: {{ .Values.namespace.name }}
+  name: {{ .Values.global.manager.serviceAccount.name }}
+  namespace: {{ .Values.global.namespace.name }}
 {{- end -}}

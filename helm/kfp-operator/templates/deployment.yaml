@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "kfp-operator.fullname" . }}-controller-manager
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ .Values.global.namespace.name }}
   labels:
     {{- include "kfp-operator.labels" . | nindent 4 }}
 spec:
@@ -44,7 +44,7 @@ spec:
           resources:
             {{- .Values.manager.resources | toYaml | nindent 12 }}
           volumeMounts:
-          {{- if .Values.manager.multiversion.enabled }}
+          {{- if .Values.global.manager.multiversion.enabled }}
             - name: cert
               mountPath: /tmp/k8s-webhook-server/serving-certs
               readOnly: true
@@ -53,7 +53,7 @@ spec:
               name: manager-config
               subPath: controller_manager_config.yaml
           ports:
-        {{- if .Values.manager.multiversion.enabled }}
+        {{- if .Values.global.manager.multiversion.enabled }}
           - name: webhook-server
             containerPort: {{ .Values.manager.webhookServicePort }}
             protocol: TCP
@@ -79,11 +79,11 @@ spec:
         {{ end }}
         {{- end }}
       volumes:
-        {{- if .Values.manager.multiversion.enabled }}
+        {{- if .Values.global.manager.multiversion.enabled }}
         - name: cert
           secret:
             defaultMode: 420
-            secretName: {{ if eq .Values.manager.webhookCertificates.provider "cert-manager" }}webhook-server-cert{{ else }}{{ .Values.manager.webhookCertificates.secretName }}{{ end }}
+            secretName: {{ if eq .Values.global.manager.webhookCertificates.provider "cert-manager" }}webhook-server-cert{{ else }}{{ .Values.manager.webhookCertificates.secretName }}{{ end }}
         {{- end }}
         - configMap:
             name: {{ include "kfp-operator.fullname" . }}-manager-config
