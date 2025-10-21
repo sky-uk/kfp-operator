@@ -6,6 +6,11 @@ namespace:
   name: "kfp-operator-system"
 
 manager:
+  monitoring:
+    create: false
+    rbacSecured: false
   multiversion:
     enabled: false
     storedVersion: v1beta1
+  rbac:
+    create: true
