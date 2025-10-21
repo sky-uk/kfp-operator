@@ -31,7 +31,7 @@ spec:
           path: "/tmp/url-encoded.txt"
     metadata: {}
     container:
-      image: stedolan/jq:latest
+      image: apteno/alpine-jq:latest
       command: [sh, -c]
       args:
       - |
