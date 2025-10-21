@@ -1,3 +1,5 @@
+fullnameOverride: kfp-operator
+
 manager:
   multiversion:
     enabled: true
