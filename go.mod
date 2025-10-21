@@ -20,7 +20,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/googleapis/gax-go/v2 v2.15.0
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
-	github.com/hashicorp/go-bexpr v0.1.14
+	github.com/hashicorp/go-bexpr v0.1.15
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/kubeflow/pipelines v0.0.0-20250902140602-fc3214d4b4d3
 	github.com/nats-io/nats.go v1.45.0
