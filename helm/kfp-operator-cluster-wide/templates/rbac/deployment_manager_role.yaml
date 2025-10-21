@@ -6,15 +6,15 @@ metadata:
   name: {{ include "kfp-operator.fullname" . }}-deployment-manager-role
 rules:
 - apiGroups:
-    - apps
+  - apps
   resources:
-    - deployments
+  - deployments
   verbs:
-    - create
-    - delete
-    - get
-    - list
-    - patch
-    - update
-    - watch
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 {{- end -}}
