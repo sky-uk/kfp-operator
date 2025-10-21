@@ -1,6 +1,9 @@
 fullnameOverride: kfp-operator
 
 manager:
+  monitoring:
+    create: true
+    rbacSecured: true
   multiversion:
     enabled: true
   webhookCertificates:
