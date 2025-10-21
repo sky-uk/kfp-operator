@@ -33,7 +33,7 @@ spec:
     metadata:
       {{- .Values.manager.argo.metadata | toYaml | nindent 6 }}
     container:
-      image: stedolan/jq:latest
+      image: apteno/alpine-jq:latest
       command: [sh, -c]
       args:
       - |
