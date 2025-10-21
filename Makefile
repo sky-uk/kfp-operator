@@ -185,10 +185,13 @@ helm-test-operator: manifests helm-cmd kustomize yq dyff ## Test operator helm c
 	$(eval TMP := $(shell mktemp -d))
 
 	# Create yaml files with helm and kustomize.
-	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm
+	$(HELM) template helm/kfp-operator -f helm/kfp-operator/test/values.yaml > $(TMP)/helm_namespaced.yaml
+	$(HELM) template helm/kfp-operator-cluster-wide -f helm/kfp-operator-cluster-wide/test/values.yaml > $(TMP)/helm_cluster_wide.yaml
+	cat $(TMP)/helm_namespaced.yaml $(TMP)/helm_cluster_wide.yaml > $(TMP)/helm_combined.yaml
+
 	$(KUSTOMIZE) build config/default > $(TMP)/kustomize
 	# Because both tools create multi-document files, we have to convert them into '{name}-{kind}'-indexed objects to help the diff tools
-	$(INDEXED_YAML) $(TMP)/helm > $(TMP)/helm_indexed
+	$(INDEXED_YAML) $(TMP)/helm_combined.yaml > $(TMP)/helm_indexed
 	$(INDEXED_YAML) $(TMP)/kustomize > $(TMP)/kustomize_indexed
 	$(DYFF) between --set-exit-code $(TMP)/helm_indexed $(TMP)/kustomize_indexed
 	rm -rf $(TMP)
