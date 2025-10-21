@@ -14,3 +14,5 @@ manager:
     storedVersion: v1beta1
   rbac:
     create: true
+  serviceAccount:
+    name: "kfp-operator-controller-manager"
