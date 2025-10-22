@@ -19,8 +19,9 @@ const _sendEventsMetricAttribute_name = "SuccessRecoverableFailureUnrecoverableF
 var _sendEventsMetricAttribute_index = [...]uint8{0, 7, 25, 45, 54}
 
 func (i sendEventsMetricAttribute) String() string {
-	if i < 0 || i >= sendEventsMetricAttribute(len(_sendEventsMetricAttribute_index)-1) {
+	idx := int(i) - 0
+	if i < 0 || idx >= len(_sendEventsMetricAttribute_index)-1 {
 		return "sendEventsMetricAttribute(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _sendEventsMetricAttribute_name[_sendEventsMetricAttribute_index[i]:_sendEventsMetricAttribute_index[i+1]]
+	return _sendEventsMetricAttribute_name[_sendEventsMetricAttribute_index[idx]:_sendEventsMetricAttribute_index[idx+1]]
 }
