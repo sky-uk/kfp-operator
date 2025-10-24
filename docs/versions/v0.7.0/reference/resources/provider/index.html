@@ -1,95 +1,608 @@
-<!doctype html><html itemscope itemtype=http://schema.org/WebPage lang=en class=no-js><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><link rel="shortcut icon" href=/kfp-operator/favicons/favicon.ico><link rel=apple-touch-icon href=/kfp-operator/favicons/apple-touch-icon-180x180.png sizes=180x180><link rel=icon type=image/png href=/kfp-operator/favicons/favicon-16x16.png sizes=16x16><link rel=icon type=image/png href=/kfp-operator/favicons/favicon-32x32.png sizes=32x32><link rel=icon type=image/png href=/kfp-operator/favicons/android-36x36.png sizes=36x36><link rel=icon type=image/png href=/kfp-operator/favicons/android-48x48.png sizes=48x48><link rel=icon type=image/png href=/kfp-operator/favicons/android-72x72.png sizes=72x72><link rel=icon type=image/png href=/kfp-operator/favicons/android-96x96.png sizes=96x96><link rel=icon type=image/png href=/kfp-operator/favicons/android-144x144.png sizes=144x144><link rel=icon type=image/png href=/kfp-operator/favicons/android-192x192.png sizes=192x192><title>Provider | KFP-Operator</title><meta name=description content="The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider. e.g Kubeflow Pipelines or the Vertex AI Platform. Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
-Note: changing the provider of a resource that was previously managed by another provider will result in a resource error. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider."><meta property="og:url" content="https://sky-uk.github.io/kfp-operator/versions/v0.7.0/reference/resources/provider/"><meta property="og:site_name" content="KFP-Operator"><meta property="og:title" content="Provider"><meta property="og:description" content="The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider. e.g Kubeflow Pipelines or the Vertex AI Platform. Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
-Note: changing the provider of a resource that was previously managed by another provider will result in a resource error. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider."><meta property="og:locale" content="en_gb"><meta property="og:type" content="article"><meta property="article:section" content="versions"><meta itemprop=name content="Provider"><meta itemprop=description content="The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider. e.g Kubeflow Pipelines or the Vertex AI Platform. Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
-Note: changing the provider of a resource that was previously managed by another provider will result in a resource error. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider."><meta itemprop=wordCount content="564"><meta name=twitter:card content="summary"><meta name=twitter:title content="Provider"><meta name=twitter:description content="The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider. e.g Kubeflow Pipelines or the Vertex AI Platform. Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
-Note: changing the provider of a resource that was previously managed by another provider will result in a resource error. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider."><link rel=preload href=/kfp-operator/scss/main.min.c0573e55afb785a357e02b4cb629f943c134e945bfa8e511a944e49309b0e4a0.css as=style integrity="sha256-wFc+Va+3haNX4CtMtin5Q8E06UW/qOURqUTkkwmw5KA=" crossorigin=anonymous><link href=/kfp-operator/scss/main.min.c0573e55afb785a357e02b4cb629f943c134e945bfa8e511a944e49309b0e4a0.css rel=stylesheet integrity="sha256-wFc+Va+3haNX4CtMtin5Q8E06UW/qOURqUTkkwmw5KA=" crossorigin=anonymous><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script></head><body class=td-page><header><nav class="td-navbar js-navbar-scroll" data-bs-theme=dark><div class="container-fluid flex-column flex-md-row"><a class=navbar-brand href=/kfp-operator/><span class="navbar-brand__logo navbar-logo"></span><span class=navbar-brand__name>KFP-Operator</span></a><div class="td-navbar-nav-scroll ms-md-auto" id=main_navbar><ul class=navbar-nav><li class=nav-item><a class=nav-link href=/kfp-operator/versions/v0.7.0><i class='fa-solid fa-book'></i><span>Documentation</span></a></li><li class=nav-item><a class=nav-link href=https://github.com/sky-uk/kfp-operator/discussions target=_blank rel=noopener><i class='fas fa-comments'></i><span>Discuss</span></a></li><li class=nav-item><a class=nav-link href=https://github.com/sky-uk/kfp-operator target=_blank rel=noopener><i class='fab fa-github pr-2'></i><span>GitHub</span></a></li><li class="nav-item dropdown d-none d-lg-block"><div class=dropdown><a class="nav-link dropdown-toggle" href=# role=button data-bs-toggle=dropdown aria-haspopup=true aria-expanded=false>Version</a><ul class=dropdown-menu><li><a class=dropdown-item href=/kfp-operator/docs/>master</a></li><li><a class=dropdown-item href=/kfp-operator/versions/v0.6.0>v0.6.0</a></li><li><a class=dropdown-item href=/kfp-operator/versions/v0.7.0>v0.7.0</a></li></ul></div></li><li class="td-light-dark-menu nav-item dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
-<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown data-bs-display=static aria-label="Toggle theme (auto)">
-<svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class="dropdown-menu dropdown-menu-end" aria-labelledby=bd-theme-text><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
-<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
-Light
-<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
-<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
-Dark
-<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
-<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
-Auto
-<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></li></ul></div><div class="d-none d-lg-block"></div></div></nav></header><div class="container-fluid td-outer"><div class=td-main><div class="row flex-xl-nowrap"><aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none"><div id=td-sidebar-menu class=td-sidebar__inner><form class="td-sidebar__search d-flex align-items-center"><button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type=button data-bs-toggle=collapse data-bs-target=#td-section-nav aria-controls=td-section-nav aria-expanded=false aria-label="Toggle section navigation"></button></form><nav class="td-sidebar-nav collapse" id=td-section-nav><ul class="td-sidebar-nav__section pe-md-3 ul-0"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kfp-operatorversions-li><a href=/kfp-operator/versions/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id=m-kfp-operatorversions><span>Versions</span></a><ul class=ul-1><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kfp-operatorversionsv070-li><a href=/kfp-operator/versions/v0.7.0/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv070><span>Documentation (v0.7.0)</span></a><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv070getting-started-li><a href=/kfp-operator/versions/v0.7.0/getting-started/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv070getting-started><span>Getting Started</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070getting-startedoverview-li><a href=/kfp-operator/versions/v0.7.0/getting-started/overview/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070getting-startedoverview><span>Overview</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070getting-startedintroduction-li><a href=/kfp-operator/versions/v0.7.0/getting-started/introduction/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070getting-startedintroduction><span>Introduction</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070getting-startedinstallation-li><a href=/kfp-operator/versions/v0.7.0/getting-started/installation/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070getting-startedinstallation><span>Installation</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv070operator-manual-li><a href=/kfp-operator/versions/v0.7.0/operator-manual/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv070operator-manual><span>Operator Manual</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070operator-manualupgrade-guide-li><a href=/kfp-operator/versions/v0.7.0/operator-manual/upgrade-guide/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070operator-manualupgrade-guide><span>Upgrade Guide</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv070examples-li><a href=/kfp-operator/versions/v0.7.0/examples/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv070examples><span>Examples</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070examplespipeline_training-li><a href=/kfp-operator/versions/v0.7.0/examples/pipeline_training/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070examplespipeline_training><span>Pipeline Training</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070examplespipeline_dependencies-li><a href=/kfp-operator/versions/v0.7.0/examples/pipeline_dependencies/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070examplespipeline_dependencies><span>Pipeline Dependencies</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kfp-operatorversionsv070reference-li><a href=/kfp-operator/versions/v0.7.0/reference/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv070reference><span>Reference</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceconfiguration-li><a href=/kfp-operator/versions/v0.7.0/reference/configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceconfiguration><span>Configuration</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id=m-kfp-operatorversionsv070referenceresources-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv070referenceresources><span>Resources</span></a><ul class="ul-4 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceresourcespipeline-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/pipeline/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceresourcespipeline><span>Pipeline</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceresourcesrunconfiguration-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/runconfiguration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceresourcesrunconfiguration><span>RunConfiguration</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceresourcesrun-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/run/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceresourcesrun><span>Run</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceresourcesrunschedule-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/runschedule/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceresourcesrunschedule><span>RunSchedule</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceresourcesexperiment-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/experiment/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceresourcesexperiment><span>Experiment</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv070referenceresourcesmigration-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/migration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv070referenceresourcesmigration><span>Migration</span></a><ul class="ul-5 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceresourcesmigrationv1alpha6-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/migration/v1alpha6/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceresourcesmigrationv1alpha6><span>v1alpha5 to v1alpha6</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceresourcesmigrationv1beta1-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/migration/v1beta1/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceresourcesmigrationv1beta1><span>v1alpha6 to v1beta1</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id=m-kfp-operatorversionsv070referenceresourcesprovider-li><a href=/kfp-operator/versions/v0.7.0/reference/resources/provider/ class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceresourcesprovider><span class=td-sidebar-nav-active-item>Provider</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv070referenceproviders-li><a href=/kfp-operator/versions/v0.7.0/reference/providers/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv070referenceproviders><span>Providers</span></a><ul class="ul-4 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceprovidersoverview-li><a href=/kfp-operator/versions/v0.7.0/reference/providers/overview/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceprovidersoverview><span>Overview</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceproviderskfp-li><a href=/kfp-operator/versions/v0.7.0/reference/providers/kfp/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceproviderskfp><span>Kubeflow Pipelines</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceprovidersvai-li><a href=/kfp-operator/versions/v0.7.0/reference/providers/vai/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceprovidersvai><span>Vertex AI</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referenceframeworks-li><a href=/kfp-operator/versions/v0.7.0/reference/frameworks/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referenceframeworks><span>Pipeline Frameworks</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referencerun-completion-li><a href=/kfp-operator/versions/v0.7.0/reference/run-completion/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referencerun-completion><span>Run Completion Events</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv070referencedebugging-li><a href=/kfp-operator/versions/v0.7.0/reference/debugging/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv070referencedebugging><span>Debugging</span></a></li></ul></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv060-li><a href=/kfp-operator/versions/v0.6.0/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv060><span>Documentation (v0.6.0)</span></a><ul class="ul-2 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv060getting-started-li><a href=/kfp-operator/versions/v0.6.0/getting-started/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv060getting-started><span>Getting Started</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060getting-startedoverview-li><a href=/kfp-operator/versions/v0.6.0/getting-started/overview/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060getting-startedoverview><span>Overview</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060getting-startedintroduction-li><a href=/kfp-operator/versions/v0.6.0/getting-started/introduction/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060getting-startedintroduction><span>Introduction</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060getting-startedinstallation-li><a href=/kfp-operator/versions/v0.6.0/getting-started/installation/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060getting-startedinstallation><span>Installation</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv060examples-li><a href=/kfp-operator/versions/v0.6.0/examples/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv060examples><span>Examples</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060examplespipeline_training-li><a href=/kfp-operator/versions/v0.6.0/examples/pipeline_training/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060examplespipeline_training><span>Pipeline Training</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060examplespipeline_dependencies-li><a href=/kfp-operator/versions/v0.6.0/examples/pipeline_dependencies/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060examplespipeline_dependencies><span>Pipeline Dependencies</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv060reference-li><a href=/kfp-operator/versions/v0.6.0/reference/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv060reference><span>Reference</span></a><ul class="ul-3 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referenceconfiguration-li><a href=/kfp-operator/versions/v0.6.0/reference/configuration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referenceconfiguration><span>Configuration</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id=m-kfp-operatorversionsv060referenceresources-li><a href=/kfp-operator/versions/v0.6.0/reference/resources/ class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id=m-kfp-operatorversionsv060referenceresources><span>Resources</span></a><ul class="ul-4 foldable"><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referenceresourcespipeline-li><a href=/kfp-operator/versions/v0.6.0/reference/resources/pipeline/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referenceresourcespipeline><span>Pipeline</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referenceresourcesrunconfiguration-li><a href=/kfp-operator/versions/v0.6.0/reference/resources/runconfiguration/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referenceresourcesrunconfiguration><span>RunConfiguration</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referenceresourcesrun-li><a href=/kfp-operator/versions/v0.6.0/reference/resources/run/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referenceresourcesrun><span>Run</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referenceresourcesexperiment-li><a href=/kfp-operator/versions/v0.6.0/reference/resources/experiment/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referenceresourcesexperiment><span>Experiment</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referenceresourcesprovider-li><a href=/kfp-operator/versions/v0.6.0/reference/resources/provider/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referenceresourcesprovider><span>Provider</span></a></li></ul></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referencerun-completion-li><a href=/kfp-operator/versions/v0.6.0/reference/run-completion/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referencerun-completion><span>Run Completion Events</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referenceproviders-li><a href=/kfp-operator/versions/v0.6.0/reference/providers/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referenceproviders><span>Using Multiple Providers</span></a></li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id=m-kfp-operatorversionsv060referencedebugging-li><a href=/kfp-operator/versions/v0.6.0/reference/debugging/ class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id=m-kfp-operatorversionsv060referencedebugging><span>Debugging</span></a></li></ul></li></ul></li></ul></li></ul></nav></div></aside><aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none"><div class="td-page-meta ms-2 pb-1 pt-2 mb-0"><a href=https://github.com/sky-uk/kfp-operator/tree/master/docs-gen/content/versions/v0.7.0/reference/resources/provider.md class="td-page-meta--view td-page-meta__view" target=_blank rel=noopener><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
-<a href=https://github.com/sky-uk/kfp-operator/edit/master/docs-gen/content/versions/v0.7.0/reference/resources/provider.md class="td-page-meta--edit td-page-meta__edit" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
-<a href="https://github.com/sky-uk/kfp-operator/new/master/docs-gen/content/versions/v0.7.0/reference/resources?filename=change-me.md&amp;value=---%0Atitle%3A+%22Long+Page+Title%22%0AlinkTitle%3A+%22Short+Nav+Title%22%0Aweight%3A+100%0Adescription%3A+%3E-%0A+++++Page+description+for+heading+and+indexes.%0A---%0A%0A%23%23+Heading%0A%0AEdit+this+template+to+create+your+new+page.%0A%0A%2A+Give+it+a+good+name%2C+ending+in+%60.md%60+-+e.g.+%60getting-started.md%60%0A%2A+Edit+the+%22front+matter%22+section+at+the+top+of+the+page+%28weight+controls+how+its+ordered+amongst+other+pages+in+the+same+directory%3B+lowest+number+first%29.%0A%2A+Add+a+good+commit+message+at+the+bottom+of+the+page+%28%3C80+characters%3B+use+the+extended+description+field+for+more+detail%29.%0A%2A+Create+a+new+branch+so+you+can+preview+your+new+file+and+request+a+review+via+Pull+Request.%0A" class="td-page-meta--child td-page-meta__child" target=_blank rel=noopener><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
-<a href="https://github.com/sky-uk/kfp-operator/issues/new?title=Provider" class="td-page-meta--issue td-page-meta__issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
-<a href=https://github.com/sky-uk/kfp-operator/issues/new class="td-page-meta--project td-page-meta__project-issue" target=_blank rel=noopener><i class="fa-solid fa-list-check fa-fw"></i> Create project issue</a></div><div class=td-toc><nav id=TableOfContents><ul><li><ul><li><a href=#common-fields>Common Fields</a></li><li><a href=#framework>Framework</a></li><li><a href=#patch>Patch</a></li><li><a href=#kubeflow>Kubeflow</a></li><li><a href=#vertex-ai>Vertex AI</a></li></ul></li></ul></nav></div></aside><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><nav aria-label=breadcrumb class=td-breadcrumbs><ol class=breadcrumb><li class=breadcrumb-item><a href=/kfp-operator/versions/>Versions</a></li><li class=breadcrumb-item><a href=/kfp-operator/versions/v0.7.0/>Documentation (v0.7.0)</a></li><li class=breadcrumb-item><a href=/kfp-operator/versions/v0.7.0/reference/>Reference</a></li><li class=breadcrumb-item><a href=/kfp-operator/versions/v0.7.0/reference/resources/>Resources</a></li><li class="breadcrumb-item active" aria-current=page>Provider</li></ol></nav><div class=td-content><h1>Provider</h1><header class=article-meta></header><p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head><script src="/kfp-operator/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=kfp-operator/livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+
+
+<link rel="shortcut icon" href="/kfp-operator/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/kfp-operator/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/kfp-operator/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/kfp-operator/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/kfp-operator/favicons/android-192x192.png" sizes="192x192">
+
+<title>Provider | KFP-Operator</title>
+<meta name="description" content="The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider. e.g Kubeflow Pipelines or the Vertex AI Platform. Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
+Note: changing the provider of a resource that was previously managed by another provider will result in a resource error. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.">
+<meta property="og:url" content="http://localhost:1313/kfp-operator/versions/v0.7.0/reference/resources/provider/">
+  <meta property="og:site_name" content="KFP-Operator">
+  <meta property="og:title" content="Provider">
+  <meta property="og:description" content="The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider. e.g Kubeflow Pipelines or the Vertex AI Platform. Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
+Note: changing the provider of a resource that was previously managed by another provider will result in a resource error. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.">
+  <meta property="og:locale" content="en_gb">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="versions">
+
+  <meta itemprop="name" content="Provider">
+  <meta itemprop="description" content="The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider. e.g Kubeflow Pipelines or the Vertex AI Platform. Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
+Note: changing the provider of a resource that was previously managed by another provider will result in a resource error. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.">
+  <meta itemprop="wordCount" content="564">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Provider">
+  <meta name="twitter:description" content="The Provider resource represents the provider specific configuration required to submit / update / delete ml resources with the given provider. e.g Kubeflow Pipelines or the Vertex AI Platform. Providers configuration can be set using this resource and permissions for access can be configured via service accounts.
+Note: changing the provider of a resource that was previously managed by another provider will result in a resource error. Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to Pipeline) as updates are not propagated or checked and will result in runtime errors on the provider.">
+<link href="/kfp-operator/scss/main.css" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+
+  </head>
+  <body class="td-page">
+    <header>
+      <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/kfp-operator/"><span class="navbar-brand__logo navbar-logo"></span><span class="navbar-brand__name">KFP-Operator</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/kfp-operator/versions/v0.7.0"><i class='fa-solid fa-book'></i><span>Documentation</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/sky-uk/kfp-operator/discussions" target="_blank" rel="noopener"><i class='fas fa-comments'></i><span>Discuss</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="https://github.com/sky-uk/kfp-operator" target="_blank" rel="noopener"><i class='fab fa-github pr-2'></i><span>GitHub</span></a>
+      </li>
+      <li class="nav-item dropdown d-none d-lg-block">
+        <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Version</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/kfp-operator/docs/">master</a></li>
+    <li><a class="dropdown-item" href="/kfp-operator/versions/v0.6.0">v0.6.0</a></li>
+    <li><a class="dropdown-item" href="/kfp-operator/versions/v0.7.0">v0.7.0</a></li>
+    </ul>
+</div></li>
+      <li class="td-light-dark-menu nav-item dropdown">
+        <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+  <symbol id="check2" viewBox="0 0 16 16">
+    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+  </symbol>
+  <symbol id="circle-half" viewBox="0 0 16 16">
+    <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+  </symbol>
+  <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+  </symbol>
+  <symbol id="sun-fill" viewBox="0 0 16 16">
+    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+  </symbol>
+</svg>
+
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center"
+        id="bd-theme"
+        type="button"
+        aria-expanded="false"
+        data-bs-toggle="dropdown"
+        data-bs-display="static"
+        aria-label="Toggle theme (auto)">
+  <svg class="bi my-1 theme-icon-active"><use href="#circle-half"></use></svg>
+</button>
+<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme-text">
+  <li>
+    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+      <svg class="bi me-2 opacity-50"><use href="#sun-fill"></use></svg>
+      Light
+      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+    </button>
+  </li>
+  <li>
+    <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+      <svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"></use></svg>
+      Dark
+      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+    </button>
+  </li>
+  <li>
+    <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+      <svg class="bi me-2 opacity-50"><use href="#circle-half"></use></svg>
+      Auto
+      <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+    </button>
+  </li>
+</ul>
+
+      </li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <form class="td-sidebar__search d-flex align-items-center">
+    
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-kfp-operatorversions-li">
+  <a href="/kfp-operator/versions/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-kfp-operatorversions"><span class="">Versions</span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-kfp-operatorversionsv070-li">
+  <a href="/kfp-operator/versions/v0.7.0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv070"><span class="">Documentation (v0.7.0)</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv070getting-started-li">
+  <a href="/kfp-operator/versions/v0.7.0/getting-started/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv070getting-started"><span class="">Getting Started</span></a>
+  <ul class="ul-3 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070getting-startedoverview-li">
+  <a href="/kfp-operator/versions/v0.7.0/getting-started/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070getting-startedoverview"><span class="">Overview</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070getting-startedintroduction-li">
+  <a href="/kfp-operator/versions/v0.7.0/getting-started/introduction/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070getting-startedintroduction"><span class="">Introduction</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070getting-startedinstallation-li">
+  <a href="/kfp-operator/versions/v0.7.0/getting-started/installation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070getting-startedinstallation"><span class="">Installation</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv070operator-manual-li">
+  <a href="/kfp-operator/versions/v0.7.0/operator-manual/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv070operator-manual"><span class="">Operator Manual</span></a>
+  <ul class="ul-3 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070operator-manualupgrade-guide-li">
+  <a href="/kfp-operator/versions/v0.7.0/operator-manual/upgrade-guide/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070operator-manualupgrade-guide"><span class="">Upgrade Guide</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv070examples-li">
+  <a href="/kfp-operator/versions/v0.7.0/examples/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv070examples"><span class="">Examples</span></a>
+  <ul class="ul-3 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070examplespipeline_training-li">
+  <a href="/kfp-operator/versions/v0.7.0/examples/pipeline_training/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070examplespipeline_training"><span class="">Pipeline Training</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070examplespipeline_dependencies-li">
+  <a href="/kfp-operator/versions/v0.7.0/examples/pipeline_dependencies/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070examplespipeline_dependencies"><span class="">Pipeline Dependencies</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-kfp-operatorversionsv070reference-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv070reference"><span class="">Reference</span></a>
+  <ul class="ul-3 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceconfiguration-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/configuration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceconfiguration"><span class="">Configuration</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-kfp-operatorversionsv070referenceresources-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv070referenceresources"><span class="">Resources</span></a>
+  <ul class="ul-4 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceresourcespipeline-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/pipeline/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceresourcespipeline"><span class="">Pipeline</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceresourcesrunconfiguration-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/runconfiguration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceresourcesrunconfiguration"><span class="">RunConfiguration</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceresourcesrun-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/run/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceresourcesrun"><span class="">Run</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceresourcesrunschedule-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/runschedule/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceresourcesrunschedule"><span class="">RunSchedule</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceresourcesexperiment-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/experiment/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceresourcesexperiment"><span class="">Experiment</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv070referenceresourcesmigration-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/migration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv070referenceresourcesmigration"><span class="">Migration</span></a>
+  <ul class="ul-5 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceresourcesmigrationv1alpha6-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/migration/v1alpha6/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceresourcesmigrationv1alpha6"><span class="">v1alpha5 to v1alpha6</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceresourcesmigrationv1beta1-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/migration/v1beta1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceresourcesmigrationv1beta1"><span class="">v1alpha6 to v1beta1</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-kfp-operatorversionsv070referenceresourcesprovider-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/resources/provider/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceresourcesprovider"><span class="td-sidebar-nav-active-item">Provider</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv070referenceproviders-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/providers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv070referenceproviders"><span class="">Providers</span></a>
+  <ul class="ul-4 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceprovidersoverview-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/providers/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceprovidersoverview"><span class="">Overview</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceproviderskfp-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/providers/kfp/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceproviderskfp"><span class="">Kubeflow Pipelines</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceprovidersvai-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/providers/vai/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceprovidersvai"><span class="">Vertex AI</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referenceframeworks-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/frameworks/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referenceframeworks"><span class="">Pipeline Frameworks</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referencerun-completion-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/run-completion/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referencerun-completion"><span class="">Run Completion Events</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv070referencedebugging-li">
+  <a href="/kfp-operator/versions/v0.7.0/reference/debugging/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv070referencedebugging"><span class="">Debugging</span></a>
+</li>
+  </ul>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv060-li">
+  <a href="/kfp-operator/versions/v0.6.0/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv060"><span class="">Documentation (v0.6.0)</span></a>
+  <ul class="ul-2 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv060getting-started-li">
+  <a href="/kfp-operator/versions/v0.6.0/getting-started/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv060getting-started"><span class="">Getting Started</span></a>
+  <ul class="ul-3 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060getting-startedoverview-li">
+  <a href="/kfp-operator/versions/v0.6.0/getting-started/overview/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060getting-startedoverview"><span class="">Overview</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060getting-startedintroduction-li">
+  <a href="/kfp-operator/versions/v0.6.0/getting-started/introduction/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060getting-startedintroduction"><span class="">Introduction</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060getting-startedinstallation-li">
+  <a href="/kfp-operator/versions/v0.6.0/getting-started/installation/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060getting-startedinstallation"><span class="">Installation</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv060examples-li">
+  <a href="/kfp-operator/versions/v0.6.0/examples/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv060examples"><span class="">Examples</span></a>
+  <ul class="ul-3 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060examplespipeline_training-li">
+  <a href="/kfp-operator/versions/v0.6.0/examples/pipeline_training/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060examplespipeline_training"><span class="">Pipeline Training</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060examplespipeline_dependencies-li">
+  <a href="/kfp-operator/versions/v0.6.0/examples/pipeline_dependencies/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060examplespipeline_dependencies"><span class="">Pipeline Dependencies</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv060reference-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv060reference"><span class="">Reference</span></a>
+  <ul class="ul-3 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referenceconfiguration-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/configuration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referenceconfiguration"><span class="">Configuration</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child" id="m-kfp-operatorversionsv060referenceresources-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/resources/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section" id="m-kfp-operatorversionsv060referenceresources"><span class="">Resources</span></a>
+  <ul class="ul-4 foldable">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referenceresourcespipeline-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/resources/pipeline/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referenceresourcespipeline"><span class="">Pipeline</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referenceresourcesrunconfiguration-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/resources/runconfiguration/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referenceresourcesrunconfiguration"><span class="">RunConfiguration</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referenceresourcesrun-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/resources/run/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referenceresourcesrun"><span class="">Run</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referenceresourcesexperiment-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/resources/experiment/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referenceresourcesexperiment"><span class="">Experiment</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referenceresourcesprovider-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/resources/provider/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referenceresourcesprovider"><span class="">Provider</span></a>
+</li>
+  </ul>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referencerun-completion-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/run-completion/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referencerun-completion"><span class="">Run Completion Events</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referenceproviders-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/providers/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referenceproviders"><span class="">Using Multiple Providers</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-kfp-operatorversionsv060referencedebugging-li">
+  <a href="/kfp-operator/versions/v0.6.0/reference/debugging/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-kfp-operatorversionsv060referencedebugging"><span class="">Debugging</span></a>
+</li>
+  </ul>
+</li>
+  </ul>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+<a href="https://github.com/sky-uk/kfp-operator/tree/master/docs-gen/content/versions/v0.7.0/reference/resources/provider.md" class="td-page-meta--view td-page-meta__view" target="_blank" rel="noopener"><i class="fa-solid fa-file-lines fa-fw"></i> View page source</a>
+  <a href="https://github.com/sky-uk/kfp-operator/edit/master/docs-gen/content/versions/v0.7.0/reference/resources/provider.md" class="td-page-meta--edit td-page-meta__edit" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Edit this page</a>
+  <a href="https://github.com/sky-uk/kfp-operator/new/master/docs-gen/content/versions/v0.7.0/reference/resources?filename=change-me.md&amp;value=---%0Atitle%3A&#43;%22Long&#43;Page&#43;Title%22%0AlinkTitle%3A&#43;%22Short&#43;Nav&#43;Title%22%0Aweight%3A&#43;100%0Adescription%3A&#43;%3E-%0A&#43;&#43;&#43;&#43;&#43;Page&#43;description&#43;for&#43;heading&#43;and&#43;indexes.%0A---%0A%0A%23%23&#43;Heading%0A%0AEdit&#43;this&#43;template&#43;to&#43;create&#43;your&#43;new&#43;page.%0A%0A%2A&#43;Give&#43;it&#43;a&#43;good&#43;name%2C&#43;ending&#43;in&#43;%60.md%60&#43;-&#43;e.g.&#43;%60getting-started.md%60%0A%2A&#43;Edit&#43;the&#43;%22front&#43;matter%22&#43;section&#43;at&#43;the&#43;top&#43;of&#43;the&#43;page&#43;%28weight&#43;controls&#43;how&#43;its&#43;ordered&#43;amongst&#43;other&#43;pages&#43;in&#43;the&#43;same&#43;directory%3B&#43;lowest&#43;number&#43;first%29.%0A%2A&#43;Add&#43;a&#43;good&#43;commit&#43;message&#43;at&#43;the&#43;bottom&#43;of&#43;the&#43;page&#43;%28%3C80&#43;characters%3B&#43;use&#43;the&#43;extended&#43;description&#43;field&#43;for&#43;more&#43;detail%29.%0A%2A&#43;Create&#43;a&#43;new&#43;branch&#43;so&#43;you&#43;can&#43;preview&#43;your&#43;new&#43;file&#43;and&#43;request&#43;a&#43;review&#43;via&#43;Pull&#43;Request.%0A" class="td-page-meta--child td-page-meta__child" target="_blank" rel="noopener"><i class="fa-solid fa-pen-to-square fa-fw"></i> Create child page</a>
+  <a href="https://github.com/sky-uk/kfp-operator/issues/new?title=Provider" class="td-page-meta--issue td-page-meta__issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create documentation issue</a>
+  <a href="https://github.com/sky-uk/kfp-operator/issues/new" class="td-page-meta--project td-page-meta__project-issue" target="_blank" rel="noopener"><i class="fa-solid fa-list-check fa-fw"></i> Create project issue</a>
+  
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#common-fields">Common Fields</a></li>
+        <li><a href="#framework">Framework</a></li>
+        <li><a href="#patch">Patch</a></li>
+        <li><a href="#kubeflow">Kubeflow</a></li>
+        <li><a href="#vertex-ai">Vertex AI</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            
+
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
+            
+  
+
+            <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/kfp-operator/versions/">Versions</a></li>
+  <li class="breadcrumb-item">
+    <a href="/kfp-operator/versions/v0.7.0/">Documentation (v0.7.0)</a></li>
+  <li class="breadcrumb-item">
+    <a href="/kfp-operator/versions/v0.7.0/reference/">Reference</a></li>
+  <li class="breadcrumb-item">
+    <a href="/kfp-operator/versions/v0.7.0/reference/resources/">Resources</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    Provider</li>
+  </ol>
+</nav>
+<div class="td-content">
+	<h1>Provider</h1>
+	
+	<header class="article-meta">
+		
+</header>
+	<p>The Provider resource represents the provider specific configuration required to submit / update / delete ml resources
 with the given provider.
 e.g Kubeflow Pipelines or the Vertex AI Platform.
 Providers configuration can be set using this resource and permissions for access can be configured via service
-accounts.</p><blockquote><p>Note: changing the provider of a resource that was previously managed by another provider will result in a resource
+accounts.</p>
+<blockquote>
+<p>Note: changing the provider of a resource that was previously managed by another provider will result in a resource
 error.
 Any referenced resources must always match the provider of the referencing resource (e.g. RunConfiguration to
 Pipeline)
-as updates are not propagated or checked and will result in runtime errors on the provider.</p></blockquote><h3 id=common-fields>Common Fields</h3><table><thead><tr><th style=text-align:left>Name</th><th style=text-align:left>Description</th><th style=text-align:left>Example</th></tr></thead><tbody><tr><td style=text-align:left><code>spec.serviceImage</code></td><td style=text-align:left>Container image of <a href=../../providers/#provider-service>the provider service</a></td><td style=text-align:left><code>kfp-operator-kfp-provider-service:0.0.2</code></td></tr><tr><td style=text-align:left><code>spec.executionMode</code></td><td style=text-align:left>KFP compiler <a href=https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode>execution mode</a></td><td style=text-align:left><code>v1</code> (currently KFP) or <code>v2</code> (Vertex AI)</td></tr><tr><td style=text-align:left><code>spec.serviceAccount</code></td><td style=text-align:left>Service Account name to be used for all provider-specific operations (see respective provider)</td><td style=text-align:left><code>kfp-operator-vertex-ai</code></td></tr><tr><td style=text-align:left><code>spec.pipelineRootStorage</code></td><td style=text-align:left>The storage location used by <a href=https://www.tensorflow.org/tfx/guide/build_tfx_pipeline>TFX (<code>pipeline-root</code>)</a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline</td><td style=text-align:left><code>gcs://kubeflow-pipelines-bucket</code></td></tr><tr><td style=text-align:left><code>spec.parameters</code></td><td style=text-align:left>Parameters specific to each provider, i.e. <a href=#kubeflow-specific-parameters>KFP</a> and <a href=#vertex-ai-specific-parameters>VAI</a></td><td style=text-align:left><code>gcs://kubeflow-pipelines-bucket</code></td></tr><tr><td style=text-align:left><code>spec.frameworks[]</code></td><td style=text-align:left>A list of <a href=#framework>frameworks</a> supported by the provider.</td><td style=text-align:left></td></tr><tr><td style=text-align:left><code>spec.allowedNamespaces[]</code></td><td style=text-align:left>A list of namespaces that resources can reference this provider from. If a resource tries to reference this provider from a namespace not in the <code>allowedNamespaces</code> list, the resource will fail. If no allowedNamespaces list is configured, then resources can reference this provider from any namespace.</td><td style=text-align:left><code>- default</code></td></tr></tbody></table><h3 id=framework>Framework</h3><table><thead><tr><th style=text-align:left>Name</th><th style=text-align:left>Description</th><th style=text-align:left>Example</th></tr></thead><tbody><tr><td style=text-align:left><code>name</code></td><td style=text-align:left>Name of the framework.</td><td style=text-align:left><code>tfx</code></td></tr><tr><td style=text-align:left><code>image</code></td><td style=text-align:left>Framework image.</td><td style=text-align:left><code>ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag</code></td></tr><tr><td style=text-align:left><code>patches[]</code></td><td style=text-align:left>A list of JSON <a href=#patch>patches</a>, that will be applied to every <code>Pipeline</code> resource that uses this <code>Provider</code> before it&rsquo;s passed (as JSON) to the corresponding Argo Workflow for processing.</td><td style=text-align:left></td></tr></tbody></table><h3 id=patch>Patch</h3><table><thead><tr><th style=text-align:left>Name</th><th style=text-align:left>Description</th><th style=text-align:left>Example</th></tr></thead><tbody><tr><td style=text-align:left><code>type</code></td><td style=text-align:left>The type of patch to be applied to the pipeline resource definition JSON. Can be either <code>json</code> (<a href=https://datatracker.ietf.org/doc/html/rfc6902>RFC6902</a>) or <code>merge</code> (<a href=https://datatracker.ietf.org/doc/html/rfc7396>RFC7396</a>).</td><td style=text-align:left><code>json</code></td></tr><tr><td style=text-align:left><code>payload</code></td><td style=text-align:left>The patch to be applied to the pipeline resource definition JSON.</td><td style=text-align:left><code>[{ "op": "add", "path": "/framework/parameters/beamArgs/0", "value": { "name": "newArg", "value": "newValue" } }]</code></td></tr></tbody></table><h3 id=kubeflow>Kubeflow</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1beta1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Provider</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>kfp</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>kfp-operator</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>serviceImage</span>: <span style=color:#ae81ff>kfp-operator-kfp-provider-service:&lt;version&gt;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>executionMode</span>: <span style=color:#ae81ff>v1</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>pipelineRootStorage</span>: <span style=color:#ae81ff>gs://&lt;storage_location&gt;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>serviceAccount</span>: <span style=color:#ae81ff>kfp-operator-kfp</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>parameters</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>grpcKfpApiAddress</span>: <span style=color:#ae81ff>ml-pipeline.kubeflow:8887</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>grpcMetadataStoreAddress</span>: <span style=color:#ae81ff>metadata-grpc-service.kubeflow:8080</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>kfpNamespace</span>: <span style=color:#ae81ff>kubeflow</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>restKfpApiUrl</span>: <span style=color:#ae81ff>http://ml-pipeline.kubeflow:8888</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>frameworks</span>:
-</span></span><span style=display:flex><span>  - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>tfx</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>patches</span>:
-</span></span><span style=display:flex><span>    - <span style=color:#f92672>type</span>: <span style=color:#ae81ff>json</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>patch</span>: |<span style=color:#e6db74>
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>        [
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          {
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            &#34;op&#34;: &#34;add&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            &#34;path&#34;: &#34;/framework/parameters/beamArgs/0&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            &#34;value&#34;: {
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;name&#34;: &#34;project&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;value&#34;: &#34;&lt;project&gt;&#34;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            }
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          }
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>        ]</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>allowedNamespaces</span>:
-</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>default</span>
-</span></span><span style=display:flex><span>  - <span style=color:#ae81ff>my-namespace</span>
-</span></span></code></pre></div><h4 id=kubeflow-specific-parameters>Kubeflow Specific Parameters</h4><table><thead><tr><th>Name</th><th>Description</th></tr></thead><tbody><tr><td><code>grpcKfpApiAddress</code></td><td>The exposed grpc endpoint used to interact with Kubeflow pipelines</td></tr><tr><td><code>grpcMetadataStoreAddress</code></td><td>The exposed grpc endpoint used for metadata store with Kubeflow pipelines</td></tr><tr><td><code>kfpNamespace</code></td><td>The namespace where Kubeflow is deployed</td></tr><tr><td><code>restKfpApiUrl</code></td><td>The exposed restful endpoint used to interact with Kubeflow pipelines</td></tr></tbody></table><h3 id=vertex-ai>Vertex AI</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>pipelines.kubeflow.org/v1beta1</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Provider</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>vai</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>kfp-operator</span>
-</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
-</span></span><span style=display:flex><span>  <span style=color:#f92672>serviceImage</span>: <span style=color:#ae81ff>kfp-operator-vai-provider-service:&lt;version&gt;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>executionMode</span>: <span style=color:#ae81ff>v2</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>pipelineRootStorage</span>: <span style=color:#ae81ff>gs://&lt;storage_location&gt;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>serviceAccount</span>: <span style=color:#ae81ff>kfp-operator-vai</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>parameters</span>:
-</span></span><span style=display:flex><span>    <span style=color:#f92672>eventsourcePipelineEventsSubscription</span>: <span style=color:#ae81ff>kfp-operator-vai-run-events-eventsource</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>maxConcurrentRunCount</span>: <span style=color:#ae81ff>1</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>pipelineBucket</span>: <span style=color:#ae81ff>pipeline-storage-bucket</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>vaiJobServiceAccount</span>: <span style=color:#ae81ff>kfp-operator-vai@&lt;project&gt;.iam.gserviceaccount.com</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>vaiLocation</span>: <span style=color:#ae81ff>europe-west2</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>vaiProject</span>: <span style=color:#ae81ff>&lt;project&gt;</span>
-</span></span><span style=display:flex><span>  <span style=color:#f92672>frameworks</span>:
-</span></span><span style=display:flex><span>  - <span style=color:#f92672>name</span>: <span style=color:#ae81ff>tfx</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag</span>
-</span></span><span style=display:flex><span>    <span style=color:#f92672>patches</span>:
-</span></span><span style=display:flex><span>    - <span style=color:#f92672>type</span>: <span style=color:#ae81ff>json</span>
-</span></span><span style=display:flex><span>      <span style=color:#f92672>patch</span>: |<span style=color:#e6db74>
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>        [
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          {
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            &#34;op&#34;: &#34;add&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            &#34;path&#34;: &#34;/framework/parameters/beamArgs/0&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            &#34;value&#34;: {
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;name&#34;: &#34;project&#34;,
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>              &#34;value&#34;: &#34;&lt;project&gt;&#34;
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>            }
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>          }
-</span></span></span><span style=display:flex><span><span style=color:#e6db74>        ]</span>
-</span></span></code></pre></div><h4 id=vertex-ai-specific-parameters>Vertex AI Specific Parameters</h4><table><thead><tr><th>Name</th><th>Description</th></tr></thead><tbody><tr><td><code>eventsourcePipelineEventsSubscription</code></td><td>The eventsource subscription used to capture run-completion events</td></tr><tr><td><code>maxConcurrentRunCount</code></td><td>The number of pipelines that may run concurrently</td></tr><tr><td><code>pipelineBucket</code></td><td>The output storage bucket for a trained pipeline model</td></tr><tr><td><code>vaiJobServiceAccount</code></td><td>The service account should be used by VAI when submitting a pipeline</td></tr><tr><td><code>vaiLocation</code></td><td>The region VAI should run a pipeline within</td></tr><tr><td><code>vaiProject</code></td><td>The project VAI should run a pipeline within</td></tr></tbody></table></div></main></div></div><footer class="td-footer row d-print-none"><div class=container-fluid><div class="row mx-md-2"><div class="td-footer__left col-6 col-sm-4 order-sm-1"></div><div class="td-footer__right col-6 col-sm-4 order-sm-3"></div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2"></div></div></div></footer></div><script src=/kfp-operator/js/main.min.b22284f36a14e3cf2b5ae38e0b26415f6dc44542030b848166e327e05512a0cb.js integrity="sha256-siKE82oU488rWuOOCyZBX23ERUIDC4SBZuMn4FUSoMs=" crossorigin=anonymous></script><script defer src=/kfp-operator/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js integrity="sha256-c0eKfUgHaYrtfjVesj+YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin=anonymous></script><script src=/kfp-operator/js/tabpane-persist.js></script></body></html>
+as updates are not propagated or checked and will result in runtime errors on the provider.</p></blockquote>
+<h3 id="common-fields">Common Fields</h3>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Name</th>
+          <th style="text-align: left">Description</th>
+          <th style="text-align: left">Example</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><code>spec.serviceImage</code></td>
+          <td style="text-align: left">Container image of <a href="../../providers/#provider-service">the provider service</a></td>
+          <td style="text-align: left"><code>kfp-operator-kfp-provider-service:0.0.2</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>spec.executionMode</code></td>
+          <td style="text-align: left">KFP compiler <a href="https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode">execution mode</a></td>
+          <td style="text-align: left"><code>v1</code> (currently KFP) or <code>v2</code> (Vertex AI)</td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>spec.serviceAccount</code></td>
+          <td style="text-align: left">Service Account name to be used for all provider-specific operations (see respective provider)</td>
+          <td style="text-align: left"><code>kfp-operator-vertex-ai</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>spec.pipelineRootStorage</code></td>
+          <td style="text-align: left">The storage location used by <a href="https://www.tensorflow.org/tfx/guide/build_tfx_pipeline">TFX (<code>pipeline-root</code>)</a> to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline</td>
+          <td style="text-align: left"><code>gcs://kubeflow-pipelines-bucket</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>spec.parameters</code></td>
+          <td style="text-align: left">Parameters specific to each provider, i.e. <a href="#kubeflow-specific-parameters">KFP</a> and <a href="#vertex-ai-specific-parameters">VAI</a></td>
+          <td style="text-align: left"><code>gcs://kubeflow-pipelines-bucket</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>spec.frameworks[]</code></td>
+          <td style="text-align: left">A list of <a href="#framework">frameworks</a> supported by the provider.</td>
+          <td style="text-align: left"></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>spec.allowedNamespaces[]</code></td>
+          <td style="text-align: left">A list of namespaces that resources can reference this provider from. If a resource tries to reference this provider from a namespace not in the <code>allowedNamespaces</code> list, the resource will fail. If no allowedNamespaces list is configured, then resources can reference this provider from any namespace.</td>
+          <td style="text-align: left"><code>- default </code></td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="framework">Framework</h3>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Name</th>
+          <th style="text-align: left">Description</th>
+          <th style="text-align: left">Example</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><code>name</code></td>
+          <td style="text-align: left">Name of the framework.</td>
+          <td style="text-align: left"><code>tfx</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>image</code></td>
+          <td style="text-align: left">Framework image.</td>
+          <td style="text-align: left"><code>ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>patches[]</code></td>
+          <td style="text-align: left">A list of JSON <a href="#patch">patches</a>,  that will be applied to every <code>Pipeline</code> resource that uses this <code>Provider</code> before it&rsquo;s passed (as JSON) to the corresponding Argo Workflow for processing.</td>
+          <td style="text-align: left"></td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="patch">Patch</h3>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: left">Name</th>
+          <th style="text-align: left">Description</th>
+          <th style="text-align: left">Example</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: left"><code>type</code></td>
+          <td style="text-align: left">The type of patch to be applied to the pipeline resource definition JSON. Can be either <code>json</code> (<a href="https://datatracker.ietf.org/doc/html/rfc6902">RFC6902</a>) or <code>merge</code> (<a href="https://datatracker.ietf.org/doc/html/rfc7396">RFC7396</a>).</td>
+          <td style="text-align: left"><code>json</code></td>
+      </tr>
+      <tr>
+          <td style="text-align: left"><code>payload</code></td>
+          <td style="text-align: left">The patch to be applied to the pipeline resource definition JSON.</td>
+          <td style="text-align: left"><code>[{ &quot;op&quot;: &quot;add&quot;, &quot;path&quot;: &quot;/framework/parameters/beamArgs/0&quot;, &quot;value&quot;: { &quot;name&quot;: &quot;newArg&quot;, &quot;value&quot;: &quot;newValue&quot; } }]</code></td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="kubeflow">Kubeflow</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">pipelines.kubeflow.org/v1beta1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Provider</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">kfp</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l">kfp-operator</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">serviceImage</span><span class="p">:</span><span class="w"> </span><span class="l">kfp-operator-kfp-provider-service:&lt;version&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">executionMode</span><span class="p">:</span><span class="w"> </span><span class="l">v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">pipelineRootStorage</span><span class="p">:</span><span class="w"> </span><span class="l">gs://&lt;storage_location&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">serviceAccount</span><span class="p">:</span><span class="w"> </span><span class="l">kfp-operator-kfp</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">parameters</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">grpcKfpApiAddress</span><span class="p">:</span><span class="w"> </span><span class="l">ml-pipeline.kubeflow:8887</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">grpcMetadataStoreAddress</span><span class="p">:</span><span class="w"> </span><span class="l">metadata-grpc-service.kubeflow:8080</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">kfpNamespace</span><span class="p">:</span><span class="w"> </span><span class="l">kubeflow</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">restKfpApiUrl</span><span class="p">:</span><span class="w"> </span><span class="l">http://ml-pipeline.kubeflow:8888</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">frameworks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">tfx</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">patches</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l">json</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">patch</span><span class="p">:</span><span class="w"> </span><span class="p">|</span><span class="sd">
+</span></span></span><span class="line"><span class="cl"><span class="sd">        [
+</span></span></span><span class="line"><span class="cl"><span class="sd">          {
+</span></span></span><span class="line"><span class="cl"><span class="sd">            &#34;op&#34;: &#34;add&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="sd">            &#34;path&#34;: &#34;/framework/parameters/beamArgs/0&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="sd">            &#34;value&#34;: {
+</span></span></span><span class="line"><span class="cl"><span class="sd">              &#34;name&#34;: &#34;project&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="sd">              &#34;value&#34;: &#34;&lt;project&gt;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="sd">            }
+</span></span></span><span class="line"><span class="cl"><span class="sd">          }
+</span></span></span><span class="line"><span class="cl"><span class="sd">        ]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">allowedNamespaces</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="l">default</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="l">my-namespace</span><span class="w">
+</span></span></span></code></pre></div><h4 id="kubeflow-specific-parameters">Kubeflow Specific Parameters</h4>
+<table>
+  <thead>
+      <tr>
+          <th>Name</th>
+          <th>Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>grpcKfpApiAddress</code></td>
+          <td>The exposed grpc endpoint used to interact with Kubeflow pipelines</td>
+      </tr>
+      <tr>
+          <td><code>grpcMetadataStoreAddress</code></td>
+          <td>The exposed grpc endpoint used for metadata store with Kubeflow pipelines</td>
+      </tr>
+      <tr>
+          <td><code>kfpNamespace</code></td>
+          <td>The namespace where Kubeflow is deployed</td>
+      </tr>
+      <tr>
+          <td><code>restKfpApiUrl</code></td>
+          <td>The exposed restful endpoint used to interact with Kubeflow pipelines</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="vertex-ai">Vertex AI</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">pipelines.kubeflow.org/v1beta1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Provider</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">vai</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l">kfp-operator</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">spec</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">serviceImage</span><span class="p">:</span><span class="w"> </span><span class="l">kfp-operator-vai-provider-service:&lt;version&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">executionMode</span><span class="p">:</span><span class="w"> </span><span class="l">v2</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">pipelineRootStorage</span><span class="p">:</span><span class="w"> </span><span class="l">gs://&lt;storage_location&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">serviceAccount</span><span class="p">:</span><span class="w"> </span><span class="l">kfp-operator-vai</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">parameters</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">eventsourcePipelineEventsSubscription</span><span class="p">:</span><span class="w"> </span><span class="l">kfp-operator-vai-run-events-eventsource</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">maxConcurrentRunCount</span><span class="p">:</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">pipelineBucket</span><span class="p">:</span><span class="w"> </span><span class="l">pipeline-storage-bucket</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">vaiJobServiceAccount</span><span class="p">:</span><span class="w"> </span><span class="l">kfp-operator-vai@&lt;project&gt;.iam.gserviceaccount.com</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">vaiLocation</span><span class="p">:</span><span class="w"> </span><span class="l">europe-west2</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">vaiProject</span><span class="p">:</span><span class="w"> </span><span class="l">&lt;project&gt;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">frameworks</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span>- <span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">tfx</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">ghcr.io/kfp-operator/kfp-operator-tfx-compiler:version-tag</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">patches</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span>- <span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l">json</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">patch</span><span class="p">:</span><span class="w"> </span><span class="p">|</span><span class="sd">
+</span></span></span><span class="line"><span class="cl"><span class="sd">        [
+</span></span></span><span class="line"><span class="cl"><span class="sd">          {
+</span></span></span><span class="line"><span class="cl"><span class="sd">            &#34;op&#34;: &#34;add&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="sd">            &#34;path&#34;: &#34;/framework/parameters/beamArgs/0&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="sd">            &#34;value&#34;: {
+</span></span></span><span class="line"><span class="cl"><span class="sd">              &#34;name&#34;: &#34;project&#34;,
+</span></span></span><span class="line"><span class="cl"><span class="sd">              &#34;value&#34;: &#34;&lt;project&gt;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="sd">            }
+</span></span></span><span class="line"><span class="cl"><span class="sd">          }
+</span></span></span><span class="line"><span class="cl"><span class="sd">        ]</span><span class="w">
+</span></span></span></code></pre></div><h4 id="vertex-ai-specific-parameters">Vertex AI Specific Parameters</h4>
+<table>
+  <thead>
+      <tr>
+          <th>Name</th>
+          <th>Description</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>eventsourcePipelineEventsSubscription</code></td>
+          <td>The eventsource subscription used to capture run-completion events</td>
+      </tr>
+      <tr>
+          <td><code>maxConcurrentRunCount</code></td>
+          <td>The number of pipelines that may run concurrently</td>
+      </tr>
+      <tr>
+          <td><code>pipelineBucket</code></td>
+          <td>The output storage bucket for a trained pipeline model</td>
+      </tr>
+      <tr>
+          <td><code>vaiJobServiceAccount</code></td>
+          <td>The service account should be used by VAI when submitting a pipeline</td>
+      </tr>
+      <tr>
+          <td><code>vaiLocation</code></td>
+          <td>The region VAI should run a pipeline within</td>
+      </tr>
+      <tr>
+          <td><code>vaiProject</code></td>
+          <td>The project VAI should run a pipeline within</td>
+      </tr>
+  </tbody>
+</table>
+
+	
+</div>
+
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/kfp-operator/js/main.js"></script>
+<script defer src="/kfp-operator/js/click-to-copy.js" crossorigin="anonymous"></script>
+<script src='/kfp-operator/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

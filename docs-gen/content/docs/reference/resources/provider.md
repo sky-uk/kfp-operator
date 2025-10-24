@@ -1,6 +1,6 @@
 ---
 title: "Provider"
-weight: 6
+weight: 1
 ---
 
 The Provider resource represents the provider specific configuration required to submit / update / delete ml resources
@@ -19,7 +19,7 @@ as updates are not propagated or checked and will result in runtime errors on th
 
 | Name                       | Description                                                                                                                                                                                                                                                                                                   | Example                                   |
 |:---------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------|
-| `spec.serviceImage`        | Container image of [the provider service](../../providers/#provider-service)                                                                                                                                                                                                                                  | `kfp-operator-kfp-provider-service:0.0.2` |
+| `spec.serviceImage`        | Container image of [the provider service](../../platform-engineers/configuration/providers/#provider-service)                                                                                                                                                                                                                                  | `kfp-operator-kfp-provider-service:0.0.2` |
 | `spec.executionMode`       | KFP compiler [execution mode](https://kubeflow-pipelines.readthedocs.io/en/latest/source/kfp.dsl.html#kfp.dsl.PipelineExecutionMode) **Note:** This field has been deprecated after v0.7.0 v1beta1 api specification changes, and will be removed in future versions.                                         | `v1` (currently KFP) or `v2` (Vertex AI)  |
 | `spec.serviceAccount`      | Service Account name to be used for all provider-specific operations (see respective provider)                                                                                                                                                                                                                | `kfp-operator-vertex-ai`                  |
 | `spec.pipelineRootStorage` | The storage location used by [TFX (`pipeline-root`)](https://www.tensorflow.org/tfx/guide/build_tfx_pipeline) to store pipeline artifacts and outputs - this should be a top-level directory and not specific to a single pipeline                                                                            | `gcs://kubeflow-pipelines-bucket`         |

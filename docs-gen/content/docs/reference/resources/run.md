@@ -77,4 +77,4 @@ Artifact path Syntax: `<COMPONENT>:<OUTPUT>:<INDEX>[<FILTER>]` with the followin
 ## Lifecycle
 
 The KFP-Operator tracks the completion of the created run in the `CompletionState` of the resource's status.
-The operator will clean up completed runs automatically based on the configured TTL. See [Configuration](../../configuration) for more information.
+The operator will clean up completed runs automatically based on the configured TTL. See [Configuration](../../platform-engineers/configuration/operator-configuration) for more information.
