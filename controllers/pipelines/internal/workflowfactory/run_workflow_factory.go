@@ -80,7 +80,7 @@ func RunWorkflowFactory(
 			Config: config,
 		}.runDefinition,
 		Config:                config,
-		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
+		TemplateSuffix:        SimpleSuffix,
 		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.Run],
 	}
 }

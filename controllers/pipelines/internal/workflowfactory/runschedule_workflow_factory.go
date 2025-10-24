@@ -88,7 +88,7 @@ func RunScheduleWorkflowFactory(
 			Config: config,
 		}.runScheduleDefinition,
 		Config:                config,
-		TemplateNameGenerator: SimpleTemplateNameGenerator(config),
+		TemplateSuffix:        SimpleSuffix,
 		WorkflowParamsCreator: WorkflowParamsCreatorNoop[*pipelineshub.RunSchedule],
 	}
 }
